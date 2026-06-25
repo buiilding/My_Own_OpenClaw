@@ -114,6 +114,7 @@ function resolveSdkResponseOverlayPresentationState({
 
 function resolveResponseOverlayDismissalTarget({
   currentTurnProjection = null,
+  overlayIntent = null,
   responseOverlayEntries = [],
   useSdkLiveTurnPresentation = false,
 } = {}) {
@@ -125,7 +126,10 @@ function resolveResponseOverlayDismissalTarget({
     return null;
   }
   const sdkOverlayIntent = useSdkLiveTurnPresentation
-    ? resolveSdkOverlayIntent(currentTurnProjection?.presentation, currentTurnProjection)
+    ? (
+      overlayIntent
+      || resolveSdkOverlayIntent(currentTurnProjection?.presentation, currentTurnProjection)
+    )
     : null;
   const turnRef = (
     sdkOverlayIntent?.turnRef

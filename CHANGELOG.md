@@ -48,6 +48,10 @@ All notable changes to WindieOS will be documented in this file.
   into `chatStore.messages`; revision commands now store the returned SDK view
   and leave row construction on the chat presentation path. No migration
   required.
+- frontend/live-surface: route response overlay view-model state through SDK
+  `ConversationView.liveTurn` and `ConversationView.surfaces.responseOverlay`
+  before stale raw current-turn projection, while preserving the renderer-local
+  pending bridge for unrelated sends. No migration required.
 - frontend/replay: move replay pending publication, SDK retry/edit dispatch,
   trace snapshots, and failure cleanup out of the React hook into
   `desktopConversationReplayRuntime`. No migration required.

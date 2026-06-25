@@ -120,6 +120,70 @@ function resolveSdkOverlayIntentMode(currentTurnProjection) {
   return 'hidden';
 }
 
+function normalizeSurfaceOverlayMode(value) {
+  const normalized = normalizePhase(value);
+  if (normalized === 'typing' || normalized === 'awaiting') {
+    return 'awaiting';
+  }
+  if (normalized === 'response') {
+    return 'response';
+  }
+  return 'hidden';
+}
+
+function resolveConversationViewOverlayIntent(conversationView) {
+  const responseOverlaySurface = conversationView?.surfaces?.responseOverlay;
+  const liveTurn = conversationView?.liveTurn;
+  const mode = normalizeSurfaceOverlayMode(responseOverlaySurface?.mode);
+  const turnRef = (
+    normalizeTurnRef(responseOverlaySurface?.turnRef)
+    || normalizeTurnRef(liveTurn?.turnRef)
+  );
+  const conversationRef = (
+    normalizeConversationRef(responseOverlaySurface?.ownerConversationRef)
+    || normalizeConversationRef(responseOverlaySurface?.conversationRef)
+    || normalizeConversationRef(conversationView?.conversationRef)
+  );
+  const staleGuardRef = (
+    normalizeTurnRef(responseOverlaySurface?.guardRef)
+    || normalizeTurnRef(responseOverlaySurface?.staleGuardRef)
+    || turnRef
+  );
+  return {
+    visible: responseOverlaySurface?.visible === true || mode !== 'hidden',
+    mode,
+    turnRef,
+    conversationRef,
+    staleGuardRef,
+  };
+}
+
+function resolveConversationViewSurfacePhase(conversationView) {
+  const responseOverlaySurface = conversationView?.surfaces?.responseOverlay;
+  const liveTurn = conversationView?.liveTurn;
+  const mode = normalizeSurfaceOverlayMode(responseOverlaySurface?.mode);
+  if (mode === 'awaiting') {
+    return getAwaitingFirstChunkResponseOverlayPhase();
+  }
+  if (mode === 'response') {
+    return mapCurrentTurnProjectionPhase(liveTurn?.phase) || getStreamingResponseOverlayPhase();
+  }
+  return mapCurrentTurnProjectionPhase(liveTurn?.phase) || getIdleResponseOverlayPhase();
+}
+
+function hasConversationViewLiveTurn(conversationView) {
+  const liveTurn = conversationView?.liveTurn;
+  const responseOverlaySurface = conversationView?.surfaces?.responseOverlay;
+  return Boolean(
+    conversationView
+      && typeof conversationView === 'object'
+      && (
+        liveTurn
+        || responseOverlaySurface
+      ),
+  );
+}
+
 function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
   const intent = presentation?.overlayIntent;
   const mode = resolveSdkOverlayIntentMode(currentTurnProjection);
@@ -145,13 +209,14 @@ function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
 }
 
 function resolveLiveTurnPresentationInput({
+  conversationView = null,
   currentTurnProjection = null,
   pendingTurn = null,
   messages = [],
   visibleTurnLifecycle = null,
 } = {}) {
-  const useSdkLiveTurnPresentation = hasSdkLiveTurnPresentation(currentTurnProjection);
   const resolvedVisibleTurnLifecycle = visibleTurnLifecycle ?? resolveVisibleTurnLifecycle({
+    conversationView,
     pendingTurn,
     currentTurnProjection,
     messages,
@@ -170,7 +235,7 @@ function resolveLiveTurnPresentationInput({
       isBusy: true,
       source: 'pending-turn',
       useLocalPendingTurn: true,
-      useSdkLiveTurnPresentation,
+      useSdkLiveTurnPresentation: false,
       overlayIntent: {
         visible: true,
         mode: 'awaiting',
@@ -185,6 +250,25 @@ function resolveLiveTurnPresentationInput({
     };
   }
 
+  if (hasConversationViewLiveTurn(conversationView)) {
+    const liveTurn = conversationView.liveTurn || {};
+    const overlayIntent = resolveConversationViewOverlayIntent(conversationView);
+    const entries = Array.isArray(liveTurn.entries) ? liveTurn.entries : [];
+    return {
+      phase: resolveConversationViewSurfacePhase(conversationView),
+      isBusy: liveTurn.isBusy === true,
+      source: 'conversation-view',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: entries.length > 0,
+      overlayIntent,
+      entries,
+      turnRef: overlayIntent.turnRef || liveTurn.turnRef || null,
+      conversationRef: overlayIntent.conversationRef || conversationView.conversationRef || null,
+      guardRef: overlayIntent.staleGuardRef || overlayIntent.turnRef || liveTurn.turnRef || null,
+    };
+  }
+
+  const useSdkLiveTurnPresentation = hasSdkLiveTurnPresentation(currentTurnProjection);
   const visibleLifecyclePhase = resolveVisibleLifecycleSurfacePhase(
     resolvedVisibleTurnLifecycle,
     currentTurnProjection,
@@ -244,5 +328,6 @@ function resolveLiveTurnPresentationInput({
 
 export const DesktopLiveTurnSurfaceRuntime = Object.freeze({
   resolveLiveTurnPresentationInput,
+  resolveConversationViewOverlayIntent,
   resolveSdkOverlayIntent,
 });

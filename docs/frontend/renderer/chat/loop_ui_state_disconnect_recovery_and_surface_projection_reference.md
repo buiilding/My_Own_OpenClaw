@@ -181,9 +181,13 @@ visible same-turn projection.
 `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)` delegates
 local pending-turn handoff to the already-resolved
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` status.
-The live surface still prepares overlay presentation input and SDK overlay
-intent metadata, but phase, busy, awaiting, and response flags now come from
-that visible lifecycle projection. The
+When a same-turn SDK `ConversationView` live turn exists, the visible lifecycle
+and live-surface input use `ConversationView.liveTurn` plus
+`ConversationView.surfaces.responseOverlay` before raw current-turn projection.
+An unrelated renderer-local pending turn still owns the immediate pending
+bridge. The live surface still prepares overlay presentation input and SDK
+overlay intent metadata, but phase, busy, awaiting, and response flags now come
+from that visible lifecycle projection. The
 live-surface adapter exposes `isBusy` rather than a legacy `isSending` alias,
 and no longer returns a separate `showAwaiting` typing alias; typing state
 stays on `visibleTurnLifecycle.showTyping`. It also omits the duplicate
@@ -214,11 +218,12 @@ the normal replacement query. That keeps edit/resend and retry in the same
 `local_pending -> SDK handoff` path as normal sends; display replacement
 latency does not rely on bare `isSending` as a visible lifecycle authority.
 
-`useResponseOverlayViewModel(...)` also resolves the same visible lifecycle and
-applies `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
-directly before deriving response-overlay view intent. The response overlay therefore
-shows awaiting only for renderer local pending or SDK awaiting lifecycle, and
-shows response only for visible SDK entries. Phase-only `streaming`,
+`useResponseOverlayViewModel(...)` also resolves the same visible lifecycle,
+passes `ConversationView` into the live-surface runtime, and applies
+`DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
+directly before deriving response-overlay view intent. The response overlay
+therefore shows awaiting only for renderer local pending or SDK awaiting
+lifecycle, and shows response only for visible SDK entries. Phase-only `streaming`,
 `tool_call`, or `tool_output` projections with no visible text, tool event,
 progress, error, or pending turn do not independently show typing. The
 response-overlay view contract reads `visibleTurnLifecycle.status` directly

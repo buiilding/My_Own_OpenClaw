@@ -33,6 +33,7 @@ const {
   resolveSdkResponseOverlayPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
 const {
+  buildConversationViewLiveTurnMessages,
   buildCurrentTurnMessagesFromProjection,
   buildCurrentTurnMessagesFromPresentation,
   isResponseCloseable,
@@ -62,6 +63,7 @@ function normalizeReasoningText(reasoningText) {
 
 export function useResponseOverlayViewModel({
   messages = [],
+  conversationView = null,
   currentTurnProjection = null,
   pendingTurn = null,
 }) {
@@ -78,11 +80,13 @@ export function useResponseOverlayViewModel({
   const lastTypingVisibleRef = useRef(null);
   const lastOverlayIntentModeRef = useRef(null);
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
+    conversationView,
     pendingTurn,
     currentTurnProjection,
     messages,
   });
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
+    conversationView,
     currentTurnProjection,
     pendingTurn,
     messages,
@@ -96,6 +100,10 @@ export function useResponseOverlayViewModel({
       if (useLocalPendingTurn) {
         return [];
       }
+      if (liveTurnPresentationInput.source === 'conversation-view') {
+        return buildConversationViewLiveTurnMessages(conversationView)
+          .filter(isVisibleResponseOverlayMessage);
+      }
       if (useSdkLiveTurnPresentation) {
         const presentationMessages = buildCurrentTurnMessagesFromPresentation(currentTurnProjection)
           .filter(isVisibleResponseOverlayMessage);
@@ -105,7 +113,13 @@ export function useResponseOverlayViewModel({
       }
       return normalizeProjectedCurrentTurnEntries(currentTurnProjection);
     },
-    [currentTurnProjection, useLocalPendingTurn, useSdkLiveTurnPresentation],
+    [
+      conversationView,
+      currentTurnProjection,
+      liveTurnPresentationInput.source,
+      useLocalPendingTurn,
+      useSdkLiveTurnPresentation,
+    ],
   );
 
   const currentTurnMessages = useMemo(
@@ -120,11 +134,13 @@ export function useResponseOverlayViewModel({
   const responseOverlayDismissalTarget = useMemo(() => {
     return resolveResponseOverlayDismissalTarget({
       currentTurnProjection,
+      overlayIntent: liveTurnPresentationInput.overlayIntent,
       responseOverlayEntries,
       useSdkLiveTurnPresentation,
     });
   }, [
     currentTurnProjection,
+    liveTurnPresentationInput.overlayIntent,
     responseOverlayEntries,
     useSdkLiveTurnPresentation,
   ]);
@@ -151,7 +167,11 @@ export function useResponseOverlayViewModel({
   const resolvedCurrentTurnPresentationState = useMemo(
     () => {
       let presentationState;
-      if (useSdkLiveTurnPresentation && !useLocalPendingTurn) {
+      if (
+        useSdkLiveTurnPresentation
+        && !useLocalPendingTurn
+        && liveTurnPresentationInput.source !== 'conversation-view'
+      ) {
         presentationState = resolveSdkResponseOverlayPresentationState({
           currentTurnProjection,
           responseOverlayEntries,
@@ -181,6 +201,7 @@ export function useResponseOverlayViewModel({
       currentTurnProjection,
       dismissedResponseId,
       liveTurnPresentationInput.overlayIntent,
+      liveTurnPresentationInput.source,
       visibleTurnLifecycle,
       responseOverlayEntries,
       useLocalPendingTurn,
@@ -241,6 +262,7 @@ export function useResponseOverlayViewModel({
   useEffect(() => {
     const overlayIntent = resolvedCurrentTurnPresentationState.overlayIntent ?? null;
     const tracePayload = buildRendererOverlayViewModelTracePayload({
+      conversationView,
       currentTurnProjection,
       pendingTurn,
       streamTracking,
@@ -278,6 +300,7 @@ export function useResponseOverlayViewModel({
     }
   }, [
     currentTurnPhase,
+    conversationView,
     currentTurnProjection,
     responseOverlayEntries,
     resolvedCurrentTurnPresentationState,

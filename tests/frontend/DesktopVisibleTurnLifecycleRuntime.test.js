@@ -315,6 +315,52 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
   });
 
+  test('lets same-turn ConversationView replace local pending lifecycle', () => {
+    const pending = pendingTurn({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-view',
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      conversationView: {
+        conversationRef: 'conv-1',
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'streaming',
+          isBusy: true,
+          entries: [{
+            id: 'entry-view',
+            type: 'llm-text',
+            text: 'view response',
+          }],
+        },
+        surfaces: {
+          responseOverlay: {
+            mode: 'response',
+            visible: true,
+            turnRef: 'turn-view',
+            guardRef: 'turn-view',
+            ownerConversationRef: 'conv-1',
+          },
+        },
+      },
+    })).toMatchObject({
+      status: 'active',
+      source: 'conversation-view',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-view',
+      entries: [
+        expect.objectContaining({
+          id: 'entry-view',
+          text: 'view response',
+        }),
+      ],
+      showTyping: false,
+    });
+  });
+
   test('adapts visible lifecycle into overlay-compatible presentation fields for surface consumers', () => {
     const visibleLifecycle = resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',

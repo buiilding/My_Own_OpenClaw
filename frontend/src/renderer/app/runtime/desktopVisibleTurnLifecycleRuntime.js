@@ -107,6 +107,16 @@ function hasAuthoritativeSameTurnSdkReplacement(pendingTurn, currentTurnProjecti
   );
 }
 
+function conversationViewMatchesPendingTurn(pendingTurn, conversationView) {
+  if (!pendingTurn || !conversationView) {
+    return false;
+  }
+  return (
+    normalizeConversationRef(conversationView.conversationRef) === pendingTurn.conversationRef
+    && normalizeTurnRef(conversationView.liveTurn?.turnRef) === pendingTurn.turnRef
+  );
+}
+
 function resolvePendingTurnForCurrentProjection({
   pendingTurn = null,
   currentTurnProjection = null,
@@ -188,8 +198,38 @@ function resolveSdkLifecycleStatus(currentTurnProjection) {
   return 'idle';
 }
 
+function resolveConversationViewLifecycleStatus(conversationView) {
+  const liveTurn = conversationView?.liveTurn;
+  const responseOverlayMode = normalizeString(conversationView?.surfaces?.responseOverlay?.mode);
+  if (!liveTurn && !responseOverlayMode) {
+    return 'idle';
+  }
+  if (responseOverlayMode === 'typing' || responseOverlayMode === 'awaiting') {
+    return 'awaiting';
+  }
+  if (responseOverlayMode === 'response') {
+    return 'active';
+  }
+  if (liveTurn?.isTerminal === true) {
+    return 'terminal';
+  }
+  const phase = normalizeProjectionPhase(liveTurn);
+  if (TERMINAL_PHASES.has(phase)) {
+    return 'terminal';
+  }
+  if (
+    liveTurn?.isBusy === true
+    || BUSY_PHASES.has(phase)
+    || hasVisiblePresentationContent(liveTurn)
+  ) {
+    return AWAITING_PHASES.has(phase) ? 'awaiting' : 'active';
+  }
+  return 'idle';
+}
+
 function resolveVisibleTurnLifecycle({
   activeConversationRef = null,
+  conversationView = null,
   pendingTurn = null,
   currentTurnProjection = null,
   messages = [],
@@ -202,8 +242,13 @@ function resolveVisibleTurnLifecycle({
     normalizedPendingTurn,
     currentTurnProjection,
   );
+  const viewStatus = resolveConversationViewLifecycleStatus(conversationView);
+  const sameTurnConversationViewReplacement = (
+    conversationViewMatchesPendingTurn(normalizedPendingTurn, conversationView)
+    && viewStatus !== 'idle'
+  );
 
-  if (normalizedPendingTurn && !sameTurnReplacement) {
+  if (normalizedPendingTurn && !sameTurnReplacement && !sameTurnConversationViewReplacement) {
     return {
       status: 'local_pending',
       source: 'local',
@@ -214,6 +259,22 @@ function resolveVisibleTurnLifecycle({
       terminalReason: null,
       isBusy: true,
       showTyping: true,
+    };
+  }
+
+  if (conversationView && viewStatus !== 'idle') {
+    const liveTurn = conversationView.liveTurn || {};
+    const entries = Array.isArray(liveTurn.entries) ? liveTurn.entries : [];
+    return {
+      status: viewStatus,
+      source: 'conversation-view',
+      conversationRef: normalizeConversationRef(conversationView.conversationRef),
+      turnRef: normalizeTurnRef(liveTurn.turnRef),
+      awaitingAnchor: null,
+      entries,
+      terminalReason: liveTurn.isTerminal === true ? 'complete' : null,
+      isBusy: liveTurn.isBusy === true && viewStatus !== 'terminal',
+      showTyping: viewStatus === 'awaiting',
     };
   }
 

@@ -344,6 +344,10 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/chat/hooks/useChatSurfaceController.js'),
       'utf8',
     );
+    const liveSurfaceRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopLiveTurnSurfaceRuntime.js'),
+      'utf8',
+    );
     const minimalPillSource = await fs.readFile(
       path.join(rendererRoot, 'features/minimalChatPill/components/MinimalChatPill.jsx'),
       'utf8',
@@ -1800,6 +1804,10 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/chat/hooks/useChatSurfaceController.js'),
       'utf8',
     );
+    const liveSurfaceRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopLiveTurnSurfaceRuntime.js'),
+      'utf8',
+    );
     const responseOverlayViewModelSource = await fs.readFile(
       path.join(rendererRoot, 'features/minimalChatPill/hooks/useResponseOverlayViewModel.js'),
       'utf8',
@@ -1836,8 +1844,12 @@ describe('renderer app runtime boundary', () => {
     expect(normalizedChatInterfaceSource).toContain('useChatSurfaceController({\n    messages,');
     expect(normalizedMinimalPillSource).toContain('useChatSurfaceController({\n    messages,');
     expect(normalizedResponseOverlaySource).toContain(
-      'useResponseOverlayViewModel({\n    messages,\n    currentTurnProjection,',
+      'useResponseOverlayViewModel({\n    messages,\n    currentTurnProjection,\n    conversationView,',
     );
+    expect(liveSurfaceRuntimeSource).toContain('resolveConversationViewOverlayIntent');
+    expect(liveSurfaceRuntimeSource).toContain("source: 'conversation-view'");
+    expect(responseOverlayViewModelSource).toContain('buildConversationViewLiveTurnMessages');
+    expect(responseOverlayViewModelSource).toContain("liveTurnPresentationInput.source === 'conversation-view'");
     expect(normalizedResponseOverlaySource).not.toContain('thinkingStatus');
     expect(responseOverlayViewModelSource).not.toContain('thinkingStatus');
     expect(normalizedChatInterfaceSource).not.toContain('useChatSurfaceController({\n    isSending,');
