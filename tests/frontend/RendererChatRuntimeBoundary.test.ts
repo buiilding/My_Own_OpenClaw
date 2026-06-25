@@ -1062,6 +1062,10 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionStreamRuntimeSource).toContain('withoutSupersededRows');
     expect(projectionStreamRuntimeSource).toContain('buildReplayProjectionTracePayload');
     expect(projectionStreamRuntimeSource).toContain('currentMatchesOldTurn');
+    expect(projectionStreamRuntimeSource).toContain('const hasConversationView = isConversationView(workspace.conversationView)');
+    expect(projectionStreamRuntimeSource).toContain('viewLiveTurn?.turnRef');
+    expect(projectionStreamRuntimeSource).toContain('workspace.conversationView.displayRows.length');
+    expect(projectionStreamRuntimeSource).toContain('messageCount = hasConversationView');
     expect(projectionStreamRuntimeSource).toContain('DesktopConversationDisplayProjection');
     expect(projectionStreamRuntimeSource).not.toContain('features/chat');
     expect(replayRuntimeSource).toContain('buildReplayProjectionTracePayload');

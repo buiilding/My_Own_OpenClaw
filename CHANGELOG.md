@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: make replay projection traces prefer
+  `ConversationView.liveTurn` and `displayRows` once a view exists, so raw
+  renderer messages/current-turn state stay a no-view diagnostic fallback. No
+  migration required.
 - frontend/projection: stop synthesizing missing model-facing tool-call
   objects from SDK display-row metadata; renderer projection now preserves
   metadata as details without recreating SDK command semantics. No migration

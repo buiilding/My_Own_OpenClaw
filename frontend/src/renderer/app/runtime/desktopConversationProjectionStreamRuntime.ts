@@ -35,13 +35,21 @@ type CurrentTurnLike = {
   turnRef?: string | null;
 } | null | undefined;
 
+type ConversationViewLike = {
+  displayRows?: unknown[] | null;
+  liveTurn?: {
+    phase?: string | null;
+    turnRef?: string | null;
+  } | null;
+} | null | undefined;
+
 type StreamTrackingLike = {
   activeTurnRef?: string | null;
   phase: StreamPhase;
 };
 
 type ProjectionWorkspace = {
-  conversationView?: unknown | null;
+  conversationView?: ConversationViewLike;
   currentTurnProjection?: CurrentTurnLike;
   messages: ChatMessage[];
   pendingTurn?: PendingTurnLike;
@@ -145,6 +153,10 @@ function withoutSupersededRows<TRow>(
   return rows.filter((row) => !isSupersededTurn(workspace, rowTurnRef(row)));
 }
 
+function isConversationView(value: ConversationViewLike): value is NonNullable<ConversationViewLike> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
 function buildReplayProjectionTracePayload({
   action,
   conversationRef,
@@ -152,16 +164,30 @@ function buildReplayProjectionTracePayload({
   values = {},
 }: ReplayProjectionTracePayloadInput): RendererReplayTraceValues {
   const pendingTurnRef = normalizeTurnRef(workspace.pendingTurn?.turnRef);
-  const currentTurnRef = normalizeTurnRef(workspace.currentTurnProjection?.turnRef);
+  const hasConversationView = isConversationView(workspace.conversationView);
+  const viewLiveTurn = hasConversationView ? workspace.conversationView.liveTurn ?? null : null;
+  const currentTurnRef = hasConversationView
+    ? normalizeTurnRef(viewLiveTurn?.turnRef)
+    : normalizeTurnRef(workspace.currentTurnProjection?.turnRef);
+  const currentTurnPhase = hasConversationView
+    ? viewLiveTurn?.phase ?? null
+    : workspace.currentTurnProjection?.phase ?? null;
+  const messageCount = hasConversationView
+    ? 0
+    : Array.isArray(workspace.messages) ? workspace.messages.length : 0;
+  const displayRowCount = hasConversationView && Array.isArray(workspace.conversationView?.displayRows)
+    ? workspace.conversationView.displayRows.length
+    : 0;
   return {
     action,
     conversationRef,
     pendingTurnRef,
     currentTurnRef,
-    currentTurnPhase: workspace.currentTurnProjection?.phase ?? null,
+    currentTurnPhase,
     streamActiveTurnRef: workspace.streamTracking?.activeTurnRef ?? null,
     streamPhase: workspace.streamTracking?.phase ?? null,
-    messageCount: Array.isArray(workspace.messages) ? workspace.messages.length : 0,
+    messageCount,
+    displayRowCount,
     pendingPresent: Boolean(pendingTurnRef),
     pendingMatchesNewTurn: Boolean(
       pendingTurnRef

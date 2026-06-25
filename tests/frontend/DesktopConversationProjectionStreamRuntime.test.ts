@@ -185,6 +185,46 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
     }));
   });
 
+  test('builds replay trace payloads from ConversationView instead of stale raw state', () => {
+    expect(buildReplayProjectionTracePayload({
+      action: 'sdk_current_turn_applied',
+      conversationRef: 'conv-1',
+      workspace: {
+        conversationView: {
+          liveTurn: {
+            turnRef: 'turn-view',
+            phase: 'complete',
+          },
+          displayRows: [
+            { id: 'view-user' },
+            { id: 'view-assistant' },
+          ],
+        },
+        messages: [{ id: 'stale-message', sender: 'user', text: 'stale' }],
+        pendingTurn: { turnRef: 'turn-new' },
+        currentTurnProjection: {
+          turnRef: 'turn-stale',
+          phase: 'streaming',
+        },
+        streamTracking: {
+          activeTurnRef: 'turn-stale',
+          phase: 'streaming',
+        },
+      },
+      values: {
+        newTurnRef: 'turn-new',
+        oldTurnRef: 'turn-view',
+      },
+    })).toEqual(expect.objectContaining({
+      currentTurnRef: 'turn-view',
+      currentTurnPhase: 'complete',
+      currentMatchesOldTurn: true,
+      currentMatchesNewTurn: false,
+      displayRowCount: 2,
+      messageCount: 0,
+    }));
+  });
+
   test('reports replay cleanup traces when current projection still points at the old turn', () => {
     expect(buildReplayProjectionTracePayload({
       action: 'sdk_replay_after_cleanup',

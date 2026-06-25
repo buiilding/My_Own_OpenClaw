@@ -139,7 +139,10 @@ presentation metadata uses `sdk:display-rows` as its source label; the
 Replay diagnostics use the same projection-stream helper. Replay intent runtime
 passes old/new turn refs into `buildReplayProjectionTracePayload(...)` and logs
 the resulting summary; it should not read raw current-turn, pending-turn, stream
-tracking, or message-count fields itself.
+tracking, or message-count fields itself. Once `ConversationView` exists, that
+helper reports trace current-turn identity from `ConversationView.liveTurn` and
+counts `displayRows`; raw `chatStore.messages` and `currentTurnProjection`
+remain no-view diagnostic fallbacks only.
 
 Renderer-only annotations such as prompt transparency, tool schemas, full
 message details, feedback, and token counts are merged back into matching
