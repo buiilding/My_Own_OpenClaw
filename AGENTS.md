@@ -9,9 +9,7 @@ Before coding or answering implementation questions:
 - Read the nearest `read_when` docs until the domain and behavior are clear.
 - When finding or fixing a bug, check `<windie> --help` and the command
   registry behind it for existing commands tied to the affected runtime or
-  failing path. Prefer the relevant `<windie>` diagnostics, logs, trace,
-  conversation, docs, start, and `test pick` commands for reproduction,
-  inspection, and validation before inventing ad hoc shell commands.
+  failing path. You can ask the user to simulate the specified bug so you could trace the paths to find the bug
 - Search recent commits by affected feature or symptom:
 `<windie> commits search <query>`.
 - Read `docs/debug/invariants.md` as the central ledger for durable WindieOS
