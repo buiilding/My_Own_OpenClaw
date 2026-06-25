@@ -83,7 +83,13 @@ replay/store compatibility adapters and low-level artifact helpers.
   `conversation_ref` is absent. Turn-ref normalization and map merge rules live
   in `desktopChatTurnConversationRefRuntime.ts`; the store only binds the
   resulting map update.
-- `setIsSending`, `setThinkingStatus`, `setTokenCounts` no-op when value/reference unchanged
+- `setIsSending`, `setThinkingStatus`, `setThinkingSourceEventType`,
+  `setCompactionDebugInfo`, and `setTokenCounts` apply simple workspace field
+  updates through
+  `DesktopChatWorkspaceFieldRuntime.buildSetWorkspaceFieldStateUpdate(...)`.
+  Workspace resolution, equality no-op handling, and workspace update assembly
+  live in that app runtime; the store only passes field intent plus workspace
+  dependency adapters.
 - `updateStreamTracking` applies updater output through
   `DesktopChatStreamTrackingRuntime.buildUpdateStreamTrackingStateUpdate(...)`.
   Workspace resolution, stream-tracking reference no-op handling, and workspace

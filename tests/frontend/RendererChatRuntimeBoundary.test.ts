@@ -3173,6 +3173,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatPendingTurnStateRuntime.ts'),
       'utf8',
     );
+    const workspaceFieldRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceFieldRuntime.ts'),
+      'utf8',
+    );
     const stopTurnRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime.js'),
       'utf8',
@@ -3266,6 +3270,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('DesktopChatPendingTurnStateRuntime');
     expect(chatStoreSource).toContain('DesktopChatStreamTrackingRuntime');
     expect(chatStoreSource).toContain('buildUpdateStreamTrackingStateUpdate');
+    expect(chatStoreSource).toContain('DesktopChatWorkspaceFieldRuntime');
+    expect(chatStoreSource).toContain('buildSetWorkspaceFieldStateUpdate');
     expect(chatStoreSource).toContain('DesktopResponseOverlayViewRuntime');
     expect(chatStoreSource).not.toContain('export function buildResponseOverlayDismissalKey');
     expect(chatStoreSource).toContain('DesktopCurrentTurnWorkspaceRuntime');
@@ -3320,6 +3326,8 @@ describe('renderer chat runtime boundary', () => {
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnUserMessage');
     expect(pendingStateRuntimeSource).toContain('addSupersededTurnRef');
     expect(pendingStateRuntimeSource).toContain('removeSupersededTurnRef');
+    expect(workspaceFieldRuntimeSource).toContain('buildSetWorkspaceFieldStateUpdate');
+    expect(workspaceFieldRuntimeSource).not.toContain('features/chat');
     expect(stopTurnRuntimeSource).toContain('buildStoppedTurnWorkspaceMutation');
     expect(stopTurnRuntimeSource).toContain('buildAcceptStoppedTurnStateUpdate');
     expect(stopTurnRuntimeSource).not.toContain('features/chat');

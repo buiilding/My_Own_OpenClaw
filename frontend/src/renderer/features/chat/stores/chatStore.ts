@@ -43,6 +43,9 @@ import {
   DesktopChatStreamTrackingRuntime,
 } from '../../../app/runtime/desktopChatStreamTrackingRuntime';
 import {
+  DesktopChatWorkspaceFieldRuntime,
+} from '../../../app/runtime/desktopChatWorkspaceFieldRuntime';
+import {
   DesktopChatTurnConversationRefRuntime,
 } from '../../../app/runtime/desktopChatTurnConversationRefRuntime';
 import {
@@ -95,6 +98,9 @@ const {
   buildUpdateStreamTrackingStateUpdate,
 } = DesktopChatStreamTrackingRuntime;
 const {
+  buildSetWorkspaceFieldStateUpdate,
+} = DesktopChatWorkspaceFieldRuntime;
+const {
   mergeTurnConversationRefs,
   registerTurnConversationRef,
   resolveConversationRefForTurn,
@@ -136,6 +142,12 @@ const conversationViewStateRuntimeDependencies = {
 };
 
 const streamTrackingStateRuntimeDependencies = {
+  buildWorkspaceUpdate,
+  readWorkspaceState,
+  resolveWorkspaceKey,
+};
+
+const workspaceFieldStateRuntimeDependencies = {
   buildWorkspaceUpdate,
   readWorkspaceState,
   resolveWorkspaceKey,
@@ -438,57 +450,57 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setIsSending: (isSending, conversationRef) =>
     set((state) => {
-      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
-      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
-      if (currentWorkspace.isSending === isSending) {
-        return state;
-      }
-      const nextWorkspace = { ...currentWorkspace, isSending };
-      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
+      return buildSetWorkspaceFieldStateUpdate<ChatState, ChatWorkspaceState, 'isSending'>({
+        conversationRef,
+        deps: workspaceFieldStateRuntimeDependencies,
+        field: 'isSending',
+        state,
+        value: isSending,
+      }) ?? state;
     }),
 
   setThinkingStatus: (thinkingStatus, conversationRef) =>
     set((state) => {
-      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
-      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
-      if (currentWorkspace.thinkingStatus === thinkingStatus) {
-        return state;
-      }
-      const nextWorkspace = { ...currentWorkspace, thinkingStatus };
-      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
+      return buildSetWorkspaceFieldStateUpdate<ChatState, ChatWorkspaceState, 'thinkingStatus'>({
+        conversationRef,
+        deps: workspaceFieldStateRuntimeDependencies,
+        field: 'thinkingStatus',
+        state,
+        value: thinkingStatus,
+      }) ?? state;
     }),
 
   setThinkingSourceEventType: (thinkingSourceEventType, conversationRef) =>
     set((state) => {
-      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
-      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
-      if (currentWorkspace.thinkingSourceEventType === thinkingSourceEventType) {
-        return state;
-      }
-      const nextWorkspace = { ...currentWorkspace, thinkingSourceEventType };
-      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
+      return buildSetWorkspaceFieldStateUpdate<ChatState, ChatWorkspaceState, 'thinkingSourceEventType'>({
+        conversationRef,
+        deps: workspaceFieldStateRuntimeDependencies,
+        field: 'thinkingSourceEventType',
+        state,
+        value: thinkingSourceEventType,
+      }) ?? state;
     }),
 
   setCompactionDebugInfo: (compactionDebugInfo, conversationRef) =>
     set((state) => {
-      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
-      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
-      if (currentWorkspace.compactionDebugInfo === compactionDebugInfo) {
-        return state;
-      }
-      const nextWorkspace = { ...currentWorkspace, compactionDebugInfo };
-      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
+      return buildSetWorkspaceFieldStateUpdate<ChatState, ChatWorkspaceState, 'compactionDebugInfo'>({
+        conversationRef,
+        deps: workspaceFieldStateRuntimeDependencies,
+        field: 'compactionDebugInfo',
+        state,
+        value: compactionDebugInfo,
+      }) ?? state;
     }),
 
   setTokenCounts: (tokenCounts, conversationRef) =>
     set((state) => {
-      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
-      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
-      if (currentWorkspace.tokenCounts === tokenCounts) {
-        return state;
-      }
-      const nextWorkspace = { ...currentWorkspace, tokenCounts };
-      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
+      return buildSetWorkspaceFieldStateUpdate<ChatState, ChatWorkspaceState, 'tokenCounts'>({
+        conversationRef,
+        deps: workspaceFieldStateRuntimeDependencies,
+        field: 'tokenCounts',
+        state,
+        value: tokenCounts,
+      }) ?? state;
     }),
 
   setCurrentTurnProjection: (currentTurnProjection, conversationRef) =>

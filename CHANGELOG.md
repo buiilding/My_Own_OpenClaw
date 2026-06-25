@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: move simple workspace field setters for sending, thinking,
+  compaction debug, and token counts behind `DesktopChatWorkspaceFieldRuntime`
+  so `chatStore` delegates scalar workspace update policy. No migration
+  required.
 - frontend/store: move `updateStreamTracking` workspace update construction
   behind `DesktopChatStreamTrackingRuntime` so `chatStore` no longer owns
   stream-tracking workspace lookup or reference no-op handling. No migration
