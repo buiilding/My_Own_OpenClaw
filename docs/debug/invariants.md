@@ -71,6 +71,20 @@ this page.
   the Settings startup and Model send selection rows in the [User-Facing
   Regression Pack](user_facing_regression_pack.md).
 
+## Stop Controls
+
+- Stop controls must stop both authorities for the active turn: the SDK/runtime
+  projection terminalizes locally before backend acknowledgement, and Electron
+  main forwards the matching stop request through the SDK to backend
+  `stop-query`. Renderer and Electron-main transport command payloads may use
+  canonical transport fields (`conversation_ref`, `turn_ref`), but
+  Electron-main Agent SDK bridges and direct wake-up adapters must translate
+  them to the SDK public `conversationRef` / `turnRef` API before calling
+  SDK-facing stop methods. See the Stop row in the
+  [Core Loop Regression Pack](core_loop_regression_pack.md) and the stop/cancel
+  routing row in
+  [Query Send and Stream Relay Change Workflow](../frontend/main/query_send_and_stream_relay_change_workflow.md).
+
 ## Adding An Invariant
 
 For every new invariant, record:

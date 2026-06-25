@@ -179,8 +179,8 @@ describe('ipc_agent_sdk_runtime_commands', () => {
       broadcast: true,
     });
     expect(deps.agent.stop).toHaveBeenCalledWith({
-      conversation_ref: 'conversation-1',
-      turn_ref: 'turn-1',
+      conversationRef: 'conversation-1',
+      turnRef: 'turn-1',
     });
   });
 

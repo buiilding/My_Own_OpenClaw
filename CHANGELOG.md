@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: translate stop-query transport refs to the SDK `agent.stop`
+  camelCase API at the Electron-main bridge and direct wake-up adapter, so the
+  Stop button again terminalizes the live SDK turn locally and forwards backend
+  cancellation. No migration required.
 - docs/agents: document that the backend is remote and GitHub automatically
   deploys remote `main` updates, so agents avoid local-backend deployment
   assumptions. No migration required.
