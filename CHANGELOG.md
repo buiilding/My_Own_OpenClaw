@@ -58,6 +58,10 @@ All notable changes to WindieOS will be documented in this file.
   availability, and checked-out view store projection into an app-runtime
   helper so `ChatInterface` consumes a single presentation view model. No
   migration required.
+- frontend/chat: move revision checkout/fork input shaping, revision id
+  normalization, and temporary fork conversation-ref generation into an
+  app-runtime helper so `ChatInterface` only dispatches prepared SDK command
+  inputs. No migration required.
 - frontend/renderer: move pending-turn user-row construction out of
   `chatStore.ts` into an app-runtime pending bridge helper shared by normal
   sends and replay. The store now mutates workspace state without hard-coding

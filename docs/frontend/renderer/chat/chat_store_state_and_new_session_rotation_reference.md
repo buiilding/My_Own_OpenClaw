@@ -13,6 +13,7 @@ title: "Chat Store State and New Session Rotation Reference"
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopChatRevisionActionRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopPendingTurnBridgeRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatPendingTurnStateRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime.ts`
@@ -175,6 +176,12 @@ current-turn bridge, stored messages, and `ConversationView.actions` into
 `renderedMessages`, edit/retry availability, and active revision id. The
 component consumes that view model and does not choose between raw messages,
 current-turn rows, and `ConversationView` action metadata inline.
+
+`DesktopChatRevisionActionRuntime` owns checkout/fork command input shaping for
+the revision menu: revision id normalization, action ids, default user id, and
+temporary fork conversation refs required by the current SDK fork command
+contract. `ChatInterface` calls the SDK command facade with those prepared
+inputs instead of constructing revision command payloads inline.
 
 `handleNewChat` passes `stopActiveQuery` only when stream phase is active. Stop callback does:
 

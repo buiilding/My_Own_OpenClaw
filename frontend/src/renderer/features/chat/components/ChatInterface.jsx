@@ -38,6 +38,9 @@ import { DesktopConversationContinuityService } from '../../../app/runtime/deskt
 import {
   DesktopChatInterfacePresentationRuntime,
 } from '../../../app/runtime/desktopChatInterfacePresentationRuntime';
+import {
+  DesktopChatRevisionActionRuntime,
+} from '../../../app/runtime/desktopChatRevisionActionRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import '../../../styles/ChatInterface.css';
 
@@ -59,16 +62,10 @@ const {
   buildChatInterfacePresentationState,
   buildConversationViewStoreProjection,
 } = DesktopChatInterfacePresentationRuntime;
-
-function normalizeRevisionId(revisionId) {
-  return typeof revisionId === 'string' && revisionId.trim() ? revisionId.trim() : null;
-}
-
-function buildForkConversationRef(conversationRef, revisionId) {
-  const source = String(conversationRef || 'conversation').replace(/[^a-zA-Z0-9_-]+/g, '-');
-  const revision = String(revisionId || 'revision').replace(/[^a-zA-Z0-9_-]+/g, '-');
-  return `${source}-fork-${revision}-${Date.now().toString(36)}`;
-}
+const {
+  buildRevisionCheckoutCommand,
+  buildRevisionForkCommand,
+} = DesktopChatRevisionActionRuntime;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   return (
@@ -483,22 +480,22 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   }, [activeConversationRef, revisionMenuOpen, sessionInfo.userId]);
 
   const handleRevisionCheckout = useCallback(async (revisionId) => {
-    const normalizedRevisionId = normalizeRevisionId(revisionId);
-    if (!activeConversationRef || !normalizedRevisionId) {
+    const command = buildRevisionCheckoutCommand({
+      activeConversationRef,
+      revisionId,
+      userId: sessionInfo.userId,
+    });
+    if (!command) {
       return;
     }
-    setRevisionActionId(`checkout:${normalizedRevisionId}`);
+    setRevisionActionId(command.actionId);
     setRevisionError(null);
     try {
-      const result = await DesktopConversationContinuityService.checkoutRevision({
-        userId: sessionInfo.userId || 'default_user',
-        conversationRef: activeConversationRef,
-        revisionId: normalizedRevisionId,
-      });
+      const result = await DesktopConversationContinuityService.checkoutRevision(command.input);
       applyConversationView(result?.view, activeConversationRef);
       setRevisionOptions((current) => current.map((revision) => ({
         ...revision,
-        active: revision.revisionId === normalizedRevisionId,
+        active: revision.revisionId === command.input.revisionId,
       })));
       setRevisionMenuOpen(false);
     } catch (error) {
@@ -514,19 +511,18 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   ]);
 
   const handleRevisionFork = useCallback(async (revision) => {
-    const revisionId = normalizeRevisionId(revision?.revisionId);
-    if (!activeConversationRef || !revisionId) {
+    const command = buildRevisionForkCommand({
+      activeConversationRef,
+      revision,
+      userId: sessionInfo.userId,
+    });
+    if (!command) {
       return;
     }
-    setRevisionActionId(`fork:${revisionId}`);
+    setRevisionActionId(command.actionId);
     setRevisionError(null);
     try {
-      const result = await DesktopConversationContinuityService.forkConversation({
-        userId: sessionInfo.userId || 'default_user',
-        conversationRef: activeConversationRef,
-        sourceRevisionId: revisionId,
-        newConversationRef: buildForkConversationRef(activeConversationRef, revisionId),
-      });
+      const result = await DesktopConversationContinuityService.forkConversation(command.input);
       const nextConversationRef = result?.conversationRef;
       if (nextConversationRef) {
         DesktopTranscriptSessionRuntimeClient.updateTranscriptSession(

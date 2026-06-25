@@ -3018,6 +3018,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime.js'),
       'utf8',
     );
+    const chatRevisionActionRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatRevisionActionRuntime.js'),
+      'utf8',
+    );
     const sourceChannelPath = path.join(chatRoot, 'utils/message/sourceChannels.js');
 
     expect(source).toContain('sourceEventType');
@@ -3030,10 +3034,15 @@ describe('renderer chat runtime boundary', () => {
     expect(displayAttachmentProjectionSource).toContain('readSdkDisplayAttachments');
     expect(displayAttachmentProjectionSource).not.toContain('screenshot_refs');
     expect(chatInterfaceSource).toContain('DesktopChatInterfacePresentationRuntime');
+    expect(chatInterfaceSource).toContain('DesktopChatRevisionActionRuntime');
     expect(chatInterfaceSource).toContain('buildChatInterfacePresentationState');
     expect(chatInterfaceSource).toContain('buildConversationViewStoreProjection');
+    expect(chatInterfaceSource).toContain('buildRevisionCheckoutCommand');
+    expect(chatInterfaceSource).toContain('buildRevisionForkCommand');
     expect(chatInterfaceSource).not.toContain('buildConversationViewChatMessages');
     expect(chatInterfaceSource).not.toContain('buildThreadPresentationMessages');
+    expect(chatInterfaceSource).not.toContain('function normalizeRevisionId');
+    expect(chatInterfaceSource).not.toContain('function buildForkConversationRef');
     expect(chatInterfaceSource).not.toContain('conversationView?.actions?.canEdit');
     expect(chatInterfaceSource).not.toContain('conversationView?.actions?.canRetry');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildConversationViewChatMessages');
@@ -3041,6 +3050,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).toContain('canEditMessages');
     expect(chatInterfacePresentationRuntimeSource).toContain('canRetryMessages');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('features/chat');
+    expect(chatRevisionActionRuntimeSource).toContain('buildRevisionCheckoutCommand');
+    expect(chatRevisionActionRuntimeSource).toContain('buildRevisionForkCommand');
+    expect(chatRevisionActionRuntimeSource).toContain('buildForkConversationRef');
+    expect(chatRevisionActionRuntimeSource).not.toContain('features/chat');
     expect(chatInterfaceSource).not.toContain('buildChatMessagesFromSdkDisplayRows');
     expect(chatInterfaceSource).not.toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(source).toContain('packages/windie-sdk-js/src/conversation/types.js');
