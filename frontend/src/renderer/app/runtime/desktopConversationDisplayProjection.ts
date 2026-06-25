@@ -7,6 +7,14 @@ import type { ConversationView } from './desktopConversationRuntimeContracts';
 import {
   buildChatMessagesFromSdkDisplayRows,
 } from '../../infrastructure/transcript/sdkDisplayChatMessageProjection';
+import {
+  DesktopSdkDisplayAttachmentProjection,
+} from './desktopSdkDisplayAttachmentProjection';
+
+const {
+  countDisplayImageAttachments,
+  summarizeSdkDisplayAttachments,
+} = DesktopSdkDisplayAttachmentProjection;
 
 type DisplayProjectionTraceInput = {
   currentMessages?: ChatMessage[];
@@ -187,16 +195,7 @@ function buildConversationViewChatMessages({
 }
 
 function countMessageImages(message: ChatMessage): number {
-  if (Array.isArray(message.attachments) && message.attachments.length > 0) {
-    return message.attachments.filter((attachment) => (
-      attachment.kind === 'image'
-      && (
-        attachment.status === 'materializing'
-        || attachment.status === 'ready'
-      )
-    )).length;
-  }
-  return 0;
+  return countDisplayImageAttachments(message.attachments);
 }
 
 function countSdkRowImages(row: unknown): number {
@@ -205,18 +204,7 @@ function countSdkRowImages(row: unknown): number {
   if (!metadata) {
     return 0;
   }
-  const attachments = Array.isArray(metadata.attachments) ? metadata.attachments : [];
-  if (attachments.length > 0) {
-    return attachments.filter((attachment) => {
-      const attachmentRecord = recordFromUnknown(attachment);
-      return attachmentRecord?.kind === 'image'
-        && (
-          attachmentRecord.status === 'materializing'
-          || attachmentRecord.status === 'ready'
-        );
-    }).length;
-  }
-  return 0;
+  return countDisplayImageAttachments(metadata.attachments);
 }
 
 function summarizeSdkRowAttachments(rows: unknown[]): Record<string, unknown> {
@@ -233,30 +221,26 @@ function summarizeSdkRowAttachments(rows: unknown[]): Record<string, unknown> {
       continue;
     }
     const metadata = recordFromUnknown(record?.metadata);
-    const attachments = Array.isArray(metadata?.attachments) ? metadata.attachments : [];
-    for (const attachment of attachments) {
-      const attachmentRecord = recordFromUnknown(attachment);
-      if (!attachmentRecord) {
-        continue;
+    const attachmentSummary = summarizeSdkDisplayAttachments(metadata?.attachments);
+    userAttachmentCount += Number(attachmentSummary.userAttachmentCount) || 0;
+    readyArtifactCount += Number(attachmentSummary.readyArtifactCount) || 0;
+    materializingPreviewCount += Number(attachmentSummary.materializingPreviewCount) || 0;
+    pendingScreenshotRequestCount += Number(attachmentSummary.pendingScreenshotRequestCount) || 0;
+    failedAttachmentCount += Number(attachmentSummary.failedAttachmentCount) || 0;
+    const attachmentSources = Array.isArray(attachmentSummary.attachmentSources)
+      ? attachmentSummary.attachmentSources
+      : [];
+    const attachmentStatuses = Array.isArray(attachmentSummary.attachmentStatuses)
+      ? attachmentSummary.attachmentStatuses
+      : [];
+    for (const source of attachmentSources) {
+      if (typeof source === 'string') {
+        sources.add(source);
       }
-      userAttachmentCount += 1;
-      if (typeof attachmentRecord.source === 'string') {
-        sources.add(attachmentRecord.source);
-      }
-      if (typeof attachmentRecord.status === 'string') {
-        statuses.add(attachmentRecord.status);
-      }
-      if (attachmentRecord.status === 'ready' && attachmentRecord.kind === 'image') {
-        readyArtifactCount += 1;
-      } else if (attachmentRecord.status === 'materializing') {
-        materializingPreviewCount += 1;
-      } else if (
-        attachmentRecord.status === 'pending_capture'
-        && attachmentRecord.kind === 'screenshot_request'
-      ) {
-        pendingScreenshotRequestCount += 1;
-      } else if (attachmentRecord.status === 'failed') {
-        failedAttachmentCount += 1;
+    }
+    for (const status of attachmentStatuses) {
+      if (typeof status === 'string') {
+        statuses.add(status);
       }
     }
   }

@@ -37,6 +37,96 @@ function readSdkDisplayAttachments(value: unknown): SdkDisplayAttachment[] {
   return Array.isArray(value) ? value.filter(isSdkDisplayAttachment) : [];
 }
 
+function isDisplayImageAttachment(value: unknown): boolean {
+  const record = recordFromUnknown(value);
+  return Boolean(
+    record
+    && record.kind === 'image'
+    && (
+      record.status === 'materializing'
+      || record.status === 'ready'
+    ),
+  );
+}
+
+function isReadyDisplayImageAttachment(value: unknown): boolean {
+  const record = recordFromUnknown(value);
+  return Boolean(
+    record
+    && record.kind === 'image'
+    && record.status === 'ready',
+  );
+}
+
+function countDisplayImageAttachments(value: unknown): number {
+  return readSdkDisplayAttachments(value).filter(isDisplayImageAttachment).length;
+}
+
+function isLegacyScreenshotAttachment(value: unknown): boolean {
+  const record = recordFromUnknown(value);
+  return Boolean(
+    record
+    && (
+      typeof record.screenshot === 'string'
+      || typeof record.screenshotRef === 'string'
+      || typeof record.screenshotUrl === 'string'
+    ),
+  );
+}
+
+function countLegacyScreenshotAttachments(value: unknown): number {
+  return Array.isArray(value) ? value.filter(isLegacyScreenshotAttachment).length : 0;
+}
+
+function hasReadyDisplayImageAttachment(value: unknown): boolean {
+  return readSdkDisplayAttachments(value).some(isReadyDisplayImageAttachment);
+}
+
+function summarizeSdkDisplayAttachments(value: unknown): Record<string, unknown> {
+  let userAttachmentCount = 0;
+  let readyArtifactCount = 0;
+  let materializingPreviewCount = 0;
+  let pendingScreenshotRequestCount = 0;
+  let failedAttachmentCount = 0;
+  const sources = new Set<string>();
+  const statuses = new Set<string>();
+  for (const attachment of readSdkDisplayAttachments(value)) {
+    const attachmentRecord = recordFromUnknown(attachment);
+    if (!attachmentRecord) {
+      continue;
+    }
+    userAttachmentCount += 1;
+    if (typeof attachmentRecord.source === 'string') {
+      sources.add(attachmentRecord.source);
+    }
+    if (typeof attachmentRecord.status === 'string') {
+      statuses.add(attachmentRecord.status);
+    }
+    if (isReadyDisplayImageAttachment(attachmentRecord)) {
+      readyArtifactCount += 1;
+    } else if (attachmentRecord.status === 'materializing') {
+      materializingPreviewCount += 1;
+    } else if (attachmentRecord.status === 'pending_capture') {
+      pendingScreenshotRequestCount += 1;
+    } else if (attachmentRecord.status === 'failed') {
+      failedAttachmentCount += 1;
+    }
+  }
+  return {
+    userAttachmentCount,
+    attachmentSources: Array.from(sources).sort(),
+    attachmentStatuses: Array.from(statuses).sort(),
+    readyArtifactCount,
+    materializingPreviewCount,
+    pendingScreenshotRequestCount,
+    failedAttachmentCount,
+  };
+}
+
 export const DesktopSdkDisplayAttachmentProjection = Object.freeze({
+  countDisplayImageAttachments,
+  countLegacyScreenshotAttachments,
+  hasReadyDisplayImageAttachment,
   readSdkDisplayAttachments,
+  summarizeSdkDisplayAttachments,
 });

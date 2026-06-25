@@ -33,6 +33,7 @@ describe('desktopMessageTokenUsageRuntime', () => {
         content: '12345678',
       },
       attachments: [{
+        id: 'attachment-shot-1',
         kind: 'image',
         source: 'camera_button',
         status: 'ready',

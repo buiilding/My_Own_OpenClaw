@@ -2,8 +2,14 @@
  * Provides renderer message token usage tags for presentation surfaces.
  */
 
+import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
+
 const APPROX_CHARS_PER_TOKEN = 4;
 const APPROX_IMAGE_TOKENS_PER_SCREENSHOT = 85;
+const {
+  countDisplayImageAttachments,
+  countLegacyScreenshotAttachments,
+} = DesktopSdkDisplayAttachmentProjection;
 
 function normalizeText(value) {
   if (typeof value !== 'string') {
@@ -27,40 +33,8 @@ function estimateTextTokens(text) {
   return Math.ceil(normalized.length / APPROX_CHARS_PER_TOKEN);
 }
 
-function hasScreenshotAttachment(attachment) {
-  if (!attachment || typeof attachment !== 'object') {
-    return false;
-  }
-  return (
-    attachment.kind === 'image'
-    && (
-      attachment.status === 'materializing'
-      || attachment.status === 'ready'
-    )
-    && (
-      typeof attachment.previewSrc === 'string'
-      || typeof attachment.screenshotRef === 'string'
-      || typeof attachment.screenshotUrl === 'string'
-    )
-  );
-}
-
 function resolveUserImageAttachmentCount(message) {
-  if (!Array.isArray(message?.attachments) || message.attachments.length === 0) {
-    return 0;
-  }
-  return message.attachments.filter(hasScreenshotAttachment).length;
-}
-
-function hasLegacyScreenshotAttachment(attachment) {
-  if (!attachment || typeof attachment !== 'object') {
-    return false;
-  }
-  return (
-    typeof attachment.screenshot === 'string'
-    || typeof attachment.screenshotRef === 'string'
-    || typeof attachment.screenshotUrl === 'string'
-  );
+  return countDisplayImageAttachments(message?.attachments);
 }
 
 function resolveUserScreenshotCount(message) {
@@ -69,11 +43,7 @@ function resolveUserScreenshotCount(message) {
     return typedAttachmentCount;
   }
 
-  if (Array.isArray(message?.screenshots) && message.screenshots.length > 0) {
-    return message.screenshots.filter(hasLegacyScreenshotAttachment).length;
-  }
-
-  return 0;
+  return countLegacyScreenshotAttachments(message?.screenshots);
 }
 
 function stringifyModelFacingToolCall(modelFacingToolCall) {

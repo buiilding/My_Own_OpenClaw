@@ -7,7 +7,11 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopSdkDisplayAttachmentProjection';
 
 const {
+  countDisplayImageAttachments,
+  countLegacyScreenshotAttachments,
+  hasReadyDisplayImageAttachment,
   readSdkDisplayAttachments,
+  summarizeSdkDisplayAttachments,
 } = DesktopSdkDisplayAttachmentProjection;
 
 describe('DesktopSdkDisplayAttachmentProjection', () => {
@@ -51,5 +55,87 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
   test('returns an empty attachment list for non-array input', () => {
     expect(readSdkDisplayAttachments(null)).toEqual([]);
     expect(readSdkDisplayAttachments({ attachments: [] })).toEqual([]);
+  });
+
+  test('centralizes display image counts and ready image checks', () => {
+    const attachments = [
+      {
+        id: 'attachment-ready',
+        kind: 'image',
+        source: 'replay',
+        status: 'ready',
+        screenshotRef: 'artifact-ready',
+      },
+      {
+        id: 'attachment-materializing',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        previewSrc: 'blob:preview',
+      },
+      {
+        id: 'attachment-pending',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'pending_capture',
+      },
+    ];
+
+    expect(countDisplayImageAttachments(attachments)).toBe(2);
+    expect(hasReadyDisplayImageAttachment(attachments)).toBe(true);
+    expect(hasReadyDisplayImageAttachment([attachments[1], attachments[2]])).toBe(false);
+  });
+
+  test('summarizes SDK display attachment lifecycle fields without payload aliases', () => {
+    expect(summarizeSdkDisplayAttachments([
+      {
+        id: 'attachment-ready',
+        kind: 'image',
+        source: 'replay',
+        status: 'ready',
+        screenshotRef: 'artifact-ready',
+      },
+      {
+        id: 'attachment-materializing',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        previewSrc: 'blob:preview',
+      },
+      {
+        id: 'attachment-pending',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'pending_capture',
+      },
+      {
+        id: 'attachment-failed',
+        kind: 'image',
+        source: 'user_included',
+        status: 'failed',
+      },
+      {
+        id: 'legacy-alias',
+        screenshotRef: 'artifact-legacy',
+      },
+    ])).toEqual({
+      userAttachmentCount: 4,
+      attachmentSources: ['camera_button', 'replay', 'user_included'],
+      attachmentStatuses: ['failed', 'materializing', 'pending_capture', 'ready'],
+      readyArtifactCount: 1,
+      materializingPreviewCount: 1,
+      pendingScreenshotRequestCount: 1,
+      failedAttachmentCount: 1,
+    });
+  });
+
+  test('keeps legacy screenshot alias counting behind the attachment helper', () => {
+    expect(countLegacyScreenshotAttachments([
+      { screenshotRef: 'artifact-1' },
+      { screenshotUrl: '/api/artifacts/artifact-2' },
+      { screenshot: 'data:image/png;base64,abc' },
+      { screenshotRef: '   ' },
+      { value: 'not-a-screenshot' },
+    ])).toBe(4);
   });
 });
