@@ -10,6 +10,7 @@ import {
 } from './ChatStreamThinkingStatus.testUtils';
 import type { ChatMessage } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import type { ConversationView } from '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeContracts';
 
 function message(overrides: Partial<ChatMessage>): ChatMessage {
   return {
@@ -71,6 +72,63 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
         sourceEventType: 'tool_call',
       }),
     ]);
+  });
+
+  test('does not write display-row messages after ConversationView exists', () => {
+    const existingMessage = message({
+      id: 'existing-local-row',
+      sender: 'user',
+      text: 'still local bridge',
+      turnRef: 'turn-1',
+    });
+    const conversationView: ConversationView = {
+      conversationRef: 'conv-1',
+      revisionId: 'revision-1',
+      displayRows: [],
+      liveTurn: {
+        turnRef: null,
+        phase: 'idle',
+        entries: [],
+        isBusy: false,
+        isTerminal: false,
+        canStop: false,
+        lastError: null,
+      },
+      surfaces: {
+        pill: { mode: 'idle' },
+        dashboard: { mode: 'idle' },
+        responseOverlay: {
+          mode: 'hidden',
+          visible: false,
+          guardRef: null,
+          ownerConversationRef: 'conv-1',
+          turnRef: null,
+        },
+      },
+      actions: {
+        canEdit: true,
+        canRetry: true,
+        canFork: true,
+      },
+    };
+
+    useChatStore.getState().setMessages([existingMessage], 'conv-1');
+    useChatStore.getState().setConversationView(conversationView, 'conv-1');
+    const { emitDisplayRows } = registerBackendAndProjectionListeners();
+
+    act(() => {
+      emitDisplayRows([{
+        id: 'assistant-row',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'sdk display row should not become store messages',
+      }]);
+    });
+
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages).toEqual([existingMessage]);
   });
 
   test('does not copy optimistic attachments once sdk projects a text-only same-turn user row', () => {

@@ -23,6 +23,7 @@ type StreamTrackingLike = {
 } | null | undefined;
 
 type ProjectionWorkspace = {
+  conversationView?: unknown | null;
   currentTurnProjection?: CurrentTurnLike;
   messages?: ChatMessage[];
   pendingTurn?: PendingTurnLike;
@@ -116,10 +117,12 @@ function buildDisplayRowsProjection({
 }: DisplayRowsProjectionInput): {
   filteredRows: SdkDisplayRow[];
   mergedMessages: ChatMessage[];
+  shouldApplyMessages: boolean;
   sdkMessages: ChatMessage[];
   traceSummary: Record<string, unknown>;
 } {
   const currentMessages = Array.isArray(workspace.messages) ? workspace.messages : [];
+  const shouldApplyMessages = !workspace.conversationView;
   const filteredRows = withoutSupersededRows(rows, workspace);
   const sdkMessages = buildChatMessagesFromSdkDisplayRows(filteredRows);
   const mergedMessages = mergeRendererAnnotationsIntoSdkMessages(
@@ -130,6 +133,7 @@ function buildDisplayRowsProjection({
   return {
     filteredRows,
     mergedMessages,
+    shouldApplyMessages,
     sdkMessages,
     traceSummary: buildDisplayProjectionTraceSummary({
       rows: filteredRows,

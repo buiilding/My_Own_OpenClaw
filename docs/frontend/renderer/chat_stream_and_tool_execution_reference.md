@@ -143,6 +143,13 @@ with replay superseded-turn filtering so the hook owns subscription wiring and
 store writes only; it does not own display-row annotation, optimistic-row
 merge, or stale replay display suppression semantics.
 
+Display-row stream projections are a no-`ConversationView` bridge. When the
+workspace already has an SDK `ConversationView`, the hook may still build the
+legacy message projection for trace data, but it must not write those messages
+back into `chatStore.messages`. Normal chat rendering should read
+`ConversationView.displayRows`; `chatStore.messages` remains only the local
+pending/no-view fallback.
+
 The old exported `mergeRendererAnnotations` helper remains removed. Stale
 searches for that name should route to `mergeRendererAnnotationsIntoSdkMessages`
 in `desktopConversationDisplayProjection.ts` and tests should exercise the

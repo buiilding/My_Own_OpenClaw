@@ -158,6 +158,7 @@ export function useConversationRuntimeProjectionStream(): void {
       const {
         filteredRows,
         mergedMessages,
+        shouldApplyMessages,
         traceSummary,
       } = buildDisplayRowsProjection({ rows, workspace });
       logRendererDisplayRowsProjectionTrace({
@@ -168,7 +169,11 @@ export function useConversationRuntimeProjectionStream(): void {
       logReplayProjectionTrace('sdk_display_rows_projected', conversationRef, workspace, {
         displayRowCount: rows.length,
         replacementRowCount: filteredRows.length,
+        shouldApplyMessages,
       });
+      if (!shouldApplyMessages) {
+        return;
+      }
       setMessages(
         mergedMessages,
         conversationRef,

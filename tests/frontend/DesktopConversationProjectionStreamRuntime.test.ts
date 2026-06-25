@@ -113,6 +113,40 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       currentMessageCount: 1,
       mergedMessageCount: 2,
     }));
+    expect(projection.shouldApplyMessages).toBe(true);
+  });
+
+  test('keeps display-row projection as trace-only once ConversationView exists', () => {
+    const projection = buildDisplayRowsProjection({
+      rows: [{
+        id: 'assistant-row',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant' as const,
+        type: 'assistant_message' as const,
+        content: 'sdk row',
+      }],
+      workspace: {
+        conversationView: {
+          conversationRef: 'conv-1',
+          displayRows: [],
+        },
+        messages: [{
+          id: 'existing',
+          sender: 'user' as const,
+          text: 'existing pending bridge',
+        }],
+      },
+    });
+
+    expect(projection.shouldApplyMessages).toBe(false);
+    expect(projection.mergedMessages).toEqual([
+      expect.objectContaining({
+        id: 'assistant-row',
+        text: 'sdk row',
+      }),
+    ]);
   });
 
   test('builds replay trace payloads from workspace state', () => {

@@ -991,6 +991,7 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onPendingTurn');
     expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onCurrentTurnProjection');
     expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onDisplayRowsProjection');
+    expect(projectionSource).toContain('if (!shouldApplyMessages)');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.ROWS');
@@ -1007,6 +1008,8 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).not.toContain('features/chat');
     expect(projectionStreamRuntimeSource).toContain('DesktopConversationProjectionStreamRuntime');
     expect(projectionStreamRuntimeSource).toContain('buildDisplayRowsProjection');
+    expect(projectionStreamRuntimeSource).toContain('shouldApplyMessages');
+    expect(projectionStreamRuntimeSource).toContain('!workspace.conversationView');
     expect(projectionStreamRuntimeSource).toContain('withoutSupersededRows');
     expect(projectionStreamRuntimeSource).toContain('buildReplayProjectionTracePayload');
     expect(projectionStreamRuntimeSource).toContain('DesktopConversationDisplayProjection');
