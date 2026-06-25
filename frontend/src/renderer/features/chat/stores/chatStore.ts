@@ -196,7 +196,6 @@ interface ChatState {
     input?: {
       conversationRef?: string | null;
       turnRef?: string | null;
-      currentTurnProjection?: CurrentTurnProjection | null;
       stoppedAt?: string | null;
     } | null,
   ) => void;
@@ -650,20 +649,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   acceptStoppedTurn: (input = null) =>
     set((state) => {
-      const inputProjection = input?.currentTurnProjection ?? null;
-      const conversationRef = (
-        normalizeConversationRef(input?.conversationRef)
-        || normalizeConversationRef(inputProjection?.conversationRef)
-      );
-      const turnRef = (
-        normalizeTurnRef(input?.turnRef)
-        || normalizeTurnRef(inputProjection?.turnRef)
-      );
+      const conversationRef = normalizeConversationRef(input?.conversationRef);
+      const turnRef = normalizeTurnRef(input?.turnRef);
       const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
       const currentWorkspace = readWorkspaceState(state, workspaceRef);
       const nextWorkspace = buildStoppedTurnWorkspaceMutation({
         conversationRef,
-        currentTurnProjection: inputProjection,
         currentWorkspace,
         stoppedAt: input?.stoppedAt,
         turnRef,

@@ -82,6 +82,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/dashboard: treat cached `ConversationView` rather than cached
   `chatStore.messages` as the dashboard-open resume cache, so legacy message
   rows cannot suppress the no-view fallback reset. No migration required.
+- frontend/store: remove caller-supplied raw `currentTurnProjection` from
+  `acceptStoppedTurn`; stop cleanup now uses target identity plus the
+  workspace's stored projection. No migration required.
 - frontend/chat: move main chat thread presentation, ConversationView action
   availability, and checked-out view store projection into an app-runtime
   helper so `ChatInterface` consumes a single presentation view model. No

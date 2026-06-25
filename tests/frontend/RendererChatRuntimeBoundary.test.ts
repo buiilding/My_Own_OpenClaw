@@ -1893,6 +1893,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('desktopStopTurnRuntime');
     expect(chatStoreSource).toContain('DesktopStopTurnRuntime');
     expect(stopHandlerSource).not.toContain('currentTurnProjection');
+    expect(chatStoreSource).not.toContain('input?.currentTurnProjection');
     expect(stopHandlerSource).not.toContain('utils/state/stopQueryState');
     expect(stopHandlerSource).not.toContain("stopTarget.source === 'sdk-current-turn'");
     expect(stopHandlerSource).not.toContain("stopTarget.source === 'pending-turn'");
@@ -3106,6 +3107,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('function normalizePendingTurn');
     expect(chatStoreSource).not.toContain('doesPendingTurnMatch');
     expect(chatStoreSource).not.toContain('function doesCurrentTurnProjectionMatch');
+    expect(chatStoreSource).not.toContain('input?.currentTurnProjection');
     expect(chatStoreSource).not.toContain('function addSupersededTurnRef');
     expect(chatStoreSource).not.toContain('function removeSupersededTurnRef');
     expect(chatStoreSource).not.toContain('function normalizeTurnRef');

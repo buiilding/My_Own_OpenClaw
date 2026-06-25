@@ -645,7 +645,6 @@ describe('chatStore', () => {
     useChatStore.getState().acceptStoppedTurn({
       conversationRef: 'conv-stop-sdk',
       turnRef: 'turn-stop-sdk',
-      currentTurnProjection,
     });
 
     expect(useChatStore.getState().currentTurnProjection).toEqual(expect.objectContaining({
