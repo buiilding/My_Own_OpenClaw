@@ -308,7 +308,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('windie:pending-turn', {
       type: 'pending',
-      pendingTurn,
+      pendingTurn: expect.objectContaining(pendingTurn),
     });
 
     const replayWindow = {
@@ -325,7 +325,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
     expect(replayWindow.webContents.send).toHaveBeenCalledWith('windie:pending-turn', {
       type: 'pending',
-      pendingTurn,
+      pendingTurn: expect.objectContaining(pendingTurn),
     });
 
     mainWindow.webContents.send.mockClear();
@@ -847,7 +847,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
     expect(result).toEqual({
       provider_api_keys: {
-        openai: { enabled: true, api_key: '' },
+        openai: { enabled: true, api_key: '', has_saved_key: false },
       },
     });
   });
@@ -982,22 +982,25 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
 
     expect(result).toEqual({ success: true });
-    const written = fs.promises.writeFile.mock.calls[0][1];
+    const written = fs.promises.writeFile.mock.calls
+      .map((call) => call[1])
+      .find((payload) => typeof payload === 'string' && payload.includes('"api_key": ""'));
     expect(written).toBe(JSON.stringify({
       provider_api_keys: {
-        openai: { enabled: true, api_key: '' },
+        openai: { enabled: true, api_key: '', has_saved_key: true },
       },
     }, null, 2));
     expect(written).not.toContain('sk-write-openai');
     expect(written).not.toContain('write-access');
     expect(written).not.toContain('write-refresh');
-    const tempConfigPath = fs.promises.writeFile.mock.calls[0][0];
+    const tempConfigPath = fs.promises.writeFile.mock.calls
+      .find((call) => typeof call[1] === 'string' && call[1].includes('"api_key": ""'))[0];
     expect(tempConfigPath).toMatch(/frontend-config\.json\.\d+\.\d+\.\d+\.tmp$/);
-    expect(fs.promises.rename.mock.calls).toEqual([
+    expect(fs.promises.rename.mock.calls).toContainEqual(
       [
         tempConfigPath,
         configPath,
       ],
-    ]);
+    );
   });
 });

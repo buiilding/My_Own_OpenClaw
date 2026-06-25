@@ -52,6 +52,7 @@ describe('ipc_query_runtime', () => {
       unknown_backend_field: true,
       system_state_internal: { screen_resolution: '1920x1080' },
       agent_definition: { mode: 'custom' },
+      model: { modelProvider: 'anthropic', modelId: 'claude-sonnet-4-5' },
     })).toEqual({
       text: 'hello',
       conversation_ref: 'conv-1',

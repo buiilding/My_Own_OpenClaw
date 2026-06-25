@@ -1601,7 +1601,7 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).toContain('buildReplayPendingTurn');
     expect(replayRuntimeSource).toContain('buildReplayContextMessages');
     expect(replayRuntimeSource).toContain('buildReplayPreparationPayload');
-    expect(replayRuntimeSource).toContain('buildPreparedReplayDesktopChatTurn');
+    expect(replayRuntimeSource).not.toContain('buildPreparedReplayDesktopChatTurn');
     expect(replayRuntimeSource).toContain('findReplayEditableUserMessageIndex');
     expect(replayRuntimeSource).toContain('resolveReplayRetryMessageIndexes');
     expect(replayRuntimeSource).toContain('DesktopConversationReplayRuntime');
@@ -1610,9 +1610,8 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('export function buildReplayContextMessages');
     expect(replayRuntimeSource).not.toContain('export function buildReplayPreparationPayload');
     expect(replayRuntimeSource).not.toContain('export function buildReplayPendingTurn');
-    expect(replayRuntimeSource).not.toContain('export function buildPreparedReplayDesktopChatTurn');
     expect(replayRuntimeSource).toContain('screenshot_ref');
-    expect(replayRuntimeSource).toContain('attachment_filenames');
+    expect(replayRuntimeSource).toContain('attachmentFilenames');
     expect(replayRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/conversationReplayToolMessages.js'),

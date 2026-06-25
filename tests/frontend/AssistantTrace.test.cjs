@@ -97,6 +97,14 @@ describe('assistant runtime trace logging', () => {
     tracer.traceRendererQuery({
       queryMessageId: 'turn-1',
       conversationRef: 'conv-1',
+      rendererPayload: {
+        text: 'private user request',
+        model: { modelProvider: 'anthropic', modelId: 'claude-sonnet-4.5' },
+      },
+      preparedPayload: {
+        text: 'private user request',
+        model: { modelProvider: 'anthropic', modelId: 'claude-sonnet-4.5' },
+      },
       payload: {
         text: 'private user request',
         resources: [{ kind: 'screenshot' }],
@@ -150,7 +158,7 @@ describe('assistant runtime trace logging', () => {
 
     expect(messages).toEqual([
       '[ElectronTrace] backend connection.open connected=true user=user-1',
-      '[ElectronTrace] renderer query.send turn=turn-1 conv=conv-1 text_len=20 resources=1 agent=true client_tools=0 disabled_tools=2',
+      '[ElectronTrace] renderer query.send turn=turn-1 conv=conv-1 text_len=20 resources=1 agent=true client_tools=0 disabled_tools=2 renderer_model=anthropic/claude-sonnet-4.5 prepared_model=anthropic/claude-sonnet-4.5 sdk_model=- model_dropped=true',
       '[ElectronTrace] sdk runtime.send turn=turn-1 conv=conv-1 text_len=20 resources=1 agent=true client_tools=0 disabled_tools=2 remote_tools=0',
       '[ElectronTrace] settings update.send source=renderer id=settings-1 keys=model_provider,selected_model_id provider=openai model=gpt-4.1 mode=- tools_mode=-',
       '[ElectronTrace] settings update.ack id=settings-1 success=true',
@@ -177,6 +185,16 @@ describe('assistant runtime trace logging', () => {
       disabledToolCount: 2,
       enabledRemoteToolCount: 1,
       systemPromptMode: 'replace',
+      rendererPayloadHasModel: true,
+      rendererPayloadModelProvider: 'anthropic',
+      rendererPayloadModelId: 'claude-sonnet-4.5',
+      preparedPayloadHasModel: true,
+      preparedPayloadModelProvider: 'anthropic',
+      preparedPayloadModelId: 'claude-sonnet-4.5',
+      sdkPayloadHasModel: false,
+      sdkPayloadModelProvider: null,
+      sdkPayloadModelId: null,
+      modelDroppedBeforeSdk: true,
     }));
     expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       action: 'runtime.send',
@@ -224,7 +242,7 @@ describe('assistant runtime trace logging', () => {
     });
 
     expect(messages).toEqual([
-      '[ElectronTrace] renderer query.send turn=- conv=- text_len=20 resources=1 agent=false client_tools=0 disabled_tools=0',
+      '[ElectronTrace] renderer query.send turn=- conv=- text_len=20 resources=1 agent=false client_tools=0 disabled_tools=0 renderer_model=- prepared_model=- sdk_model=- model_dropped=false',
     ]);
     expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       action: 'query.send',

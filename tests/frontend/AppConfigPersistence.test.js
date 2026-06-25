@@ -212,12 +212,12 @@ describe('appConfigPersistence', () => {
       }),
     ).toEqual({
       provider_api_keys: {
-        openai: { enabled: true, api_key: '' },
-        anthropic: { enabled: false, api_key: '' },
-        google: { enabled: false, api_key: '' },
-        openrouter: { enabled: false, api_key: '' },
-        mistral: { enabled: false, api_key: '' },
-        kimi_coding: { enabled: false, api_key: '' },
+        openai: { enabled: true, api_key: '', has_saved_key: true },
+        anthropic: { enabled: false, api_key: '', has_saved_key: false },
+        google: { enabled: false, api_key: '', has_saved_key: false },
+        openrouter: { enabled: false, api_key: '', has_saved_key: false },
+        mistral: { enabled: false, api_key: '', has_saved_key: false },
+        kimi_coding: { enabled: false, api_key: '', has_saved_key: false },
       },
     });
   });

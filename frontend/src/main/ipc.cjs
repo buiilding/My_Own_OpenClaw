@@ -37,6 +37,9 @@ const {
   createDesktopUiConfigStoreRuntime,
 } = require('./ipc/ipc_desktop_ui_config_store.cjs');
 const {
+  hydrateProviderApiKeySecretsForBackendSettings,
+} = require('./ipc/ipc_provider_credentials_store.cjs');
+const {
   createGlobalStopShortcutConfigRuntime,
 } = require('./ipc/ipc_global_stop_shortcut_config_runtime.cjs');
 const {
@@ -190,7 +193,6 @@ const {
   createCurrentTurnTraceLogger,
 } = require('./ipc/ipc_assistant_trace.cjs');
 const {
-  buildBackendQueryPayload,
   buildQueryPayload,
   buildRendererBackendQueryPayloadWithAgentDefinition,
   prepareAutomatedQueryPayload,
@@ -434,6 +436,7 @@ const settingsSyncRuntime = createIpcSettingsSyncRuntime({
   isBackendRuntimeConnected,
   ensureBackendConnection,
   updateSettings: (payload) => updateSettingsThroughAgentSdkRuntime(payload),
+  hydrateProviderApiKeySecretsForBackendSettings,
   traceSettingsUpdate: (config, source, msgId) => electronMainTraceLogger.traceSettingsUpdate(
     config,
     source,
@@ -607,6 +610,12 @@ const agentDefinitionContextRuntime = createAgentDefinitionContextRuntime({
   buildAgentDefinition,
   isDefaultAgentDefinition,
 });
+function attachRuntimeTurnContextToPayload(payload) {
+  return buildRendererBackendQueryPayloadWithAgentDefinition({
+    payload,
+    attachAgentDefinitionContext,
+  });
+}
 const chatQueryHandlerRuntime = createChatQueryHandlerRuntime({
   getState: () => ipcSessionContextRuntime.getQueryState(),
   setCurrentConversationRef: (conversationRef) => {
@@ -616,12 +625,7 @@ const chatQueryHandlerRuntime = createChatQueryHandlerRuntime({
   setFirstQuery: (nextValue) => {
     backendConnectionGateState.setFirstQuery(nextValue);
   },
-  attachAgentDefinitionContextToPayload: (payload) => (
-    buildRendererBackendQueryPayloadWithAgentDefinition({
-      payload,
-      attachAgentDefinitionContext,
-    })
-  ),
+  attachAgentDefinitionContextToPayload: attachRuntimeTurnContextToPayload,
   ensureInstallAuthState: () => installAuthContextRuntime.ensureInstallAuthState(),
   isBackendRuntimeConnected,
   ensureBackendConnection,
@@ -660,9 +664,7 @@ const automatedQueryRuntime = createAutomatedQueryRuntime({
   ensureInitialSettingsSync,
   getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
   buildQueryPayload,
-  attachAgentDefinitionContextToPayload: (payload) => buildBackendQueryPayload(
-    attachAgentDefinitionContext(payload),
-  ),
+  attachAgentDefinitionContextToPayload: attachRuntimeTurnContextToPayload,
   sendQueryThroughAgentSdkRuntime,
   getState: () => ipcSessionContextRuntime.getQueryState(),
   setCurrentConversationRef: (conversationRef) => {
@@ -687,6 +689,8 @@ const agentSdkInvokeHandlerRuntime = createAgentSdkInvokeHandlerRuntime({
     getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
     sendWakewordDetectedThroughAgentSdkRuntime,
     appendAppDiagnostic,
+    attachRuntimeTurnContextToPayload,
+    traceRuntimeSend: (input) => electronMainTraceLogger.traceRuntimeSend(input),
   },
 });
 const artifactHandlersRuntime = createArtifactHandlersRuntime({

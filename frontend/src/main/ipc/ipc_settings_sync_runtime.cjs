@@ -54,6 +54,21 @@ function buildBackendSettingsPayload(config) {
   return filterBackendPayload('update-settings', config);
 }
 
+function redactProviderApiKeysForTrace(config) {
+  if (!isValidConfigPayload(config) || !isValidConfigPayload(config.provider_api_keys)) {
+    return config;
+  }
+  return {
+    ...config,
+    provider_api_keys: Object.fromEntries(
+      Object.entries(config.provider_api_keys).map(([provider, entry]) => [
+        provider,
+        isValidConfigPayload(entry) ? { ...entry, api_key: '' } : entry,
+      ]),
+    ),
+  };
+}
+
 function copyStringArray(value) {
   return Array.isArray(value)
     ? value.filter((item) => typeof item === 'string')
@@ -68,6 +83,7 @@ function createIpcSettingsSyncRuntime({
   isBackendRuntimeConnected,
   ensureBackendConnection,
   updateSettings,
+  hydrateProviderApiKeySecretsForBackendSettings = (config) => config,
   traceSettingsUpdate = null,
   log = () => {},
   timeoutMs = 2500,
@@ -122,6 +138,19 @@ function createIpcSettingsSyncRuntime({
     return { ...config };
   }
 
+  function hydrateBackendSettingsConfig(config) {
+    if (!isValidConfigPayload(config)) {
+      return config;
+    }
+    try {
+      const hydrated = hydrateProviderApiKeySecretsForBackendSettings(config, log);
+      return isValidConfigPayload(hydrated) ? hydrated : config;
+    } catch (error) {
+      log(`Failed to hydrate provider credentials for settings sync: ${error?.message || error}`);
+      return config;
+    }
+  }
+
   async function waitForPendingSync() {
     if (pendingSettingsSyncPromise) {
       await pendingSettingsSyncPromise;
@@ -131,11 +160,17 @@ function createIpcSettingsSyncRuntime({
   }
 
   async function sendSettingsUpdate(config, source = 'renderer') {
-    const backendConfig = buildBackendSettingsPayload(config);
+    if (!isValidConfigPayload(config)) {
+      return Promise.resolve(false);
+    }
+    const configForStore = await preserveLocalOnlyConfigFields(config);
+    const backendConfig = buildBackendSettingsPayload(
+      hydrateBackendSettingsConfig(configForStore),
+    );
     if (!backendConfig) {
       return Promise.resolve(false);
     }
-    replaceDesktopUiConfigFromRenderer?.(await preserveLocalOnlyConfigFields(config));
+    replaceDesktopUiConfigFromRenderer?.(configForStore);
 
     if (!isBackendRuntimeConnected?.()) {
       try {
@@ -151,7 +186,7 @@ function createIpcSettingsSyncRuntime({
       return Promise.resolve(false);
     }
     if (typeof traceSettingsUpdate === 'function') {
-      traceSettingsUpdate(backendConfig, source, msgId);
+      traceSettingsUpdate(redactProviderApiKeysForTrace(backendConfig), source, msgId);
     }
 
     const ackPromise = waitForSettingsAck(

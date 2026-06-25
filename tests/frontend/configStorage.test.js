@@ -37,12 +37,12 @@ const DEFAULT_RENDERER_CONFIG = {
   global_agent_stop_shortcut: 'CommandOrControl+Shift+Escape',
   include_query_screenshot: true,
   provider_api_keys: {
-    openai: { enabled: false, api_key: '' },
-    anthropic: { enabled: false, api_key: '' },
-    google: { enabled: false, api_key: '' },
-    openrouter: { enabled: false, api_key: '' },
-    mistral: { enabled: false, api_key: '' },
-    kimi_coding: { enabled: false, api_key: '' },
+    openai: { enabled: false, api_key: '', has_saved_key: false },
+    anthropic: { enabled: false, api_key: '', has_saved_key: false },
+    google: { enabled: false, api_key: '', has_saved_key: false },
+    openrouter: { enabled: false, api_key: '', has_saved_key: false },
+    mistral: { enabled: false, api_key: '', has_saved_key: false },
+    kimi_coding: { enabled: false, api_key: '', has_saved_key: false },
   },
   appearance_mode: 'system',
   appearance_theme: normalizeAppearanceTheme(),
@@ -202,7 +202,7 @@ describe('configStorage', () => {
     const result = loadConfigFromStorage();
     expect(result.provider_api_keys).toEqual({
       ...DEFAULT_RENDERER_CONFIG.provider_api_keys,
-      openai: { enabled: true, api_key: '' },
+      openai: { enabled: true, api_key: '', has_saved_key: true },
     });
   });
 
@@ -238,6 +238,7 @@ describe('configStorage', () => {
     expect(stored.provider_api_keys.openai).toEqual({
       enabled: true,
       api_key: '',
+      has_saved_key: true,
     });
     expect(stored.backend_only_state).toBeUndefined();
     expect(JSON.stringify(stored)).not.toContain('sk-openai');

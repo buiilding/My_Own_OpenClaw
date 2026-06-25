@@ -100,7 +100,7 @@ async function persistProviderApiKeySecrets(config, log = () => {}, storage = sa
     if (!isPlainObject(entry)) {
       continue;
     }
-    if (entry.enabled === false) {
+    if (entry.enabled === false || entry.clear_saved_key === true) {
       if (Object.prototype.hasOwnProperty.call(nextSecrets, provider)) {
         delete nextSecrets[provider];
         changed = true;
@@ -143,12 +143,21 @@ function hydrateProviderApiKeySecrets(config, log = () => {}, storage = safeStor
       if (!isPlainObject(entry) || entry.enabled !== true || entry.api_key) {
         return [provider, entry];
       }
-      const secret = decryptProviderSecret(store.provider_api_keys[provider], storage);
+      let secret = null;
+      try {
+        secret = decryptProviderSecret(store.provider_api_keys[provider], storage);
+      } catch (error) {
+        log(`Failed to decrypt provider API key for '${provider}': ${error.message}`);
+      }
       if (!secret) {
+        if (entry.has_saved_key === true) {
+          changed = true;
+          return [provider, { ...entry, has_saved_key: false }];
+        }
         return [provider, entry];
       }
       changed = true;
-      return [provider, { ...entry, api_key: secret }];
+      return [provider, { ...entry, api_key: secret, has_saved_key: true }];
     }),
   );
 
@@ -157,8 +166,17 @@ function hydrateProviderApiKeySecrets(config, log = () => {}, storage = safeStor
     : config;
 }
 
+function hydrateProviderApiKeySecretsForBackendSettings(
+  config,
+  log = () => {},
+  storage = safeStorage,
+) {
+  return hydrateProviderApiKeySecrets(config, log, storage);
+}
+
 module.exports = {
   getProviderCredentialsPath,
   hydrateProviderApiKeySecrets,
+  hydrateProviderApiKeySecretsForBackendSettings,
   persistProviderApiKeySecrets,
 };

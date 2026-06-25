@@ -75,7 +75,7 @@ Responsibilities:
   are available to query-time agent-definition assembly
 - persist updates to localStorage and disk
 - publish `update-settings` through `DesktopSettingsRuntimeClient.updateSettings(...)`
-- leave deferred model/provider selection to `DesktopSettingsRuntimeClient.setModel(...)` on send/manual-compaction paths; replay sends its model selection with the retry/edit command payload
+- leave deferred model/provider selection to `DesktopSettingsRuntimeClient.setModel(...)` on send/manual-compaction paths; replay sends its model selection with the retry/edit SDK command payload so `ConversationRuntime.send()` applies it before inference
 - derive the wakeword preference from persisted `config.wakeword_enabled`
 
 Important guardrails:
@@ -112,6 +112,8 @@ Tracks transient save state machine:
 File path:
 
 - `${app.getPath('userData')}/frontend-config.json`
+- `${app.getPath('userData')}/provider-credentials.json` for encrypted
+  provider API-key secrets
 
 Behavior:
 
@@ -119,6 +121,10 @@ Behavior:
 - save validates object payload
 - save redacts provider API keys and OAuth access/refresh tokens before writing
 - load redacts provider API keys and OAuth access/refresh tokens before returning
+- redacted provider key entries may include non-secret `has_saved_key` display
+  state so Settings can show a masked saved-key placeholder after restart
+- provider API keys are saved encrypted outside `frontend-config.json`; Electron
+  main rehydrates them only for backend-bound `update-settings` payloads
 - atomic write (`.tmp` then rename)
 
 ### Main-process store semantics (`ipc_desktop_ui_config_store.cjs`)
@@ -155,6 +161,12 @@ Behavior:
   so edit/resend or replay payloads cannot resurrect stale prompts or client
   tool manifests while still preserving additive supplied prompt layers and
   runtime metadata
+- normal renderer sends and SDK replay commands use the same Electron-main
+  runtime-turn context helper before SDK dispatch. Replay remains responsible
+  for display row replacement, revision creation, and superseding old turns, but
+  it receives current `payload.agent_definition` from the live config store
+  through the shared helper instead of falling back to startup SDK session
+  defaults.
 - the direct wake-up adapter must translate Electron main's `AgentQueryInput`
   into `ConversationRuntime.send` input by placing the query-local
   `agent_definition`, screenshots, attachments, workspace state, resources,
@@ -190,8 +202,9 @@ Key runtime state:
 2. Electron main routes that command through
    `ipc_agent_sdk_runtime_commands.cjs` into `sendSettingsUpdate(...)`
 3. `ipc_settings_sync_runtime.cjs` filters the backend settings payload,
-   ensures the Agent SDK runtime is connected, and sends backend websocket
-   `update-settings` through the active SDK runtime
+   rehydrates enabled redacted provider credentials from Electron main's
+   encrypted credential store, ensures the Agent SDK runtime is connected, and
+   sends backend websocket `update-settings` through the active SDK runtime
 4. main waits for ACK (`settings-updated`) or timeout
    (`SETTINGS_SYNC_TIMEOUT_MS = 2500`)
 

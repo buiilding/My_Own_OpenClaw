@@ -71,6 +71,11 @@ jest.mock('electron', () => ({
   app: {
     getPath: jest.fn(() => '/tmp/appdata'),
   },
+  safeStorage: {
+    isEncryptionAvailable: jest.fn(() => true),
+    encryptString: jest.fn((value) => Buffer.from(`encrypted:${value}`, 'utf8')),
+    decryptString: jest.fn((value) => value.toString('utf8').replace(/^encrypted:/, '')),
+  },
 }), { virtual: true });
 
 jest.mock('uuid', () => ({

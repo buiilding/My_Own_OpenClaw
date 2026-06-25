@@ -213,7 +213,10 @@ Compact response lifecycle milestones are stored in app diagnostics under
 `ipc.bridge`:
 
 - `renderer query.send`: renderer query handoff into Electron
-  main, with conversation/turn ids, text length, and resource count.
+  main, with conversation/turn ids, text length, resource count, and sanitized
+  model checkpoints for the original renderer payload, prepared query payload,
+  and SDK handoff payload. `model_dropped=true` means a model override existed
+  before the SDK handoff payload lost it.
 - `backend connection.*`: backend websocket connection state.
 - `backend first_event`: the first backend event received for a
   turn.

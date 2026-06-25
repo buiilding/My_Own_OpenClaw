@@ -41,7 +41,7 @@ function createRuntimeHarness(overrides = {}) {
       await callback();
     }),
     log: jest.fn(),
-    prepareRendererQueryPayload: jest.fn(() => ({
+    prepareRendererQueryPayload: overrides.prepareRendererQueryPayload || jest.fn(() => ({
       payload: {
         text: 'hello',
         conversation_ref: 'conv-1',
@@ -60,7 +60,7 @@ function createRuntimeHarness(overrides = {}) {
       startTurn: jest.fn(),
       clear: jest.fn(),
     },
-    buildQueryPayload: jest.fn(async () => ({
+    buildQueryPayload: overrides.buildQueryPayload || jest.fn(async () => ({
       payload: {
         content: '<user_query>hello</user_query>',
       },
@@ -151,6 +151,61 @@ describe('ipc_chat_query_handlers runtime', () => {
       payload: expect.objectContaining({
         agent_definition: { mode: 'default' },
       }),
+      rendererPayload: expect.objectContaining({
+        text: 'hello',
+        conversation_ref: 'conv-1',
+      }),
+      preparedPayload: expect.objectContaining({
+        text: 'hello',
+        conversation_ref: 'conv-1',
+      }),
+      conversationRef: 'conv-1',
+      queryMessageId: 'turn-1',
+    }));
+  });
+
+  test('traces renderer and prepared model checkpoints when SDK payload drops model', async () => {
+    const model = { modelProvider: 'anthropic', modelId: 'claude-sonnet-4.5' };
+    const harness = createRuntimeHarness({
+      prepareRendererQueryPayload: jest.fn(() => ({
+        payload: {
+          text: 'hello',
+          conversation_ref: 'conv-1',
+          model,
+        },
+        conversationRef: 'conv-1',
+        queryMessageId: 'turn-1',
+      })),
+      buildQueryPayload: jest.fn(async () => ({
+        payload: {
+          content: '<user_query>hello</user_query>',
+        },
+        queryUsedInitialContext: true,
+      })),
+      attachAgentDefinitionContextToPayload: jest.fn((payload) => {
+        const nextPayload = { ...payload };
+        delete nextPayload.model;
+        return {
+          ...nextPayload,
+          agent_definition: { mode: 'default' },
+        };
+      }),
+    });
+    const { handleRendererChatQuery } = harness.runtime.createHandlers({
+      getWindows: harness.getWindows,
+      onBeforeOverlayQueryCapture: harness.onBeforeOverlayQueryCapture,
+    });
+
+    await handleRendererChatQuery({ sender: { id: 'sender' } }, {
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      model,
+    });
+
+    expect(harness.deps.traceRendererQuery).toHaveBeenCalledWith(expect.objectContaining({
+      rendererPayload: expect.objectContaining({ model }),
+      preparedPayload: expect.objectContaining({ model }),
+      payload: expect.not.objectContaining({ model }),
       conversationRef: 'conv-1',
       queryMessageId: 'turn-1',
     }));

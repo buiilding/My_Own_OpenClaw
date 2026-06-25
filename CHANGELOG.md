@@ -6,6 +6,35 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: make SDK retry/edit replay use the same Electron-main
+  runtime-turn context helper as normal sends, so current Agent prompts and
+  local/remote tool policy are attached before replay dispatch instead of
+  falling back to stale SDK session defaults. No migration required.
+- frontend/sdk: converge retry/edit replay model selection on the SDK
+  `ConversationRuntime.send()` gate, remove the stale prepared replay
+  query-envelope helper, and add regressions proving replay applies the
+  selected model before backend query dispatch without adding `model` to query
+  payloads. No migration required.
+- frontend/main: add sanitized model checkpoints to the `ipc.bridge`
+  `renderer query.send` diagnostic so renderer, prepared-query, and SDK
+  handoff model state can be compared when model selection goes stale. No
+  migration required.
+- backend/errors: preserve concise provider API status messages such as
+  `AnthropicProvider API error (HTTP 401)` in streamed backend error envelopes
+  while continuing to collapse raw provider bodies, stack traces, paths, and
+  secret-like details to the generic internal-error message. No migration
+  required.
+- frontend/main: rehydrate encrypted provider API keys only for backend-bound
+  `update-settings` payloads so restarted apps keep renderer-visible config
+  redacted while Anthropic/OpenAI/etc. user-key overrides remain available to
+  provider selection. No migration required.
+- frontend/renderer: preserve a non-secret saved-key marker for provider API
+  keys so the Models settings panel shows a masked saved-key placeholder after
+  restart without exposing raw credentials. No migration required.
+- frontend/renderer: lock saved provider API-key fields and add a text `Delete`
+  action that clears the encrypted key, removes the saved-key mask, and unlocks
+  the field for a replacement key without disabling the provider toggle. No
+  migration required.
 - sdk/frontend: restore the conversation-view snapshot contract during the
   main integration merge so direct wake-up, chat workspace selection, and SDK
   CJS output all carry the same `ConversationView` envelope. No migration
@@ -168,10 +197,11 @@ All notable changes to WindieOS will be documented in this file.
   previous raw key and must be re-entered once.
 - frontend/main, frontend/renderer: advance the redacted desktop UI config cache
   before asynchronous disk persistence completes, await selected-model sync
-  before chat sends and manual compaction, and forward retry/edit replay model
-  overrides through SDK `agent.run(..., { model })` options. Just-edited Agent
-  settings now affect the next query's system prompt/tool policy, and model
-  retries no longer race against the previous provider. No migration required.
+  before chat sends and manual compaction, and carry retry/edit replay model
+  overrides through SDK replay commands into `ConversationRuntime.send()`.
+  Just-edited Agent settings now affect the next query's system prompt/tool
+  policy, and model retries no longer race against the previous provider. No
+  migration required.
 - frontend/main, frontend/renderer: carry SDK `ConversationView` through the
   `conversation.loadDisplay` command and prefer `view.displayRows` in renderer
   display-row facades. Legacy `displayRows` remain as a temporary fallback for

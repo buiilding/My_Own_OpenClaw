@@ -14,25 +14,6 @@ const {
 const TOOL_CALL_MESSAGE_TYPES = new Set(['tool-call', 'tool-bundle']);
 const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);
 
-function stringArrayPayloadField(payload, ...keys) {
-  if (!payload || typeof payload !== 'object') {
-    return null;
-  }
-  for (const key of keys) {
-    const value = payload[key];
-    if (!Array.isArray(value)) {
-      continue;
-    }
-    const normalized = value
-      .filter((entry) => typeof entry === 'string' && entry.trim().length > 0)
-      .map((entry) => entry.trim());
-    if (normalized.length > 0) {
-      return normalized;
-    }
-  }
-  return null;
-}
-
 function normalizeReplayMessageType(message) {
   if (!message || typeof message !== 'object') {
     return '';
@@ -200,52 +181,6 @@ function buildReplayPreparationPayload({
   return payload;
 }
 
-function buildPreparedReplayDesktopChatTurn({
-  preparedReplayTurn,
-  conversationRef,
-  deferredQueryModelSelection,
-  screenshotRef,
-  screenshotUrl,
-  sessionInfo,
-  workspacePath,
-  createTurnRef = () => crypto.randomUUID(),
-  timestamp = () => new Date().toISOString(),
-}) {
-  const replayTurnRef = preparedReplayTurn.turnRef || createTurnRef();
-  const payload = preparedReplayTurn.payload || {};
-  const metadata = (
-    preparedReplayTurn.metadata
-    && typeof preparedReplayTurn.metadata === 'object'
-    && !Array.isArray(preparedReplayTurn.metadata)
-  ) ? preparedReplayTurn.metadata : null;
-  return {
-    attachmentFilenames: stringArrayPayloadField(
-      payload,
-      'attachment_filenames',
-      'attachmentFilenames',
-    ),
-    conversationRef: preparedReplayTurn.conversationRef || conversationRef,
-    deferredQueryModelSelection: null,
-    metadata,
-    model: preparedReplayTurn.model ?? deferredQueryModelSelection ?? null,
-    resources: [],
-    screenshotRef: payload.screenshot_ref ?? screenshotRef ?? null,
-    screenshotRefs: payload.screenshot_refs ?? null,
-    screenshotUrl: payload.screenshot_url ?? screenshotUrl ?? null,
-    sendLifecycle: {
-      shouldCaptureQueryScreenshot: false,
-      shouldReturnToChatboxOnSend: false,
-      surfaceReason: 'replay',
-    },
-    sessionInfo,
-    text: preparedReplayTurn.text,
-    timestamp: timestamp(),
-    turnId: replayTurnRef,
-    turnRef: replayTurnRef,
-    workspacePath: preparedReplayTurn.workspacePath ?? workspacePath ?? null,
-  };
-}
-
 function buildReplayPendingTurn({
   attachmentFilenames = null,
   attachments = null,
@@ -311,7 +246,6 @@ function buildReplayMessagesWithPendingTurn(messages, pendingTurn) {
 }
 
 export const DesktopConversationReplayRuntime = Object.freeze({
-  buildPreparedReplayDesktopChatTurn,
   buildReplayMessagesWithPendingTurn,
   buildReplayPendingTurn,
   buildReplayContextMessages,

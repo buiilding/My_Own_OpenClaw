@@ -7915,6 +7915,151 @@ describe('Agent SDK conversation runtime core', () => {
     ]);
   });
 
+  test('editAndResend applies model selection through send before dispatching the replay query', async () => {
+    const settingsUpdates: Record<string, unknown>[] = [];
+    const sentQueries: Record<string, unknown>[] = [];
+    const sendQuery = jest.fn(async payload => {
+      sentQueries.push(payload);
+      return 'query-edited';
+    });
+    const updateSettings = jest.fn(async payload => {
+      settingsUpdates.push(payload);
+      return 'settings-edit';
+    });
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'user-edit',
+        payload: { text: 'old text' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'assistant-stale',
+        payload: { text: 'stale answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockAgentRuntimeTransport({
+        sendQuery,
+        updateSettings,
+      }),
+    });
+
+    await runtime.load();
+    await runtime.editAndResend({
+      messageId: 'user-edit',
+      text: 'new text',
+      turnRef: 'turn-edited',
+      model: {
+        modelProvider: 'anthropic',
+        modelId: 'claude-sonnet-4-5',
+      },
+    });
+
+    expect(settingsUpdates).toEqual([
+      {
+        selected_model_id: 'claude-sonnet-4-5',
+        model_provider: 'anthropic',
+      },
+    ]);
+    expect(sentQueries).toHaveLength(1);
+    expect(sentQueries[0]).toMatchObject({
+      text: 'new text',
+      conversation_ref: 'conv-sdk-runtime',
+    });
+    expect(sentQueries[0]).not.toHaveProperty('model');
+    expect(updateSettings.mock.invocationCallOrder[0]).toBeLessThan(
+      sendQuery.mock.invocationCallOrder[0],
+    );
+    const events = await store.loadEvents('conv-sdk-runtime');
+    const settingsIndex = events.findIndex(event => event.type === 'settings_updated');
+    const replacementUserIndex = events.findIndex(event => (
+      event.type === 'user_message'
+      && event.turnRef === 'turn-edited'
+    ));
+    expect(settingsIndex).toBeGreaterThan(-1);
+    expect(replacementUserIndex).toBeGreaterThan(settingsIndex);
+  });
+
+  test('retryTurn applies model selection through send before dispatching the replay query', async () => {
+    const settingsUpdates: Record<string, unknown>[] = [];
+    const sentQueries: Record<string, unknown>[] = [];
+    const sendQuery = jest.fn(async payload => {
+      sentQueries.push(payload);
+      return 'query-retry';
+    });
+    const updateSettings = jest.fn(async payload => {
+      settingsUpdates.push(payload);
+      return 'settings-retry';
+    });
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'user-retry',
+        payload: { text: 'try again' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'assistant-retry',
+        payload: { text: 'stale answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockAgentRuntimeTransport({
+        sendQuery,
+        updateSettings,
+      }),
+    });
+
+    await runtime.load();
+    await runtime.retryTurn({
+      messageId: 'assistant-retry',
+      turnRef: 'turn-retry',
+      model: {
+        modelProvider: 'anthropic',
+        modelId: 'claude-sonnet-4-5',
+      },
+    });
+
+    expect(settingsUpdates).toEqual([
+      {
+        selected_model_id: 'claude-sonnet-4-5',
+        model_provider: 'anthropic',
+      },
+    ]);
+    expect(sentQueries).toHaveLength(1);
+    expect(sentQueries[0]).toMatchObject({
+      text: 'try again',
+      conversation_ref: 'conv-sdk-runtime',
+    });
+    expect(sentQueries[0]).not.toHaveProperty('model');
+    expect(updateSettings.mock.invocationCallOrder[0]).toBeLessThan(
+      sendQuery.mock.invocationCallOrder[0],
+    );
+    const events = await store.loadEvents('conv-sdk-runtime');
+    const settingsIndex = events.findIndex(event => event.type === 'settings_updated');
+    const replacementUserIndex = events.findIndex(event => (
+      event.type === 'user_message'
+      && event.turnRef === 'turn-retry'
+    ));
+    expect(settingsIndex).toBeGreaterThan(-1);
+    expect(replacementUserIndex).toBeGreaterThan(settingsIndex);
+  });
+
   test('scenario: tool turn, compaction, edit resend, and reload keep tool call/output pairs adjacent', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const sentRehydrates: Record<string, unknown>[] = [];

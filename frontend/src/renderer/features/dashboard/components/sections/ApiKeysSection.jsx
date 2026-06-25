@@ -9,6 +9,7 @@ import { DesktopProviderCredentialRuntime } from '../../../../app/runtime/deskto
 import { providerApiKeysPropType } from './providerApiKeysPropTypes';
 
 const PROVIDER_API_KEY_CONTROLS = DesktopProviderCredentialRuntime.getProviderApiKeySpecs();
+const SAVED_PROVIDER_API_KEY_MASK = '\u2022'.repeat(48);
 
 function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {
   const [expanded, setExpanded] = useState(false);
@@ -45,6 +46,12 @@ function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {
         <div id="models-api-keys-content" className="model-surface-api-keys-content">
           {PROVIDER_API_KEY_CONTROLS.map((provider) => {
             const value = normalizedProviderApiKeys[provider.id] || { enabled: false, api_key: '' };
+            const hasSavedRedactedKey = value.enabled === true
+              && value.has_saved_key === true
+              && value.api_key.length === 0;
+            const inputValue = hasSavedRedactedKey
+              ? SAVED_PROVIDER_API_KEY_MASK
+              : value.api_key;
             return (
               <div key={provider.id} className="model-surface-api-provider-row">
                 <div className="model-surface-api-provider-head">
@@ -66,17 +73,38 @@ function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {
                   </label>
                 </div>
 
-                <input
-                  type="password"
-                  className="model-surface-api-input"
-                  value={value.api_key}
-                  onChange={(event) => {
-                    updateProviderApiKeys(provider.id, { api_key: event.target.value });
-                  }}
-                  placeholder={provider.placeholder}
-                  disabled={!value.enabled}
-                  aria-label={provider.title}
-                />
+                <div className="model-surface-api-input-row">
+                  <input
+                    type="password"
+                    className="model-surface-api-input"
+                    value={inputValue}
+                    onChange={(event) => {
+                      updateProviderApiKeys(provider.id, {
+                        api_key: event.target.value,
+                        clear_saved_key: false,
+                      });
+                    }}
+                    placeholder={provider.placeholder}
+                    disabled={!value.enabled}
+                    readOnly={hasSavedRedactedKey}
+                    aria-label={provider.title}
+                  />
+                  {hasSavedRedactedKey ? (
+                    <button
+                      type="button"
+                      className="model-surface-api-delete"
+                      onClick={() => {
+                        updateProviderApiKeys(provider.id, {
+                          api_key: '',
+                          has_saved_key: false,
+                          clear_saved_key: true,
+                        });
+                      }}
+                    >
+                      Delete
+                    </button>
+                  ) : null}
+                </div>
               </div>
             );
           })}

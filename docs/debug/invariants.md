@@ -30,6 +30,15 @@ this page.
 
 ## Settings And Model Selection
 
+- Provider API keys remain redacted in renderer-visible config, localStorage,
+  `frontend-config.json`, and Electron main snapshots. Electron main must
+  rehydrate enabled redacted provider credentials from its encrypted credential
+  store only when building backend-bound `update-settings` payloads, so a
+  restarted app cannot send `enabled: true` with an empty UI-redacted key to
+  backend provider selection. Renderer-visible config may expose only non-secret
+  saved-key presence such as `has_saved_key`, never raw key text. Removing a
+  saved key is an explicit renderer-to-main delete action that clears the
+  encrypted credential and must not rely on editing placeholder text.
 - Agent settings edited in the renderer must update Electron main's redacted
   desktop UI config store before the next query attaches `agent_definition`;
   disk persistence is not allowed to be the live-turn gate, and partial renderer
@@ -47,11 +56,20 @@ this page.
   adapter must translate the query Agent definition, screenshots, attachments,
   workspace state, resources, metadata, and model override into the runtime send
   shape before dispatch.
+- Normal renderer sends and SDK replay commands share Electron main's
+  runtime-turn context preparation before any SDK send reaches backend
+  inference. Replay may replace/supersede display rows and create revisions,
+  but it must not own separate Agent config assembly or fall back to startup
+  SDK session definitions; each replay turn attaches the current
+  Electron-generated `payload.agent_definition` from the live desktop UI config
+  store.
 - Selected chat models must be applied before inference starts: normal sends and
   manual compaction await the SDK settings ACK, while retry/edit replay carries
-  the model through Electron main into SDK `agent.run(..., { model })` options.
-  See the Settings startup and Model send selection rows in the
-  [User-Facing Regression Pack](user_facing_regression_pack.md).
+  the model through SDK replay commands into `ConversationRuntime.send()`, where
+  the same per-turn `setModel(...)` gate runs before the backend query dispatch.
+  Model selection must not be smuggled through backend query payload fields. See
+  the Settings startup and Model send selection rows in the [User-Facing
+  Regression Pack](user_facing_regression_pack.md).
 
 ## Adding An Invariant
 
