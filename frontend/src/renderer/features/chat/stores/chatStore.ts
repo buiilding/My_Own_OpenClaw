@@ -60,6 +60,9 @@ import {
 import {
   DesktopConversationViewWorkspaceRuntime,
 } from '../../../app/runtime/desktopConversationViewWorkspaceRuntime';
+import {
+  DesktopChatInterfacePresentationRuntime,
+} from '../../../app/runtime/desktopChatInterfacePresentationRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const {
@@ -126,6 +129,23 @@ const {
   buildSetLatestConversationViewStateUpdate,
   buildSetConversationViewStateUpdate,
 } = DesktopConversationViewWorkspaceRuntime;
+const {
+  buildChatInterfacePresentationState,
+} = DesktopChatInterfacePresentationRuntime as {
+  buildChatInterfacePresentationState: (input: {
+    activeConversationRef?: string | null;
+    conversationView?: ConversationView | null;
+    currentTurnProjection?: CurrentTurnProjection | null;
+    messages?: ChatMessage[];
+    pendingTurn?: PendingTurn | null;
+  }) => {
+    activeRevisionId: string | null;
+    canEditMessages: boolean;
+    canRetryMessages: boolean;
+    renderedMessages: ChatMessage[];
+    replayFallbackMessages: ChatMessage[];
+  };
+};
 export type { ChatMessage, TokenCounts };
 
 const pendingTurnStateRuntimeDependencies = {
@@ -307,8 +327,16 @@ interface ChatState {
 
 export function selectChatInterfaceState(state: ChatState) {
   const activeWorkspace = selectActiveWorkspaceState(state);
+  const interfaceState = projectDesktopChatInterfaceState(activeWorkspace);
   return {
-    ...projectDesktopChatInterfaceState(activeWorkspace),
+    ...interfaceState,
+    ...buildChatInterfacePresentationState({
+      activeConversationRef: state.activeConversationRef,
+      conversationView: interfaceState.conversationView as ConversationView | null,
+      currentTurnProjection: interfaceState.currentTurnProjection as CurrentTurnProjection | null,
+      messages: interfaceState.messages as ChatMessage[],
+      pendingTurn: interfaceState.pendingTurn as PendingTurn | null,
+    }),
     chatSurfaceState: projectDesktopChatSurfaceState({
       activeWorkspace,
     }),

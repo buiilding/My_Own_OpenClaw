@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: move main-thread presentation projection into
+  `selectChatInterfaceState(...)` so `ChatInterface` receives rendered rows,
+  action flags, active revision id, and replay fallback rows instead of calling
+  the projection runtime over raw message/current-turn inputs. No migration
+  required.
 - frontend/chat: move main `ChatInterface` surface-state projection into
   `selectChatInterfaceState(...)` so the component no longer imports the
   surface selector or assembles raw message/current-turn/pending-turn surface

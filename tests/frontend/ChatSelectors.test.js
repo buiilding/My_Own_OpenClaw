@@ -143,6 +143,11 @@ describe('chatSelectors', () => {
       currentTurnProjection: null,
       conversationView: null,
       pendingTurn: null,
+      activeRevisionId: null,
+      canEditMessages: true,
+      canRetryMessages: true,
+      renderedMessages: state.messages,
+      replayFallbackMessages: state.messages,
       chatSurfaceState: {
         messages: state.messages,
         currentTurnProjection: null,
@@ -174,6 +179,8 @@ describe('chatSelectors', () => {
     const chatInterface = selectChatInterfaceState(state);
 
     expect(chatInterface.messages).toBe(messages);
+    expect(chatInterface.renderedMessages).toBe(messages);
+    expect(chatInterface.replayFallbackMessages).toBe(messages);
     expect(chatInterface.tokenCounts).toBe(tokenCounts);
     expect(selectChatInterfaceSurfaceState(state).messages).toBe(messages);
   });
@@ -380,6 +387,13 @@ describe('chatSelectors', () => {
     expect(selected.conversationView).toBe(view);
     expect(selected.currentTurnProjection).toBeNull();
     expect(selected.messages).toEqual([{ id: 'display-user-1', text: 'question', sender: 'user' }]);
+    expect(selected.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'entry-view',
+        text: 'view live answer',
+      }),
+    ]);
+    expect(selected.replayFallbackMessages).toEqual([]);
     expect(selected.chatSurfaceState).toEqual({
       messages: [],
       currentTurnProjection: null,
@@ -403,6 +417,11 @@ describe('chatSelectors', () => {
       tokenCounts: null,
       currentTurnProjection: null,
       pendingTurn: null,
+      activeRevisionId: null,
+      canEditMessages: true,
+      canRetryMessages: true,
+      renderedMessages: [],
+      replayFallbackMessages: [],
     }));
     expect(selected).not.toHaveProperty('streamTracking');
   });

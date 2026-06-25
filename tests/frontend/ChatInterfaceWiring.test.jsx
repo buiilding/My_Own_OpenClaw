@@ -84,6 +84,7 @@ let mockTranscriptSessionSnapshot = {
   userId: 'default_user',
 };
 const mockChatState = {
+  activeConversationRef: 'conv_existing',
   messages: [],
   isSending: false,
   thinkingStatus: null,
@@ -208,21 +209,36 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
     (selector) => mockSelectStoreState(selector, mockChatState),
     { getState: () => mockChatState },
   ),
-  selectChatInterfaceState: (state) => ({
-    messages: state.messages,
-    thinkingStatus: state.thinkingStatus,
-    thinkingSourceEventType: state.thinkingSourceEventType,
-    compactionDebugInfo: state.compactionDebugInfo,
-    currentTurnProjection: state.conversationView ? null : state.currentTurnProjection,
-    conversationView: state.conversationView,
-    pendingTurn: state.pendingTurn,
-    chatSurfaceState: {
+  selectChatInterfaceState: (state) => {
+    const {
+      DesktopChatInterfacePresentationRuntime,
+    } = jest.requireActual(
+      '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime',
+    );
+    const chatSurfaceState = {
       messages: state.conversationView ? [] : state.messages,
       currentTurnProjection: state.conversationView ? null : state.currentTurnProjection,
       conversationView: state.conversationView,
       pendingTurn: state.pendingTurn,
-    },
-  }),
+    };
+    return {
+      messages: state.messages,
+      thinkingStatus: state.thinkingStatus,
+      thinkingSourceEventType: state.thinkingSourceEventType,
+      compactionDebugInfo: state.compactionDebugInfo,
+      currentTurnProjection: chatSurfaceState.currentTurnProjection,
+      conversationView: state.conversationView,
+      pendingTurn: state.pendingTurn,
+      ...DesktopChatInterfacePresentationRuntime.buildChatInterfacePresentationState({
+        activeConversationRef: state.activeConversationRef,
+        conversationView: state.conversationView,
+        currentTurnProjection: chatSurfaceState.currentTurnProjection,
+        messages: state.messages,
+        pendingTurn: state.pendingTurn,
+      }),
+      chatSurfaceState,
+    };
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({

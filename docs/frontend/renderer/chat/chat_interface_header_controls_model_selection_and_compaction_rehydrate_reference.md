@@ -46,12 +46,13 @@ Derived flags:
 
 ## Presentation Read Model
 
-`ChatInterface` calls
+`selectChatInterfaceState(...)` calls
 `DesktopChatInterfacePresentationRuntime.buildChatInterfacePresentationState(...)`
-for rendered thread rows, action gating, active revision id, and replay fallback
-rows. When a `ConversationView` exists, that runtime projects SDK display rows
-and returns an empty `replayFallbackMessages` array so React does not choose
-between SDK view rows and raw store messages.
+before `ChatInterface` renders. The component receives rendered thread rows,
+action gating, active revision id, and replay fallback rows as selected props.
+When a `ConversationView` exists, that runtime projects SDK display rows and
+returns an empty `replayFallbackMessages` array so React does not choose between
+SDK view rows and raw store messages.
 
 ## Stop Query Contract
 

@@ -3238,8 +3238,9 @@ describe('renderer chat runtime boundary', () => {
     expect(displayAttachmentProjectionSource).not.toContain('countLegacyScreenshotAttachments');
     expect(chatInterfaceSource).toContain('DesktopChatInterfacePresentationRuntime');
     expect(chatInterfaceSource).toContain('DesktopChatRevisionActionRuntime');
-    expect(chatInterfaceSource).toContain('buildChatInterfacePresentationState');
+    expect(chatInterfaceSource).not.toContain('buildChatInterfacePresentationState');
     expect(chatInterfaceSource).toContain('resolveConversationViewStoreRef');
+    expect(chatStoreSource).toContain('buildChatInterfacePresentationState');
     expect(chatInterfaceSource).toContain('buildRevisionCheckoutCommand');
     expect(chatInterfaceSource).toContain('buildRevisionForkCommand');
     expect(chatInterfaceSource).not.toContain('setMessages(projection.messages');

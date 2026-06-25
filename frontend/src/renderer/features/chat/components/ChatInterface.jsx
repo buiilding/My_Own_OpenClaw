@@ -62,7 +62,6 @@ const { buildThreadFindState } = DesktopThreadFindRuntime;
 const { isDevUiEnabled } = DesktopDevUiRuntime;
 const { startNewChatSession } = DesktopNewChatSessionRuntime;
 const {
-  buildChatInterfacePresentationState,
   resolveConversationViewStoreRef,
 } = DesktopChatInterfacePresentationRuntime;
 const {
@@ -81,14 +80,17 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const vmModeEnabled = DesktopStartupRuntimeClient.isVmModeEnabled();
 
   const {
-    messages,
     thinkingStatus,
     thinkingSourceEventType,
     compactionDebugInfo,
-    currentTurnProjection,
     conversationView,
     chatSurfaceState,
     pendingTurn,
+    activeRevisionId,
+    canEditMessages,
+    canRetryMessages,
+    replayFallbackMessages,
+    renderedMessages,
   } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
@@ -230,19 +232,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     speechModeEnabled,
   } = chatSurface;
   const activeConversationRef = sessionInfo.conversationRef || null;
-  const {
-    activeRevisionId,
-    canEditMessages,
-    canRetryMessages,
-    replayFallbackMessages,
-    renderedMessages,
-  } = useMemo(() => buildChatInterfacePresentationState({
-    activeConversationRef,
-    conversationView,
-    currentTurnProjection,
-    messages,
-    pendingTurn,
-  }), [activeConversationRef, conversationView, currentTurnProjection, messages, pendingTurn]);
   const isLoadingSelectedConversation = (
     typeof loadingConversationRef === 'string'
     && loadingConversationRef.length > 0

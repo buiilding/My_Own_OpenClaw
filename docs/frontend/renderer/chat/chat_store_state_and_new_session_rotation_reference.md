@@ -191,7 +191,12 @@ import chat feature store internals.
 `selectChatInterfaceState` exposes active-workspace projection:
 
 - `messages`, `thinkingStatus`, `tokenCounts`
-- `streamTracking` for diagnostics and focused runtime tests
+- `renderedMessages`, `replayFallbackMessages`, `canEditMessages`,
+  `canRetryMessages`, and `activeRevisionId` from
+  `DesktopChatInterfacePresentationRuntime`
+- raw `messages`, `currentTurnProjection`, `conversationView`, and
+  `pendingTurn` as no-view/send/stop bridge inputs for hooks that still need
+  them during migration
 
 Minimal chat pill and response overlay state now route through the live-turn
 presentation/view-model helpers instead of a separate chat-box selector. The
