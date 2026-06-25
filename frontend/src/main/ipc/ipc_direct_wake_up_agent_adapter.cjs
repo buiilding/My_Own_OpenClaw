@@ -83,6 +83,7 @@ function createDirectWakeUpAgentAdapter({
     summarizeCurrentTurn,
     isDebugFlagEnabled,
     currentTurnTraceLogger,
+    traceRuntimeSend,
     getSyncSdkLiveTurnSurfaceIntent,
     log,
     buildConversationTerminalStatus,
@@ -309,7 +310,14 @@ function createDirectWakeUpAgentAdapter({
       });
       try {
         await ensureInferenceContextForSend(handle, sendInput);
-        const result = await handle.runtime.send(buildRuntimeSendInput(sendInput, options));
+        const runtimeSendInput = buildRuntimeSendInput(sendInput, options);
+        if (typeof traceRuntimeSend === 'function') {
+          traceRuntimeSend({
+            ...runtimeSendInput,
+            conversationRef: resolvedConversationRef,
+          });
+        }
+        const result = await handle.runtime.send(runtimeSendInput);
         handle.activeTurnRef = result.turnRef;
         broadcastStatus({
           phase: 'running',
