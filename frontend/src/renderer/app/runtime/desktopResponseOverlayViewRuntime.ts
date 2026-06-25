@@ -4,6 +4,8 @@
 
 import { DesktopResponseOverlayLayoutRuntime } from './desktopResponseOverlayLayoutRuntime';
 import { DesktopCurrentTurnMessageRuntime } from './desktopCurrentTurnMessageRuntime';
+import { DesktopCurrentTurnPresentationRuntime } from './desktopCurrentTurnPresentationRuntime';
+import { DesktopVisibleTurnLifecycleRuntime } from './desktopVisibleTurnLifecycleRuntime';
 
 const AWAITING_VISIBLE_LIFECYCLE_STATUSES = new Set(['local_pending', 'awaiting']);
 const {
@@ -12,6 +14,12 @@ const {
   buildCurrentTurnMessagesFromPresentation,
   isVisibleResponseOverlayMessage,
 } = DesktopCurrentTurnMessageRuntime;
+const {
+  resolveSdkResponseOverlayPresentationState,
+} = DesktopCurrentTurnPresentationRuntime;
+const {
+  applyVisibleTurnLifecycleToPresentationState,
+} = DesktopVisibleTurnLifecycleRuntime;
 
 type CurrentTurnPresentationStateLike = {
   visibleTurnLifecycle?: {
@@ -106,7 +114,60 @@ function resolveResponseOverlayViewContract({
   };
 }
 
+function resolveResponseOverlayPresentationState({
+  currentTurnPresentationState,
+  currentTurnProjection = null,
+  dismissedResponseId = null,
+  liveTurnPresentationInput = {},
+  responseOverlayEntries = [],
+  visibleTurnLifecycle = null,
+}: {
+  currentTurnPresentationState: Record<string, unknown>;
+  currentTurnProjection?: unknown;
+  dismissedResponseId?: string | null;
+  liveTurnPresentationInput?: {
+    overlayIntent?: unknown;
+    source?: string | null;
+    useLocalPendingTurn?: boolean;
+    useSdkLiveTurnPresentation?: boolean;
+  };
+  responseOverlayEntries?: ResponseOverlayEntryLike[];
+  visibleTurnLifecycle?: unknown;
+}) {
+  let presentationState;
+  if (
+    liveTurnPresentationInput.useSdkLiveTurnPresentation
+    && !liveTurnPresentationInput.useLocalPendingTurn
+    && liveTurnPresentationInput.source !== 'conversation-view'
+  ) {
+    presentationState = resolveSdkResponseOverlayPresentationState({
+      currentTurnProjection,
+      responseOverlayEntries,
+      dismissedResponseId,
+      includeOverlayIntent: true,
+    }) || currentTurnPresentationState;
+  } else if (liveTurnPresentationInput.useLocalPendingTurn) {
+    presentationState = {
+      ...currentTurnPresentationState,
+      overlayIntent: liveTurnPresentationInput.overlayIntent,
+    };
+  } else if (liveTurnPresentationInput.overlayIntent) {
+    presentationState = {
+      ...currentTurnPresentationState,
+      overlayIntent: liveTurnPresentationInput.overlayIntent,
+    };
+  } else {
+    presentationState = currentTurnPresentationState;
+  }
+
+  return applyVisibleTurnLifecycleToPresentationState(
+    presentationState,
+    visibleTurnLifecycle,
+  );
+}
+
 export const DesktopResponseOverlayViewRuntime = Object.freeze({
   resolveResponseOverlayEntries,
+  resolveResponseOverlayPresentationState,
   resolveResponseOverlayViewContract,
 });

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: move response-overlay presentation-state source selection
+  and visible lifecycle stamping behind the app-runtime view helper so the
+  feature hook no longer branches on SDK projection versus
+  `ConversationView.liveTurn` authority. No migration required.
 - frontend/overlay: move response-overlay entry source selection behind the
   app-runtime view helper so the feature hook no longer branches between SDK
   `ConversationView.liveTurn`, SDK presentation rows, raw current-turn

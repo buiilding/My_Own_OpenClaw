@@ -7,6 +7,7 @@ import { DesktopResponseOverlayViewRuntime } from '../../frontend/src/renderer/a
 describe('desktopResponseOverlayViewRuntime', () => {
   const {
     resolveResponseOverlayEntries,
+    resolveResponseOverlayPresentationState,
     resolveResponseOverlayViewContract,
   } = DesktopResponseOverlayViewRuntime;
 
@@ -78,6 +79,134 @@ describe('desktopResponseOverlayViewRuntime', () => {
         useLocalPendingTurn: true,
       },
     })).toEqual([]);
+  });
+
+  test('resolves SDK projection presentation state before visible lifecycle stamping', () => {
+    expect(resolveResponseOverlayPresentationState({
+      currentTurnPresentationState: {
+        activeResponse: null,
+        hasVisibleReply: false,
+        visibleResponse: null,
+        chatboxSurfaceState: 'compact',
+      },
+      currentTurnProjection: {
+        conversationRef: 'conv-sdk',
+        turnRef: 'turn-sdk',
+        presentation: {
+          hasVisibleContent: true,
+          entries: [{
+            id: 'assistant-sdk',
+            sender: 'assistant',
+            type: 'llm-text',
+            text: 'from sdk',
+          }],
+          overlayIntent: {
+            visible: true,
+            mode: 'response',
+            conversationRef: 'conv-sdk',
+            turnRef: 'turn-sdk',
+            staleGuardRef: 'turn-sdk',
+          },
+        },
+      },
+      responseOverlayEntries: [{
+        id: 'assistant-sdk',
+        sender: 'assistant',
+        type: 'llm-text',
+        text: 'from sdk',
+      }],
+      liveTurnPresentationInput: {
+        source: 'sdk',
+        useSdkLiveTurnPresentation: true,
+        useLocalPendingTurn: false,
+      },
+      visibleTurnLifecycle: {
+        status: 'active',
+        isBusy: true,
+      },
+    })).toMatchObject({
+      activeResponse: {
+        id: 'assistant-sdk',
+        text: 'from sdk',
+      },
+      visibleResponse: {
+        id: 'assistant-sdk',
+      },
+      overlayIntent: expect.objectContaining({
+        mode: 'response',
+        turnRef: 'turn-sdk',
+      }),
+      visibleTurnLifecycle: {
+        status: 'active',
+      },
+      isBusy: true,
+      awaitingDotTargetMessageId: null,
+    });
+  });
+
+  test('keeps ConversationView presentation state instead of replaying stale projection state', () => {
+    expect(resolveResponseOverlayPresentationState({
+      currentTurnPresentationState: {
+        activeResponse: {
+          id: 'assistant-view',
+          sender: 'assistant',
+          type: 'llm-text',
+          text: 'from view',
+        },
+        hasVisibleReply: true,
+        visibleResponse: {
+          id: 'assistant-view',
+          sender: 'assistant',
+          type: 'llm-text',
+          text: 'from view',
+        },
+        chatboxSurfaceState: 'response',
+      },
+      currentTurnProjection: {
+        presentation: {
+          overlayIntent: {
+            visible: true,
+            mode: 'response',
+            turnRef: 'turn-stale',
+          },
+        },
+      },
+      responseOverlayEntries: [{
+        id: 'assistant-view',
+        sender: 'assistant',
+        type: 'llm-text',
+        text: 'from view',
+      }],
+      liveTurnPresentationInput: {
+        source: 'conversation-view',
+        useSdkLiveTurnPresentation: true,
+        overlayIntent: {
+          visible: true,
+          mode: 'response',
+          turnRef: 'turn-view',
+        },
+      },
+      visibleTurnLifecycle: {
+        status: 'active',
+        isBusy: false,
+      },
+    })).toMatchObject({
+      activeResponse: {
+        id: 'assistant-view',
+        text: 'from view',
+      },
+      visibleResponse: {
+        id: 'assistant-view',
+      },
+      overlayIntent: {
+        visible: true,
+        mode: 'response',
+        turnRef: 'turn-view',
+      },
+      visibleTurnLifecycle: {
+        status: 'active',
+      },
+    });
   });
 
   test('shows response when entries exist and are not dismissed', () => {

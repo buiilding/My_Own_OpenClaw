@@ -166,10 +166,13 @@ Contract ownership:
 - `DesktopResponseOverlayViewRuntime.resolveResponseOverlayEntries(...)` owns
   response-entry derivation across SDK `ConversationView.liveTurn`, SDK
   current-turn presentation rows, raw projection fallback rows, and local
-  pending suppression. `useResponseOverlayViewModel(...)` owns the
-  renderer-side composition boundary for visible lifecycle adaptation, rendered
-  markdown payloads, closeability, and stale-response suppression during
-  local-pending/awaiting.
+  pending suppression.
+- `DesktopResponseOverlayViewRuntime.resolveResponseOverlayPresentationState(...)`
+  owns response-overlay presentation-state source selection across SDK
+  projection rows, SDK `ConversationView.liveTurn`, local pending overlay
+  intent, and visible lifecycle stamping. `useResponseOverlayViewModel(...)`
+  owns the renderer-side composition boundary for rendered markdown payloads,
+  closeability, and stale-response suppression during local-pending/awaiting.
 - `useResponseOverlayWindowSync(...)` owns response-window sizing policy and
   visibility re-report behavior, delegating responsebox size payload assembly,
   IPC, and visibility payload normalization/boolean subscription projection to

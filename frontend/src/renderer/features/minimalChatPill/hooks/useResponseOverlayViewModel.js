@@ -33,7 +33,6 @@ const {
 const {
   resolveCurrentTurnPresentationState,
   resolveResponseOverlayDismissalTarget,
-  resolveSdkResponseOverlayPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
 const {
   isResponseCloseable,
@@ -42,6 +41,7 @@ const {
 } = DesktopCurrentTurnMessageRuntime;
 const {
   resolveResponseOverlayEntries,
+  resolveResponseOverlayPresentationState,
 } = DesktopResponseOverlayViewRuntime;
 const {
   resolveLiveTurnPresentationInput,
@@ -50,7 +50,6 @@ const {
   resolveChatPillViewIntent,
 } = DesktopChatPillSessionRuntime;
 const {
-  applyVisibleTurnLifecycleToPresentationState,
   resolveVisibleTurnLifecycle,
 } = DesktopVisibleTurnLifecycleRuntime;
 
@@ -148,47 +147,21 @@ export function useResponseOverlayViewModel({
   );
 
   const resolvedCurrentTurnPresentationState = useMemo(
-    () => {
-      let presentationState;
-      if (
-        useSdkLiveTurnPresentation
-        && !useLocalPendingTurn
-        && liveTurnPresentationInput.source !== 'conversation-view'
-      ) {
-        presentationState = resolveSdkResponseOverlayPresentationState({
-          currentTurnProjection,
-          responseOverlayEntries,
-          dismissedResponseId,
-          includeOverlayIntent: true,
-        }) || currentTurnPresentationState;
-      } else if (useLocalPendingTurn) {
-        presentationState = {
-          ...currentTurnPresentationState,
-          overlayIntent: liveTurnPresentationInput.overlayIntent,
-        };
-      } else if (liveTurnPresentationInput.overlayIntent) {
-        presentationState = {
-          ...currentTurnPresentationState,
-          overlayIntent: liveTurnPresentationInput.overlayIntent,
-        };
-      } else {
-        presentationState = currentTurnPresentationState;
-      }
-      return applyVisibleTurnLifecycleToPresentationState(
-        presentationState,
-        visibleTurnLifecycle,
-      );
-    },
+    () => resolveResponseOverlayPresentationState({
+      currentTurnPresentationState,
+      currentTurnProjection,
+      dismissedResponseId,
+      liveTurnPresentationInput,
+      responseOverlayEntries,
+      visibleTurnLifecycle,
+    }),
     [
       currentTurnPresentationState,
       currentTurnProjection,
       dismissedResponseId,
-      liveTurnPresentationInput.overlayIntent,
-      liveTurnPresentationInput.source,
+      liveTurnPresentationInput,
       visibleTurnLifecycle,
       responseOverlayEntries,
-      useLocalPendingTurn,
-      useSdkLiveTurnPresentation,
     ],
   );
 
