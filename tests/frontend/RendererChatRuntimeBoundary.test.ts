@@ -3266,6 +3266,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('DesktopResponseOverlayViewRuntime');
     expect(chatStoreSource).not.toContain('export function buildResponseOverlayDismissalKey');
     expect(chatStoreSource).toContain('DesktopCurrentTurnWorkspaceRuntime');
+    expect(chatStoreSource).toContain('buildSetCurrentTurnProjectionStateUpdate');
+    expect(chatStoreSource).not.toContain('buildCurrentTurnWorkspaceMutation');
     expect(chatStoreSource).toContain('DesktopConversationViewWorkspaceRuntime');
     expect(chatStoreSource).toContain('buildSetConversationViewStateUpdate');
     expect(chatStoreSource).not.toContain('buildConversationViewWorkspaceMutation');
@@ -3324,6 +3326,7 @@ describe('renderer chat runtime boundary', () => {
     expect(turnConversationRefRuntimeSource).toContain('resolveConversationRefForTurn');
     expect(turnConversationRefRuntimeSource).not.toContain('features/chat');
     expect(currentTurnWorkspaceRuntimeSource).toContain('buildCurrentTurnWorkspaceMutation');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('buildSetCurrentTurnProjectionStateUpdate');
     expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForCurrentProjection');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('features/chat');
     expect(chatStoreSource).not.toContain("sourceEventType: 'renderer-compose'");

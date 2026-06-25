@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: move `setCurrentTurnProjection` state-update construction
+  behind `DesktopCurrentTurnWorkspaceRuntime` so `chatStore` no longer owns
+  workspace lookup or pending-bridge replacement for SDK current-turn
+  projections. No migration required.
 - frontend/store: move `setConversationView` state-update construction behind
   `DesktopConversationViewWorkspaceRuntime` so `chatStore` delegates
   workspace resolution, active latest-view selection, and same-turn pending

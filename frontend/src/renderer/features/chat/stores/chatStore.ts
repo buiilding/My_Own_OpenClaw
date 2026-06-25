@@ -94,7 +94,7 @@ const {
   resolveConversationRefForTurn,
 } = DesktopChatTurnConversationRefRuntime;
 const {
-  buildCurrentTurnWorkspaceMutation,
+  buildSetCurrentTurnProjectionStateUpdate,
 } = DesktopCurrentTurnWorkspaceRuntime;
 const {
   buildSetConversationViewStateUpdate,
@@ -111,6 +111,12 @@ const pendingTurnStateRuntimeDependencies = {
 };
 
 const stopTurnStateRuntimeDependencies = {
+  buildWorkspaceUpdate,
+  readWorkspaceState,
+  resolveWorkspaceKey,
+};
+
+const currentTurnStateRuntimeDependencies = {
   buildWorkspaceUpdate,
   readWorkspaceState,
   resolveWorkspaceKey,
@@ -475,16 +481,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setCurrentTurnProjection: (currentTurnProjection, conversationRef) =>
     set((state) => {
-      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
-      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
-      const nextWorkspace = buildCurrentTurnWorkspaceMutation({
-        currentWorkspace,
+      return buildSetCurrentTurnProjectionStateUpdate<ChatState, ChatWorkspaceState>({
+        conversationRef,
         currentTurnProjection,
-      });
-      if (!nextWorkspace) {
-        return state;
-      }
-      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
+        deps: currentTurnStateRuntimeDependencies,
+        state,
+      }) ?? state;
     }),
 
   setConversationView: (conversationView, conversationRef) =>

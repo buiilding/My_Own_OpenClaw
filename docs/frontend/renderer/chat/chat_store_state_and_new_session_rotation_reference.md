@@ -87,10 +87,10 @@ replay/store compatibility adapters and low-level artifact helpers.
 - `updateStreamTracking` always applies updater output
 - `setCurrentTurnProjection` updates the target workspace and clears a matching
   `pendingTurn` only after the SDK current-turn projection for that
-  conversation/turn arrives. The current-turn workspace mutation and
-  pending-turn replacement no-op guard live in
-  `desktopCurrentTurnWorkspaceRuntime.ts`; the store only applies the returned
-  workspace.
+  conversation/turn arrives. The current-turn workspace state update,
+  pending-turn replacement, and no-op guard live in
+  `desktopCurrentTurnWorkspaceRuntime.ts`; the store delegates current-turn
+  projection intent plus workspace dependency adapters.
 - `setConversationView` updates the target workspace and refreshes
   `latestConversationView` only when the target is the active workspace. The
   conversation-view workspace/latest-view state update lives in
