@@ -89,6 +89,29 @@ def _prompt_layer_count(prompt_metadata: Any) -> int:
     return len(layers) if isinstance(layers, list) else 0
 
 
+def _skill_prompt_layer_count(prompt_metadata: Any) -> int:
+    layers = getattr(prompt_metadata, "client_prompt_layers", None)
+    if not isinstance(layers, list):
+        return 0
+    count = 0
+    for layer in layers:
+        if not isinstance(layer, dict):
+            continue
+        layer_type = layer.get("type")
+        source_path = layer.get("source_path")
+        if isinstance(layer_type, str) and "skill" in layer_type.lower():
+            count += 1
+            continue
+        if isinstance(source_path, str) and source_path.startswith("skills/"):
+            count += 1
+    return count
+
+
+def _source_count(source_counts: Dict[str, int], key: str) -> int:
+    value = source_counts.get(key)
+    return value if isinstance(value, int) else 0
+
+
 class InteractionLoop:
     """
     Controls the agent execution state machine.
@@ -186,6 +209,7 @@ class InteractionLoop:
                     None,
                 ),
             )
+            final_skill_prompt_layer_count = _skill_prompt_layer_count(prompt_metadata)
             yield TraceEvent(
                 path="backend.prompt",
                 stage="build",
@@ -200,7 +224,21 @@ class InteractionLoop:
                     "hasPromptMetadata": prompt_metadata is not None,
                     "capabilityRevision": _session_capability_revision(self.session),
                     "finalToolSourceCounts": final_tool_source_counts,
+                    "builtinToolCount": _source_count(
+                        final_tool_source_counts, "builtin"
+                    ),
+                    "clientToolCount": _source_count(
+                        final_tool_source_counts, "client"
+                    ),
+                    "mcpToolCount": _source_count(final_tool_source_counts, "mcp"),
+                    "pluginToolCount": _source_count(
+                        final_tool_source_counts, "plugin"
+                    ),
+                    "backendRemoteToolCount": _source_count(
+                        final_tool_source_counts, "backend_remote"
+                    ),
                     "finalPromptLayerCount": _prompt_layer_count(prompt_metadata),
+                    "finalSkillPromptLayerCount": final_skill_prompt_layer_count,
                 },
             )
             yield TraceEvent(
@@ -213,6 +251,21 @@ class InteractionLoop:
                     "toolSchemaCount": len(tool_schemas or []),
                     "hasToolSchemas": bool(tool_schemas),
                     "promptMode": prompt_mode,
+                    "finalToolSourceCounts": final_tool_source_counts,
+                    "builtinToolCount": _source_count(
+                        final_tool_source_counts, "builtin"
+                    ),
+                    "clientToolCount": _source_count(
+                        final_tool_source_counts, "client"
+                    ),
+                    "mcpToolCount": _source_count(final_tool_source_counts, "mcp"),
+                    "pluginToolCount": _source_count(
+                        final_tool_source_counts, "plugin"
+                    ),
+                    "backendRemoteToolCount": _source_count(
+                        final_tool_source_counts, "backend_remote"
+                    ),
+                    "finalSkillPromptLayerCount": final_skill_prompt_layer_count,
                 },
             )
 
@@ -239,7 +292,35 @@ class InteractionLoop:
                 "promptMessageCount": len(prompt),
                 "toolSchemaCount": len(tool_schemas or []),
                 "finalToolSourceCounts": final_tool_source_counts,
+                "builtinToolCount": _source_count(final_tool_source_counts, "builtin"),
+                "clientToolCount": _source_count(final_tool_source_counts, "client"),
+                "mcpToolCount": _source_count(final_tool_source_counts, "mcp"),
+                "pluginToolCount": _source_count(final_tool_source_counts, "plugin"),
+                "backendRemoteToolCount": _source_count(
+                    final_tool_source_counts, "backend_remote"
+                ),
+                "finalPromptLayerCount": _prompt_layer_count(prompt_metadata),
+                "finalSkillPromptLayerCount": final_skill_prompt_layer_count,
             }
+            logger.info(
+                "[Turn Tool Counts] stage=provider_request iteration=%s "
+                "model_provider=%s model_id=%s prompt_messages=%s "
+                "model_visible_tools=%s builtin_tools=%s client_tools=%s "
+                "mcp_tools=%s plugin_tools=%s backend_remote_tools=%s "
+                "prompt_layers=%s skill_layers=%s",
+                iteration,
+                provider_trace_data.get("modelProvider"),
+                provider_trace_data.get("modelId"),
+                len(prompt),
+                len(tool_schemas or []),
+                provider_trace_data["builtinToolCount"],
+                provider_trace_data["clientToolCount"],
+                provider_trace_data["mcpToolCount"],
+                provider_trace_data["pluginToolCount"],
+                provider_trace_data["backendRemoteToolCount"],
+                provider_trace_data["finalPromptLayerCount"],
+                provider_trace_data["finalSkillPromptLayerCount"],
+            )
             yield TraceEvent(
                 path="provider.call",
                 stage="request",

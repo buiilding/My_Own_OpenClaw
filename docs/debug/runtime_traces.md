@@ -104,10 +104,13 @@ Current durable traced paths:
   usage, request ids, and duration.
 - `backend.prompt`: backend interaction loop records prompt-build spans with
   prompt mode, iteration, prompt message count, tool-schema count, metadata
-  presence, and duration. It does not persist prompt text.
+  presence, final builtin/client/MCP/plugin/backend-remote tool counts, skill
+  prompt-layer counts, and duration. It does not persist prompt text.
 - `provider.call`: backend provider runtime records LLM request spans with
-  provider/model ids, prompt/tool counts, response length, generic failure kind,
-  and duration. It does not persist raw provider payloads or tokens.
+  provider/model ids, prompt/tool counts, final builtin/client/MCP/plugin/backend
+  remote tool counts, skill prompt-layer counts, response length, generic
+  failure kind, and duration. It does not persist raw provider payloads or
+  tokens.
 - `conversation.rehydrate`: SDK runtime records backend rehydrate send spans
   with message count, rehydrate mode, transport availability, and duration.
 - `compaction.lifecycle`: SDK runtime records manual compaction request spans
@@ -157,7 +160,11 @@ Current durable traced paths:
   booleans without URLs, page titles, page text, or browser output.
 - `tool.schema.policy`: backend prompt projection and SDK schema helpers
   record tool-schema projection/list spans with tool counts, prompt mode, and
-  source without schema bodies or tool descriptions.
+  source without schema bodies or tool descriptions. Backend live logs also emit
+  `[Turn Tool Counts]` rows for backend-received capability manifests and
+  provider-bound requests so production `journalctl` can show whether a turn had
+  0, 14, or another count of model-visible tools, including MCP/plugin/client
+  source counts and skill prompt-layer counts.
 - `websocket.control`: SDK control sends record stop, wakeword, settings,
   model-list, rehydrate, and compaction control spans with message type,
   request id, transport availability, and duration.

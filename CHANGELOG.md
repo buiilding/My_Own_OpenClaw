@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/observability: emit sanitized per-turn `[Turn Tool Counts]` backend
+  logs and explicit trace fields for backend-received tools, final
+  model-visible tools, MCP/plugin/client/backend-remote source counts, and skill
+  prompt-layer counts, so production logs can confirm whether a turn carried 0,
+  14, or another tool count without logging schemas or prompt text. No migration
+  required.
 - frontend/main: translate stop-query transport refs to the SDK `agent.stop`
   camelCase API at the Electron-main bridge and direct wake-up adapter, so the
   Stop button again terminalizes the live SDK turn locally and forwards backend

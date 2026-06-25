@@ -104,6 +104,33 @@ def _agent_definition_capability_revision(agent_definition: Any) -> Optional[str
     return capability_revision_from_agent_definition(agent_definition)
 
 
+def _empty_capability_source_counts() -> Dict[str, int]:
+    return {
+        "builtin": 0,
+        "client": 0,
+        "mcp": 0,
+        "plugin": 0,
+        "backend_remote": 0,
+    }
+
+
+def _count_skill_prompt_layers(layers: Any) -> int:
+    if not isinstance(layers, list):
+        return 0
+    count = 0
+    for layer in layers:
+        if not isinstance(layer, dict):
+            continue
+        layer_type = layer.get("type")
+        source_path = layer.get("source_path")
+        if isinstance(layer_type, str) and "skill" in layer_type.lower():
+            count += 1
+            continue
+        if isinstance(source_path, str) and source_path.startswith("skills/"):
+            count += 1
+    return count
+
+
 class AgentSession:
     """
     The main agent class for orchestrating tasks with tool support.
@@ -627,6 +654,9 @@ class AgentSession:
                 if isinstance(resolved_client_prompt_layers, list)
                 else 0
             )
+            raw_skill_prompt_layer_count = _count_skill_prompt_layers(
+                resolved_client_prompt_layers
+            )
             if agent_definition is not None:
                 self.runtime.agent_definition = agent_definition
                 raw_manifest = (
@@ -781,6 +811,36 @@ class AgentSession:
                 if prompt_layer_validation is not None
                 else 0
             )
+            accepted_skill_prompt_layer_count = _count_skill_prompt_layers(
+                prompt_layer_validation.accepted
+                if prompt_layer_validation is not None
+                else []
+            )
+            accepted_source_counts = (
+                client_manifest_source_counts(manifest_result)
+                if manifest_result is not None
+                else _empty_capability_source_counts()
+            )
+            logger.info(
+                "[Turn Tool Counts] stage=backend_received has_agent_definition=%s "
+                "raw_tools=%s accepted_tools=%s rejected_tools=%s "
+                "client_tools=%s mcp_tools=%s plugin_tools=%s backend_remote_tools=%s "
+                "raw_prompt_layers=%s accepted_prompt_layers=%s "
+                "raw_skill_layers=%s accepted_skill_layers=%s capability_revision=%s",
+                agent_definition is not None,
+                raw_tool_count,
+                accepted_tool_count,
+                rejected_tool_count,
+                accepted_source_counts.get("client", 0),
+                accepted_source_counts.get("mcp", 0),
+                accepted_source_counts.get("plugin", 0),
+                accepted_source_counts.get("backend_remote", 0),
+                raw_prompt_layer_count,
+                accepted_prompt_layer_count,
+                raw_skill_prompt_layer_count,
+                accepted_skill_prompt_layer_count,
+                capability_revision,
+            )
             if should_emit_capability_aggregate:
                 yield TraceEvent(
                     path="client_capability_manifest.validate",
@@ -795,16 +855,14 @@ class AgentSession:
                         "rawPromptLayerCount": raw_prompt_layer_count,
                         "acceptedPromptLayerCount": accepted_prompt_layer_count,
                         "rejectedPromptLayerCount": rejected_prompt_layer_count,
-                        "sourceCounts": (
-                            client_manifest_source_counts(manifest_result)
-                            if manifest_result is not None
-                            else {
-                                "builtin": 0,
-                                "client": 0,
-                                "mcp": 0,
-                                "plugin": 0,
-                                "backend_remote": 0,
-                            }
+                        "rawSkillPromptLayerCount": raw_skill_prompt_layer_count,
+                        "acceptedSkillPromptLayerCount": accepted_skill_prompt_layer_count,
+                        "sourceCounts": accepted_source_counts,
+                        "mcpToolCount": accepted_source_counts.get("mcp", 0),
+                        "pluginToolCount": accepted_source_counts.get("plugin", 0),
+                        "clientToolCount": accepted_source_counts.get("client", 0),
+                        "backendRemoteToolCount": accepted_source_counts.get(
+                            "backend_remote", 0
                         ),
                     },
                 )
