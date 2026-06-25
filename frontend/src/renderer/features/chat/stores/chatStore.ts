@@ -36,14 +36,10 @@ import {
 import {
   DesktopChatPendingTurnStateRuntime,
 } from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
-import {
-  DesktopChatCurrentTurnStateRuntime,
-} from '../../../app/runtime/desktopChatCurrentTurnStateRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const {
-  buildStopQueryTrackingPatch,
-  buildStoppedCurrentTurnProjection,
+  buildStoppedTurnWorkspaceMutation,
 } = DesktopStopTurnRuntime;
 const {
   projectDesktopChatInterfaceState,
@@ -56,10 +52,6 @@ const {
   buildPendingTurnWorkspaceMutation,
   doesPendingTurnMatch,
 } = DesktopChatPendingTurnStateRuntime;
-const {
-  doesCurrentTurnProjectionMatch,
-} = DesktopChatCurrentTurnStateRuntime;
-
 export type { ChatMessage, TokenCounts };
 
 export type StreamPhase =
@@ -697,39 +689,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
       );
       const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
       const currentWorkspace = readWorkspaceState(state, workspaceRef);
-      const stoppedAt = typeof input?.stoppedAt === 'string' && input.stoppedAt.trim()
-        ? input.stoppedAt
-        : new Date().toISOString();
-      const target = { conversationRef, turnRef };
-      const workspaceProjection = currentWorkspace.currentTurnProjection;
-      const isWorkspaceProjectionTarget = doesCurrentTurnProjectionMatch(workspaceProjection, target);
-      const isPendingTurnTarget = doesPendingTurnMatch(currentWorkspace.pendingTurn, target);
-      if (!isWorkspaceProjectionTarget && !isPendingTurnTarget) {
+      const nextWorkspace = buildStoppedTurnWorkspaceMutation({
+        conversationRef,
+        currentTurnProjection: inputProjection,
+        currentWorkspace,
+        stoppedAt: input?.stoppedAt,
+        turnRef,
+      });
+      if (!nextWorkspace) {
         return state;
       }
-      const projectionToStop = isWorkspaceProjectionTarget
-        ? workspaceProjection
-        : inputProjection;
-      const nextCurrentTurnProjection = projectionToStop
-        ? buildStoppedCurrentTurnProjection(projectionToStop)
-        : workspaceProjection;
-      const nextPendingTurn = isPendingTurnTarget
-        ? null
-        : currentWorkspace.pendingTurn;
-      const nextStreamTracking: StreamTracking = {
-        ...currentWorkspace.streamTracking,
-        ...buildStopQueryTrackingPatch(stoppedAt),
-        phase: 'complete',
-      };
-      const nextWorkspace = {
-        ...currentWorkspace,
-        isSending: nextPendingTurn ? currentWorkspace.isSending : false,
-        thinkingStatus: null,
-        thinkingSourceEventType: null,
-        pendingTurn: nextPendingTurn,
-        currentTurnProjection: nextCurrentTurnProjection,
-        streamTracking: nextStreamTracking,
-      };
       return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
     }),
 

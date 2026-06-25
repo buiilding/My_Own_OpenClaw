@@ -44,6 +44,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/store: move pending-turn optimistic row merge and workspace mutation
   projection out of `chatStore` into `desktopChatPendingTurnStateRuntime`.
   No migration required.
+- frontend/store: move stopped-turn workspace mutation and current-turn match
+  handling into `desktopStopTurnRuntime`, deleting the now-unused current-turn
+  matcher helper. No migration required.
 - frontend/renderer: move pending-turn user-row construction out of
   `chatStore.ts` into an app-runtime pending bridge helper shared by normal
   sends and replay. The store now mutates workspace state without hard-coding

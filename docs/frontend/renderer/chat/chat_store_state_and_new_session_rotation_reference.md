@@ -14,7 +14,7 @@ title: "Chat Store State and New Session Rotation Reference"
 - `frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopPendingTurnBridgeRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatPendingTurnStateRuntime.ts`
-- `frontend/src/renderer/app/runtime/desktopChatCurrentTurnStateRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopStopTurnRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopNewChatSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopActiveChatSessionRuntime.ts`
@@ -101,9 +101,9 @@ Message attachment fields used by current send/runtime paths include:
   terminalizes the matching SDK current-turn projection while preserving any
   already visible assistant content. Stopped projections strip SDK
   `typingVisible` and `overlayVisible` compatibility fields; visible lifecycle
-  derives busy/typing state from terminal phase plus visible entries. Current
-  turn identity matching lives in `desktopChatCurrentTurnStateRuntime.ts`, not
-  hard-coded in the store.
+  derives busy/typing state from terminal phase plus visible entries. Stopped
+  workspace mutation and current-turn identity matching live in
+  `desktopStopTurnRuntime.js`, not hard-coded in the store.
 - `clearMessages` clears messages, clears raw send cleanup state, and resets
   `streamTracking` to initial idle shape
 - `setActiveConversationRef` switches the projected top-level state to that workspace snapshot

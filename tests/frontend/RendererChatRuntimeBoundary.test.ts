@@ -2985,8 +2985,8 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatPendingTurnStateRuntime.ts'),
       'utf8',
     );
-    const currentTurnStateRuntimeSource = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatCurrentTurnStateRuntime.ts'),
+    const stopTurnRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime.js'),
       'utf8',
     );
     const displayAttachmentProjectionSource = await fs.readFile(
@@ -3017,7 +3017,9 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('export type { ChatMessage, TokenCounts }');
     expect(chatStoreSource).toContain('createInitialWorkspaceRecord');
     expect(chatStoreSource).toContain('DesktopChatPendingTurnStateRuntime');
-    expect(chatStoreSource).toContain('DesktopChatCurrentTurnStateRuntime');
+    expect(chatStoreSource).toContain('buildStoppedTurnWorkspaceMutation');
+    expect(chatStoreSource).not.toContain('DesktopChatCurrentTurnStateRuntime');
+    expect(chatStoreSource).not.toContain('doesCurrentTurnProjectionMatch');
     expect(chatStoreSource).toContain('buildPendingTurnWorkspaceMutation');
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBridgeRuntime');
     expect(chatStoreSource).not.toContain('buildPendingTurnUserMessage');
@@ -3032,8 +3034,8 @@ describe('renderer chat runtime boundary', () => {
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnUserMessage');
     expect(pendingStateRuntimeSource).toContain('addSupersededTurnRef');
     expect(pendingStateRuntimeSource).toContain('removeSupersededTurnRef');
-    expect(currentTurnStateRuntimeSource).toContain('doesCurrentTurnProjectionMatch');
-    expect(currentTurnStateRuntimeSource).not.toContain('features/chat');
+    expect(stopTurnRuntimeSource).toContain('buildStoppedTurnWorkspaceMutation');
+    expect(stopTurnRuntimeSource).not.toContain('features/chat');
     expect(chatStoreSource).not.toContain("sourceEventType: 'renderer-compose'");
     expect(pendingBridgeSource).toContain("sourceEventType: 'renderer-compose'");
     expect(pendingBridgeSource).toContain('attachments: null');

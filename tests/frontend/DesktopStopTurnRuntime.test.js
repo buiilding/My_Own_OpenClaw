@@ -7,6 +7,7 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime';
 
 const {
+  buildStoppedTurnWorkspaceMutation,
   buildStoppedCurrentTurnProjection,
   isStopTurnTargetFromConversationView,
   isStopTurnTargetFromPendingTurn,
@@ -35,6 +36,40 @@ function conversationView({
         mode: phase === 'complete' || phase === 'idle' ? 'idle' : 'busy',
       },
     },
+  };
+}
+
+function workspace(overrides = {}) {
+  return {
+    messages: [],
+    isSending: true,
+    thinkingStatus: 'Thinking',
+    thinkingSourceEventType: 'assistant_delta',
+    streamTracking: {
+      activeTurnRef: 'turn-stop',
+      phase: 'streaming',
+      startedAt: '2026-06-25T12:00:00.000Z',
+      firstChunkAt: null,
+      completedAt: null,
+      lastEventAt: null,
+      lastEventType: null,
+      eventCount: 1,
+      chunkCount: 0,
+      toolCallCount: 0,
+      toolOutputCount: 0,
+      lastChunkSize: 0,
+      lastError: null,
+    },
+    currentTurnProjection: {
+      conversationRef: 'conv-stop',
+      turnRef: 'turn-stop',
+      phase: 'streaming',
+    },
+    pendingTurn: {
+      conversationRef: 'conv-stop',
+      turnRef: 'turn-stop',
+    },
+    ...overrides,
   };
 }
 
@@ -253,6 +288,40 @@ describe('desktopStopTurnRuntime', () => {
     expect(stoppedProjection.presentation).not.toHaveProperty('typingVisible');
     expect(stoppedProjection.presentation).not.toHaveProperty('overlayVisible');
     expect(stoppedProjection.presentation).not.toHaveProperty('hasVisibleContent');
+  });
+
+  test('buildStoppedTurnWorkspaceMutation clears matching pending turn and terminalizes projection', () => {
+    const nextWorkspace = buildStoppedTurnWorkspaceMutation({
+      conversationRef: 'conv-stop',
+      currentWorkspace: workspace(),
+      stoppedAt: '2026-06-25T12:01:00.000Z',
+      turnRef: 'turn-stop',
+    });
+
+    expect(nextWorkspace).toEqual(expect.objectContaining({
+      isSending: false,
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+      pendingTurn: null,
+      currentTurnProjection: expect.objectContaining({
+        phase: 'complete',
+      }),
+      streamTracking: expect.objectContaining({
+        phase: 'complete',
+        completedAt: '2026-06-25T12:01:00.000Z',
+        lastEventAt: '2026-06-25T12:01:00.000Z',
+        lastEventType: 'stop-query',
+      }),
+    }));
+  });
+
+  test('buildStoppedTurnWorkspaceMutation ignores stale target identities', () => {
+    expect(buildStoppedTurnWorkspaceMutation({
+      conversationRef: 'conv-other',
+      currentWorkspace: workspace(),
+      stoppedAt: '2026-06-25T12:01:00.000Z',
+      turnRef: 'turn-stop',
+    })).toBeNull();
   });
 
   test('buildStoppedCurrentTurnProjection does not use SDK visible-content flag as overlay evidence', () => {
