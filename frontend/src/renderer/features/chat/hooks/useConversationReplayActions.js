@@ -2,7 +2,7 @@
  * Provides the use conversation replay actions module for the renderer UI.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import {
   DesktopRendererConfigRuntimeClient,
@@ -26,6 +26,10 @@ export function useConversationReplayActions({
   const { config } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const deferredQueryModelSelection = DesktopRendererConfigRuntimeClient
     .buildDeferredQueryModelSelection(config);
+  const replayFallbackMessages = useMemo(
+    () => (conversationView ? [] : messages),
+    [conversationView, messages],
+  );
 
   const handleEditFromUser = useCallback(async (userMessageId, editedText) => {
     return executeReplayAction({
@@ -33,7 +37,7 @@ export function useConversationReplayActions({
       activeConversationRef,
       deferredQueryModelSelection,
       conversationView,
-      messages,
+      messages: replayFallbackMessages,
       userMessageId,
       editedText,
       failureMessages: {
@@ -48,7 +52,7 @@ export function useConversationReplayActions({
     addMessage,
     conversationView,
     deferredQueryModelSelection,
-    messages,
+    replayFallbackMessages,
   ]);
 
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
@@ -57,7 +61,7 @@ export function useConversationReplayActions({
       activeConversationRef,
       deferredQueryModelSelection,
       conversationView,
-      messages,
+      messages: replayFallbackMessages,
       assistantMessageId,
       failureMessages: {
         sendFailureMessage: chatSkin.sendFailureMessage,
@@ -71,7 +75,7 @@ export function useConversationReplayActions({
     addMessage,
     conversationView,
     deferredQueryModelSelection,
-    messages,
+    replayFallbackMessages,
   ]);
 
   return {

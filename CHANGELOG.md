@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: stop forwarding raw renderer messages as replay fallback
+  input when `ConversationView` exists, keeping SDK display rows as the only
+  normal replay read model. No migration required.
 - frontend/types: remove retired whole-message screenshot aliases from the
   renderer `ChatMessage` contract so visible attachment state is typed only as
   SDK `attachments[]`. No migration required.

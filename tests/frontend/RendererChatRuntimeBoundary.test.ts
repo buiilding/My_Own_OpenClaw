@@ -1738,6 +1738,11 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.sendQuery');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.editAndResend');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.retryTurn');
+    expect(source).toContain('const replayFallbackMessages = useMemo');
+    expect(source).toContain('() => (conversationView ? [] : messages)');
+    expect(source).toContain('messages: replayFallbackMessages');
+    expect(source).not.toContain('      messages,\n      userMessageId');
+    expect(source).not.toContain('      messages,\n      assistantMessageId');
     expect(continuityServiceSource).not.toContain('loadForDisplay');
     expect(continuityServiceSource).not.toContain('loadDisplayRows');
     expect(replayRuntimeSource).toContain('buildPendingTurn');
