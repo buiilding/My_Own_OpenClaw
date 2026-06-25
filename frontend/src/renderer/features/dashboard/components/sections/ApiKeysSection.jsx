@@ -9,6 +9,7 @@ import { DesktopProviderCredentialRuntime } from '../../../../app/runtime/deskto
 import { providerApiKeysPropType } from './providerApiKeysPropTypes';
 
 const PROVIDER_API_KEY_CONTROLS = DesktopProviderCredentialRuntime.getProviderApiKeySpecs();
+const SAVED_PROVIDER_API_KEY_MASK = '\u2022'.repeat(48);
 
 function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {
   const [expanded, setExpanded] = useState(false);
@@ -45,6 +46,9 @@ function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {
         <div id="models-api-keys-content" className="model-surface-api-keys-content">
           {PROVIDER_API_KEY_CONTROLS.map((provider) => {
             const value = normalizedProviderApiKeys[provider.id] || { enabled: false, api_key: '' };
+            const hasSavedRedactedKey = value.enabled === true
+              && value.has_saved_key === true
+              && value.api_key.length === 0;
             return (
               <div key={provider.id} className="model-surface-api-provider-row">
                 <div className="model-surface-api-provider-head">
@@ -73,7 +77,7 @@ function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {
                   onChange={(event) => {
                     updateProviderApiKeys(provider.id, { api_key: event.target.value });
                   }}
-                  placeholder={provider.placeholder}
+                  placeholder={hasSavedRedactedKey ? SAVED_PROVIDER_API_KEY_MASK : provider.placeholder}
                   disabled={!value.enabled}
                   aria-label={provider.title}
                 />

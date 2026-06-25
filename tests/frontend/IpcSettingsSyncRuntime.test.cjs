@@ -33,7 +33,12 @@ describe('ipc_settings_sync_runtime', () => {
     const promise = runtime.sendSettingsUpdate({
       selected_model_id: 'model-1',
       provider_api_keys: {
-        openai: { enabled: true, api_key: 'sk-test', renderer_only: true },
+        openai: {
+          enabled: true,
+          api_key: 'sk-test',
+          has_saved_key: true,
+          renderer_only: true,
+        },
         future_provider: { enabled: true, api_key: 'future' },
       },
       global_agent_stop_shortcut: { resolvedAccelerator: 'Ctrl+Alt+.' },

@@ -28,7 +28,14 @@ function redactProviderSecretsFromDesktopUiConfig(config) {
       Object.entries(redacted.provider_api_keys).map(([provider, entry]) => [
         provider,
         isPlainObject(entry)
-          ? { ...entry, api_key: '' }
+          ? {
+            ...entry,
+            api_key: '',
+            has_saved_key: entry.enabled === true && (
+              entry.has_saved_key === true
+              || (typeof entry.api_key === 'string' && entry.api_key.length > 0)
+            ),
+          }
           : entry,
       ]),
     );
