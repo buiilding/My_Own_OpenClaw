@@ -109,7 +109,6 @@ describe('renderer chat runtime boundary', () => {
       'components/ChatBrowserSessionControl.jsx',
       'components/ChatInterface.jsx',
       'hooks/useChatMessageSender.ts',
-      'hooks/useConversationReplayActions.js',
     ];
 
     for (const relativePath of skinConsumerFiles) {
@@ -846,6 +845,10 @@ describe('renderer chat runtime boundary', () => {
     );
     const replayActionsSource = await fs.readFile(
       path.join(chatRoot, 'hooks/useConversationReplayActions.js'),
+      'utf8',
+    );
+    const replayRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js'),
       'utf8',
     );
     const composerAttachmentSource = await fs.readFile(
@@ -1590,16 +1593,17 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopChatSendPreparationRuntime');
     expect(source).not.toContain('utils/conversationReplayToolMessages');
     expect(source).not.toContain('DesktopConversationContinuityService.loadDisplayTimeline');
-    expect(source).toContain('DesktopConversationContinuityService.editAndResend');
-    expect(source).toContain('DesktopConversationContinuityService.retryTurn');
+    expect(source).not.toContain('DesktopConversationContinuityService.editAndResend');
+    expect(source).not.toContain('DesktopConversationContinuityService.retryTurn');
     expect(source).not.toContain('DesktopConversationContinuityService.replaceRows');
     expect(source).not.toContain('DesktopConversationContinuityService.prepareEditAndResend');
     expect(source).not.toContain('DesktopConversationContinuityService.prepareRetryTurn');
     expect(source).not.toContain('dispatchPreparedDesktopChatTurn');
-    expect(source).toContain('buildReplayPendingPublication');
+    expect(source).toContain('executeReplayIntent');
+    expect(source).not.toContain('buildReplayPendingPublication');
     expect(source).not.toContain('buildReplayPendingTurn');
     expect(source).not.toContain('buildPreparedReplayDesktopChatTurn');
-    expect(source).toContain('DesktopPendingTurnRuntimeClient.setPending');
+    expect(source).not.toContain('DesktopPendingTurnRuntimeClient.setPending');
     expect(source).toContain('prepareReplayEditIntent');
     expect(source).toContain('prepareReplayRetryIntent');
     expect(source).not.toContain('findReplayEditableUserMessageIndex');
@@ -1620,6 +1624,10 @@ describe('renderer chat runtime boundary', () => {
     expect(continuityServiceSource).not.toContain('loadDisplayRows');
     expect(replayRuntimeSource).toContain('buildReplayPendingTurn');
     expect(replayRuntimeSource).toContain('buildReplayPendingPublication');
+    expect(replayRuntimeSource).toContain('executeReplayIntent');
+    expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.editAndResend');
+    expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.retryTurn');
+    expect(replayRuntimeSource).toContain('DesktopPendingTurnRuntimeClient.setPending');
     expect(replayRuntimeSource).toContain('buildReplayContextMessages');
     expect(replayRuntimeSource).not.toContain('buildPreparedReplayDesktopChatTurn');
     expect(replayRuntimeSource).toContain('findReplayEditableUserMessageIndex');
@@ -2149,6 +2157,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/useConversationReplayActions.js'),
       'utf8',
     );
+    const replayRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js'),
+      'utf8',
+    );
     const newChatSessionSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopNewChatSessionRuntime.ts'),
       'utf8',
@@ -2219,8 +2231,11 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('infrastructure/workspace/workspaceAccess');
     expect(sendPreparationSource).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection');
     expect(sendPreparationSource).toContain('DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding');
-    expect(replayActionsSource).toContain('DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding');
-    expect(replayActionsSource).toContain('desktopConversationSessionRuntime');
+    expect(replayActionsSource).not.toContain('DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding');
+    expect(replayActionsSource).not.toContain('desktopConversationSessionRuntime');
+    expect(replayRuntimeSource).toContain('DesktopRuntimeSkin.desktopRuntimeSkin');
+    expect(replayRuntimeSource).toContain('DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding');
+    expect(replayRuntimeSource).toContain('desktopConversationSessionRuntime');
     expect(replayActionsSource).not.toContain('utils/session/conversationRef');
     expect(newChatSessionSource).toContain('DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding');
     expect(newChatSessionSource).toContain('DesktopNewChatSessionRuntime');

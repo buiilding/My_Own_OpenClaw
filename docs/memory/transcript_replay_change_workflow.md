@@ -127,8 +127,9 @@ flowchart LR
      dispatch a separate normal send for replay execution.
    - React replay hooks should pass edit/retry intent through
      `desktopConversationReplayRuntime`, which owns target-message selection,
-     retained visible-prefix construction, superseded-turn detection, and
-     pending bridge shaping before the hook dispatches the SDK command.
+     retained visible-prefix construction, superseded-turn detection, pending
+     bridge shaping, SDK command dispatch, and failure cleanup. Hooks supply UI
+     state/dependencies and do not call the replay SDK commands directly.
    - Renderer app-runtime facades should not expose direct display timeline
      load/replace helpers to React. Low-level display timeline operations remain
      SDK/main-owner diagnostics and command-handler concerns; normal UI paths
