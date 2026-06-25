@@ -76,6 +76,7 @@ function createDirectWakeUpAgentAdapter({
     broadcastToRenderers,
     resolveRuntimeConversationRef,
     setLatestCurrentTurnProjection,
+    setLatestConversationView,
     getLatestPendingTurn,
     pendingTurnMatchesCurrentTurn,
     clearLatestPendingTurn,
@@ -143,10 +144,13 @@ function createDirectWakeUpAgentAdapter({
       }
       broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.ROWS, {
         conversationRef: handle.conversationRef,
-        rows: Array.isArray(snapshot.displayRows) ? snapshot.displayRows : [],
+        rows: Array.isArray(snapshot.view?.displayRows) ? snapshot.view.displayRows : [],
       });
       if (typeof setLatestCurrentTurnProjection === 'function') {
         setLatestCurrentTurnProjection(snapshot.currentTurn || null);
+      }
+      if (typeof setLatestConversationView === 'function') {
+        setLatestConversationView(snapshot.view || null);
       }
       const latestPendingTurn = typeof getLatestPendingTurn === 'function'
         ? getLatestPendingTurn()
@@ -169,7 +173,7 @@ function createDirectWakeUpAgentAdapter({
             ? summarizeCurrentTurn(snapshot.currentTurn)
             : {}),
           source: 'conversation-runtime',
-          displayRowCount: Array.isArray(snapshot.displayRows) ? snapshot.displayRows.length : 0,
+          displayRowCount: Array.isArray(snapshot.view?.displayRows) ? snapshot.view.displayRows.length : 0,
         });
       }
       if (
@@ -378,6 +382,7 @@ function createDirectWakeUpAgentAdapter({
       return reloadRuntimeSnapshot(handle);
     },
     getConversationRevision: options => agent.getConversationRevision(options),
+    listConversationRevisions: options => agent.listConversationRevisions(options),
     appendConversationEvent: async (options = {}) => {
       const event = options && typeof options === 'object' && 'event' in options
         ? options.event
@@ -423,6 +428,59 @@ function createDirectWakeUpAgentAdapter({
       markInferenceContextStale(handle.conversationRef);
       await reloadRuntimeSnapshot(handle);
       return checkpoint;
+    },
+    editAndResend: async (options = {}) => {
+      const displayConversationRef = resolveSdkCommandConversationRef(options);
+      const handle = getConversationRuntimeHandle(displayConversationRef);
+      const input = { ...options };
+      delete input.conversationRef;
+      delete input.revisionId;
+      delete input.revision_id;
+      delete input.store;
+      const result = await handle.runtime.editAndResend(input);
+      markInferenceContextStale(handle.conversationRef);
+      await reloadRuntimeSnapshot(handle);
+      return result;
+    },
+    retryTurn: async (options = {}) => {
+      const displayConversationRef = resolveSdkCommandConversationRef(options);
+      const handle = getConversationRuntimeHandle(displayConversationRef);
+      const input = { ...options };
+      delete input.conversationRef;
+      delete input.revisionId;
+      delete input.revision_id;
+      delete input.store;
+      const result = await handle.runtime.retryTurn(input);
+      markInferenceContextStale(handle.conversationRef);
+      await reloadRuntimeSnapshot(handle);
+      return result;
+    },
+    checkoutRevision: async (options = {}) => {
+      const displayConversationRef = resolveSdkCommandConversationRef(options);
+      const handle = getConversationRuntimeHandle(displayConversationRef);
+      const result = await handle.runtime.checkoutRevision({
+        revisionId: normalizeOptionalString(options.revisionId),
+      });
+      await reloadRuntimeSnapshot(handle);
+      return result;
+    },
+    forkConversation: async (options = {}) => {
+      const displayConversationRef = resolveSdkCommandConversationRef(options);
+      const handle = getConversationRuntimeHandle(displayConversationRef);
+      const input = { ...options };
+      delete input.conversationRef;
+      delete input.revisionId;
+      delete input.revision_id;
+      delete input.store;
+      const result = await handle.runtime.fork(input);
+      markInferenceContextStale(displayConversationRef);
+      await reloadRuntimeSnapshot(handle);
+      const forkedHandle = getConversationRuntimeHandle(result.conversationRef);
+      const forkedSnapshot = await reloadRuntimeSnapshot(forkedHandle);
+      return {
+        ...result,
+        view: forkedSnapshot?.view ?? result.view ?? null,
+      };
     },
     wakewordDetected: payload => agent.wakewordDetected(payload),
     ensureConnected: () => agent.ensureConnected(),

@@ -3,7 +3,8 @@
  */
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useChatStore } from '../../chat/stores/chatStore';
+import { useShallow } from 'zustand/react/shallow';
+import { selectLiveTurnSurfaceState, useChatStore } from '../../chat/stores/chatStore';
 import { useChatMessageSender } from '../../chat/hooks/useChatMessageSender';
 import { useChatComposerDraft } from '../../chat/hooks/useChatComposerDraft';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
@@ -47,11 +48,12 @@ const {
 
 function MinimalChatPill() {
   const closeBumpHeight = DesktopChatboxLayoutRuntime.getChatboxCloseBumpHeight();
-  const messages = useChatStore((state) => state.messages);
-  const currentTurnProjection = useChatStore((state) => (
-    state.latestCurrentTurnProjection || state.currentTurnProjection
-  ));
-  const pendingTurn = useChatStore((state) => state.pendingTurn);
+  const {
+    messages,
+    currentTurnProjection,
+    conversationView,
+    pendingTurn,
+  } = useChatStore(useShallow(selectLiveTurnSurfaceState));
   const sessionInfo = useRendererConversationSessionInfo();
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
@@ -81,6 +83,7 @@ function MinimalChatPill() {
   const chatSurface = useChatSurfaceController({
     messages,
     currentTurnProjection,
+    conversationView,
     pendingTurn,
     sessionInfo,
     setThinkingStatus,
@@ -89,6 +92,7 @@ function MinimalChatPill() {
   });
   const {
     includeQueryScreenshot,
+    canStop: stopAvailable,
     isBusy: loopInteractionLocked,
     liveTurnPhase,
     liveTurnSource,
@@ -245,6 +249,9 @@ function MinimalChatPill() {
       liveTurnSource,
       currentTurnPhase: currentTurnProjection?.phase || null,
       currentTurnRef: currentTurnProjection?.turnRef || null,
+      viewTurnRef: conversationView?.liveTurn?.turnRef || null,
+      viewPillMode: conversationView?.surfaces?.pill?.mode || null,
+      viewCanStop: conversationView?.liveTurn?.canStop === true,
     });
     if (lastLoggedPillStateRef.current === nextPillStateSignature) {
       return;
@@ -257,10 +264,13 @@ function MinimalChatPill() {
       liveTurnPhase,
       liveTurnSource,
       busy: loopInteractionLocked,
-      stopAvailable: loopInteractionLocked,
+      stopAvailable,
       messageCount: messages.length,
     });
   }, [
+    conversationView?.liveTurn?.canStop,
+    conversationView?.liveTurn?.turnRef,
+    conversationView?.surfaces?.pill?.mode,
     currentTurnProjection?.phase,
     currentTurnProjection?.turnRef,
     liveTurnPhase,
@@ -268,6 +278,7 @@ function MinimalChatPill() {
     loopInteractionLocked,
     messages.length,
     sessionInfo?.conversationRef,
+    stopAvailable,
   ]);
 
   const applyComposerHeight = useCallback((height) => {
@@ -456,7 +467,8 @@ function MinimalChatPill() {
     chatSurface.toggleSpeechMode();
   }, [chatSurface]);
   const { handleStopTurn } = useStopTurnHandler({
-    enabled: loopInteractionLocked,
+    enabled: stopAvailable,
+    conversationView,
     currentTurnProjection,
     pendingTurn,
     sessionConversationRef: sessionInfo?.conversationRef || null,
@@ -634,8 +646,8 @@ function MinimalChatPill() {
                 className={`chatbox-icon ${loopInteractionLocked ? 'chatbox-stop' : 'chatbox-send'}`}
                 aria-label={loopInteractionLocked ? 'Stop response' : 'Send message'}
                 title={loopInteractionLocked ? 'Stop response' : 'Send message'}
-                disabled={!loopInteractionLocked && !inputValue.trim() && !hasAttachments}
-                onClick={loopInteractionLocked ? handleStopTurn : undefined}
+                disabled={loopInteractionLocked ? !stopAvailable : (!inputValue.trim() && !hasAttachments)}
+                onClick={loopInteractionLocked && stopAvailable ? handleStopTurn : undefined}
               >
                 {loopInteractionLocked ? <StopIcon /> : <SendIcon />}
               </button>

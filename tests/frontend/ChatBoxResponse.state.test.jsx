@@ -90,6 +90,43 @@ describe('ChatBoxResponse state behavior', () => {
     };
   }
 
+  function conversationView({
+    mode = 'response',
+    entries = [],
+    turnRef = 'turn-view',
+    phase = mode === 'typing' ? 'awaiting' : 'streaming',
+  } = {}) {
+    return {
+      conversationRef: 'conv-test',
+      revisionId: 'rev-view',
+      displayRows: [],
+      liveTurn: {
+        turnRef,
+        phase,
+        entries,
+        isBusy: mode !== 'hidden',
+        isTerminal: false,
+        canStop: mode !== 'hidden',
+      },
+      surfaces: {
+        pill: { mode: mode === 'hidden' ? 'idle' : 'busy' },
+        dashboard: { mode: mode === 'hidden' ? 'idle' : 'busy' },
+        responseOverlay: {
+          mode,
+          visible: mode !== 'hidden',
+          guardRef: turnRef,
+          ownerConversationRef: 'conv-test',
+          turnRef,
+        },
+      },
+      actions: {
+        canEdit: false,
+        canRetry: false,
+        canFork: false,
+      },
+    };
+  }
+
   test('does not show awaiting indicator from raw isSending without pending turn or SDK current turn', () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
@@ -97,7 +134,6 @@ describe('ChatBoxResponse state behavior', () => {
     useChatStore.setState({
       isSending: true,
       currentTurnProjection: null,
-      latestCurrentTurnProjection: null,
     });
 
     render(<ChatBoxResponse />);
@@ -183,11 +219,6 @@ describe('ChatBoxResponse state behavior', () => {
           phase: 'idle',
           turnRef: 'startup-hidden',
         }),
-        latestCurrentTurnProjection: sdkPresentationProjection({
-          mode: 'hidden',
-          phase: 'idle',
-          turnRef: 'startup-hidden',
-        }),
       });
     });
 
@@ -196,10 +227,6 @@ describe('ChatBoxResponse state behavior', () => {
     act(() => {
       useChatStore.setState({
         currentTurnProjection: sdkPresentationProjection({
-          mode: 'awaiting',
-          turnRef: 'turn-live',
-        }),
-        latestCurrentTurnProjection: sdkPresentationProjection({
           mode: 'awaiting',
           turnRef: 'turn-live',
         }),
@@ -312,7 +339,6 @@ describe('ChatBoxResponse state behavior', () => {
       isSending: true,
       thinkingStatus: null,
       currentTurnProjection: sdkPresentationProjection({ mode: 'awaiting' }),
-      latestCurrentTurnProjection: sdkPresentationProjection({ mode: 'awaiting' }),
     });
 
     render(<ChatBoxResponse />);
@@ -354,7 +380,6 @@ describe('ChatBoxResponse state behavior', () => {
         ],
         isSending: false,
         currentTurnProjection: responseProjection,
-        latestCurrentTurnProjection: responseProjection,
       });
     });
 
@@ -966,7 +991,6 @@ describe('ChatBoxResponse state behavior', () => {
       ],
       isSending: false,
       currentTurnProjection: awaitingProjection,
-      latestCurrentTurnProjection: awaitingProjection,
     });
 
     render(<ChatBoxResponse />);
@@ -1001,7 +1025,6 @@ describe('ChatBoxResponse state behavior', () => {
     act(() => {
       useChatStore.setState({
         currentTurnProjection: responseProjection,
-        latestCurrentTurnProjection: responseProjection,
       });
     });
 
@@ -1118,7 +1141,6 @@ describe('ChatBoxResponse state behavior', () => {
       ],
       isSending: false,
       currentTurnProjection: previousProjection,
-      latestCurrentTurnProjection: previousProjection,
     });
 
     render(<ChatBoxResponse />);
@@ -1200,6 +1222,52 @@ describe('ChatBoxResponse state behavior', () => {
       expect(screen.getByText('previous complete response')).toBeInTheDocument();
     });
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+  });
+
+  test('renders response entries from conversation view over stale awaiting projection', async () => {
+    const awaitingProjection = sdkPresentationProjection({
+      mode: 'awaiting',
+      turnRef: 'turn-view',
+    });
+    const view = conversationView({
+      mode: 'response',
+      turnRef: 'turn-view',
+      entries: [{
+        id: 'entry-view-response',
+        sender: 'assistant',
+        type: 'llm-text',
+        text: 'view-authoritative response',
+        sourceEventType: 'assistant_delta',
+        sourceChannel: 'sdk:conversation-view',
+        turnRef: 'turn-view',
+      }],
+    });
+    useChatStore.setState({
+      messages: [
+        { id: 'user-view', text: 'yo', sender: 'user', turnRef: 'turn-view' },
+      ],
+      isSending: false,
+      currentTurnProjection: awaitingProjection,
+      conversationView: view,
+      latestConversationView: view,
+    });
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByText('view-authoritative response')).toBeInTheDocument();
+    });
+    expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'set-responsebox-size',
+        expect.objectContaining({
+          visible: true,
+          compact_hover: false,
+          stale_guard_ref: 'turn-view',
+        }),
+      );
+    });
   });
 
   test('SDK presentation response bypasses local send latch and synthetic message fallback', async () => {

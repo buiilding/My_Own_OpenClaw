@@ -765,6 +765,18 @@ class Agent {
         const conversationStore = revisionOptions.store ?? this.defaultConversationStore;
         return conversationStore.getRevision(revisionOptions.conversationRef);
     }
+    async listConversationRevisions(options) {
+        const conversationStore = options.store ?? this.defaultConversationStore;
+        if (conversationStore.listRevisions) {
+            return conversationStore.listRevisions({
+                conversationRef: options.conversationRef,
+                limit: options.limit,
+            });
+        }
+        return [
+            await conversationStore.getRevision(options.conversationRef),
+        ];
+    }
     async appendConversationEvent(options) {
         const appendOptions = 'event' in options ? options : { event: options };
         const conversationStore = appendOptions.store ?? this.defaultConversationStore;
@@ -811,13 +823,39 @@ class Agent {
             store: store ?? this.defaultConversationStore,
         }).replaceRows(input);
     }
-    async forkConversation(options) {
+    async editAndResend(options) {
         const { conversationRef, revisionId, store, ...input } = options;
         return this.conversation({
             conversationRef,
             revisionId,
             store: store ?? this.defaultConversationStore,
+        }).editAndResend(input);
+    }
+    async retryTurn(options) {
+        const { conversationRef, revisionId, store, ...input } = options;
+        return this.conversation({
+            conversationRef,
+            revisionId,
+            store: store ?? this.defaultConversationStore,
+        }).retry(input);
+    }
+    async forkConversation(options) {
+        const { conversationRef, revisionId, store, ...input } = options;
+        const conversationStore = store ?? this.defaultConversationStore;
+        const result = await this.conversation({
+            conversationRef,
+            revisionId,
+            store: conversationStore,
         }).fork(input);
+        const view = await this.conversation({
+            conversationRef: result.conversationRef,
+            revisionId: result.revisionId,
+            store: conversationStore,
+        }).getView();
+        return {
+            ...result,
+            view,
+        };
     }
     listAgents() {
         return this.owner.listAgents();

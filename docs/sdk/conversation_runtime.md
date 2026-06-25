@@ -1,7 +1,7 @@
 ---
 summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, conversationProjections ownership, display projections, diagnostic rehydrate snapshots, model-history resume, toolPairKeys pairing after the removed toolPairKey helper, removed renderer ToolRunnerHook callback/turn-guard tests, removed renderer transcript/rehydrate helpers, tool output content fallback behavior, removed fallbackText top-level tool-output fallback helper behavior, assistant-shaped content rejection, final_response fallback tool output rejection, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
 read_when:
-  - When changing SDK conversation state, store adapters, live turn projection, display projections, diagnostic rehydrate snapshots, model-history resume, edit/resend, retry, compaction replay, or desktop chat migration.
+  - When changing SDK conversation state, store adapters, ConversationView, live turn projection, display projections, diagnostic rehydrate snapshots, model-history resume, edit/resend, retry, compaction replay, or desktop chat migration.
   - When resolving stale references to removed `ToolRunnerHook.callbacks.test.ts` or `ToolRunnerHook.turnGuards.test.ts`; local tool execution moved from renderer hooks into SDK runtime coordination.
   - When resolving stale references to the removed standalone `currentTurnProjection.ts` or `currentTurnProjection.js` files; current-turn projection is built in `conversationProjections.ts`.
   - When resolving stale references to removed renderer transcript helpers such as `transcriptMessagePayload.js`, `structuredToolPayload.js`, `rehydrateMessageState.js`, `rehydratePayload.js`, `transparencyNormalization.ts`, `storedTranscriptSdkProjection.ts`, `storedTranscriptMemoryState.js`, `storedTranscriptChatMessageState.js`, `desktopTranscriptProjectionRuntimeClient.ts`, `pendingTranscriptMessages.ts`, `pendingAssistantQueue.ts`, `pendingUserQueue.ts`, `transcriptPendingFlush.ts`, `TranscriptPendingFlush.test.ts`, or `transcriptRecordWrite.ts`.
@@ -209,6 +209,95 @@ UI adapters:
   payloads or whole-message screenshot aliases; screenshot aliases remain
   compatibility metadata for replay/provider boundaries.
 
+Runtime snapshots also expose `snapshot.view`, and callers may use
+`conversation.getView()` or `conversation.subscribeView(...)` for the Phase 0
+SDK-owned `ConversationView` projection. The view is the normal UI contract that
+collapses display rows, live turn entries, surface modes, and action
+capabilities into one conversation-scoped object:
+
+```text
+ConversationView = displayRows + liveTurn + surfaces + actions
+```
+
+The view filters internal `conv-agent-*` lanes out of normal UI authority. Those
+lanes remain available to diagnostics as counts and raw event/trace inspection,
+but they must not replace the active display rows, live turn, response overlay
+owner, busy state, or action metadata for the user-facing conversation. If an
+internal lane is the only build input, the SDK view is idle with a hidden
+response overlay; Electron main does not carry a separate `conv-agent-*`
+responsebox-name filter as normal surface policy. During the migration,
+existing `snapshot.currentTurn` remains available so
+renderer/main surfaces can move one at a time; desktop renderer display-row
+facades no longer consume `snapshot.displayRows` as normal UI input.
+The response overlay is migrated first: renderer adapters render
+`snapshot.view.liveTurn.entries` and Electron main applies
+`snapshot.view.surfaces.responseOverlay`. Raw
+`snapshot.currentTurn.presentation.overlayIntent` remains available only as
+legacy payload/debug input and no longer controls the native responsebox when
+the main-process live surface controller applies normal UI state.
+The minimal pill and dashboard control surfaces also consume the view for the
+busy/Stop contract: `snapshot.view.surfaces.pill.mode` drives the pill loop
+lock, `snapshot.view.surfaces.dashboard.mode` drives the dashboard composer
+loop lock, and `snapshot.view.liveTurn.canStop` drives Stop availability in
+renderer and Electron-main Stop shortcut resolution.
+Renderer pending-turn state remains a short pre-view bridge immediately after
+send acceptance; raw current-turn snapshots and idle conversation refs must not
+enable Stop or become the main-process stop target, even before a view arrives.
+Raw current-turn snapshots remain live context for migrated display/surface
+handoff and diagnostics, while normal Stop authority is only the view or the
+local pending bridge. Minimal live surfaces receive a null raw current-turn
+projection whenever a `ConversationView` exists, so the pill and response
+overlay do not run a separate "latest current turn wins" decision beside the
+SDK view. Dashboard chat selectors apply the same rule for the active
+conversation: once `conversationView` is present, dashboard live rows, busy/Stop
+state, and action wiring receive `currentTurnProjection: null` and use the SDK
+view as the only normal UI authority.
+Renderer no longer retains a global raw `latestCurrentTurnProjection` in the
+chat store or consumes it as a normal UI authority; cross-surface live state
+comes from `latestConversationView`, while per-workspace current-turn
+projections remain only the temporary no-view bridge for unmigrated/pre-view
+snapshots and diagnostics.
+Electron main also hydrates newly tracked renderer windows with the cached
+`ConversationView` on the `windie:current-turn` envelope, so renderer reloads
+enter the same view-owned path as live runtime updates instead of starting from
+a raw current-turn-only sync.
+For the Phase 3 transcript migration, Electron renderer projects dashboard
+messages from `snapshot.view.displayRows` when a current-turn payload includes
+the view, and dashboard busy state reads `snapshot.view.surfaces.dashboard.mode`.
+Dashboard thread live rows also render from `snapshot.view.liveTurn.entries`
+whenever a view exists; raw `snapshot.currentTurn.presentation.entries` and
+phase-derived current-turn rows remain only as the no-view bridge and must not
+append visible rows beside the SDK view.
+The `conversation.loadDisplay` command also carries `snapshot.view`, and
+desktop renderer display-row facades consume `snapshot.view.displayRows`
+without falling back to legacy `snapshot.displayRows`. SDK snapshots may still
+carry `snapshot.displayRows` for SDK/custom callers and diagnostics, but the
+Electron command payload and renderer transcript loaders no longer use it as a
+normal UI authority.
+For the first Phase 4 action migration, renderer chat surfaces read
+`snapshot.view.actions.canEdit` and `snapshot.view.actions.canRetry` when a
+view exists before rendering edit/resend or Try again commands. Message row type
+still provides row-level capability gating, and `snapshot.view.displayRows[]`
+now carries row `actions` metadata with `canEdit`/`editTargetRowId` for user
+rows and `canRetry`/`retryTargetRowId` for terminal assistant rows. The renderer
+projects those row targets into chat messages so a replacement row can remain
+the visible edit surface while replay targets the SDK-provided original row
+identity. Copy/feedback actions remain renderer-local affordances, and replay
+execution still uses the existing display-timeline path until the later
+SDK-owned revision operation replaces it.
+
+For debugging, use:
+
+```bash
+<windie> conversation view <conversation-ref> --json
+```
+
+The diagnostic prints active revision id, display row count, live turn ref and
+phase, response overlay mode and guard ref, pending turn ref, superseded turn
+count, filtered internal lane count, model-history checkpoint id, and last
+SDK/backend event refs. It does not print message text, raw tool output, local
+paths, screenshots, provider payloads, credentials, or internal lane details.
+
 ### Removed Standalone Current Turn Projector
 
 Current-turn projection is not a separate projection module. The removed
@@ -219,10 +308,11 @@ owns `buildCurrentTurnProjection(...)`, the live-turn presentation builder, and
 the display/rehydrate projection helpers so one event sequence produces the
 same transcript, active-turn, and replay views.
 
-Electron main emits the projection to renderer surfaces as
-`conversation-runtime-updated`. Renderer overlays should
-render `currentTurn.presentation.entries` instead of independently interpreting
-backend-wire stream/tool events or synthesizing current-turn chat messages.
+Electron main emits the projection to renderer surfaces on the SDK current-turn
+IPC payload. Renderer overlays should render `view.liveTurn.entries` when a
+`ConversationView` is present, falling back to `currentTurn.presentation.entries`
+only for non-migrated hosts. They must not independently interpret backend-wire
+stream/tool events or synthesize current-turn chat messages.
 Conversation-control compaction events are not current-turn events: they must
 not reset the current-turn anchor to a compaction operation id, set
 `presentation.isBusy`, or turn a manual compaction failure into an assistant
@@ -363,10 +453,12 @@ reserve a visible assistant display row. The first assistant-visible delta
 creates the stable streaming assistant row at the current transcript position
 and carries any prior reasoning metadata. When the final `assistant_message`
 event arrives, that same row identity becomes the completed assistant row.
-Dashboard and custom UIs render `snapshot.displayRows`; they must not
-reconstruct transcript rows from `snapshot.currentTurn`. `snapshot.currentTurn`
-remains the SDK-owned phase/status/overlay projection for busy state, stop
-eligibility, active turn identity, and overlay-specific progressive state.
+Desktop dashboard and renderer transcript facades render
+`snapshot.view.displayRows`; SDK/custom no-view callers may render
+`snapshot.displayRows`. Normal UI consumers must not reconstruct transcript
+rows from `snapshot.currentTurn`. `snapshot.currentTurn` remains the SDK-owned
+phase/status/overlay projection for busy state, stop eligibility, active turn
+identity, and overlay-specific progressive state.
 Desktop may render a temporary, textless thinking disclosure from
 `snapshot.currentTurn.reasoningText` while a turn is active, but that disclosure
 is not a transcript assistant row and must disappear once the SDK display row
@@ -410,10 +502,30 @@ SDK callers use the matching public revision primitives:
 ```text
 conversation.loadDisplayTimeline({ revisionId? })
 conversation.loadModelHistory({ revisionId? })
+conversation.listRevisions({ limit? })
 conversation.replaceRows({ rows, baseRevisionId, reason })
-conversation.fork({ sourceRevisionId, cutAfterRowId, newConversationRef })
+conversation.fork({ sourceRevisionId, cutAfterRowId?, newConversationRef })
 conversation.checkoutRevision({ revisionId })
 ```
+
+Electron main and renderer hosts expose those same revision primitives through
+SDK-shaped commands: `conversation.listRevisions`,
+`conversation.checkoutRevision`, and `conversation.fork`. Normal UI branch
+navigation calls that command/service boundary instead of reconstructing
+display prefixes or model-history rows in renderer code. The dashboard
+revision menu lists sanitized revision metadata, checks out selected revisions
+from the returned SDK `ConversationView`, and forks selected revisions by
+calling the SDK fork command with the selected `sourceRevisionId`. When
+`cutAfterRowId` is omitted, the SDK resolves the selected revision's last
+display row and returns the forked SDK view to the newly active conversation,
+so renderer code does not load display timelines just to reconstruct a branch
+prefix. Diagnostics can inspect a
+selected branch view with
+`<windie> conversation view <conversation-ref> --revision <revision-id>` and
+can inspect the matching storage ownership state with
+`<windie> conversation state <conversation-ref> --revision <revision-id>`;
+those revision-scoped diagnostics must not borrow live-turn or overlay state
+from the active branch.
 
 Do not implement separate role/message/tool interpretation inside each adapter.
 The adapter methods are API conveniences; they must delegate to shared SDK
@@ -483,16 +595,32 @@ can inspect inactive ancestors.
 display revisions. It requires a stored display timeline for the requested
 revision, moves the runtime head to that revision, returns the matching
 model-history checkpoint when one exists, and records only sanitized checkout
-trace metadata. It does not rebuild backend history from raw events.
+trace metadata. A later runtime reload must preserve that explicit checkout
+selection rather than drifting back to the store active head; the resulting
+`ConversationView` scopes live-turn, busy/Stop, and response-overlay authority
+to events from the selected revision only. It does not rebuild backend history
+from raw events.
 
 Fork uses the same display timeline boundary. `conversation.fork(...)` copies
 the selected display prefix into a new conversation revision with reason
 `fork`, copies only model-history rows whose `sourceDisplayRowIds` are wholly
 inside that prefix, and leaves the source branch unmodified aside from a
-sanitized runtime trace. Store metadata must list fork children from their
-active display checkpoint even before the child has raw events; after the child
-continues, the forked display prefix can still provide the title while newer
-child events provide the last-message tail.
+sanitized runtime trace. If callers omit `cutAfterRowId`, the SDK uses the last
+display row in the selected source revision so whole-revision fork UI does not
+need to load display rows first. Store metadata must list fork children from
+their active display checkpoint even before the child has raw events; after the
+child continues, the forked display prefix can still provide the title while
+newer child events provide the last-message tail. Forked `ConversationView`
+loads from the child display checkpoint and starts idle until that child branch
+has its own runtime events; source-branch display rows and model-history
+checkpoints remain inspectable by revision id.
+
+When a display timeline row already represents a raw event under a stable row
+id or `metadata.eventId`, runtime snapshots must not append a second visible
+row for that event. The same applies to same-revision event rows with the same
+visible turn/type/content key, which prevents checkout and fork views from
+duplicating rows when stored display rows use user-facing row ids rather than
+raw event ids.
 
 Metadata pagination and search helpers stay in the `conversation/metadata`
 owner module for SDK stores and runtime classes. Public package-root callers
@@ -756,11 +884,11 @@ rehydrate message types.
 Edit/resend and retry are display revision operations:
 
 ```text
-load active display timeline
-  -> choose target display user row
-  -> replace retained prefix plus the replacement user row as a child revision
-  -> publish retained prefix plus pending turn only after replaceRows succeeds
-  -> send replacement user message as a normal new turn
+visible row action/message id selects the SDK target
+  -> renderer publishes retained visible prefix plus pending turn as a temporary bridge
+  -> SDK editAndResend/retryTurn resolves the stored display row
+  -> SDK replaces the retained prefix plus replacement user row
+  -> SDK send() sends the replacement user message as the same new turn
 ```
 
 The old raw event log remains intact for audit and diagnostics. The active
@@ -771,11 +899,15 @@ persisted in that child display checkpoint with the normal SDK user row id
 metadata pointer back to the original target. This means a repeated resend can
 still resolve the original row id while the later SDK send event dedupes into
 the already-persisted display row instead of appending a second user bubble.
-The renderer active path calls
-`conversation.loadDisplayTimeline`, `conversation.replaceRows`, then
-`conversation.send`; it does not call `prepareEditAndResend`,
-`prepareRetryTurn`, `conversation.rewrite_after_event`, or backend rehydrate as
-part of normal edit/retry preparation.
+The renderer active path calls `conversation.editAndResend` or
+`conversation.retryTurn` with the stable SDK target id; it does not call
+`conversation.loadDisplayTimeline`, `conversation.replaceRows`, a separate
+`conversation.send`, `prepareEditAndResend`, `prepareRetryTurn`,
+`conversation.rewrite_after_event`, or backend rehydrate as part of normal
+edit/retry execution. The SDK commands resolve the stored target display row,
+preserve display attachments and legacy screenshot refs from that row, write
+the child display/model revision, emit supersession for old live work, apply
+model overrides, and dispatch the replacement through the normal `send()` path.
 
 Resource preservation comes from the target display row. Typed display
 attachments become the edited pending user row's visible `attachments[]` and
@@ -789,19 +921,22 @@ or null attachment fields must not erase prior resolved resources without an
 explicit removal operation.
 
 The Electron renderer publishes the retained replay prefix and `pendingTurn`
-as one visible frame only after `replaceRows` succeeds. A rejected display
-replacement must not pre-mutate visible rows or pending-turn state. Pending
-turn IPC preserves typed `attachments[]`; echoed pending-turn broadcasts from
-Electron main must no-op in a renderer that already owns the same pending user
-row, and SDK display-row echoes for that pending turn must keep the existing
-optimistic bubble until the turn is no longer pending. Replay pending user rows
-use the SDK replacement event id (`<turnRef>-sdk-evt-000002-user_message`) so
-the final `sdk:display-rows` projection updates the existing user bubble instead
-of remounting it.
+as one visible optimistic frame before awaiting the SDK revision command. If
+the SDK command cannot resolve the stored target row or fails after the pending
+bridge is visible, the renderer restores the retained prefix, clears only that
+pending turn, and appends a send-failure row. Pending turn IPC
+preserves typed `attachments[]`; echoed pending-turn broadcasts from Electron
+main must no-op in a renderer that already owns the same pending user row, and
+SDK display-row echoes for that pending turn must keep the existing optimistic
+bubble until the turn is no longer pending. Replay pending user rows use the SDK
+replacement event id (`<turnRef>-sdk-evt-000002-user_message`) so the final
+`sdk:display-rows` projection updates the existing user bubble instead of
+remounting it.
 
 Edit/resend can target a turn that is still awaiting or streaming. In that
 case the SDK treats the replacement as an active-turn handoff: once
-`replaceRows(...)` accepts the child display/model revision, it emits
+`editAndResend(...)` or `retryTurn(...)` accepts the child display/model
+revision, it emits
 `turn_superseded` for the old turn, deletes the old live authority locally,
 sends a best-effort stop for active old work, and then sends the replacement
 turn through the normal `send()` path. Main and renderer adapters consume the
@@ -820,7 +955,7 @@ Fork is also a revision operation rather than a raw-event rewrite:
 
 ```text
 load source display timeline
-  -> copy rows through cutAfterRowId into newConversationRef
+  -> copy rows through cutAfterRowId, or the whole source revision when omitted
   -> copy matching bounded model-history rows into the child revision
   -> continue the child conversation independently
 ```

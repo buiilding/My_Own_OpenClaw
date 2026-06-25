@@ -227,6 +227,11 @@ export type ConversationRevision = {
   active?: boolean;
 };
 
+export type ListConversationRevisionsOptions = {
+  conversationRef: string;
+  limit?: number;
+};
+
 export type ConversationMetadata = {
   conversationRef: string;
   revisionId: string;
@@ -789,6 +794,7 @@ export interface ConversationStore {
   deleteConversation?(conversationRef: string): Promise<void>;
   clearConversations?(): Promise<void>;
   getRevision(conversationRef: string): Promise<ConversationRevision>;
+  listRevisions?(options: ListConversationRevisionsOptions): Promise<ConversationRevision[]>;
   loadCompactedReplay?(conversationRef: string): Promise<CompactedReplaySnapshot | null>;
 }
 

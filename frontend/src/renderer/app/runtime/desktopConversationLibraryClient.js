@@ -94,6 +94,13 @@ function emitConversationListDiagnostic(context, event) {
   void Promise.resolve(invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.DIAGNOSTICS_APPEND, payload)).catch(() => undefined);
 }
 
+function readSnapshotDisplayRows(snapshot, conversationRef) {
+  const rows = Array.isArray(snapshot?.view?.displayRows)
+    ? snapshot.view.displayRows
+    : [];
+  return rows.filter((row) => row?.conversationRef === conversationRef);
+}
+
 export const DesktopConversationLibraryClient = {
   isTransientMetadataListError,
 
@@ -193,9 +200,7 @@ export const DesktopConversationLibraryClient = {
       userId,
       conversationRef,
     });
-    return Array.isArray(snapshot?.displayRows)
-      ? snapshot.displayRows.filter((row) => row?.conversationRef === conversationRef)
-      : [];
+    return readSnapshotDisplayRows(snapshot, conversationRef);
   },
 
   async deleteConversation(userId, conversationRef) {

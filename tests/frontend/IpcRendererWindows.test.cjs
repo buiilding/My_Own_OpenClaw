@@ -27,7 +27,7 @@ function createWindowMock() {
 }
 
 describe('ipc_renderer_windows', () => {
-  test('syncs latest SDK current turn when a renderer window is tracked', () => {
+  test('syncs latest SDK current turn and ConversationView when a renderer window is tracked', () => {
     const win = createWindowMock();
     const currentTurn = {
       conversationRef: 'conv-1',
@@ -38,10 +38,31 @@ describe('ipc_renderer_windows', () => {
       toolEvents: [],
       lastError: null,
     };
+    const conversationView = {
+      conversationRef: 'conv-1',
+      liveTurn: {
+        turnRef: 'turn-1',
+        phase: 'complete',
+        entries: [],
+        isBusy: false,
+        isTerminal: true,
+        canStop: false,
+      },
+      surfaces: {
+        responseOverlay: {
+          mode: 'hidden',
+          visible: false,
+          ownerConversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          guardRef: 'turn-1',
+        },
+      },
+    };
 
     const runtime = createRendererWindowRuntime({
       getResponseOverlayPhase: () => 'tool-output',
       getLatestCurrentTurn: () => currentTurn,
+      getLatestConversationView: () => conversationView,
     });
     runtime.track(win);
 
@@ -49,7 +70,48 @@ describe('ipc_renderer_windows', () => {
       phase: 'tool-output',
       source: 'sync',
     });
-    expect(win.webContents.send).toHaveBeenCalledWith('windie:current-turn', currentTurn);
+    expect(win.webContents.send).toHaveBeenCalledWith('windie:current-turn', {
+      conversationRef: 'conv-1',
+      currentTurn,
+      view: conversationView,
+    });
+  });
+
+  test('syncs latest ConversationView without raw current turn when a renderer window is tracked', () => {
+    const win = createWindowMock();
+    const conversationView = {
+      conversationRef: 'conv-view',
+      liveTurn: {
+        turnRef: 'turn-view',
+        phase: 'streaming',
+        entries: [{ id: 'entry-view' }],
+        isBusy: true,
+        isTerminal: false,
+        canStop: true,
+      },
+      surfaces: {
+        responseOverlay: {
+          mode: 'response',
+          visible: true,
+          ownerConversationRef: 'conv-view',
+          turnRef: 'turn-view',
+          guardRef: 'turn-view',
+        },
+      },
+    };
+
+    const runtime = createRendererWindowRuntime({
+      getResponseOverlayPhase: () => 'streaming',
+      getLatestCurrentTurn: () => null,
+      getLatestConversationView: () => conversationView,
+    });
+    runtime.track(win);
+
+    expect(win.webContents.send).toHaveBeenCalledWith('windie:current-turn', {
+      conversationRef: 'conv-view',
+      currentTurn: null,
+      view: conversationView,
+    });
   });
 
   test('syncs latest pending turn when a renderer window is tracked', () => {
@@ -129,6 +191,7 @@ describe('ipc_renderer_windows', () => {
       registry,
       getResponseOverlayPhase: () => 'streaming',
       getLatestCurrentTurn: () => ({ turnRef: 'turn-1' }),
+      getLatestConversationView: () => null,
       getLatestPendingTurn: () => null,
       getReplayEvents: () => [],
     });
@@ -141,6 +204,7 @@ describe('ipc_renderer_windows', () => {
       win,
       getResponseOverlayPhase: expect.any(Function),
       getLatestCurrentTurn: expect.any(Function),
+      getLatestConversationView: expect.any(Function),
       getLatestPendingTurn: expect.any(Function),
       getReplayEvents: expect.any(Function),
       buildConversationEvent: null,

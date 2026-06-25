@@ -15,7 +15,9 @@ import type {
   ListConversationOptions,
   RehydrateSnapshot,
   SearchConversationOptions,
+  ConversationRevision,
   ConversationStore,
+  ConversationView,
   DisplayConversation,
   SdkDisplayRow,
   TraceTimelineEntry,
@@ -25,6 +27,15 @@ import { AgentSdkCommandInvokeClient } from '../../app/runtime/agentSdkCommandIn
 const {
   invokeAgentSdkCommand,
 } = AgentSdkCommandInvokeClient;
+
+function readSnapshotDisplayRows(
+  snapshot: { view?: ConversationView | null } | null | undefined,
+): SdkDisplayRow[] {
+  if (Array.isArray(snapshot?.view?.displayRows)) {
+    return snapshot.view.displayRows;
+  }
+  return [];
+}
 
 export type DesktopTraceTimelineOptions = {
   turnRef?: string | null;
@@ -80,12 +91,12 @@ export function createDesktopConversationStore(
     },
     async loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]> {
       const snapshot = await invokeAgentSdkCommand<{
-        displayRows?: SdkDisplayRow[];
+        view?: ConversationView | null;
       }>(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY, {
         userId,
         conversationRef,
       });
-      return Array.isArray(snapshot?.displayRows) ? snapshot.displayRows : [];
+      return readSnapshotDisplayRows(snapshot);
     },
     async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
       const snapshot = await invokeAgentSdkCommand<{
@@ -131,6 +142,17 @@ export function createDesktopConversationStore(
         userId,
         conversationRef,
       });
+    },
+    async listRevisions(options: { conversationRef: string; limit?: number }): Promise<ConversationRevision[]> {
+      const revisions = await invokeAgentSdkCommand<ConversationRevision[]>(
+        SDK_RUNTIME_COMMANDS.CONVERSATION_LIST_REVISIONS,
+        {
+          userId,
+          conversationRef: options.conversationRef,
+          limit: options.limit,
+        },
+      );
+      return Array.isArray(revisions) ? revisions : [];
     },
   };
 }

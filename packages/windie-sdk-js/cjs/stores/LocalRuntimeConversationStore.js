@@ -609,6 +609,52 @@ class LocalRuntimeConversationStore {
             updatedAt: last?.timestamp ?? new Date(0).toISOString(),
         };
     }
+    async listRevisions(options) {
+        const result = await this.call('conversation.revisions.list', {
+            user_id: this.options.userId,
+            conversation_id: options.conversationRef,
+            limit: options.limit,
+            record_kind: CHAT_EVENT_RECORD_KIND,
+        });
+        const data = normalizeRecord(result.data) ?? {};
+        const revisions = Array.isArray(data.revisions) ? data.revisions : [];
+        return revisions
+            .map((entry) => {
+            const revision = normalizeRecord(entry) ?? {};
+            const revisionId = normalizeString(revision.revision_id) ?? normalizeString(revision.revisionId);
+            if (!revisionId) {
+                return null;
+            }
+            const operation = normalizeString(revision.operation);
+            return {
+                conversationRef: options.conversationRef,
+                revisionId,
+                parentRevisionId: normalizeString(revision.parent_revision_id)
+                    ?? normalizeString(revision.parentRevisionId),
+                operation: operation === 'send'
+                    || operation === 'edit'
+                    || operation === 'retry'
+                    || operation === 'fork'
+                    || operation === 'compact'
+                    || operation === 'manual_rewrite'
+                    ? operation
+                    : null,
+                displayTimelineId: normalizeString(revision.display_timeline_id)
+                    ?? normalizeString(revision.displayTimelineId),
+                modelHistoryCheckpointId: normalizeString(revision.model_history_checkpoint_id)
+                    ?? normalizeString(revision.modelHistoryCheckpointId),
+                createdAt: normalizeString(revision.created_at)
+                    ?? normalizeString(revision.createdAt),
+                updatedAt: normalizeString(revision.updated_at)
+                    ?? normalizeString(revision.updatedAt)
+                    ?? new Date(0).toISOString(),
+                active: typeof revision.active === 'boolean'
+                    ? revision.active
+                    : revision.active === 1,
+            };
+        })
+            .filter((entry) => Boolean(entry));
+    }
     async loadCompactedReplay(conversationRef) {
         const events = await this.loadEvents(conversationRef);
         return (0, compactedReplayEvents_js_1.latestCompactedReplayFromEvents)(events);

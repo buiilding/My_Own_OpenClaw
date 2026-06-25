@@ -56,6 +56,58 @@ describe('DesktopConversationContinuityService', () => {
     }
   });
 
+  test('loadDisplayRows prefers ConversationView rows from the SDK command bridge', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: {
+          view: {
+            displayRows: [
+              {
+                id: 'row-view',
+                conversationRef: 'conv-display',
+                role: 'assistant',
+                type: 'assistant_message',
+                content: 'from view',
+              },
+            ],
+          },
+        },
+      })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.loadDisplayRows(
+        'user-1',
+        'conv-display',
+      )).resolves.toEqual([
+        {
+          id: 'row-view',
+          conversationRef: 'conv-display',
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'from view',
+        },
+      ]);
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.loadDisplay',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-display',
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
   test('replaceRows routes display timeline replacement through the SDK command bridge', async () => {
     const originalIpc = window.ipc;
     window.ipc = {
@@ -94,6 +146,259 @@ describe('DesktopConversationContinuityService', () => {
           baseRevisionId: 'rev-base',
           reason: 'retry',
           rows: [],
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('editAndResend routes replay edits through the SDK command bridge', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: {
+          turnRef: 'turn-edit',
+          queryMessageId: 'msg-edit',
+        },
+      })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.editAndResend({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        messageId: 'row-user',
+        text: 'edited text',
+        turnRef: 'turn-edit',
+        payload: { screenshot_refs: ['artifact-one'] },
+        model: {
+          modelProvider: 'anthropic',
+          modelId: 'claude-sonnet-4-5',
+        },
+      })).resolves.toEqual(expect.objectContaining({
+        turnRef: 'turn-edit',
+      }));
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.editAndResend',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-display',
+          messageId: 'row-user',
+          text: 'edited text',
+          turnRef: 'turn-edit',
+          payload: { screenshot_refs: ['artifact-one'] },
+          model: {
+            modelProvider: 'anthropic',
+            modelId: 'claude-sonnet-4-5',
+          },
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('retryTurn routes replay retries through the SDK command bridge', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: {
+          turnRef: 'turn-retry',
+          queryMessageId: 'msg-retry',
+        },
+      })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.retryTurn({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        messageId: 'row-assistant',
+        turnRef: 'turn-retry',
+        payload: { screenshot_ref: 'artifact-one' },
+        model: {
+          modelProvider: 'anthropic',
+          modelId: 'claude-sonnet-4-5',
+        },
+      })).resolves.toEqual(expect.objectContaining({
+        turnRef: 'turn-retry',
+      }));
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.retryTurn',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-display',
+          messageId: 'row-assistant',
+          turnRef: 'turn-retry',
+          payload: { screenshot_ref: 'artifact-one' },
+          model: {
+            modelProvider: 'anthropic',
+            modelId: 'claude-sonnet-4-5',
+          },
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('checkoutRevision routes revision selection through the SDK command bridge', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: {
+          displayTimeline: {
+            conversationRef: 'conv-display',
+            revisionId: 'rev-child',
+            rows: [],
+          },
+          modelHistoryCheckpoint: null,
+          view: {
+            conversationRef: 'conv-display',
+            revisionId: 'rev-child',
+            displayRows: [],
+          },
+        },
+      })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.checkoutRevision({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        revisionId: 'rev-child',
+      })).resolves.toEqual(expect.objectContaining({
+        displayTimeline: expect.objectContaining({
+          revisionId: 'rev-child',
+        }),
+        view: expect.objectContaining({
+          revisionId: 'rev-child',
+        }),
+      }));
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.checkoutRevision',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-display',
+          revisionId: 'rev-child',
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('listRevisions routes revision metadata lookup through the SDK command bridge', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: [
+          {
+            conversationRef: 'conv-display',
+            revisionId: 'rev-child',
+            parentRevisionId: 'rev-base',
+            operation: 'edit',
+            active: true,
+            updatedAt: '2026-06-22T12:00:00.000Z',
+          },
+        ],
+      })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.listRevisions(
+        'user-1',
+        'conv-display',
+        25,
+      )).resolves.toEqual([
+        expect.objectContaining({
+          revisionId: 'rev-child',
+          active: true,
+        }),
+      ]);
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.listRevisions',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-display',
+          limit: 25,
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('forkConversation routes revision forks through the SDK command bridge', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: {
+          conversationRef: 'conv-forked',
+          revisionId: 'rev-forked',
+          sourceConversationRef: 'conv-display',
+          sourceRevisionId: 'rev-base',
+          cutAfterRowId: 'row-assistant',
+          displayRowCount: 2,
+          modelHistoryRowCount: 2,
+        },
+      })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.forkConversation({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        sourceRevisionId: 'rev-base',
+        newConversationRef: 'conv-forked',
+      })).resolves.toEqual(expect.objectContaining({
+        conversationRef: 'conv-forked',
+        revisionId: 'rev-forked',
+      }));
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.fork',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-display',
+          sourceRevisionId: 'rev-base',
+          cutAfterRowId: null,
+          newConversationRef: 'conv-forked',
         },
       });
     } finally {

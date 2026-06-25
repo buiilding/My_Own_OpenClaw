@@ -211,7 +211,6 @@ describe('useChatMessageSender', () => {
       streamTracking,
       currentTurnProjection: null,
       pendingTurn: null,
-      latestCurrentTurnProjection: null,
     });
 
     jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('msg-1');

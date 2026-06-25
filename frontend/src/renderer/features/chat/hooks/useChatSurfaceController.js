@@ -38,6 +38,8 @@ function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
 export function useChatSurfaceController({
   messages,
   currentTurnProjection = null,
+  conversationView = null,
+  conversationViewSurface = 'pill',
   pendingTurn = null,
   sessionInfo,
   setThinkingStatus,
@@ -47,13 +49,20 @@ export function useChatSurfaceController({
 }) {
   const { config, updateConfig } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
-    activeConversationRef: currentTurnProjection?.conversationRef || sessionInfo?.conversationRef || null,
+    activeConversationRef: (
+      conversationView?.conversationRef
+      || currentTurnProjection?.conversationRef
+      || sessionInfo?.conversationRef
+      || null
+    ),
     pendingTurn,
     currentTurnProjection,
+    conversationView,
     messages,
   });
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
     currentTurnProjection,
+    conversationView,
     pendingTurn,
     messages,
     visibleTurnLifecycle,
@@ -66,7 +75,19 @@ export function useChatSurfaceController({
     currentTurnPresentationState,
     visibleTurnLifecycle,
   );
-  const isBusy = visibleTurnLifecycle.isBusy === true;
+  const hasConversationView = Boolean(conversationView && typeof conversationView === 'object');
+  const viewSurfaceMode = conversationView?.surfaces?.[conversationViewSurface]?.mode;
+  const isLocalPending = liveTurnPresentationInput.useLocalPendingTurn === true;
+  const isBusy = isLocalPending
+    ? true
+    : hasConversationView
+      ? viewSurfaceMode === 'busy'
+      : visibleTurnLifecycle.isBusy === true;
+  const canStop = isLocalPending
+    ? true
+    : hasConversationView
+      ? conversationView?.liveTurn?.canStop === true
+      : false;
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
@@ -115,7 +136,7 @@ export function useChatSurfaceController({
     currentTurnPresentationState: visibleLifecyclePresentationState,
     includeQueryScreenshot,
     isBusy,
-    canStop: isBusy,
+    canStop,
     liveTurnPhase: liveTurnPresentationInput.phase,
     liveTurnSource: liveTurnPresentationInput.source,
     visibleTurnLifecycle,

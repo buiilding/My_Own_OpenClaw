@@ -113,7 +113,8 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('bin/windie.sh on macOS/Linux');
     expect(result.stdout).toContain('<windie> status --all --json');
     expect(result.stdout).toContain('<windie> conversation messages <conversation-ref> [--limit <n>] [--json]');
-    expect(result.stdout).toContain('<windie> conversation state <conversation-ref> [--json]');
+    expect(result.stdout).toContain('<windie> conversation state <conversation-ref> [--revision <revision-id>] [--json]');
+    expect(result.stdout).toContain('<windie> conversation view <conversation-ref> [--revision <revision-id>] [--json]');
     expect(result.stdout).toContain('<windie> start frontend');
     expect(result.stdout).toContain('<windie> start dev');
     expect(result.stdout).toContain('<windie> start customer');
@@ -372,7 +373,6 @@ describe('windie CLI', () => {
       'IpcAgentDefinitionContext.test.cjs',
       'IpcDesktopUiConfigStore.test.cjs',
       'IpcAgentSdkRuntimeCommands.test.cjs',
-      'AgentSdkAgentDefinitionMerge.test.cjs',
     ]));
     expect(userFacingPlan.concurrent[4]).toMatchObject({
       label: 'model-send-selection',
@@ -552,7 +552,9 @@ describe('windie CLI', () => {
        '2026-06-22T12:00:30+00:00', 3, 'rev-child', 'turn-parent', '{}', '[]',
        '{"payload":{"supersededTurnRef":"turn-parent","replacementTurnRef":"turn-child","revisionId":"rev-child","reason":"user_edit","createdAt":"2026-06-22T12:00:30+00:00"}}'),
       ('evt-user-child', 'user-1', 'conv-state', 'user_message', 'user', 'new',
-       '2026-06-22T12:01:00+00:00', 4, 'rev-child', 'turn-child', '{}', '[]', '{}');
+       '2026-06-22T12:01:00+00:00', 4, 'rev-child', 'turn-child', '{}', '[]', '{}'),
+      ('evt-internal-lane', 'user-1', 'conv-agent-worker', 'user_message', 'user', 'internal',
+       '2026-06-22T12:01:05+00:00', 1, 'rev-internal', 'turn-internal', '{}', '[]', '{}');
       INSERT INTO conversation_revisions
       (user_id, conversation_id, revision_id, parent_revision_id, operation,
        display_timeline_id, model_history_checkpoint_id, created_at, updated_at, active)
@@ -619,6 +621,49 @@ describe('windie CLI', () => {
       rawEventFallbackRequired: false,
       visibleTypingTurnSuperseded: false,
       supersededWithoutTerminalCompletion: true,
+    });
+
+    const viewResult = runCli(['conversation', 'view', 'conv-state', '--json'], {
+      AGENT_USER_DATA_DIR: userDataDir,
+    });
+    expect(viewResult.status).toBe(0);
+    const view = JSON.parse(viewResult.stdout);
+    expect(view).toMatchObject({
+      conversationRef: 'conv-state',
+      activeRevisionId: 'rev-child',
+      displayRowCount: 0,
+      liveTurnRef: 'turn-child',
+      liveTurnPhase: 'awaiting',
+      responseOverlayMode: 'typing',
+      responseOverlayGuardRef: 'turn-child',
+      pendingTurnRef: 'turn-child',
+      supersededTurnCount: 1,
+      filteredInternalLaneCount: 1,
+      modelHistoryCheckpointId: 'mh-child',
+      lastEventRef: 'evt-user-child',
+      lastSdkEventRef: null,
+      lastBackendEventRef: null,
+    });
+
+    const parentViewResult = runCli(['conversation', 'view', 'conv-state', '--revision', 'rev-parent', '--json'], {
+      AGENT_USER_DATA_DIR: userDataDir,
+    });
+    expect(parentViewResult.status).toBe(0);
+    const parentView = JSON.parse(parentViewResult.stdout);
+    expect(parentView).toMatchObject({
+      conversationRef: 'conv-state',
+      activeRevisionId: 'rev-parent',
+      displayRowCount: 0,
+      liveTurnRef: 'turn-parent',
+      liveTurnPhase: 'awaiting',
+      responseOverlayMode: 'typing',
+      responseOverlayGuardRef: 'turn-parent',
+      pendingTurnRef: 'turn-parent',
+      supersededTurnCount: 0,
+      modelHistoryCheckpointId: 'mh-parent',
+      lastEventRef: 'evt-assistant-parent',
+      lastSdkEventRef: null,
+      lastBackendEventRef: null,
     });
   });
 

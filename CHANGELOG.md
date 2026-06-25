@@ -6,43 +6,109 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- docs/agents: tighten agent workflow orientation around local docs search,
-  read_when guidance, command diagnostics, recent commit lookup, and invariant
-  checks. No migration required.
-- docs/readme: add the explicit WindieOS product contract, clarifying the
-  personal-computer center, current desktop-runtime wedge, future multi-device
-  control-plane boundary, and Electron/SDK/local-runtime/backend ownership
-  split. No migration required.
-- backend/embeddings: make the standalone embedding service load backend
-  `AppConfig` instead of bare model defaults, so remote-http deployments can
-  run a configured local SentenceTransformer model without falling back to the
-  vendor embedding id. No migration required.
-- sdk/frontend: query-level Agent definitions now carry the filtered client
-  tool manifest from live Agent settings, and SDK query merges honor an empty
-  replacement manifest when explicit tool policy is present. Just-edited or
-  persisted Agent prompt/tool settings now override startup defaults on the
-  next turn instead of restoring the handshake local-tool schemas. No migration
+- frontend/renderer: preserve `ConversationView` through chat workspace
+  selection and main chat wiring so the dashboard no longer crashes on startup,
+  and keep dashboard busy, Stop, edit, and retry affordances on the SDK view
+  authority path. No migration required.
+- sdk/frontend: include the SDK-owned `ConversationView` in conversation
+  runtime snapshots and expose `getView()` from the runtime, so durable
+  dashboard rows materialize from completed turns instead of leaving the latest
+  assistant response as a movable live row. No migration required.
+- sdk/main: keep internal `conv-agent-*` lanes hidden in `ConversationView`
+  projection and remove Electron main's ad hoc responsebox conversation-name
+  filter. Main now applies only the SDK view surface intent and generic
+  owner/guard checks; internal-lane visibility policy belongs to the SDK view.
+  No migration required.
+- frontend/renderer: suppress raw `currentTurnProjection` in dashboard chat
+  selectors whenever a `ConversationView` exists. The dashboard now enters its
+  live-row, busy, Stop, and action wiring with the SDK view as the only normal
+  UI authority; raw current-turn remains only the no-view bridge. No migration
   required.
-- frontend/main, frontend/renderer: preserve absent Agent prompt/tool-policy
-  fields when stale partial renderer config payloads refresh the Electron-main
-  desktop UI config store, while still allowing explicit empty values to clear
-  those settings. Dashboard workspace grouping now accepts both SDK camelCase
-  and local-runtime snake_case workspace metadata, so chats with a selected
-  workspace no longer appear under the no-workspace bucket. No migration
+- sdk/frontend: let `conversation.fork` omit `cutAfterRowId` to fork the whole
+  selected revision. The dashboard revision menu now calls the SDK fork command
+  directly with `sourceRevisionId` and no renderer display-timeline prefetch,
+  so SDK owns the selected revision's display prefix and returned view. No
+  migration required.
+- frontend/main: hydrate newly tracked renderer windows with the cached
+  `ConversationView` on the `windie:current-turn` envelope. Fresh renderer
+  loads now enter the same view-owned live surface path as normal SDK runtime
+  updates, with raw current-turn included only as payload context. No migration
   required.
-- frontend/main: keep current Electron-generated Agent prompt and tool settings
-  authoritative when query payloads already carry an `agent_definition`, so
-  edit/resend and replay cannot resurrect stale client tool manifests or old
-  custom prompts after Agent settings change. No migration required.
-- frontend/main: translate SDK `AgentQueryInput` fields into
-  `ConversationRuntime.send` payloads inside the direct wake-up adapter, so
-  query-local Agent definitions, disabled-tool manifests, screenshots,
-  attachments, workspace state, and model overrides reach backend dispatch
-  instead of falling back to startup agent defaults. No migration required.
-- frontend/main, backend: add sanitized Agent tool-policy trace counts at the
-  renderer query, direct SDK runtime-send, and provider request boundaries, so
-  disabled-tool manifest regressions can be localized without logging prompts,
-  credentials, or full schemas. No migration required.
+- frontend/renderer: route dashboard thread live rows through
+  `ConversationView.liveTurn.entries` whenever a view is present. The
+  dashboard transcript still renders `view.displayRows`, but stale raw
+  current-turn presentation can no longer append visible thread rows beside the
+  SDK view; raw current-turn rows remain only as the no-view bridge. No
+  migration required.
+- frontend/main, frontend/renderer: remove raw SDK current-turn and idle
+  conversation Stop target fallbacks. Stop targets now come from
+  `ConversationView.liveTurn.canStop` or the local pending-turn pre-view bridge
+  only; raw current-turn phase remains diagnostic/live context but no longer
+  enables Stop. No migration required.
+- frontend/main, frontend/renderer: remove legacy `snapshot.displayRows` as a
+  normal desktop display-row fallback. `conversation.loadDisplay` now returns
+  `ConversationView` as the renderer display authority, direct wake-up row
+  broadcasts use `view.displayRows`, and renderer display facades return rows
+  only from the view. No migration required.
+- frontend/main: remove raw SDK current-turn overlay intent as normal native
+  responsebox authority. Electron main now applies responsebox show, hide, and
+  resize from `ConversationView.surfaces.responseOverlay` only; raw current-turn
+  presentation remains diagnostic input and pre-view payload context, not a
+  fallback surface owner. No migration required.
+- frontend/renderer: remove the global raw `latestCurrentTurnProjection` from
+  the chat store. The pill, response overlay, and replay diagnostics now use
+  `latestConversationView` for cross-surface SDK authority and keep only
+  conversation-scoped workspace current-turn projections as the temporary
+  no-view bridge. No migration required.
+- sdk/frontend/local-runtime: add SDK-owned revision listing and dashboard
+  revision navigation. The local runtime now exposes sanitized revision graph
+  metadata through `conversation.revisions.list`, SDK stores and Electron main
+  route it as `conversation.listRevisions`, checkout/fork results carry the
+  resulting `ConversationView`, and the dashboard branch menu applies those
+  views instead of reconstructing branch state in React. No migration required.
+- frontend/renderer: route the minimal chat pill through the shared live-surface
+  selector and suppress raw `latestCurrentTurnProjection` output for pill and
+  response-overlay surfaces whenever an SDK `ConversationView` is available.
+  Raw current-turn projections remain only as the no-view migration fallback,
+  so live surfaces no longer decide which current turn wins beside the view. No
+  migration required.
+- frontend/main: cache SDK `ConversationView` snapshots in Electron main and
+  resolve Stop shortcut targets from `view.liveTurn.canStop` before the local
+  pending-turn bridge. Once a view is present, stale raw current-turn snapshots
+  can no longer re-enable main-process Stop; the pending turn bridge remains
+  only for the pre-view handoff, and the main Stop target runtime now runs in
+  the core-loop regression preset. No migration required.
+- cli: let `conversation state` and `conversation view` accept
+  `--revision <revision-id>` so branch diagnostics can inspect inactive display
+  revisions, model-history checkpoints, raw event counts, live-turn phase, and
+  response-overlay intent without borrowing the active branch. No migration
+  required.
+- sdk: keep `ConversationView` live-turn and response-overlay projection
+  scoped to the selected display revision during `checkoutRevision` and forked
+  branch loads. Runtime reloads now preserve an explicit checkout instead of
+  drifting back to the store active head, and display timeline snapshots dedupe
+  raw event rows already represented by stable display row/event identity. No
+  migration required.
+- frontend/renderer: remove replay-hook display timeline reload and local row
+  matching from edit/resend and Try again execution. React now builds only the
+  retained-prefix optimistic pending bridge from the visible messages and
+  submits the stable SDK target id to `conversation.editAndResend` or
+  `conversation.retryTurn`; the SDK command resolves the stored display row and
+  preserves display attachments/legacy screenshot refs. No migration required.
+- sdk/frontend: expose revision checkout and fork through SDK-shaped
+  `conversation.checkoutRevision` and `conversation.fork` commands across the
+  Electron main bridge, direct wake-up adapter, renderer continuity service,
+  and `AgentChatSession`. The runtime already owned the display/model-history
+  revision mutations; this makes normal host/UI callers use that same boundary
+  instead of future branch navigation inventing a renderer-side path. No
+  migration required.
+- sdk/frontend: route renderer edit/resend and Try again execution through
+  SDK `conversation.editAndResend` and `conversation.retryTurn` commands. The
+  renderer still publishes the temporary retained-prefix pending row for
+  responsiveness, but no longer constructs durable replacement rows, sends a
+  separate `conversation.send`, or best-effort stops old turns from React; the
+  SDK revision operation now owns replacement persistence, supersession, model
+  selection, and resend dispatch. No migration required.
 - skills: add a runtime tracing skill that documents when to use durable
   conversation traces, persistent app diagnostics, or gated live-surface traces
   for repeatable long-running agent loop evidence. No migration required.
@@ -57,6 +123,16 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/test: use repo-relative Jest `testMatch` globs so documented
   `<windie> test frontend -- ...` commands discover tests from Windows
   `.codex` worktree paths. No migration required.
+- frontend/renderer: gate edit/resend and try-again command rendering from SDK
+  `ConversationView.actions` when a view exists. Copy and feedback actions
+  remain renderer-local, row type still constrains which rows can show commands,
+  and replay execution remains on the existing display-timeline path while the
+  later Phase 4 SDK revision operation lands. No migration required.
+- sdk/frontend: add row-level `ConversationView.displayRows[].actions`
+  metadata for edit and retry command capability plus stable target row ids.
+  Renderer display-row projection now carries those targets into chat messages,
+  so replacement rows can open the visible inline editor while replay submits
+  against the SDK-provided original row identity. No migration required.
 - docs/plans: add the Desktop UI Config Store Authority plan for replacing the
   duplicate Electron-main desktop UI config cache with a single main-owned
   config store runtime, keeping disk as persistence only while query-time Agent
@@ -79,6 +155,43 @@ All notable changes to WindieOS will be documented in this file.
   overrides through SDK `agent.run(..., { model })` options. Just-edited Agent
   settings now affect the next query's system prompt/tool policy, and model
   retries no longer race against the previous provider. No migration required.
+- frontend/main, frontend/renderer: carry SDK `ConversationView` through the
+  `conversation.loadDisplay` command and prefer `view.displayRows` in renderer
+  display-row facades. Legacy `displayRows` remain as a temporary fallback for
+  non-view payloads while dashboard transcript migration continues. No
+  migration required.
+- frontend/renderer: project dashboard transcript messages from SDK
+  `ConversationView.displayRows` when the current-turn payload carries a view.
+  The existing display-rows stream remains a migration fallback, but the
+  current-turn/view handoff can now update the workspace conversation view and
+  dashboard transcript in one renderer boundary step. No migration required.
+- frontend/renderer: migrate minimal pill and dashboard busy/Stop controls to
+  SDK `ConversationView` authority. `view.surfaces.pill.mode` now drives the
+  pill loop lock, `view.surfaces.dashboard.mode` drives the dashboard composer
+  loop lock, `view.liveTurn.canStop` drives Stop availability and target
+  selection, and the local pending-turn latch remains only as the pre-view send
+  bridge so idle SDK/view startup projections cannot clear a just-accepted
+  send. Stale raw current-turn snapshots remain diagnostic/live context and no
+  longer re-enable Stop beside the view or pending bridge. No migration
+  required.
+- frontend/main, frontend/renderer: migrate the response overlay to the SDK
+  `ConversationView` authority. Direct SDK snapshots now carry
+  `view`/`viewDiagnostics` through the current-turn IPC payload, renderer
+  workspace state stores the latest conversation view, `MinimalResponseOverlay`
+  renders `view.liveTurn.entries`, and Electron main applies
+  `view.surfaces.responseOverlay` as the native responsebox authority. This
+  keeps stale awaiting snapshots and internal lanes from shrinking or re-owning
+  the native responsebox after visible response content exists. No migration
+  required for persisted data.
+- sdk/runtime: add the Phase 0 SDK `ConversationView` projection alongside
+  existing snapshots, with `getView()`/`subscribeView()` APIs, normal UI
+  filtering for internal `conv-agent-*` lanes, and separated build diagnostics
+  for pending turn, superseded turn count, filtered internal lane count,
+  model-history checkpoint id, and last SDK/backend event refs. `<windie>
+  conversation view` now prints the persisted view diagnostic without dumping
+  message text, raw tool output, local paths, screenshots, provider payloads,
+  credentials, or internal lane details. No migration required; renderer/main
+  consumers still migrate surface-by-surface.
 - backend/config: treat enabled provider API-key overrides with empty redacted
   keys as incomplete override state and fall back to the configured provider
   environment variable, so persisted redacted renderer settings cannot disable
@@ -11309,7 +11422,6 @@ Includes the last 300 commits on `main`.
 - feat(frontend-settings): add an Onboarding settings tab with a button that returns the user to the first-run onboarding flow
 # Unreleased
 
-- Fixed query-time Agent config assembly so a stale empty Electron-main config snapshot is repaired from persisted Agent settings before building `agent_definition`, preventing restarted chats from sending the default system prompt when Settings still shows a saved custom prompt.
 - Removed unused renderer response-overlay scanner helpers after overlay rendering moved to direct SDK/current-turn presentation messages.
 - Removed unused renderer stream-phase predicates so `streamPhaseState` only exposes the awaiting-reply predicate still used by loop UI state.
 - Removed unused renderer default exports from named-export-only hook and prop-type modules.

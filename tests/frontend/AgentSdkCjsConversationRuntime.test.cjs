@@ -81,6 +81,51 @@ describe('Agent SDK CJS conversation runtime', () => {
     }));
   });
 
+  test('fork without cutAfterRowId copies the whole selected revision', async () => {
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-cjs-fork',
+        revisionId: 'rev-fork-source',
+        eventId: 'fork-user-1',
+        payload: { text: 'first question' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-cjs-fork',
+        revisionId: 'rev-fork-source',
+        eventId: 'fork-assistant-1',
+        payload: { text: 'first answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-cjs-fork',
+      revisionId: 'rev-fork-source',
+      store,
+      transport: createMockAgentRuntimeTransport(),
+    });
+    await runtime.load();
+    const sourceTimeline = await runtime.loadDisplayTimeline({
+      revisionId: 'rev-fork-source',
+    });
+
+    const fork = await runtime.fork({
+      sourceRevisionId: 'rev-fork-source',
+      newConversationRef: 'conv-sdk-cjs-fork-child',
+    });
+    const forkTimeline = await store.loadDisplayTimeline({
+      conversationRef: 'conv-sdk-cjs-fork-child',
+      revisionId: fork.revisionId,
+    });
+
+    expect(fork.cutAfterRowId).toBe(sourceTimeline.rows[sourceTimeline.rows.length - 1].id);
+    expect(forkTimeline.rows.map(row => row.content)).toEqual([
+      'first question',
+      'first answer',
+    ]);
+  });
+
   test('send persists display-safe visual metadata on the initial user display row', async () => {
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({

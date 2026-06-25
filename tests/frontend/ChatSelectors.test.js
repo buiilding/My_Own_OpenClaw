@@ -26,7 +26,6 @@ describe('chatSelectors', () => {
       currentTurnProjection: { turnRef: 'workspace-turn' },
       pendingTurn: { turnRef: 'pending-turn' },
     };
-    const liveProjection = { turnRef: 'live-turn' };
 
     expect(projectDesktopChatInterfaceState(activeWorkspace)).toEqual({
       messages: activeWorkspace.messages,
@@ -40,21 +39,17 @@ describe('chatSelectors', () => {
     expect(projectDesktopChatInterfaceState(activeWorkspace)).not.toHaveProperty('streamTracking');
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
-      latestCurrentTurnProjection: liveProjection,
     })).toEqual(expect.objectContaining({
-      currentTurnProjection: liveProjection,
+      currentTurnProjection: activeWorkspace.currentTurnProjection,
     }));
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
-      latestCurrentTurnProjection: liveProjection,
     })).not.toHaveProperty('isSending');
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
-      latestCurrentTurnProjection: liveProjection,
     })).not.toHaveProperty('thinkingStatus');
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
-      latestCurrentTurnProjection: liveProjection,
     })).not.toHaveProperty('thinkingSourceEventType');
   });
 
@@ -185,7 +180,7 @@ describe('chatSelectors', () => {
     expect(selected.messages).toBe(messages);
   });
 
-  test('selects latest SDK live turn for minimal surfaces over active workspace projection', () => {
+  test('uses only active workspace raw current turn for no-view minimal surfaces', () => {
     const workspaceProjection = {
       conversationRef: 'conv-dashboard',
       turnRef: 'turn-dashboard',
@@ -195,29 +190,104 @@ describe('chatSelectors', () => {
       toolEvents: [],
       lastError: null,
     };
-    const liveProjection = {
-      conversationRef: 'conv-live',
-      turnRef: 'turn-live',
-      phase: 'streaming',
-      assistantText: 'live answer',
-      reasoningText: null,
-      toolEvents: [],
-      lastError: null,
-    };
     const selected = selectLiveTurnSurfaceState({
       messages: [],
       isSending: true,
       thinkingStatus: null,
       currentTurnProjection: workspaceProjection,
-      latestCurrentTurnProjection: liveProjection,
       tokenCounts: null,
       streamTracking: { phase: 'awaiting-first-chunk' },
     });
 
-    expect(selected.currentTurnProjection).toBe(liveProjection);
+    expect(selected.currentTurnProjection).toBe(workspaceProjection);
     expect(selected).not.toHaveProperty('isSending');
     expect(selected).not.toHaveProperty('thinkingStatus');
     expect(selected).not.toHaveProperty('thinkingSourceEventType');
+  });
+
+  test('ConversationView suppresses raw current-turn authority for minimal surfaces', () => {
+    const workspaceProjection = {
+      conversationRef: 'conv-dashboard',
+      turnRef: 'turn-dashboard',
+      phase: 'streaming',
+    };
+    const view = {
+      conversationRef: 'conv-view',
+      liveTurn: {
+        turnRef: 'turn-view',
+        phase: 'complete',
+        entries: [{ id: 'entry-view' }],
+        isBusy: false,
+        isTerminal: true,
+        canStop: false,
+      },
+      surfaces: {
+        pill: { mode: 'idle' },
+        dashboard: { mode: 'idle' },
+        responseOverlay: {
+          mode: 'response',
+          visible: true,
+          guardRef: 'turn-view',
+          ownerConversationRef: 'conv-view',
+          turnRef: 'turn-view',
+        },
+      },
+    };
+
+    const selected = selectLiveTurnSurfaceState({
+      messages: [],
+      currentTurnProjection: workspaceProjection,
+      conversationView: null,
+      latestConversationView: view,
+      pendingTurn: null,
+    });
+
+    expect(selected.conversationView).toBe(view);
+    expect(selected.currentTurnProjection).toBeNull();
+  });
+
+  test('ConversationView suppresses raw current-turn authority for dashboard chat state', () => {
+    const workspaceProjection = {
+      conversationRef: 'conv-dashboard',
+      turnRef: 'turn-stale',
+      phase: 'streaming',
+      assistantText: 'stale raw current turn',
+    };
+    const view = {
+      conversationRef: 'conv-dashboard',
+      revisionId: 'rev-view',
+      displayRows: [{ id: 'display-user-1', role: 'user' }],
+      liveTurn: {
+        turnRef: 'turn-view',
+        phase: 'streaming',
+        entries: [{ id: 'entry-view', text: 'view live answer' }],
+        isBusy: true,
+        isTerminal: false,
+        canStop: true,
+      },
+      surfaces: {
+        pill: { mode: 'busy' },
+        dashboard: { mode: 'busy' },
+        responseOverlay: {
+          mode: 'response',
+          visible: true,
+          guardRef: 'turn-view',
+          ownerConversationRef: 'conv-dashboard',
+          turnRef: 'turn-view',
+        },
+      },
+    };
+
+    const selected = selectChatInterfaceState({
+      messages: [{ id: 'display-user-1', text: 'question', sender: 'user' }],
+      thinkingStatus: null,
+      currentTurnProjection: workspaceProjection,
+      conversationView: view,
+      pendingTurn: null,
+    });
+
+    expect(selected.conversationView).toBe(view);
+    expect(selected.currentTurnProjection).toBeNull();
   });
 
   test('defaults optional active-workspace fields when not present', () => {

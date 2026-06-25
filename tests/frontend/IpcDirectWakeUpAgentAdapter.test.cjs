@@ -19,7 +19,15 @@ function createRuntime(overrides = {}) {
       return runtime.detachRuntimeEvents;
     }),
     detachRuntimeEvents: jest.fn(),
-    load: jest.fn(async () => ({ displayRows: [], currentTurn: null })),
+    load: jest.fn(async () => ({
+      displayRows: [],
+      currentTurn: null,
+      view: {
+        conversationRef: 'conv-replay',
+        revisionId: 'rev-loaded',
+        displayRows: [],
+      },
+    })),
     rehydrate: jest.fn(async () => ({
       displayRows: [],
       currentTurn: null,
@@ -31,6 +39,36 @@ function createRuntime(overrides = {}) {
     compactHistory: jest.fn(async () => ({ compacted: true })),
     loadDisplayTimeline: jest.fn(async () => ({ rows: [] })),
     replaceRows: jest.fn(async input => ({ ...input, revisionId: 'rev-child' })),
+    editAndResend: jest.fn(async input => ({
+      turnRef: input.turnRef,
+      queryMessageId: 'msg-edit',
+    })),
+    retryTurn: jest.fn(async input => ({
+      turnRef: input.turnRef,
+      queryMessageId: 'msg-retry',
+    })),
+    checkoutRevision: jest.fn(async input => ({
+      displayTimeline: {
+        conversationRef: 'conv-replay',
+        revisionId: input.revisionId,
+        rows: [],
+      },
+      modelHistoryCheckpoint: null,
+      view: {
+        conversationRef: 'conv-replay',
+        revisionId: input.revisionId,
+        displayRows: [],
+      },
+    })),
+    fork: jest.fn(async input => ({
+      conversationRef: input.newConversationRef,
+      revisionId: 'rev-forked',
+      sourceConversationRef: 'conv-replay',
+      sourceRevisionId: input.sourceRevisionId,
+      cutAfterRowId: input.cutAfterRowId,
+      displayRowCount: 2,
+      modelHistoryRowCount: 2,
+    })),
     close: jest.fn(),
     ...overrides,
   };
@@ -84,6 +122,7 @@ function createDeps(overrides = {}) {
       input?.conversation_ref || input?.conversationRef || input?.payload?.conversation_ref || null
     )),
     setLatestCurrentTurnProjection: jest.fn(),
+    setLatestConversationView: jest.fn(),
     getLatestPendingTurn: jest.fn(() => null),
     pendingTurnMatchesCurrentTurn: jest.fn(() => false),
     clearLatestPendingTurn: jest.fn(),
@@ -91,7 +130,6 @@ function createDeps(overrides = {}) {
     summarizeCurrentTurn: jest.fn(currentTurn => ({ turnRef: currentTurn?.turnRef || null })),
     isDebugFlagEnabled: jest.fn(() => false),
     currentTurnTraceLogger: { trace: jest.fn() },
-    traceRuntimeSend: jest.fn(),
     getSyncSdkLiveTurnSurfaceIntent: jest.fn(() => null),
     log: jest.fn(),
     buildConversationTerminalStatus: jest.fn(() => null),
@@ -130,11 +168,12 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     const runtime = createRuntime();
     const agent = createAgent(() => runtime);
     const pendingTurn = { conversationRef: 'conv-agent-1', turnRef: 'turn-1' };
+    const syncSdkLiveTurnSurfaceIntent = jest.fn();
     const deps = createDeps({
       getLatestPendingTurn: jest.fn(() => pendingTurn),
       pendingTurnMatchesCurrentTurn: jest.fn(() => true),
       buildConversationTerminalStatus: jest.fn(() => ({ phase: 'complete' })),
-      getSyncSdkLiveTurnSurfaceIntent: jest.fn(() => jest.fn()),
+      getSyncSdkLiveTurnSurfaceIntent: jest.fn(() => syncSdkLiveTurnSurfaceIntent),
       isDebugFlagEnabled: jest.fn(() => true),
     });
 
@@ -151,6 +190,25 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
           conversationRef: 'conv-agent-1',
           turnRef: 'turn-1',
           phase: 'streaming',
+        },
+        view: {
+          conversationRef: 'conv-agent-1',
+          displayRows: [{ id: 'row-view' }],
+          liveTurn: {
+            turnRef: 'turn-1',
+            phase: 'streaming',
+            entries: [],
+            isBusy: true,
+          },
+          surfaces: {
+            responseOverlay: {
+              mode: 'response',
+              visible: true,
+              guardRef: 'turn-1',
+              ownerConversationRef: 'conv-agent-1',
+              turnRef: 'turn-1',
+            },
+          },
         },
       },
     );
@@ -172,15 +230,28 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       DESKTOP_RUNTIME_ON_CHANNELS.ROWS,
       {
         conversationRef: 'conv-agent-1',
-        rows: [{ id: 'row-1' }],
+        rows: [{ id: 'row-view' }],
       },
     );
     expect(deps.broadcastToRenderers).toHaveBeenCalledWith(
       DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN,
-      expect.objectContaining({ turnRef: 'turn-1' }),
+      expect.objectContaining({
+        conversationRef: 'conv-agent-1',
+        currentTurn: expect.objectContaining({ turnRef: 'turn-1' }),
+        view: expect.objectContaining({
+          conversationRef: 'conv-agent-1',
+        }),
+      }),
     );
+    expect(syncSdkLiveTurnSurfaceIntent).toHaveBeenCalledWith(expect.objectContaining({
+      currentTurn: expect.objectContaining({ turnRef: 'turn-1' }),
+      view: expect.objectContaining({ conversationRef: 'conv-agent-1' }),
+    }));
     expect(deps.setLatestCurrentTurnProjection).toHaveBeenCalledWith(expect.objectContaining({
       turnRef: 'turn-1',
+    }));
+    expect(deps.setLatestConversationView).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-agent-1',
     }));
     expect(deps.clearLatestPendingTurn).toHaveBeenCalledWith({
       conversationRef: 'conv-agent-1',
@@ -229,7 +300,9 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     );
     expect(deps.broadcastToRenderers).toHaveBeenCalledWith(
       DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN,
-      expect.objectContaining({ turnRef: 'turn-1', phase: 'awaiting' }),
+      expect.objectContaining({
+        currentTurn: expect.objectContaining({ turnRef: 'turn-1', phase: 'awaiting' }),
+      }),
     );
   });
 
@@ -270,95 +343,8 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     });
     expect(runtime.rehydrateMessages).not.toHaveBeenCalled();
     expect(runtime.send).toHaveBeenCalledWith({
+      conversation_ref: 'conv-2',
       text: 'hello',
-      turnRef: undefined,
-      payload: {
-        conversation_ref: 'conv-2',
-      },
-      resources: undefined,
-      metadata: undefined,
-      model: undefined,
-    });
-  });
-
-  test('maps AgentQueryInput fields into the conversation runtime send payload', async () => {
-    const runtime = createRuntime();
-    const agent = createAgent(() => runtime);
-    const deps = createDeps();
-    const adapter = createDirectWakeUpAgentAdapter({
-      agent,
-      deps,
-    });
-    const agentDefinition = {
-      system_prompt: { mode: 'replace', content: 'Use saved config.' },
-      tools: {
-        mode: 'explicit',
-        disabled_tools: ['mouse_control'],
-        client_manifest: { version: 1, tools: [] },
-      },
-    };
-    const resources = [{ type: 'file', id: 'file-1' }];
-    const metadata = { source: 'renderer' };
-    const model = { modelProvider: 'scripted', modelId: 'scripted-runtime' };
-
-    await adapter.run({
-      text: 'hello',
-      conversationRef: 'conv-agent-input',
-      turnRef: 'turn-1',
-      backendPayload: {
-        text: 'hello',
-        conversation_ref: 'conv-agent-input',
-      },
-      agentDefinition,
-      content: '<user_query>hello</user_query>',
-      screenshotRef: 'art-1',
-      screenshotRefs: ['art-1'],
-      attachmentContext: 'attachment summary',
-      attachmentFilenames: ['notes.txt'],
-      systemStateInternal: { platform: 'darwin' },
-      workspacePath: '/repo',
-      resources,
-      metadata,
-    }, { model });
-
-    expect(runtime.send).toHaveBeenCalledWith({
-      text: 'hello',
-      turnRef: 'turn-1',
-      payload: {
-        text: 'hello',
-        conversation_ref: 'conv-agent-input',
-        agent_definition: agentDefinition,
-        content: '<user_query>hello</user_query>',
-        screenshot_ref: 'art-1',
-        screenshot_refs: ['art-1'],
-        attachment_context: 'attachment summary',
-        attachment_filenames: ['notes.txt'],
-        system_state_internal: { platform: 'darwin' },
-        workspace_path: '/repo',
-      },
-      resources,
-      metadata,
-      model,
-    });
-    expect(deps.traceRuntimeSend).toHaveBeenCalledWith({
-      text: 'hello',
-      turnRef: 'turn-1',
-      payload: {
-        text: 'hello',
-        conversation_ref: 'conv-agent-input',
-        agent_definition: agentDefinition,
-        content: '<user_query>hello</user_query>',
-        screenshot_ref: 'art-1',
-        screenshot_refs: ['art-1'],
-        attachment_context: 'attachment summary',
-        attachment_filenames: ['notes.txt'],
-        system_state_internal: { platform: 'darwin' },
-        workspace_path: '/repo',
-      },
-      resources,
-      metadata,
-      model,
-      conversationRef: 'conv-agent-input',
     });
   });
 
@@ -393,6 +379,102 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     });
   });
 
+  test('forwards SDK replay edit and retry commands through the selected conversation handle', async () => {
+    const runtime = createRuntime();
+    const agent = createAgent(() => runtime);
+    const adapter = createDirectWakeUpAgentAdapter({
+      agent,
+      deps: createDeps(),
+    });
+
+    await expect(adapter.editAndResend({
+      conversationRef: 'conv-replay',
+      messageId: 'row-user',
+      text: 'edited text',
+      turnRef: 'turn-edit',
+      payload: { screenshot_refs: ['artifact-one'] },
+      revisionId: 'rev-1',
+      store: { ignored: true },
+    })).resolves.toEqual({
+      turnRef: 'turn-edit',
+      queryMessageId: 'msg-edit',
+    });
+
+    await expect(adapter.retryTurn({
+      conversationRef: 'conv-replay',
+      messageId: 'row-assistant',
+      turnRef: 'turn-retry',
+      payload: { screenshot_ref: 'artifact-one' },
+      revisionId: 'rev-1',
+      store: { ignored: true },
+    })).resolves.toEqual({
+      turnRef: 'turn-retry',
+      queryMessageId: 'msg-retry',
+    });
+
+    expect(runtime.editAndResend).toHaveBeenCalledWith({
+      messageId: 'row-user',
+      text: 'edited text',
+      turnRef: 'turn-edit',
+      payload: { screenshot_refs: ['artifact-one'] },
+    });
+    expect(runtime.retryTurn).toHaveBeenCalledWith({
+      messageId: 'row-assistant',
+      turnRef: 'turn-retry',
+      payload: { screenshot_ref: 'artifact-one' },
+    });
+    expect(runtime.load).toHaveBeenCalledTimes(2);
+  });
+
+  test('forwards revision checkout and fork commands through the selected conversation handle', async () => {
+    const runtime = createRuntime();
+    const agent = createAgent(() => runtime);
+    const adapter = createDirectWakeUpAgentAdapter({
+      agent,
+      deps: createDeps(),
+    });
+
+    await expect(adapter.checkoutRevision({
+      conversationRef: 'conv-replay',
+      revisionId: 'rev-child',
+    })).resolves.toEqual(expect.objectContaining({
+      displayTimeline: {
+        conversationRef: 'conv-replay',
+        revisionId: 'rev-child',
+        rows: [],
+      },
+      modelHistoryCheckpoint: null,
+      view: expect.objectContaining({
+        revisionId: 'rev-child',
+      }),
+    }));
+
+    await expect(adapter.forkConversation({
+      conversationRef: 'conv-replay',
+      sourceRevisionId: 'rev-child',
+      cutAfterRowId: 'row-assistant',
+      newConversationRef: 'conv-forked',
+      revisionId: 'ignored-active-revision',
+      store: { ignored: true },
+    })).resolves.toEqual(expect.objectContaining({
+      conversationRef: 'conv-forked',
+      revisionId: 'rev-forked',
+      view: expect.objectContaining({
+        revisionId: 'rev-loaded',
+      }),
+    }));
+
+    expect(runtime.checkoutRevision).toHaveBeenCalledWith({
+      revisionId: 'rev-child',
+    });
+    expect(runtime.fork).toHaveBeenCalledWith({
+      sourceRevisionId: 'rev-child',
+      cutAfterRowId: 'row-assistant',
+      newConversationRef: 'conv-forked',
+    });
+    expect(runtime.load).toHaveBeenCalledTimes(3);
+  });
+
   test('SDK library conversation methods reject removed snake_case conversation aliases', async () => {
     const runtime = createRuntime();
     const agent = createAgent(() => runtime);
@@ -414,6 +496,14 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       event: { conversation_ref: 'conv-legacy', type: 'message' },
     })).rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
     await expect(adapter.replaceRows({ conversation_ref: 'conv-legacy' }))
+      .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+    await expect(adapter.editAndResend({ conversation_ref: 'conv-legacy' }))
+      .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+    await expect(adapter.retryTurn({ conversation_ref: 'conv-legacy' }))
+      .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+    await expect(adapter.checkoutRevision({ conversation_ref: 'conv-legacy' }))
+      .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+    await expect(adapter.forkConversation({ conversation_ref: 'conv-legacy' }))
       .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
 
     expect(agent.deleteConversation).not.toHaveBeenCalled();

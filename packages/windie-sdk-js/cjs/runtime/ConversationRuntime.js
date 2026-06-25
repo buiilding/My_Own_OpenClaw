@@ -243,6 +243,14 @@ function rowMetadataRevision(row) {
         ? metadataRevision.trim()
         : null;
 }
+function displayRowDedupeKey(row) {
+    const content = typeof row.content === 'string' ? row.content : JSON.stringify(row.content);
+    return [
+        row.turnRef ?? '',
+        row.type,
+        content,
+    ].join('\u0000');
+}
 function displayRowToolOutputDedupeKey(row) {
     if (row.type !== 'tool_output' && row.type !== 'tool_bundle_output') {
         return null;
@@ -694,8 +702,16 @@ class SdkConversationRuntime {
     async load() {
         const events = await this.options.store.loadEvents(this.options.conversationRef);
         this.events = events;
-        this.state = events.reduce((state, event) => (0, conversationReducer_js_1.reduceConversationRuntimeState)(state, event), (0, conversationReducer_js_1.createInitialConversationRuntimeState)(this.options.conversationRef, events[events.length - 1]?.revisionId ?? this.state.revisionId));
-        this.activeDisplayTimeline = await this.loadStoredDisplayTimeline();
+        const requestedRevisionId = this.activeDisplayTimeline?.revisionId
+            ?? (this.state.revisionId && this.state.revisionId !== 'rev-empty' ? this.state.revisionId : null);
+        this.activeDisplayTimeline = await this.loadStoredDisplayTimeline(requestedRevisionId);
+        const activeRevisionId = this.activeDisplayTimeline?.revisionId
+            ?? events[events.length - 1]?.revisionId
+            ?? this.state.revisionId;
+        const stateEvents = this.activeDisplayTimeline
+            ? events.filter(event => event.revisionId === activeRevisionId)
+            : events;
+        this.state = stateEvents.reduce((state, event) => (0, conversationReducer_js_1.reduceConversationRuntimeState)(state, event), (0, conversationReducer_js_1.createInitialConversationRuntimeState)(this.options.conversationRef, activeRevisionId));
         return this.snapshot(this.events);
     }
     async loadDisplayTimeline(options = {}) {
@@ -781,9 +797,11 @@ class SdkConversationRuntime {
                 modelHistoryCheckpointId: modelHistoryCheckpoint?.checkpointId ?? null,
             },
         }, { revisionId });
+        const snapshot = await this.load();
         return {
             displayTimeline,
             modelHistoryCheckpoint,
+            view: snapshot.view,
         };
     }
     async replaceRows(input) {
@@ -864,19 +882,22 @@ class SdkConversationRuntime {
         if (newConversationRef === this.options.conversationRef) {
             throw new Error('fork requires a distinct newConversationRef');
         }
-        if (!input.cutAfterRowId || !input.cutAfterRowId.trim()) {
-            throw new Error('fork requires cutAfterRowId');
-        }
         if (!this.options.store.replaceDisplayTimeline) {
             throw new Error('fork requires a display timeline capable conversation store');
         }
         const sourceTimeline = await this.loadDisplayTimeline({
             revisionId: input.sourceRevisionId ?? null,
         });
+        const cutAfterRowId = typeof input.cutAfterRowId === 'string' && input.cutAfterRowId.trim()
+            ? input.cutAfterRowId.trim()
+            : sourceTimeline.rows[sourceTimeline.rows.length - 1]?.id ?? '';
+        if (!cutAfterRowId) {
+            throw new Error('fork requires at least one source display row');
+        }
         const newRevisionId = (0, events_js_1.createRuntimeId)('rev');
         const createdAt = new Date().toISOString();
         const displayRows = rowsForFork(sourceTimeline.rows, {
-            cutAfterRowId: input.cutAfterRowId.trim(),
+            cutAfterRowId,
             newConversationRef,
             newRevisionId,
         });
@@ -924,7 +945,7 @@ class SdkConversationRuntime {
                 sourceRevisionId: sourceTimeline.revisionId,
                 conversationRef: newConversationRef,
                 revisionId: newRevisionId,
-                cutAfterRowId: input.cutAfterRowId,
+                cutAfterRowId,
                 displayRowCount: displayRows.length,
                 modelHistoryRowCount,
             },
@@ -934,7 +955,8 @@ class SdkConversationRuntime {
             revisionId: newRevisionId,
             sourceConversationRef: this.options.conversationRef,
             sourceRevisionId: sourceTimeline.revisionId,
-            cutAfterRowId: input.cutAfterRowId,
+            cutAfterRowId,
+            displayTimeline: displayCheckpoint,
             displayRowCount: displayRows.length,
             modelHistoryRowCount,
             modelHistoryCheckpointId,
@@ -2874,9 +2896,19 @@ class SdkConversationRuntime {
         const eventRows = (0, conversationProjections_js_1.buildDisplayRows)(events, {
             liveAttachments: this.liveDisplayAttachmentsRecord(),
         });
-        const rowIds = new Set(timeline.rows.map(row => row.id));
+        const rowIds = new Set(timeline.rows.flatMap(row => {
+            const ids = [row.id];
+            const eventId = row.metadata?.eventId;
+            if (typeof eventId === 'string' && eventId.trim()) {
+                ids.push(eventId.trim());
+            }
+            return ids;
+        }));
+        const rowDedupeKeys = new Set(timeline.rows.map(displayRowDedupeKey));
         const timelineRevisionId = timeline.revisionId;
-        const appendedRows = eventRows.filter(row => (rowMetadataRevision(row) === timelineRevisionId && !rowIds.has(row.id)));
+        const appendedRows = eventRows.filter(row => (rowMetadataRevision(row) === timelineRevisionId
+            && !rowIds.has(row.id)
+            && !rowDedupeKeys.has(displayRowDedupeKey(row))));
         return withoutDuplicateDisplayToolOutputs([
             ...timeline.rows,
             ...appendedRows.map((row, offset) => ({

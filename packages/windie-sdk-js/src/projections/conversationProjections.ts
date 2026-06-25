@@ -6,6 +6,10 @@ import type {
   CompactionState,
   ConversationEvent,
   ConversationMetadata,
+  ConversationView,
+  ConversationViewBuildDiagnostics,
+  ConversationViewBuildInput,
+  ConversationViewLiveTurnPhase,
   CurrentTurnProjection,
   CurrentTurnProjectionPhase,
   CurrentTurnToolEvent,
@@ -1386,6 +1390,225 @@ export function buildCurrentTurnProjection(events: ConversationEvent[]): Current
     }
   }
   return withLiveTurnPresentation(projection);
+}
+
+export function isInternalConversationLane(conversationRef: string | null | undefined): boolean {
+  return typeof conversationRef === 'string' && conversationRef.startsWith('conv-agent-');
+}
+
+function rowRevisionId(row: SdkDisplayRow): string | null {
+  const revisionId = row.metadata?.revisionId;
+  return typeof revisionId === 'string' && revisionId.trim() ? revisionId.trim() : null;
+}
+
+function stableEditTargetRowId(row: SdkDisplayRow): string {
+  const replacedDisplayRowId = row.metadata?.replacedDisplayRowId;
+  return typeof replacedDisplayRowId === 'string' && replacedDisplayRowId.trim()
+    ? replacedDisplayRowId.trim()
+    : row.id;
+}
+
+function withConversationViewRowActions(row: SdkDisplayRow): SdkDisplayRow {
+  if (row.type === 'user_message') {
+    return {
+      ...row,
+      actions: {
+        ...(row.actions ?? {}),
+        canEdit: true,
+        editTargetRowId: stableEditTargetRowId(row),
+      },
+    };
+  }
+  if (row.type === 'assistant_message') {
+    return {
+      ...row,
+      actions: {
+        ...(row.actions ?? {}),
+        canRetry: row.isStreaming !== true,
+        retryTargetRowId: row.id,
+      },
+    };
+  }
+  if (row.type === 'error') {
+    return {
+      ...row,
+      actions: {
+        ...(row.actions ?? {}),
+        canRetry: true,
+        retryTargetRowId: row.id,
+      },
+    };
+  }
+  return row;
+}
+
+function resolveConversationViewConversationRef(input: ConversationViewBuildInput): string {
+  const candidates = [
+    input.conversationRef,
+    input.state?.conversationRef,
+    input.displayRows?.find(row => !isInternalConversationLane(row.conversationRef))?.conversationRef,
+    input.events?.find(event => !isInternalConversationLane(event.conversationRef))?.conversationRef,
+    input.currentTurn && !isInternalConversationLane(input.currentTurn.conversationRef)
+      ? input.currentTurn.conversationRef
+      : null,
+    input.currentTurn?.conversationRef,
+  ];
+  return candidates.find((value): value is string => typeof value === 'string' && value.trim().length > 0)?.trim() ?? '';
+}
+
+function resolveConversationViewRevisionId(
+  input: ConversationViewBuildInput,
+  displayRows: SdkDisplayRow[],
+): string | null {
+  const displayRevision = [...displayRows].reverse().map(rowRevisionId).find(Boolean);
+  const candidates = [
+    input.revisionId,
+    input.state?.revisionId,
+    displayRevision,
+    input.events?.[input.events.length - 1]?.revisionId,
+  ];
+  return candidates.find((value): value is string => typeof value === 'string' && value.trim().length > 0)?.trim() ?? null;
+}
+
+function userFacingEventsForView(
+  events: ConversationEvent[],
+  conversationRef: string,
+  revisionId: string | null = null,
+): ConversationEvent[] {
+  return events.filter(event => (
+    event.conversationRef === conversationRef
+    && !isInternalConversationLane(event.conversationRef)
+    && (!revisionId || event.revisionId === revisionId)
+  ));
+}
+
+function currentTurnForView(
+  input: ConversationViewBuildInput,
+  conversationRef: string,
+  revisionId: string | null,
+): CurrentTurnProjection {
+  const events = input.events ?? [];
+  const currentTurn = input.currentTurn ?? null;
+  const userFacingEvents = userFacingEventsForView(events, conversationRef, revisionId);
+  if (userFacingEvents.length > 0) {
+    return buildCurrentTurnProjection(userFacingEvents);
+  }
+  if (
+    !revisionId
+    && currentTurn
+    && currentTurn.conversationRef === conversationRef
+    && !isInternalConversationLane(currentTurn.conversationRef)
+  ) {
+    return currentTurn;
+  }
+  return emptyCurrentTurnProjection(conversationRef);
+}
+
+function conversationViewLiveTurnPhase(phase: CurrentTurnProjectionPhase): ConversationViewLiveTurnPhase {
+  if (phase === 'tool_call' || phase === 'tool_output') {
+    return 'tool';
+  }
+  return phase;
+}
+
+function responseOverlayModeFromPresentation(
+  presentation: LiveTurnPresentation,
+): ConversationView['surfaces']['responseOverlay']['mode'] {
+  if (presentation.overlayIntent.mode === 'response') {
+    return 'response';
+  }
+  if (presentation.overlayIntent.mode === 'awaiting') {
+    return 'typing';
+  }
+  return 'hidden';
+}
+
+function latestEventRef(
+  events: ConversationEvent[],
+  predicate: (event: ConversationEvent) => boolean = () => true,
+): string | null {
+  const event = [...events].reverse().find(predicate);
+  return event?.eventId ?? null;
+}
+
+function modelHistoryCheckpointIdFromEvents(events: ConversationEvent[], revisionId: string | null): string | null {
+  const event = [...events].reverse().find(candidate => (
+    candidate.type === 'model_history_updated'
+    && (!revisionId || candidate.revisionId === revisionId)
+  ));
+  return stringField(event?.payload ?? {}, 'checkpointId', 'checkpoint_id');
+}
+
+export function buildConversationView(input: ConversationViewBuildInput): ConversationView {
+  const conversationRef = resolveConversationViewConversationRef(input);
+  const displayRows = (input.displayRows ?? []).filter(row => (
+    row.conversationRef === conversationRef
+    && !isInternalConversationLane(row.conversationRef)
+  )).map(withConversationViewRowActions);
+  const revisionId = resolveConversationViewRevisionId(input, displayRows);
+  const currentTurn = currentTurnForView(input, conversationRef, revisionId);
+  const livePhase = conversationViewLiveTurnPhase(currentTurn.phase);
+  const presentation = currentTurn.presentation;
+  const responseOverlayMode = responseOverlayModeFromPresentation(presentation);
+  const isBusy = presentation.isBusy;
+  return {
+    conversationRef,
+    revisionId,
+    displayRows,
+    liveTurn: {
+      turnRef: currentTurn.turnRef,
+      phase: livePhase,
+      entries: presentation.entries,
+      isBusy,
+      isTerminal: presentation.isTerminal,
+      canStop: isBusy && Boolean(currentTurn.turnRef),
+      lastError: currentTurn.lastError,
+    },
+    surfaces: {
+      pill: {
+        mode: isBusy ? 'busy' : 'idle',
+      },
+      dashboard: {
+        mode: isBusy ? 'busy' : 'idle',
+      },
+      responseOverlay: {
+        mode: responseOverlayMode,
+        visible: responseOverlayMode !== 'hidden',
+        guardRef: presentation.overlayIntent.staleGuardRef,
+        ownerConversationRef: conversationRef,
+        turnRef: currentTurn.turnRef,
+      },
+    },
+    actions: {
+      canEdit: displayRows.some(row => row.actions?.canEdit === true),
+      canRetry: presentation.isTerminal && displayRows.some(row => row.actions?.canRetry === true),
+      canFork: displayRows.length > 0,
+    },
+  };
+}
+
+export function buildConversationViewBuildDiagnostics(
+  input: ConversationViewBuildInput & { view?: ConversationView | null },
+): ConversationViewBuildDiagnostics {
+  const view = input.view ?? buildConversationView(input);
+  const events = input.events ?? [];
+  const modelHistoryCheckpointId = input.modelHistoryCheckpoint?.checkpointId
+    ?? modelHistoryCheckpointIdFromEvents(events, view.revisionId);
+  return {
+    activeRevisionId: view.revisionId,
+    displayRowCount: view.displayRows.length,
+    liveTurnRef: view.liveTurn.turnRef,
+    liveTurnPhase: view.liveTurn.phase,
+    responseOverlayMode: view.surfaces.responseOverlay.mode,
+    responseOverlayGuardRef: view.surfaces.responseOverlay.guardRef,
+    pendingTurnRef: input.pendingTurnRef ?? null,
+    supersededTurnCount: events.filter(event => event.type === 'turn_superseded').length,
+    filteredInternalLaneCount: events.filter(event => isInternalConversationLane(event.conversationRef)).length,
+    modelHistoryCheckpointId,
+    lastEventRef: latestEventRef(events),
+    lastSdkEventRef: latestEventRef(events, event => event.source === 'sdk'),
+    lastBackendEventRef: latestEventRef(events, event => event.source === 'backend'),
+  };
 }
 
 function toolOutputDedupeKey(event: ConversationEvent): string | null {

@@ -152,6 +152,10 @@ let mockConfig = {
 };
 
 jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
+  selectLiveTurnSurfaceState: (
+    jest.requireActual('../../frontend/src/renderer/features/chat/stores/chatStore')
+      .selectLiveTurnSurfaceState
+  ),
   useChatStore: (selector) =>
     require('./storeSelectorTestUtils.cjs').selectMockStoreState(selector, mockChatState),
 }));

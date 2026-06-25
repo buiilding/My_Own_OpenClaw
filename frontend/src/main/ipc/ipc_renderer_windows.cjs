@@ -18,6 +18,7 @@ function trackRendererWindow({
   rendererWindows,
   getResponseOverlayPhase,
   getLatestCurrentTurn = null,
+  getLatestConversationView = null,
   getLatestPendingTurn = null,
   getReplayEvents = null,
   buildConversationEvent = null,
@@ -46,11 +47,29 @@ function trackRendererWindow({
       phase: getResponseOverlayPhase(),
       source: 'sync',
     });
-    if (typeof getLatestCurrentTurn === 'function') {
-      const latestCurrentTurn = getLatestCurrentTurn();
-      if (latestCurrentTurn && typeof latestCurrentTurn === 'object') {
-        webContents.send(DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN, latestCurrentTurn);
-      }
+    const latestCurrentTurn = typeof getLatestCurrentTurn === 'function'
+      ? getLatestCurrentTurn()
+      : null;
+    const latestConversationView = typeof getLatestConversationView === 'function'
+      ? getLatestConversationView()
+      : null;
+    if (
+      (latestCurrentTurn && typeof latestCurrentTurn === 'object')
+      || (latestConversationView && typeof latestConversationView === 'object')
+    ) {
+      webContents.send(DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN, {
+        conversationRef: (
+          latestConversationView?.conversationRef
+          || latestCurrentTurn?.conversationRef
+          || null
+        ),
+        currentTurn: latestCurrentTurn && typeof latestCurrentTurn === 'object'
+          ? latestCurrentTurn
+          : null,
+        view: latestConversationView && typeof latestConversationView === 'object'
+          ? latestConversationView
+          : null,
+      });
     }
     if (typeof getLatestPendingTurn === 'function') {
       const latestPendingTurn = getLatestPendingTurn();
@@ -164,6 +183,7 @@ function createRendererWindowRuntime({
   registry = createRendererWindowRegistry(),
   getResponseOverlayPhase,
   getLatestCurrentTurn = null,
+  getLatestConversationView = null,
   getLatestPendingTurn = null,
   getReplayEvents = null,
   buildConversationEvent = null,
@@ -173,6 +193,7 @@ function createRendererWindowRuntime({
       win,
       getResponseOverlayPhase,
       getLatestCurrentTurn,
+      getLatestConversationView,
       getLatestPendingTurn,
       getReplayEvents,
       buildConversationEvent,

@@ -417,6 +417,13 @@
   -webkit-app-region: no-drag;
 }
 
+.chat-revision-control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  -webkit-app-region: no-drag;
+}
+
 .chat-browser-chip {
   display: inline-flex;
   align-items: center;
@@ -664,6 +671,17 @@
   color: var(--chat-utility-text-primary);
 }
 
+.chat-top-icon-btn:disabled {
+  cursor: default;
+  opacity: 0.44;
+}
+
+.chat-top-icon-btn:disabled:hover {
+  background: var(--chat-utility-surface-bg-muted);
+  border-color: var(--chat-utility-surface-border);
+  color: var(--chat-utility-text-secondary);
+}
+
 .chat-top-icon-btn:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--chat-utility-surface-focus);
@@ -679,6 +697,116 @@
 .chat-top-icon-btn.is-enabled:hover {
   background: var(--chat-top-icon-active-bg);
   color: var(--chat-utility-text-primary);
+}
+
+.chat-revision-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 260px;
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--chat-utility-surface-border-strong);
+  background: var(--chat-utility-panel-bg);
+  box-shadow: var(--chat-utility-surface-shadow);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 44;
+}
+
+.chat-revision-menu-state {
+  min-height: 36px;
+  padding: 10px 12px;
+  color: var(--chat-utility-text-secondary);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+}
+
+.chat-revision-menu-state.is-error {
+  color: var(--ui-danger-fg);
+}
+
+.chat-revision-menu-row {
+  width: 100%;
+  min-height: 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 6px;
+}
+
+.chat-revision-menu-row + .chat-revision-menu-row {
+  margin-top: 4px;
+}
+
+.chat-revision-menu-item {
+  min-width: 0;
+  min-height: 40px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--chat-utility-text-primary);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.chat-revision-menu-item:hover:enabled,
+.chat-revision-menu-row.is-active .chat-revision-menu-item {
+  background: var(--ui-hover-strong-bg);
+}
+
+.chat-revision-menu-item:disabled {
+  cursor: default;
+  opacity: 0.68;
+}
+
+.chat-revision-menu-id {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: left;
+}
+
+.chat-revision-menu-meta {
+  color: var(--chat-utility-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chat-revision-fork-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--chat-utility-surface-border);
+  border-radius: 8px;
+  background: var(--chat-utility-surface-bg-muted);
+  color: var(--chat-utility-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.chat-revision-fork-btn:hover:enabled {
+  background: var(--chat-utility-surface-bg-hover);
+  border-color: var(--chat-utility-surface-border-strong);
+  color: var(--chat-utility-text-primary);
+}
+
+.chat-revision-fork-btn:disabled {
+  cursor: default;
+  opacity: 0.5;
 }
 
 .chat-find-bar {

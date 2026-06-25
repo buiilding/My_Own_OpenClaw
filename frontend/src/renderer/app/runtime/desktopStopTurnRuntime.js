@@ -2,13 +2,6 @@
  * Provides stop-turn target and terminal projection helpers for renderer app-runtime consumers.
  */
 
-const STOPPABLE_CURRENT_TURN_PHASES = new Set([
-  'awaiting',
-  'streaming',
-  'tool_call',
-  'tool_output',
-]);
-
 function normalizeRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
@@ -62,20 +55,12 @@ function buildStoppedCurrentTurnProjection(currentTurnProjection) {
   };
 }
 
-function isStopTurnTargetFromCurrentTurn(stopTarget) {
-  return stopTarget?.source === 'sdk-current-turn';
+function isStopTurnTargetFromConversationView(stopTarget) {
+  return stopTarget?.source === 'conversation-view';
 }
 
 function isStopTurnTargetFromPendingTurn(stopTarget) {
   return stopTarget?.source === 'pending-turn';
-}
-
-function isStoppableCurrentTurnProjection(currentTurnProjection) {
-  if (!currentTurnProjection || typeof currentTurnProjection !== 'object') {
-    return false;
-  }
-  const phase = normalizeRef(currentTurnProjection.phase);
-  return STOPPABLE_CURRENT_TURN_PHASES.has(phase);
 }
 
 function isPendingTurn(value) {
@@ -87,19 +72,44 @@ function isPendingTurn(value) {
   );
 }
 
+function isStoppableConversationView(conversationView) {
+  return Boolean(
+    conversationView
+      && typeof conversationView === 'object'
+      && conversationView.liveTurn?.canStop === true
+      && normalizeRef(conversationView.conversationRef)
+      && normalizeRef(conversationView.liveTurn?.turnRef)
+  );
+}
+
 function resolveStopTurnTarget({
-  currentTurnProjection = null,
+  conversationView = null,
   pendingTurn = null,
   conversationRef = null,
 } = {}) {
-  if (isStoppableCurrentTurnProjection(currentTurnProjection)) {
-    const resolvedConversationRef = normalizeRef(currentTurnProjection.conversationRef) || normalizeRef(conversationRef);
-    const resolvedTurnRef = normalizeRef(currentTurnProjection.turnRef);
+  if (isStoppableConversationView(conversationView)) {
     return {
-      source: 'sdk-current-turn',
-      conversationRef: resolvedConversationRef,
-      turnRef: resolvedTurnRef,
-      canStop: Boolean(resolvedConversationRef),
+      source: 'conversation-view',
+      conversationRef: normalizeRef(conversationView.conversationRef),
+      turnRef: normalizeRef(conversationView.liveTurn?.turnRef),
+      canStop: true,
+    };
+  }
+
+  if (conversationView && typeof conversationView === 'object') {
+    if (isPendingTurn(pendingTurn)) {
+      return {
+        source: 'pending-turn',
+        conversationRef: normalizeRef(pendingTurn.conversationRef),
+        turnRef: normalizeRef(pendingTurn.turnRef),
+        canStop: true,
+      };
+    }
+    return {
+      source: 'idle',
+      conversationRef: normalizeRef(conversationView.conversationRef) || normalizeRef(conversationRef),
+      turnRef: normalizeRef(conversationView.liveTurn?.turnRef),
+      canStop: false,
     };
   }
 
@@ -124,7 +134,7 @@ function resolveStopTurnTarget({
 export const DesktopStopTurnRuntime = Object.freeze({
   buildStopQueryTrackingPatch,
   buildStoppedCurrentTurnProjection,
-  isStopTurnTargetFromCurrentTurn,
+  isStopTurnTargetFromConversationView,
   isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
 });

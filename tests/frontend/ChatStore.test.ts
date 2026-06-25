@@ -238,7 +238,7 @@ describe('chatStore', () => {
     ]);
   });
 
-  test('inactive current-turn projections do not replace the active latest projection', () => {
+  test('inactive current-turn projections stay scoped to their workspace', () => {
     const userProjection = {
       conversationRef: 'conv-user',
       turnRef: 'turn-user',
@@ -292,7 +292,7 @@ describe('chatStore', () => {
     );
 
     const state = useChatStore.getState();
-    expect(state.latestCurrentTurnProjection).toBe(userProjection);
+    expect(state).not.toHaveProperty('latestCurrentTurnProjection');
     expect(state.currentTurnProjection).toBe(userProjection);
     expect(
       state.getWorkspaceState('conv-agent-internal').currentTurnProjection,

@@ -4,6 +4,8 @@
 
 import {
   type BackendEvent,
+  buildConversationView,
+  buildConversationViewBuildDiagnostics,
   buildCurrentTurnProjection,
   buildDisplayConversation,
   buildDisplayRows,
@@ -5727,12 +5729,104 @@ describe('Agent SDK conversation runtime core', () => {
     ]));
   });
 
+  test('conversation runtime snapshots expose durable rows through the conversation view', async () => {
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-active',
+      store,
+    });
+    await store.replaceDisplayTimeline({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-active',
+      createdAt: '2026-06-25T03:10:00.000Z',
+      reason: null,
+      baseRevisionId: null,
+      rows: [],
+    });
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-active',
+        eventId: 'turn-one-user',
+        turnRef: 'turn-one',
+        source: 'sdk',
+        payload: { text: 'sadsa' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-active',
+        eventId: 'turn-one-assistant',
+        turnRef: 'turn-one',
+        source: 'backend',
+        payload: { text: 'Scripted runtime ready.' },
+      }),
+      createConversationEvent({
+        type: 'turn_completed',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-active',
+        eventId: 'turn-one-complete',
+        turnRef: 'turn-one',
+        source: 'backend',
+        payload: { finalResponse: 'Scripted runtime ready.' },
+      }),
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-active',
+        eventId: 'turn-two-user',
+        turnRef: 'turn-two',
+        source: 'sdk',
+        payload: { text: 'now it got replaced' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-active',
+        eventId: 'turn-two-assistant',
+        turnRef: 'turn-two',
+        source: 'backend',
+        payload: { text: 'Scripted runtime ready.' },
+      }),
+      createConversationEvent({
+        type: 'turn_completed',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-active',
+        eventId: 'turn-two-complete',
+        turnRef: 'turn-two',
+        source: 'backend',
+        payload: { finalResponse: 'Scripted runtime ready.' },
+      }),
+    ]);
+
+    const snapshot = await runtime.load();
+
+    expect(snapshot.view.displayRows.map(row => row.content)).toEqual([
+      'sadsa',
+      'Scripted runtime ready.',
+      'now it got replaced',
+      'Scripted runtime ready.',
+    ]);
+    expect(snapshot.view.liveTurn).toMatchObject({
+      turnRef: 'turn-two',
+      phase: 'complete',
+      isBusy: false,
+      canStop: false,
+    });
+    expect(snapshot.view.liveTurn.entries.map(entry => entry.text)).toEqual([
+      'Scripted runtime ready.',
+    ]);
+  });
+
   test('conversation runtime forks display prefix and matching model history into a child conversation', async () => {
     const store = new InMemoryConversationStore();
     await store.appendEvent(createConversationEvent({
       type: 'user_message',
       conversationRef: 'conv-sdk-runtime',
       revisionId: 'rev-base',
+      eventId: 'display-user-1',
       turnRef: 'turn-1',
       source: 'sdk',
       payload: { text: 'first question' },
@@ -5752,7 +5846,7 @@ describe('Agent SDK conversation runtime core', () => {
           role: 'user',
           type: 'user_message',
           content: 'first question',
-          metadata: { revisionId: 'rev-base' },
+          metadata: { eventId: 'display-user-1', revisionId: 'rev-base' },
         },
         {
           id: 'display-assistant-1',
@@ -5830,7 +5924,18 @@ describe('Agent SDK conversation runtime core', () => {
       conversationRef: 'conv-forked',
       revisionId: fork.revisionId,
     });
+    const sourceModelHistory = await store.loadModelHistory?.({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-base',
+    });
     const metadata = await store.listMetadata();
+    const forkRuntime = new SdkConversationRuntime({
+      conversationRef: 'conv-forked',
+      revisionId: fork.revisionId,
+      store,
+    });
+    const forkView = await forkRuntime.getView();
+    const sourceView = await runtime.getView();
 
     expect(fork).toEqual(expect.objectContaining({
       conversationRef: 'conv-forked',
@@ -5842,6 +5947,25 @@ describe('Agent SDK conversation runtime core', () => {
     expect(display?.rows.map(row => row.id)).toEqual(['display-user-1', 'display-assistant-1']);
     expect(display?.rows.every(row => row.conversationRef === 'conv-forked')).toBe(true);
     expect(modelHistory?.rows.map(row => row.content)).toEqual(['first question', 'first answer']);
+    expect(sourceModelHistory?.rows.map(row => row.content)).toEqual([
+      'first question',
+      'first answer',
+      'second question',
+    ]);
+    expect(forkView).toMatchObject({
+      conversationRef: 'conv-forked',
+      revisionId: fork.revisionId,
+      liveTurn: {
+        phase: 'idle',
+        turnRef: null,
+      },
+    });
+    expect(forkView.displayRows.map(row => row.content)).toEqual(['first question', 'first answer']);
+    expect(sourceView.displayRows.map(row => row.content)).toEqual([
+      'first question',
+      'first answer',
+      'second question',
+    ]);
     expect(await store.loadEvents('conv-forked')).toEqual([]);
     expect(await store.loadEvents('conv-sdk-runtime')).toEqual(expect.arrayContaining([
       expect.objectContaining({ type: 'user_message', revisionId: 'rev-base' }),
@@ -5856,6 +5980,33 @@ describe('Agent SDK conversation runtime core', () => {
         eventCount: 0,
       }),
     ]));
+
+    const fullFork = await runtime.fork({
+      sourceRevisionId: 'rev-base',
+      newConversationRef: 'conv-forked-full',
+    });
+    const fullDisplay = await store.loadDisplayTimeline?.({
+      conversationRef: 'conv-forked-full',
+      revisionId: fullFork.revisionId,
+    });
+    const fullModelHistory = await store.loadModelHistory?.({
+      conversationRef: 'conv-forked-full',
+      revisionId: fullFork.revisionId,
+    });
+
+    expect(fullFork.cutAfterRowId).toBe('display-user-2');
+    expect(fullFork.displayRowCount).toBe(3);
+    expect(fullFork.modelHistoryRowCount).toBe(3);
+    expect(fullDisplay?.rows.map(row => row.id)).toEqual([
+      'display-user-1',
+      'display-assistant-1',
+      'display-user-2',
+    ]);
+    expect(fullModelHistory?.rows.map(row => row.content)).toEqual([
+      'first question',
+      'first answer',
+      'second question',
+    ]);
 
     await store.appendEvent(createConversationEvent({
       type: 'user_message',
@@ -5876,6 +6027,161 @@ describe('Agent SDK conversation runtime core', () => {
         eventCount: 1,
       }),
     ]));
+  });
+
+  test('checkoutRevision keeps the conversation view on the selected branch live lane', async () => {
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-parent',
+        eventId: 'parent-user-event',
+        turnRef: 'turn-parent',
+        source: 'sdk',
+        payload: { text: 'parent question' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-parent',
+        eventId: 'parent-assistant-event',
+        turnRef: 'turn-parent',
+        source: 'backend',
+        payload: { text: 'parent answer' },
+      }),
+      createConversationEvent({
+        type: 'turn_completed',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-parent',
+        turnRef: 'turn-parent',
+        source: 'backend',
+        payload: { finalResponse: 'parent answer' },
+      }),
+      createConversationEvent({
+        type: 'turn_superseded',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-child',
+        turnRef: 'turn-parent',
+        source: 'sdk',
+        payload: {
+          supersededTurnRef: 'turn-parent',
+          replacementTurnRef: 'turn-child',
+          revisionId: 'rev-child',
+          reason: 'user_edit',
+          createdAt: '2026-06-24T12:05:00.000Z',
+        },
+      }),
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-child',
+        turnRef: 'turn-child',
+        source: 'sdk',
+        payload: { text: 'child question' },
+      }),
+      createConversationEvent({
+        type: 'assistant_delta',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-child',
+        turnRef: 'turn-child',
+        source: 'backend',
+        payload: { text: 'child answer streaming' },
+      }),
+    ]);
+    await store.replaceDisplayTimeline({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-parent',
+      createdAt: '2026-06-24T12:00:00.000Z',
+      reason: null,
+      baseRevisionId: null,
+      rows: [
+        {
+          id: 'display-parent-user',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-parent',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          turnRef: 'turn-parent',
+          content: 'parent question',
+          metadata: { eventId: 'parent-user-event', revisionId: 'rev-parent' },
+        },
+        {
+          id: 'display-parent-assistant',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-parent',
+          index: 1,
+          role: 'assistant',
+          type: 'assistant_message',
+          turnRef: 'turn-parent',
+          content: 'parent answer',
+          metadata: { eventId: 'parent-assistant-event', revisionId: 'rev-parent' },
+        },
+      ],
+    });
+    await store.replaceDisplayTimeline({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-child',
+      createdAt: '2026-06-24T12:06:00.000Z',
+      reason: 'user_edit',
+      baseRevisionId: 'rev-parent',
+      rows: [
+        {
+          id: 'display-child-user',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-child',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          turnRef: 'turn-child',
+          content: 'child question',
+          metadata: {
+            revisionId: 'rev-child',
+            replacedDisplayRowId: 'display-parent-user',
+          },
+        },
+      ],
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-child',
+      store,
+    });
+
+    await expect(runtime.getView()).resolves.toMatchObject({
+      revisionId: 'rev-child',
+      liveTurn: {
+        turnRef: 'turn-child',
+        phase: 'streaming',
+      },
+    });
+
+    await expect(runtime.checkoutRevision({ revisionId: 'rev-parent' })).resolves.toMatchObject({
+      displayTimeline: expect.objectContaining({
+        revisionId: 'rev-parent',
+      }),
+    });
+    const parentView = await runtime.getView();
+
+    expect(parentView).toMatchObject({
+      revisionId: 'rev-parent',
+      liveTurn: {
+        turnRef: 'turn-parent',
+        phase: 'complete',
+      },
+      surfaces: {
+        responseOverlay: {
+          turnRef: 'turn-parent',
+        },
+      },
+    });
+    expect(parentView.displayRows.map(row => row.content)).toEqual([
+      'parent question',
+      'parent answer',
+    ]);
+    expect(parentView.liveTurn.entries.map(entry => entry.text).join('\n')).toContain('parent answer');
+    expect(parentView.liveTurn.entries.map(entry => entry.text).join('\n')).not.toContain('child answer streaming');
   });
 
   test('conversation runtime records query dispatch trace around backend send', async () => {
@@ -9091,5 +9397,336 @@ describe('Agent SDK conversation runtime core', () => {
       messages: [{ role: 'assistant', content: 'summary' }],
     });
     expect(sentRehydrates).toEqual([]);
+  });
+
+  test('conversation view projects a normal send as one SDK-owned UI view', () => {
+    const events = [
+      event('user_message', { text: 'hello' }),
+      event('assistant_delta', { text: 'hi there' }),
+    ];
+    const state = events.reduce(
+      (current, next) => reduceConversationRuntimeState(current, next),
+      createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1'),
+    );
+    const currentTurn = buildCurrentTurnProjection(events);
+    const view = buildConversationView({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: state.revisionId,
+      state,
+      events,
+      displayRows: buildDisplayRows(events),
+      currentTurn,
+      pendingTurnRef: 'turn-1',
+    });
+
+    expect(view).toMatchObject({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      liveTurn: {
+        turnRef: 'turn-1',
+        phase: 'streaming',
+        isBusy: true,
+        canStop: true,
+      },
+      surfaces: {
+        pill: { mode: 'busy' },
+        dashboard: { mode: 'busy' },
+        responseOverlay: {
+          mode: 'response',
+          visible: true,
+          ownerConversationRef: 'conv-sdk-runtime',
+          turnRef: 'turn-1',
+        },
+      },
+      actions: {
+        canEdit: true,
+        canRetry: false,
+        canFork: true,
+      },
+    });
+    expect(view.displayRows).toEqual([
+      expect.objectContaining({
+        role: 'user',
+        type: 'user_message',
+        content: 'hello',
+        actions: expect.objectContaining({
+          canEdit: true,
+          editTargetRowId: expect.any(String),
+        }),
+      }),
+      expect.objectContaining({
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'hi there',
+        isStreaming: true,
+        actions: expect.objectContaining({
+          canRetry: false,
+          retryTargetRowId: expect.any(String),
+        }),
+      }),
+    ]);
+    expect(view.liveTurn.entries).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'llm-text',
+        text: 'hi there',
+        sourceChannel: 'sdk:current-turn',
+      }),
+    ]));
+  });
+
+  test('conversation view keeps edit resend replacement as the live lane', () => {
+    const events = [
+      eventForTurn('turn-old', 'user_message', { text: 'old' }),
+      eventForTurn('turn-old', 'assistant_delta', { text: 'old answer' }),
+      eventForTurn('turn-old', 'turn_superseded', {
+        replacementTurnRef: 'turn-new',
+        reason: 'user_edit',
+        createdAt: '2026-06-24T12:00:00.000Z',
+      }),
+      eventForTurn('turn-new', 'user_message', { text: 'new' }),
+    ];
+    const state = events.reduce(
+      (current, next) => reduceConversationRuntimeState(current, next),
+      createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1'),
+    );
+    const displayRows = [{
+      id: 'turn-new-sdk-evt-000002-user_message',
+      conversationRef: 'conv-sdk-runtime',
+      turnRef: 'turn-new',
+      index: 0,
+      role: 'user' as const,
+      type: 'user_message' as const,
+      content: 'new',
+      metadata: {
+        eventId: 'turn-new-sdk-evt-000002-user_message',
+        source: 'ui',
+        revisionId: 'rev-1',
+        timestamp: '2026-06-24T12:00:00.000Z',
+      },
+    }];
+    const currentTurn = buildCurrentTurnProjection(events);
+    const view = buildConversationView({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: state.revisionId,
+      state,
+      events,
+      displayRows,
+      currentTurn,
+      pendingTurnRef: 'turn-new',
+    });
+    const diagnostics = buildConversationViewBuildDiagnostics({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: state.revisionId,
+      state,
+      events,
+      displayRows,
+      currentTurn,
+      pendingTurnRef: 'turn-new',
+      view,
+    });
+
+    expect(view.displayRows).toEqual([
+      {
+        ...displayRows[0],
+        actions: {
+          canEdit: true,
+          editTargetRowId: 'turn-new-sdk-evt-000002-user_message',
+        },
+      },
+    ]);
+    expect(view.liveTurn).toMatchObject({
+      turnRef: 'turn-new',
+      phase: 'awaiting',
+      isBusy: true,
+      canStop: true,
+    });
+    expect(view.surfaces.responseOverlay).toMatchObject({
+      mode: 'typing',
+      guardRef: 'turn-new',
+    });
+    expect(diagnostics).toMatchObject({
+      pendingTurnRef: 'turn-new',
+      supersededTurnCount: 1,
+      filteredInternalLaneCount: 0,
+    });
+  });
+
+  test('conversation view exposes stable row action targets after edit replacement', () => {
+    const events = [
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-child',
+        turnRef: 'turn-new',
+        source: 'sdk',
+        payload: { text: 'new' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-child',
+        turnRef: 'turn-new',
+        source: 'backend',
+        payload: { text: 'new answer' },
+      }),
+      createConversationEvent({
+        type: 'turn_completed',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-child',
+        turnRef: 'turn-new',
+        source: 'backend',
+        payload: {},
+      }),
+    ];
+    const displayRows = [
+      {
+        id: 'turn-new-sdk-evt-000002-user_message',
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-new',
+        index: 0,
+        role: 'user' as const,
+        type: 'user_message' as const,
+        content: 'new',
+        metadata: {
+          eventId: 'turn-new-sdk-evt-000002-user_message',
+          replacedDisplayRowId: 'turn-old-sdk-evt-000002-user_message',
+          revisionId: 'rev-child',
+          timestamp: '2026-06-24T12:00:00.000Z',
+        },
+      },
+      {
+        id: 'turn-new-sdk-evt-000003-assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-new',
+        index: 1,
+        role: 'assistant' as const,
+        type: 'assistant_message' as const,
+        content: 'new answer',
+        metadata: {
+          eventId: 'turn-new-sdk-evt-000003-assistant_message',
+          revisionId: 'rev-child',
+          timestamp: '2026-06-24T12:00:01.000Z',
+        },
+      },
+    ];
+
+    const view = buildConversationView({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-child',
+      events,
+      displayRows,
+      currentTurn: buildCurrentTurnProjection(events),
+    });
+
+    expect(view.actions).toMatchObject({
+      canEdit: true,
+      canRetry: true,
+      canFork: true,
+    });
+    expect(view.displayRows[0]).toMatchObject({
+      actions: {
+        canEdit: true,
+        editTargetRowId: 'turn-old-sdk-evt-000002-user_message',
+      },
+    });
+    expect(view.displayRows[1]).toMatchObject({
+      actions: {
+        canRetry: true,
+        retryTargetRowId: 'turn-new-sdk-evt-000003-assistant_message',
+      },
+    });
+  });
+
+  test('conversation view filters internal lanes from normal UI authority', () => {
+    const userEvent = eventForTurn('turn-user', 'user_message', { text: 'visible user' });
+    const internalEvent = createConversationEvent({
+      type: 'user_message',
+      conversationRef: 'conv-agent-worker',
+      revisionId: 'rev-internal',
+      turnRef: 'turn-internal',
+      source: 'sdk',
+      payload: { text: 'internal bookkeeping' },
+    });
+    const events = [
+      userEvent,
+      internalEvent,
+    ];
+    const currentTurn = buildCurrentTurnProjection(events);
+    expect(currentTurn.conversationRef).toBe('conv-agent-worker');
+
+    const view = buildConversationView({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      events,
+      displayRows: buildDisplayRows(events),
+      currentTurn,
+    });
+    const diagnostics = buildConversationViewBuildDiagnostics({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      events,
+      displayRows: buildDisplayRows(events),
+      currentTurn,
+      view,
+    });
+
+    expect(view.conversationRef).toBe('conv-sdk-runtime');
+    expect(view.displayRows).toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-user',
+        content: 'visible user',
+      }),
+    ]);
+    expect(view.liveTurn).toMatchObject({
+      turnRef: 'turn-user',
+      phase: 'awaiting',
+      isBusy: true,
+    });
+    expect(view.surfaces.responseOverlay.ownerConversationRef).toBe('conv-sdk-runtime');
+    expect(diagnostics.filteredInternalLaneCount).toBe(1);
+  });
+
+  test('conversation view keeps internal-only lanes hidden from normal surfaces', () => {
+    const internalEvent = createConversationEvent({
+      type: 'user_message',
+      conversationRef: 'conv-agent-worker',
+      revisionId: 'rev-internal',
+      turnRef: 'turn-internal',
+      source: 'sdk',
+      payload: { text: 'internal bookkeeping' },
+    });
+    const events = [internalEvent];
+    const currentTurn = buildCurrentTurnProjection(events);
+    const view = buildConversationView({
+      conversationRef: 'conv-agent-worker',
+      revisionId: 'rev-internal',
+      events,
+      displayRows: buildDisplayRows(events),
+      currentTurn,
+    });
+
+    expect(currentTurn.conversationRef).toBe('conv-agent-worker');
+    expect(view).toMatchObject({
+      conversationRef: 'conv-agent-worker',
+      displayRows: [],
+      liveTurn: {
+        turnRef: null,
+        phase: 'idle',
+        entries: [],
+        isBusy: false,
+        canStop: false,
+      },
+      surfaces: {
+        pill: { mode: 'idle' },
+        dashboard: { mode: 'idle' },
+        responseOverlay: {
+          mode: 'hidden',
+          visible: false,
+          ownerConversationRef: 'conv-agent-worker',
+          turnRef: null,
+        },
+      },
+    });
   });
 });

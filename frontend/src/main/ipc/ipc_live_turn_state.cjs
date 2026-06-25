@@ -4,9 +4,11 @@
 
 function createIpcLiveTurnState({
   initialCurrentTurn = null,
+  initialConversationView = null,
   initialPendingTurn = null,
 } = {}) {
   let latestCurrentTurnProjection = initialCurrentTurn;
+  let latestConversationView = initialConversationView;
   let latestPendingTurn = initialPendingTurn;
 
   function getLatestCurrentTurn() {
@@ -15,6 +17,14 @@ function createIpcLiveTurnState({
 
   function setLatestCurrentTurn(currentTurnProjection) {
     latestCurrentTurnProjection = currentTurnProjection;
+  }
+
+  function getLatestConversationView() {
+    return latestConversationView;
+  }
+
+  function setLatestConversationView(conversationView) {
+    latestConversationView = conversationView;
   }
 
   function getLatestPendingTurn() {
@@ -27,6 +37,7 @@ function createIpcLiveTurnState({
 
   function reset() {
     latestCurrentTurnProjection = null;
+    latestConversationView = null;
     latestPendingTurn = null;
   }
 
@@ -35,10 +46,12 @@ function createIpcLiveTurnState({
   }
 
   return {
+    getLatestConversationView,
     getLatestCurrentTurn,
     getLatestPendingTurn,
     reset,
     resetPendingTurn,
+    setLatestConversationView,
     setLatestCurrentTurn,
     setLatestPendingTurn,
   };

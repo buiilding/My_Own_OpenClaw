@@ -9,11 +9,20 @@ import {
   type DisplayTimelineCheckpoint,
   type DisplayTimelineReplaceReason,
   type DisplayTimelineRow,
+  type CheckoutRevisionInput,
+  type CheckoutRevisionResult,
+  type EditAndResendInput,
+  type ForkConversationInput,
+  type ForkConversationResult,
+  type RetryTurnInput,
   type SdkDisplayRow,
+  type ConversationView,
   type ConversationMetadata,
+  type ConversationRevision,
   type ConversationMetadataInvalidationListener,
   type CompactedReplaySnapshot,
   type TraceTimelineEntry,
+  type TurnResult,
 } from './desktopConversationRuntimeContracts';
 import {
   createDesktopConversationStore,
@@ -49,6 +58,26 @@ type ReplaceDisplayRowsInput = {
   rows: DisplayTimelineRow[];
 };
 
+type EditAndResendCommandInput = EditAndResendInput & {
+  userId: string;
+  conversationRef: string;
+};
+
+type RetryTurnCommandInput = RetryTurnInput & {
+  userId: string;
+  conversationRef: string;
+};
+
+type CheckoutRevisionCommandInput = CheckoutRevisionInput & {
+  userId: string;
+  conversationRef: string;
+};
+
+type ForkConversationCommandInput = ForkConversationInput & {
+  userId: string;
+  conversationRef: string;
+};
+
 type SearchConversationsInput = {
   userId: string;
   query: string;
@@ -57,6 +86,15 @@ type SearchConversationsInput = {
 
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+function readSnapshotDisplayRows(
+  snapshot: { view?: ConversationView | null } | null | undefined,
+): SdkDisplayRow[] {
+  if (Array.isArray(snapshot?.view?.displayRows)) {
+    return snapshot.view.displayRows;
+  }
+  return [];
 }
 
 const desktopConversationContinuityService = new ConversationContinuityService({
@@ -89,14 +127,16 @@ export const DesktopConversationContinuityService = {
   },
 
   async loadDisplayRows(userId: string, conversationRef: string): Promise<SdkDisplayRow[]> {
-    const snapshot = await invokeAgentSdkCommand<{ displayRows?: SdkDisplayRow[] }>(
+    const snapshot = await invokeAgentSdkCommand<{
+      view?: ConversationView | null;
+    }>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY,
       {
         userId,
         conversationRef,
       },
     );
-    return Array.isArray(snapshot?.displayRows) ? snapshot.displayRows : [];
+    return readSnapshotDisplayRows(snapshot);
   },
 
   async loadDisplayTimeline(
@@ -123,6 +163,75 @@ export const DesktopConversationContinuityService = {
         baseRevisionId: input.baseRevisionId,
         reason: input.reason,
         rows: input.rows,
+      },
+    );
+  },
+
+  async editAndResend(input: EditAndResendCommandInput): Promise<TurnResult> {
+    return invokeAgentSdkCommand<TurnResult>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_EDIT_AND_RESEND,
+      {
+        userId: input.userId,
+        conversationRef: input.conversationRef,
+        messageId: input.messageId,
+        text: input.text,
+        turnRef: input.turnRef,
+        payload: input.payload,
+        model: input.model,
+      },
+    );
+  },
+
+  async retryTurn(input: RetryTurnCommandInput): Promise<TurnResult> {
+    return invokeAgentSdkCommand<TurnResult>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_RETRY_TURN,
+      {
+        userId: input.userId,
+        conversationRef: input.conversationRef,
+        messageId: input.messageId,
+        turnRef: input.turnRef,
+        payload: input.payload,
+        model: input.model,
+      },
+    );
+  },
+
+  async checkoutRevision(input: CheckoutRevisionCommandInput): Promise<CheckoutRevisionResult> {
+    return invokeAgentSdkCommand<CheckoutRevisionResult>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_CHECKOUT_REVISION,
+      {
+        userId: input.userId,
+        conversationRef: input.conversationRef,
+        revisionId: input.revisionId,
+      },
+    );
+  },
+
+  async listRevisions(
+    userId: string,
+    conversationRef: string,
+    limit: number = 50,
+  ): Promise<ConversationRevision[]> {
+    const revisions = await invokeAgentSdkCommand<ConversationRevision[]>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_LIST_REVISIONS,
+      {
+        userId,
+        conversationRef,
+        limit,
+      },
+    );
+    return Array.isArray(revisions) ? revisions : [];
+  },
+
+  async forkConversation(input: ForkConversationCommandInput): Promise<ForkConversationResult> {
+    return invokeAgentSdkCommand<ForkConversationResult>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_FORK,
+      {
+        userId: input.userId,
+        conversationRef: input.conversationRef,
+        sourceRevisionId: input.sourceRevisionId,
+        cutAfterRowId: input.cutAfterRowId ?? null,
+        newConversationRef: input.newConversationRef,
       },
     );
   },

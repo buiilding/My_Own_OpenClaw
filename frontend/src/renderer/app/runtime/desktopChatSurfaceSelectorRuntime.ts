@@ -9,33 +9,42 @@ type DesktopChatWorkspaceProjection = {
   compactionDebugInfo?: unknown | null;
   tokenCounts?: unknown | null;
   currentTurnProjection?: unknown | null;
+  conversationView?: unknown | null;
   pendingTurn?: unknown | null;
 };
 
 function projectDesktopChatInterfaceState(
   activeWorkspace: DesktopChatWorkspaceProjection,
 ) {
+  const conversationView = activeWorkspace.conversationView ?? null;
   return {
     messages: activeWorkspace.messages,
     thinkingStatus: activeWorkspace.thinkingStatus,
     thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null,
     compactionDebugInfo: activeWorkspace.compactionDebugInfo ?? null,
     tokenCounts: activeWorkspace.tokenCounts ?? null,
-    currentTurnProjection: activeWorkspace.currentTurnProjection ?? null,
+    currentTurnProjection: conversationView
+      ? null
+      : activeWorkspace.currentTurnProjection ?? null,
+    conversationView,
     pendingTurn: activeWorkspace.pendingTurn ?? null,
   };
 }
 
 function projectDesktopLiveTurnSurfaceState({
   activeWorkspace,
-  latestCurrentTurnProjection,
+  latestConversationView,
 }: {
   activeWorkspace: DesktopChatWorkspaceProjection;
-  latestCurrentTurnProjection?: unknown | null;
+  latestConversationView?: unknown | null;
 }) {
+  const conversationView = latestConversationView || activeWorkspace.conversationView || null;
   return {
     messages: activeWorkspace.messages,
-    currentTurnProjection: latestCurrentTurnProjection || activeWorkspace.currentTurnProjection || null,
+    currentTurnProjection: conversationView
+      ? null
+      : activeWorkspace.currentTurnProjection || null,
+    conversationView,
     pendingTurn: activeWorkspace.pendingTurn ?? null,
   };
 }

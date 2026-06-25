@@ -281,11 +281,19 @@ function runPythonSqliteBridge<T>(
   dbPath: string,
   payload: JsonRecord = {},
 ): T {
-  const python = process.env.WINDIE_PYTHON_PATH || 'python3';
-  const result = spawnSync(python, ['-c', PYTHON_SQLITE_BRIDGE], {
-    input: JSON.stringify({ action, db_path: dbPath, payload }),
+  const bridgeInput = JSON.stringify({ action, db_path: dbPath, payload });
+  const candidates = process.env.WINDIE_PYTHON_PATH
+    ? [{ command: process.env.WINDIE_PYTHON_PATH, args: ['-c', PYTHON_SQLITE_BRIDGE] }]
+    : [
+      { command: 'py', args: ['-3', '-c', PYTHON_SQLITE_BRIDGE] },
+      { command: 'python3', args: ['-c', PYTHON_SQLITE_BRIDGE] },
+      { command: 'python', args: ['-c', PYTHON_SQLITE_BRIDGE] },
+    ];
+  const results = candidates.map(candidate => spawnSync(candidate.command, candidate.args, {
+    input: bridgeInput,
     encoding: 'utf8',
-  });
+  }));
+  const result = results.find(candidateResult => candidateResult.status === 0) ?? results.at(-1);
   if (result.status !== 0) {
     throw new Error(result.stderr || `Python SQLite bridge failed for ${action}`);
   }
@@ -456,6 +464,18 @@ function expectReplayPreparationErrorMessage(): void {
   ]);
 }
 
+function expectReplaySendErrorMessage(prefixMessages: Array<Record<string, unknown>> = []): void {
+  expect(useChatStore.getState().getWorkspaceState('conv-replay-db').messages).toEqual([
+    ...prefixMessages,
+    expect.objectContaining({
+      sender: 'assistant',
+      type: 'error',
+      sourceEventType: 'renderer-replay',
+      text: expect.stringContaining("Your message wasn't sent"),
+    }),
+  ]);
+}
+
 describe('conversation replay database integration', () => {
   let history: SqliteConversationHistory;
   const sentQueries: JsonRecord[] = [];
@@ -512,7 +532,11 @@ describe('conversation replay database integration', () => {
     });
 
     mockCommandHandler = async (command, payload = {}) => {
-      if (command === 'conversation.loadDisplayTimeline' || command === 'conversation.replaceRows') {
+      if (
+        command === 'conversation.loadDisplayTimeline'
+        || command === 'conversation.editAndResend'
+        || command === 'conversation.retryTurn'
+      ) {
         if (payload.userId !== 'user-replay-db') {
           throw new Error(
             payload.userId
@@ -530,12 +554,27 @@ describe('conversation replay database integration', () => {
           conversationRef: String(payload.conversationRef),
           store,
           transport: {
+            connect: async () => undefined,
+            handshake: async () => undefined,
+            sendQuery: async queryPayload => {
+              sentQueries.push(queryPayload);
+              return String(payload.turnRef || 'turn-replay-db');
+            },
+            sendToolResult: async () => undefined,
+            sendToolBundleResult: async () => undefined,
             rehydrateConversation: async rehydratePayload => {
               backendRehydrates.push(rehydratePayload);
               if (mockBackendRehydrateFailure) {
                 throw mockBackendRehydrateFailure;
               }
             },
+            compactHistory: async () => undefined,
+            wakewordDetected: async () => undefined,
+            updateSettings: async () => undefined,
+            listModels: async () => undefined,
+            stop: async () => undefined,
+            subscribe: () => () => undefined,
+            close: async () => undefined,
           } as never,
         });
         await runtime.load();
@@ -544,16 +583,29 @@ describe('conversation replay database integration', () => {
             revisionId: typeof payload.revisionId === 'string' ? payload.revisionId : null,
           });
         }
-        return runtime.replaceRows({
-          baseRevisionId: String(payload.baseRevisionId),
-          reason: payload.reason as never,
-          rows: Array.isArray(payload.rows) ? payload.rows as never : [],
+        if (command === 'conversation.editAndResend') {
+          return runtime.editAndResend({
+            messageId: String(payload.messageId),
+            text: String(payload.text),
+            turnRef: typeof payload.turnRef === 'string' ? payload.turnRef : undefined,
+            payload: (payload.payload && typeof payload.payload === 'object'
+              ? payload.payload
+              : {}) as JsonRecord,
+            model: (payload.model && typeof payload.model === 'object'
+              ? payload.model
+              : undefined) as never,
+          });
+        }
+        return runtime.retryTurn({
+          messageId: typeof payload.messageId === 'string' ? payload.messageId : undefined,
+          turnRef: typeof payload.turnRef === 'string' ? payload.turnRef : undefined,
+          payload: (payload.payload && typeof payload.payload === 'object'
+            ? payload.payload
+            : {}) as JsonRecord,
+          model: (payload.model && typeof payload.model === 'object'
+            ? payload.model
+            : undefined) as never,
         });
-      }
-
-      if (command === 'conversation.send') {
-        sentQueries.push(payload);
-        return { ok: true };
       }
 
       throw new Error(`Unexpected frontend command: ${command}`);
@@ -562,10 +614,10 @@ describe('conversation replay database integration', () => {
 
   afterEach(() => {
     consoleErrorSpy.mockRestore();
-    history.close();
+    history?.close();
   });
 
-  test('edit and resend replaces display rows without cutting raw events and dispatches the edited turn', async () => {
+  test('edit and resend uses the SDK revision command without cutting raw events', async () => {
     const { result } = renderReplayHook(BASE_MESSAGES);
 
     await act(async () => {
@@ -579,48 +631,62 @@ describe('conversation replay database integration', () => {
       'conv-replay-db',
       'user-replay-db',
     );
-    expect(invokeAgentSdkCommand).toHaveBeenCalledWith('conversation.loadDisplayTimeline', expect.objectContaining({
+    expect(invokeAgentSdkCommand).not.toHaveBeenCalledWith(
+      'conversation.loadDisplayTimeline',
+      expect.anything(),
+    );
+    expect(invokeAgentSdkCommand).toHaveBeenCalledWith('conversation.editAndResend', expect.objectContaining({
       conversationRef: 'conv-replay-db',
       userId: 'user-replay-db',
-    }));
-    expect(invokeAgentSdkCommand).toHaveBeenCalledWith('conversation.replaceRows', expect.objectContaining({
-      conversationRef: 'conv-replay-db',
-      userId: 'user-replay-db',
-      baseRevisionId: 'rev-old',
-      reason: 'user_edit',
-      rows: [
-        expect.objectContaining({ id: 'stored-user-1' }),
-        expect.objectContaining({ id: 'stored-assistant-1' }),
-      ],
+      messageId: 'stored-user-2',
+      text: 'edited second question',
+      payload: expect.objectContaining({
+        screenshot_ref: 'artifact-old',
+      }),
     }));
     expect(backendRehydrates).toEqual([]);
 
     expect(sentQueries).toEqual([
       expect.objectContaining({
         conversation_ref: 'conv-replay-db',
+        revision_id: expect.any(String),
         text: 'edited second question',
         screenshot_ref: 'artifact-old',
-        memory_retrieval_enabled: expect.any(Boolean),
       }),
     ]);
 
     const storedRows = history.rows('conv-replay-db');
     const conversationRows = storedRows.filter(row => row.event_type !== 'trace_event');
-    expect(conversationRows.map(row => row.id)).toEqual([
+    expect(conversationRows.map(row => row.id).slice(0, 4)).toEqual([
       'stored-user-1',
       'stored-assistant-1',
       'stored-user-2',
       'stored-assistant-2',
     ]);
-    expect(conversationRows.map(row => row.event_type)).toEqual([
+    expect(conversationRows.map(row => row.event_type).slice(0, 4)).toEqual([
       'user_message',
       'assistant_message',
       'user_message',
       'assistant_message',
     ]);
+    expect(conversationRows.map(row => row.event_type)).toEqual(expect.arrayContaining([
+      'settings_updated',
+      'turn_started',
+      'user_message',
+    ]));
+    expect(conversationRows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        event_type: 'user_message',
+        content: 'edited second question',
+      }),
+    ]));
     expect(history.displayTimelineByConversation.get('conv-replay-db')?.rows).toEqual([
       expect.objectContaining({ row_id: 'stored-user-1' }),
       expect.objectContaining({ row_id: 'stored-assistant-1' }),
+      expect.objectContaining({
+        role: 'user',
+        content: 'edited second question',
+      }),
     ]);
   });
 
@@ -634,34 +700,44 @@ describe('conversation replay database integration', () => {
       )).resolves.toBe(true);
     });
 
-    expect(invokeAgentSdkCommand).toHaveBeenCalledWith('conversation.replaceRows', expect.objectContaining({
+    expect(invokeAgentSdkCommand).toHaveBeenCalledWith('conversation.editAndResend', expect.objectContaining({
       conversationRef: 'conv-replay-db',
       userId: 'user-replay-db',
-      baseRevisionId: 'rev-old',
-      reason: 'user_edit',
-      rows: [],
+      messageId: 'stored-user-1',
+      text: 'edited first question',
     }));
     expect(backendRehydrates).toEqual([]);
     expect(sentQueries).toEqual([
       expect.objectContaining({
         conversation_ref: 'conv-replay-db',
+        revision_id: expect.any(String),
         text: 'edited first question',
-        memory_retrieval_enabled: expect.any(Boolean),
       }),
     ]);
 
     const storedRows = history.rows('conv-replay-db');
     const conversationRows = storedRows.filter(row => row.event_type !== 'trace_event');
-    expect(conversationRows.map(row => row.id)).toEqual([
+    expect(conversationRows.map(row => row.id).slice(0, 4)).toEqual([
       'stored-user-1',
       'stored-assistant-1',
       'stored-user-2',
       'stored-assistant-2',
     ]);
-    expect(history.displayTimelineByConversation.get('conv-replay-db')?.rows).toEqual([]);
+    expect(conversationRows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        event_type: 'user_message',
+        content: 'edited first question',
+      }),
+    ]));
+    expect(history.displayTimelineByConversation.get('conv-replay-db')?.rows).toEqual([
+      expect.objectContaining({
+        role: 'user',
+        content: 'edited first question',
+      }),
+    ]);
   });
 
-  test('reports preparation failure when renderer message identity cannot map to a stored user_message', async () => {
+  test('reports SDK edit failure when renderer message identity cannot map to a stored user_message', async () => {
     const messages = [
       ...BASE_MESSAGES,
       { id: 'renderer-user-3', sender: 'user', text: 'third question' },
@@ -679,7 +755,7 @@ describe('conversation replay database integration', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       '[ChatInterface] Failed to edit user message:',
       expect.objectContaining({
-        message: expect.stringContaining('Cannot edit missing display user row'),
+        message: expect.stringContaining('Cannot edit missing user message: renderer-user-3'),
       }),
     );
     expect(backendRehydrates).toEqual([]);
@@ -691,12 +767,12 @@ describe('conversation replay database integration', () => {
       'stored-assistant-2',
     ]);
     expect(useChatStore.getState().getWorkspaceState('conv-replay-db').messages).toEqual([
-      ...messages,
+      ...BASE_MESSAGES,
       expect.objectContaining({
         sender: 'assistant',
         type: 'error',
         sourceEventType: 'renderer-replay',
-        text: expect.stringContaining('could not prepare the conversation replay'),
+        text: expect.stringContaining("Your message wasn't sent"),
       }),
     ]);
   });
@@ -712,7 +788,7 @@ describe('conversation replay database integration', () => {
       userId: 'user-stale',
       error: 'Agent SDK command user id does not match the active user.',
     },
-  ])('reports preparation failure when transcript session user binding is $label', async ({ userId, error }) => {
+  ])('reports send failure when transcript session user binding is $label', async ({ userId, error }) => {
     mockSessionUserId = userId;
     const { result } = renderReplayHook(BASE_MESSAGES);
 
@@ -735,10 +811,10 @@ describe('conversation replay database integration', () => {
       'stored-user-2',
       'stored-assistant-2',
     ]);
-    expectReplayPreparationErrorMessage();
+    expectReplaySendErrorMessage(BASE_MESSAGES.slice(0, 2));
   });
 
-  test('reports preparation failure when local-runtime display replacement fails', async () => {
+  test('reports send failure when the SDK revision command display replacement fails', async () => {
     history.displayReplaceFailure = 'forced display replacement failure';
     const { result } = renderReplayHook(BASE_MESSAGES);
 
@@ -761,10 +837,10 @@ describe('conversation replay database integration', () => {
       'stored-user-2',
       'stored-assistant-2',
     ]);
-    expectReplayPreparationErrorMessage();
+    expectReplaySendErrorMessage(BASE_MESSAGES.slice(0, 2));
   });
 
-  test('backend rehydrate failure is not part of display replacement resend', async () => {
+  test('backend rehydrate failure is not part of SDK revision resend', async () => {
     mockBackendRehydrateFailure = new Error('forced backend rehydrate failure');
     const { result } = renderReplayHook(BASE_MESSAGES);
 
@@ -786,11 +862,17 @@ describe('conversation replay database integration', () => {
     const conversationRows = history
       .rows('conv-replay-db')
       .filter(row => row.event_type !== 'trace_event');
-    expect(conversationRows.map(row => row.id)).toEqual([
+    expect(conversationRows.map(row => row.id).slice(0, 4)).toEqual([
       'stored-user-1',
       'stored-assistant-1',
       'stored-user-2',
       'stored-assistant-2',
     ]);
+    expect(conversationRows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        event_type: 'user_message',
+        content: 'edited second question',
+      }),
+    ]));
   });
 });

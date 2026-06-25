@@ -234,6 +234,10 @@ class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
             self._handle_conversation_get_revision,
         )
         self.protocol.register_method(
+            "conversation.revisions.list",
+            self._handle_conversation_revisions_list,
+        )
+        self.protocol.register_method(
             "conversation.delete", self._handle_conversation_delete
         )
         self.protocol.register_method(

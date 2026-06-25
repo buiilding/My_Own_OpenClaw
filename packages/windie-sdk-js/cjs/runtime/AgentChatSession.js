@@ -60,6 +60,9 @@ class AgentChatSession {
     async replaceRows(input) {
         return this.runtime.replaceRows(input);
     }
+    async checkoutRevision(input) {
+        return this.runtime.checkoutRevision(input);
+    }
     async fork(input) {
         return this.runtime.fork(input);
     }

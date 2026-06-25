@@ -322,7 +322,7 @@ const pendingTurnRuntime = createPendingTurnRuntime({
   broadcastToRenderers,
 });
 const mainStopTargetRuntime = createMainStopTargetRuntime({
-  getLatestCurrentTurnProjection: () => liveTurnState.getLatestCurrentTurn(),
+  getLatestConversationView: () => liveTurnState.getLatestConversationView(),
   getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
   getCurrentConversationRef: () => backendSessionState.getConversationRef(),
   stopQueryThroughAgentSdkRuntime: (input) => stopQueryThroughAgentSdkRuntime(input),
@@ -343,6 +343,7 @@ const ipcEventReplayState = createIpcEventReplayState();
 const rendererWindowRuntime = createRendererWindowRuntime({
   getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
   getLatestCurrentTurn: () => liveTurnState.getLatestCurrentTurn(),
+  getLatestConversationView: () => liveTurnState.getLatestConversationView(),
   getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
   getReplayEvents: () => ipcEventReplayState.snapshot(),
   buildConversationEvent: (event) => conversationEventProjectionRuntime.build(event),
@@ -565,6 +566,9 @@ const directWakeUpAgentAdapterDepsRuntime = createDirectWakeUpAgentAdapterDepsRu
   resolveRuntimeConversationRef,
   setLatestCurrentTurnProjection: (currentTurnProjection) => liveTurnState.setLatestCurrentTurn(
     currentTurnProjection,
+  ),
+  setLatestConversationView: (conversationView) => liveTurnState.setLatestConversationView(
+    conversationView,
   ),
   getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
   pendingTurnMatchesCurrentTurn: pendingTurnRuntime.matchesCurrentTurn,

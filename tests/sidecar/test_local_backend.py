@@ -119,6 +119,7 @@ class DummyMemoryStore:
         self.list_chat_conversation_calls = []
         self.chat_event_rows = []
         self.deleted_chat_conversation_calls = []
+        self.list_conversation_revisions_calls = []
         self.replaced_display_timeline_calls = []
         self.loaded_display_timeline_calls = []
         self.replaced_model_history_calls = []
@@ -187,6 +188,18 @@ class DummyMemoryStore:
             "updated_at": "2026-05-17T12:00:00+00:00",
             "record_kind": "chat_event",
         }
+
+    async def list_conversation_revisions(self, user_id, conversation_id, limit=None):
+        self.list_conversation_revisions_calls.append((user_id, conversation_id, limit))
+        return [
+            {
+                "conversation_id": conversation_id,
+                "revision_id": "rev-next",
+                "updated_at": "2026-05-17T12:00:00+00:00",
+                "active": True,
+                "record_kind": "chat_event",
+            }
+        ]
 
     async def replace_display_timeline(
         self,
@@ -1096,6 +1109,7 @@ def test_initialize_methods_keeps_memory_handlers_registered():
         "conversation.search",
         "conversation.load_events",
         "conversation.get_revision",
+        "conversation.revisions.list",
         "conversation.delete",
         "conversation.display.replace",
         "conversation.display.load",
@@ -1530,6 +1544,37 @@ async def test_handle_conversation_get_revision_returns_store_revision():
             "record_kind": "chat_event",
         },
     }
+
+
+@pytest.mark.asyncio
+async def test_handle_conversation_revisions_list_returns_store_revisions():
+    backend = LocalRuntimeService()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_conversation_revisions_list(
+        user_id="user-1",
+        conversation_id="conv-chat",
+        limit=25,
+    )
+
+    assert result == {
+        "success": True,
+        "data": {
+            "conversation_id": "conv-chat",
+            "revisions": [
+                {
+                    "conversation_id": "conv-chat",
+                    "revision_id": "rev-next",
+                    "updated_at": "2026-05-17T12:00:00+00:00",
+                    "active": True,
+                    "record_kind": "chat_event",
+                }
+            ],
+        },
+    }
+    assert backend.memory_store.list_conversation_revisions_calls == [
+        ("user-1", "conv-chat", 25)
+    ]
 
 
 @pytest.mark.asyncio

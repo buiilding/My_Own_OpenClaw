@@ -7,12 +7,12 @@ const {
 } = require('../../frontend/src/main/ipc/ipc_stop_target_runtime.cjs');
 
 function createResolverRuntime({
-  latestCurrentTurnProjection = null,
+  latestConversationView = null,
   latestPendingTurn = null,
   currentConversationRef = null,
 } = {}) {
   return createMainStopTargetRuntime({
-    getLatestCurrentTurnProjection: () => latestCurrentTurnProjection,
+    getLatestConversationView: () => latestConversationView,
     getLatestPendingTurn: () => latestPendingTurn,
     getCurrentConversationRef: () => currentConversationRef,
     stopQueryThroughAgentSdkRuntime: jest.fn(),
@@ -20,78 +20,104 @@ function createResolverRuntime({
   });
 }
 
-describe('ipc_stop_target_runtime', () => {
-  test('treats busy SDK current-turn projections as stoppable through the runtime', () => {
-    expect(createResolverRuntime({
-      latestCurrentTurnProjection: { phase: 'streaming', conversationRef: 'conv-1' },
-    }).resolve()).toEqual(expect.objectContaining({
-      source: 'sdk-current-turn',
-      canStop: true,
-    }));
-    expect(createResolverRuntime({
-      latestCurrentTurnProjection: { phase: 'tool_call', conversationRef: 'conv-1' },
-    }).resolve()).toEqual(expect.objectContaining({
-      source: 'sdk-current-turn',
-      canStop: true,
-    }));
-    expect(createResolverRuntime({
-      latestCurrentTurnProjection: { phase: 'idle', conversationRef: 'conv-1' },
-    }).resolve()).toEqual({
-      source: 'idle',
-      conversationRef: null,
-      turnRef: null,
-      canStop: false,
-    });
-    expect(createResolverRuntime({
-      latestCurrentTurnProjection: {
-        phase: 'idle',
-        conversationRef: 'conv-1',
-        presentation: { isBusy: true },
+function conversationView({
+  conversationRef = 'conv-view',
+  turnRef = 'turn-view',
+  phase = 'streaming',
+  canStop = true,
+} = {}) {
+  return {
+    conversationRef,
+    liveTurn: {
+      turnRef,
+      phase,
+      canStop,
+      entries: [],
+      isBusy: phase !== 'complete' && phase !== 'idle',
+      isTerminal: phase === 'complete',
+      lastError: null,
+    },
+    surfaces: {
+      responseOverlay: {
+        mode: phase === 'streaming' ? 'response' : 'hidden',
+        visible: phase === 'streaming',
+        guardRef: turnRef,
+        ownerConversationRef: conversationRef,
+        turnRef,
       },
-    }).resolve()).toEqual(expect.objectContaining({
-      source: 'sdk-current-turn',
-      canStop: true,
-    }));
-  });
+    },
+  };
+}
 
-  test('targets the latest SDK current turn before pending or idle fallback', () => {
+describe('ipc_stop_target_runtime', () => {
+  test('targets stoppable ConversationView before stale current or pending state', () => {
     expect(createResolverRuntime({
-      latestCurrentTurnProjection: {
-        conversationRef: ' conv-current ',
-        turnRef: ' turn-current ',
-        phase: 'streaming',
-      },
+      latestConversationView: conversationView({
+        conversationRef: 'conv-view',
+        turnRef: 'turn-view',
+      }),
       latestPendingTurn: {
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
       },
+    }).resolve()).toEqual({
+      source: 'conversation-view',
+      conversationRef: 'conv-view',
+      turnRef: 'turn-view',
+      canStop: true,
+    });
+  });
+
+  test('idle ConversationView suppresses stale current-turn stop state', () => {
+    expect(createResolverRuntime({
+      latestConversationView: conversationView({
+        conversationRef: 'conv-view',
+        turnRef: 'turn-complete',
+        phase: 'complete',
+        canStop: false,
+      }),
+      currentConversationRef: 'conv-session',
+    }).resolve()).toEqual({
+      source: 'idle',
+      conversationRef: 'conv-view',
+      turnRef: 'turn-complete',
+      canStop: false,
+    });
+  });
+
+  test('pending turn remains stoppable through non-stoppable view bridge', () => {
+    expect(createResolverRuntime({
+      latestConversationView: conversationView({
+        conversationRef: 'conv-view',
+        turnRef: 'turn-view',
+        phase: 'idle',
+        canStop: false,
+      }),
+      latestPendingTurn: {
+        conversationRef: 'conv-pending',
+        turnRef: 'turn-pending',
+      },
+    }).resolve()).toEqual({
+      source: 'pending-turn',
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+      canStop: true,
+    });
+  });
+
+  test('does not expose SDK current-turn projections as fallback stoppable state', () => {
+    expect(createResolverRuntime({
       currentConversationRef: 'conv-idle',
     }).resolve()).toEqual({
-      source: 'sdk-current-turn',
-      conversationRef: 'conv-current',
-      turnRef: 'turn-current',
-      canStop: true,
+      source: 'idle',
+      conversationRef: 'conv-idle',
+      turnRef: null,
+      canStop: false,
     });
   });
 
-  test('falls back to current conversation when a stoppable current turn lacks a conversation ref', () => {
+  test('targets pending before idle conversation fallback', () => {
     expect(createResolverRuntime({
-      latestCurrentTurnProjection: {
-        turnRef: 'turn-current',
-        phase: 'awaiting',
-      },
-      currentConversationRef: ' conv-active ',
-    }).resolve()).toEqual({
-      source: 'sdk-current-turn',
-      conversationRef: 'conv-active',
-      turnRef: 'turn-current',
-      canStop: true,
-    });
-  });
-
-  test('uses pending turns before idle conversation fallback', () => {
-    expect(createResolverRuntime({
-      latestCurrentTurnProjection: { phase: 'complete' },
       latestPendingTurn: {
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
@@ -105,15 +131,40 @@ describe('ipc_stop_target_runtime', () => {
     });
   });
 
-  test('uses idle conversation fallback only when no active current or pending turn exists', () => {
+  test('does not fall back to current conversation as stoppable state without a view or pending turn', () => {
     expect(createResolverRuntime({
-      latestCurrentTurnProjection: { phase: 'idle' },
+      currentConversationRef: ' conv-active ',
+    }).resolve()).toEqual({
+      source: 'idle',
+      conversationRef: 'conv-active',
+      turnRef: null,
+      canStop: false,
+    });
+  });
+
+  test('uses pending turns before idle conversation fallback', () => {
+    expect(createResolverRuntime({
+      latestPendingTurn: {
+        conversationRef: 'conv-pending',
+        turnRef: 'turn-pending',
+      },
+      currentConversationRef: 'conv-idle',
+    }).resolve()).toEqual({
+      source: 'pending-turn',
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+      canStop: true,
+    });
+  });
+
+  test('idle conversation fallback is not stoppable', () => {
+    expect(createResolverRuntime({
       currentConversationRef: ' conv-idle ',
     }).resolve()).toEqual({
       source: 'idle',
       conversationRef: 'conv-idle',
       turnRef: null,
-      canStop: true,
+      canStop: false,
     });
     expect(createResolverRuntime().resolve()).toEqual({
       source: 'idle',
@@ -127,11 +178,9 @@ describe('ipc_stop_target_runtime', () => {
     const stopQueryThroughAgentSdkRuntime = jest.fn(async () => true);
     const setResponseOverlayPhase = jest.fn();
     const runtime = createMainStopTargetRuntime({
-      getLatestCurrentTurnProjection: () => ({
-        canStop: true,
-        conversationRef: 'conv-1',
-        turnRef: 'turn-1',
-        phase: 'streaming',
+      getLatestConversationView: () => conversationView({
+        conversationRef: 'conv-view',
+        turnRef: 'turn-view',
       }),
       getLatestPendingTurn: () => null,
       getCurrentConversationRef: () => null,
@@ -142,8 +191,8 @@ describe('ipc_stop_target_runtime', () => {
     await expect(runtime.trigger()).resolves.toBe(true);
 
     expect(stopQueryThroughAgentSdkRuntime).toHaveBeenCalledWith({
-      conversation_ref: 'conv-1',
-      turn_ref: 'turn-1',
+      conversation_ref: 'conv-view',
+      turn_ref: 'turn-view',
     });
     expect(setResponseOverlayPhase).toHaveBeenCalledWith('complete', 'stop-query');
   });
@@ -152,7 +201,6 @@ describe('ipc_stop_target_runtime', () => {
     const stopQueryThroughAgentSdkRuntime = jest.fn(async () => false);
     const setResponseOverlayPhase = jest.fn();
     const noStopRuntime = createMainStopTargetRuntime({
-      getLatestCurrentTurnProjection: () => ({ phase: 'idle' }),
       getLatestPendingTurn: () => null,
       getCurrentConversationRef: () => null,
       stopQueryThroughAgentSdkRuntime,
@@ -163,7 +211,6 @@ describe('ipc_stop_target_runtime', () => {
     expect(stopQueryThroughAgentSdkRuntime).not.toHaveBeenCalled();
 
     const rejectedStopRuntime = createMainStopTargetRuntime({
-      getLatestCurrentTurnProjection: () => ({ phase: 'idle' }),
       getLatestPendingTurn: () => null,
       getCurrentConversationRef: () => 'conv-1',
       stopQueryThroughAgentSdkRuntime,
@@ -177,11 +224,10 @@ describe('ipc_stop_target_runtime', () => {
   test('composed runtime resolves current main-process stop state lazily', async () => {
     const stopQueryThroughAgentSdkRuntime = jest.fn(async () => true);
     const setResponseOverlayPhase = jest.fn();
-    let latestCurrentTurnProjection = { phase: 'idle' };
     let latestPendingTurn = null;
     let currentConversationRef = 'conv-idle';
     const runtime = createMainStopTargetRuntime({
-      getLatestCurrentTurnProjection: () => latestCurrentTurnProjection,
+      getLatestConversationView: () => null,
       getLatestPendingTurn: () => latestPendingTurn,
       getCurrentConversationRef: () => currentConversationRef,
       stopQueryThroughAgentSdkRuntime,
@@ -192,14 +238,9 @@ describe('ipc_stop_target_runtime', () => {
       source: 'idle',
       conversationRef: 'conv-idle',
       turnRef: null,
-      canStop: true,
+      canStop: false,
     });
 
-    latestCurrentTurnProjection = {
-      phase: 'streaming',
-      conversationRef: 'conv-current',
-      turnRef: 'turn-current',
-    };
     latestPendingTurn = {
       conversationRef: 'conv-pending',
       turnRef: 'turn-pending',
@@ -209,8 +250,8 @@ describe('ipc_stop_target_runtime', () => {
     await expect(runtime.trigger()).resolves.toBe(true);
 
     expect(stopQueryThroughAgentSdkRuntime).toHaveBeenCalledWith({
-      conversation_ref: 'conv-current',
-      turn_ref: 'turn-current',
+      conversation_ref: 'conv-pending',
+      turn_ref: 'turn-pending',
     });
     expect(setResponseOverlayPhase).toHaveBeenCalledWith('complete', 'stop-query');
   });
@@ -231,6 +272,10 @@ describe('ipc_stop_target_runtime', () => {
     expect(mainSource).not.toContain('resolveMainStopTargetRuntime({');
     expect(mainSource).not.toContain('triggerMainStopTarget({');
     expect(helperSource).toContain('function createMainStopTargetRuntime');
+    expect(helperSource).toContain('latestConversationView:');
+    expect(helperSource).toContain("source: 'conversation-view'");
+    expect(helperSource).not.toContain('latestCurrentTurnProjection:');
+    expect(helperSource).not.toContain("source: 'sdk-current-turn'");
     expect(helperSource).toContain('return resolveMainStopTarget({');
     expect(helperSource).toContain('return triggerMainStopTarget({');
     expect(helperSource).not.toContain('  triggerMainStopTarget,');

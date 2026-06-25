@@ -329,6 +329,9 @@ describe('main ipc sdk runtime boundary', () => {
     expect(directWakeUpAdapterSource).toContain('agent.conversation({');
     expect(directWakeUpAdapterSource).toContain('buildConversationTerminalStatus(event, workspacePath)');
     expect(directWakeUpAdapterSource).toContain('setLatestCurrentTurnProjection(snapshot.currentTurn || null)');
+    expect(directWakeUpAdapterSource).toContain('setLatestConversationView(snapshot.view || null)');
+    expect(directWakeUpAdapterSource).toContain('syncSdkLiveTurnSurfaceIntent(snapshot || null)');
+    expect(directWakeUpAdapterSource).toContain('view: snapshot.view || null');
     expect(directWakeUpAdapterSource).toContain('pendingTurnMatchesCurrentTurn(latestPendingTurn, snapshot.currentTurn)');
     expect(source).toContain('createWorkspacePathRuntime({');
     expect(source).toContain('workspacePathRuntime.resolve(payload)');
@@ -470,7 +473,9 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('agent.updateSettings(payload)');
     expect(source).not.toContain('agent.requestModelList()');
     expect(source).not.toContain('agent.wakewordDetected(payload)');
-    expect(agentSdkRuntimeCommandsSource).toContain('agent.run({');
+    expect(agentSdkRuntimeCommandsSource).toContain('const queryInput = {');
+    expect(agentSdkRuntimeCommandsSource).toContain('await agent.run(queryInput, { model })');
+    expect(agentSdkRuntimeCommandsSource).toContain('await agent.run(queryInput)');
     expect(agentSdkRuntimeCommandsSource).toContain(
       'function createAgentSdkRuntimeCommandsRuntime',
     );
@@ -658,6 +663,9 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('createIpcLiveTurnState()');
     expect(source).toContain('liveTurnState.getLatestCurrentTurn()');
     expect(source).toContain('liveTurnState.setLatestCurrentTurn(');
+    expect(source).toContain('getLatestConversationView: () => liveTurnState.getLatestConversationView()');
+    expect(source).toContain('liveTurnState.getLatestConversationView()');
+    expect(source).toContain('liveTurnState.setLatestConversationView(');
     expect(source).toContain('liveTurnState.getLatestPendingTurn()');
     expect(source).toContain('createPendingTurnRuntime({');
     expect(source).toContain('pendingTurnMatchesCurrentTurn: pendingTurnRuntime.matchesCurrentTurn');
@@ -675,6 +683,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('latestCurrentTurnProjection = currentTurnProjection');
     expect(source).not.toContain('latestPendingTurn = pendingTurn');
     expect(liveTurnStateSource).toContain('let latestCurrentTurnProjection = initialCurrentTurn;');
+    expect(liveTurnStateSource).toContain('let latestConversationView = initialConversationView;');
     expect(liveTurnStateSource).toContain('let latestPendingTurn = initialPendingTurn;');
     expect(source).toContain('createConversationEventProjectionRuntime({');
     expect(source).toContain('conversationEventProjectionRuntime.build(event)');
@@ -929,6 +938,102 @@ describe('main ipc sdk runtime boundary', () => {
         hasUserId: false,
       }),
     }));
+  });
+
+  test('electron main returns ConversationView instead of legacy displayRows in loadDisplay payloads', async () => {
+    const loadConversation = jest.fn(async () => ({
+      display: { messages: [] },
+      view: {
+        conversationRef: 'conv-1',
+        displayRows: [
+          {
+            id: 'row-view',
+            conversationRef: 'conv-1',
+            role: 'assistant',
+            type: 'assistant_message',
+            content: 'from view',
+          },
+        ],
+        liveTurn: {
+          turnRef: null,
+          phase: 'idle',
+          entries: [],
+          isBusy: false,
+          isTerminal: true,
+          canStop: false,
+          lastError: null,
+        },
+        surfaces: {
+          pill: { mode: 'idle' },
+          dashboard: { mode: 'idle' },
+          responseOverlay: {
+            mode: 'hidden',
+            visible: false,
+            guardRef: null,
+            ownerConversationRef: 'conv-1',
+            turnRef: null,
+          },
+        },
+        actions: {
+          canEdit: false,
+          canRetry: false,
+          canFork: false,
+        },
+      },
+      displayRows: [
+        {
+          id: 'row-legacy',
+          conversationRef: 'conv-1',
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'legacy',
+        },
+      ],
+      currentTurn: null,
+    }));
+    const ensureAgent = jest.fn(async () => ({
+      loadConversation,
+    }));
+    const appendAppDiagnostic = jest.fn(input => input);
+
+    const result = await invokeAgentSdkCommand(
+      {
+        command: 'conversation.loadDisplay',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-1',
+        },
+      },
+      {
+        deps: {
+          ensureAgent,
+          appendAppDiagnostic,
+          getState: () => ({
+            currentUserId: 'user-1',
+            isConnected: true,
+            agent: true,
+          }),
+        },
+      },
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      data: expect.objectContaining({
+        view: expect.objectContaining({
+          displayRows: [
+            expect.objectContaining({
+              id: 'row-view',
+            }),
+          ],
+        }),
+        currentTurn: null,
+      }),
+    });
+    expect(result.data).not.toHaveProperty('displayRows');
+    expect(loadConversation).toHaveBeenCalledWith({
+      conversationRef: 'conv-1',
+    });
   });
 
   test('electron main rejects removed conversation_ref SDK command alias', async () => {

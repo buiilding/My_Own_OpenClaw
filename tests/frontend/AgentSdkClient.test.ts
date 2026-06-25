@@ -4037,6 +4037,24 @@ describe('Agent SDK client behavior', () => {
           },
         };
       }
+      if (method === 'conversation.revisions.list') {
+        return {
+          success: true,
+          data: {
+            revisions: [
+              {
+                conversation_id: params.conversation_id,
+                revision_id: 'rev-display',
+                parent_revision_id: 'rev-base',
+                operation: 'edit',
+                display_timeline_id: 'rev-display',
+                updated_at: '2026-06-22T12:00:00.000Z',
+                active: true,
+              },
+            ],
+          },
+        };
+      }
       return { success: true, data: {} };
     });
     const store = new LocalRuntimeConversationStore({
@@ -4110,6 +4128,29 @@ describe('Agent SDK client behavior', () => {
         user_id: 'user-1',
         conversation_id: 'conv-display',
         revision_id: 'rev-display',
+      },
+    }));
+
+    await expect(store.listRevisions?.({
+      conversationRef: 'conv-display',
+      limit: 25,
+    })).resolves.toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-display',
+        revisionId: 'rev-display',
+        parentRevisionId: 'rev-base',
+        operation: 'edit',
+        displayTimelineId: 'rev-display',
+        active: true,
+      }),
+    ]);
+    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'conversation.revisions.list',
+      params: {
+        user_id: 'user-1',
+        conversation_id: 'conv-display',
+        limit: 25,
+        record_kind: 'chat_event',
       },
     }));
   });
@@ -4216,7 +4257,30 @@ describe('Agent SDK client behavior', () => {
         checkpointId: 'mh-child',
         revisionId: 'rev-child',
       },
+      view: {
+        conversationRef: 'conv-checkout',
+        revisionId: 'rev-child',
+        displayRows: [
+          expect.objectContaining({
+            id: 'row-child-user',
+            content: 'edited question',
+          }),
+        ],
+      },
     });
+
+    await expect(agent.listConversationRevisions({
+      conversationRef: 'conv-checkout',
+    })).resolves.toEqual([
+      expect.objectContaining({
+        revisionId: 'rev-child',
+        active: true,
+      }),
+      expect.objectContaining({
+        revisionId: 'rev-parent',
+        active: false,
+      }),
+    ]);
 
     const traceEvents = await store.loadEvents('conv-checkout');
     expect(traceEvents).toEqual(expect.arrayContaining([
@@ -5290,7 +5354,24 @@ describe('Agent SDK client behavior', () => {
         screenshot_ref: 'artifact-edit',
       },
     });
+    const editedTimeline = await conversation.loadDisplayTimeline();
+    await expect(conversation.checkoutRevision({
+      revisionId: editedTimeline.revisionId,
+    })).resolves.toEqual(expect.objectContaining({
+      displayTimeline: expect.objectContaining({
+        revisionId: editedTimeline.revisionId,
+      }),
+    }));
+    await expect(conversation.fork({
+      sourceRevisionId: editedTimeline.revisionId,
+      cutAfterRowId: editedTimeline.rows[0]?.id as string,
+      newConversationRef: 'conv-runtime-fork',
+    })).resolves.toEqual(expect.objectContaining({
+      conversationRef: 'conv-runtime-fork',
+      sourceConversationRef: 'conv-runtime-public',
+    }));
     await agent.deleteConversation('conv-runtime-public');
+    await agent.deleteConversation('conv-runtime-fork');
     await expect(agent.listConversations()).resolves.toEqual([]);
   });
 

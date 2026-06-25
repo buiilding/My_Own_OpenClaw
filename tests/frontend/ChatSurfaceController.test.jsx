@@ -63,7 +63,7 @@ describe('useChatSurfaceController', () => {
     mockRunManualCompaction.mockResolvedValue(undefined);
   });
 
-  test('derives shared surface flags and current-turn state', () => {
+  test('derives shared surface flags and current-turn busy state without raw Stop authority', () => {
     const { result } = renderController({
       config: {
         speech_mode_enabled: true,
@@ -76,7 +76,7 @@ describe('useChatSurfaceController', () => {
     expect(result.current.wakewordSttEnabled).toBe(true);
     expect(result.current.includeQueryScreenshot).toBe(false);
     expect(result.current.isBusy).toBe(true);
-    expect(result.current.canStop).toBe(true);
+    expect(result.current.canStop).toBe(false);
     expect(result.current.visibleTurnLifecycle.status).toBe('active');
     expect(result.current.currentTurnPresentationState.awaitingDotTargetMessageId).toBeNull();
   });
@@ -128,7 +128,7 @@ describe('useChatSurfaceController', () => {
 
     expect(result.current).toMatchObject({
       isBusy: true,
-      canStop: true,
+      canStop: false,
       visibleTurnLifecycle: expect.objectContaining({
         status: 'active',
         conversationRef: 'conv-visible-turn',
@@ -236,7 +236,7 @@ describe('useChatSurfaceController', () => {
 
     expect(result.current).toMatchObject({
       isBusy: true,
-      canStop: true,
+      canStop: false,
       liveTurnPhase: 'awaiting-first-chunk',
       liveTurnSource: 'current-turn',
     });

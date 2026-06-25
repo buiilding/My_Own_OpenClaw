@@ -26,9 +26,11 @@ export function useChatInterfaceMenuDismiss({
   providerMenuRef,
   modelMenuRef,
   reasoningModeMenuRef = null,
+  revisionMenuRef = null,
   setProviderMenuOpen,
   setModelMenuOpen,
   setReasoningModeMenuOpen = () => {},
+  setRevisionMenuOpen = () => {},
 }) {
   useEffect(() => {
     return DesktopChatInterfaceBindingsRuntime.subscribeToMenuDismiss({
@@ -36,15 +38,18 @@ export function useChatInterfaceMenuDismiss({
         { ref: providerMenuRef, dismiss: () => setProviderMenuOpen(false) },
         { ref: modelMenuRef, dismiss: () => setModelMenuOpen(false) },
         { ref: reasoningModeMenuRef, dismiss: () => setReasoningModeMenuOpen(false) },
+        { ref: revisionMenuRef, dismiss: () => setRevisionMenuOpen(false) },
       ],
     });
   }, [
     modelMenuRef,
     providerMenuRef,
     reasoningModeMenuRef,
+    revisionMenuRef,
     setModelMenuOpen,
     setProviderMenuOpen,
     setReasoningModeMenuOpen,
+    setRevisionMenuOpen,
   ]);
 }
 

@@ -172,7 +172,7 @@ export type ReplaceRowsInput = {
 
 export type ForkConversationInput = {
   sourceRevisionId?: string | null;
-  cutAfterRowId: string;
+  cutAfterRowId?: string | null;
   newConversationRef: string;
 };
 
@@ -182,6 +182,8 @@ export type ForkConversationResult = {
   sourceConversationRef: string;
   sourceRevisionId: string;
   cutAfterRowId: string;
+  displayTimeline?: DisplayTimelineCheckpoint;
+  view?: ConversationView;
   displayRowCount: number;
   modelHistoryRowCount: number;
   modelHistoryCheckpointId?: string | null;
@@ -194,6 +196,7 @@ export type CheckoutRevisionInput = {
 export type CheckoutRevisionResult = {
   displayTimeline: DisplayTimelineCheckpoint;
   modelHistoryCheckpoint: ModelHistoryCheckpoint | null;
+  view: ConversationView;
 };
 
 export type AgentRuntimeEvent =
@@ -463,6 +466,15 @@ function rowMetadataRevision(row: DisplayTimelineRow | SdkDisplayRow | null | un
   return typeof metadataRevision === 'string' && metadataRevision.trim()
     ? metadataRevision.trim()
     : null;
+}
+
+function displayRowDedupeKey(row: DisplayTimelineRow | SdkDisplayRow): string {
+  const content = typeof row.content === 'string' ? row.content : JSON.stringify(row.content);
+  return [
+    row.turnRef ?? '',
+    row.type,
+    content,
+  ].join('\u0000');
 }
 
 function displayRowToolOutputDedupeKey(row: DisplayTimelineRow | SdkDisplayRow): string | null {
@@ -1001,14 +1013,22 @@ export class SdkConversationRuntime {
   async load(): Promise<ConversationSnapshot> {
     const events = await this.options.store.loadEvents(this.options.conversationRef);
     this.events = events;
-    this.state = events.reduce(
+    const requestedRevisionId = this.activeDisplayTimeline?.revisionId
+      ?? (this.state.revisionId && this.state.revisionId !== 'rev-empty' ? this.state.revisionId : null);
+    this.activeDisplayTimeline = await this.loadStoredDisplayTimeline(requestedRevisionId);
+    const activeRevisionId = this.activeDisplayTimeline?.revisionId
+      ?? events[events.length - 1]?.revisionId
+      ?? this.state.revisionId;
+    const stateEvents = this.activeDisplayTimeline
+      ? events.filter(event => event.revisionId === activeRevisionId)
+      : events;
+    this.state = stateEvents.reduce(
       (state, event) => reduceConversationRuntimeState(state, event),
       createInitialConversationRuntimeState(
         this.options.conversationRef,
-        events[events.length - 1]?.revisionId ?? this.state.revisionId,
+        activeRevisionId,
       ),
     );
-    this.activeDisplayTimeline = await this.loadStoredDisplayTimeline();
     return this.snapshot(this.events);
   }
 
@@ -1101,9 +1121,11 @@ export class SdkConversationRuntime {
         modelHistoryCheckpointId: modelHistoryCheckpoint?.checkpointId ?? null,
       },
     }, { revisionId });
+    const snapshot = await this.load();
     return {
       displayTimeline,
       modelHistoryCheckpoint,
+      view: snapshot.view,
     };
   }
 
@@ -1186,19 +1208,22 @@ export class SdkConversationRuntime {
     if (newConversationRef === this.options.conversationRef) {
       throw new Error('fork requires a distinct newConversationRef');
     }
-    if (!input.cutAfterRowId || !input.cutAfterRowId.trim()) {
-      throw new Error('fork requires cutAfterRowId');
-    }
     if (!this.options.store.replaceDisplayTimeline) {
       throw new Error('fork requires a display timeline capable conversation store');
     }
     const sourceTimeline = await this.loadDisplayTimeline({
       revisionId: input.sourceRevisionId ?? null,
     });
+    const cutAfterRowId = typeof input.cutAfterRowId === 'string' && input.cutAfterRowId.trim()
+      ? input.cutAfterRowId.trim()
+      : sourceTimeline.rows[sourceTimeline.rows.length - 1]?.id ?? '';
+    if (!cutAfterRowId) {
+      throw new Error('fork requires at least one source display row');
+    }
     const newRevisionId = createRuntimeId('rev');
     const createdAt = new Date().toISOString();
     const displayRows = rowsForFork(sourceTimeline.rows, {
-      cutAfterRowId: input.cutAfterRowId.trim(),
+      cutAfterRowId,
       newConversationRef,
       newRevisionId,
     });
@@ -1248,7 +1273,7 @@ export class SdkConversationRuntime {
         sourceRevisionId: sourceTimeline.revisionId,
         conversationRef: newConversationRef,
         revisionId: newRevisionId,
-        cutAfterRowId: input.cutAfterRowId,
+        cutAfterRowId,
         displayRowCount: displayRows.length,
         modelHistoryRowCount,
       },
@@ -1259,7 +1284,8 @@ export class SdkConversationRuntime {
       revisionId: newRevisionId,
       sourceConversationRef: this.options.conversationRef,
       sourceRevisionId: sourceTimeline.revisionId,
-      cutAfterRowId: input.cutAfterRowId,
+      cutAfterRowId,
+      displayTimeline: displayCheckpoint,
       displayRowCount: displayRows.length,
       modelHistoryRowCount,
       modelHistoryCheckpointId,
@@ -3332,10 +3358,20 @@ export class SdkConversationRuntime {
     const eventRows = buildDisplayRows(events, {
       liveAttachments: this.liveDisplayAttachmentsRecord(),
     });
-    const rowIds = new Set(timeline.rows.map(row => row.id));
+    const rowIds = new Set(timeline.rows.flatMap(row => {
+      const ids = [row.id];
+      const eventId = row.metadata?.eventId;
+      if (typeof eventId === 'string' && eventId.trim()) {
+        ids.push(eventId.trim());
+      }
+      return ids;
+    }));
+    const rowDedupeKeys = new Set(timeline.rows.map(displayRowDedupeKey));
     const timelineRevisionId = timeline.revisionId;
     const appendedRows = eventRows.filter(row => (
-      rowMetadataRevision(row) === timelineRevisionId && !rowIds.has(row.id)
+      rowMetadataRevision(row) === timelineRevisionId
+      && !rowIds.has(row.id)
+      && !rowDedupeKeys.has(displayRowDedupeKey(row))
     ));
     return withoutDuplicateDisplayToolOutputs([
       ...timeline.rows,

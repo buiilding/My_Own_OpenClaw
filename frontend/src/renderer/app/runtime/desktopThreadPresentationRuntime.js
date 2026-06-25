@@ -8,10 +8,11 @@ import {
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
 
 const {
+  buildConversationViewLiveTurnMessages,
   buildCurrentTurnMessagesFromPresentation,
   buildCurrentTurnMessagesFromProjection,
 } = DesktopCurrentTurnMessageRuntime;
-const { isSdkCurrentTurnSourceChannel } = DesktopPresentationSourceChannels;
+const { isSdkLiveTurnSourceChannel } = DesktopPresentationSourceChannels;
 
 function findLastUserIndex(messages) {
   if (!Array.isArray(messages)) {
@@ -39,7 +40,7 @@ function normalizeRef(value) {
 
 function isTextlessCurrentTurnThinkingMessage(message) {
   return (
-    isSdkCurrentTurnSourceChannel(message?.sourceChannel)
+    isSdkLiveTurnSourceChannel(message?.sourceChannel)
     && message?.sender === 'assistant'
     && (!message.type || message.type === 'llm-text')
     && !normalizeText(message.text)
@@ -49,7 +50,7 @@ function isTextlessCurrentTurnThinkingMessage(message) {
 
 function isVisibleCurrentTurnMessage(message) {
   return (
-    isSdkCurrentTurnSourceChannel(message?.sourceChannel)
+    isSdkLiveTurnSourceChannel(message?.sourceChannel)
     && message?.sender === 'assistant'
     && (
       normalizeText(message.text)
@@ -118,7 +119,7 @@ function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
   const liveText = normalizeText(liveMessage?.text);
   const liveThinkingText = normalizeText(liveMessage?.thinkingText);
   return messages.some((message) => {
-    if (!message || isSdkCurrentTurnSourceChannel(message.sourceChannel)) {
+    if (!message || isSdkLiveTurnSourceChannel(message.sourceChannel)) {
       return false;
     }
     if (liveId && message.id === liveId) {
@@ -156,7 +157,15 @@ function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
 function resolveCurrentTurnMessages({
   currentTurnMessages = [],
   currentTurnProjection = null,
+  conversationView = null,
 }) {
+  const conversationViewMessages = buildConversationViewLiveTurnMessages(conversationView);
+  if (conversationViewMessages.length > 0) {
+    return conversationViewMessages;
+  }
+  if (conversationView && typeof conversationView === 'object') {
+    return [];
+  }
   const presentationMessages = buildCurrentTurnMessagesFromPresentation(currentTurnProjection);
   if (presentationMessages.length > 0) {
     return presentationMessages;
@@ -172,12 +181,15 @@ function selectVisibleCurrentTurnMessages({
   messages,
   currentTurnMessages,
   currentTurnProjection,
+  conversationView,
   activeConversationRef,
 }) {
   if (!Array.isArray(currentTurnMessages) || currentTurnMessages.length === 0) {
     return [];
   }
-  const projectionConversationRef = normalizeRef(currentTurnProjection?.conversationRef);
+  const projectionConversationRef = normalizeRef(
+    conversationView?.conversationRef || currentTurnProjection?.conversationRef,
+  );
   const normalizedActiveConversationRef = normalizeRef(activeConversationRef);
   if (
     projectionConversationRef
@@ -218,6 +230,7 @@ function buildThreadPresentationMessages(
   {
     currentTurnMessages = [],
     currentTurnProjection = null,
+    conversationView = null,
     activeConversationRef = null,
   } = {},
 ) {
@@ -225,11 +238,13 @@ function buildThreadPresentationMessages(
   const resolvedCurrentTurnMessages = resolveCurrentTurnMessages({
     currentTurnMessages,
     currentTurnProjection,
+    conversationView,
   });
   const liveMessages = selectVisibleCurrentTurnMessages({
     messages: baseMessages,
     currentTurnMessages: resolvedCurrentTurnMessages,
     currentTurnProjection,
+    conversationView,
     activeConversationRef,
   });
   if (liveMessages.length === 0) {

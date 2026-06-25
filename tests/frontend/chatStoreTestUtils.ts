@@ -54,6 +54,7 @@ export function resetChatStoreForTests(
         tokenCounts: null,
         streamTracking,
         currentTurnProjection: null,
+        conversationView: null,
         pendingTurn: null,
         supersededTurnRefs: {},
       },
@@ -65,8 +66,9 @@ export function resetChatStoreForTests(
     tokenCounts: null,
     streamTracking,
     currentTurnProjection: null,
+    conversationView: null,
     pendingTurn: null,
     supersededTurnRefs: {},
-    latestCurrentTurnProjection: null,
+    latestConversationView: null,
   });
 }

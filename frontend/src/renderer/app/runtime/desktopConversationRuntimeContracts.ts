@@ -23,6 +23,9 @@ export type {
   CompactedReplaySnapshot,
   ConversationEvent,
   ConversationMetadata,
+  ConversationRevision,
+  ConversationView,
+  ConversationViewBuildDiagnostics,
   CurrentTurnProjection,
   CurrentTurnToolEvent,
   DisplayConversation,
@@ -38,6 +41,15 @@ export type {
 export type {
   ConversationMetadataInvalidationListener,
 } from '../../../../../packages/windie-sdk-js/src/runtime/ConversationContinuityService.js';
+export type {
+  CheckoutRevisionInput,
+  CheckoutRevisionResult,
+  EditAndResendInput,
+  ForkConversationInput,
+  ForkConversationResult,
+  RetryTurnInput,
+  TurnResult,
+} from '../../../../../packages/windie-sdk-js/src/runtime/ConversationRuntime.js';
 export type {
   AgentModelSelection,
 } from '../../../../../packages/windie-sdk-js/src/settings/modelSelection.js';

@@ -59,19 +59,8 @@ useChatStore.setState = (partial, replace) => {
     return originalSetChatStoreState({
       ...partial,
       currentTurnProjection,
-      latestCurrentTurnProjection: currentTurnProjection,
-    }, replace);
-  }
-  if (
-    partial
-    && typeof partial === 'object'
-    && !Array.isArray(partial)
-    && Object.prototype.hasOwnProperty.call(partial, 'currentTurnProjection')
-    && !Object.prototype.hasOwnProperty.call(partial, 'latestCurrentTurnProjection')
-  ) {
-    return originalSetChatStoreState({
-      ...partial,
-      latestCurrentTurnProjection: partial.currentTurnProjection,
+      conversationView: null,
+      latestConversationView: null,
     }, replace);
   }
   return originalSetChatStoreState(partial, replace);
@@ -197,7 +186,8 @@ export function setChatState(messages) {
     thinkingStatus: null,
     pendingTurn: null,
     currentTurnProjection,
-    latestCurrentTurnProjection: currentTurnProjection,
+    conversationView: null,
+    latestConversationView: null,
   });
 }
 
@@ -207,7 +197,8 @@ export function emitOverlayPhase(phase) {
     const currentTurnProjection = buildCurrentTurnProjection(state.messages || [], phase);
     useChatStore.setState({
       currentTurnProjection,
-      latestCurrentTurnProjection: currentTurnProjection,
+      conversationView: null,
+      latestConversationView: null,
     });
   });
 }
