@@ -192,7 +192,7 @@ describe('desktopConversationReplayRuntime', () => {
     }));
   });
 
-  test('retries through SDK command with retained matched tool context', async () => {
+  test('retries through SDK command with retained visible prefix', async () => {
     const chatStoreBundle = createChatStore();
     const messages = [
       { id: 'user-1', sender: 'user', type: 'user', text: 'first' },
@@ -220,6 +220,7 @@ describe('desktopConversationReplayRuntime', () => {
       'user-1',
       'tool-call-1',
       'tool-output-1',
+      'tool-call-orphan',
       'assistant-1',
       'turn-replay-sdk-evt-000002-user_message',
     ]);

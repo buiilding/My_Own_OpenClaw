@@ -1778,7 +1778,11 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.editAndResend');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.retryTurn');
     expect(replayRuntimeSource).toContain('DesktopPendingTurnRuntimeClient.setPending');
-    expect(replayRuntimeSource).toContain('buildReplayContextMessages');
+    expect(replayRuntimeSource).not.toContain('buildReplayContextMessages');
+    expect(replayRuntimeSource).not.toContain('resolveReplayToolMessageCorrelationId');
+    expect(replayRuntimeSource).not.toContain('resolveToolCallCorrelationId');
+    expect(replayRuntimeSource).not.toContain('resolveToolOutputCorrelationId');
+    expect(replayRuntimeSource).not.toContain('resolveToolBundleCorrelationId');
     expect(replayRuntimeSource).not.toContain('buildPreparedReplayDesktopChatTurn');
     expect(replayRuntimeSource).toContain('findReplayEditableUserMessageIndex');
     expect(replayRuntimeSource).toContain('prepareReplayEditIntent');
@@ -1787,12 +1791,10 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).toContain('DesktopConversationReplayRuntime');
     expect(replayRuntimeSource).not.toContain('export function findReplayEditableUserMessageIndex');
     expect(replayRuntimeSource).not.toContain('export function resolveReplayRetryMessageIndexes');
-    expect(replayRuntimeSource).not.toContain('export function buildReplayContextMessages');
     expect(replayRuntimeSource).not.toContain('export function buildReplayPreparationPayload');
     expect(replayRuntimeSource).not.toContain('export function buildReplayPendingTurn');
     expect(replayRuntimeSource).not.toContain('  buildReplayMessagesWithPendingTurn,');
     expect(replayRuntimeSource).not.toContain('  buildReplayPendingTurn,');
-    expect(replayRuntimeSource).not.toContain('  buildReplayContextMessages,');
     expect(replayRuntimeSource).not.toContain('  buildReplayPendingPublication,');
     expect(replayRuntimeSource).not.toContain('  executeReplayIntent,');
     expect(replayRuntimeSource).not.toContain('  prepareReplayEditIntent,');

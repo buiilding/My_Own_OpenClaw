@@ -299,7 +299,11 @@ replay execution calls the SDK edit/resend and retry commands directly; when a
 `ConversationView.displayRows` instead of raw `chatStore.messages`.
 `ChatInterface` passes replay hooks an explicit `replayFallbackMessages` input
 and empties that fallback while a `ConversationView` exists, keeping raw
-renderer messages available only for the no-view bridge.
+renderer messages available only for the no-view bridge. The renderer's
+temporary replay bridge retains the already projected visible prefix as UI rows
+only; it does not filter tool pairs or reconstruct model context for replay.
+SDK replay commands own the durable child revision and provider-safe
+replacement history.
 
 For debugging, use:
 

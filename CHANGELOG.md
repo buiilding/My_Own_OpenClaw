@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: stop filtering retained replay-prefix tool rows in the
+  renderer pending bridge. Replay now keeps the already projected visible
+  prefix as UI state only and leaves model/tool replay semantics to the SDK
+  edit/resend and retry commands. No migration required.
 - frontend/stop: move `acceptStoppedTurn` state-update construction behind
   `DesktopStopTurnRuntime` so `chatStore` delegates stop-target normalization,
   workspace lookup, and stopped-turn mutation application to the app runtime.

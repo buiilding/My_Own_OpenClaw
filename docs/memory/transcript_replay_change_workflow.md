@@ -122,9 +122,11 @@ flowchart LR
    - Edit/resend and try-again must route execution through SDK
      `conversation.editAndResend` and `conversation.retryTurn`. Renderer may
      build only the temporary retained visible prefix/pending bridge from
-     already projected messages; it must not load the active display timeline,
-     construct durable replacement rows, call `conversation.replaceRows`, or
-     dispatch a separate normal send for replay execution.
+     already projected messages; the retained prefix is copied as visible UI
+     rows, not filtered or paired as model/tool context. Renderer replay must
+     not load the active display timeline, construct durable replacement rows,
+     call `conversation.replaceRows`, or dispatch a separate normal send for
+     replay execution.
    - React replay hooks should pass edit/retry intent through
      `desktopConversationReplayRuntime`, which owns target-message selection,
      retained visible-prefix construction, superseded-turn detection, pending
