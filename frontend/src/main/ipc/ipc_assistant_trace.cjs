@@ -87,6 +87,47 @@ function summarizeAgentDefinitionTools(agentDefinitionInput) {
   };
 }
 
+function summarizeModelSelection(modelInput) {
+  const model = safeObject(modelInput);
+  const modelProvider = safeId(model.modelProvider || model.model_provider);
+  const modelId = safeId(model.modelId || model.model_id || model.id);
+  return {
+    hasModel: Object.keys(model).length > 0,
+    modelProvider: modelProvider !== '-' ? modelProvider : null,
+    modelId: modelId !== '-' ? modelId : null,
+  };
+}
+
+function modelSelectionLabel(summary) {
+  if (!summary?.hasModel) {
+    return '-';
+  }
+  return `${safeId(summary.modelProvider)}/${safeId(summary.modelId)}`;
+}
+
+function summarizeRendererQueryModels(input = {}, sdkPayload = {}) {
+  const rendererPayload = safeObject(input.rendererPayload);
+  const preparedPayload = safeObject(input.preparedPayload);
+  const renderer = summarizeModelSelection(rendererPayload.model);
+  const prepared = summarizeModelSelection(preparedPayload.model);
+  const sdk = summarizeModelSelection(sdkPayload.model);
+  return {
+    rendererPayloadHasModel: renderer.hasModel,
+    rendererPayloadModelProvider: renderer.modelProvider,
+    rendererPayloadModelId: renderer.modelId,
+    preparedPayloadHasModel: prepared.hasModel,
+    preparedPayloadModelProvider: prepared.modelProvider,
+    preparedPayloadModelId: prepared.modelId,
+    sdkPayloadHasModel: sdk.hasModel,
+    sdkPayloadModelProvider: sdk.modelProvider,
+    sdkPayloadModelId: sdk.modelId,
+    modelDroppedBeforeSdk: Boolean((renderer.hasModel || prepared.hasModel) && !sdk.hasModel),
+    rendererLabel: modelSelectionLabel(renderer),
+    preparedLabel: modelSelectionLabel(prepared),
+    sdkLabel: modelSelectionLabel(sdk),
+  };
+}
+
 function eventPayload(data) {
   return safeObject(data?.payload);
 }
@@ -335,6 +376,7 @@ function createElectronMainTraceLogger({
   function traceRendererQuery(input = {}) {
     const payload = safeObject(input.payload);
     const agentSummary = summarizeAgentDefinitionTools(payload.agent_definition);
+    const modelSummary = summarizeRendererQueryModels(input, payload);
     const turnRef = safeId(input.queryMessageId);
     const conversationRef = safeId(input.conversationRef);
     record({
@@ -346,6 +388,16 @@ function createElectronMainTraceLogger({
       textLength: typeof payload.text === 'string' ? payload.text.length : 0,
       resourceCount: Array.isArray(payload.resources) ? payload.resources.length : 0,
       ...agentSummary,
+      rendererPayloadHasModel: modelSummary.rendererPayloadHasModel,
+      rendererPayloadModelProvider: modelSummary.rendererPayloadModelProvider,
+      rendererPayloadModelId: modelSummary.rendererPayloadModelId,
+      preparedPayloadHasModel: modelSummary.preparedPayloadHasModel,
+      preparedPayloadModelProvider: modelSummary.preparedPayloadModelProvider,
+      preparedPayloadModelId: modelSummary.preparedPayloadModelId,
+      sdkPayloadHasModel: modelSummary.sdkPayloadHasModel,
+      sdkPayloadModelProvider: modelSummary.sdkPayloadModelProvider,
+      sdkPayloadModelId: modelSummary.sdkPayloadModelId,
+      modelDroppedBeforeSdk: modelSummary.modelDroppedBeforeSdk,
     });
     return emit('renderer', 'query.send', [
       `turn=${turnRef}`,
@@ -355,6 +407,10 @@ function createElectronMainTraceLogger({
       `agent=${agentSummary.hasAgentDefinition ? 'true' : 'false'}`,
       `client_tools=${agentSummary.clientManifestToolCount}`,
       `disabled_tools=${agentSummary.disabledToolCount}`,
+      `renderer_model=${modelSummary.rendererLabel}`,
+      `prepared_model=${modelSummary.preparedLabel}`,
+      `sdk_model=${modelSummary.sdkLabel}`,
+      `model_dropped=${modelSummary.modelDroppedBeforeSdk}`,
     ].join(' '));
   }
 

@@ -100,6 +100,8 @@ function createChatQueryHandlers({
       payload = attachAgentDefinitionContextToPayload(preparedQuery.payload);
       deps.traceRendererQuery?.({
         payload,
+        rendererPayload: payloadInput,
+        preparedPayload: preparedQuery.payload,
         conversationRef: preparedQuery.conversationRef,
         queryMessageId,
       });

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: add sanitized model checkpoints to the `ipc.bridge`
+  `renderer query.send` diagnostic so renderer, prepared-query, and SDK
+  handoff model state can be compared when model selection goes stale. No
+  migration required.
 - sdk/frontend: restore the conversation-view snapshot contract during the
   main integration merge so direct wake-up, chat workspace selection, and SDK
   CJS output all carry the same `ConversationView` envelope. No migration
