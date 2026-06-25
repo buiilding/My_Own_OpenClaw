@@ -60,4 +60,33 @@ describe('desktopProviderCredentialRuntime', () => {
       kimi_coding: { enabled: false, api_key: '', has_saved_key: false },
     });
   });
+
+  test('normalizes clear_saved_key as a transient saved-key removal signal', () => {
+    expect(DesktopProviderCredentialRuntime.normalizeProviderApiKeys({
+      anthropic: {
+        enabled: true,
+        api_key: '',
+        has_saved_key: true,
+        clear_saved_key: true,
+      },
+    }).anthropic).toEqual({
+      enabled: true,
+      api_key: '',
+      has_saved_key: false,
+      clear_saved_key: true,
+    });
+
+    expect(DesktopProviderCredentialRuntime.stripProviderApiKeySecrets({
+      anthropic: {
+        enabled: true,
+        api_key: '',
+        has_saved_key: true,
+        clear_saved_key: true,
+      },
+    }).anthropic).toEqual({
+      enabled: true,
+      api_key: '',
+      has_saved_key: false,
+    });
+  });
 });

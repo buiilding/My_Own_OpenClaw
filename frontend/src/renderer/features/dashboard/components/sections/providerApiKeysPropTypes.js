@@ -8,6 +8,7 @@ const providerApiKeyEntryPropType = PropTypes.shape({
   enabled: PropTypes.bool,
   api_key: PropTypes.string,
   has_saved_key: PropTypes.bool,
+  clear_saved_key: PropTypes.bool,
 });
 
 export const providerApiKeysPropType = PropTypes.objectOf(providerApiKeyEntryPropType);

@@ -49,6 +49,9 @@ function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {
             const hasSavedRedactedKey = value.enabled === true
               && value.has_saved_key === true
               && value.api_key.length === 0;
+            const inputValue = hasSavedRedactedKey
+              ? SAVED_PROVIDER_API_KEY_MASK
+              : value.api_key;
             return (
               <div key={provider.id} className="model-surface-api-provider-row">
                 <div className="model-surface-api-provider-head">
@@ -70,17 +73,38 @@ function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {
                   </label>
                 </div>
 
-                <input
-                  type="password"
-                  className="model-surface-api-input"
-                  value={value.api_key}
-                  onChange={(event) => {
-                    updateProviderApiKeys(provider.id, { api_key: event.target.value });
-                  }}
-                  placeholder={hasSavedRedactedKey ? SAVED_PROVIDER_API_KEY_MASK : provider.placeholder}
-                  disabled={!value.enabled}
-                  aria-label={provider.title}
-                />
+                <div className="model-surface-api-input-row">
+                  <input
+                    type="password"
+                    className="model-surface-api-input"
+                    value={inputValue}
+                    onChange={(event) => {
+                      updateProviderApiKeys(provider.id, {
+                        api_key: event.target.value,
+                        clear_saved_key: false,
+                      });
+                    }}
+                    placeholder={provider.placeholder}
+                    disabled={!value.enabled}
+                    readOnly={hasSavedRedactedKey}
+                    aria-label={provider.title}
+                  />
+                  {hasSavedRedactedKey ? (
+                    <button
+                      type="button"
+                      className="model-surface-api-delete"
+                      onClick={() => {
+                        updateProviderApiKeys(provider.id, {
+                          api_key: '',
+                          has_saved_key: false,
+                          clear_saved_key: true,
+                        });
+                      }}
+                    >
+                      Delete
+                    </button>
+                  ) : null}
+                </div>
               </div>
             );
           })}

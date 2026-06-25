@@ -141,6 +141,39 @@ describe('IPC provider credential persistence', () => {
     });
   });
 
+  test('clear_saved_key deletes encrypted keys while leaving provider enabled', async () => {
+    const log = jest.fn();
+    await expect(saveDesktopUiConfigToDisk({
+      provider_api_keys: {
+        anthropic: {
+          enabled: true,
+          api_key: 'sk-ant-secret',
+        },
+      },
+    }, log)).resolves.toEqual({ success: true });
+
+    await expect(saveDesktopUiConfigToDisk({
+      provider_api_keys: {
+        anthropic: {
+          enabled: true,
+          api_key: '',
+          has_saved_key: false,
+          clear_saved_key: true,
+        },
+      },
+    }, log)).resolves.toEqual({ success: true });
+
+    await expect(loadDesktopUiConfigFromDisk(log)).resolves.toEqual({
+      provider_api_keys: {
+        anthropic: {
+          enabled: true,
+          api_key: '',
+          has_saved_key: false,
+        },
+      },
+    });
+  });
+
   test('backend settings hydration keeps missing encrypted provider keys redacted', () => {
     const log = jest.fn();
     const config = {

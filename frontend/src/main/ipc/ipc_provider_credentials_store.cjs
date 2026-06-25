@@ -100,7 +100,7 @@ async function persistProviderApiKeySecrets(config, log = () => {}, storage = sa
     if (!isPlainObject(entry)) {
       continue;
     }
-    if (entry.enabled === false) {
+    if (entry.enabled === false || entry.clear_saved_key === true) {
       if (Object.prototype.hasOwnProperty.call(nextSecrets, provider)) {
         delete nextSecrets[provider];
         changed = true;

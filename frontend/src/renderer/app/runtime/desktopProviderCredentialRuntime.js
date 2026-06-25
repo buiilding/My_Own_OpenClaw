@@ -33,6 +33,10 @@ function normalizeProviderApiKeys(input = null) {
         || apiKey.length > 0
       ),
     };
+    if (candidate.clear_saved_key === true) {
+      normalized[provider].clear_saved_key = true;
+      normalized[provider].has_saved_key = false;
+    }
   }
 
   return normalized;
@@ -46,11 +50,14 @@ function stripProviderApiKeySecrets(input = null) {
     stripped[provider] = {
       ...entry,
       api_key: '',
-      has_saved_key: entry.enabled === true && (
-        entry.has_saved_key === true
-        || entry.api_key.length > 0
-      ),
+      has_saved_key: entry.enabled === true
+        && entry.clear_saved_key !== true
+        && (
+          entry.has_saved_key === true
+          || entry.api_key.length > 0
+        ),
     };
+    delete stripped[provider].clear_saved_key;
   }
 
   return stripped;

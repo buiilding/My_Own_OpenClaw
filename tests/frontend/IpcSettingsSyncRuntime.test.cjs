@@ -37,6 +37,7 @@ describe('ipc_settings_sync_runtime', () => {
           enabled: true,
           api_key: 'sk-test',
           has_saved_key: true,
+          clear_saved_key: true,
           renderer_only: true,
         },
         future_provider: { enabled: true, api_key: 'future' },

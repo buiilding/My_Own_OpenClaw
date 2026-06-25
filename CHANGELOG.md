@@ -26,6 +26,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: preserve a non-secret saved-key marker for provider API
   keys so the Models settings panel shows a masked saved-key placeholder after
   restart without exposing raw credentials. No migration required.
+- frontend/renderer: lock saved provider API-key fields and add a text `Delete`
+  action that clears the encrypted key, removes the saved-key mask, and unlocks
+  the field for a replacement key without disabling the provider toggle. No
+  migration required.
 - sdk/frontend: restore the conversation-view snapshot contract during the
   main integration merge so direct wake-up, chat workspace selection, and SDK
   CJS output all carry the same `ConversationView` envelope. No migration

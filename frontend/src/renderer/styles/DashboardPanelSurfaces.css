@@ -550,9 +550,16 @@
   color: var(--ui-text-dim);
 }
 
-.model-surface-api-input {
+.model-surface-api-input-row {
   margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.model-surface-api-input {
   width: 100%;
+  min-width: 0;
   border-radius: 8px;
   border: 1px solid var(--ui-border-subtle);
   background: color-mix(in srgb, var(--ui-panel-bg) 86%, transparent);
@@ -568,6 +575,27 @@
 .model-surface-api-input:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.model-surface-api-input[readonly] {
+  cursor: default;
+}
+
+.model-surface-api-delete {
+  flex: 0 0 auto;
+  border: 1px solid var(--ui-border-subtle);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ui-panel-bg) 86%, transparent);
+  color: var(--ui-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px 12px;
+  min-width: 66px;
+  cursor: pointer;
+}
+
+.model-surface-api-delete:hover {
+  border-color: var(--ui-accent);
 }
 
 .model-surface-api-toggle {
