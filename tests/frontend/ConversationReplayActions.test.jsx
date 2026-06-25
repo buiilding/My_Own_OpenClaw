@@ -155,7 +155,7 @@ describe('useConversationReplayActions', () => {
     mockDisplayTimelineRows = timelineRowsFromMessages(messages);
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {
@@ -218,7 +218,7 @@ describe('useConversationReplayActions', () => {
           canEdit: true,
         },
       },
-      messages: staleMessages,
+      replayFallbackMessages: staleMessages,
     }));
 
     await act(async () => {
@@ -267,7 +267,7 @@ describe('useConversationReplayActions', () => {
     useChatStore.getState().setMessages(messages, 'conv-existing');
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     let replayPromise;
@@ -319,7 +319,7 @@ describe('useConversationReplayActions', () => {
     mockDisplayTimelineRows = timelineRowsFromMessages(messages, 'conv_replay-ref');
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {
@@ -360,7 +360,7 @@ describe('useConversationReplayActions', () => {
     mockDisplayTimelineRows = timelineRowsFromMessages(messages);
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {
@@ -412,7 +412,7 @@ describe('useConversationReplayActions', () => {
     useChatStore.getState().setMessages(messages, 'conv-existing');
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {
@@ -462,7 +462,7 @@ describe('useConversationReplayActions', () => {
     useChatStore.getState().setMessages(messages, 'conv-existing');
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {
@@ -529,7 +529,7 @@ describe('useConversationReplayActions', () => {
     useChatStore.getState().setMessages(messages, 'conv-existing');
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {
@@ -567,7 +567,7 @@ describe('useConversationReplayActions', () => {
     mockDisplayTimelineRows[0].metadata.screenshot_refs = ['artifact-legacy-one', 'artifact-legacy-two'];
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {
@@ -618,7 +618,7 @@ describe('useConversationReplayActions', () => {
     });
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     try {
@@ -725,7 +725,7 @@ describe('useConversationReplayActions', () => {
     mockDisplayTimelineRows = timelineRowsFromMessages(messages);
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {
@@ -762,7 +762,7 @@ describe('useConversationReplayActions', () => {
     mockDisplayTimelineRows = timelineRowsFromMessages(messages);
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {
@@ -808,7 +808,7 @@ describe('useConversationReplayActions', () => {
     mockDisplayTimelineRows = timelineRowsFromMessages(messages);
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {
@@ -847,7 +847,7 @@ describe('useConversationReplayActions', () => {
     mockDisplayTimelineRows = timelineRowsFromMessages(messages, 'conv_replay-ref');
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {
@@ -880,7 +880,7 @@ describe('useConversationReplayActions', () => {
     mockDisplayTimelineRows = timelineRowsFromMessages(messages, 'conv-store-active');
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {
@@ -919,7 +919,7 @@ describe('useConversationReplayActions', () => {
     useChatStore.getState().setMessages(messages, 'conv-existing');
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {
@@ -959,7 +959,7 @@ describe('useConversationReplayActions', () => {
     useChatStore.getState().setMessages(messages, 'conv-existing');
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {
@@ -1000,7 +1000,7 @@ describe('useConversationReplayActions', () => {
     useChatStore.getState().setMessages(messages, 'conv-existing');
 
     const { result } = renderHook(() => useConversationReplayActions({
-      messages,
+      replayFallbackMessages: messages,
     }));
 
     await act(async () => {

@@ -1743,13 +1743,16 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.sendQuery');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.editAndResend');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.retryTurn');
-    expect(source).toContain('const replayFallbackMessages = useMemo');
-    expect(source).toContain('() => (conversationView ? [] : messages)');
+    expect(source).toContain('replayFallbackMessages = []');
     expect(source).toContain('messages: replayFallbackMessages');
+    expect(source).not.toContain('useMemo');
+    expect(source).not.toContain('() => (conversationView ? [] : messages)');
     expect(source).not.toContain('      messages,\n      userMessageId');
     expect(source).not.toContain('      messages,\n      assistantMessageId');
+    expect(normalizedChatInterfaceSource).toContain('const replayFallbackMessages = useMemo');
+    expect(normalizedChatInterfaceSource).toContain('() => (conversationView ? [] : messages)');
     expect(normalizedChatInterfaceSource).toContain(
-      'useConversationReplayActions({\n    conversationView,\n    messages,\n  })',
+      'useConversationReplayActions({\n    conversationView,\n    replayFallbackMessages,\n  })',
     );
     expect(normalizedChatInterfaceSource).not.toContain('useConversationReplayActions({\n    conversationView,\n    messages,\n    setMessages,');
     expect(normalizedChatInterfaceSource).not.toContain('setThinkingSourceEventType,\n  })');

@@ -297,6 +297,9 @@ identity. Copy/feedback actions remain renderer-local affordances. Renderer
 replay execution calls the SDK edit/resend and retry commands directly; when a
 `ConversationView` exists, replay target preparation derives its row model from
 `ConversationView.displayRows` instead of raw `chatStore.messages`.
+`ChatInterface` passes replay hooks an explicit `replayFallbackMessages` input
+and empties that fallback while a `ConversationView` exists, keeping raw
+renderer messages available only for the no-view bridge.
 
 For debugging, use:
 

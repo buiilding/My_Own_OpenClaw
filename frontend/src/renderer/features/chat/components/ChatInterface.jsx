@@ -622,9 +622,13 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const handleAssistantFeedbackChange = useCallback((messageId, feedback) => {
     updateMessage(messageId, { feedback });
   }, [updateMessage]);
+  const replayFallbackMessages = useMemo(
+    () => (conversationView ? [] : messages),
+    [conversationView, messages],
+  );
   const { handleEditFromUser, handleTryAgainFromAssistant } = useConversationReplayActions({
     conversationView,
-    messages,
+    replayFallbackMessages,
   });
 
   useChatInterfaceNewChatEvent(handleNewChat);

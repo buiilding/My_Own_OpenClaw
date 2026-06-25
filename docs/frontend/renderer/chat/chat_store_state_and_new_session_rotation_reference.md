@@ -224,9 +224,11 @@ When checkout/fork commands return a `ConversationView`, `ChatInterface` stores
 only that SDK view for the target conversation; it does not project
 `displayRows` back into `chatStore.messages`.
 Replay actions follow the same read-model rule: the hook passes the active
-`ConversationView` to `DesktopConversationReplayRuntime`, which derives edit
-and retry targets from `ConversationView.displayRows` before using
-`chatStore.messages` as the no-view fallback.
+`ConversationView` and explicit `replayFallbackMessages` to
+`DesktopConversationReplayRuntime`, which derives edit and retry targets from
+`ConversationView.displayRows`. `ChatInterface` empties the fallback while a
+`ConversationView` exists, so `chatStore.messages` remains only the no-view
+fallback bridge.
 
 `DesktopChatRevisionActionRuntime` owns checkout/fork command input shaping for
 the revision menu: revision id normalization, action ids, default user id, and

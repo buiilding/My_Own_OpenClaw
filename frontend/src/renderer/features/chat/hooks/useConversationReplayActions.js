@@ -2,7 +2,7 @@
  * Provides the use conversation replay actions module for the renderer UI.
  */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import {
   DesktopRendererConfigRuntimeClient,
@@ -19,17 +19,13 @@ const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 
 export function useConversationReplayActions({
   conversationView = null,
-  messages,
+  replayFallbackMessages = [],
 }) {
   const activeConversationRef = useChatStore((state) => state.activeConversationRef);
   const addMessage = useChatStore((state) => state.addMessage);
   const { config } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const deferredQueryModelSelection = DesktopRendererConfigRuntimeClient
     .buildDeferredQueryModelSelection(config);
-  const replayFallbackMessages = useMemo(
-    () => (conversationView ? [] : messages),
-    [conversationView, messages],
-  );
 
   const handleEditFromUser = useCallback(async (userMessageId, editedText) => {
     return executeReplayAction({

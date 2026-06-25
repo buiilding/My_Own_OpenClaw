@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: make `ChatInterface` pass an explicit
+  `replayFallbackMessages` input to replay hooks so raw renderer messages are
+  only available on the no-`ConversationView` path. No migration required.
 - frontend/pending: preserve an existing `ConversationView` while accepting a
   normal pending-send bridge so renderer state keeps SDK display rows as the
   chat read model until the next SDK view arrives. Replay pending still clears
