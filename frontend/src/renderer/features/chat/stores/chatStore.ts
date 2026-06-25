@@ -123,6 +123,7 @@ const {
   buildSetCurrentTurnProjectionStateUpdate,
 } = DesktopCurrentTurnWorkspaceRuntime;
 const {
+  buildSetLatestConversationViewStateUpdate,
   buildSetConversationViewStateUpdate,
 } = DesktopConversationViewWorkspaceRuntime;
 export type { ChatMessage, TokenCounts };
@@ -540,12 +541,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setLatestConversationView: (conversationView) =>
     set((state) => {
-      if (state.latestConversationView === conversationView) {
-        return state;
-      }
-      return {
-        latestConversationView: conversationView,
-      };
+      return buildSetLatestConversationViewStateUpdate<ChatState>({
+        conversationView,
+        state,
+      }) ?? state;
     }),
 
   updateStreamTracking: (updater, conversationRef) =>

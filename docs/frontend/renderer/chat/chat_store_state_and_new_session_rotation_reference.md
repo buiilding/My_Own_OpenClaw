@@ -115,6 +115,9 @@ replay/store compatibility adapters and low-level artifact helpers.
   authoritative SDK `ConversationView.liveTurn` also clears the renderer-local
   pending bridge there, so `chatStore.ts` does not keep a competing pending
   state after SDK view authority exists.
+- `setLatestConversationView` applies standalone latest-view updates through
+  `DesktopConversationViewWorkspaceRuntime.buildSetLatestConversationViewStateUpdate(...)`;
+  the store only passes the new view reference.
 - `acceptPendingTurn` stores the renderer-local pending turn before the SDK
   current-turn projection opens, so dashboard/pill surfaces can show awaiting
   state and stop can target the real outgoing `turnRef`; an echoed pending-turn

@@ -197,8 +197,26 @@ function buildSetConversationViewStateUpdate<
   );
 }
 
+function buildSetLatestConversationViewStateUpdate<
+  TState extends Pick<ConversationViewStateSnapshot, 'latestConversationView'>,
+>({
+  conversationView,
+  state,
+}: {
+  conversationView: ConversationView | null;
+  state: TState;
+}): Partial<TState> | null {
+  if (state.latestConversationView === conversationView) {
+    return null;
+  }
+  return {
+    latestConversationView: conversationView,
+  } as Partial<TState>;
+}
+
 export const DesktopConversationViewWorkspaceRuntime = Object.freeze({
   buildConversationViewWorkspaceMutation,
+  buildSetLatestConversationViewStateUpdate,
   buildSetConversationViewStateUpdate,
   shouldClearPendingTurnForConversationView,
 });

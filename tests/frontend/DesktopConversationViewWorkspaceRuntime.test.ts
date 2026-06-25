@@ -3,6 +3,7 @@ import type { ConversationView } from '../../frontend/src/renderer/app/runtime/d
 
 const {
   buildConversationViewWorkspaceMutation,
+  buildSetLatestConversationViewStateUpdate,
   buildSetConversationViewStateUpdate,
 } = DesktopConversationViewWorkspaceRuntime;
 
@@ -262,5 +263,30 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
         }),
       },
     }));
+  });
+
+  test('buildSetLatestConversationViewStateUpdate updates latest view when reference changes', () => {
+    const previousView = buildConversationView('conv-1');
+    const nextView = buildConversationView('conv-1');
+
+    expect(buildSetLatestConversationViewStateUpdate({
+      conversationView: nextView,
+      state: {
+        latestConversationView: previousView,
+      },
+    })).toEqual({
+      latestConversationView: nextView,
+    });
+  });
+
+  test('buildSetLatestConversationViewStateUpdate no-ops when latest view reference is unchanged', () => {
+    const conversationView = buildConversationView('conv-1');
+
+    expect(buildSetLatestConversationViewStateUpdate({
+      conversationView,
+      state: {
+        latestConversationView: conversationView,
+      },
+    })).toBeNull();
   });
 });

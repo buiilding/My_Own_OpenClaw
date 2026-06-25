@@ -3298,6 +3298,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('buildCurrentTurnWorkspaceMutation');
     expect(chatStoreSource).toContain('DesktopConversationViewWorkspaceRuntime');
     expect(chatStoreSource).toContain('buildSetConversationViewStateUpdate');
+    expect(chatStoreSource).toContain('buildSetLatestConversationViewStateUpdate');
     expect(chatStoreSource).not.toContain('buildConversationViewWorkspaceMutation');
     expect(chatStoreSource).toContain('buildAcceptStoppedTurnStateUpdate');
     expect(chatStoreSource).not.toContain('buildStoppedTurnWorkspaceMutation');
@@ -3330,6 +3331,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateSource).toContain('resolveWorkspaceMutationTarget');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildConversationViewWorkspaceMutation');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildSetConversationViewStateUpdate');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('buildSetLatestConversationViewStateUpdate');
     expect(conversationViewWorkspaceRuntimeSource).toContain('hasLatestConversationViewUpdate');
     expect(conversationViewWorkspaceRuntimeSource).toContain('shouldClearPendingTurnForConversationView');
     expect(conversationViewWorkspaceRuntimeSource).toContain('pendingTurn: null');

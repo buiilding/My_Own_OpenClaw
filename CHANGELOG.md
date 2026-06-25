@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: move standalone `setLatestConversationView` no-op/update
+  handling behind `DesktopConversationViewWorkspaceRuntime` so `chatStore`
+  delegates ConversationView state writes. No migration required.
 - frontend/replay: stop `useConversationReplayActions` from selecting store
   `activeConversationRef` or `addMessage`; `DesktopConversationReplayRuntime`
   now resolves those replay orchestration details from the store dependency. No
