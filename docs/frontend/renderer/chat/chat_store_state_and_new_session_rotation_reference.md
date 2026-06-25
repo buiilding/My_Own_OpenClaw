@@ -150,7 +150,11 @@ replay/store compatibility adapters and low-level artifact helpers.
   from SDK `ConversationView` or the renderer pending bridge into that runtime;
   raw `currentTurnProjection` is not accepted as caller-supplied stop state.
 - `clearMessages` clears messages, clears raw send cleanup state, and resets
-  `streamTracking` to initial idle shape
+  `streamTracking` to initial idle shape through
+  `DesktopChatClearMessagesRuntime.buildClearMessagesStateUpdate(...)`. The
+  clear-message reset field list and workspace update assembly live in that app
+  runtime; the store only passes clear intent plus workspace dependency
+  adapters.
 - `setActiveConversationRef` switches the projected top-level state to that
   workspace snapshot through
   `chatWorkspaceState.buildActiveConversationWorkspaceUpdate(...)`.

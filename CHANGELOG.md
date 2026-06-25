@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: move `clearMessages` workspace reset construction behind
+  `DesktopChatClearMessagesRuntime` so `chatStore` no longer owns the
+  clear-message reset field list or workspace update assembly. No migration
+  required.
 - frontend/store: move simple workspace field setters for sending, thinking,
   compaction debug, and token counts behind `DesktopChatWorkspaceFieldRuntime`
   so `chatStore` delegates scalar workspace update policy. No migration

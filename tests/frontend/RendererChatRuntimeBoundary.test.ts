@@ -3173,6 +3173,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatPendingTurnStateRuntime.ts'),
       'utf8',
     );
+    const clearMessagesRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatClearMessagesRuntime.ts'),
+      'utf8',
+    );
     const workspaceFieldRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceFieldRuntime.ts'),
       'utf8',
@@ -3268,6 +3272,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('function buildWorkspaceUpdate');
     expect(chatStoreSource).not.toContain('function resolveWorkspaceMutationTarget');
     expect(chatStoreSource).toContain('DesktopChatPendingTurnStateRuntime');
+    expect(chatStoreSource).toContain('DesktopChatClearMessagesRuntime');
+    expect(chatStoreSource).toContain('buildClearMessagesStateUpdate');
     expect(chatStoreSource).toContain('DesktopChatStreamTrackingRuntime');
     expect(chatStoreSource).toContain('buildUpdateStreamTrackingStateUpdate');
     expect(chatStoreSource).toContain('DesktopChatWorkspaceFieldRuntime');
@@ -3326,6 +3332,9 @@ describe('renderer chat runtime boundary', () => {
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnUserMessage');
     expect(pendingStateRuntimeSource).toContain('addSupersededTurnRef');
     expect(pendingStateRuntimeSource).toContain('removeSupersededTurnRef');
+    expect(clearMessagesRuntimeSource).toContain('buildClearMessagesStateUpdate');
+    expect(clearMessagesRuntimeSource).toContain('createInitialStreamTracking');
+    expect(clearMessagesRuntimeSource).not.toContain('features/chat');
     expect(workspaceFieldRuntimeSource).toContain('buildSetWorkspaceFieldStateUpdate');
     expect(workspaceFieldRuntimeSource).not.toContain('features/chat');
     expect(stopTurnRuntimeSource).toContain('buildStoppedTurnWorkspaceMutation');
