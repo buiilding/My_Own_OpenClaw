@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: read send-history inputs through the chat-interface selector
+  instead of raw top-level `chatStore.messages` / `conversationView`, keeping
+  first-user screenshot decisions on the same `ConversationView`-first read
+  model as rendered chat. No migration required.
 - frontend/chat-store: move active-workspace projection, generic workspace
   update assembly, and workspace mutation target resolution into
   `chatWorkspaceState.ts` so `chatStore.ts` applies mutations without owning

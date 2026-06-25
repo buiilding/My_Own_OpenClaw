@@ -2017,6 +2017,9 @@ describe('renderer chat runtime boundary', () => {
 
     expect(senderHookSource).toContain('desktopChatSendPayloadRuntime');
     expect(senderHookSource).toContain('DesktopChatSendPreparationRuntime');
+    expect(senderHookSource).toContain('selectChatInterfaceState');
+    expect(senderHookSource).not.toContain('getState().conversationView');
+    expect(senderHookSource).not.toContain('getState().messages');
     expect(sendPreparationSource).toContain('desktopChatSendPayloadRuntime');
     expect(sendPreparationSource).toContain('desktopChatSendStateRuntime');
     expect(sendPreparationSource).toContain('getConversationView');
