@@ -329,6 +329,10 @@ describe('useConversationReplayActions', () => {
       messageId: 'renderer-user-2',
       text: 'edited second question',
       turnRef: expect.any(String),
+      model: {
+        modelProvider: 'anthropic',
+        modelId: 'claude-sonnet-4-5',
+      },
     }));
   });
 

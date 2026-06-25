@@ -7,7 +7,6 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime';
 
 const {
-  buildPreparedReplayDesktopChatTurn,
   buildReplayPendingTurn,
   buildReplayContextMessages,
   buildReplayPreparationPayload,
@@ -193,60 +192,6 @@ describe('desktopConversationReplayRuntime', () => {
       screenshotRef: null,
       screenshotUrl: null,
     })).toEqual({});
-  });
-
-  test('buildPreparedReplayDesktopChatTurn normalizes prepared replay payload fields', () => {
-    const preparedTurn = {
-      conversationRef: 'conv-prepared',
-      model: null,
-      payload: {
-        screenshot_ref: 'artifact-primary',
-        screenshot_refs: ['artifact-primary', 'artifact-secondary'],
-        screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-primary',
-        attachment_filenames: [' one.png ', '', 'two.png'],
-      },
-      metadata: {
-        attachments: [{ id: 'artifact-primary', kind: 'image', status: 'ready' }],
-      },
-      text: 'retry this',
-      turnRef: null,
-      workspacePath: null,
-    };
-
-    expect(buildPreparedReplayDesktopChatTurn({
-      preparedReplayTurn: preparedTurn,
-      conversationRef: 'conv-fallback',
-      deferredQueryModelSelection: { modelProvider: 'openai', modelId: 'gpt-5' },
-      screenshotRef: 'artifact-fallback',
-      screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-fallback',
-      sessionInfo: { conversationRef: 'conv-prepared', userId: 'user-1' },
-      workspacePath: 'C:/workspace',
-      createTurnRef: () => 'turn-runtime',
-      timestamp: () => '2026-06-19T00:00:00.000Z',
-    })).toEqual({
-      attachmentFilenames: ['one.png', 'two.png'],
-      conversationRef: 'conv-prepared',
-      deferredQueryModelSelection: null,
-      metadata: {
-        attachments: [{ id: 'artifact-primary', kind: 'image', status: 'ready' }],
-      },
-      model: { modelProvider: 'openai', modelId: 'gpt-5' },
-      resources: [],
-      screenshotRef: 'artifact-primary',
-      screenshotRefs: ['artifact-primary', 'artifact-secondary'],
-      screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-primary',
-      sendLifecycle: {
-        shouldCaptureQueryScreenshot: false,
-        shouldReturnToChatboxOnSend: false,
-        surfaceReason: 'replay',
-      },
-      sessionInfo: { conversationRef: 'conv-prepared', userId: 'user-1' },
-      text: 'retry this',
-      timestamp: '2026-06-19T00:00:00.000Z',
-      turnId: 'turn-runtime',
-      turnRef: 'turn-runtime',
-      workspacePath: 'C:/workspace',
-    });
   });
 
   test('buildReplayPendingTurn keeps replay pending row identity stable', () => {

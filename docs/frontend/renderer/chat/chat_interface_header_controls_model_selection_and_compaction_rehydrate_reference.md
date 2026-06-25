@@ -117,9 +117,10 @@ Model dropdown:
 - when the selected model exposes multiple reasoning levels, model selection preserves the current reasoning mode when possible (fallback: `medium`, then first available)
 - backend session model selection is synced and awaited through
   `DesktopSettingsRuntimeClient.setModel(...)` on the next send/manual-compaction
-  path; retry/edit replay carries the selected model in its command payload, and
-  Electron main forwards that value through SDK `agent.run(..., { model })`
-  options so the SDK applies the model before inference
+  path; retry/edit replay carries the selected model in its SDK replay command
+  payload, and `ConversationRuntime.editAndResend(...)` / `retryTurn(...)`
+  forward it into `ConversationRuntime.send()`, where the SDK applies the model
+  before inference without adding model fields to backend query payloads
 
 Reasoning mode dropdown (conditional):
 

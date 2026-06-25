@@ -49,9 +49,11 @@ this page.
   shape before dispatch.
 - Selected chat models must be applied before inference starts: normal sends and
   manual compaction await the SDK settings ACK, while retry/edit replay carries
-  the model through Electron main into SDK `agent.run(..., { model })` options.
-  See the Settings startup and Model send selection rows in the
-  [User-Facing Regression Pack](user_facing_regression_pack.md).
+  the model through SDK replay commands into `ConversationRuntime.send()`, where
+  the same per-turn `setModel(...)` gate runs before the backend query dispatch.
+  Model selection must not be smuggled through backend query payload fields. See
+  the Settings startup and Model send selection rows in the [User-Facing
+  Regression Pack](user_facing_regression_pack.md).
 
 ## Adding An Invariant
 

@@ -75,7 +75,7 @@ Responsibilities:
   are available to query-time agent-definition assembly
 - persist updates to localStorage and disk
 - publish `update-settings` through `DesktopSettingsRuntimeClient.updateSettings(...)`
-- leave deferred model/provider selection to `DesktopSettingsRuntimeClient.setModel(...)` on send/manual-compaction paths; replay sends its model selection with the retry/edit command payload
+- leave deferred model/provider selection to `DesktopSettingsRuntimeClient.setModel(...)` on send/manual-compaction paths; replay sends its model selection with the retry/edit SDK command payload so `ConversationRuntime.send()` applies it before inference
 - derive the wakeword preference from persisted `config.wakeword_enabled`
 
 Important guardrails:
