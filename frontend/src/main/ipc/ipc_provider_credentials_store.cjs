@@ -143,7 +143,12 @@ function hydrateProviderApiKeySecrets(config, log = () => {}, storage = safeStor
       if (!isPlainObject(entry) || entry.enabled !== true || entry.api_key) {
         return [provider, entry];
       }
-      const secret = decryptProviderSecret(store.provider_api_keys[provider], storage);
+      let secret = null;
+      try {
+        secret = decryptProviderSecret(store.provider_api_keys[provider], storage);
+      } catch (error) {
+        log(`Failed to decrypt provider API key for '${provider}': ${error.message}`);
+      }
       if (!secret) {
         return [provider, entry];
       }
@@ -157,8 +162,17 @@ function hydrateProviderApiKeySecrets(config, log = () => {}, storage = safeStor
     : config;
 }
 
+function hydrateProviderApiKeySecretsForBackendSettings(
+  config,
+  log = () => {},
+  storage = safeStorage,
+) {
+  return hydrateProviderApiKeySecrets(config, log, storage);
+}
+
 module.exports = {
   getProviderCredentialsPath,
   hydrateProviderApiKeySecrets,
+  hydrateProviderApiKeySecretsForBackendSettings,
   persistProviderApiKeySecrets,
 };
