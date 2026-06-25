@@ -32,6 +32,31 @@ function hasScreenshotAttachment(attachment) {
     return false;
   }
   return (
+    attachment.kind === 'image'
+    && (
+      attachment.status === 'materializing'
+      || attachment.status === 'ready'
+    )
+    && (
+      typeof attachment.previewSrc === 'string'
+      || typeof attachment.screenshotRef === 'string'
+      || typeof attachment.screenshotUrl === 'string'
+    )
+  );
+}
+
+function resolveUserImageAttachmentCount(message) {
+  if (!Array.isArray(message?.attachments) || message.attachments.length === 0) {
+    return 0;
+  }
+  return message.attachments.filter(hasScreenshotAttachment).length;
+}
+
+function hasLegacyScreenshotAttachment(attachment) {
+  if (!attachment || typeof attachment !== 'object') {
+    return false;
+  }
+  return (
     typeof attachment.screenshot === 'string'
     || typeof attachment.screenshotRef === 'string'
     || typeof attachment.screenshotUrl === 'string'
@@ -39,17 +64,16 @@ function hasScreenshotAttachment(attachment) {
 }
 
 function resolveUserScreenshotCount(message) {
-  if (Array.isArray(message?.screenshots) && message.screenshots.length > 0) {
-    return message.screenshots.filter(hasScreenshotAttachment).length;
+  const typedAttachmentCount = resolveUserImageAttachmentCount(message);
+  if (typedAttachmentCount > 0) {
+    return typedAttachmentCount;
   }
 
-  return hasScreenshotAttachment({
-    screenshot: message?.screenshot,
-    screenshotRef: message?.screenshotRef,
-    screenshotUrl: message?.screenshotUrl,
-  })
-    ? 1
-    : 0;
+  if (Array.isArray(message?.screenshots) && message.screenshots.length > 0) {
+    return message.screenshots.filter(hasLegacyScreenshotAttachment).length;
+  }
+
+  return 0;
 }
 
 function stringifyModelFacingToolCall(modelFacingToolCall) {

@@ -1144,6 +1144,10 @@ describe('renderer chat runtime boundary', () => {
     expect(sourceTagRuntimeSource).not.toContain('export function resolveThinkingSourceBadgePresentation');
     expect(sourceTagRuntimeSource).not.toContain('features/chat');
     expect(tokenUsageRuntimeSource).toContain('tokens(provider)');
+    expect(tokenUsageRuntimeSource).toContain('message?.attachments');
+    expect(tokenUsageRuntimeSource).not.toContain('message?.screenshotRef');
+    expect(tokenUsageRuntimeSource).not.toContain('message?.screenshotUrl');
+    expect(tokenUsageRuntimeSource).not.toContain('screenshot: message?.screenshot');
     expect(tokenUsageRuntimeSource).toContain('DesktopMessageTokenUsageRuntime');
     expect(tokenUsageRuntimeSource).not.toContain('export function resolveMessageTokenUsageTag');
     expect(tokenUsageRuntimeSource).not.toContain('features/chat');

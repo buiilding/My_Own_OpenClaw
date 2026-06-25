@@ -25,20 +25,25 @@ describe('desktopMessageTokenUsageRuntime', () => {
     expect(tag).toBe('tokens(provider) out:5 vis:3 think:2 turn:17 cached:12');
   });
 
-  test('uses fullUserMessage content for user text token estimate and reports image estimate separately', () => {
+  test('uses fullUserMessage content and typed attachments for user token estimates', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'user',
       text: 'short text',
       fullUserMessage: {
         content: '12345678',
       },
-      screenshotRef: 'shot-1',
+      attachments: [{
+        kind: 'image',
+        source: 'camera_button',
+        status: 'ready',
+        screenshotRef: 'shot-1',
+      }],
     });
 
     expect(tag).toBe('tokens~ txt:2 img(est):85 total:87');
   });
 
-  test('counts user screenshots from screenshot attachment arrays', () => {
+  test('keeps legacy screenshot arrays as compatibility-only token input', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'user',
       text: 'abcd',
@@ -49,6 +54,17 @@ describe('desktopMessageTokenUsageRuntime', () => {
     });
 
     expect(tag).toBe('tokens~ txt:1 img(est):170 total:171');
+  });
+
+  test('ignores whole-message screenshot aliases for user image token estimates', () => {
+    const tag = resolveMessageTokenUsageTag({
+      sender: 'user',
+      text: 'abcd',
+      screenshotRef: 'shot-1',
+      screenshotUrl: 'https://example.com/shot-1.png',
+    });
+
+    expect(tag).toBe('tokens~ txt:1 img(est):0 total:1');
   });
 
   test('estimates tool-call tokens from model-facing tool-call payload', () => {

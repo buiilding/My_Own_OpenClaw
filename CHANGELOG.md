@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: collapse SDK display-row chat projection to map SDK rows
   directly into renderer component props instead of constructing an
   intermediate `DisplayMessage` model. No migration required.
+- frontend/presentation: make dev token image estimates count SDK typed
+  `attachments[]` instead of whole-message screenshot aliases, leaving legacy
+  `screenshots[]` as compatibility-only input. No migration required.
 - frontend/dashboard: load and store SDK `ConversationView` when opening a
   dashboard conversation instead of treating raw display rows as the normal
   resume authority. No migration required.

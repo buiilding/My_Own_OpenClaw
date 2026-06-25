@@ -138,6 +138,10 @@ Current runtime keeps token usage in chat store/state:
 
 - `chatStore.ts` holds `tokenCounts` payload from backend.
 - `useChatStream` handles `token-count` events and calls `setTokenCounts`.
+- dev token image estimates count SDK typed image `attachments[]` and keep
+  legacy `screenshots[]` only as compatibility input; whole-message
+  `screenshotRef`/`screenshotUrl` aliases are not a renderer presentation
+  authority.
 
 Important:
 
