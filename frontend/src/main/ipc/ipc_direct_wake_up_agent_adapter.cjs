@@ -5,6 +5,9 @@
 const {
   DESKTOP_RUNTIME_ON_CHANNELS,
 } = require('./ipc_desktop_runtime_channels.cjs');
+const {
+  normalizeRuntimeSendInput,
+} = require('./ipc_runtime_send_input.cjs');
 
 function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
@@ -25,42 +28,6 @@ function resolveSdkCommandConversationRef(input = {}) {
     throw new Error('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
   }
   return normalizeOptionalString(input.conversationRef);
-}
-
-function withDefinedValue(target, key, value) {
-  if (value !== undefined) {
-    target[key] = value;
-  }
-}
-
-function buildRuntimeSendInput(input = {}, options = {}) {
-  const source = typeof input === 'string' ? { text: input } : input;
-  const backendPayload = isPlainObject(source.backendPayload) ? source.backendPayload : {};
-  const payload = { ...backendPayload };
-  withDefinedValue(payload, 'conversation_ref', source.conversation_ref);
-  withDefinedValue(payload, 'content', source.content);
-  withDefinedValue(payload, 'screenshot_ref', source.screenshotRef);
-  withDefinedValue(payload, 'screenshot_refs', source.screenshotRefs);
-  withDefinedValue(payload, 'attachment_context', source.attachmentContext);
-  withDefinedValue(payload, 'attachment_filenames', source.attachmentFilenames);
-  withDefinedValue(payload, 'system_state_internal', source.systemStateInternal);
-  withDefinedValue(payload, 'workspace_path', source.workspacePath);
-  withDefinedValue(
-    payload,
-    'agent_definition',
-    isPlainObject(source.agentDefinition)
-      ? source.agentDefinition
-      : backendPayload.agent_definition,
-  );
-
-  return {
-    text: typeof source.text === 'string' ? source.text : '',
-    turnRef: source.turnRef,
-    payload,
-    resources: source.resources,
-    metadata: source.metadata,
-    model: isPlainObject(options.model) ? options.model : source.model,
-  };
 }
 
 function createDirectWakeUpAgentAdapter({
@@ -314,7 +281,7 @@ function createDirectWakeUpAgentAdapter({
       });
       try {
         await ensureInferenceContextForSend(handle, sendInput);
-        const runtimeSendInput = buildRuntimeSendInput(sendInput, options);
+        const runtimeSendInput = normalizeRuntimeSendInput(sendInput, options);
         if (typeof traceRuntimeSend === 'function') {
           traceRuntimeSend({
             ...runtimeSendInput,

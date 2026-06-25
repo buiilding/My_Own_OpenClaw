@@ -55,7 +55,7 @@ import {
 import { TraceRecorder, type TraceEventInput } from './TraceRecorder.js';
 import { reduceConversationRuntimeState, createInitialConversationRuntimeState } from './conversationReducer.js';
 import { getConversationEventScope, isConversationControlEvent } from './conversationEventScope.js';
-import { isCompactionStdoutEnabled } from './debugEnv.js';
+import { isCompactionStdoutEnabled, isStrictRuntimeInputEnabled } from './debugEnv.js';
 import {
   modelHistoryPayloadFromCheckpoint,
   rehydrateSnapshotFromModelHistoryCheckpoint,
@@ -76,6 +76,43 @@ function durationSince(startedAtMs: number): number {
 }
 
 const LOCAL_RUNTIME_RPC_TRACE_PATH = 'local_runtime.rpc';
+
+const PRE_NORMALIZED_SEND_INPUT_KEYS = Object.freeze([
+  'agentDefinition',
+  'agent_definition',
+  'backendPayload',
+  'conversationRef',
+  'conversation_ref',
+  'content',
+  'screenshotRef',
+  'screenshotRefs',
+  'screenshot_ref',
+  'screenshot_refs',
+  'attachmentContext',
+  'attachmentFilenames',
+  'attachment_context',
+  'attachment_filenames',
+  'systemStateInternal',
+  'system_state_internal',
+  'workspacePath',
+  'workspace_path',
+]);
+
+function assertRuntimeSendInputEnvelope(input: unknown): void {
+  if (!isStrictRuntimeInputEnabled() || !isJsonRecord(input)) {
+    return;
+  }
+  const invalidKeys = PRE_NORMALIZED_SEND_INPUT_KEYS.filter(key => (
+    Object.prototype.hasOwnProperty.call(input, key)
+  ));
+  if (invalidKeys.length === 0) {
+    return;
+  }
+  throw new Error(
+    `ConversationRuntime.send received pre-normalized top-level field(s): ${invalidKeys.join(', ')}. `
+    + 'Normalize query inputs into the runtime send envelope and put agent config at payload.agent_definition.',
+  );
+}
 
 function optionalRequestId(value: string | void | null | undefined): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
@@ -1327,6 +1364,7 @@ export class SdkConversationRuntime {
   }
 
   async send(input: SendInput): Promise<TurnResult> {
+    assertRuntimeSendInputEnvelope(input);
     if (input.model) {
       await this.setModel(input.model);
     }

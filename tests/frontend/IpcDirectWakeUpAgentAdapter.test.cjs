@@ -9,6 +9,9 @@ const {
 const {
   createDirectWakeUpAgentAdapter,
 } = require('../../frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs');
+const {
+  normalizeRuntimeSendInput,
+} = require('../../frontend/src/main/ipc/ipc_runtime_send_input.cjs');
 const directWakeUpAgentAdapterModule = require('../../frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs');
 
 function createRuntime(overrides = {}) {
@@ -130,6 +133,7 @@ function createDeps(overrides = {}) {
     summarizeCurrentTurn: jest.fn(currentTurn => ({ turnRef: currentTurn?.turnRef || null })),
     isDebugFlagEnabled: jest.fn(() => false),
     currentTurnTraceLogger: { trace: jest.fn() },
+    traceRuntimeSend: jest.fn(),
     getSyncSdkLiveTurnSurfaceIntent: jest.fn(() => null),
     log: jest.fn(),
     buildConversationTerminalStatus: jest.fn(() => null),
@@ -343,8 +347,140 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     });
     expect(runtime.rehydrateMessages).not.toHaveBeenCalled();
     expect(runtime.send).toHaveBeenCalledWith({
-      conversation_ref: 'conv-2',
       text: 'hello',
+      turnRef: undefined,
+      payload: {
+        conversation_ref: 'conv-2',
+      },
+      resources: undefined,
+      metadata: undefined,
+      model: undefined,
+    });
+  });
+
+  test('maps AgentQueryInput fields into the conversation runtime send payload', async () => {
+    const runtime = createRuntime();
+    const agent = createAgent(() => runtime);
+    const deps = createDeps();
+    const adapter = createDirectWakeUpAgentAdapter({
+      agent,
+      deps,
+    });
+    const agentDefinition = {
+      system_prompt: { mode: 'replace', content: 'Use saved config.' },
+      tools: {
+        mode: 'explicit',
+        disabled_tools: ['mouse_control'],
+        client_manifest: { version: 1, tools: [] },
+      },
+    };
+    const resources = [{ type: 'file', id: 'file-1' }];
+    const metadata = { source: 'renderer' };
+    const model = { modelProvider: 'scripted', modelId: 'scripted-runtime' };
+
+    await adapter.run({
+      text: 'hello',
+      conversationRef: 'conv-agent-input',
+      turnRef: 'turn-1',
+      backendPayload: {
+        text: 'hello',
+        conversation_ref: 'conv-agent-input',
+      },
+      agentDefinition,
+      content: '<user_query>hello</user_query>',
+      screenshotRef: 'art-1',
+      screenshotRefs: ['art-1'],
+      attachmentContext: 'attachment summary',
+      attachmentFilenames: ['notes.txt'],
+      systemStateInternal: { platform: 'darwin' },
+      workspacePath: '/repo',
+      resources,
+      metadata,
+    }, { model });
+
+    expect(runtime.send).toHaveBeenCalledWith({
+      text: 'hello',
+      turnRef: 'turn-1',
+      payload: {
+        text: 'hello',
+        conversation_ref: 'conv-agent-input',
+        agent_definition: agentDefinition,
+        content: '<user_query>hello</user_query>',
+        screenshot_ref: 'art-1',
+        screenshot_refs: ['art-1'],
+        attachment_context: 'attachment summary',
+        attachment_filenames: ['notes.txt'],
+        system_state_internal: { platform: 'darwin' },
+        workspace_path: '/repo',
+      },
+      resources,
+      metadata,
+      model,
+    });
+    expect(deps.traceRuntimeSend).toHaveBeenCalledWith({
+      text: 'hello',
+      turnRef: 'turn-1',
+      payload: {
+        text: 'hello',
+        conversation_ref: 'conv-agent-input',
+        agent_definition: agentDefinition,
+        content: '<user_query>hello</user_query>',
+        screenshot_ref: 'art-1',
+        screenshot_refs: ['art-1'],
+        attachment_context: 'attachment summary',
+        attachment_filenames: ['notes.txt'],
+        system_state_internal: { platform: 'darwin' },
+        workspace_path: '/repo',
+      },
+      resources,
+      metadata,
+      model,
+      conversationRef: 'conv-agent-input',
+    });
+  });
+
+  test('normalizes query agent definition into payload.agent_definition with backend payload fallback', () => {
+    const backendPayloadAgentDefinition = {
+      tools: {
+        mode: 'explicit',
+        disabled_tools: ['browser'],
+        client_manifest: { version: 1, tools: [] },
+      },
+    };
+    const explicitAgentDefinition = {
+      tools: {
+        mode: 'explicit',
+        disabled_tools: ['mouse_control'],
+        client_manifest: { version: 1, tools: [] },
+      },
+    };
+
+    expect(normalizeRuntimeSendInput({
+      text: 'hello',
+      backendPayload: {
+        conversation_ref: 'conv-fallback',
+        agent_definition: backendPayloadAgentDefinition,
+      },
+    })).toMatchObject({
+      text: 'hello',
+      payload: {
+        conversation_ref: 'conv-fallback',
+        agent_definition: backendPayloadAgentDefinition,
+      },
+    });
+    expect(normalizeRuntimeSendInput({
+      text: 'hello',
+      backendPayload: {
+        conversation_ref: 'conv-explicit',
+        agent_definition: backendPayloadAgentDefinition,
+      },
+      agentDefinition: explicitAgentDefinition,
+    })).toMatchObject({
+      text: 'hello',
+      payload: {
+        conversation_ref: 'conv-explicit',
+        agent_definition: explicitAgentDefinition,
+      },
     });
   });
 

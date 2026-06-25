@@ -115,6 +115,7 @@ class Agent {
             store: this.defaultConversationStore,
         });
         const payload = {
+            ...(queryInput.backendPayload ?? {}),
             content: queryInput.content ?? undefined,
             screenshot_ref: queryInput.screenshotRef ?? undefined,
             screenshot_refs: queryInput.screenshotRefs ?? undefined,
@@ -123,6 +124,9 @@ class Agent {
             system_state_internal: queryInput.systemStateInternal ?? undefined,
             workspace_path: queryInput.workspacePath ?? undefined,
         };
+        if (queryInput.agentDefinition) {
+            payload.agent_definition = queryInput.agentDefinition;
+        }
         for await (const runtimeEvent of conversation.stream({
             text: queryInput.text,
             turnRef: queryInput.turnRef ?? undefined,
