@@ -166,7 +166,74 @@ interface StopTurnTarget {
   canStop: boolean;
 }
 
+interface ReplayReadModel {
+  conversationView: ConversationView | null;
+  messages: ChatMessage[];
+}
+
+const replayReadModelObjectCache = new WeakMap<object, WeakMap<object, ReplayReadModel>>();
+const replayReadModelPrimitiveCache = new Map<string, ReplayReadModel>();
 const stopTurnTargetCache = new Map<string, StopTurnTarget>();
+
+function readReplayReadModelObjectCache(
+  conversationView: ConversationView | null,
+  messages: ChatMessage[],
+): ReplayReadModel | null {
+  if (!conversationView || typeof conversationView !== 'object') {
+    return null;
+  }
+  const messagesKey = messages as unknown as object;
+  let messageCache = replayReadModelObjectCache.get(conversationView);
+  if (!messageCache) {
+    messageCache = new WeakMap<object, ReplayReadModel>();
+    replayReadModelObjectCache.set(conversationView, messageCache);
+  }
+  const cached = messageCache.get(messagesKey);
+  if (cached) {
+    return cached;
+  }
+  const replayReadModel = {
+    conversationView,
+    messages,
+  };
+  messageCache.set(messagesKey, replayReadModel);
+  return replayReadModel;
+}
+
+function selectStableReplayReadModel({
+  conversationView = null,
+  messages = [],
+}: {
+  conversationView?: ConversationView | null;
+  messages?: ChatMessage[];
+}): ReplayReadModel {
+  const replayMessages = Array.isArray(messages) ? messages : [];
+  const objectCachedReadModel = readReplayReadModelObjectCache(conversationView, replayMessages);
+  if (objectCachedReadModel) {
+    return objectCachedReadModel;
+  }
+  const primitiveKey = [
+    conversationView ? 'view' : 'none',
+    replayMessages.length,
+  ].join('\u0001');
+  const cached = replayReadModelPrimitiveCache.get(primitiveKey);
+  if (
+    cached
+    && cached.conversationView === conversationView
+    && cached.messages === replayMessages
+  ) {
+    return cached;
+  }
+  if (replayReadModelPrimitiveCache.size > 64) {
+    replayReadModelPrimitiveCache.clear();
+  }
+  const replayReadModel = {
+    conversationView,
+    messages: replayMessages,
+  };
+  replayReadModelPrimitiveCache.set(primitiveKey, replayReadModel);
+  return replayReadModel;
+}
 
 function buildStopTurnTargetSignature(stopTurnTarget: StopTurnTarget): string {
   return [
@@ -380,14 +447,19 @@ export function selectChatInterfaceState(state: ChatState) {
     conversationView: interfaceState.conversationView as ConversationView | null,
     pendingTurn: interfaceState.pendingTurn as PendingTurn | null,
   });
+  const presentationState = buildChatInterfacePresentationState({
+    activeConversationRef: state.activeConversationRef,
+    conversationView: interfaceState.conversationView as ConversationView | null,
+    currentTurnProjection: interfaceState.currentTurnProjection as CurrentTurnProjection | null,
+    messages: interfaceState.messages as ChatMessage[],
+    pendingTurn: interfaceState.pendingTurn as PendingTurn | null,
+  });
   return {
     ...interfaceState,
-    ...buildChatInterfacePresentationState({
-      activeConversationRef: state.activeConversationRef,
+    ...presentationState,
+    replayReadModel: selectStableReplayReadModel({
       conversationView: interfaceState.conversationView as ConversationView | null,
-      currentTurnProjection: interfaceState.currentTurnProjection as CurrentTurnProjection | null,
-      messages: interfaceState.messages as ChatMessage[],
-      pendingTurn: interfaceState.pendingTurn as PendingTurn | null,
+      messages: presentationState.replayFallbackMessages,
     }),
     stopTurnTarget,
     chatSurfaceState: projectDesktopChatSurfaceState({

@@ -226,6 +226,13 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
       conversationView: state.conversationView,
       pendingTurn: state.pendingTurn,
     };
+    const presentationState = DesktopChatInterfacePresentationRuntime.buildChatInterfacePresentationState({
+      activeConversationRef: state.activeConversationRef,
+      conversationView: state.conversationView,
+      currentTurnProjection: chatSurfaceState.currentTurnProjection,
+      messages: state.messages,
+      pendingTurn: state.pendingTurn,
+    });
     return {
       messages: state.messages,
       thinkingStatus: state.thinkingStatus,
@@ -234,13 +241,11 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
       currentTurnProjection: chatSurfaceState.currentTurnProjection,
       conversationView: state.conversationView,
       pendingTurn: state.pendingTurn,
-      ...DesktopChatInterfacePresentationRuntime.buildChatInterfacePresentationState({
-        activeConversationRef: state.activeConversationRef,
+      ...presentationState,
+      replayReadModel: {
         conversationView: state.conversationView,
-        currentTurnProjection: chatSurfaceState.currentTurnProjection,
-        messages: state.messages,
-        pendingTurn: state.pendingTurn,
-      }),
+        messages: presentationState.replayFallbackMessages,
+      },
       stopTurnTarget: DesktopStopTurnRuntime.resolveStopTurnTarget({
         conversationRef: state.activeConversationRef,
         conversationView: state.conversationView,

@@ -83,12 +83,11 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     thinkingStatus,
     thinkingSourceEventType,
     compactionDebugInfo,
-    conversationView,
     chatSurfaceState,
     activeRevisionId,
     canEditMessages,
     canRetryMessages,
-    replayFallbackMessages,
+    replayReadModel,
     renderedMessages,
     stopTurnTarget,
   } = useChatStore(
@@ -598,8 +597,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     updateMessage(messageId, { feedback });
   }, [updateMessage]);
   const { handleEditFromUser, handleTryAgainFromAssistant } = useConversationReplayActions({
-    conversationView,
-    replayFallbackMessages,
+    replayReadModel,
   });
 
   useChatInterfaceNewChatEvent(handleNewChat);

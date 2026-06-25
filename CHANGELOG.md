@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: select a stable replay read model from
+  `selectChatInterfaceState(...)` so `ChatInterface` passes one
+  `replayReadModel` object to replay actions instead of transporting
+  `ConversationView` plus fallback row inputs. No migration required.
 - frontend/stop: select dashboard and pill stop targets from chat selectors so
   UI callers pass a narrow `stopTurnTarget` object to `useStopTurnHandler`
   instead of transporting raw `ConversationView` and `pendingTurn` inputs. No

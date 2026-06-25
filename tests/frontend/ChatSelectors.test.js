@@ -148,6 +148,10 @@ describe('chatSelectors', () => {
       canRetryMessages: true,
       renderedMessages: state.messages,
       replayFallbackMessages: state.messages,
+      replayReadModel: {
+        conversationView: null,
+        messages: state.messages,
+      },
       stopTurnTarget: {
         source: 'idle',
         conversationRef: null,
@@ -183,10 +187,13 @@ describe('chatSelectors', () => {
     };
 
     const chatInterface = selectChatInterfaceState(state);
+    const nextChatInterface = selectChatInterfaceState(state);
 
     expect(chatInterface.messages).toBe(messages);
     expect(chatInterface.renderedMessages).toBe(messages);
     expect(chatInterface.replayFallbackMessages).toBe(messages);
+    expect(chatInterface.replayReadModel.messages).toBe(messages);
+    expect(chatInterface.replayReadModel).toBe(nextChatInterface.replayReadModel);
     expect(chatInterface.tokenCounts).toBe(tokenCounts);
     expect(selectChatInterfaceSurfaceState(state).messages).toBe(messages);
   });
@@ -406,6 +413,10 @@ describe('chatSelectors', () => {
       }),
     ]);
     expect(selected.replayFallbackMessages).toEqual([]);
+    expect(selected.replayReadModel).toEqual({
+      conversationView: view,
+      messages: [],
+    });
     expect(selected.stopTurnTarget).toEqual({
       source: 'conversation-view',
       conversationRef: 'conv-dashboard',
@@ -440,6 +451,10 @@ describe('chatSelectors', () => {
       canRetryMessages: true,
       renderedMessages: [],
       replayFallbackMessages: [],
+      replayReadModel: {
+        conversationView: null,
+        messages: [],
+      },
       stopTurnTarget: {
         source: 'idle',
         conversationRef: null,

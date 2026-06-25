@@ -53,6 +53,8 @@ action gating, active revision id, and replay fallback rows as selected props.
 When a `ConversationView` exists, that runtime projects SDK display rows and
 returns an empty `replayFallbackMessages` array so React does not choose between
 SDK view rows and raw store messages.
+Replay actions receive the selector-owned `replayReadModel` object instead of
+separate `ConversationView` and fallback-row props from `ChatInterface`.
 
 ## Stop Query Contract
 

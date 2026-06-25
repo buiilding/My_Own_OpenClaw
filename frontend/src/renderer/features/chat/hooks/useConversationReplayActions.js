@@ -19,8 +19,13 @@ const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 
 export function useConversationReplayActions({
   conversationView = null,
+  replayReadModel = null,
   replayFallbackMessages = [],
-}) {
+} = {}) {
+  const resolvedConversationView = replayReadModel?.conversationView ?? conversationView;
+  const resolvedReplayFallbackMessages = Array.isArray(replayReadModel?.messages)
+    ? replayReadModel.messages
+    : replayFallbackMessages;
   const { config } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const deferredQueryModelSelection = DesktopRendererConfigRuntimeClient
     .buildDeferredQueryModelSelection(config);
@@ -29,8 +34,8 @@ export function useConversationReplayActions({
     return executeReplayAction({
       action: 'edit_resend',
       deferredQueryModelSelection,
-      conversationView,
-      messages: replayFallbackMessages,
+      conversationView: resolvedConversationView,
+      messages: resolvedReplayFallbackMessages,
       userMessageId,
       editedText,
       failureMessages: {
@@ -40,17 +45,17 @@ export function useConversationReplayActions({
       chatStore: useChatStore,
     });
   }, [
-    conversationView,
     deferredQueryModelSelection,
-    replayFallbackMessages,
+    resolvedConversationView,
+    resolvedReplayFallbackMessages,
   ]);
 
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
     return executeReplayAction({
       action: 'retry',
       deferredQueryModelSelection,
-      conversationView,
-      messages: replayFallbackMessages,
+      conversationView: resolvedConversationView,
+      messages: resolvedReplayFallbackMessages,
       assistantMessageId,
       failureMessages: {
         sendFailureMessage: chatSkin.sendFailureMessage,
@@ -59,9 +64,9 @@ export function useConversationReplayActions({
       chatStore: useChatStore,
     });
   }, [
-    conversationView,
     deferredQueryModelSelection,
-    replayFallbackMessages,
+    resolvedConversationView,
+    resolvedReplayFallbackMessages,
   ]);
 
   return {

@@ -1761,7 +1761,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.editAndResend');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.retryTurn');
     expect(source).toContain('replayFallbackMessages = []');
-    expect(source).toContain('messages: replayFallbackMessages');
+    expect(source).toContain('resolvedConversationView');
+    expect(source).toContain('messages: resolvedReplayFallbackMessages');
+    expect(source).toContain('replayReadModel = null');
     expect(source).not.toContain('useMemo');
     expect(source).not.toContain('() => (conversationView ? [] : messages)');
     expect(source).not.toContain('      messages,\n      userMessageId');
@@ -1769,8 +1771,10 @@ describe('renderer chat runtime boundary', () => {
     expect(normalizedChatInterfaceSource).not.toContain('() => (conversationView ? [] : messages)');
     expect(chatInterfacePresentationRuntimeSource).toContain('replayFallbackMessages: hasConversationView ? [] : messages');
     expect(normalizedChatInterfaceSource).toContain(
-      'useConversationReplayActions({\n    conversationView,\n    replayFallbackMessages,\n  })',
+      'useConversationReplayActions({\n    replayReadModel,\n  })',
     );
+    expect(normalizedChatInterfaceSource).not.toContain('useConversationReplayActions({\n    conversationView,');
+    expect(normalizedChatInterfaceSource).not.toContain('useConversationReplayActions({\n    replayFallbackMessages,');
     expect(normalizedChatInterfaceSource).not.toContain('useConversationReplayActions({\n    conversationView,\n    messages,\n    setMessages,');
     expect(normalizedChatInterfaceSource).not.toContain('setThinkingSourceEventType,\n  })');
     expect(continuityServiceSource).not.toContain('loadForDisplay');
