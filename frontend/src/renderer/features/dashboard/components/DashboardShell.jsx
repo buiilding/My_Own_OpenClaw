@@ -91,7 +91,6 @@ function DashboardShell({
   const resolvedUserId = sessionInfo.userId || snapshotUserId || null;
 
   const activeChatConversationRef = useChatStore((state) => state.activeConversationRef);
-  const setChatMessages = useChatStore((state) => state.setMessages);
   const clearChatMessages = useChatStore((state) => state.clearMessages);
   const setChatIsSending = useChatStore((state) => state.setIsSending);
   const setChatThinkingStatus = useChatStore((state) => state.setThinkingStatus);
@@ -122,7 +121,6 @@ function DashboardShell({
     activeConversationRef: activeChatConversationRef,
     getChatWorkspaceState,
     clearChatMessages,
-    setChatMessages,
     setChatIsSending,
     setChatThinkingStatus,
     setChatTokenCounts,

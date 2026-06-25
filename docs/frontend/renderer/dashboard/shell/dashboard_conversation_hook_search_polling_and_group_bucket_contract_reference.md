@@ -142,12 +142,18 @@ role prefix.
 
 `handleOpenConversation(conversation)`:
 
-1. loads canonical SDK conversation events from local-runtime `conversation_events` through the desktop conversation library/runtime
-2. projects rows through the SDK display conversation builders
-3. marks backend inference state unknown so the continuity runtime can lazily rehydrate from the SDK snapshot
-4. updates transcript session and active conversation ref
-5. replaces chat store messages and clears sending/thinking flags
+1. updates transcript session and active conversation ref
+2. clears the target chat workspace only when it has no cached rows, so stale
+   rows do not remain visible while the SDK view is loading
+3. loads the SDK `ConversationView` through the desktop conversation
+   library/runtime
+4. stores the loaded `ConversationView` as the normal chat read model
+5. clears sending/thinking/token flags for the selected workspace
 - switches visible chat workspace while in-flight loops continue in their original workspace
+
+Dashboard resume must not project `ConversationView.displayRows` into
+`chatStore.messages`. Message construction from SDK rows belongs to the chat
+presentation/view projection path once `ConversationView` exists.
 
 Shell behavior:
 

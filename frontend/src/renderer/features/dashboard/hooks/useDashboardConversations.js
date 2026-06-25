@@ -3,7 +3,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DesktopConversationDisplayProjection } from '../../../app/runtime/desktopConversationDisplayProjection';
 import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
 import { DesktopLocalRuntimeStatusRuntimeClient } from '../../../app/runtime/desktopLocalRuntimeStatusRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
@@ -12,7 +11,6 @@ import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desk
 import { DesktopConversationSessionRuntime } from '../../../app/runtime/desktopConversationSessionRuntime';
 import { DesktopActiveChatSessionRuntime } from '../../../app/runtime/desktopActiveChatSessionRuntime';
 import { DesktopDashboardConversationGroupRuntime } from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
-import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { DesktopDashboardConversationDialogRuntime } from '../../../app/runtime/desktopDashboardConversationDialogRuntime';
 import {
   DesktopDashboardConversationLoadRuntime,
@@ -48,14 +46,6 @@ const {
   resetActiveChatSession,
 } = DesktopActiveChatSessionRuntime;
 const {
-  buildChatMessagesFromSdkDisplayRows,
-  buildDisplayProjectionTraceSummary,
-  mergeRendererAnnotationsIntoSdkMessages,
-} = DesktopConversationDisplayProjection;
-const {
-  logRendererDisplayRowsProjectionTrace,
-} = DesktopRendererTraceRuntime;
-const {
   confirmDashboardConversationDelete,
   requestDashboardConversationRenameTitle,
 } = DesktopDashboardConversationDialogRuntime;
@@ -73,7 +63,6 @@ export function useDashboardConversations({
   activeConversationRef,
   getChatWorkspaceState,
   clearChatMessages,
-  setChatMessages,
   setChatIsSending,
   setChatThinkingStatus,
   setChatTokenCounts,
@@ -298,28 +287,6 @@ export function useDashboardConversations({
       if (openConversationRequestIdRef.current !== requestId) {
         return;
       }
-      const displayRows = Array.isArray(conversationView?.displayRows)
-        ? conversationView.displayRows
-        : [];
-      const sdkMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
-      const latestWorkspace = typeof getChatWorkspaceState === 'function'
-        ? getChatWorkspaceState(conversationRef)
-        : null;
-      const currentMessages = Array.isArray(latestWorkspace?.messages) ? latestWorkspace.messages : [];
-      const projectedMessages = mergeRendererAnnotationsIntoSdkMessages(
-        sdkMessages,
-        currentMessages,
-      );
-      logRendererDisplayRowsProjectionTrace({
-        source: 'dashboard-open-conversation',
-        conversationRef,
-        ...buildDisplayProjectionTraceSummary({
-          rows: displayRows,
-          sdkMessages,
-          currentMessages,
-          mergedMessages: projectedMessages,
-        }),
-      });
       try {
         await DesktopWorkspaceRuntimeClient.setActiveWorkspaceSelection(workspaceBinding.workspacePath || null);
       } catch (workspaceError) {
@@ -327,7 +294,6 @@ export function useDashboardConversations({
       }
 
       setChatConversationView?.(conversationView, conversationRef);
-      setChatMessages(projectedMessages, conversationRef);
       setChatIsSending(false, conversationRef);
       setChatThinkingStatus(null, conversationRef);
       setChatTokenCounts(null, conversationRef);
@@ -348,7 +314,6 @@ export function useDashboardConversations({
     setChatActiveConversationRef,
     setChatConversationView,
     setChatIsSending,
-    setChatMessages,
     setChatThinkingStatus,
     setChatTokenCounts,
   ]);

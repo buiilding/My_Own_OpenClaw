@@ -7,9 +7,12 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - frontend/dashboard: load and store SDK `ConversationView` when opening a
-  dashboard conversation, deriving renderer messages from `view.displayRows`
-  instead of treating raw display rows as the normal resume authority. No
-  migration required.
+  dashboard conversation instead of treating raw display rows as the normal
+  resume authority. No migration required.
+- frontend/dashboard: stop writing dashboard-resume `ConversationView.displayRows`
+  into `chatStore.messages`; opening an existing chat now stores the SDK view
+  and lets chat presentation derive rendered rows from that view. No migration
+  required.
 - frontend/dashboard: remove raw display-row and legacy display-message load
   helpers from the renderer conversation library facade so React dashboard
   resume code can only load the SDK `ConversationView`. No migration required.
