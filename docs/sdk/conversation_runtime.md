@@ -279,6 +279,9 @@ without falling back to legacy `snapshot.displayRows`. SDK snapshots may still
 carry `snapshot.displayRows` for SDK/custom callers and diagnostics, but the
 Electron command payload and renderer transcript loaders no longer use it as a
 normal UI authority.
+Dashboard conversation opening stores the returned `ConversationView` in the
+chat store before projecting messages from `view.displayRows`, so resumed
+dashboard chats use the same SDK view authority as active chat surfaces.
 For the first Phase 4 action migration, renderer chat surfaces read
 `snapshot.view.actions.canEdit` and `snapshot.view.actions.canRetry` when a
 view exists before rendering edit/resend or Try again commands. Message row type

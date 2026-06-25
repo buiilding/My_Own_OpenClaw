@@ -1007,6 +1007,9 @@ describe('renderer chat runtime boundary', () => {
     expect(dashboardHookSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(dashboardHookSource).toContain('desktopConversationDisplayProjection');
     expect(dashboardHookSource).toContain('DesktopConversationDisplayProjection');
+    expect(dashboardHookSource).toContain('DesktopConversationLibraryClient.loadConversationView');
+    expect(dashboardHookSource).not.toContain('DesktopConversationLibraryClient.loadDisplayRows');
+    expect(dashboardHookSource).toContain('setChatConversationView?.(conversationView, conversationRef)');
     expect(displayProjectionSource).toContain('sdkDisplayChatMessageProjection');
     expect(displayProjectionSource).toContain('export const DesktopConversationDisplayProjection = Object.freeze');
     expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');

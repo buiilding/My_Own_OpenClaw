@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/dashboard: load and store SDK `ConversationView` when opening a
+  dashboard conversation, deriving renderer messages from `view.displayRows`
+  instead of treating raw display rows as the normal resume authority. No
+  migration required.
 - frontend/renderer: move pending-turn user-row construction out of
   `chatStore.ts` into an app-runtime pending bridge helper shared by normal
   sends and replay. The store now mutates workspace state without hard-coding

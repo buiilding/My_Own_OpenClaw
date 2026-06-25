@@ -97,6 +97,7 @@ function DashboardShell({
   const setChatThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setChatTokenCounts = useChatStore((state) => state.setTokenCounts);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
+  const setChatConversationView = useChatStore((state) => state.setConversationView);
   const getChatWorkspaceState = useChatStore((state) => state.getWorkspaceState);
   const {
     searchQuery,
@@ -126,6 +127,7 @@ function DashboardShell({
     setChatThinkingStatus,
     setChatTokenCounts,
     setChatActiveConversationRef,
+    setChatConversationView,
     searchOpen,
   });
 

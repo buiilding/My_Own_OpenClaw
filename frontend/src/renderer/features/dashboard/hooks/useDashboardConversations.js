@@ -78,6 +78,7 @@ export function useDashboardConversations({
   setChatThinkingStatus,
   setChatTokenCounts,
   setChatActiveConversationRef,
+  setChatConversationView,
   searchOpen,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -290,13 +291,16 @@ export function useDashboardConversations({
         setChatTokenCounts(null, conversationRef);
       }
 
-      const displayRows = await DesktopConversationLibraryClient.loadDisplayRows(
+      const conversationView = await DesktopConversationLibraryClient.loadConversationView(
         resolvedUserId,
         conversationRef,
       );
       if (openConversationRequestIdRef.current !== requestId) {
         return;
       }
+      const displayRows = Array.isArray(conversationView?.displayRows)
+        ? conversationView.displayRows
+        : [];
       const sdkMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
       const latestWorkspace = typeof getChatWorkspaceState === 'function'
         ? getChatWorkspaceState(conversationRef)
@@ -322,6 +326,7 @@ export function useDashboardConversations({
         console.warn('[useDashboardConversations] Failed to sync active workspace:', workspaceError);
       }
 
+      setChatConversationView?.(conversationView, conversationRef);
       setChatMessages(projectedMessages, conversationRef);
       setChatIsSending(false, conversationRef);
       setChatThinkingStatus(null, conversationRef);
@@ -341,6 +346,7 @@ export function useDashboardConversations({
     getChatWorkspaceState,
     resolvedUserId,
     setChatActiveConversationRef,
+    setChatConversationView,
     setChatIsSending,
     setChatMessages,
     setChatThinkingStatus,
