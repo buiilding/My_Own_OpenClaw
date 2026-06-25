@@ -118,9 +118,6 @@ MessageContent.propTypes = {
     text: PropTypes.string.isRequired,
     sender: PropTypes.oneOf(['user', 'assistant']).isRequired,
     type: PropTypes.string,
-    screenshot: PropTypes.string,
-    screenshotUrl: PropTypes.string,
-    screenshotContentType: PropTypes.string,
     attachments: PropTypes.arrayOf(PropTypes.shape({
       id: PropTypes.string.isRequired,
       kind: PropTypes.oneOf(['image', 'screenshot_request']).isRequired,

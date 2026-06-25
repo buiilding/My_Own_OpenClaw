@@ -1143,6 +1143,20 @@ describe('renderer chat runtime boundary', () => {
     expect(sourceTagRuntimeSource).not.toContain('export function resolveMessageSourceBadgePresentation');
     expect(sourceTagRuntimeSource).not.toContain('export function resolveThinkingSourceBadgePresentation');
     expect(sourceTagRuntimeSource).not.toContain('features/chat');
+    const messageShapeSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/messageShapePropType.js'),
+      'utf8',
+    );
+    const messageContentSource = await fs.readFile(
+      path.join(chatRoot, 'components/MessageContent.jsx'),
+      'utf8',
+    );
+    expect(messageShapeSource).not.toContain('screenshotRef: PropTypes');
+    expect(messageShapeSource).not.toContain('screenshotUrl: PropTypes');
+    expect(messageShapeSource).not.toContain('screenshot: PropTypes');
+    expect(messageContentSource).not.toContain('screenshotUrl: PropTypes');
+    expect(messageContentSource).not.toContain('screenshotContentType: PropTypes');
+    expect(messageContentSource).not.toContain('screenshot: PropTypes');
     expect(tokenUsageRuntimeSource).toContain('tokens(provider)');
     expect(tokenUsageRuntimeSource).toContain('message?.attachments');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshotRef');

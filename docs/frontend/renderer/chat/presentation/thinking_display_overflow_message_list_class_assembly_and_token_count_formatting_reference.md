@@ -142,6 +142,8 @@ Current runtime keeps token usage in chat store/state:
   legacy `screenshots[]` only as compatibility input; whole-message
   `screenshotRef`/`screenshotUrl` aliases are not a renderer presentation
   authority.
+- React message prop contracts advertise typed `attachments[]`, not
+  whole-message screenshot aliases.
 
 Important:
 
