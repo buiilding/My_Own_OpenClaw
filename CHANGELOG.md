@@ -10,6 +10,10 @@ All notable changes to WindieOS will be documented in this file.
   selection and main chat wiring so the dashboard no longer crashes on startup,
   and keep dashboard busy, Stop, edit, and retry affordances on the SDK view
   authority path. No migration required.
+- sdk/frontend: include the SDK-owned `ConversationView` in conversation
+  runtime snapshots and expose `getView()` from the runtime, so durable
+  dashboard rows materialize from completed turns instead of leaving the latest
+  assistant response as a movable live row. No migration required.
 - sdk/main: keep internal `conv-agent-*` lanes hidden in `ConversationView`
   projection and remove Electron main's ad hoc responsebox conversation-name
   filter. Main now applies only the SDK view surface intent and generic

@@ -5729,6 +5729,97 @@ describe('Agent SDK conversation runtime core', () => {
     ]));
   });
 
+  test('conversation runtime snapshots expose durable rows through the conversation view', async () => {
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-active',
+      store,
+    });
+    await store.replaceDisplayTimeline({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-active',
+      createdAt: '2026-06-25T03:10:00.000Z',
+      reason: null,
+      baseRevisionId: null,
+      rows: [],
+    });
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-active',
+        eventId: 'turn-one-user',
+        turnRef: 'turn-one',
+        source: 'sdk',
+        payload: { text: 'sadsa' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-active',
+        eventId: 'turn-one-assistant',
+        turnRef: 'turn-one',
+        source: 'backend',
+        payload: { text: 'Scripted runtime ready.' },
+      }),
+      createConversationEvent({
+        type: 'turn_completed',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-active',
+        eventId: 'turn-one-complete',
+        turnRef: 'turn-one',
+        source: 'backend',
+        payload: { finalResponse: 'Scripted runtime ready.' },
+      }),
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-active',
+        eventId: 'turn-two-user',
+        turnRef: 'turn-two',
+        source: 'sdk',
+        payload: { text: 'now it got replaced' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-active',
+        eventId: 'turn-two-assistant',
+        turnRef: 'turn-two',
+        source: 'backend',
+        payload: { text: 'Scripted runtime ready.' },
+      }),
+      createConversationEvent({
+        type: 'turn_completed',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-active',
+        eventId: 'turn-two-complete',
+        turnRef: 'turn-two',
+        source: 'backend',
+        payload: { finalResponse: 'Scripted runtime ready.' },
+      }),
+    ]);
+
+    const snapshot = await runtime.load();
+
+    expect(snapshot.view.displayRows.map(row => row.content)).toEqual([
+      'sadsa',
+      'Scripted runtime ready.',
+      'now it got replaced',
+      'Scripted runtime ready.',
+    ]);
+    expect(snapshot.view.liveTurn).toMatchObject({
+      turnRef: 'turn-two',
+      phase: 'complete',
+      isBusy: false,
+      canStop: false,
+    });
+    expect(snapshot.view.liveTurn.entries.map(entry => entry.text)).toEqual([
+      'Scripted runtime ready.',
+    ]);
+  });
+
   test('conversation runtime forks display prefix and matching model history into a child conversation', async () => {
     const store = new InMemoryConversationStore();
     await store.appendEvent(createConversationEvent({
