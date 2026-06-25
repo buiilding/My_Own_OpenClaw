@@ -240,7 +240,8 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     conversationView,
     currentTurnProjection,
     messages,
-  }), [activeConversationRef, conversationView, currentTurnProjection, messages]);
+    pendingTurn,
+  }), [activeConversationRef, conversationView, currentTurnProjection, messages, pendingTurn]);
   const isLoadingSelectedConversation = (
     typeof loadingConversationRef === 'string'
     && loadingConversationRef.length > 0

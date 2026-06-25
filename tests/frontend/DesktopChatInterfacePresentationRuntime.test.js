@@ -31,6 +31,104 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     expect(state.activeRevisionId).toBe('rev-1');
   });
 
+  test('projects ConversationView display rows as main chat messages without store messages', () => {
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        revisionId: 'rev-1',
+        displayRows: [{
+          id: 'user-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'view prompt',
+        }, {
+          id: 'assistant-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          index: 1,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'view answer',
+        }],
+        liveTurn: {
+          entries: [],
+        },
+        actions: {
+          canEdit: true,
+          canRetry: true,
+        },
+      },
+      messages: [],
+    });
+
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'user-row',
+        sender: 'user',
+        text: 'view prompt',
+      }),
+      expect.objectContaining({
+        id: 'assistant-row',
+        sender: 'assistant',
+        text: 'view answer',
+      }),
+    ]);
+  });
+
+  test('keeps renderer pending bridge beside ConversationView display rows', () => {
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        revisionId: 'rev-1',
+        displayRows: [{
+          id: 'user-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'view prompt',
+        }],
+        liveTurn: {
+          entries: [],
+        },
+        actions: {
+          canEdit: true,
+          canRetry: true,
+        },
+      },
+      messages: [{
+        id: 'pending-user',
+        sender: 'user',
+        text: 'pending prompt',
+        turnRef: 'turn-pending',
+        sourceEventType: 'renderer-compose',
+        sourceChannel: 'renderer-local',
+      }],
+      pendingTurn: {
+        turnRef: 'turn-pending',
+        userMessageId: 'pending-user',
+        text: 'pending prompt',
+      },
+    });
+
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'user-row',
+        text: 'view prompt',
+      }),
+      expect.objectContaining({
+        id: 'pending-user',
+        text: 'pending prompt',
+      }),
+    ]);
+  });
+
   test('keeps legacy actions available only before ConversationView exists', () => {
     const state = buildChatInterfacePresentationState({
       activeConversationRef: 'conv-1',

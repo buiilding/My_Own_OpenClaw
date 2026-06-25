@@ -75,6 +75,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/stop: stop passing raw `currentTurnProjection` through React stop
   handlers; Stop targets now enter the hook only from SDK `ConversationView`
   state or the renderer pending bridge. No migration required.
+- frontend/chat: derive main chat base rows from `ConversationView.displayRows`
+  inside the app-runtime presentation helper when a view exists, using
+  `chatStore.messages` only for renderer annotations and the short pending
+  bridge. No migration required.
 - frontend/chat: move main chat thread presentation, ConversationView action
   availability, and checked-out view store projection into an app-runtime
   helper so `ChatInterface` consumes a single presentation view model. No
