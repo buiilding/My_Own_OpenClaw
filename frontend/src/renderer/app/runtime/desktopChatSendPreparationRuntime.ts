@@ -109,7 +109,6 @@ type PreparedDesktopChatTurn = {
 function buildTurnInputResources({
   readableFiles,
   clipboardImages,
-  attachmentFilenames,
   shouldCaptureQueryScreenshot,
   isFirstUserMessage,
   surfaceReason,
@@ -118,7 +117,6 @@ function buildTurnInputResources({
 }: {
   readableFiles: ReadableFilePayload[];
   clipboardImages: ClipboardImagePayload[];
-  attachmentFilenames: string[];
   shouldCaptureQueryScreenshot: boolean;
   isFirstUserMessage: boolean;
   surfaceReason: string;
@@ -162,7 +160,7 @@ function buildTurnInputResources({
       required: false,
     });
   }
-  return resources.length > 0 || attachmentFilenames.length > 0 ? resources : [];
+  return resources;
 }
 
 async function ensureConversationWorkspaceBinding(conversationRef: string): Promise<WorkspaceBinding> {
@@ -328,7 +326,6 @@ async function prepareDesktopChatSend({
     shouldCaptureQueryScreenshot: sendLifecycle.shouldCaptureQueryScreenshot,
     isFirstUserMessage: !hadUserMessages,
     surfaceReason: sendLifecycle.surfaceReason,
-    attachmentFilenames,
     workspacePath: workspaceBinding.workspacePath || null,
     turnId,
   });

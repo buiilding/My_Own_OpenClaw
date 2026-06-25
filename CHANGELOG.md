@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: remove filename metadata from SDK resource construction so
+  send preparation builds resources only from typed SDK resource inputs. No
+  migration required.
 - frontend/surface: suppress raw workspace messages in shared surface
   controller state once `ConversationView` exists, except for the pending-send
   bridge. No migration required.

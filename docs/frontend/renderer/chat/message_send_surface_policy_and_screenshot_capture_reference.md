@@ -140,6 +140,8 @@ When attachment(s) exist:
    - `readable_file` for selected non-image files
    - `query_screenshot_request` when overlay/config policy asks for a query screenshot
    - `workspace` when the conversation has a workspace binding
+   Filename labels are metadata/pending-bridge hints only; they do not make a
+   SDK turn resource by themselves.
 7. call `DesktopLiveTurnRuntimeClient.sendQuery` with text, conversation ref,
    turn ref, display-safe metadata, and resources.
 8. Electron main preserves `resources`/`metadata` for SDK `send()` while keeping
