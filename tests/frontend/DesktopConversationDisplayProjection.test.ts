@@ -8,6 +8,7 @@ import {
 import type { ChatMessage } from '../../frontend/src/renderer/app/runtime/desktopChatMessageTypes';
 
 const {
+  buildConversationViewChatMessages,
   buildChatMessagesFromSdkDisplayRows,
   buildDisplayProjectionTraceSummary,
   mergeRendererAnnotationsIntoSdkMessages,
@@ -191,6 +192,56 @@ describe('desktopConversationDisplayProjection', () => {
         },
       },
     )).toEqual([optimisticUser]);
+  });
+
+  test('builds conversation-view messages and preserves pending annotations on request', () => {
+    const optimisticUser = message({
+      id: 'renderer-user-edit',
+      sender: 'user',
+      text: 'edited prompt',
+      turnRef: 'turn-edit',
+      sourceEventType: 'renderer-compose',
+      sourceChannel: 'renderer-local',
+      isComplete: true,
+    });
+    const conversationView = {
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      displayRows: [{
+        id: 'sdk-user-edit',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-edit',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'edited prompt',
+      }],
+      liveTurn: null,
+      surfaces: {},
+      actions: {},
+    };
+
+    expect(buildConversationViewChatMessages({
+      conversationView,
+      currentMessages: [optimisticUser],
+      pendingTurn: {
+        turnRef: 'turn-edit',
+        userMessageId: 'renderer-user-edit',
+        text: 'edited prompt',
+      },
+      preserveRendererAnnotations: true,
+    })).toEqual([optimisticUser]);
+    expect(buildConversationViewChatMessages({
+      conversationView,
+      currentMessages: [optimisticUser],
+      preserveRendererAnnotations: false,
+    })).toEqual([
+      expect.objectContaining({
+        id: 'sdk-user-edit',
+        sender: 'user',
+        sourceChannel: 'sdk:display-rows',
+      }),
+    ]);
   });
 
   test('does not copy renderer screenshot metadata into text-only SDK user projections', () => {

@@ -185,6 +185,11 @@ So new-chat resets local store regardless, while active backend loop receives st
 8. clear sending/thinking flags
 9. clear the opening marker, close dashboard overlays, and keep chat surface active
 
+Conversation-view display row to component-message projection is performed by
+`DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`.
+Feature components should pass the SDK view and the local pending bridge state
+to that app-runtime helper instead of rebuilding display-row merge rules.
+
 This path intentionally does not call `startNewChatSession`; it restores an existing conversation ref.
 
 During active loops, dashboard history switching is allowed. In-flight events continue writing to their originating workspace, while the shell renders whichever conversation is currently active.

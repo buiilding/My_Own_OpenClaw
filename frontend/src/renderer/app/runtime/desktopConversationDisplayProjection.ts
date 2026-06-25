@@ -3,6 +3,7 @@
  */
 
 import type { ChatMessage } from './desktopChatMessageTypes';
+import type { ConversationView } from './desktopConversationRuntimeContracts';
 import {
   buildChatMessagesFromSdkDisplayRows,
 } from '../../infrastructure/transcript/sdkDisplayChatMessageProjection';
@@ -22,6 +23,13 @@ type PendingTurnLike = {
 
 type MergeRendererAnnotationsOptions = {
   pendingTurn?: PendingTurnLike;
+};
+
+type BuildConversationViewMessagesInput = {
+  conversationView?: ConversationView | null;
+  currentMessages?: ChatMessage[];
+  pendingTurn?: PendingTurnLike;
+  preserveRendererAnnotations?: boolean;
 };
 
 function recordFromUnknown(value: unknown): Record<string, unknown> | null {
@@ -152,6 +160,29 @@ function mergeRendererAnnotationsIntoSdkMessages(
   return mergePendingOptimisticUserMessages(
     mergedSdkMessages,
     pendingOptimisticUserMessages(mergedSdkMessages, currentMessages),
+  );
+}
+
+function buildConversationViewChatMessages({
+  conversationView = null,
+  currentMessages = [],
+  pendingTurn = null,
+  preserveRendererAnnotations = false,
+}: BuildConversationViewMessagesInput): ChatMessage[] {
+  if (!conversationView || typeof conversationView !== 'object') {
+    return [];
+  }
+  const displayRows = Array.isArray(conversationView.displayRows)
+    ? conversationView.displayRows
+    : [];
+  const sdkMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
+  if (!preserveRendererAnnotations) {
+    return sdkMessages;
+  }
+  return mergeRendererAnnotationsIntoSdkMessages(
+    sdkMessages,
+    currentMessages,
+    { pendingTurn },
   );
 }
 
@@ -321,6 +352,7 @@ function buildDisplayProjectionTraceSummary({
 }
 
 export const DesktopConversationDisplayProjection = Object.freeze({
+  buildConversationViewChatMessages,
   buildDisplayProjectionTraceSummary,
   buildChatMessagesFromSdkDisplayRows,
   mergeRendererAnnotationsIntoSdkMessages,

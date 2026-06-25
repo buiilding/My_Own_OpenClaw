@@ -60,8 +60,7 @@ const { buildThreadFindState } = DesktopThreadFindRuntime;
 const { isDevUiEnabled } = DesktopDevUiRuntime;
 const { startNewChatSession } = DesktopNewChatSessionRuntime;
 const {
-  buildChatMessagesFromSdkDisplayRows,
-  mergeRendererAnnotationsIntoSdkMessages,
+  buildConversationViewChatMessages,
 } = DesktopConversationDisplayProjection;
 
 function normalizeRevisionId(revisionId) {
@@ -438,14 +437,12 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     if (!conversationRef) {
       return;
     }
-    const preservesCurrentConversationAnnotations = conversationRef === activeConversationRef;
-    const displayRows = Array.isArray(view.displayRows) ? view.displayRows : [];
-    const sdkMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
-    const mergedMessages = mergeRendererAnnotationsIntoSdkMessages(
-      sdkMessages,
-      preservesCurrentConversationAnnotations ? messages : [],
-      { pendingTurn: preservesCurrentConversationAnnotations ? pendingTurn : null },
-    );
+    const mergedMessages = buildConversationViewChatMessages({
+      conversationView: view,
+      currentMessages: messages,
+      pendingTurn,
+      preserveRendererAnnotations: conversationRef === activeConversationRef,
+    });
     setConversationView(view, conversationRef);
     setMessages(mergedMessages, conversationRef);
   }, [

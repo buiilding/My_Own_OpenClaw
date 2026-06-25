@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/store: move SDK current-turn projection identity matching behind an
   app-runtime state helper so `chatStore` no longer owns the stop-target
   matching rule. No migration required.
+- frontend/chat: route `ConversationView.displayRows` message construction for
+  the chat interface through the display projection runtime, keeping SDK row
+  merge rules out of the component. No migration required.
 - frontend/renderer: move pending-turn user-row construction out of
   `chatStore.ts` into an app-runtime pending bridge helper shared by normal
   sends and replay. The store now mutates workspace state without hard-coding

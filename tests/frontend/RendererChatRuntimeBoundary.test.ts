@@ -2954,6 +2954,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts'),
       'utf8',
     );
+    const chatInterfaceSource = await fs.readFile(
+      path.join(chatRoot, 'components/ChatInterface.jsx'),
+      'utf8',
+    );
     const chatStoreSource = await fs.readFile(
       path.join(chatRoot, 'stores/chatStore.ts'),
       'utf8',
@@ -2985,6 +2989,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('screenshot_refs');
     expect(displayAttachmentProjectionSource).toContain('readSdkDisplayAttachments');
     expect(displayAttachmentProjectionSource).not.toContain('screenshot_refs');
+    expect(chatInterfaceSource).toContain('buildConversationViewChatMessages');
+    expect(chatInterfaceSource).not.toContain('buildChatMessagesFromSdkDisplayRows');
+    expect(chatInterfaceSource).not.toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(source).toContain('packages/windie-sdk-js/src/conversation/types.js');
     expect(source).not.toContain("packages/windie-sdk-js/src';");
     expect(source).not.toContain('features/chat');
