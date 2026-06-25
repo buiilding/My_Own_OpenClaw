@@ -248,30 +248,6 @@ describe('MessageList assistant actions', () => {
     expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-1');
   });
 
-  test('hides try-again while preserving copy and feedback actions when retry is disabled', () => {
-    jest.useFakeTimers();
-
-    render(
-      <MessageList
-        messages={[
-          { id: 'assistant-1', text: 'final answer', sender: 'assistant', type: 'llm-text', isComplete: true },
-        ]}
-        thinkingStatus={null}
-        enableAssistantActions
-        canRetryMessages={false}
-      />,
-    );
-
-    act(() => {
-      jest.advanceTimersByTime(2000);
-    });
-
-    expect(screen.getByRole('button', { name: 'Copy assistant message' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Like response' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Dislike response' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
-  });
-
   test('submits user message edits and keeps the editor busy until replay dispatch resolves', async () => {
     let resolveEdit;
     const onUserEdit = jest.fn(() => new Promise((resolve) => {
@@ -308,22 +284,6 @@ describe('MessageList assistant actions', () => {
     await waitFor(() => {
       expect(screen.queryByRole('group', { name: 'Edit user message' })).not.toBeInTheDocument();
     });
-  });
-
-  test('hides edit and resend while preserving user copy when edit is disabled', () => {
-    render(
-      <MessageList
-        messages={[
-          { id: 'user-1', text: 'old text', sender: 'user', type: 'user' },
-        ]}
-        thinkingStatus={null}
-        enableUserActions
-        canEditMessages={false}
-      />,
-    );
-
-    expect(screen.getByRole('button', { name: 'Copy user message' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Edit and resend' })).not.toBeInTheDocument();
   });
 
   test('keeps user message editor open when replay dispatch reports failure', async () => {

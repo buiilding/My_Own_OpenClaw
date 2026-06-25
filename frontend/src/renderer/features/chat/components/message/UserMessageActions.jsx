@@ -9,7 +9,6 @@ import { useCopyMessageAction } from '../../hooks/useCopyMessageAction';
 function UserMessageActions({
   messageId,
   messageText = '',
-  canEdit = true,
   onEdit = null,
 }) {
   const { copySuccess, handleCopy } = useCopyMessageAction({
@@ -18,7 +17,7 @@ function UserMessageActions({
   });
 
   const handleEdit = () => {
-    if (!canEdit || typeof onEdit !== 'function') {
+    if (typeof onEdit !== 'function') {
       return;
     }
     onEdit(messageId, messageText);
@@ -35,17 +34,15 @@ function UserMessageActions({
       >
         {copySuccess ? <Check size={16} /> : <Copy size={16} />}
       </button>
-      {canEdit ? (
-        <button
-          type="button"
-          className="user-action-btn"
-          onClick={handleEdit}
-          aria-label="Edit and resend"
-          title="Edit and resend"
-        >
-          <Pencil size={16} />
-        </button>
-      ) : null}
+      <button
+        type="button"
+        className="user-action-btn"
+        onClick={handleEdit}
+        aria-label="Edit and resend"
+        title="Edit and resend"
+      >
+        <Pencil size={16} />
+      </button>
     </div>
   );
 }
@@ -53,7 +50,6 @@ function UserMessageActions({
 UserMessageActions.propTypes = {
   messageId: PropTypes.string.isRequired,
   messageText: PropTypes.string,
-  canEdit: PropTypes.bool,
   onEdit: PropTypes.func,
 };
 

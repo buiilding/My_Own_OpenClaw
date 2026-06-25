@@ -44,11 +44,6 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/test: use repo-relative Jest `testMatch` globs so documented
   `<windie> test frontend -- ...` commands discover tests from Windows
   `.codex` worktree paths. No migration required.
-- frontend/renderer: gate edit/resend and try-again command rendering from SDK
-  `ConversationView.actions` when a view exists. Copy and feedback actions
-  remain renderer-local, row type still constrains which rows can show commands,
-  and replay execution remains on the existing display-timeline path while the
-  later Phase 4 SDK revision operation lands. No migration required.
 - docs/plans: add the Desktop UI Config Store Authority plan for replacing the
   duplicate Electron-main desktop UI config cache with a single main-owned
   config store runtime, keeping disk as persistence only while query-time Agent

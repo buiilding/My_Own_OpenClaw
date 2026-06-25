@@ -1927,55 +1927,8 @@ describe('ChatInterface wiring', () => {
     const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
     expect(lastMessageListProps.enableAssistantActions).toBe(true);
     expect(lastMessageListProps.disableAssistantActions).toBe(false);
-    expect(lastMessageListProps.canRetryMessages).toBe(true);
-    expect(lastMessageListProps.canEditMessages).toBe(true);
     expect(typeof lastMessageListProps.onAssistantFeedbackChange).toBe('function');
     expect(typeof lastMessageListProps.onAssistantTryAgain).toBe('function');
-  });
-
-  test('ConversationView action metadata gates edit and retry commands', () => {
-    mockChatState.messages = [
-      { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
-      { id: 'assistant-1', sender: 'assistant', text: 'world', type: 'llm-text', isComplete: true },
-    ];
-    mockChatState.conversationView = {
-      conversationRef: 'conv_existing',
-      revisionId: 'rev-view',
-      displayRows: [],
-      liveTurn: {
-        turnRef: null,
-        phase: 'idle',
-        entries: [],
-        isBusy: false,
-        isTerminal: true,
-        canStop: false,
-        lastError: null,
-      },
-      surfaces: {
-        pill: { mode: 'idle' },
-        dashboard: { mode: 'idle' },
-        responseOverlay: {
-          mode: 'hidden',
-          visible: false,
-          guardRef: null,
-          ownerConversationRef: 'conv_existing',
-          turnRef: null,
-        },
-      },
-      actions: {
-        canEdit: false,
-        canRetry: false,
-        canFork: true,
-      },
-    };
-
-    render(<ChatInterface />);
-
-    const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
-    expect(lastMessageListProps.enableAssistantActions).toBe(true);
-    expect(lastMessageListProps.enableUserActions).toBe(true);
-    expect(lastMessageListProps.canRetryMessages).toBe(false);
-    expect(lastMessageListProps.canEditMessages).toBe(false);
   });
 
   test('keeps assistant actions enabled when only raw isSending is stale', () => {

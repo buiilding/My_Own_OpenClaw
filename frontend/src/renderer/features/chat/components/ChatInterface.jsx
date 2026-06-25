@@ -260,13 +260,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   );
   const showReasoningModeSelector = reasoningModeOptions.length > 1;
   const devUiEnabled = isDevUiEnabled();
-  const hasConversationView = Boolean(conversationView && typeof conversationView === 'object');
-  const canEditMessages = hasConversationView
-    ? conversationView?.actions?.canEdit === true
-    : true;
-  const canRetryMessages = hasConversationView
-    ? conversationView?.actions?.canRetry === true
-    : true;
   const [providerMenuOpen, setProviderMenuOpen] = useState(false);
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
   const [reasoningModeMenuOpen, setReasoningModeMenuOpen] = useState(false);
@@ -569,8 +562,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
             enableAssistantActions
             enableUserActions
             disableAssistantActions={composerBusy || canStop}
-            canRetryMessages={canRetryMessages}
-            canEditMessages={canEditMessages}
             onAssistantFeedbackChange={handleAssistantFeedbackChange}
             onAssistantTryAgain={handleTryAgainFromAssistant}
             onUserEdit={handleEditFromUser}

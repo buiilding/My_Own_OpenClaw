@@ -16,7 +16,6 @@ function AssistantMessageActions({
   feedback = null,
   disabled = false,
   visible = true,
-  canTryAgain = true,
   onFeedbackChange,
   onTryAgain,
 }) {
@@ -61,7 +60,7 @@ function AssistantMessageActions({
   };
 
   const handleTryAgain = () => {
-    if (!canTryAgain || disabled || typeof onTryAgain !== 'function') {
+    if (disabled || typeof onTryAgain !== 'function') {
       return;
     }
     onTryAgain(messageId);
@@ -104,18 +103,16 @@ function AssistantMessageActions({
           >
             <ThumbsDown size={16} />
           </button>
-          {canTryAgain ? (
-            <button
-              type="button"
-              className="assistant-action-btn"
-              onClick={handleTryAgain}
-              aria-label="Try again"
-              title="Try again"
-              disabled={disabled}
-            >
-              <RotateCcw size={16} />
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className="assistant-action-btn"
+            onClick={handleTryAgain}
+            aria-label="Try again"
+            title="Try again"
+            disabled={disabled}
+          >
+            <RotateCcw size={16} />
+          </button>
         </>
       ) : null}
     </div>
@@ -128,7 +125,6 @@ AssistantMessageActions.propTypes = {
   feedback: PropTypes.oneOf(['like', 'dislike', null]),
   disabled: PropTypes.bool,
   visible: PropTypes.bool,
-  canTryAgain: PropTypes.bool,
   onFeedbackChange: PropTypes.func,
   onTryAgain: PropTypes.func,
 };

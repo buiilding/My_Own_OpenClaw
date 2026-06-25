@@ -144,7 +144,6 @@ const CORE_LOOP_REGRESSION_PACK_TESTS = Object.freeze([
   'ChatStore.test.ts',
   'ChatSurfaceController.test.jsx',
   'ChatInterfaceWiring.test.jsx',
-  'MessageListAssistantActions.test.jsx',
   'ConversationReplayActions.test.jsx',
   'UseDashboardConversations.test.jsx',
   'DesktopConversationLibraryClient.test.ts',

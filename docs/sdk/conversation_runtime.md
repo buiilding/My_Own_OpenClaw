@@ -244,12 +244,6 @@ renderer display-row facades prefer `snapshot.view.displayRows` before the
 legacy `snapshot.displayRows` fallback.
 The separate `snapshot.displayRows`/display-rows stream remains a temporary
 fallback while non-view hosts and later dashboard loaders migrate.
-For the first Phase 4 action migration, renderer chat surfaces read
-`snapshot.view.actions.canEdit` and `snapshot.view.actions.canRetry` when a
-view exists before rendering edit/resend or Try again commands. Message row type
-still provides row-level capability gating, copy/feedback actions remain
-renderer-local affordances, and replay execution still uses the existing
-display-timeline path until the later SDK-owned revision operation replaces it.
 
 For debugging, use:
 
