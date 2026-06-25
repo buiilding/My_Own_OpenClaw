@@ -269,8 +269,74 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     });
     expect(runtime.rehydrateMessages).not.toHaveBeenCalled();
     expect(runtime.send).toHaveBeenCalledWith({
-      conversation_ref: 'conv-2',
       text: 'hello',
+      turnRef: undefined,
+      payload: {
+        conversation_ref: 'conv-2',
+      },
+      resources: undefined,
+      metadata: undefined,
+      model: undefined,
+    });
+  });
+
+  test('maps AgentQueryInput fields into the conversation runtime send payload', async () => {
+    const runtime = createRuntime();
+    const agent = createAgent(() => runtime);
+    const adapter = createDirectWakeUpAgentAdapter({
+      agent,
+      deps: createDeps(),
+    });
+    const agentDefinition = {
+      system_prompt: { mode: 'replace', content: 'Use saved config.' },
+      tools: {
+        mode: 'explicit',
+        disabled_tools: ['mouse_control'],
+        client_manifest: { version: 1, tools: [] },
+      },
+    };
+    const resources = [{ type: 'file', id: 'file-1' }];
+    const metadata = { source: 'renderer' };
+    const model = { modelProvider: 'scripted', modelId: 'scripted-runtime' };
+
+    await adapter.run({
+      text: 'hello',
+      conversationRef: 'conv-agent-input',
+      turnRef: 'turn-1',
+      backendPayload: {
+        text: 'hello',
+        conversation_ref: 'conv-agent-input',
+      },
+      agentDefinition,
+      content: '<user_query>hello</user_query>',
+      screenshotRef: 'art-1',
+      screenshotRefs: ['art-1'],
+      attachmentContext: 'attachment summary',
+      attachmentFilenames: ['notes.txt'],
+      systemStateInternal: { platform: 'darwin' },
+      workspacePath: '/repo',
+      resources,
+      metadata,
+    }, { model });
+
+    expect(runtime.send).toHaveBeenCalledWith({
+      text: 'hello',
+      turnRef: 'turn-1',
+      payload: {
+        text: 'hello',
+        conversation_ref: 'conv-agent-input',
+        agent_definition: agentDefinition,
+        content: '<user_query>hello</user_query>',
+        screenshot_ref: 'art-1',
+        screenshot_refs: ['art-1'],
+        attachment_context: 'attachment summary',
+        attachment_filenames: ['notes.txt'],
+        system_state_internal: { platform: 'darwin' },
+        workspace_path: '/repo',
+      },
+      resources,
+      metadata,
+      model,
     });
   });
 

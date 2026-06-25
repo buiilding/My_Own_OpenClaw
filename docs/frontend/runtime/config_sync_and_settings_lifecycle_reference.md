@@ -155,6 +155,12 @@ Behavior:
   so edit/resend or replay payloads cannot resurrect stale prompts or client
   tool manifests while still preserving additive supplied prompt layers and
   runtime metadata
+- the direct wake-up adapter must translate Electron main's `AgentQueryInput`
+  into `ConversationRuntime.send` input by placing the query-local
+  `agent_definition`, screenshots, attachments, workspace state, resources,
+  metadata, and model override in the runtime-owned fields. Passing only
+  top-level `agentDefinition` or `backendPayload` drops those fields before the
+  backend websocket query.
 - disk save failures still report save-status errors, but the live Electron
   session keeps using the latest redacted renderer config until the user changes
   or reloads settings

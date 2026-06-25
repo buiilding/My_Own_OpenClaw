@@ -34,6 +34,11 @@ All notable changes to WindieOS will be documented in this file.
   authoritative when query payloads already carry an `agent_definition`, so
   edit/resend and replay cannot resurrect stale client tool manifests or old
   custom prompts after Agent settings change. No migration required.
+- frontend/main: translate SDK `AgentQueryInput` fields into
+  `ConversationRuntime.send` payloads inside the direct wake-up adapter, so
+  query-local Agent definitions, disabled-tool manifests, screenshots,
+  attachments, workspace state, and model overrides reach backend dispatch
+  instead of falling back to startup agent defaults. No migration required.
 - skills: add a runtime tracing skill that documents when to use durable
   conversation traces, persistent app diagnostics, or gated live-surface traces
   for repeatable long-running agent loop evidence. No migration required.

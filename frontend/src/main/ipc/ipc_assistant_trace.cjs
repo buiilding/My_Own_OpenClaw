@@ -315,6 +315,13 @@ function createElectronMainTraceLogger({
 
   function traceRendererQuery(input = {}) {
     const payload = safeObject(input.payload);
+    const agentDefinition = safeObject(payload.agent_definition);
+    const tools = safeObject(agentDefinition.tools);
+    const clientManifest = safeObject(tools.client_manifest);
+    const clientTools = Array.isArray(clientManifest.tools) ? clientManifest.tools : [];
+    const disabledTools = Array.isArray(tools.disabled_tools) ? tools.disabled_tools : [];
+    const enabledRemoteTools = Array.isArray(tools.enabled_remote_tools) ? tools.enabled_remote_tools : [];
+    const systemPrompt = safeObject(agentDefinition.system_prompt);
     const turnRef = safeId(input.queryMessageId);
     const conversationRef = safeId(input.conversationRef);
     record({
@@ -325,12 +332,22 @@ function createElectronMainTraceLogger({
       turnRef: turnRef !== '-' ? turnRef : null,
       textLength: typeof payload.text === 'string' ? payload.text.length : 0,
       resourceCount: Array.isArray(payload.resources) ? payload.resources.length : 0,
+      hasAgentDefinition: Object.keys(agentDefinition).length > 0,
+      agentDefinitionMode: typeof agentDefinition.mode === 'string' ? agentDefinition.mode : null,
+      agentToolMode: typeof tools.mode === 'string' ? tools.mode : null,
+      clientManifestToolCount: clientTools.length,
+      disabledToolCount: disabledTools.length,
+      enabledRemoteToolCount: enabledRemoteTools.length,
+      systemPromptMode: typeof systemPrompt.mode === 'string' ? systemPrompt.mode : null,
     });
     return emit('renderer', 'query.send', [
       `turn=${turnRef}`,
       `conv=${conversationRef}`,
       `text_len=${typeof payload.text === 'string' ? payload.text.length : 0}`,
       `resources=${Array.isArray(payload.resources) ? payload.resources.length : 0}`,
+      `agent=${Object.keys(agentDefinition).length > 0 ? 'true' : 'false'}`,
+      `client_tools=${clientTools.length}`,
+      `disabled_tools=${disabledTools.length}`,
     ].join(' '));
   }
 
