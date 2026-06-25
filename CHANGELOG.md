@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: remove renderer user-message filename-chip display
+  fallback so visible user attachments render only from SDK typed
+  `attachments[]`. No migration required.
 - frontend/surface: move chat busy/stop surface authority resolution behind a
   renderer app-runtime helper so React surface hooks no longer branch over
   `ConversationView.surfaces`, SDK live-turn stop availability, and raw

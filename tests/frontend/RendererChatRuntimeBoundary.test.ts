@@ -2148,6 +2148,8 @@ describe('renderer chat runtime boundary', () => {
     expect(userMessageSource).not.toContain('SHOW_IMAGE_CONTEXT_MENU');
     expect(userMessageSource).not.toContain('IpcBridge.invoke');
     expect(userMessageSource).toContain('AttachmentList');
+    expect(userMessageSource).not.toContain('attachmentFilenames');
+    expect(userMessageSource).not.toContain('user-file-attachments');
     expect(attachmentRegistrySource).toContain('DesktopArtifactRuntimeClient.showImageContextMenu');
     expect(toolOutputSource).toContain('AttachmentList');
     expect(toolOutputSource).not.toContain('DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrc');

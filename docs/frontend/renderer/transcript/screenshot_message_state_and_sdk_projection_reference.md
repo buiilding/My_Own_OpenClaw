@@ -61,6 +61,9 @@ screenshot state. Renderer feature code should render image descriptors through
 `AttachmentList`/`AttachmentRendererRegistry`; those components resolve ready
 artifact-backed images with
 `DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc`.
+`UserMessage` must not render `attachmentFilenames[]` as a separate visible
+fallback; filename metadata is compatibility/context data until the SDK display
+row provides typed `attachments[]`.
 
 There is no renderer `buildMessageScreenshotState(...)` whole-message facade.
 Renderer chat rows should receive typed `attachments[]`; artifact-backed image

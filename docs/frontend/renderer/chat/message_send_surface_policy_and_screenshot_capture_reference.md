@@ -127,9 +127,11 @@ When attachment(s) exist:
      pending row.
 4. accept the pending turn locally and send `windie:pending-turn` so Electron
    main can broadcast/replay the optimistic user row across renderer windows.
-   The pending bridge carries identity, text, timestamp, and filename chips
-   only; SDK display projection owns image/screenshot attachment states and
-   preview/ready artifact descriptors.
+   The pending bridge carries identity, text, timestamp, and filename metadata
+   only; SDK display projection owns visible image/screenshot attachment states
+   and preview/ready artifact descriptors. Renderer `UserMessage` display
+   consumes typed SDK `attachments[]` only and does not render filename metadata
+   as a separate attachment fallback.
 5. run send-surface window policy only (optional return-to-chatbox behavior).
 6. build typed SDK turn resources:
    - `clipboard_image` for pasted/selected images

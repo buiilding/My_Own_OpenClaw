@@ -4,6 +4,7 @@
 
 import { render, screen } from '@testing-library/react';
 import AttachmentList from '../../frontend/src/renderer/features/chat/components/message/content/AttachmentList';
+import UserMessage from '../../frontend/src/renderer/features/chat/components/message/content/UserMessage';
 
 const mockUseResolvedArtifactImageSrc = jest.fn((attachment) => {
   const ref = attachment?.screenshotRef;
@@ -169,5 +170,36 @@ describe('AttachmentList', () => {
     );
 
     expect(screen.getByRole('img')).toHaveAttribute('src', 'resolved://artifact-ready');
+  });
+});
+
+describe('UserMessage attachments', () => {
+  beforeEach(() => {
+    mockUseResolvedArtifactImageSrc.mockClear();
+    mockUseResolvedArtifactImageSrc.mockImplementation((attachment) => {
+      const ref = attachment?.screenshotRef;
+      return ref ? `resolved://${ref}` : null;
+    });
+  });
+
+  test('renders typed attachments and ignores filename metadata as display fallback', () => {
+    render(
+      <UserMessage
+        message={{
+          text: 'Please inspect this',
+          attachmentFilenames: ['legacy-name.png'],
+          attachments: [{
+            id: 'attachment-ready',
+            kind: 'image',
+            source: 'user_included',
+            status: 'ready',
+            screenshotRef: 'artifact-ready',
+          }],
+        }}
+      />,
+    );
+
+    expect(screen.getByRole('img')).toHaveAttribute('src', 'resolved://artifact-ready');
+    expect(screen.queryByText('legacy-name.png')).not.toBeInTheDocument();
   });
 });
