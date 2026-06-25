@@ -3108,6 +3108,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('Object.keys(latestUpdate)');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildConversationViewWorkspaceMutation');
     expect(conversationViewWorkspaceRuntimeSource).toContain('hasLatestConversationViewUpdate');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('shouldClearPendingTurnForConversationView');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('pendingTurn: null');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('features/chat');
     expect(pendingStateRuntimeSource).toContain('normalizePendingTurn');
     expect(pendingStateRuntimeSource).toContain('doesPendingTurnMatch');

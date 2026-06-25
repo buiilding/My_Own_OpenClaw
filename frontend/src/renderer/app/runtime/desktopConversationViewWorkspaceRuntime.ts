@@ -2,6 +2,8 @@ import type { ConversationView } from './desktopConversationRuntimeContracts';
 
 type ConversationViewWorkspace = {
   conversationView: ConversationView | null;
+  isSending?: boolean;
+  pendingTurn?: unknown | null;
 };
 
 type ConversationViewWorkspaceMutation<TWorkspace extends ConversationViewWorkspace> = {
@@ -9,6 +11,83 @@ type ConversationViewWorkspaceMutation<TWorkspace extends ConversationViewWorksp
   hasLatestConversationViewUpdate: boolean;
   latestConversationView: ConversationView | null;
 };
+
+function normalizeString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function normalizePendingTurn(value: unknown): {
+  conversationRef: string;
+  turnRef: string;
+} | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const source = value as Record<string, unknown>;
+  const conversationRef = normalizeString(source.conversationRef);
+  const turnRef = normalizeString(source.turnRef);
+  return conversationRef && turnRef
+    ? { conversationRef, turnRef }
+    : null;
+}
+
+function normalizeConversationViewLiveTurn(conversationView: ConversationView | null): {
+  conversationRef: string;
+  turnRef: string;
+  isAuthoritative: boolean;
+} | null {
+  if (!conversationView || typeof conversationView !== 'object') {
+    return null;
+  }
+  const conversationRef = normalizeString(conversationView.conversationRef);
+  const liveTurn = conversationView.liveTurn && typeof conversationView.liveTurn === 'object'
+    ? conversationView.liveTurn as Record<string, unknown>
+    : null;
+  const surfaces = conversationView.surfaces && typeof conversationView.surfaces === 'object'
+    ? conversationView.surfaces as Record<string, unknown>
+    : null;
+  const responseOverlay = surfaces?.responseOverlay && typeof surfaces.responseOverlay === 'object'
+    ? surfaces.responseOverlay as Record<string, unknown>
+    : null;
+  const turnRef = (
+    normalizeString(liveTurn?.turnRef)
+    || normalizeString(responseOverlay?.turnRef)
+  );
+  const phase = normalizeString(liveTurn?.phase);
+  const responseMode = normalizeString(responseOverlay?.mode);
+  const entries = Array.isArray(liveTurn?.entries) ? liveTurn.entries : [];
+  const isAuthoritative = Boolean(
+    responseMode === 'awaiting'
+      || responseMode === 'typing'
+      || responseMode === 'response'
+      || liveTurn?.isBusy === true
+      || liveTurn?.isTerminal === true
+      || entries.length > 0
+      || phase === 'awaiting'
+      || phase === 'streaming'
+      || phase === 'tool_call'
+      || phase === 'tool_output'
+      || phase === 'complete'
+      || phase === 'error'
+  );
+  return conversationRef && turnRef
+    ? { conversationRef, turnRef, isAuthoritative }
+    : null;
+}
+
+function shouldClearPendingTurnForConversationView(
+  pendingTurn: unknown,
+  conversationView: ConversationView | null,
+): boolean {
+  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
+  const normalizedViewTurn = normalizeConversationViewLiveTurn(conversationView);
+  return Boolean(
+    normalizedPendingTurn
+      && normalizedViewTurn?.isAuthoritative
+      && normalizedPendingTurn.conversationRef === normalizedViewTurn.conversationRef
+      && normalizedPendingTurn.turnRef === normalizedViewTurn.turnRef,
+  );
+}
 
 function buildConversationViewWorkspaceMutation<TWorkspace extends ConversationViewWorkspace>({
   conversationView,
@@ -22,20 +101,28 @@ function buildConversationViewWorkspaceMutation<TWorkspace extends ConversationV
   latestConversationView: ConversationView | null;
 }): ConversationViewWorkspaceMutation<TWorkspace> | null {
   const hasWorkspaceUpdate = currentWorkspace.conversationView !== conversationView;
+  const shouldClearPendingTurn = shouldClearPendingTurnForConversationView(
+    currentWorkspace.pendingTurn,
+    conversationView,
+  );
   const hasLatestConversationViewUpdate = (
     isActiveWorkspace
     && latestConversationView !== conversationView
   );
 
-  if (!hasWorkspaceUpdate && !hasLatestConversationViewUpdate) {
+  if (!hasWorkspaceUpdate && !shouldClearPendingTurn && !hasLatestConversationViewUpdate) {
     return null;
   }
 
   return {
-    workspace: hasWorkspaceUpdate
+    workspace: hasWorkspaceUpdate || shouldClearPendingTurn
       ? {
         ...currentWorkspace,
         conversationView,
+        ...(shouldClearPendingTurn ? {
+          pendingTurn: null,
+          isSending: false,
+        } : {}),
       }
       : currentWorkspace,
     hasLatestConversationViewUpdate,
@@ -47,4 +134,5 @@ function buildConversationViewWorkspaceMutation<TWorkspace extends ConversationV
 
 export const DesktopConversationViewWorkspaceRuntime = Object.freeze({
   buildConversationViewWorkspaceMutation,
+  shouldClearPendingTurnForConversationView,
 });

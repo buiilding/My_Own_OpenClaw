@@ -82,6 +82,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/store: move conversation-view workspace and latest-view update
   decisions into an app-runtime helper so `chatStore.ts` no longer owns SDK
   `ConversationView` cache semantics. No migration required.
+- frontend/store: clear same-turn renderer pending state from the
+  conversation-view workspace runtime when an authoritative SDK
+  `ConversationView.liveTurn` arrives, keeping the pending bridge from
+  competing with SDK view authority. No migration required.
 - frontend/renderer: move pending-turn user-row construction out of
   `chatStore.ts` into an app-runtime pending bridge helper shared by normal
   sends and replay. The store now mutates workspace state without hard-coding
