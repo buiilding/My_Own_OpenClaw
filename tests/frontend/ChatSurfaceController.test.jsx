@@ -24,15 +24,9 @@ function renderController({
   updateConfig = jest.fn(),
   props = {},
 } = {}) {
-  const wrapper = ({ children }) => (
-    <AppConfigContext.Provider value={{ config, updateConfig }}>
-      {children}
-    </AppConfigContext.Provider>
-  );
-
-  const hook = renderHook(() => useChatSurfaceController({
-    messages: [{ id: 'user-1', type: 'user', sender: 'user', text: 'hello' }],
-    currentTurnProjection: {
+  const {
+    messages = [{ id: 'user-1', type: 'user', sender: 'user', text: 'hello' }],
+    currentTurnProjection = {
       phase: 'streaming',
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
@@ -41,6 +35,23 @@ function renderController({
       toolEvents: [],
       lastError: null,
     },
+    conversationView = null,
+    pendingTurn = null,
+    ...controllerProps
+  } = props;
+  const wrapper = ({ children }) => (
+    <AppConfigContext.Provider value={{ config, updateConfig }}>
+      {children}
+    </AppConfigContext.Provider>
+  );
+
+  const hook = renderHook(() => useChatSurfaceController({
+    chatSurfaceState: {
+      messages,
+      currentTurnProjection,
+      conversationView,
+      pendingTurn,
+    },
     sessionInfo: {
       conversationRef: 'conv-1',
       userId: 'user-1',
@@ -48,7 +59,7 @@ function renderController({
     setThinkingStatus: jest.fn(),
     setThinkingSourceEventType: jest.fn(),
     warningContext: 'ControllerTest',
-    ...props,
+    ...controllerProps,
   }), { wrapper });
 
   return {

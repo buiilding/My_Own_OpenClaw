@@ -62,6 +62,7 @@ const {
   }) => ChatWorkspaceState | null;
 };
 const {
+  projectDesktopChatSurfaceState,
   projectDesktopChatInterfaceState,
   projectDesktopLiveTurnSurfaceState,
 } = DesktopChatSurfaceSelectorRuntime;
@@ -223,6 +224,12 @@ interface ChatState {
 
 export function selectChatInterfaceState(state: ChatState) {
   return projectDesktopChatInterfaceState(selectActiveWorkspaceState(state));
+}
+
+export function selectChatInterfaceSurfaceState(state: ChatState) {
+  return projectDesktopChatSurfaceState({
+    activeWorkspace: selectActiveWorkspaceState(state),
+  });
 }
 
 export function selectLiveTurnSurfaceState(state: ChatState) {

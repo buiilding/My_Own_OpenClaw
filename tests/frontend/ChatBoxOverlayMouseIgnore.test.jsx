@@ -141,8 +141,46 @@ const mockChatState = {
   setActiveConversationRef: (...args) => mockSetActiveConversationRef(...args),
   streamTracking: { phase: 'idle' },
   currentTurnProjection: null,
+  conversationView: null,
   pendingTurn: null,
 };
+
+function setMockConversationView({
+  conversationRef = 'conv-overlay',
+  turnRef = 'turn-active',
+  phase = 'streaming',
+} = {}) {
+  mockChatState.conversationView = {
+    conversationRef,
+    revisionId: 'rev-overlay',
+    displayRows: [],
+    liveTurn: {
+      turnRef,
+      phase,
+      entries: [{ id: 'entry-active', text: 'active stream' }],
+      isBusy: true,
+      isTerminal: false,
+      canStop: true,
+      lastError: null,
+    },
+    surfaces: {
+      pill: { mode: 'busy' },
+      dashboard: { mode: 'busy' },
+      responseOverlay: {
+        mode: 'response',
+        visible: true,
+        guardRef: turnRef,
+        ownerConversationRef: conversationRef,
+        turnRef,
+      },
+    },
+    actions: {
+      canEdit: true,
+      canRetry: true,
+      canFork: true,
+    },
+  };
+}
 
 let mockConfig = {
   interaction_mode: 'chat',
@@ -243,6 +281,7 @@ describe('ChatBox overlay mouse ignore', () => {
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.currentTurnProjection = null;
+    mockChatState.conversationView = null;
     mockChatState.pendingTurn = null;
     resizeObserverInstances.length = 0;
     requestAnimationFrameCallbacks.clear();
@@ -498,12 +537,10 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('keeps pill controls interactive during active loop phases and shows stop', async () => {
-    mockChatState.currentTurnProjection = {
+    setMockConversationView({
       conversationRef: 'conv-overlay',
-      phase: 'streaming',
       turnRef: 'turn-active',
-      assistantText: 'active stream',
-    };
+    });
     render(<MinimalChatPill />);
 
     expect(screen.getByRole('button', { name: 'Open config' })).toBeEnabled();
@@ -521,18 +558,15 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
       conversationRef: 'conv-overlay',
       turnRef: 'turn-active',
-      currentTurnProjection: mockChatState.currentTurnProjection,
     });
   });
 
   test('stop targets the current-turn conversation when pill session ref is stale', async () => {
     mockChatState.activeConversationRef = 'conv-stale-session';
-    mockChatState.currentTurnProjection = {
+    setMockConversationView({
       conversationRef: 'conv-visible-turn',
-      phase: 'streaming',
       turnRef: 'turn-visible',
-      assistantText: 'visible stream',
-    };
+    });
     render(<MinimalChatPill />);
 
     await act(async () => {
@@ -543,7 +577,6 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
       conversationRef: 'conv-visible-turn',
       turnRef: 'turn-visible',
-      currentTurnProjection: mockChatState.currentTurnProjection,
     });
   });
 
@@ -904,12 +937,10 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('renders stop button during active stream', async () => {
-    mockChatState.currentTurnProjection = {
+    setMockConversationView({
       conversationRef: 'conv-overlay',
-      phase: 'streaming',
       turnRef: 'turn-active',
-      assistantText: 'active stream',
-    };
+    });
     render(<MinimalChatPill />);
 
     expect(screen.queryByRole('button', { name: 'Send message' })).not.toBeInTheDocument();
@@ -922,7 +953,6 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
       conversationRef: 'conv-overlay',
       turnRef: 'turn-active',
-      currentTurnProjection: mockChatState.currentTurnProjection,
     });
   });
 
@@ -948,7 +978,6 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
       conversationRef: 'conv-overlay',
       turnRef: 'turn-pending',
-      currentTurnProjection: null,
     });
   });
 

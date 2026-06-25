@@ -4,11 +4,13 @@
 
 import {
   selectChatInterfaceState,
+  selectChatInterfaceSurfaceState,
   selectLiveTurnSurfaceState,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { DesktopChatSurfaceSelectorRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime';
 
 const {
+  projectDesktopChatSurfaceState,
   projectDesktopChatInterfaceState,
   projectDesktopLiveTurnSurfaceState,
 } = DesktopChatSurfaceSelectorRuntime;
@@ -27,7 +29,8 @@ describe('chatSelectors', () => {
       pendingTurn: { turnRef: 'pending-turn' },
     };
 
-    expect(projectDesktopChatInterfaceState(activeWorkspace)).toEqual({
+    const interfaceState = projectDesktopChatInterfaceState(activeWorkspace);
+    expect(interfaceState).toEqual({
       messages: activeWorkspace.messages,
       thinkingStatus: 'thinking',
       thinkingSourceEventType: 'reasoning_delta',
@@ -37,7 +40,15 @@ describe('chatSelectors', () => {
       conversationView: null,
       pendingTurn: activeWorkspace.pendingTurn,
     });
-    expect(projectDesktopChatInterfaceState(activeWorkspace)).not.toHaveProperty('streamTracking');
+    expect(interfaceState).not.toHaveProperty('streamTracking');
+    expect(projectDesktopChatSurfaceState({
+      activeWorkspace,
+    })).toEqual({
+      messages: activeWorkspace.messages,
+      currentTurnProjection: activeWorkspace.currentTurnProjection,
+      conversationView: null,
+      pendingTurn: activeWorkspace.pendingTurn,
+    });
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
     })).toEqual(expect.objectContaining({
@@ -76,6 +87,12 @@ describe('chatSelectors', () => {
       pendingTurn: null,
     });
     expect(selectChatInterfaceState(state)).not.toHaveProperty('streamTracking');
+    expect(selectChatInterfaceSurfaceState(state)).toEqual({
+      messages: state.messages,
+      currentTurnProjection: null,
+      conversationView: null,
+      pendingTurn: null,
+    });
   });
 
   test('keeps selected object references (no cloning)', () => {
@@ -94,6 +111,7 @@ describe('chatSelectors', () => {
 
     expect(chatInterface.messages).toBe(messages);
     expect(chatInterface.tokenCounts).toBe(tokenCounts);
+    expect(selectChatInterfaceSurfaceState(state).messages).toBe(messages);
   });
 
   test('does not rebuild active dashboard rows from SDK current-turn state', () => {
@@ -246,6 +264,12 @@ describe('chatSelectors', () => {
 
     expect(selected.conversationView).toBe(view);
     expect(selected.currentTurnProjection).toBeNull();
+    expect(selected).toEqual({
+      messages: selected.messages,
+      currentTurnProjection: null,
+      conversationView: view,
+      pendingTurn: null,
+    });
   });
 
   test('ConversationView suppresses raw current-turn authority for dashboard chat state', () => {

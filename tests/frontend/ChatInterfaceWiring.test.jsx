@@ -1550,7 +1550,6 @@ describe('ChatInterface wiring', () => {
     expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
       conversationRef: 'conv_existing',
       turnRef: 'turn_test',
-      currentTurnProjection: null,
     });
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
   });
@@ -1582,7 +1581,6 @@ describe('ChatInterface wiring', () => {
     expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
       conversationRef: 'conv_visible_turn',
       turnRef: 'turn_visible',
-      currentTurnProjection: null,
     });
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
   });
@@ -1645,7 +1643,6 @@ describe('ChatInterface wiring', () => {
     expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
       conversationRef: 'conv_view',
       turnRef: 'turn_view',
-      currentTurnProjection: null,
     });
   });
 
@@ -1842,7 +1839,6 @@ describe('ChatInterface wiring', () => {
     expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
       conversationRef: 'conv_existing',
       turnRef: 'turn_test',
-      currentTurnProjection: null,
     });
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
   });
@@ -1916,7 +1912,6 @@ describe('ChatInterface wiring', () => {
     expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
       conversationRef: 'conv_existing',
       turnRef: 'turn_pending',
-      currentTurnProjection: null,
     });
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
   });
@@ -2029,10 +2024,6 @@ describe('ChatInterface wiring', () => {
 
     const renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
     expect(renderedMessages).toEqual([
-      expect.objectContaining({
-        id: 'user-1',
-        sender: 'user',
-      }),
       expect.objectContaining({
         id: 'view-entry-1',
         sender: 'assistant',
@@ -2279,7 +2270,7 @@ describe('ChatInterface wiring', () => {
     mockChatState.conversationView = {
       conversationRef: 'conv_existing',
       revisionId: 'rev-view',
-      displayRows: [],
+      displayRows: timelineRowsFromMessages(mockChatState.messages, 'conv_existing', 'rev-view'),
       liveTurn: {
         turnRef: null,
         phase: 'idle',

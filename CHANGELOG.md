@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/surface: route dashboard and minimal pill surface controls through
+  selector-projected `chatSurfaceState` so React call sites no longer assemble
+  the controller read model from separate chat store authorities. No migration
+  required.
 - frontend/pending: centralize renderer pending-turn bridge payload
   construction in `DesktopPendingTurnBridgeRuntime` so send and replay share
   one small pending bridge contract. No migration required.

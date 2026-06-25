@@ -8,7 +8,10 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import ChatInterfaceHeaderControls from './ChatInterfaceHeaderControls';
 import ChatFindBar from './ChatFindBar';
-import { selectChatInterfaceState, useChatStore } from '../stores/chatStore';
+import {
+  selectChatInterfaceState,
+  useChatStore,
+} from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import {
   useChatInterfaceAudioChunkStream,
@@ -39,6 +42,9 @@ import {
   DesktopChatInterfacePresentationRuntime,
 } from '../../../app/runtime/desktopChatInterfacePresentationRuntime';
 import {
+  DesktopChatSurfaceSelectorRuntime,
+} from '../../../app/runtime/desktopChatSurfaceSelectorRuntime';
+import {
   DesktopChatRevisionActionRuntime,
 } from '../../../app/runtime/desktopChatRevisionActionRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
@@ -62,6 +68,9 @@ const {
   buildChatInterfacePresentationState,
   resolveConversationViewStoreRef,
 } = DesktopChatInterfacePresentationRuntime;
+const {
+  projectDesktopChatSurfaceState,
+} = DesktopChatSurfaceSelectorRuntime;
 const {
   buildRevisionCheckoutCommand,
   buildRevisionForkCommand,
@@ -88,6 +97,14 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
+  const chatSurfaceState = useMemo(() => projectDesktopChatSurfaceState({
+    activeWorkspace: {
+      messages,
+      currentTurnProjection,
+      conversationView,
+      pendingTurn,
+    },
+  }), [conversationView, currentTurnProjection, messages, pendingTurn]);
   const clearMessages = useChatStore((state) => state.clearMessages);
   const setMessages = useChatStore((state) => state.setMessages);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
@@ -210,11 +227,8 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   }, [sessionInfo.conversationRef, startWorkspaceBoundNewChat]);
 
   const chatSurface = useChatSurfaceController({
-    messages,
-    currentTurnProjection,
-    conversationView,
+    chatSurfaceState,
     conversationViewSurface: 'dashboard',
-    pendingTurn,
     sessionInfo,
     setThinkingStatus,
     setThinkingSourceEventType,

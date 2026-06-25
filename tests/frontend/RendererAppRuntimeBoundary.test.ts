@@ -552,8 +552,10 @@ describe('renderer app runtime boundary', () => {
     expect(overlayRuntimeDoc).not.toContain('legacy overlay phase');
     expect(liveSurfaceSource).not.toContain('export function resolveSdkOverlayIntent');
     expect(liveSurfaceSource).not.toContain('export function resolveLiveTurnPresentationInput');
-    expect(chatSurfaceControllerSource).toContain('desktopLiveTurnSurfaceRuntime');
-    expect(chatSurfaceControllerSource).toContain('DesktopLiveTurnSurfaceRuntime');
+    expect(chatSurfaceControllerSource).toContain('desktopChatSurfaceRuntime');
+    expect(chatSurfaceControllerSource).toContain('DesktopChatSurfaceRuntime');
+    expect(chatSurfaceControllerSource).not.toContain('desktopLiveTurnSurfaceRuntime');
+    expect(chatSurfaceControllerSource).not.toContain('DesktopLiveTurnSurfaceRuntime');
     expect(streamPhaseSource).not.toContain('responseOverlayPhaseContract');
     expect(liveSurfaceSource).not.toContain('responseOverlayPhaseContract');
     await expect(fs.stat(
@@ -586,6 +588,10 @@ describe('renderer app runtime boundary', () => {
     );
     const chatSurfaceControllerSource = await fs.readFile(
       path.join(rendererRoot, 'features/chat/hooks/useChatSurfaceController.js'),
+      'utf8',
+    );
+    const chatSurfaceRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopChatSurfaceRuntime.js'),
       'utf8',
     );
     const threadPresentationSource = await fs.readFile(
@@ -705,8 +711,12 @@ describe('renderer app runtime boundary', () => {
     expect(overlayViewModelSource).not.toContain("entry.type === 'search-source'");
     expect(overlayViewModelSource).not.toContain("entry.type === 'tool-explanation'");
     expect(chatInterfaceSource).toContain('useChatSurfaceController');
-    expect(chatSurfaceControllerSource).toContain('DesktopCurrentTurnPresentationRuntime');
-    expect(chatSurfaceControllerSource).toContain('resolveCurrentTurnPresentationState');
+    expect(chatSurfaceControllerSource).toContain('DesktopChatSurfaceRuntime');
+    expect(chatSurfaceControllerSource).toContain('buildChatSurfaceControllerState');
+    expect(chatSurfaceControllerSource).not.toContain('DesktopCurrentTurnPresentationRuntime');
+    expect(chatSurfaceControllerSource).not.toContain('resolveCurrentTurnPresentationState');
+    expect(chatSurfaceRuntimeSource).toContain('DesktopCurrentTurnPresentationRuntime');
+    expect(chatSurfaceRuntimeSource).toContain('resolveCurrentTurnPresentationState');
     expect(chatSurfaceControllerSource).not.toContain('useCurrentTurnPresentationState');
     expect(chatSurfaceControllerSource).not.toContain('resolveSdkCurrentTurnPresentationState');
     expect(chatInterfacePresentationSource).toContain('desktopThreadPresentationRuntime');
@@ -1859,15 +1869,18 @@ describe('renderer app runtime boundary', () => {
 
     expect(selectorRuntimeSource).toContain('projectDesktopChatInterfaceState');
     expect(selectorRuntimeSource).toContain('projectDesktopLiveTurnSurfaceState');
+    expect(selectorRuntimeSource).toContain('projectDesktopChatSurfaceState');
     expect(selectorRuntimeSource).toContain('export const DesktopChatSurfaceSelectorRuntime = Object.freeze');
     expect(selectorRuntimeSource).not.toContain('export function projectDesktopChatInterfaceState');
     expect(selectorRuntimeSource).not.toContain('export function projectDesktopLiveTurnSurfaceState');
+    expect(selectorRuntimeSource).not.toContain('export function projectDesktopChatSurfaceState');
     expect(selectorRuntimeSource).not.toContain('isSending');
     expect(selectorRuntimeSource).not.toContain('streamTracking');
     expect(selectorRuntimeSource).not.toContain('features/chat');
     expect(selectorRuntimeSource).not.toContain('latestCurrentTurnProjection');
     expect(chatStoreSource).toContain('desktopChatSurfaceSelectorRuntime');
     expect(chatStoreSource).toContain('DesktopChatSurfaceSelectorRuntime');
+    expect(chatStoreSource).toContain('selectChatInterfaceSurfaceState');
     expect(chatStoreSource).not.toContain('latestCurrentTurnProjection');
     expect(chatStoreSource).toContain('selectActiveWorkspaceState');
     expect(chatInterfaceSource).toContain('selectChatInterfaceState');
@@ -1876,10 +1889,12 @@ describe('renderer app runtime boundary', () => {
       'state.latestCurrentTurnProjection || state.currentTurnProjection',
     );
     expect(responseOverlaySource).toContain('selectLiveTurnSurfaceState');
-    expect(selectorRuntimeSource).toContain('currentTurnProjection: conversationView');
+    expect(selectorRuntimeSource).toContain('currentTurnProjection: resolvedConversationView');
     expect(selectorRuntimeSource).toContain('? null');
-    expect(normalizedChatInterfaceSource).toContain('useChatSurfaceController({\n    messages,');
-    expect(normalizedMinimalPillSource).toContain('useChatSurfaceController({\n    messages,');
+    expect(normalizedChatInterfaceSource).toContain('useChatSurfaceController({\n    chatSurfaceState,');
+    expect(normalizedMinimalPillSource).toContain('useChatSurfaceController({\n    chatSurfaceState,');
+    expect(normalizedChatInterfaceSource).not.toContain('useChatSurfaceController({\n    messages,');
+    expect(normalizedMinimalPillSource).not.toContain('useChatSurfaceController({\n    messages,');
     expect(normalizedResponseOverlaySource).toContain(
       'useResponseOverlayViewModel({\n    messages,\n    currentTurnProjection,\n    conversationView,',
     );

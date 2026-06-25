@@ -48,12 +48,13 @@ const {
 
 function MinimalChatPill() {
   const closeBumpHeight = DesktopChatboxLayoutRuntime.getChatboxCloseBumpHeight();
+  const chatSurfaceState = useChatStore(useShallow(selectLiveTurnSurfaceState));
   const {
     messages,
     currentTurnProjection,
     conversationView,
     pendingTurn,
-  } = useChatStore(useShallow(selectLiveTurnSurfaceState));
+  } = chatSurfaceState;
   const sessionInfo = useRendererConversationSessionInfo();
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
@@ -81,10 +82,7 @@ function MinimalChatPill() {
   const chatboxHitTestActiveRef = useRef(null);
   const textEntryActiveRef = useRef(false);
   const chatSurface = useChatSurfaceController({
-    messages,
-    currentTurnProjection,
-    conversationView,
-    pendingTurn,
+    chatSurfaceState,
     sessionInfo,
     setThinkingStatus,
     setThinkingSourceEventType,

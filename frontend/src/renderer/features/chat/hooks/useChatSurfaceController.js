@@ -27,11 +27,8 @@ function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
 }
 
 export function useChatSurfaceController({
-  messages,
-  currentTurnProjection = null,
-  conversationView = null,
+  chatSurfaceState = null,
   conversationViewSurface = 'pill',
-  pendingTurn = null,
   sessionInfo,
   setThinkingStatus,
   setThinkingSourceEventType,
@@ -39,6 +36,12 @@ export function useChatSurfaceController({
   warningContext = 'ChatSurface',
 }) {
   const { config, updateConfig } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
+  const {
+    messages = [],
+    currentTurnProjection = null,
+    conversationView = null,
+    pendingTurn = null,
+  } = chatSurfaceState || {};
   const surfaceState = useMemo(
     () => buildChatSurfaceControllerState({
       messages,

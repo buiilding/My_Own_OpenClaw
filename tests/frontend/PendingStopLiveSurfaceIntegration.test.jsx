@@ -4,9 +4,13 @@
 
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { useShallow } from 'zustand/react/shallow';
 
 import { AppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  selectLiveTurnSurfaceState,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { useChatSurfaceController } from '../../frontend/src/renderer/features/chat/hooks/useChatSurfaceController';
 import { useStopTurnHandler } from '../../frontend/src/renderer/features/chat/hooks/useStopTurnHandler';
 import {
@@ -39,13 +43,10 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopManualCompactionRuntim
 }));
 
 function PendingStopButton() {
-  const messages = useChatStore((state) => state.messages);
-  const currentTurnProjection = useChatStore((state) => state.currentTurnProjection);
-  const pendingTurn = useChatStore((state) => state.pendingTurn);
+  const chatSurfaceState = useChatStore(useShallow(selectLiveTurnSurfaceState));
+  const { pendingTurn } = chatSurfaceState;
   const chatSurface = useChatSurfaceController({
-    messages,
-    currentTurnProjection,
-    pendingTurn,
+    chatSurfaceState,
     sessionInfo: {
       conversationRef: 'conv-pending-stop',
       userId: 'user-pending-stop',

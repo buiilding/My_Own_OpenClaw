@@ -49,8 +49,10 @@ Current-turn presentation ownership moved to shared chat hooks/state:
 `useChatSurfaceController(...)` is the shared pill/dashboard control contract
 for SDK current-turn busy state, stop availability, speech mode toggles,
 query-screenshot toggles, wakeword-STT enablement, and manual compaction
-dispatch. It resolves live-turn state from SDK `currentTurnProjection` first,
-with only the local send latch covering the pre-SDK-open gap.
+dispatch. It receives selector-projected `chatSurfaceState` from
+`DesktopChatSurfaceSelectorRuntime`, which suppresses raw current-turn authority
+when a `ConversationView` exists and keeps only the local pending bridge
+covering the pre-SDK-open gap.
 `response-overlay-phase` is a window/layout hint and must not be used as chat
 runtime truth.
 `MinimalChatPill.jsx` and `ChatInterface.jsx` should keep layout, focus, window,
@@ -63,9 +65,8 @@ compaction behind its loop lock.
 ### Send and Loop Locking
 
 - uses `useChatMessageSender(undefined, { senderSurface: "overlay-chatbox" })`
-- derives loop lock via
-  `useChatSurfaceController({ currentTurnProjection, pendingTurn, messages })`
-- `currentTurnProjection` and `pendingTurn` are the visible turn sources;
+- derives loop lock via `useChatSurfaceController({ chatSurfaceState })`
+- selector-projected `chatSurfaceState` is the visible turn source;
   raw `isSending` remains store-local cleanup state and does not enter the
   surface controller or surface trace boundary
 - loop lock disables:

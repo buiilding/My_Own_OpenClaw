@@ -13,21 +13,39 @@ type DesktopChatWorkspaceProjection = {
   pendingTurn?: unknown | null;
 };
 
+function projectDesktopChatSurfaceState({
+  activeWorkspace,
+  conversationView,
+}: {
+  activeWorkspace: DesktopChatWorkspaceProjection;
+  conversationView?: unknown | null;
+}) {
+  const resolvedConversationView = conversationView ?? activeWorkspace.conversationView ?? null;
+  return {
+    messages: activeWorkspace.messages,
+    currentTurnProjection: resolvedConversationView
+      ? null
+      : activeWorkspace.currentTurnProjection ?? null,
+    conversationView: resolvedConversationView,
+    pendingTurn: activeWorkspace.pendingTurn ?? null,
+  };
+}
+
 function projectDesktopChatInterfaceState(
   activeWorkspace: DesktopChatWorkspaceProjection,
 ) {
-  const conversationView = activeWorkspace.conversationView ?? null;
+  const surfaceState = projectDesktopChatSurfaceState({
+    activeWorkspace,
+  });
   return {
     messages: activeWorkspace.messages,
     thinkingStatus: activeWorkspace.thinkingStatus,
     thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null,
     compactionDebugInfo: activeWorkspace.compactionDebugInfo ?? null,
     tokenCounts: activeWorkspace.tokenCounts ?? null,
-    currentTurnProjection: conversationView
-      ? null
-      : activeWorkspace.currentTurnProjection ?? null,
-    conversationView,
-    pendingTurn: activeWorkspace.pendingTurn ?? null,
+    currentTurnProjection: surfaceState.currentTurnProjection,
+    conversationView: surfaceState.conversationView,
+    pendingTurn: surfaceState.pendingTurn,
   };
 }
 
@@ -39,17 +57,14 @@ function projectDesktopLiveTurnSurfaceState({
   latestConversationView?: unknown | null;
 }) {
   const conversationView = latestConversationView || activeWorkspace.conversationView || null;
-  return {
-    messages: activeWorkspace.messages,
-    currentTurnProjection: conversationView
-      ? null
-      : activeWorkspace.currentTurnProjection || null,
+  return projectDesktopChatSurfaceState({
+    activeWorkspace,
     conversationView,
-    pendingTurn: activeWorkspace.pendingTurn ?? null,
-  };
+  });
 }
 
 export const DesktopChatSurfaceSelectorRuntime = Object.freeze({
+  projectDesktopChatSurfaceState,
   projectDesktopChatInterfaceState,
   projectDesktopLiveTurnSurfaceState,
 });
