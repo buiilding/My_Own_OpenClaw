@@ -10,7 +10,6 @@ import { DesktopConversationRuntimeEventClient } from '../../frontend/src/render
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient', () => ({
   DesktopConversationLibraryClient: {
-    loadDisplayRows: jest.fn(),
     loadConversationView: jest.fn(),
     listMetadata: jest.fn(),
     subscribeMetadataInvalidations: jest.fn(),
@@ -106,7 +105,6 @@ describe('useDashboardConversations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     DesktopLocalRuntimeStatusRuntimeClient.onReady.mockImplementation(() => jest.fn());
-    DesktopConversationLibraryClient.loadDisplayRows.mockResolvedValue([]);
     DesktopConversationLibraryClient.loadConversationView.mockResolvedValue({
       conversationRef: 'conv-empty',
       displayRows: [],

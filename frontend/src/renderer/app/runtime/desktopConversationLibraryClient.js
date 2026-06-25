@@ -201,22 +201,6 @@ export const DesktopConversationLibraryClient = {
     });
   },
 
-  async loadForDisplay(userId, conversationRef) {
-    const snapshot = await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY, {
-      userId,
-      conversationRef,
-    });
-    return snapshot?.display || { conversationRef, messages: [] };
-  },
-
-  async loadDisplayRows(userId, conversationRef) {
-    const snapshot = await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY, {
-      userId,
-      conversationRef,
-    });
-    return readSnapshotDisplayRows(snapshot, conversationRef);
-  },
-
   async loadConversationView(userId, conversationRef) {
     const snapshot = await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY, {
       userId,

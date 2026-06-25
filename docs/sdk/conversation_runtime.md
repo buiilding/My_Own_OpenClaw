@@ -282,6 +282,9 @@ normal UI authority.
 Dashboard conversation opening stores the returned `ConversationView` in the
 chat store before projecting messages from `view.displayRows`, so resumed
 dashboard chats use the same SDK view authority as active chat surfaces.
+The renderer dashboard conversation library facade exposes only
+`loadConversationView` for this path; raw display-row and legacy display-message
+load helpers remain outside normal React dashboard resume ownership.
 For the first Phase 4 action migration, renderer chat surfaces read
 `snapshot.view.actions.canEdit` and `snapshot.view.actions.canRetry` when a
 view exists before rendering edit/resend or Try again commands. Message row type

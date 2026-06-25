@@ -959,7 +959,6 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationDisplayProjection.ts'),
       'utf8',
     );
-
     expect(projectionSource).not.toContain('DESKTOP_RUNTIME_ON_CHANNELS');
     expect(projectionSource).not.toContain('IpcBridge.on');
     expect(projectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
@@ -1003,6 +1002,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationDisplayProjection.ts'),
       'utf8',
     );
+    const libraryClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js'),
+      'utf8',
+    );
 
     expect(dashboardHookSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(dashboardHookSource).toContain('desktopConversationDisplayProjection');
@@ -1010,6 +1013,9 @@ describe('renderer chat runtime boundary', () => {
     expect(dashboardHookSource).toContain('DesktopConversationLibraryClient.loadConversationView');
     expect(dashboardHookSource).not.toContain('DesktopConversationLibraryClient.loadDisplayRows');
     expect(dashboardHookSource).toContain('setChatConversationView?.(conversationView, conversationRef)');
+    expect(libraryClientSource).toContain('loadConversationView');
+    expect(libraryClientSource).not.toContain('loadDisplayRows');
+    expect(libraryClientSource).not.toContain('loadForDisplay');
     expect(displayProjectionSource).toContain('sdkDisplayChatMessageProjection');
     expect(displayProjectionSource).toContain('export const DesktopConversationDisplayProjection = Object.freeze');
     expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
