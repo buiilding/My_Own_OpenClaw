@@ -107,6 +107,11 @@ function buildReplayProjectionTracePayload({
         && typeof values.newTurnRef === 'string'
         && currentTurnRef === values.newTurnRef,
     ),
+    currentMatchesOldTurn: Boolean(
+      currentTurnRef
+        && typeof values.oldTurnRef === 'string'
+        && currentTurnRef === values.oldTurnRef,
+    ),
     ...values,
   };
 }

@@ -8,6 +8,9 @@ import { DesktopConversationContinuityService } from './desktopConversationConti
 import {
   DesktopConversationSessionRuntime,
 } from './desktopConversationSessionRuntime';
+import {
+  DesktopConversationProjectionStreamRuntime,
+} from './desktopConversationProjectionStreamRuntime';
 import { DesktopPendingTurnRuntimeClient } from './desktopPendingTurnRuntimeClient';
 import { DesktopRendererTraceRuntime } from './desktopRendererTraceRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
@@ -31,6 +34,9 @@ const {
 const {
   logRendererReplayTrace,
 } = DesktopRendererTraceRuntime;
+const {
+  buildReplayProjectionTracePayload,
+} = DesktopConversationProjectionStreamRuntime;
 
 const TOOL_CALL_MESSAGE_TYPES = new Set(['tool-call', 'tool-bundle']);
 const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);
@@ -324,20 +330,20 @@ function replayTraceSnapshot(chatStore, conversationRef, newTurnRef = null, oldT
   const workspace = typeof state.getWorkspaceState === 'function'
     ? state.getWorkspaceState(conversationRef)
     : state;
-  const currentTurnProjection = workspace.currentTurnProjection ?? null;
-  const pendingTurn = workspace.pendingTurn ?? null;
-  return {
-    pendingTurnRef: pendingTurn?.turnRef ?? null,
-    currentTurnRef: currentTurnProjection?.turnRef ?? null,
-    currentTurnPhase: currentTurnProjection?.phase ?? null,
-    streamActiveTurnRef: workspace.streamTracking?.activeTurnRef ?? null,
-    streamPhase: workspace.streamTracking?.phase ?? null,
-    messageCount: Array.isArray(workspace.messages) ? workspace.messages.length : 0,
-    pendingPresent: Boolean(pendingTurn),
-    pendingMatchesNewTurn: Boolean(newTurnRef && pendingTurn?.turnRef === newTurnRef),
-    currentMatchesNewTurn: Boolean(newTurnRef && currentTurnProjection?.turnRef === newTurnRef),
-    currentMatchesOldTurn: Boolean(oldTurnRef && currentTurnProjection?.turnRef === oldTurnRef),
-  };
+  const tracePayload = buildReplayProjectionTracePayload({
+    action: 'replay_trace_snapshot',
+    conversationRef,
+    workspace,
+    values: {
+      newTurnRef,
+      oldTurnRef,
+    },
+  });
+  return Object.fromEntries(
+    Object.entries(tracePayload).filter(
+      ([key]) => key !== 'action' && key !== 'conversationRef',
+    ),
+  );
 }
 
 function logReplayTimeline(chatStore, action, {

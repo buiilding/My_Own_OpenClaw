@@ -966,6 +966,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationProjectionStreamRuntime.ts'),
       'utf8',
     );
+    const replayRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js'),
+      'utf8',
+    );
     expect(projectionSource).not.toContain('DESKTOP_RUNTIME_ON_CHANNELS');
     expect(projectionSource).not.toContain('IpcBridge.on');
     expect(projectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
@@ -1012,8 +1016,15 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionStreamRuntimeSource).toContain('!workspace.conversationView');
     expect(projectionStreamRuntimeSource).toContain('withoutSupersededRows');
     expect(projectionStreamRuntimeSource).toContain('buildReplayProjectionTracePayload');
+    expect(projectionStreamRuntimeSource).toContain('currentMatchesOldTurn');
     expect(projectionStreamRuntimeSource).toContain('DesktopConversationDisplayProjection');
     expect(projectionStreamRuntimeSource).not.toContain('features/chat');
+    expect(replayRuntimeSource).toContain('buildReplayProjectionTracePayload');
+    expect(replayRuntimeSource).toContain('Object.entries(tracePayload).filter');
+    expect(replayRuntimeSource).toContain("key !== 'action' && key !== 'conversationRef'");
+    expect(replayRuntimeSource).not.toContain('currentTurnProjection?.turnRef');
+    expect(replayRuntimeSource).not.toContain('pendingTurn?.turnRef');
+    expect(replayRuntimeSource).not.toContain('streamTracking?.activeTurnRef');
   });
 
   test('dashboard conversation resume projects display rows through app runtime client', async () => {

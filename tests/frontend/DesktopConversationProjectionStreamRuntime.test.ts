@@ -167,6 +167,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       },
       values: {
         newTurnRef: 'turn-new',
+        oldTurnRef: 'turn-old',
       },
     })).toEqual(expect.objectContaining({
       action: 'sdk_current_turn_applied',
@@ -175,7 +176,39 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       currentTurnRef: 'turn-new',
       pendingMatchesNewTurn: true,
       currentMatchesNewTurn: true,
+      currentMatchesOldTurn: false,
       messageCount: 1,
+    }));
+  });
+
+  test('reports replay cleanup traces when current projection still points at the old turn', () => {
+    expect(buildReplayProjectionTracePayload({
+      action: 'sdk_replay_after_cleanup',
+      conversationRef: 'conv-1',
+      workspace: {
+        messages: [],
+        pendingTurn: { turnRef: 'turn-new' },
+        currentTurnProjection: {
+          turnRef: 'turn-old',
+          phase: 'completed',
+        },
+        streamTracking: {
+          activeTurnRef: 'turn-old',
+          phase: 'completed',
+        },
+      },
+      values: {
+        newTurnRef: 'turn-new',
+        oldTurnRef: 'turn-old',
+      },
+    })).toEqual(expect.objectContaining({
+      action: 'sdk_replay_after_cleanup',
+      conversationRef: 'conv-1',
+      pendingTurnRef: 'turn-new',
+      currentTurnRef: 'turn-old',
+      pendingMatchesNewTurn: true,
+      currentMatchesNewTurn: false,
+      currentMatchesOldTurn: true,
     }));
   });
 });

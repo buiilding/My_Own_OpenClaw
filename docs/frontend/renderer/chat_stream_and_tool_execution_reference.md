@@ -135,6 +135,11 @@ shaping to `DesktopConversationProjectionStreamRuntime`. Display-row
 presentation metadata uses `sdk:display-rows` as its source label; the
 `windie:rows` name is only the Electron IPC transport channel.
 
+Replay diagnostics use the same projection-stream helper. Replay intent runtime
+passes old/new turn refs into `buildReplayProjectionTracePayload(...)` and logs
+the resulting summary; it should not read raw current-turn, pending-turn, stream
+tracking, or message-count fields itself.
+
 Renderer-only annotations such as prompt transparency, tool schemas, full
 message details, feedback, and token counts are merged back into matching
 SDK-projected messages by `desktopConversationDisplayProjection.ts`.

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: centralize replay trace workspace summaries in the
+  projection-stream runtime so replay intent code no longer reads raw
+  current-turn, pending-turn, stream-tracking, or message-count fields for
+  diagnostics. No migration required.
 - frontend/send: read send-history inputs through the chat-interface selector
   instead of raw top-level `chatStore.messages` / `conversationView`, keeping
   first-user screenshot decisions on the same `ConversationView`-first read
