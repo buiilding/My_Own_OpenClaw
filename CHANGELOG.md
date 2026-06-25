@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: document that the backend is remote and GitHub automatically
+  deploys remote `main` updates, so agents avoid local-backend deployment
+  assumptions. No migration required.
 - ops/deploy: make the GitHub Actions remote-backend deploy upload a temporary
   git bundle and deploy from that bundle remote, so production no longer needs
   GitHub credentials to fetch private repository commits. No migration required.

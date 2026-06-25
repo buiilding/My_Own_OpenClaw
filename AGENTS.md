@@ -30,6 +30,8 @@ Core WindieOS feature areas:
 - Hosted/backend authority: FastAPI routes, websocket query stream, provider
   policy, prompt compilation, remote tools such as `web_search`, artifacts,
   runs API, install auth, and deploy/runtime operations.
+  The backend runs remotely and GitHub automatically deploys remote `main`
+  updates.
 - Extensibility: SDK tools, built-in tool manifests, extension packages, plugin
   tools, MCP server config, skills as prompt layers, provider integrations, and
   future marketplace/plugin boundaries.
