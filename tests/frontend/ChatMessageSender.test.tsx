@@ -511,7 +511,7 @@ describe('useChatMessageSender', () => {
     }]);
   });
 
-  test('sends screenshot capture request to the SDK after showing an optimistic row', async () => {
+  test('sends screenshot capture request to the SDK without renderer-owned attachment state', async () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'hello');
 
@@ -522,22 +522,8 @@ describe('useChatMessageSender', () => {
       reason: 'query_send_with_capture',
       required: false,
     }]);
-    expectOptimisticUserMessage('hello', null, [
-      expect.objectContaining({
-        id: 'msg-1:attachment:000',
-        kind: 'screenshot_request',
-        source: 'camera_button',
-        status: 'pending_capture',
-      }),
-    ]);
-    expect(useChatStore.getState().messages[0].attachments).toEqual([
-      expect.objectContaining({
-        id: 'msg-1:attachment:000',
-        kind: 'screenshot_request',
-        source: 'camera_button',
-        status: 'pending_capture',
-      }),
-    ]);
+    expectOptimisticUserMessage('hello');
+    expect(useChatStore.getState().messages[0].attachments).toBeNull();
     expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
   });
@@ -553,14 +539,7 @@ describe('useChatMessageSender', () => {
       reason: 'query_send_with_capture',
       required: false,
     }]);
-    expectOptimisticUserMessage('hello auto screenshot', null, [
-      expect.objectContaining({
-        id: 'msg-1:attachment:000',
-        kind: 'screenshot_request',
-        source: 'camera_button',
-        status: 'pending_capture',
-      }),
-    ]);
+    expectOptimisticUserMessage('hello auto screenshot');
   });
 
   test('sends pasted clipboard image as a SDK resource handle', async () => {
@@ -587,17 +566,7 @@ describe('useChatMessageSender', () => {
     }], {
       attachment_filenames: ['clipboard-image.png'],
     });
-    expectOptimisticUserMessage('Please inspect this image', ['clipboard-image.png'], [
-      {
-        id: 'msg-1:attachment:000',
-        kind: 'image',
-        source: 'user_included',
-        status: 'materializing',
-        filename: 'clipboard-image.png',
-        contentType: 'image/png',
-        previewSrc: 'data:image/png;base64,clipboard-image-base64',
-      },
-    ]);
+    expectOptimisticUserMessage('Please inspect this image', ['clipboard-image.png']);
   });
 
   test('sends pasted image before camera screenshot request for mixed visual sends', async () => {
@@ -633,20 +602,7 @@ describe('useChatMessageSender', () => {
     ], {
       attachment_filenames: ['clipboard-image.png'],
     });
-    expectOptimisticUserMessage('Please inspect this image and screen', ['clipboard-image.png'], [
-      expect.objectContaining({
-        id: 'msg-1:attachment:000',
-        kind: 'image',
-        source: 'user_included',
-        status: 'materializing',
-      }),
-      expect.objectContaining({
-        id: 'msg-1:attachment:001',
-        kind: 'screenshot_request',
-        source: 'camera_button',
-        status: 'pending_capture',
-      }),
-    ]);
+    expectOptimisticUserMessage('Please inspect this image and screen', ['clipboard-image.png']);
   });
 
   test('sends multiple pasted clipboard images as SDK resource handles', async () => {
@@ -691,26 +647,6 @@ describe('useChatMessageSender', () => {
     expectOptimisticUserMessage(
       'Please inspect both images',
       ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
-      [
-        {
-          id: 'msg-1:attachment:000',
-          kind: 'image',
-          source: 'user_included',
-          status: 'materializing',
-          filename: 'clipboard-image-1.png',
-          contentType: 'image/png',
-          previewSrc: 'data:image/png;base64,clipboard-image-base64-1',
-        },
-        {
-          id: 'msg-1:attachment:001',
-          kind: 'image',
-          source: 'user_included',
-          status: 'materializing',
-          filename: 'clipboard-image-2.jpg',
-          contentType: 'image/jpeg',
-          previewSrc: 'data:image/jpeg;base64,clipboard-image-base64-2',
-        },
-      ],
     );
   });
 

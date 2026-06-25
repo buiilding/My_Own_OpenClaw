@@ -204,7 +204,6 @@ describe('desktopConversationReplayRuntime', () => {
       timestamp: '2026-06-21T00:00:00.000Z',
     })).toEqual({
       attachmentFilenames: ['one.png'],
-      attachments: null,
       conversationRef: 'conv-replay',
       turnRef: 'turn-replay',
       userMessageId: 'renderer-user-1',

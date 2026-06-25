@@ -151,7 +151,9 @@ Clipboard image IPC trust boundary:
 - Readable files do not leak raw content into visible chat rows.
 - `screenshot_ref` and `screenshot_refs` stay compatible.
 - Artifact upload failure keeps an inline fallback where supported.
-- Query payload, optimistic row, transcript row, and replay row carry compatible attachment metadata.
+- Query payload, SDK display row, transcript row, and replay target row carry
+  compatible attachment metadata; renderer pending rows carry filename chips
+  only and do not own visual attachment descriptors.
 - Tests cover both the producer and downstream consumer for any changed field.
 
 ## Related Docs

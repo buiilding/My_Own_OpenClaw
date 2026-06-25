@@ -330,15 +330,6 @@ describe('chatStore', () => {
       text: 'start now',
       timestamp: '2026-06-16T00:00:00.000Z',
       attachmentFilenames: ['note.txt'],
-      attachments: [{
-        id: 'turn-pending:attachment:000',
-        kind: 'image',
-        source: 'user_included',
-        status: 'materializing',
-        filename: 'note.txt',
-        contentType: 'image/png',
-        previewSrc: 'data:image/png;base64,inline-image-base64',
-      }],
     });
 
     const state = useChatStore.getState();
@@ -359,15 +350,7 @@ describe('chatStore', () => {
         sourceEventType: 'renderer-compose',
         sourceChannel: 'renderer-local',
         attachmentFilenames: ['note.txt'],
-        attachments: [{
-          id: 'turn-pending:attachment:000',
-          kind: 'image',
-          source: 'user_included',
-          status: 'materializing',
-          filename: 'note.txt',
-          contentType: 'image/png',
-          previewSrc: 'data:image/png;base64,inline-image-base64',
-        }],
+        attachments: null,
       }),
     ]);
   });
@@ -403,19 +386,12 @@ describe('chatStore', () => {
         sender: 'user',
         text: 'replay this',
         turnRef: 'turn-replay',
-        attachments: [{
-          id: 'turn-replay:attachment:000',
-          kind: 'image',
-          source: 'user_included',
-          status: 'materializing',
-          contentType: 'image/jpeg',
-          previewSrc: 'data:image/jpeg;base64,broadcast-image-base64',
-        }],
+        attachments: null,
       }),
     ]);
   });
 
-  test('applyPendingTurnBroadcast is a no-op for an echoed pending turn with attachments', () => {
+  test('applyPendingTurnBroadcast is a no-op for an echoed pending turn with ignored attachments', () => {
     const pendingTurn = {
       conversationRef: 'conv-echo',
       turnRef: 'turn-echo',
@@ -452,7 +428,7 @@ describe('chatStore', () => {
     expect(afterState.messages).toEqual([
       expect.objectContaining({
         id: 'user-echo',
-        attachments: pendingTurn.attachments,
+        attachments: null,
       }),
     ]);
   });

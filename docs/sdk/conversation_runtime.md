@@ -243,6 +243,11 @@ renderer and Electron-main Stop shortcut resolution.
 Renderer pending-turn state remains a short pre-view bridge immediately after
 send acceptance; raw current-turn snapshots and idle conversation refs must not
 enable Stop or become the main-process stop target, even before a view arrives.
+That bridge may carry turn identity, text, timestamps, and visible filename
+chips, but it must not carry visual attachment lifecycle descriptors,
+screenshots, preview bytes, or ready artifact refs. SDK display rows and
+`ConversationView` own user-included image, camera screenshot, and replay
+attachment presentation.
 Raw current-turn snapshots remain live context for migrated display/surface
 handoff and diagnostics, while normal Stop authority is only the view or the
 local pending bridge. Minimal live surfaces receive a null raw current-turn
@@ -925,10 +930,13 @@ as one visible optimistic frame before awaiting the SDK revision command. If
 the SDK command cannot resolve the stored target row or fails after the pending
 bridge is visible, the renderer restores the retained prefix, clears only that
 pending turn, and appends a send-failure row. Pending turn IPC
-preserves typed `attachments[]`; echoed pending-turn broadcasts from Electron
-main must no-op in a renderer that already owns the same pending user row, and
-SDK display-row echoes for that pending turn must keep the existing optimistic
-bubble until the turn is no longer pending. Replay pending user rows use the SDK
+preserves only identity/text/timestamp and attachment filename chips; typed
+visual `attachments[]`, screenshot descriptors, preview bytes, and ready
+artifact refs remain SDK display-row state. Echoed pending-turn broadcasts from
+Electron main must no-op in a renderer that already owns the same pending user
+row, and SDK display-row echoes for that pending turn must keep the existing
+optimistic bubble until the turn is no longer pending. Replay pending user rows
+use the SDK
 replacement event id (`<turnRef>-sdk-evt-000002-user_message`) so the final
 `sdk:display-rows` projection updates the existing user bubble instead of
 remounting it.

@@ -43,7 +43,7 @@ function createHarness() {
 }
 
 describe('pending turn IPC handlers', () => {
-  test('normalizes pending-turn envelopes and attachment filenames through the runtime', () => {
+  test('normalizes pending-turn envelopes and drops visual payload fields through the runtime', () => {
     const { getLatestPendingTurn, listeners } = createHarness();
 
     listeners['windie:pending-turn']({}, {
@@ -91,24 +91,6 @@ describe('pending turn IPC handlers', () => {
       text: '',
       timestamp: ' 2026-06-19T00:00:00.000Z ',
       attachmentFilenames: [' one.png ', 'two.png'],
-      attachments: [
-        {
-          id: 'attachment-1',
-          kind: 'image',
-          source: 'user_included',
-          status: 'ready',
-          filename: 'one.png',
-          screenshotRef: 'artifact-one',
-        },
-      ],
-      screenshots: [
-        {
-          screenshot: 'inline-base64',
-          screenshotRef: null,
-          screenshotUrl: null,
-          screenshotContentType: 'image/png',
-        },
-      ],
     });
   });
 
@@ -148,8 +130,6 @@ describe('pending turn IPC handlers', () => {
       text: 'hello',
       timestamp: '2026-06-19T00:00:00.000Z',
       attachmentFilenames: null,
-      attachments: null,
-      screenshots: null,
     });
     expect(broadcastToRenderers).toHaveBeenCalledWith('windie:pending-turn', {
       type: 'pending',
@@ -313,8 +293,6 @@ describe('pending turn IPC handlers', () => {
       text: 'next',
       timestamp: '2026-06-20T00:00:00.000Z',
       attachmentFilenames: null,
-      attachments: null,
-      screenshots: null,
     });
   });
 

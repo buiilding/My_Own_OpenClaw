@@ -183,7 +183,6 @@ function buildReplayPreparationPayload({
 
 function buildReplayPendingTurn({
   attachmentFilenames = null,
-  attachments = null,
   conversationRef,
   text,
   timestamp,
@@ -202,9 +201,6 @@ function buildReplayPendingTurn({
     attachmentFilenames: Array.isArray(attachmentFilenames) && attachmentFilenames.length > 0
       ? attachmentFilenames
       : null,
-    attachments: Array.isArray(attachments) && attachments.length > 0
-      ? attachments
-      : null,
   };
 }
 
@@ -222,7 +218,7 @@ function buildReplayPendingUserMessage(pendingTurn) {
     isComplete: true,
     timestamp: pendingTurn.timestamp,
     attachmentFilenames: pendingTurn.attachmentFilenames,
-    attachments: pendingTurn.attachments ?? null,
+    attachments: null,
   };
 }
 

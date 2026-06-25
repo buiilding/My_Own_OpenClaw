@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: narrow renderer pending-turn bridges to identity, text,
+  timestamp, and filename chips only. Normal sends, replay pending rows, and
+  pending-turn IPC no longer carry visual attachment descriptors, screenshots,
+  preview bytes, or artifact refs; SDK display rows remain the visual
+  attachment authority. No migration required.
 - docs/agents: document that the backend is remote and GitHub automatically
   deploys remote `main` updates, so agents avoid local-backend deployment
   assumptions. No migration required.

@@ -113,7 +113,6 @@ async function executeReplayAction({
   sessionInfo,
   activeConversationRef,
   replayMessages,
-  pendingAttachments,
   queryText,
   screenshotRef,
   screenshotUrl,
@@ -152,16 +151,13 @@ async function executeReplayAction({
       ...(workspaceBinding.workspacePath ? { workspace_path: workspaceBinding.workspacePath } : {}),
     };
     const replayStartedAt = new Date().toISOString();
-    const replayAttachments = Array.isArray(pendingAttachments) && pendingAttachments.length > 0
-      ? pendingAttachments
-      : null;
     supersededTurnRef = (
       typeof sourceUserMessage?.turnRef === 'string'
       && sourceUserMessage.turnRef.trim()
       && sourceUserMessage.turnRef.trim() !== replayTurnRef
     ) ? sourceUserMessage.turnRef.trim() : null;
     const pendingTurn = buildReplayPendingTurn({
-      attachments: replayAttachments,
+      attachmentFilenames: sourceUserMessage?.attachmentFilenames ?? null,
       conversationRef,
       turnRef: replayTurnRef,
       text: queryText,
@@ -312,7 +308,6 @@ export function useConversationReplayActions({
       sessionInfo,
       activeConversationRef,
       replayMessages: replayContextMessages,
-      pendingAttachments: editUserMessage.attachments,
       queryText: normalizedEditedText,
       screenshotRef: replayScreenshot.screenshotRef,
       screenshotUrl: replayScreenshot.screenshotUrl,
@@ -358,7 +353,6 @@ export function useConversationReplayActions({
       action: 'retry',
       messageId: assistantMessageId,
       targetUserMessageId: retryUserMessage.id,
-      pendingAttachments: retryUserMessage.attachments,
       sourceUserMessage: retryUserMessage,
       addMessage,
     });

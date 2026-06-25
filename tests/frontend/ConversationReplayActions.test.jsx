@@ -392,7 +392,7 @@ describe('useConversationReplayActions', () => {
         turnRef: 'turn-edited-user',
         sourceEventType: 'renderer-compose',
         sourceChannel: 'renderer-local',
-        attachments: [screenshotAttachment],
+        attachments: null,
       }),
     ]);
     expect(useChatStore.getState().getWorkspaceState('conv-existing').messages).toEqual(
@@ -755,7 +755,7 @@ describe('useConversationReplayActions', () => {
     }));
   });
 
-  test('retry replay keeps visible multi-image attachments on the pending bridge and lets SDK preserve stored refs', async () => {
+  test('retry replay leaves visible multi-image attachments to the SDK target row', async () => {
     const messages = [
       {
         id: 'user-multi-image',
@@ -802,8 +802,9 @@ describe('useConversationReplayActions', () => {
     }));
     expect(mockRetryTurn.mock.calls[0][0].payload).not.toHaveProperty('screenshot_refs');
     expect(mockRetryTurn.mock.calls[0][0].payload).not.toHaveProperty('attachment_filenames');
-    expect(useChatStore.getState().pendingTurn).toEqual(expect.objectContaining({
-      attachments: messages[0].attachments,
+    expect(useChatStore.getState().pendingTurn).not.toHaveProperty('attachments');
+    expect(useChatStore.getState().messages.at(-1)).toEqual(expect.objectContaining({
+      attachments: null,
     }));
   });
 

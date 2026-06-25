@@ -120,6 +120,9 @@ When attachment(s) exist:
      pending row.
 4. accept the pending turn locally and send `windie:pending-turn` so Electron
    main can broadcast/replay the optimistic user row across renderer windows.
+   The pending bridge carries identity, text, timestamp, and filename chips
+   only; SDK display projection owns image/screenshot attachment states and
+   preview/ready artifact descriptors.
 5. run send-surface window policy only (optional return-to-chatbox behavior).
 6. build typed SDK turn resources:
    - `clipboard_image` for pasted/selected images
@@ -234,6 +237,7 @@ Fatal failure:
 - first-message screenshot resource flag behavior
 - screenshot resource skip for main-window sends
 - no renderer capture/read/upload before SDK send
+- no renderer-owned pending visual attachment state before SDK projection
 - clipboard payload flow (base64 + content type + filename) becomes SDK resources
 
 `MessageInput.test.jsx` verifies:
