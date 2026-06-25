@@ -33,6 +33,9 @@ import {
 import {
   DesktopVisibleTurnLifecycleRuntime,
 } from '../../../app/runtime/desktopVisibleTurnLifecycleRuntime';
+import {
+  DesktopPendingTurnBridgeRuntime,
+} from '../../../app/runtime/desktopPendingTurnBridgeRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const {
@@ -46,6 +49,9 @@ const {
 const {
   resolvePendingTurnForCurrentProjection,
 } = DesktopVisibleTurnLifecycleRuntime;
+const {
+  buildPendingTurnUserMessage,
+} = DesktopPendingTurnBridgeRuntime;
 
 export type { ChatMessage, TokenCounts };
 
@@ -297,21 +303,6 @@ function mergeTurnConversationRefs(
     nextTurnConversationRefs[turnRef] = conversationRef;
   }
   return nextTurnConversationRefs;
-}
-
-function buildPendingTurnUserMessage(pendingTurn: PendingTurn): ChatMessage {
-  return {
-    id: pendingTurn.userMessageId,
-    text: pendingTurn.text,
-    sender: 'user',
-    turnRef: pendingTurn.turnRef,
-    sourceEventType: 'renderer-compose',
-    sourceChannel: 'renderer-local',
-    isComplete: true,
-    timestamp: pendingTurn.timestamp,
-    attachmentFilenames: pendingTurn.attachmentFilenames,
-    attachments: null,
-  };
 }
 
 function doesPendingTurnMatch(
@@ -717,7 +708,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }
       const workspaceRef = resolveChatWorkspaceRef(normalizedPendingTurn.conversationRef);
       const currentWorkspace = readWorkspaceState(state, workspaceRef);
-      const optimisticMessage = buildPendingTurnUserMessage(normalizedPendingTurn);
+      const optimisticMessage = buildPendingTurnUserMessage(normalizedPendingTurn) as ChatMessage | null;
+      if (!optimisticMessage) {
+        return state;
+      }
       const replayMessages = Array.isArray(messages) ? messages : [];
       const existingMessageIndex = replayMessages.findIndex(
         (message) => message?.id === optimisticMessage.id,
@@ -764,7 +758,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }
       const workspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
       const currentWorkspace = readWorkspaceState(state, workspaceRef);
-      const optimisticMessage = buildPendingTurnUserMessage(normalizedPendingTurn);
+      const optimisticMessage = buildPendingTurnUserMessage(normalizedPendingTurn) as ChatMessage | null;
+      if (!optimisticMessage) {
+        return state;
+      }
       const existingMessageIndex = currentWorkspace.messages.findIndex(
         (message) => message.id === optimisticMessage.id,
       );
@@ -919,7 +916,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
       ) {
         return state;
       }
-      const optimisticMessage = buildPendingTurnUserMessage(normalizedPendingTurn);
+      const optimisticMessage = buildPendingTurnUserMessage(normalizedPendingTurn) as ChatMessage | null;
+      if (!optimisticMessage) {
+        return state;
+      }
       const existingMessageIndex = currentWorkspace.messages.findIndex(
         (message) => message.id === optimisticMessage.id,
       );

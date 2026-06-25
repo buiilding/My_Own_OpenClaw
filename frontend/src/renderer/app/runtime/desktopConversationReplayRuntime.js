@@ -3,6 +3,7 @@
  */
 
 import { DesktopConversationRuntimeContracts } from './desktopConversationRuntimeContracts';
+import { DesktopPendingTurnBridgeRuntime } from './desktopPendingTurnBridgeRuntime';
 
 const {
   resolveCorrelationId,
@@ -10,6 +11,9 @@ const {
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
 } = DesktopConversationRuntimeContracts;
+const {
+  mergePendingTurnUserMessage,
+} = DesktopPendingTurnBridgeRuntime;
 
 const TOOL_CALL_MESSAGE_TYPES = new Set(['tool-call', 'tool-bundle']);
 const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);
@@ -190,41 +194,8 @@ function buildReplayPendingTurn({
   };
 }
 
-function buildReplayPendingUserMessage(pendingTurn) {
-  if (!pendingTurn || typeof pendingTurn !== 'object') {
-    return null;
-  }
-  return {
-    id: pendingTurn.userMessageId,
-    text: pendingTurn.text,
-    sender: 'user',
-    turnRef: pendingTurn.turnRef,
-    sourceEventType: 'renderer-compose',
-    sourceChannel: 'renderer-local',
-    isComplete: true,
-    timestamp: pendingTurn.timestamp,
-    attachmentFilenames: pendingTurn.attachmentFilenames,
-    attachments: null,
-  };
-}
-
 function buildReplayMessagesWithPendingTurn(messages, pendingTurn) {
-  const replayMessages = Array.isArray(messages) ? messages : [];
-  const pendingUserMessage = buildReplayPendingUserMessage(pendingTurn);
-  if (!pendingUserMessage?.id) {
-    return replayMessages;
-  }
-  const existingMessageIndex = replayMessages.findIndex(
-    (message) => message?.id === pendingUserMessage.id,
-  );
-  if (existingMessageIndex < 0) {
-    return [...replayMessages, pendingUserMessage];
-  }
-  return replayMessages.map((message, index) => (
-    index === existingMessageIndex
-      ? { ...message, ...pendingUserMessage }
-      : message
-  ));
+  return mergePendingTurnUserMessage(messages, pendingTurn);
 }
 
 export const DesktopConversationReplayRuntime = Object.freeze({

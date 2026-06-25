@@ -2928,6 +2928,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'stores/chatStore.ts'),
       'utf8',
     );
+    const pendingBridgeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopPendingTurnBridgeRuntime.js'),
+      'utf8',
+    );
     const sourceChannelPath = path.join(chatRoot, 'utils/message/sourceChannels.js');
 
     expect(source).toContain('sourceEventType');
@@ -2942,6 +2946,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('desktopChatMessageTypes');
     expect(chatStoreSource).toContain('export type { ChatMessage, TokenCounts }');
     expect(chatStoreSource).toContain('createInitialWorkspaceRecord');
+    expect(chatStoreSource).toContain('DesktopPendingTurnBridgeRuntime');
+    expect(chatStoreSource).not.toContain("sourceEventType: 'renderer-compose'");
+    expect(pendingBridgeSource).toContain("sourceEventType: 'renderer-compose'");
+    expect(pendingBridgeSource).toContain('attachments: null');
     expect(chatStoreSource).not.toContain('export interface ChatMessage');
     expect(chatStoreSource).not.toContain('SdkCurrentTurnProjection');
     expect(chatStoreSource).not.toContain('DEFAULT_CHAT_WORKSPACE_REF');

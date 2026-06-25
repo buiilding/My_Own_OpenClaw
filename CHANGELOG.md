@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: move pending-turn user-row construction out of
+  `chatStore.ts` into an app-runtime pending bridge helper shared by normal
+  sends and replay. The store now mutates workspace state without hard-coding
+  renderer-local user-message display semantics. No migration required.
 - frontend/sdk: remove renderer continuity facade methods for direct display
   timeline load/replace. Replay and branch UI now stay on SDK command intent
   (`editAndResend`, `retryTurn`, checkout, fork) instead of exposing
