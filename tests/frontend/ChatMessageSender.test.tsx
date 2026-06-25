@@ -475,6 +475,61 @@ describe('useChatMessageSender', () => {
     }]);
   });
 
+  test('uses sdk conversation view rows to detect prior user messages', async () => {
+    useChatStore.getState().setActiveConversationRef('conv-existing');
+    useChatStore.getState().setConversationView({
+      conversationRef: 'conv-existing',
+      revisionId: 'rev-existing',
+      displayRows: [{
+        id: 'view-user-row',
+        conversationRef: 'conv-existing',
+        turnRef: 'turn-existing',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'previous from sdk view',
+      }],
+      liveTurn: {
+        turnRef: null,
+        phase: 'idle',
+        entries: [],
+        isBusy: false,
+        isTerminal: true,
+        canStop: false,
+        lastError: null,
+      },
+      surfaces: {
+        pill: { mode: 'idle' },
+        dashboard: { mode: 'idle' },
+        responseOverlay: {
+          mode: 'hidden',
+          visible: false,
+          guardRef: null,
+          ownerConversationRef: 'conv-existing',
+          turnRef: null,
+        },
+      },
+      actions: {
+        canEdit: true,
+        canRetry: true,
+        canFork: true,
+      },
+    } as any, 'conv-existing');
+
+    expect(useChatStore.getState().messages).toEqual([]);
+
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+    await sendText(result, 'second from resumed view');
+
+    expectSingleSendQueryCall('second from resumed view', 'conv-existing', [{
+      kind: 'query_screenshot_request',
+      displayAttachmentId: 'msg-1:attachment:000',
+      isFirstUserMessage: false,
+      reason: 'query_send_with_capture',
+      required: false,
+    }]);
+  });
+
   test('skips screenshot capture when include_query_screenshot is disabled', async () => {
     mockRendererConfig = { include_query_screenshot: false };
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });

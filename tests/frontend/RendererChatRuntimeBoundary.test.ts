@@ -1994,6 +1994,8 @@ describe('renderer chat runtime boundary', () => {
     expect(senderHookSource).toContain('DesktopChatSendPreparationRuntime');
     expect(sendPreparationSource).toContain('desktopChatSendPayloadRuntime');
     expect(sendPreparationSource).toContain('desktopChatSendStateRuntime');
+    expect(sendPreparationSource).toContain('getConversationView');
+    expect(sendPreparationSource).toContain('hasPriorUserMessages');
     expect(sendPreparationSource).toContain('export const DesktopChatSendPreparationRuntime = Object.freeze');
     expect(sendPreparationSource).not.toContain('export async function prepareDesktopChatSend');
     expect(sendPreparationSource).not.toContain('export async function dispatchPreparedDesktopChatTurn');
@@ -2016,6 +2018,7 @@ describe('renderer chat runtime boundary', () => {
     expect(payloadRuntimeSource).not.toContain('export function normalizeAttachmentFilenames');
     expect(payloadRuntimeSource).not.toContain('features/chat');
     expect(stateRuntimeSource).toContain('export const DesktopChatSendStateRuntime = Object.freeze');
+    expect(stateRuntimeSource).toContain('hasPriorUserMessages');
     expect(stateRuntimeSource).not.toContain('export function hasUserMessages');
     expect(stateRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(

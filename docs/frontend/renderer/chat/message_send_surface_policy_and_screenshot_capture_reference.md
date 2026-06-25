@@ -148,9 +148,12 @@ deferred model selection and sends the prepared SDK turn input through
 stored screenshot refs as legacy resolved payload because replay reuses durable
 transcript metadata rather than composer resources.
 
-`DesktopChatSendStateRuntime.hasUserMessages(...)` owns the first-user-message
-predicate used by send preparation. The raw predicate stays private behind the
-renderer app-runtime facade.
+`DesktopChatSendStateRuntime.hasPriorUserMessages(...)` owns the
+first-user-message predicate used by send preparation. When a SDK
+`ConversationView.displayRows` snapshot exists, the predicate reads user rows
+from that view instead of treating `chatStore.messages` as competing durable
+history; `chatStore.messages` remains the no-view/pending bridge fallback. The
+raw predicate stays private behind the renderer app-runtime facade.
 
 Send lifecycle chat-pill traces go through `DesktopRendererTraceRuntime`.
 `DesktopChatSendPreparationRuntime` reports send-start,

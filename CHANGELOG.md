@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: count SDK `ConversationView.displayRows` user rows when
+  deciding first-user screenshot resources so resumed view-owned chats do not
+  rely on `chatStore.messages` history. No migration required.
 - frontend/dashboard: load and store SDK `ConversationView` when opening a
   dashboard conversation instead of treating raw display rows as the normal
   resume authority. No migration required.

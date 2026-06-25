@@ -29,7 +29,7 @@ const {
   normalizeOutgoingPayload,
 } = DesktopChatSendPayloadRuntime;
 const {
-  hasUserMessages,
+  hasPriorUserMessages,
 } = DesktopChatSendStateRuntime;
 const {
   createConversationRef,
@@ -56,6 +56,12 @@ type ChatSendMessageSnapshot = {
   sender?: string | null;
 };
 
+type ChatSendConversationViewSnapshot = {
+  displayRows?: Array<{
+    role?: string | null;
+  }> | null;
+} | null | undefined;
+
 type PendingDesktopChatTurn = {
   conversationRef: string;
   turnRef: string;
@@ -68,6 +74,7 @@ type PendingDesktopChatTurn = {
 type PrepareDesktopChatSendDependencies = {
   acceptPendingTurn: (pendingTurn: PendingDesktopChatTurn) => void;
   getActiveConversationRef: () => string | null | undefined;
+  getConversationView: () => ChatSendConversationViewSnapshot;
   getMessages: () => ChatSendMessageSnapshot[];
   setChatActiveConversationRef: (conversationRef: string | null) => void;
   stopPlayback?: () => void;
@@ -259,7 +266,10 @@ async function prepareDesktopChatSend({
 
   dependencies.stopPlayback?.();
 
-  const hadUserMessages = hasUserMessages(dependencies.getMessages());
+  const hadUserMessages = hasPriorUserMessages({
+    conversationView: dependencies.getConversationView(),
+    messages: dependencies.getMessages(),
+  });
   const turnId = crypto.randomUUID();
   const timestamp = new Date().toISOString();
   const conversationRef = await resolveImmediateConversationRef(dependencies);
