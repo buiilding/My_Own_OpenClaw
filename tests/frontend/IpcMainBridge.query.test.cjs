@@ -165,7 +165,7 @@ describe('ipc.cjs bridge query handling', () => {
     const messageTypes = ws.sent.map((entry) => JSON.parse(entry).type);
     expect(messageTypes).toEqual(expect.arrayContaining(['handshake', 'query']));
     const sdkUserMessage = getLatestSdkUserMessage(mainWindow);
-    expect(sdkUserMessage.payload.conversation_ref).toBe('conv-lazy-connect');
+    expect(sdkUserMessage.conversationRef).toBe('conv-lazy-connect');
     expect(getLatestConversationEvent(mainWindow, 'user_message')).toMatchObject({
       type: 'user_message',
       conversationRef: 'conv-lazy-connect',
@@ -255,6 +255,59 @@ describe('ipc.cjs bridge query handling', () => {
     ) {
       throw new Error(`unexpected AGENTS.md layer content: ${String(agentsMd[0]?.content)}`);
     }
+  });
+
+  test('applies saved all-disabled local tools to outbound query agent definition', async () => {
+    const { handlers, ws, fs: mockedFs } = await setupQueryBridge();
+    const configPath = path.join('/tmp/appdata', 'frontend-config.json');
+    const disabledLocalTools = [
+      'mouse_control',
+      'keyboard_control',
+      'screenshot',
+      'open_app',
+      'scroll_control',
+      'run_shell_command',
+      'switch_window',
+      'process',
+      'wait',
+      'read_file',
+      'get_open_windows',
+      'get_system_stats',
+      'browser',
+      'replace',
+    ];
+    mockedFs.existsSync.mockImplementation((targetPath) => targetPath === configPath);
+    mockedFs.readFileSync.mockImplementation((targetPath) => {
+      if (targetPath === configPath) {
+        return JSON.stringify({
+          model_provider: 'scripted',
+          selected_model_id: 'scripted-runtime',
+          agent_custom_instructions: 'Use saved agent config.',
+          agent_disabled_local_tools: disabledLocalTools,
+          agent_disabled_remote_tools: [],
+          agent_enabled_mcp_servers: [],
+        });
+      }
+      throw new Error(`unexpected readFileSync path: ${targetPath}`);
+    });
+
+    await sendQuery(handlers, {
+      text: 'hello',
+      conversation_ref: 'conv-disabled-tools',
+    });
+
+    const lastMessage = getLastSentMessage(ws);
+    expect(lastMessage.type).toBe('query');
+    expect(mockedFs.readFileSync).toHaveBeenCalledWith(configPath, 'utf-8');
+    expect(lastMessage.payload.agent_definition.system_prompt).toEqual({
+      mode: 'replace',
+      content: 'Use saved agent config.',
+    });
+    expect(lastMessage.payload.agent_definition.tools.client_manifest).toEqual({
+      version: 1,
+      tools: [],
+    });
+    expect(lastMessage.payload.agent_definition.tools.disabled_tools).toEqual(disabledLocalTools);
   });
 
   test('injects attachment context into backend query content without leaking relay-only fields', async () => {
