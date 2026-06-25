@@ -1682,6 +1682,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js'),
       'utf8',
     );
+    const pendingBridgeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopPendingTurnBridgeRuntime.js'),
+      'utf8',
+    );
     const continuityServiceSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts'),
       'utf8',
@@ -1724,7 +1728,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.retryTurn');
     expect(continuityServiceSource).not.toContain('loadForDisplay');
     expect(continuityServiceSource).not.toContain('loadDisplayRows');
-    expect(replayRuntimeSource).toContain('buildReplayPendingTurn');
+    expect(replayRuntimeSource).toContain('buildPendingTurn');
+    expect(replayRuntimeSource).not.toContain('function buildReplayPendingTurn');
+    expect(pendingBridgeSource).toContain('function buildPendingTurn');
     expect(replayRuntimeSource).toContain('resolveReplayReadModel');
     expect(replayRuntimeSource).toContain('buildConversationViewChatMessages');
     expect(replayRuntimeSource).toContain('buildReplayPendingPublication');

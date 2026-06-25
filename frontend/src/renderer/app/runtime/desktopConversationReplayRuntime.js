@@ -32,6 +32,7 @@ const {
   resolveRendererConversationSessionSnapshot,
 } = DesktopConversationSessionRuntime;
 const {
+  buildPendingTurn,
   mergePendingTurnUserMessage,
 } = DesktopPendingTurnBridgeRuntime;
 const {
@@ -200,29 +201,6 @@ function buildReplayContextMessages(messages) {
   });
 }
 
-function buildReplayPendingTurn({
-  attachmentFilenames = null,
-  conversationRef,
-  text,
-  timestamp,
-  turnRef,
-  userMessageId,
-}) {
-  const normalizedUserMessageId = typeof userMessageId === 'string' && userMessageId.trim()
-    ? userMessageId.trim()
-    : `${turnRef}-sdk-evt-000002-user_message`;
-  return {
-    conversationRef,
-    turnRef,
-    userMessageId: normalizedUserMessageId,
-    text,
-    timestamp,
-    attachmentFilenames: Array.isArray(attachmentFilenames) && attachmentFilenames.length > 0
-      ? attachmentFilenames
-      : null,
-  };
-}
-
 function buildReplayMessagesWithPendingTurn(messages, pendingTurn) {
   return mergePendingTurnUserMessage(messages, pendingTurn);
 }
@@ -242,13 +220,16 @@ function buildReplayPendingPublication({
   timestamp,
   turnRef,
 }) {
-  const pendingTurn = buildReplayPendingTurn({
+  const pendingTurn = buildPendingTurn({
     attachmentFilenames: sourceUserMessage?.attachmentFilenames ?? null,
     conversationRef,
     turnRef,
     text,
     timestamp,
   });
+  if (!pendingTurn) {
+    return null;
+  }
   return {
     pendingTurn,
     messages: buildReplayMessagesWithPendingTurn(replayMessages, pendingTurn),
@@ -420,6 +401,9 @@ async function executeReplayIntent({
       text: queryText,
       timestamp: replayStartedAt,
     });
+    if (!pendingPublication) {
+      throw new Error('Unable to build replay pending turn');
+    }
     supersededTurnRef = pendingPublication.supersededTurnRef;
     chatStore.getState().acceptReplayPendingTurn({
       conversationRef,

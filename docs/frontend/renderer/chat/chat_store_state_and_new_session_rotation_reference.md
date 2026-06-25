@@ -112,8 +112,10 @@ Message attachment fields used by current send/runtime paths include:
   the edited user row appears. Replay pending rows use the SDK replacement
   display-row id and leave display-row `attachments[]` to the later
   `sdk:display-rows` projection, so visual preservation stays on the SDK
-  target-row path. Replay uses the same app-runtime pending workspace mutation
-  helper as normal sends.
+  target-row path. Replay and normal sends use
+  `DesktopPendingTurnBridgeRuntime` for pending-turn bridge payload
+  construction, then the same app-runtime pending workspace mutation helper for
+  store application.
 - `clearPendingTurn` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn.
   Pending-turn clear matching, broadcast action branching, and workspace

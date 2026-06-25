@@ -2,6 +2,48 @@
  * Builds the renderer-local pending-turn bridge row.
  */
 
+function normalizeString(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function normalizeAttachmentFilenames(attachmentFilenames) {
+  return Array.isArray(attachmentFilenames)
+    ? attachmentFilenames.filter((entry) => typeof entry === 'string' && entry.trim().length > 0)
+    : [];
+}
+
+function buildPendingTurn({
+  attachmentFilenames = null,
+  conversationRef,
+  text,
+  timestamp,
+  turnRef,
+  userMessageId = null,
+}) {
+  const normalizedConversationRef = normalizeString(conversationRef);
+  const normalizedTurnRef = normalizeString(turnRef);
+  const normalizedText = typeof text === 'string' ? text : null;
+  const normalizedTimestamp = typeof timestamp === 'string' && timestamp.trim()
+    ? timestamp
+    : null;
+  if (!normalizedConversationRef || !normalizedTurnRef || normalizedText === null || !normalizedTimestamp) {
+    return null;
+  }
+  const normalizedUserMessageId = normalizeString(userMessageId)
+    || `${normalizedTurnRef}-sdk-evt-000002-user_message`;
+  const normalizedAttachmentFilenames = normalizeAttachmentFilenames(attachmentFilenames);
+  return {
+    conversationRef: normalizedConversationRef,
+    turnRef: normalizedTurnRef,
+    userMessageId: normalizedUserMessageId,
+    text: normalizedText,
+    timestamp: normalizedTimestamp,
+    attachmentFilenames: normalizedAttachmentFilenames.length > 0
+      ? normalizedAttachmentFilenames
+      : null,
+  };
+}
+
 function buildPendingTurnUserMessage(pendingTurn) {
   if (!pendingTurn || typeof pendingTurn !== 'object') {
     return null;
@@ -40,6 +82,7 @@ function mergePendingTurnUserMessage(messages, pendingTurn) {
 }
 
 export const DesktopPendingTurnBridgeRuntime = Object.freeze({
+  buildPendingTurn,
   buildPendingTurnUserMessage,
   mergePendingTurnUserMessage,
 });

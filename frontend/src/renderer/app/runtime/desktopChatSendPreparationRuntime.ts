@@ -6,6 +6,7 @@ import { DesktopRendererConfigRuntimeClient } from './desktopRendererConfigRunti
 import { DesktopInteractionRuntimeClient } from './desktopInteractionRuntimeClient';
 import { DesktopLiveTurnRuntimeClient } from './desktopLiveTurnRuntimeClient';
 import { DesktopPendingTurnRuntimeClient } from './desktopPendingTurnRuntimeClient';
+import { DesktopPendingTurnBridgeRuntime } from './desktopPendingTurnBridgeRuntime';
 import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
@@ -31,6 +32,9 @@ const {
 const {
   hasPriorUserMessages,
 } = DesktopChatSendStateRuntime;
+const {
+  buildPendingTurn,
+} = DesktopPendingTurnBridgeRuntime;
 const {
   createConversationRef,
   ensureConversationRefForSend,
@@ -219,14 +223,16 @@ function acceptPendingTurn({
   timestamp: string;
   turnId: string;
 }): void {
-  const pendingTurn = {
+  const pendingTurn = buildPendingTurn({
+    attachmentFilenames,
     conversationRef,
     turnRef: turnId,
-    userMessageId: `${turnId}-sdk-evt-000002-user_message`,
     text,
     timestamp,
-    attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
-  };
+  });
+  if (!pendingTurn) {
+    return;
+  }
   dependencies.acceptPendingTurn(pendingTurn);
   DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
 }

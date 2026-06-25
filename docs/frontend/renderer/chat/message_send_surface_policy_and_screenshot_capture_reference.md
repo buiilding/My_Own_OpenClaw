@@ -131,7 +131,9 @@ When attachment(s) exist:
    only; SDK display projection owns visible image/screenshot attachment states
    and preview/ready artifact descriptors. Renderer `UserMessage` display
    consumes typed SDK `attachments[]` only and does not render filename metadata
-   as a separate attachment fallback.
+   as a separate attachment fallback. `DesktopPendingTurnBridgeRuntime` owns
+   pending-turn payload construction so normal sends and replay sends use the
+   same bridge identity and filename metadata contract.
 5. run send-surface window policy only (optional return-to-chatbox behavior).
 6. build typed SDK turn resources:
    - `clipboard_image` for pasted/selected images

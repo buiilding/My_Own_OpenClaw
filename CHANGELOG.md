@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pending: centralize renderer pending-turn bridge payload
+  construction in `DesktopPendingTurnBridgeRuntime` so send and replay share
+  one small pending bridge contract. No migration required.
 - frontend/replay: prefer SDK `ConversationView.displayRows` for edit/retry
   target preparation so replay actions no longer depend on raw renderer
   `chatStore.messages` when a view exists. No migration required.
