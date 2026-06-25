@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: move ChatInterface replay fallback row selection into
+  `DesktopChatInterfacePresentationRuntime` so React no longer branches between
+  raw store messages and SDK `ConversationView` rows for replay inputs. No
+  migration required.
 - frontend/store: move standalone `setLatestConversationView` no-op/update
   handling behind `DesktopConversationViewWorkspaceRuntime` so `chatStore`
   delegates ConversationView state writes. No migration required.

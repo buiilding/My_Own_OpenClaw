@@ -43,6 +43,15 @@ Derived flags:
 - `awaitingDotTargetMessageId` comes from the shared current-turn presentation
   contract and is the concrete dashboard awaiting-dot render target
 
+## Presentation Read Model
+
+`ChatInterface` calls
+`DesktopChatInterfacePresentationRuntime.buildChatInterfacePresentationState(...)`
+for rendered thread rows, action gating, active revision id, and replay fallback
+rows. When a `ConversationView` exists, that runtime projects SDK display rows
+and returns an empty `replayFallbackMessages` array so React does not choose
+between SDK view rows and raw store messages.
+
 ## Stop Query Contract
 
 Dashboard stop behavior is owned by `useStopTurnHandler(...)`:

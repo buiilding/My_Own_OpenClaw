@@ -299,7 +299,8 @@ replay execution calls the SDK edit/resend and retry commands directly; when a
 `ConversationView.displayRows` instead of raw `chatStore.messages`.
 `ChatInterface` passes replay hooks an explicit `replayFallbackMessages` input
 and empties that fallback while a `ConversationView` exists, keeping raw
-renderer messages available only for the no-view bridge. The renderer's
+renderer messages available only for the no-view bridge. That fallback decision
+lives in `DesktopChatInterfacePresentationRuntime`, not in React. The renderer's
 temporary replay bridge retains the already projected visible prefix as UI rows
 only; it does not filter tool pairs or reconstruct model context for replay.
 React replay hooks do not select store `activeConversationRef` or `addMessage`

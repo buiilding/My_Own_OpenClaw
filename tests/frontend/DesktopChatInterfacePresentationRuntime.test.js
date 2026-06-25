@@ -32,6 +32,11 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
   });
 
   test('projects ConversationView display rows as main chat messages without store messages', () => {
+    const staleMessages = [{
+      id: 'stale-store-row',
+      sender: 'user',
+      text: 'stale store prompt',
+    }];
     const state = buildChatInterfacePresentationState({
       activeConversationRef: 'conv-1',
       conversationView: {
@@ -62,7 +67,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
           canRetry: true,
         },
       },
-      messages: [],
+      messages: staleMessages,
     });
 
     expect(state.renderedMessages).toEqual([
@@ -77,6 +82,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         text: 'view answer',
       }),
     ]);
+    expect(state.replayFallbackMessages).toEqual([]);
   });
 
   test('keeps renderer pending bridge beside ConversationView display rows', () => {
@@ -126,15 +132,21 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
   });
 
   test('keeps legacy actions available only before ConversationView exists', () => {
+    const messages = [{
+      id: 'legacy-row',
+      sender: 'user',
+      text: 'legacy prompt',
+    }];
     const state = buildChatInterfacePresentationState({
       activeConversationRef: 'conv-1',
       conversationView: null,
-      messages: [],
+      messages,
     });
 
     expect(state.canEditMessages).toBe(true);
     expect(state.canRetryMessages).toBe(true);
     expect(state.activeRevisionId).toBeNull();
+    expect(state.replayFallbackMessages).toBe(messages);
   });
 
   test('renders ConversationView live rows instead of stale raw current-turn rows', () => {

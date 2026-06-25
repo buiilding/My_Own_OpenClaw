@@ -1709,6 +1709,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js'),
       'utf8',
     );
+    const chatInterfacePresentationRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime.js'),
+      'utf8',
+    );
     const pendingBridgeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopPendingTurnBridgeRuntime.js'),
       'utf8',
@@ -1762,8 +1766,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('() => (conversationView ? [] : messages)');
     expect(source).not.toContain('      messages,\n      userMessageId');
     expect(source).not.toContain('      messages,\n      assistantMessageId');
-    expect(normalizedChatInterfaceSource).toContain('const replayFallbackMessages = useMemo');
-    expect(normalizedChatInterfaceSource).toContain('() => (conversationView ? [] : messages)');
+    expect(normalizedChatInterfaceSource).not.toContain('() => (conversationView ? [] : messages)');
+    expect(chatInterfacePresentationRuntimeSource).toContain('replayFallbackMessages: hasConversationView ? [] : messages');
     expect(normalizedChatInterfaceSource).toContain(
       'useConversationReplayActions({\n    conversationView,\n    replayFallbackMessages,\n  })',
     );
