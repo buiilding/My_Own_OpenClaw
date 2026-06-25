@@ -272,11 +272,6 @@ function prepareReplayRetryIntent({ messages, assistantMessageId }) {
 
 export const DesktopConversationReplayRuntime = Object.freeze({
   buildReplayPendingPublication,
-  buildReplayMessagesWithPendingTurn,
-  buildReplayPendingTurn,
-  buildReplayContextMessages,
-  findReplayEditableUserMessageIndex,
   prepareReplayEditIntent,
   prepareReplayRetryIntent,
-  resolveReplayRetryMessageIndexes,
 });

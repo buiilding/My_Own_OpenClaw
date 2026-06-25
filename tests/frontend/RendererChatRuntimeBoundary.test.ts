@@ -1626,6 +1626,11 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('export function buildReplayContextMessages');
     expect(replayRuntimeSource).not.toContain('export function buildReplayPreparationPayload');
     expect(replayRuntimeSource).not.toContain('export function buildReplayPendingTurn');
+    expect(replayRuntimeSource).not.toContain('  buildReplayMessagesWithPendingTurn,');
+    expect(replayRuntimeSource).not.toContain('  buildReplayPendingTurn,');
+    expect(replayRuntimeSource).not.toContain('  buildReplayContextMessages,');
+    expect(replayRuntimeSource).not.toContain('  findReplayEditableUserMessageIndex,');
+    expect(replayRuntimeSource).not.toContain('  resolveReplayRetryMessageIndexes,');
     expect(replayRuntimeSource).not.toContain('screenshot_ref');
     expect(replayRuntimeSource).not.toContain('screenshotRef');
     expect(replayRuntimeSource).toContain('attachmentFilenames');

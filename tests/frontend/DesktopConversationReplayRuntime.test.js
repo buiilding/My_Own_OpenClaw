@@ -7,50 +7,25 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime';
 
 const {
-  buildReplayPendingTurn,
   buildReplayPendingPublication,
-  buildReplayContextMessages,
-  findReplayEditableUserMessageIndex,
   prepareReplayEditIntent,
   prepareReplayRetryIntent,
-  resolveReplayRetryMessageIndexes,
 } = DesktopConversationReplayRuntime;
 
+function intentMessageIds(messages) {
+  const replayUserMessage = { id: 'user-replay', sender: 'user', text: 'retry' };
+  const intent = prepareReplayEditIntent({
+    messages: [
+      ...messages,
+      replayUserMessage,
+    ],
+    userMessageId: replayUserMessage.id,
+    editedText: 'retry edited',
+  });
+  return intent.replayMessages.map((message) => message.id);
+}
+
 describe('desktopConversationReplayRuntime', () => {
-  test('findReplayEditableUserMessageIndex only selects matching user rows', () => {
-    const messages = [
-      { id: 'assistant-1', sender: 'assistant' },
-      { id: 'user-1', sender: 'user' },
-      { id: 'assistant-user-id', sender: 'assistant' },
-    ];
-
-    expect(findReplayEditableUserMessageIndex(messages, 'user-1')).toBe(1);
-    expect(findReplayEditableUserMessageIndex(messages, 'assistant-user-id')).toBe(-1);
-    expect(findReplayEditableUserMessageIndex(messages, 'missing')).toBe(-1);
-  });
-
-  test('resolveReplayRetryMessageIndexes selects the prior user for an assistant retry', () => {
-    const messages = [
-      { id: 'user-1', sender: 'user' },
-      { id: 'assistant-1', sender: 'assistant' },
-      { id: 'tool-1', sender: 'assistant', type: 'tool-output' },
-      { id: 'assistant-2', sender: 'assistant' },
-    ];
-
-    expect(resolveReplayRetryMessageIndexes(messages, 'assistant-2')).toEqual({
-      assistantIndex: 3,
-      userIndex: 0,
-    });
-    expect(resolveReplayRetryMessageIndexes(messages, 'user-1')).toEqual({
-      assistantIndex: -1,
-      userIndex: -1,
-    });
-    expect(resolveReplayRetryMessageIndexes([{ id: 'assistant-1', sender: 'assistant' }], 'assistant-1')).toEqual({
-      assistantIndex: 0,
-      userIndex: -1,
-    });
-  });
-
   test('keeps non-tool rows and matched tool call/output pairs', () => {
     const messages = [
       { id: 'm-1', type: 'llm-text', text: 'assistant intro' },
@@ -61,7 +36,7 @@ describe('desktopConversationReplayRuntime', () => {
       { id: 'm-6', type: 'tool-output', correlationId: 'corr-missing-call' },
     ];
 
-    expect(buildReplayContextMessages(messages).map((message) => message.id)).toEqual([
+    expect(intentMessageIds(messages)).toEqual([
       'm-1',
       'm-2',
       'm-3',
@@ -76,7 +51,7 @@ describe('desktopConversationReplayRuntime', () => {
       { id: 'm-3', type: 'llm-text', text: 'tail' },
     ];
 
-    expect(buildReplayContextMessages(messages).map((message) => message.id)).toEqual([
+    expect(intentMessageIds(messages)).toEqual([
       'm-1',
       'm-2',
       'm-3',
@@ -91,7 +66,7 @@ describe('desktopConversationReplayRuntime', () => {
       { id: 'm-4', type: 'llm-text', text: 'tail' },
     ];
 
-    expect(buildReplayContextMessages(messages).map((message) => message.id)).toEqual([
+    expect(intentMessageIds(messages)).toEqual([
       'm-4',
     ]);
   });
@@ -103,7 +78,7 @@ describe('desktopConversationReplayRuntime', () => {
       { id: 'm-3', type: 'llm-text', text: 'tail' },
     ];
 
-    expect(buildReplayContextMessages(messages).map((message) => message.id)).toEqual([
+    expect(intentMessageIds(messages)).toEqual([
       'm-1',
       'm-2',
       'm-3',
@@ -138,7 +113,7 @@ describe('desktopConversationReplayRuntime', () => {
       },
     ];
 
-    expect(buildReplayContextMessages(messages).map((message) => message.id)).toEqual([
+    expect(intentMessageIds(messages)).toEqual([
       'm-1',
       'm-2',
       'm-3',
@@ -174,7 +149,7 @@ describe('desktopConversationReplayRuntime', () => {
       },
     ];
 
-    expect(buildReplayContextMessages(messages).map((message) => message.id)).toEqual([
+    expect(intentMessageIds(messages)).toEqual([
       'm-1',
       'm-2',
       'm-3',
@@ -182,29 +157,31 @@ describe('desktopConversationReplayRuntime', () => {
     ]);
   });
 
-  test('buildReplayPendingTurn keeps replay pending row identity stable', () => {
-    expect(buildReplayPendingTurn({
-      attachmentFilenames: ['one.png'],
+  test('buildReplayPendingPublication keeps replay pending row identity stable', () => {
+    expect(buildReplayPendingPublication({
       conversationRef: 'conv-replay',
+      replayMessages: [],
+      sourceUserMessage: { attachmentFilenames: ['one.png'] },
       turnRef: 'turn-replay',
-      userMessageId: 'renderer-user-1',
       text: 'retry this',
       timestamp: '2026-06-21T00:00:00.000Z',
-    })).toEqual({
+    }).pendingTurn).toEqual({
       attachmentFilenames: ['one.png'],
       conversationRef: 'conv-replay',
       turnRef: 'turn-replay',
-      userMessageId: 'renderer-user-1',
+      userMessageId: 'turn-replay-sdk-evt-000002-user_message',
       text: 'retry this',
       timestamp: '2026-06-21T00:00:00.000Z',
     });
 
-    expect(buildReplayPendingTurn({
+    expect(buildReplayPendingPublication({
       conversationRef: 'conv-replay',
+      replayMessages: [],
+      sourceUserMessage: null,
       turnRef: 'turn-fallback',
       text: 'retry this',
       timestamp: '2026-06-21T00:00:00.000Z',
-    })).toMatchObject({
+    }).pendingTurn).toMatchObject({
       attachmentFilenames: null,
       userMessageId: 'turn-fallback-sdk-evt-000002-user_message',
     });
