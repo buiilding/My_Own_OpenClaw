@@ -82,9 +82,9 @@ Message attachment fields used by current send/runtime paths include:
   broadcast for the same conversation/user/turn/text is a no-op so renderer
   IPC fan-out cannot repaint the existing user bubble. Pending turns preserve
   only identity, text, timestamp, and filename chips; visual attachment
-  descriptors belong to SDK display rows. The pending user-row shape is built
-  by `desktopPendingTurnBridgeRuntime.js`, and pending-turn normalization,
-  matching, and superseded-turn map updates live in
+  descriptors belong to SDK display rows. The pending user-row shape and
+  workspace mutation projection are built by app-runtime helpers, and
+  pending-turn normalization, matching, and superseded-turn map updates live in
   `desktopChatPendingTurnStateRuntime.ts`, not hard-coded in the store.
 - `acceptReplayPendingTurn` stores the retained replay prefix and
   renderer-local pending turn in one workspace mutation before awaiting the SDK
@@ -92,8 +92,8 @@ Message attachment fields used by current send/runtime paths include:
   the edited user row appears. Replay pending rows use the SDK replacement
   display-row id and leave display-row `attachments[]` to the later
   `sdk:display-rows` projection, so visual preservation stays on the SDK
-  target-row path. Replay uses the same app-runtime pending bridge row helper
-  as normal sends.
+  target-row path. Replay uses the same app-runtime pending workspace mutation
+  helper as normal sends.
 - `clearPendingTurn` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn
 - `acceptStoppedTurn` immediately clears local busy/thinking state, clears a

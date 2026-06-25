@@ -3016,9 +3016,11 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('desktopChatMessageTypes');
     expect(chatStoreSource).toContain('export type { ChatMessage, TokenCounts }');
     expect(chatStoreSource).toContain('createInitialWorkspaceRecord');
-    expect(chatStoreSource).toContain('DesktopPendingTurnBridgeRuntime');
     expect(chatStoreSource).toContain('DesktopChatPendingTurnStateRuntime');
     expect(chatStoreSource).toContain('DesktopChatCurrentTurnStateRuntime');
+    expect(chatStoreSource).toContain('buildPendingTurnWorkspaceMutation');
+    expect(chatStoreSource).not.toContain('DesktopPendingTurnBridgeRuntime');
+    expect(chatStoreSource).not.toContain('buildPendingTurnUserMessage');
     expect(chatStoreSource).not.toContain('function normalizePendingTurn');
     expect(chatStoreSource).not.toContain('function doesPendingTurnMatch');
     expect(chatStoreSource).not.toContain('function doesCurrentTurnProjectionMatch');
@@ -3026,6 +3028,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('function removeSupersededTurnRef');
     expect(pendingStateRuntimeSource).toContain('normalizePendingTurn');
     expect(pendingStateRuntimeSource).toContain('doesPendingTurnMatch');
+    expect(pendingStateRuntimeSource).toContain('buildPendingTurnWorkspaceMutation');
+    expect(pendingStateRuntimeSource).toContain('buildPendingTurnUserMessage');
     expect(pendingStateRuntimeSource).toContain('addSupersededTurnRef');
     expect(pendingStateRuntimeSource).toContain('removeSupersededTurnRef');
     expect(currentTurnStateRuntimeSource).toContain('doesCurrentTurnProjectionMatch');
