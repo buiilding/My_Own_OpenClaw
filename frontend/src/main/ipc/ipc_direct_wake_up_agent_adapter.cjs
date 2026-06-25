@@ -27,6 +27,42 @@ function resolveSdkCommandConversationRef(input = {}) {
   return normalizeOptionalString(input.conversationRef);
 }
 
+function withDefinedValue(target, key, value) {
+  if (value !== undefined) {
+    target[key] = value;
+  }
+}
+
+function buildRuntimeSendInput(input = {}, options = {}) {
+  const source = typeof input === 'string' ? { text: input } : input;
+  const backendPayload = isPlainObject(source.backendPayload) ? source.backendPayload : {};
+  const payload = { ...backendPayload };
+  withDefinedValue(payload, 'conversation_ref', source.conversation_ref);
+  withDefinedValue(payload, 'content', source.content);
+  withDefinedValue(payload, 'screenshot_ref', source.screenshotRef);
+  withDefinedValue(payload, 'screenshot_refs', source.screenshotRefs);
+  withDefinedValue(payload, 'attachment_context', source.attachmentContext);
+  withDefinedValue(payload, 'attachment_filenames', source.attachmentFilenames);
+  withDefinedValue(payload, 'system_state_internal', source.systemStateInternal);
+  withDefinedValue(payload, 'workspace_path', source.workspacePath);
+  withDefinedValue(
+    payload,
+    'agent_definition',
+    isPlainObject(source.agentDefinition)
+      ? source.agentDefinition
+      : backendPayload.agent_definition,
+  );
+
+  return {
+    text: typeof source.text === 'string' ? source.text : '',
+    turnRef: source.turnRef,
+    payload,
+    resources: source.resources,
+    metadata: source.metadata,
+    model: isPlainObject(options.model) ? options.model : source.model,
+  };
+}
+
 function createDirectWakeUpAgentAdapter({
   agent,
   workspacePath = null,
@@ -47,6 +83,7 @@ function createDirectWakeUpAgentAdapter({
     summarizeCurrentTurn,
     isDebugFlagEnabled,
     currentTurnTraceLogger,
+    traceRuntimeSend,
     getSyncSdkLiveTurnSurfaceIntent,
     log,
     buildConversationTerminalStatus,
@@ -256,7 +293,7 @@ function createDirectWakeUpAgentAdapter({
   }
 
   return {
-    run: async (input = {}) => {
+    run: async (input = {}, options = {}) => {
       const sendInput = typeof input === 'string' ? { text: input } : input;
       const resolvedConversationRef = resolveRuntimeConversationRef(sendInput) || defaultConversationRef;
       const handle = getConversationRuntimeHandle(resolvedConversationRef);
@@ -273,7 +310,14 @@ function createDirectWakeUpAgentAdapter({
       });
       try {
         await ensureInferenceContextForSend(handle, sendInput);
-        const result = await handle.runtime.send(sendInput);
+        const runtimeSendInput = buildRuntimeSendInput(sendInput, options);
+        if (typeof traceRuntimeSend === 'function') {
+          traceRuntimeSend({
+            ...runtimeSendInput,
+            conversationRef: resolvedConversationRef,
+          });
+        }
+        const result = await handle.runtime.send(runtimeSendInput);
         handle.activeTurnRef = result.turnRef;
         broadcastStatus({
           phase: 'running',

@@ -37,7 +37,16 @@ this page.
   the live store. Query-time Agent config assembly must repair stale empty live
   Agent prompt/tool-policy fields from persisted non-empty settings before
   falling back to startup defaults, while still respecting explicit empty values
-  saved through the frontend config IPC path.
+  saved through the frontend config IPC path. Replayed or supplied query
+  `agent_definition` payloads must not override the current Electron-generated
+  Agent system prompt or tool policy, because edit/resend can otherwise
+  resurrect stale prompts or disabled local-tool manifests.
+- Electron main adapters must preserve query-local Agent settings across SDK
+  runtime boundaries: the direct wake-up adapter receives `AgentQueryInput`,
+  but `ConversationRuntime.send` consumes `payload.agent_definition`, so the
+  adapter must translate the query Agent definition, screenshots, attachments,
+  workspace state, resources, metadata, and model override into the runtime send
+  shape before dispatch.
 - Selected chat models must be applied before inference starts: normal sends and
   manual compaction await the SDK settings ACK, while retry/edit replay carries
   the model through Electron main into SDK `agent.run(..., { model })` options.

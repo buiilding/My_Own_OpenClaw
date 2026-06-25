@@ -30,6 +30,19 @@ All notable changes to WindieOS will be documented in this file.
   and local-runtime snake_case workspace metadata, so chats with a selected
   workspace no longer appear under the no-workspace bucket. No migration
   required.
+- frontend/main: keep current Electron-generated Agent prompt and tool settings
+  authoritative when query payloads already carry an `agent_definition`, so
+  edit/resend and replay cannot resurrect stale client tool manifests or old
+  custom prompts after Agent settings change. No migration required.
+- frontend/main: translate SDK `AgentQueryInput` fields into
+  `ConversationRuntime.send` payloads inside the direct wake-up adapter, so
+  query-local Agent definitions, disabled-tool manifests, screenshots,
+  attachments, workspace state, and model overrides reach backend dispatch
+  instead of falling back to startup agent defaults. No migration required.
+- frontend/main, backend: add sanitized Agent tool-policy trace counts at the
+  renderer query, direct SDK runtime-send, and provider request boundaries, so
+  disabled-tool manifest regressions can be localized without logging prompts,
+  credentials, or full schemas. No migration required.
 - skills: add a runtime tracing skill that documents when to use durable
   conversation traces, persistent app diagnostics, or gated live-surface traces
   for repeatable long-running agent loop evidence. No migration required.

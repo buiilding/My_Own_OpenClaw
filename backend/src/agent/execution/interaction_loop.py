@@ -178,6 +178,14 @@ class InteractionLoop:
                     },
                 )
                 raise
+            final_tool_source_counts = final_tool_schema_source_counts(
+                tool_schemas or [],
+                getattr(
+                    getattr(self.session, "runtime", None),
+                    "client_tool_manifest",
+                    None,
+                ),
+            )
             yield TraceEvent(
                 path="backend.prompt",
                 stage="build",
@@ -191,14 +199,7 @@ class InteractionLoop:
                     "toolSchemaCount": len(tool_schemas or []),
                     "hasPromptMetadata": prompt_metadata is not None,
                     "capabilityRevision": _session_capability_revision(self.session),
-                    "finalToolSourceCounts": final_tool_schema_source_counts(
-                        tool_schemas or [],
-                        getattr(
-                            getattr(self.session, "runtime", None),
-                            "client_tool_manifest",
-                            None,
-                        ),
-                    ),
+                    "finalToolSourceCounts": final_tool_source_counts,
                     "finalPromptLayerCount": _prompt_layer_count(prompt_metadata),
                 },
             )
@@ -237,6 +238,7 @@ class InteractionLoop:
                 "modelProvider": getattr(self.session.cfg, "model_provider", None),
                 "promptMessageCount": len(prompt),
                 "toolSchemaCount": len(tool_schemas or []),
+                "finalToolSourceCounts": final_tool_source_counts,
             }
             yield TraceEvent(
                 path="provider.call",

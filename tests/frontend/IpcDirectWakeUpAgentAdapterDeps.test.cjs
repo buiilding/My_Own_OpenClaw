@@ -19,6 +19,7 @@ describe('ipc direct wake-up agent adapter deps runtime', () => {
       summarizeCurrentTurn: jest.fn(),
       isDebugFlagEnabled: jest.fn(),
       currentTurnTraceLogger: { trace: jest.fn() },
+      traceRuntimeSend: jest.fn(),
       getSyncSdkLiveTurnSurfaceIntent: jest.fn(),
       log: jest.fn(),
       buildConversationTerminalStatus: jest.fn(),
@@ -49,5 +50,6 @@ describe('ipc direct wake-up agent adapter deps runtime', () => {
     expect(mainSource).not.toContain('buildDirectWakeUpAgentAdapterDeps: () => ({');
     expect(helperSource).toContain('setLatestCurrentTurnProjection');
     expect(helperSource).toContain('refreshMcpServersForConfig');
+    expect(helperSource).toContain('traceRuntimeSend');
   });
 });
