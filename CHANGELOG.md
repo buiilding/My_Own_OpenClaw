@@ -32,6 +32,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: move SDK display attachment descriptor filtering behind
   an app-runtime projection helper so the display-row chat adapter stays focused
   on component message props. No migration required.
+- frontend/store: move SDK current-turn projection identity matching behind an
+  app-runtime state helper so `chatStore` no longer owns the stop-target
+  matching rule. No migration required.
 - frontend/renderer: move pending-turn user-row construction out of
   `chatStore.ts` into an app-runtime pending bridge helper shared by normal
   sends and replay. The store now mutates workspace state without hard-coding

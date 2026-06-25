@@ -39,6 +39,9 @@ import {
 import {
   DesktopChatPendingTurnStateRuntime,
 } from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
+import {
+  DesktopChatCurrentTurnStateRuntime,
+} from '../../../app/runtime/desktopChatCurrentTurnStateRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const {
@@ -61,6 +64,9 @@ const {
   normalizePendingTurn,
   removeSupersededTurnRef,
 } = DesktopChatPendingTurnStateRuntime;
+const {
+  doesCurrentTurnProjectionMatch,
+} = DesktopChatCurrentTurnStateRuntime;
 
 export type { ChatMessage, TokenCounts };
 
@@ -286,23 +292,6 @@ function mergeTurnConversationRefs(
     nextTurnConversationRefs[turnRef] = conversationRef;
   }
   return nextTurnConversationRefs;
-}
-
-function doesCurrentTurnProjectionMatch(
-  currentTurnProjection: CurrentTurnProjection | null,
-  input?: { conversationRef?: string | null; turnRef?: string | null } | null,
-): boolean {
-  if (!currentTurnProjection || !input) {
-    return false;
-  }
-  const conversationRef = normalizeConversationRef(input.conversationRef);
-  const turnRef = normalizeTurnRef(input.turnRef);
-  const projectionConversationRef = normalizeConversationRef(currentTurnProjection.conversationRef);
-  const projectionTurnRef = normalizeTurnRef(currentTurnProjection.turnRef);
-  return (
-    (!conversationRef || projectionConversationRef === conversationRef)
-    && (!turnRef || projectionTurnRef === turnRef)
-  );
 }
 
 function resolveWorkspaceMutationTarget(
