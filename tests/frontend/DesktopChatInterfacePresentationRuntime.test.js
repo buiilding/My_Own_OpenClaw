@@ -4,7 +4,7 @@ import {
 
 const {
   buildChatInterfacePresentationState,
-  buildConversationViewStoreProjection,
+  resolveConversationViewStoreRef,
 } = DesktopChatInterfacePresentationRuntime;
 
 describe('DesktopChatInterfacePresentationRuntime', () => {
@@ -105,16 +105,9 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     ]));
   });
 
-  test('builds conversation view store projection with active-conversation annotations', () => {
-    const projection = buildConversationViewStoreProjection({
+  test('resolves a conversation view store target ref', () => {
+    expect(resolveConversationViewStoreRef({
       activeConversationRef: 'conv-1',
-      currentMessages: [{
-        id: 'user-row',
-        sender: 'user',
-        text: 'old text',
-        turnRef: 'turn-1',
-        fullUserMessage: 'visible detail',
-      }],
       view: {
         conversationRef: 'conv-1',
         displayRows: [{
@@ -127,22 +120,20 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
           content: 'new text',
         }],
       },
-    });
+    })).toBe('conv-1');
 
-    expect(projection).toEqual({
-      conversationRef: 'conv-1',
-      messages: [
-        expect.objectContaining({
-          id: 'user-row',
-          text: 'new text',
-          fullUserMessage: 'visible detail',
-        }),
-      ],
-    });
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: 'conv-active',
+      targetConversationRef: 'conv-target',
+      view: {
+        conversationRef: 'conv-view',
+        displayRows: [],
+      },
+    })).toBe('conv-target');
   });
 
   test('returns null when a view has no resolvable conversation ref', () => {
-    expect(buildConversationViewStoreProjection({
+    expect(resolveConversationViewStoreRef({
       activeConversationRef: null,
       targetConversationRef: null,
       view: {

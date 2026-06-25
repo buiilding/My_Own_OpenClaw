@@ -60,7 +60,7 @@ const { isDevUiEnabled } = DesktopDevUiRuntime;
 const { startNewChatSession } = DesktopNewChatSessionRuntime;
 const {
   buildChatInterfacePresentationState,
-  buildConversationViewStoreProjection,
+  resolveConversationViewStoreRef,
 } = DesktopChatInterfacePresentationRuntime;
 const {
   buildRevisionCheckoutCommand,
@@ -426,24 +426,18 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     if (!view || typeof view !== 'object') {
       return;
     }
-    const projection = buildConversationViewStoreProjection({
+    const conversationRef = resolveConversationViewStoreRef({
       activeConversationRef,
-      currentMessages: messages,
-      pendingTurn,
       targetConversationRef,
       view,
     });
-    if (!projection) {
+    if (!conversationRef) {
       return;
     }
-    setConversationView(view, projection.conversationRef);
-    setMessages(projection.messages, projection.conversationRef);
+    setConversationView(view, conversationRef);
   }, [
     activeConversationRef,
-    messages,
-    pendingTurn,
     setConversationView,
-    setMessages,
   ]);
 
   useEffect(() => {

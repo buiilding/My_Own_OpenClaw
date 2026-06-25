@@ -44,6 +44,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/chat: route `ConversationView.displayRows` message construction for
   the chat interface through the display projection runtime, keeping SDK row
   merge rules out of the component. No migration required.
+- frontend/chat: stop writing checkout/fork `ConversationView.displayRows` back
+  into `chatStore.messages`; revision commands now store the returned SDK view
+  and leave row construction on the chat presentation path. No migration
+  required.
 - frontend/replay: move replay pending publication, SDK retry/edit dispatch,
   trace snapshots, and failure cleanup out of the React hook into
   `desktopConversationReplayRuntime`. No migration required.

@@ -654,12 +654,7 @@ describe('ChatInterface wiring', () => {
       }),
       'conv_existing',
     );
-    expect(mockSetMessages).toHaveBeenCalledWith([
-      expect.objectContaining({
-        id: 'row-checked-out',
-        text: 'checked out branch',
-      }),
-    ], 'conv_existing');
+    expect(mockSetMessages).not.toHaveBeenCalled();
   });
 
   test('revision menu forks a branch and switches to the forked SDK view', async () => {

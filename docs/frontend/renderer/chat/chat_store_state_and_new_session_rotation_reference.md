@@ -189,6 +189,9 @@ current-turn bridge, stored messages, and `ConversationView.actions` into
 `renderedMessages`, edit/retry availability, and active revision id. The
 component consumes that view model and does not choose between raw messages,
 current-turn rows, and `ConversationView` action metadata inline.
+When checkout/fork commands return a `ConversationView`, `ChatInterface` stores
+only that SDK view for the target conversation; it does not project
+`displayRows` back into `chatStore.messages`.
 
 `DesktopChatRevisionActionRuntime` owns checkout/fork command input shaping for
 the revision menu: revision id normalization, action ids, default user id, and

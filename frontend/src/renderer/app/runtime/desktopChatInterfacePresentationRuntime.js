@@ -3,15 +3,9 @@
  */
 
 import {
-  DesktopConversationDisplayProjection,
-} from './desktopConversationDisplayProjection';
-import {
   DesktopThreadPresentationRuntime,
 } from './desktopThreadPresentationRuntime';
 
-const {
-  buildConversationViewChatMessages,
-} = DesktopConversationDisplayProjection;
 const {
   buildThreadPresentationMessages,
 } = DesktopThreadPresentationRuntime;
@@ -45,10 +39,8 @@ function buildChatInterfacePresentationState({
   };
 }
 
-function buildConversationViewStoreProjection({
+function resolveConversationViewStoreRef({
   activeConversationRef = null,
-  currentMessages = [],
-  pendingTurn = null,
   targetConversationRef = null,
   view = null,
 } = {}) {
@@ -59,18 +51,10 @@ function buildConversationViewStoreProjection({
   if (!conversationRef) {
     return null;
   }
-  return {
-    conversationRef,
-    messages: buildConversationViewChatMessages({
-      conversationView: view,
-      currentMessages,
-      pendingTurn,
-      preserveRendererAnnotations: conversationRef === activeConversationRef,
-    }),
-  };
+  return conversationRef;
 }
 
 export const DesktopChatInterfacePresentationRuntime = Object.freeze({
   buildChatInterfacePresentationState,
-  buildConversationViewStoreProjection,
+  resolveConversationViewStoreRef,
 });
