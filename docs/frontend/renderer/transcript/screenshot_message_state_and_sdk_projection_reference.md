@@ -62,10 +62,9 @@ screenshot state. Renderer feature code should render image descriptors through
 artifact-backed images with
 `DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc`.
 
-`buildMessageScreenshotState(...)` uses
-`preserveInlineScreenshotWithRemote: false`, so renderer chat rows prefer the
-remote artifact path and avoid keeping duplicate inline bytes next to
-`screenshotRef`/`screenshotUrl`.
+There is no renderer `buildMessageScreenshotState(...)` whole-message facade.
+Renderer chat rows should receive typed `attachments[]`; artifact-backed image
+resolution stays behind attachment descriptors.
 
 There is no renderer `resolveReplayScreenshotState(...)` facade. React replay
 actions dispatch SDK retry/edit intent only; SDK target-row resolution preserves

@@ -16,6 +16,9 @@ All notable changes to WindieOS will be documented in this file.
   facade so replay screenshot alias recovery cannot re-enter React-side retry
   or edit flows. Legacy replay resource preservation remains SDK display-row
   compatibility adapter ownership. No migration required.
+- frontend/renderer: delete the unused `buildMessageScreenshotState` helper for
+  whole-message screenshot aliases. Renderer chat display should consume typed
+  `attachments[]` and artifact display adapters instead. No migration required.
 - frontend/replay: stop renderer retry/edit actions from resolving
   `screenshotRef`/`screenshotUrl` aliases into SDK command payloads. Replay
   resource preservation now comes only from the SDK target display row, with

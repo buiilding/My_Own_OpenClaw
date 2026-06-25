@@ -3,7 +3,6 @@
  */
 
 import {
-  buildMessageScreenshotState,
   buildRemoteScreenshotAttachment,
   buildRemoteScreenshotAttachments,
   inferArtifactRefFromUrl,
@@ -60,18 +59,6 @@ describe('screenshotMessageState', () => {
       screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-42',
       screenshotContentType: 'image/png',
       hasRemoteScreenshot: true,
-    });
-  });
-
-  test('buildMessageScreenshotState prefers remote screenshots for chat message rows', () => {
-    expect(buildMessageScreenshotState({
-      screenshot: 'data:image/png;base64,inline-shot',
-      screenshotRef: 'artifact-10',
-    })).toEqual({
-      screenshot: null,
-      screenshotRef: 'artifact-10',
-      screenshotUrl: expect.stringContaining('/api/artifacts/artifact-10'),
-      screenshotContentType: null,
     });
   });
 

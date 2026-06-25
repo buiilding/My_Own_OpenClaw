@@ -884,6 +884,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStreamEventPayloadSource).toContain('DesktopArtifactRuntimeClient.buildRemoteScreenshotAttachment');
     expect(artifactClientSource).toContain('DesktopRuntimeEndpointClient.buildArtifactUrl');
     expect(artifactClientSource).not.toContain('resolveReplayScreenshotState');
+    expect(artifactClientSource).not.toContain('buildMessageScreenshotState');
     expect(artifactClientSource).toContain('resolveScreenshotAttachmentState');
     expect(artifactClientSource).toContain('normalizeArtifactImageContentType');
     expect(endpointClientSource).toContain('buildRuntimeArtifactUrl');
