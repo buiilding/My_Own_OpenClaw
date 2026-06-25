@@ -136,9 +136,10 @@ flowchart LR
      resolved by the runtime from the store dependency instead of selected in
      React. That public facade exports only `executeReplayAction`, and hooks do
      not call replay preparation helpers or replay SDK commands directly.
-     `ChatInterface` passes an explicit `replayFallbackMessages`
-     input; when a `ConversationView` exists that fallback must be empty so the
-     runtime cannot choose raw `chatStore.messages` beside the SDK view.
+     `ChatInterface` passes the selector-owned `replayReadModel`; when a
+     `ConversationView` exists that read model must carry an empty fallback row
+     list so the runtime cannot choose raw `chatStore.messages` beside the SDK
+     view.
    - Renderer app-runtime facades should not expose direct display timeline
      load/replace helpers to React. Low-level display timeline operations remain
      SDK/main-owner diagnostics and command-handler concerns; normal UI paths

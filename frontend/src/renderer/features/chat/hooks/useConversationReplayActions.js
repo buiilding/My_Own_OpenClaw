@@ -16,16 +16,16 @@ const {
   executeReplayAction,
 } = DesktopConversationReplayRuntime;
 const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
+const EMPTY_REPLAY_MESSAGES = Object.freeze([]);
 
 export function useConversationReplayActions({
-  conversationView = null,
   replayReadModel = null,
-  replayFallbackMessages = [],
 } = {}) {
-  const resolvedConversationView = replayReadModel?.conversationView ?? conversationView;
-  const resolvedReplayFallbackMessages = Array.isArray(replayReadModel?.messages)
-    ? replayReadModel.messages
-    : replayFallbackMessages;
+  const conversationView = replayReadModel?.conversationView ?? null;
+  const replayMessages = replayReadModel?.messages;
+  const messages = Array.isArray(replayMessages)
+    ? replayMessages
+    : EMPTY_REPLAY_MESSAGES;
   const { config } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const deferredQueryModelSelection = DesktopRendererConfigRuntimeClient
     .buildDeferredQueryModelSelection(config);
@@ -34,8 +34,8 @@ export function useConversationReplayActions({
     return executeReplayAction({
       action: 'edit_resend',
       deferredQueryModelSelection,
-      conversationView: resolvedConversationView,
-      messages: resolvedReplayFallbackMessages,
+      conversationView,
+      messages,
       userMessageId,
       editedText,
       failureMessages: {
@@ -46,16 +46,16 @@ export function useConversationReplayActions({
     });
   }, [
     deferredQueryModelSelection,
-    resolvedConversationView,
-    resolvedReplayFallbackMessages,
+    conversationView,
+    messages,
   ]);
 
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
     return executeReplayAction({
       action: 'retry',
       deferredQueryModelSelection,
-      conversationView: resolvedConversationView,
-      messages: resolvedReplayFallbackMessages,
+      conversationView,
+      messages,
       assistantMessageId,
       failureMessages: {
         sendFailureMessage: chatSkin.sendFailureMessage,
@@ -65,8 +65,8 @@ export function useConversationReplayActions({
     });
   }, [
     deferredQueryModelSelection,
-    resolvedConversationView,
-    resolvedReplayFallbackMessages,
+    conversationView,
+    messages,
   ]);
 
   return {

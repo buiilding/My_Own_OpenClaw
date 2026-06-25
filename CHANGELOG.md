@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: remove legacy raw `ConversationView` and
+  `replayFallbackMessages` inputs from `useConversationReplayActions`; replay
+  hooks now consume only the selector-owned `replayReadModel`. No migration
+  required.
 - frontend/stop: remove legacy raw `ConversationView`, `pendingTurn`, and
   session-ref inputs from `useStopTurnHandler`; stop-target selection now stays
   in `DesktopChatInterfaceSelectorRuntime` and the hook consumes only the

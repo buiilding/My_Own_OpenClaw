@@ -445,7 +445,10 @@ const BASE_MESSAGES = [
 function renderReplayHook(messages: Array<Record<string, unknown>>) {
   useChatStore.getState().setMessages(messages as never, 'conv-replay-db');
   return renderHook(() => useConversationReplayActions({
-    replayFallbackMessages: messages,
+    replayReadModel: {
+      conversationView: null,
+      messages,
+    },
   }));
 }
 
