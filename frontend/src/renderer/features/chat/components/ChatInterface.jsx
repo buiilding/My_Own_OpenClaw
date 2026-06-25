@@ -33,12 +33,11 @@ import { useStopTurnHandler } from '../hooks/useStopTurnHandler';
 import { DesktopStartupRuntimeClient } from '../../../app/runtime/desktopStartupRuntimeClient';
 import { DesktopChatInterfaceBindingsRuntime } from '../../../app/runtime/desktopChatInterfaceBindingsRuntime';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
-import {
-  DesktopThreadPresentationRuntime,
-} from '../../../app/runtime/desktopThreadPresentationRuntime';
 import { DesktopThreadFindRuntime } from '../../../app/runtime/desktopThreadFindRuntime';
 import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
-import { DesktopConversationDisplayProjection } from '../../../app/runtime/desktopConversationDisplayProjection';
+import {
+  DesktopChatInterfacePresentationRuntime,
+} from '../../../app/runtime/desktopChatInterfacePresentationRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import '../../../styles/ChatInterface.css';
 
@@ -53,15 +52,13 @@ const {
   resolveSelectedReasoningMode,
   resolveSelectedModelOption,
 } = DesktopChatModelOptionsRuntime;
-const {
-  buildThreadPresentationMessages,
-} = DesktopThreadPresentationRuntime;
 const { buildThreadFindState } = DesktopThreadFindRuntime;
 const { isDevUiEnabled } = DesktopDevUiRuntime;
 const { startNewChatSession } = DesktopNewChatSessionRuntime;
 const {
-  buildConversationViewChatMessages,
-} = DesktopConversationDisplayProjection;
+  buildChatInterfacePresentationState,
+  buildConversationViewStoreProjection,
+} = DesktopChatInterfacePresentationRuntime;
 
 function normalizeRevisionId(revisionId) {
   return typeof revisionId === 'string' && revisionId.trim() ? revisionId.trim() : null;
@@ -235,12 +232,18 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     canStop,
     speechModeEnabled,
   } = chatSurface;
-  const renderedMessages = useMemo(() => buildThreadPresentationMessages(messages, {
+  const activeConversationRef = sessionInfo.conversationRef || null;
+  const {
+    activeRevisionId,
+    canEditMessages,
+    canRetryMessages,
+    renderedMessages,
+  } = useMemo(() => buildChatInterfacePresentationState({
+    activeConversationRef,
     conversationView,
     currentTurnProjection,
-    activeConversationRef: sessionInfo.conversationRef || null,
-  }), [conversationView, currentTurnProjection, messages, sessionInfo.conversationRef]);
-  const activeConversationRef = sessionInfo.conversationRef || null;
+    messages,
+  }), [activeConversationRef, conversationView, currentTurnProjection, messages]);
   const isLoadingSelectedConversation = (
     typeof loadingConversationRef === 'string'
     && loadingConversationRef.length > 0
@@ -278,13 +281,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   );
   const showReasoningModeSelector = reasoningModeOptions.length > 1;
   const devUiEnabled = isDevUiEnabled();
-  const hasConversationView = Boolean(conversationView && typeof conversationView === 'object');
-  const canEditMessages = hasConversationView
-    ? conversationView?.actions?.canEdit === true
-    : true;
-  const canRetryMessages = hasConversationView
-    ? conversationView?.actions?.canRetry === true
-    : true;
   const [providerMenuOpen, setProviderMenuOpen] = useState(false);
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
   const [reasoningModeMenuOpen, setReasoningModeMenuOpen] = useState(false);
@@ -433,18 +429,18 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     if (!view || typeof view !== 'object') {
       return;
     }
-    const conversationRef = targetConversationRef || view.conversationRef || activeConversationRef;
-    if (!conversationRef) {
-      return;
-    }
-    const mergedMessages = buildConversationViewChatMessages({
-      conversationView: view,
+    const projection = buildConversationViewStoreProjection({
+      activeConversationRef,
       currentMessages: messages,
       pendingTurn,
-      preserveRendererAnnotations: conversationRef === activeConversationRef,
+      targetConversationRef,
+      view,
     });
-    setConversationView(view, conversationRef);
-    setMessages(mergedMessages, conversationRef);
+    if (!projection) {
+      return;
+    }
+    setConversationView(view, projection.conversationRef);
+    setMessages(projection.messages, projection.conversationRef);
   }, [
     activeConversationRef,
     messages,
@@ -668,7 +664,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
         revisionLoading={revisionLoading}
         revisionError={revisionError}
         revisionActionId={revisionActionId}
-        activeRevisionId={conversationView?.revisionId || null}
+        activeRevisionId={activeRevisionId}
         activeConversationRef={activeConversationRef}
         setRevisionMenuOpen={setRevisionMenuOpen}
         speechModeEnabled={speechModeEnabled}

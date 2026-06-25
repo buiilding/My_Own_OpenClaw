@@ -1,0 +1,153 @@
+import {
+  DesktopChatInterfacePresentationRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime';
+
+const {
+  buildChatInterfacePresentationState,
+  buildConversationViewStoreProjection,
+} = DesktopChatInterfacePresentationRuntime;
+
+describe('DesktopChatInterfacePresentationRuntime', () => {
+  test('uses ConversationView action metadata when a view exists', () => {
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        revisionId: 'rev-1',
+        displayRows: [],
+        liveTurn: {
+          entries: [],
+        },
+        actions: {
+          canEdit: false,
+          canRetry: true,
+        },
+      },
+      messages: [],
+    });
+
+    expect(state.canEditMessages).toBe(false);
+    expect(state.canRetryMessages).toBe(true);
+    expect(state.activeRevisionId).toBe('rev-1');
+  });
+
+  test('keeps legacy actions available only before ConversationView exists', () => {
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: null,
+      messages: [],
+    });
+
+    expect(state.canEditMessages).toBe(true);
+    expect(state.canRetryMessages).toBe(true);
+    expect(state.activeRevisionId).toBeNull();
+  });
+
+  test('renders ConversationView live rows instead of stale raw current-turn rows', () => {
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [{
+          id: 'user-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-view',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'view prompt',
+        }],
+        liveTurn: {
+          turnRef: 'turn-view',
+          entries: [{
+            id: 'view-live',
+            type: 'assistant_message',
+            text: 'view live answer',
+          }],
+        },
+        actions: {
+          canEdit: true,
+          canRetry: true,
+        },
+      },
+      currentTurnProjection: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-stale',
+        phase: 'streaming',
+        assistantText: 'stale raw answer',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      },
+      messages: [{
+        id: 'user-row',
+        sender: 'user',
+        text: 'view prompt',
+        turnRef: 'turn-view',
+      }],
+    });
+
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'user-row',
+        text: 'view prompt',
+      }),
+      expect.objectContaining({
+        id: 'view-live',
+        text: 'view live answer',
+        turnRef: 'turn-view',
+      }),
+    ]);
+    expect(state.renderedMessages).toEqual(expect.not.arrayContaining([
+      expect.objectContaining({
+        text: 'stale raw answer',
+      }),
+    ]));
+  });
+
+  test('builds conversation view store projection with active-conversation annotations', () => {
+    const projection = buildConversationViewStoreProjection({
+      activeConversationRef: 'conv-1',
+      currentMessages: [{
+        id: 'user-row',
+        sender: 'user',
+        text: 'old text',
+        turnRef: 'turn-1',
+        fullUserMessage: 'visible detail',
+      }],
+      view: {
+        conversationRef: 'conv-1',
+        displayRows: [{
+          id: 'user-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'new text',
+        }],
+      },
+    });
+
+    expect(projection).toEqual({
+      conversationRef: 'conv-1',
+      messages: [
+        expect.objectContaining({
+          id: 'user-row',
+          text: 'new text',
+          fullUserMessage: 'visible detail',
+        }),
+      ],
+    });
+  });
+
+  test('returns null when a view has no resolvable conversation ref', () => {
+    expect(buildConversationViewStoreProjection({
+      activeConversationRef: null,
+      targetConversationRef: null,
+      view: {
+        displayRows: [],
+      },
+    })).toBeNull();
+  });
+});

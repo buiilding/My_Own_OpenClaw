@@ -54,6 +54,10 @@ All notable changes to WindieOS will be documented in this file.
   optimistic pending-row merge orchestration, and replay trace payload shaping
   into an app-runtime helper so `useConversationRuntimeProjectionStream` stays
   focused on subscriptions and store writes. No migration required.
+- frontend/chat: move main chat thread presentation, ConversationView action
+  availability, and checked-out view store projection into an app-runtime
+  helper so `ChatInterface` consumes a single presentation view model. No
+  migration required.
 - frontend/renderer: move pending-turn user-row construction out of
   `chatStore.ts` into an app-runtime pending bridge helper shared by normal
   sends and replay. The store now mutates workspace state without hard-coding

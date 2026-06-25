@@ -12,6 +12,7 @@ title: "Chat Store State and New Session Rotation Reference"
 
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopPendingTurnBridgeRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatPendingTurnStateRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime.ts`
@@ -167,6 +168,13 @@ Workspace-binding invariant:
 - opening an older chat restores its bound workspace back into the active Electron workspace selection before more sends/tool calls happen
 
 ## Main-Window Call-Site (`ChatInterface`)
+
+`DesktopChatInterfacePresentationRuntime` owns the main chat thread
+presentation view model. It combines SDK `ConversationView`, the no-view
+current-turn bridge, stored messages, and `ConversationView.actions` into
+`renderedMessages`, edit/retry availability, and active revision id. The
+component consumes that view model and does not choose between raw messages,
+current-turn rows, and `ConversationView` action metadata inline.
 
 `handleNewChat` passes `stopActiveQuery` only when stream phase is active. Stop callback does:
 
