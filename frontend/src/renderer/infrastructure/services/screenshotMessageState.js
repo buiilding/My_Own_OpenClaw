@@ -148,27 +148,3 @@ export function buildMessageScreenshotState({
       : attachment.screenshotContentType,
   };
 }
-
-export function resolveReplayScreenshotState({
-  screenshot = null,
-  screenshotRef = null,
-  screenshotUrl = null,
-  screenshotContentType = null,
-  artifactUrlBuilder = undefined,
-}) {
-  const attachment = resolveScreenshotAttachmentState({
-    screenshot,
-    screenshotRef,
-    screenshotUrl,
-    screenshotContentType,
-    artifactUrlBuilder,
-    preserveInlineScreenshotWithRemote: false,
-  });
-
-  return {
-    screenshot: attachment.screenshot,
-    screenshotRef: attachment.screenshotRef,
-    screenshotUrl: attachment.screenshotUrl,
-    screenshotContentType: attachment.screenshotContentType,
-  };
-}

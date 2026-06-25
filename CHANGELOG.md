@@ -12,6 +12,10 @@ All notable changes to WindieOS will be documented in this file.
   `conversation.loadDisplayTimeline` or `conversation.replaceRows` back to
   React. Main-process SDK command handling remains the owner for low-level
   display timeline operations. No migration required.
+- frontend/replay: delete the unused renderer `resolveReplayScreenshotState`
+  facade so replay screenshot alias recovery cannot re-enter React-side retry
+  or edit flows. Legacy replay resource preservation remains SDK display-row
+  compatibility adapter ownership. No migration required.
 - frontend/replay: stop renderer retry/edit actions from resolving
   `screenshotRef`/`screenshotUrl` aliases into SDK command payloads. Replay
   resource preservation now comes only from the SDK target display row, with

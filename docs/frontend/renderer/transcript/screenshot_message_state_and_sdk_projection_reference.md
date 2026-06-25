@@ -55,9 +55,11 @@ resource preservation comes from the SDK target display row.
 5. optionally drops inline screenshot bytes when remote metadata exists
 
 `screenshotMessageState.js` keeps low-level legacy normalization rules for
-producer/replay paths. Renderer feature code should render image descriptors
-through `AttachmentList`/`AttachmentRendererRegistry`; those components resolve
-ready artifact-backed images with
+producer paths. Replay-specific screenshot alias recovery belongs in SDK
+display-row compatibility adapters, not renderer replay actions or renderer
+screenshot state. Renderer feature code should render image descriptors through
+`AttachmentList`/`AttachmentRendererRegistry`; those components resolve ready
+artifact-backed images with
 `DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc`.
 
 `buildMessageScreenshotState(...)` uses
@@ -65,9 +67,9 @@ ready artifact-backed images with
 remote artifact path and avoid keeping duplicate inline bytes next to
 `screenshotRef`/`screenshotUrl`.
 
-`resolveReplayScreenshotState(...)` follows the same remote preference for
-legacy metadata adapters. React replay actions do not call it when dispatching
-SDK retry/edit commands.
+There is no renderer `resolveReplayScreenshotState(...)` facade. React replay
+actions dispatch SDK retry/edit intent only; SDK target-row resolution preserves
+typed attachments and any legacy screenshot refs.
 
 ## SDK Display Projection
 

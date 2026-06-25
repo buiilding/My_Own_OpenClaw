@@ -10,7 +10,6 @@ import {
   buildRemoteScreenshotAttachment,
   buildRemoteScreenshotAttachments,
   inferArtifactRefFromUrl,
-  resolveReplayScreenshotState,
   resolveScreenshotAttachmentState,
 } from '../../infrastructure/services/screenshotMessageState';
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
@@ -81,10 +80,6 @@ export const DesktopArtifactRuntimeClient = {
 
   resolveScreenshotAttachmentState(input: Record<string, unknown>) {
     return resolveScreenshotAttachmentState(withArtifactUrlBuilder(input));
-  },
-
-  resolveReplayScreenshotState(input: Record<string, unknown>) {
-    return resolveReplayScreenshotState(withArtifactUrlBuilder(input));
   },
 
   fetchArtifactImage(request: FetchArtifactImageRequest): Promise<FetchArtifactImageResult> {

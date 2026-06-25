@@ -7,7 +7,6 @@ import {
   buildRemoteScreenshotAttachment,
   buildRemoteScreenshotAttachments,
   inferArtifactRefFromUrl,
-  resolveReplayScreenshotState,
   resolveScreenshotAttachmentState,
 } from '../../frontend/src/renderer/infrastructure/services/screenshotMessageState';
 
@@ -86,29 +85,6 @@ describe('screenshotMessageState', () => {
       screenshotUrl: null,
       screenshotContentType: null,
       hasRemoteScreenshot: false,
-    });
-  });
-
-  test('resolveReplayScreenshotState keeps inline screenshots when no remote ref exists', () => {
-    const inlineScreenshot = 'A'.repeat(256);
-    expect(resolveReplayScreenshotState({
-      screenshot: inlineScreenshot,
-    })).toEqual({
-      screenshot: inlineScreenshot,
-      screenshotRef: null,
-      screenshotUrl: null,
-      screenshotContentType: null,
-    });
-  });
-
-  test('resolveReplayScreenshotState infers artifact refs from screenshot urls', () => {
-    expect(resolveReplayScreenshotState({
-      screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-91',
-    })).toEqual({
-      screenshot: null,
-      screenshotRef: 'artifact-91',
-      screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-91',
-      screenshotContentType: null,
     });
   });
 
