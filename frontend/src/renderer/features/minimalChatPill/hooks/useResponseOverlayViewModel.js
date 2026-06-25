@@ -56,11 +56,14 @@ function normalizeReasoningText(reasoningText) {
 }
 
 export function useResponseOverlayViewModel({
-  messages = [],
-  conversationView = null,
-  currentTurnProjection = null,
-  pendingTurn = null,
+  chatSurfaceState = null,
 }) {
+  const {
+    messages = [],
+    conversationView = null,
+    currentTurnProjection = null,
+    pendingTurn = null,
+  } = chatSurfaceState || {};
   const streamTracking = useChatStore(
     (state) => state.streamTracking,
   );

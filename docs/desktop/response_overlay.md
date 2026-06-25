@@ -24,7 +24,10 @@ The response overlay displays live assistant output and transient tool/progress 
 
 ## Runtime Model
 
-The renderer displays SDK `currentTurnProjection`:
+The renderer view model receives selector-projected `chatSurfaceState` and
+prefers SDK `ConversationView` live-turn/surface state when present. Raw
+`currentTurnProjection` is only part of that selector-projected fallback before
+the normal view exists:
 
 - `phase` decides awaiting/streaming/tool/terminal presentation
 - `assistantText` and `toolEvents` decide response content

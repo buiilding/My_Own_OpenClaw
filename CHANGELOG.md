@@ -10,6 +10,8 @@ All notable changes to WindieOS will be documented in this file.
   selector-projected `chatSurfaceState` so React call sites no longer assemble
   the controller read model from separate chat store authorities. No migration
   required.
+- frontend/overlay: route response-overlay view-model projection through the
+  same selector-projected `chatSurfaceState` contract. No migration required.
 - frontend/pending: centralize renderer pending-turn bridge payload
   construction in `DesktopPendingTurnBridgeRuntime` so send and replay share
   one small pending bridge contract. No migration required.

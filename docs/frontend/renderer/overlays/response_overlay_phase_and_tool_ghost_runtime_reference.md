@@ -38,9 +38,10 @@ title: "Response Overlay Phase Runtime Reference"
 
 Primary inputs:
 
-- SDK `currentTurn` projection from `conversation-runtime-updated`
-- `messages`
-- renderer `pendingTurn`
+- selector-projected `chatSurfaceState` from
+  `DesktopChatSurfaceSelectorRuntime`
+- SDK `ConversationView` live turn when available
+- renderer `pendingTurn` only as the pre-SDK-open bridge
 
 Current-turn entry construction:
 

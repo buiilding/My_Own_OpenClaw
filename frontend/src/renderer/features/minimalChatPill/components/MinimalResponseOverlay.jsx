@@ -28,12 +28,11 @@ const {
 } = DesktopRendererTraceRuntime;
 
 function MinimalResponseOverlay() {
+  const chatSurfaceState = useChatStore(useShallow(selectLiveTurnSurfaceState));
   const {
     messages,
     currentTurnProjection,
-    conversationView,
-    pendingTurn,
-  } = useChatStore(useShallow(selectLiveTurnSurfaceState));
+  } = chatSurfaceState;
   const shellRef = useRef(null);
   const responseboxHitTestActiveRef = useRef(null);
   const lastLoggedSurfaceStateRef = useRef('');
@@ -54,10 +53,7 @@ function MinimalResponseOverlay() {
     isVisible,
     turnId: currentTurnId,
   } = useResponseOverlayViewModel({
-    messages,
-    currentTurnProjection,
-    conversationView,
-    pendingTurn,
+    chatSurfaceState,
   });
   const {
     hasOverflowAbove,
