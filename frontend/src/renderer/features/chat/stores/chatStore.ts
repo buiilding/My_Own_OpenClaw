@@ -31,6 +31,9 @@ import {
   DesktopChatSurfaceSelectorRuntime,
 } from '../../../app/runtime/desktopChatSurfaceSelectorRuntime';
 import {
+  DesktopResponseOverlayViewRuntime,
+} from '../../../app/runtime/desktopResponseOverlayViewRuntime';
+import {
   DesktopChatPendingTurnStateRuntime,
 } from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
 import {
@@ -51,6 +54,9 @@ const {
   projectDesktopChatInterfaceState,
   projectDesktopLiveTurnSurfaceState,
 } = DesktopChatSurfaceSelectorRuntime;
+const {
+  buildResponseOverlayDismissalKey,
+} = DesktopResponseOverlayViewRuntime;
 const {
   buildPendingTurnClearWorkspaceMutation,
   buildPendingTurnWorkspaceMutation,
@@ -107,23 +113,6 @@ interface ResponseOverlayDismissalInput {
   conversationRef?: string | null;
   turnRef?: string | null;
   responseEntryId?: string | null;
-}
-
-export function buildResponseOverlayDismissalKey({
-  conversationRef,
-  turnRef,
-  responseEntryId,
-}: ResponseOverlayDismissalInput): string | null {
-  if (typeof responseEntryId !== 'string' || !responseEntryId.trim()) {
-    return null;
-  }
-  const normalizedConversationRef = normalizeConversationRef(conversationRef) || '';
-  const normalizedTurnRef = normalizeTurnRef(turnRef) || '';
-  return [
-    normalizedConversationRef,
-    normalizedTurnRef,
-    responseEntryId.trim(),
-  ].join('\u0001');
 }
 
 /**

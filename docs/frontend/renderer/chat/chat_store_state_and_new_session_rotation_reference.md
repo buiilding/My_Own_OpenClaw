@@ -134,6 +134,9 @@ Message attachment fields used by current send/runtime paths include:
 - `registerTurnConversationRef` / `resolveConversationRefForTurn` bind
   app-runtime turn->conversation routing helpers for events that omit
   `conversation_ref`.
+- response-overlay dismissal state is persisted by the store, but normalized
+  conversation/turn/entry dismissal-key construction lives in
+  `DesktopResponseOverlayViewRuntime.buildResponseOverlayDismissalKey(...)`.
 
 No-op guards reduce unnecessary re-renders on high-frequency stream paths.
 

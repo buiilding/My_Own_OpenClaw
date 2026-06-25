@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: move response-overlay dismissal-key construction into the
+  app-runtime view helper so `chatStore.ts` persists dismissal state without
+  owning the conversation/turn/entry key contract. No migration required.
 - frontend/overlay: move response-overlay presentation-state source selection
   and visible lifecycle stamping behind the app-runtime view helper so the
   feature hook no longer branches on SDK projection versus

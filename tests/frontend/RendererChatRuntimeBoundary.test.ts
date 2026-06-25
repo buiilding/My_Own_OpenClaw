@@ -3126,6 +3126,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('export type { ChatMessage, TokenCounts }');
     expect(chatStoreSource).toContain('createInitialWorkspaceRecord');
     expect(chatStoreSource).toContain('DesktopChatPendingTurnStateRuntime');
+    expect(chatStoreSource).toContain('DesktopResponseOverlayViewRuntime');
+    expect(chatStoreSource).not.toContain('export function buildResponseOverlayDismissalKey');
     expect(chatStoreSource).toContain('DesktopCurrentTurnWorkspaceRuntime');
     expect(chatStoreSource).toContain('DesktopConversationViewWorkspaceRuntime');
     expect(chatStoreSource).toContain('buildStoppedTurnWorkspaceMutation');

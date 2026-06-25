@@ -163,6 +163,10 @@ Contract ownership:
 - `DesktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
   owns the dismissal target projection from SDK overlay intent, current-turn
   refs, latest response entry id, and stale guard ref.
+- `DesktopResponseOverlayViewRuntime.buildResponseOverlayDismissalKey(...)`
+  owns normalized response-overlay dismissal key construction. `chatStore.ts`
+  persists dismissed keys, but it does not define the conversation/turn/entry
+  key contract.
 - `DesktopResponseOverlayViewRuntime.resolveResponseOverlayEntries(...)` owns
   response-entry derivation across SDK `ConversationView.liveTurn`, SDK
   current-turn presentation rows, raw projection fallback rows, and local

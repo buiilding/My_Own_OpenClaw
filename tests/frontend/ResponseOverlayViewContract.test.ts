@@ -6,10 +6,29 @@ import { DesktopResponseOverlayViewRuntime } from '../../frontend/src/renderer/a
 
 describe('desktopResponseOverlayViewRuntime', () => {
   const {
+    buildResponseOverlayDismissalKey,
     resolveResponseOverlayEntries,
     resolveResponseOverlayPresentationState,
     resolveResponseOverlayViewContract,
   } = DesktopResponseOverlayViewRuntime;
+
+  test('builds normalized response overlay dismissal keys', () => {
+    expect(buildResponseOverlayDismissalKey({
+      conversationRef: ' conv-overlay ',
+      turnRef: ' turn-overlay ',
+      responseEntryId: ' assistant-entry ',
+    })).toBe('conv-overlay\u0001turn-overlay\u0001assistant-entry');
+
+    expect(buildResponseOverlayDismissalKey({
+      responseEntryId: ' assistant-entry ',
+    })).toBe('\u0001\u0001assistant-entry');
+
+    expect(buildResponseOverlayDismissalKey({
+      conversationRef: 'conv-overlay',
+      turnRef: 'turn-overlay',
+      responseEntryId: '   ',
+    })).toBeNull();
+  });
 
   test('selects conversation view live-turn entries before raw projection rows', () => {
     expect(resolveResponseOverlayEntries({

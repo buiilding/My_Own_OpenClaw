@@ -4,10 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
-import {
-  buildResponseOverlayDismissalKey,
-  useChatStore,
-} from '../../chat/stores/chatStore';
+import { useChatStore } from '../../chat/stores/chatStore';
 import {
   DesktopLiveTurnSurfaceRuntime,
 } from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
@@ -40,6 +37,7 @@ const {
   isResponseOverlaySourceTaggedMessage,
 } = DesktopCurrentTurnMessageRuntime;
 const {
+  buildResponseOverlayDismissalKey,
   resolveResponseOverlayEntries,
   resolveResponseOverlayPresentationState,
 } = DesktopResponseOverlayViewRuntime;

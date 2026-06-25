@@ -2,10 +2,7 @@
  * Covers chat store. behavior in the frontend test suite.
  */
 
-import {
-  buildResponseOverlayDismissalKey,
-  useChatStore,
-} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   createAssistantSeedMessage,
   resetChatStoreForTests,
@@ -136,9 +133,8 @@ describe('chatStore', () => {
       turnRef: ' turn-overlay ',
       responseEntryId: ' assistant-entry ',
     };
-    const dismissalKey = buildResponseOverlayDismissalKey(dismissalTarget);
+    const dismissalKey = 'conv-overlay\u0001turn-overlay\u0001assistant-entry';
 
-    expect(dismissalKey).toBe('conv-overlay\u0001turn-overlay\u0001assistant-entry');
     expect(useChatStore.getState().isResponseOverlayEntryDismissed(dismissalTarget)).toBe(false);
 
     useChatStore.getState().dismissResponseOverlayEntry(dismissalTarget);

@@ -34,6 +34,36 @@ type ResponseOverlayEntryLike = {
   id?: string | null;
 };
 
+type ResponseOverlayDismissalInput = {
+  conversationRef?: string | null;
+  turnRef?: string | null;
+  responseEntryId?: string | null;
+};
+
+function normalizeString(value: string | null | undefined): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function buildResponseOverlayDismissalKey({
+  conversationRef,
+  turnRef,
+  responseEntryId,
+}: ResponseOverlayDismissalInput): string | null {
+  const normalizedResponseEntryId = normalizeString(responseEntryId);
+  if (!normalizedResponseEntryId) {
+    return null;
+  }
+  return [
+    normalizeString(conversationRef) || '',
+    normalizeString(turnRef) || '',
+    normalizedResponseEntryId,
+  ].join('\u0001');
+}
+
 function normalizeProjectedCurrentTurnEntries(currentTurnProjection: unknown): ResponseOverlayEntryLike[] {
   return buildCurrentTurnMessagesFromProjection(currentTurnProjection)
     .filter(isVisibleResponseOverlayMessage);
@@ -167,6 +197,7 @@ function resolveResponseOverlayPresentationState({
 }
 
 export const DesktopResponseOverlayViewRuntime = Object.freeze({
+  buildResponseOverlayDismissalKey,
   resolveResponseOverlayEntries,
   resolveResponseOverlayPresentationState,
   resolveResponseOverlayViewContract,

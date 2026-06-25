@@ -838,6 +838,7 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(responseViewRuntimeSource).toContain('export const DesktopResponseOverlayViewRuntime = Object.freeze');
+    expect(responseViewRuntimeSource).toContain('buildResponseOverlayDismissalKey');
     expect(responseViewRuntimeSource).toContain('resolveResponseOverlayEntries');
     expect(responseViewRuntimeSource).toContain('resolveResponseOverlayPresentationState');
     expect(responseViewRuntimeSource).not.toContain('export function resolveResponseOverlayViewContract');
@@ -861,6 +862,7 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlayComponentSource).not.toContain('showAwaitingReply');
     expect(responseOverlayViewModelSource).not.toContain('showResponse');
     expect(responseOverlayViewModelSource).not.toContain('showAwaitingReply');
+    expect(responseOverlayViewModelSource).toContain('buildResponseOverlayDismissalKey');
     expect(responseOverlayViewModelSource).toContain('resolveResponseOverlayEntries');
     expect(responseOverlayViewModelSource).toContain('resolveResponseOverlayPresentationState');
     expect(responseOverlayViewModelSource).not.toContain('resolveSdkResponseOverlayPresentationState');
@@ -879,6 +881,7 @@ describe('renderer app runtime boundary', () => {
     expect(messageSendRuntimeSource).not.toContain('export function resolveMessageSendUiBehavior');
     expect(messageSendRuntimeSource).not.toContain('features/chat');
     expect(chatPillFlowSource).not.toContain('responseOverlayViewContract');
+    expect(responseOverlayViewModelSource).not.toContain('buildResponseOverlayDismissalKey,\n  useChatStore');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/overlay/responseOverlayViewContract.ts'),
     )).rejects.toThrow();
