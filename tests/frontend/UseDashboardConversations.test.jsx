@@ -491,6 +491,7 @@ describe('useDashboardConversations', () => {
     });
     const setChatMessages = jest.fn();
     const setChatConversationView = jest.fn();
+    const clearChatMessages = jest.fn();
     const getChatWorkspaceState = jest.fn(() => ({
       messages: [
         {
@@ -513,6 +514,7 @@ describe('useDashboardConversations', () => {
     }));
 
     const { result } = renderDashboardConversations({
+      clearChatMessages,
       getChatWorkspaceState,
       setChatMessages,
       setChatConversationView,
@@ -537,6 +539,7 @@ describe('useDashboardConversations', () => {
       }),
       'conv-open',
     );
+    expect(clearChatMessages).toHaveBeenCalledWith('conv-open');
     expect(setChatMessages).not.toHaveBeenCalled();
   });
 
@@ -581,7 +584,7 @@ describe('useDashboardConversations', () => {
     expect(setChatTokenCounts).not.toHaveBeenCalled();
   });
 
-  test('preserves cached conversation rows while refreshing a different selected conversation', async () => {
+  test('preserves cached conversation view while refreshing a different selected conversation', async () => {
     const callOrder = [];
     let resolveRows;
     DesktopConversationLibraryClient.loadConversationView.mockImplementationOnce(() => new Promise((resolve) => {
@@ -601,7 +604,17 @@ describe('useDashboardConversations', () => {
       callOrder.push(`select:${conversationRef}`);
     });
     const getChatWorkspaceState = jest.fn(() => ({
-      messages: [{ id: 'cached-row', sender: 'user', text: 'cached' }],
+      messages: [],
+      conversationView: {
+        conversationRef: 'conv-cached',
+        displayRows: [{
+          id: 'cached-row',
+          conversationRef: 'conv-cached',
+          role: 'user',
+          type: 'user_message',
+          content: 'cached',
+        }],
+      },
     }));
 
     const { result } = renderDashboardConversations({

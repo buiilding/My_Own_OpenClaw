@@ -79,6 +79,9 @@ All notable changes to WindieOS will be documented in this file.
   inside the app-runtime presentation helper when a view exists, using
   `chatStore.messages` only for renderer annotations and the short pending
   bridge. No migration required.
+- frontend/dashboard: treat cached `ConversationView` rather than cached
+  `chatStore.messages` as the dashboard-open resume cache, so legacy message
+  rows cannot suppress the no-view fallback reset. No migration required.
 - frontend/chat: move main chat thread presentation, ConversationView action
   availability, and checked-out view store projection into an app-runtime
   helper so `ChatInterface` consumes a single presentation view model. No

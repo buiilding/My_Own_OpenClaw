@@ -260,8 +260,10 @@ export function useDashboardConversations({
       const cachedWorkspace = typeof getChatWorkspaceState === 'function'
         ? getChatWorkspaceState(conversationRef)
         : null;
-      const hasCachedMessages = Array.isArray(cachedWorkspace?.messages)
-        && cachedWorkspace.messages.length > 0;
+      const hasCachedConversationView = Boolean(
+        cachedWorkspace?.conversationView
+          && typeof cachedWorkspace.conversationView === 'object',
+      );
       const workspaceBinding = DesktopWorkspaceRuntimeClient.resolveConversationWorkspaceBinding({
         conversation,
         memories: [],
@@ -273,7 +275,7 @@ export function useDashboardConversations({
         updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
         setChatConversationRef: setChatActiveConversationRef,
       });
-      if (!hasCachedMessages) {
+      if (!hasCachedConversationView) {
         clearChatMessages(conversationRef);
         setChatIsSending(false, conversationRef);
         setChatThinkingStatus(null, conversationRef);

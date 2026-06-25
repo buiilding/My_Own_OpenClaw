@@ -227,9 +227,12 @@ So new-chat resets local store regardless, while active backend loop receives st
 4. push that binding back into Electron's active workspace selection
 5. call `setActiveConversationRef(conversationRef)`
 6. call `updateTranscriptSession(conversationRef, sessionInfo.userId || null)`
-7. replace chat store messages with resumed transcript projection
-8. clear sending/thinking flags
-9. clear the opening marker, close dashboard overlays, and keep chat surface active
+7. clear the no-view fallback state only when no cached `ConversationView`
+   already exists for the target conversation
+8. load and store the SDK `ConversationView` without projecting
+   `displayRows` into `chatStore.messages`
+9. clear sending/thinking flags
+10. clear the opening marker, close dashboard overlays, and keep chat surface active
 
 Conversation-view display row to component-message projection is performed by
 `DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`.
