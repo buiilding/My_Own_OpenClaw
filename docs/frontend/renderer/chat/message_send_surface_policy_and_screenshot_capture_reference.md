@@ -134,6 +134,11 @@ When attachment(s) exist:
    as a separate attachment fallback. `DesktopPendingTurnBridgeRuntime` owns
    pending-turn payload construction so normal sends and replay sends use the
    same bridge identity and filename metadata contract.
+   Normal sends preserve any existing `ConversationView` in chat-store state
+   and let presentation merge the pending bridge beside SDK display rows until
+   the next SDK view arrives. Replay sends intentionally clear the old view when
+   publishing replacement rows so stale suffix rows do not remain visible while
+   SDK edit/retry commands complete.
 5. run send-surface window policy only (optional return-to-chatbox behavior).
 6. build typed SDK turn resources:
    - `clipboard_image` for pasted/selected images

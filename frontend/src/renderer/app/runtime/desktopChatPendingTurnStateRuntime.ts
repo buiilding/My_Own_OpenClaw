@@ -37,6 +37,7 @@ type PendingTurnWorkspaceState = {
 type PendingTurnWorkspaceMutationInput<TWorkspace extends PendingTurnWorkspaceState> = {
   currentWorkspace: TWorkspace;
   pendingTurn: unknown;
+  preserveConversationView?: boolean;
   replayMessages?: ChatMessage[] | null;
   skipEchoedPendingTurn?: boolean;
   supersededTurnRef?: string | null;
@@ -255,6 +256,7 @@ function mergePendingTurnMessage(
 function buildPendingTurnWorkspaceMutation<TWorkspace extends PendingTurnWorkspaceState>({
   currentWorkspace,
   pendingTurn,
+  preserveConversationView = false,
   replayMessages = null,
   skipEchoedPendingTurn = false,
   supersededTurnRef = null,
@@ -281,7 +283,7 @@ function buildPendingTurnWorkspaceMutation<TWorkspace extends PendingTurnWorkspa
     thinkingStatus: null,
     thinkingSourceEventType: null,
     currentTurnProjection: null,
-    conversationView: null,
+    conversationView: preserveConversationView ? currentWorkspace.conversationView : null,
     pendingTurn: normalizedPendingTurn,
     supersededTurnRefs: removeSupersededTurnRef(
       supersededTurnRef
@@ -368,6 +370,7 @@ function buildAcceptPendingTurnStateUpdate<
   const pendingMutation = buildPendingTurnWorkspaceMutation({
     currentWorkspace,
     pendingTurn: normalizedPendingTurn,
+    preserveConversationView: true,
     skipEchoedPendingTurn: true,
   });
   if (!pendingMutation) {
@@ -380,7 +383,7 @@ function buildAcceptPendingTurnStateUpdate<
   );
   const extraState = {
     activeConversationRef: pendingMutation.normalizedPendingTurn.conversationRef,
-    latestConversationView: null,
+    latestConversationView: pendingMutation.workspace.conversationView,
     turnConversationRefs: nextTurnConversationRefs,
     ...deps.getProjectedWorkspaceFields(pendingMutation.workspace),
   } as Partial<TState>;

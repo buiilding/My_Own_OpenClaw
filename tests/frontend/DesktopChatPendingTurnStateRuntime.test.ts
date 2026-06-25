@@ -285,6 +285,48 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
     }));
   });
 
+  test('keeps existing ConversationView when accepting a normal pending send', () => {
+    const conversationView = {
+      conversationRef: 'conv-state',
+      revisionId: 'rev-current',
+      displayRows: [],
+    };
+    const state = storeState({
+      activeConversationRef: 'conv-state',
+      latestConversationView: conversationView,
+      workspaces: {
+        'conv-state': workspace({
+          conversationView,
+        }),
+      },
+    });
+
+    const update = buildAcceptPendingTurnStateUpdate({
+      deps: stateRuntimeDeps,
+      pendingTurn: {
+        conversationRef: 'conv-state',
+        turnRef: 'turn-state',
+        userMessageId: 'user-state',
+        text: 'hello state',
+        timestamp: '2026-06-25T12:00:00.000Z',
+        attachmentFilenames: null,
+      },
+      state,
+    });
+
+    expect(update).toEqual(expect.objectContaining({
+      conversationView,
+      latestConversationView: conversationView,
+    }));
+    expect(update?.workspaces['conv-state']).toEqual(expect.objectContaining({
+      conversationView,
+      currentTurnProjection: null,
+      pendingTurn: expect.objectContaining({
+        turnRef: 'turn-state',
+      }),
+    }));
+  });
+
   test('builds replay-pending store updates with superseded turn tracking', () => {
     const state = storeState({
       workspaces: {
@@ -310,6 +352,7 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
     });
 
     expect(update?.workspaces['conv-replay']).toEqual(expect.objectContaining({
+      conversationView: null,
       pendingTurn: expect.objectContaining({
         turnRef: 'turn-new',
       }),
