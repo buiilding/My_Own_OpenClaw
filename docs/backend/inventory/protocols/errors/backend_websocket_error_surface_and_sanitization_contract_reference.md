@@ -55,6 +55,11 @@ Contract notes:
 - Route/handler code should not handcraft error envelopes.
 - `msg_id` may be absent for parse-stage failures before a valid envelope exists.
 - Streamed internal backend failures use the same envelope text and do not expose raw provider/system details in `payload.content`.
+- Streamed provider failures may expose only concise client-safe status messages
+  such as `AnthropicProvider API error (HTTP 401)` or
+  `LLM API error (HTTP 401). Please retry.` Raw provider bodies, stack traces,
+  file paths, and secret-like details still collapse to the generic internal
+  error message.
 
 ## Handshake Failure Error Surface
 

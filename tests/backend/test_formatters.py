@@ -208,6 +208,40 @@ class TestErrorEventFormatter:
 
         assert result["payload"]["message"] == OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE
 
+    @pytest.mark.parametrize(
+        "message",
+        [
+            "AnthropicProvider API error (HTTP 401)",
+            "LLM API error (HTTP 401). Please retry.",
+            "Kimi Coding is temporarily unavailable (HTTP 520). Please retry shortly.",
+        ],
+    )
+    def test_format_preserves_client_safe_provider_status_messages(
+        self,
+        formatter,
+        message,
+    ):
+        event = ErrorEventClass(content=message)
+
+        result = formatter.format(event, "msg-provider-status")
+
+        assert result["payload"]["message"] == message
+
+    @pytest.mark.parametrize(
+        "message",
+        [
+            "AnthropicProvider API error (HTTP 401): sk-ant-secret-token",
+            "LLM API error: upstream body contained secret-token-123",
+            "Unexpected provider crash at /Users/peterbui/private.py",
+        ],
+    )
+    def test_format_sanitizes_raw_provider_details(self, formatter, message):
+        event = ErrorEventClass(content=message)
+
+        result = formatter.format(event, "msg-provider-raw")
+
+        assert result["payload"]["message"] == INTERNAL_SERVER_ERROR_MESSAGE
+
     def test_format_preserves_structured_metadata(self, formatter):
         event = ErrorEventClass(
             content="LLM error",

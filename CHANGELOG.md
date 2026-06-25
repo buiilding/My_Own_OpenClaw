@@ -19,6 +19,11 @@ All notable changes to WindieOS will be documented in this file.
   `renderer query.send` diagnostic so renderer, prepared-query, and SDK
   handoff model state can be compared when model selection goes stale. No
   migration required.
+- backend/errors: preserve concise provider API status messages such as
+  `AnthropicProvider API error (HTTP 401)` in streamed backend error envelopes
+  while continuing to collapse raw provider bodies, stack traces, paths, and
+  secret-like details to the generic internal-error message. No migration
+  required.
 - frontend/main: rehydrate encrypted provider API keys only for backend-bound
   `update-settings` payloads so restarted apps keep renderer-visible config
   redacted while Anthropic/OpenAI/etc. user-key overrides remain available to
