@@ -3205,6 +3205,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('function displayAttachmentsFromPayload');
     expect(source).not.toContain('screenshotRef');
     expect(source).not.toContain('screenshot_refs');
+    expect(source).not.toContain('fallbackToolCall');
+    expect(source).not.toContain('row.metadata?.toolName\n      ?');
     expect(displayAttachmentProjectionSource).toContain('readSdkDisplayAttachments');
     expect(displayAttachmentProjectionSource).not.toContain('screenshot_refs');
     expect(displayAttachmentProjectionSource).not.toContain('countLegacyScreenshotAttachments');

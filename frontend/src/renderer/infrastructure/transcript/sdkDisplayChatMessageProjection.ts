@@ -125,25 +125,15 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
 function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
   const payload = recordPayloadFromRow(row);
   const toolCall = recordFromPayloadValue(recordField(payload, 'modelFacingToolCall'));
-  const args = recordFromPayloadValue(recordField(payload, 'args'));
   const bundleToolCallPayload = row.type === 'tool_bundle_call'
     ? payload
     : null;
-  const fallbackToolCall = bundleToolCallPayload ?? toolCall ?? (
-    row.metadata?.toolName
-      ? {
-        id: row.metadata.toolCallId ?? row.metadata.correlationId ?? undefined,
-        name: row.metadata.toolName,
-        arguments: args ?? undefined,
-      }
-      : null
-  );
   const text = displayTextFromRowContent(row.content);
   const base = buildToolCallChatMessageState({
     id: row.id,
     text,
     toolCallDisplayText: text,
-    modelFacingToolCall: fallbackToolCall,
+    modelFacingToolCall: bundleToolCallPayload ?? toolCall,
     toolCallDetails: payload,
     correlationId: rowCorrelationId(row),
     sourceEventType: rowSourceEventType(row),

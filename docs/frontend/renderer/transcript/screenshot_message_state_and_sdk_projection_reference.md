@@ -80,6 +80,10 @@ chat-message props and reads typed attachment descriptors from SDK display row
 metadata. It does not build an intermediate `DisplayMessage` model or adapt
 legacy screenshot aliases for primary renderer display; old rows must be
 adapted earlier by `legacyVisualAttachmentReplayAdapter`.
+It also must not synthesize missing model-facing tool-call objects from
+metadata-only rows; SDK display rows should provide that semantic object when
+it is part of the row contract, and renderer projection keeps metadata as
+display/details only.
 `DesktopSdkDisplayAttachmentProjection` owns renderer-side display attachment
 validation, image counting, ready-image checks, and trace lifecycle summaries.
 Other renderer presentation runtimes should call those helpers instead of

@@ -136,6 +136,43 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
+  test('does not synthesize missing model-facing tool calls from row metadata', () => {
+    const [message] = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-tool-call-metadata-only',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_call',
+        content: {
+          id: 'call-1',
+          name: 'read_file',
+          arguments: { path: 'package.json' },
+        },
+        metadata: {
+          revisionId: 'rev-1',
+          timestamp: '2026-05-15T12:00:01.000Z',
+          toolName: 'read_file',
+          requestId: 'req-1',
+          toolCallId: 'call-1',
+        },
+      },
+    ]);
+
+    expect(message).toEqual(expect.objectContaining({
+      id: 'msg-tool-call-metadata-only',
+      sender: 'assistant',
+      type: 'tool-call',
+      correlationId: 'req-1',
+      toolCallDetails: expect.objectContaining({
+        toolName: 'read_file',
+        requestId: 'req-1',
+        toolCallId: 'call-1',
+      }),
+    }));
+    expect(message).not.toHaveProperty('modelFacingToolCall');
+  });
+
   test('normalizes SDK replay attachment refs without treating inline aliases as primary image bytes', () => {
     const messages = buildChatMessagesFromSdkDisplayRows([
       {
