@@ -30,7 +30,14 @@ describe('DesktopChatSurfaceRuntime', () => {
         turnRef: 'turn-stale',
         phase: 'complete',
       },
-      messages: [],
+      messages: [
+        {
+          id: 'stale-assistant',
+          sender: 'assistant',
+          type: 'llm-text',
+          text: 'stale renderer answer',
+        },
+      ],
     });
 
     expect(state).toMatchObject({
@@ -39,6 +46,7 @@ describe('DesktopChatSurfaceRuntime', () => {
       liveTurnPhase: 'streaming',
       liveTurnSource: 'conversation-view',
     });
+    expect(state.currentTurnPresentationState.activeResponse).toBeNull();
   });
 
   test('keeps renderer pending bridge busy and stoppable before SDK view exists', () => {

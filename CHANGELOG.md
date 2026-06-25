@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/surface: guard `DesktopChatSurfaceRuntime` against stale renderer
+  messages when `ConversationView` owns the surface, matching the selector's
+  SDK-view-first projection. No migration required.
 - frontend/replay: make `ChatInterface` pass an explicit
   `replayFallbackMessages` input to replay hooks so raw renderer messages are
   only available on the no-`ConversationView` path. No migration required.
