@@ -18,6 +18,7 @@ title: "Chat Store State and New Session Rotation Reference"
 - `frontend/src/renderer/app/runtime/desktopConversationViewWorkspaceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopPendingTurnBridgeRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatPendingTurnStateRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatWorkspaceMessageRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopStopTurnRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopNewChatSessionRuntime.ts`
@@ -75,14 +76,19 @@ replay/store compatibility adapters and low-level artifact helpers.
 
 `chatStore` action behavior:
 
-- `addMessage` appends immutably
-- `updateMessage` updates by id; returns original state when id missing
+- `addMessage` appends immutably through
+  `DesktopChatWorkspaceMessageRuntime.buildAddMessageStateUpdate(...)`.
+- `updateMessage` updates by id through
+  `DesktopChatWorkspaceMessageRuntime.buildUpdateMessageStateUpdate(...)` and
+  returns original state when id missing.
 - `setMessages` no-op when array reference unchanged; when hydrating a concrete
   conversation workspace, it indexes message `turnRef` values into
   `turnConversationRefs` so later turn-scoped stream events can route even when
   `conversation_ref` is absent. Turn-ref normalization and map merge rules live
-  in `desktopChatTurnConversationRefRuntime.ts`; the store only binds the
-  resulting map update.
+  in `desktopChatTurnConversationRefRuntime.ts`; message array replacement,
+  duplicate id replacement, missing-id no-op handling, and resulting map update
+  assembly live in `desktopChatWorkspaceMessageRuntime.ts`. The store only
+  passes message intent plus workspace dependency adapters.
 - `setIsSending`, `setThinkingStatus`, `setThinkingSourceEventType`,
   `setCompactionDebugInfo`, and `setTokenCounts` apply simple workspace field
   updates through

@@ -3177,6 +3177,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatClearMessagesRuntime.ts'),
       'utf8',
     );
+    const workspaceMessageRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceMessageRuntime.ts'),
+      'utf8',
+    );
     const workspaceFieldRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceFieldRuntime.ts'),
       'utf8',
@@ -3274,6 +3278,12 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('DesktopChatPendingTurnStateRuntime');
     expect(chatStoreSource).toContain('DesktopChatClearMessagesRuntime');
     expect(chatStoreSource).toContain('buildClearMessagesStateUpdate');
+    expect(chatStoreSource).toContain('DesktopChatWorkspaceMessageRuntime');
+    expect(chatStoreSource).toContain('buildAddMessageStateUpdate');
+    expect(chatStoreSource).toContain('buildUpdateMessageStateUpdate');
+    expect(chatStoreSource).toContain('buildSetMessagesStateUpdate');
+    expect(chatStoreSource).not.toContain('existingMessageIndex');
+    expect(chatStoreSource).not.toContain('currentWorkspace.messages.findIndex');
     expect(chatStoreSource).toContain('DesktopChatStreamTrackingRuntime');
     expect(chatStoreSource).toContain('buildUpdateStreamTrackingStateUpdate');
     expect(chatStoreSource).toContain('DesktopChatWorkspaceFieldRuntime');
@@ -3335,6 +3345,11 @@ describe('renderer chat runtime boundary', () => {
     expect(clearMessagesRuntimeSource).toContain('buildClearMessagesStateUpdate');
     expect(clearMessagesRuntimeSource).toContain('createInitialStreamTracking');
     expect(clearMessagesRuntimeSource).not.toContain('features/chat');
+    expect(workspaceMessageRuntimeSource).toContain('buildAddMessageStateUpdate');
+    expect(workspaceMessageRuntimeSource).toContain('buildUpdateMessageStateUpdate');
+    expect(workspaceMessageRuntimeSource).toContain('buildSetMessagesStateUpdate');
+    expect(workspaceMessageRuntimeSource).toContain('existingMessageIndex');
+    expect(workspaceMessageRuntimeSource).not.toContain('features/chat');
     expect(workspaceFieldRuntimeSource).toContain('buildSetWorkspaceFieldStateUpdate');
     expect(workspaceFieldRuntimeSource).not.toContain('features/chat');
     expect(stopTurnRuntimeSource).toContain('buildStoppedTurnWorkspaceMutation');

@@ -43,6 +43,9 @@ import {
   DesktopChatClearMessagesRuntime,
 } from '../../../app/runtime/desktopChatClearMessagesRuntime';
 import {
+  DesktopChatWorkspaceMessageRuntime,
+} from '../../../app/runtime/desktopChatWorkspaceMessageRuntime';
+import {
   DesktopChatStreamTrackingRuntime,
 } from '../../../app/runtime/desktopChatStreamTrackingRuntime';
 import {
@@ -100,6 +103,11 @@ const {
 const {
   buildClearMessagesStateUpdate,
 } = DesktopChatClearMessagesRuntime;
+const {
+  buildAddMessageStateUpdate,
+  buildSetMessagesStateUpdate,
+  buildUpdateMessageStateUpdate,
+} = DesktopChatWorkspaceMessageRuntime;
 const {
   buildUpdateStreamTrackingStateUpdate,
 } = DesktopChatStreamTrackingRuntime;
@@ -164,6 +172,12 @@ const clearMessagesStateRuntimeDependencies = {
   createInitialStreamTracking,
   readWorkspaceState,
   resolveWorkspaceKey,
+};
+
+const workspaceMessageStateRuntimeDependencies = {
+  buildWorkspaceUpdate,
+  mergeTurnConversationRefs,
+  resolveWorkspaceMutationTarget,
 };
 
 export type StreamPhase =
@@ -373,86 +387,33 @@ export const useChatStore = create<ChatState>((set, get) => ({
   // Actions
   addMessage: (message, conversationRef) =>
     set((state) => {
-      const {
-        normalizedConversationRef,
-        workspaceRef,
-        workspace: currentWorkspace,
-      } = resolveWorkspaceMutationTarget(state, conversationRef);
-      const existingMessageIndex = currentWorkspace.messages.findIndex(
-        (existingMessage) => existingMessage.id === message.id,
-      );
-      const nextMessages = existingMessageIndex === -1
-        ? [...currentWorkspace.messages, message]
-        : currentWorkspace.messages.map((existingMessage, index) => (
-          index === existingMessageIndex
-            ? { ...existingMessage, ...message }
-            : existingMessage
-        ));
-      const nextWorkspace = {
-        ...currentWorkspace,
-        messages: nextMessages,
-      };
-      const nextTurnConversationRefs = mergeTurnConversationRefs(
-        state.turnConversationRefs,
-        [message],
-        normalizedConversationRef,
-      );
-
-      return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
-        turnConversationRefs: nextTurnConversationRefs,
+      return buildAddMessageStateUpdate<ChatState, ChatWorkspaceState>({
+        conversationRef,
+        deps: workspaceMessageStateRuntimeDependencies,
+        message,
+        state,
       });
     }),
 
   updateMessage: (id, updates, conversationRef) =>
     set((state) => {
-      const {
-        normalizedConversationRef,
-        workspaceRef,
-        workspace: currentWorkspace,
-      } = resolveWorkspaceMutationTarget(state, conversationRef);
-      const index = currentWorkspace.messages.findIndex((message) => message.id === id);
-      if (index === -1) {
-        return state;
-      }
-
-      const nextMessages = [...currentWorkspace.messages];
-      nextMessages[index] = { ...nextMessages[index], ...updates };
-      const nextWorkspace = { ...currentWorkspace, messages: nextMessages };
-      const nextTurnConversationRefs = mergeTurnConversationRefs(
-        state.turnConversationRefs,
-        updates.turnRef !== undefined ? [nextMessages[index]] : [],
-        normalizedConversationRef,
-      );
-      return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
-        turnConversationRefs: nextTurnConversationRefs,
-      });
+      return buildUpdateMessageStateUpdate<ChatState, ChatWorkspaceState>({
+        conversationRef,
+        deps: workspaceMessageStateRuntimeDependencies,
+        id,
+        state,
+        updates,
+      }) ?? state;
     }),
 
   setMessages: (messages, conversationRef) =>
     set((state) => {
-      const {
-        normalizedConversationRef,
-        workspaceRef,
-        workspace: currentWorkspace,
-      } = resolveWorkspaceMutationTarget(state, conversationRef);
-      if (
-        currentWorkspace.messages === messages
-        || (
-          currentWorkspace.messages.length === messages.length
-          && currentWorkspace.messages.every((message, index) => message === messages[index])
-        )
-      ) {
-        return state;
-      }
-      const nextWorkspace = { ...currentWorkspace, messages };
-      const nextTurnConversationRefs = mergeTurnConversationRefs(
-        state.turnConversationRefs,
+      return buildSetMessagesStateUpdate<ChatState, ChatWorkspaceState>({
+        conversationRef,
+        deps: workspaceMessageStateRuntimeDependencies,
         messages,
-        normalizedConversationRef,
-      );
-      return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
-        turnConversationRefs: nextTurnConversationRefs,
-      });
+        state,
+      }) ?? state;
     }),
 
   setIsSending: (isSending, conversationRef) =>

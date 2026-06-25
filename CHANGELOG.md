@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: move `addMessage`, `updateMessage`, and `setMessages`
+  workspace mutation construction behind `DesktopChatWorkspaceMessageRuntime`
+  so `chatStore` no longer owns message-list replacement, missing-row no-op,
+  or turn-ref indexing assembly. No migration required.
 - frontend/store: move `registerTurnConversationRef` map update/no-op
   handling behind `DesktopChatTurnConversationRefRuntime` so `chatStore` no
   longer owns turn-to-conversation routing map writes. No migration required.
