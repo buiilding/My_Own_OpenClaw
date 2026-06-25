@@ -3055,6 +3055,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('desktopChatMessageTypes');
     expect(source).toContain('desktopPresentationSourceChannels');
     expect(source).toContain('desktopSdkDisplayAttachmentProjection');
+    expect(source).not.toContain('DisplayMessage');
+    expect(source).not.toContain('displayMessageFromSdkDisplayRow');
     expect(source).not.toContain('function displayAttachmentsFromPayload');
     expect(source).not.toContain('screenshotRef');
     expect(source).not.toContain('screenshot_refs');

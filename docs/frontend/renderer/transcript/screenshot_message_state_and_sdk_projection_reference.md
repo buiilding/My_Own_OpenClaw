@@ -72,10 +72,11 @@ typed attachments and any legacy screenshot refs.
 
 ## SDK Display Projection
 
-`sdkDisplayChatMessageProjection.ts` reads typed attachment descriptors from SDK
-display row metadata. It does not adapt legacy screenshot aliases for primary
-renderer display; old rows must be adapted earlier by
-`legacyVisualAttachmentReplayAdapter`.
+`sdkDisplayChatMessageProjection.ts` maps SDK display rows directly to renderer
+chat-message props and reads typed attachment descriptors from SDK display row
+metadata. It does not build an intermediate `DisplayMessage` model or adapt
+legacy screenshot aliases for primary renderer display; old rows must be
+adapted earlier by `legacyVisualAttachmentReplayAdapter`.
 
 - primary display field: `attachments[]`
 - backend/replay compatibility input before renderer projection:

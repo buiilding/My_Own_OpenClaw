@@ -5,7 +5,6 @@
 import type { ChatMessage } from '../../app/runtime/desktopChatMessageTypes';
 import type {
   SdkDisplayRow,
-  DisplayMessage,
 } from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
 import { buildAssistantTextChatMessageState } from './assistantTextChatMessageState';
 import { buildToolCallChatMessageState } from './toolCallChatMessageState';
@@ -30,12 +29,6 @@ function stringField(record: Record<string, unknown> | null | undefined, ...keys
     }
   }
   return null;
-}
-
-function recordPayload(message: DisplayMessage): Record<string, unknown> {
-  return message.metadata && typeof message.metadata === 'object'
-    ? message.metadata
-    : {};
 }
 
 function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
@@ -78,277 +71,156 @@ function recordFromPayloadValue(value: unknown): Record<string, unknown> | null 
     : null;
 }
 
-function buildUserChatMessage(message: DisplayMessage): ChatMessage {
-  const payload = recordPayload(message);
+function rowTimestamp(row: SdkDisplayRow): string {
+  return typeof row.metadata?.timestamp === 'string' ? row.metadata.timestamp : '';
+}
+
+function rowSourceEventType(row: SdkDisplayRow): string {
+  return row.type === 'assistant_message' && row.isStreaming ? 'assistant_delta' : row.type;
+}
+
+function rowCorrelationId(row: SdkDisplayRow): string | null {
+  return row.metadata?.requestId
+    ?? row.metadata?.bundleId
+    ?? row.metadata?.toolCallId
+    ?? row.metadata?.correlationId
+    ?? null;
+}
+
+function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
+  const payload = recordPayloadFromRow(row);
   const attachments = readSdkDisplayAttachments(recordField(payload, 'attachments'));
   return {
-    id: message.id,
-    text: message.text,
+    id: row.id,
+    text: displayTextFromRowContent(row.content),
     sender: 'user',
-    turnRef: message.turnRef ?? null,
-    sourceEventType: message.messageType,
+    turnRef: row.turnRef ?? null,
+    sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
-    timestamp: message.timestamp,
+    timestamp: rowTimestamp(row),
     isComplete: true,
     ...(attachments.length > 0 ? { attachments } : {}),
   };
 }
 
-function buildAssistantChatMessage(message: DisplayMessage): ChatMessage {
-  const payload = recordPayload(message);
+function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
+  const payload = recordPayloadFromRow(row);
   const thinkingText = stringField(payload, 'reasoningText', 'reasoning_text');
+  const sourceEventType = rowSourceEventType(row);
   const base = buildAssistantTextChatMessageState({
-    id: message.id,
-    text: message.text,
-    sourceEventType: message.messageType,
-    turnRef: message.turnRef ?? null,
-    isComplete: message.messageType !== 'assistant_delta',
+    id: row.id,
+    text: displayTextFromRowContent(row.content),
+    sourceEventType,
+    turnRef: row.turnRef ?? null,
+    isComplete: sourceEventType !== 'assistant_delta',
     thinkingText,
     thinkingSourceEventType: thinkingText ? 'reasoning_delta' : null,
   }) as ChatMessage;
   return {
     ...base,
-    timestamp: message.timestamp,
+    timestamp: rowTimestamp(row),
   };
 }
 
-function buildToolCallMessage(message: DisplayMessage): ChatMessage {
-  const payload = recordPayload(message);
+function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
+  const payload = recordPayloadFromRow(row);
   const toolCall = recordFromPayloadValue(recordField(payload, 'modelFacingToolCall'));
   const args = recordFromPayloadValue(recordField(payload, 'args'));
-  const bundleToolCallPayload = message.messageType === 'tool_bundle_call'
-    ? recordPayload(message)
+  const bundleToolCallPayload = row.type === 'tool_bundle_call'
+    ? payload
     : null;
   const fallbackToolCall = bundleToolCallPayload ?? toolCall ?? (
-    message.toolName
+    row.metadata?.toolName
       ? {
-        id: message.toolCallId ?? message.correlationId ?? undefined,
-        name: message.toolName,
+        id: row.metadata.toolCallId ?? row.metadata.correlationId ?? undefined,
+        name: row.metadata.toolName,
         arguments: args ?? undefined,
       }
       : null
   );
+  const text = displayTextFromRowContent(row.content);
   const base = buildToolCallChatMessageState({
-    id: message.id,
-    text: message.text,
-    toolCallDisplayText: message.text,
+    id: row.id,
+    text,
+    toolCallDisplayText: text,
     modelFacingToolCall: fallbackToolCall,
     toolCallDetails: payload,
-    correlationId: message.requestId ?? message.bundleId ?? message.toolCallId ?? message.correlationId ?? null,
-    sourceEventType: message.messageType,
-    turnRef: message.turnRef ?? null,
+    correlationId: rowCorrelationId(row),
+    sourceEventType: rowSourceEventType(row),
+    turnRef: row.turnRef ?? null,
     isComplete: true,
   }) as ChatMessage;
   return {
     ...base,
-    timestamp: message.timestamp,
+    timestamp: rowTimestamp(row),
   };
 }
 
-function buildToolOutputMessage(message: DisplayMessage): ChatMessage {
-  const payload = recordPayload(message);
+function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
+  const payload = recordPayloadFromRow(row);
   const attachments = readSdkDisplayAttachments(recordField(payload, 'attachments'));
   const base = buildToolOutputChatMessageState({
-    id: message.id,
-    outputText: message.text,
-    sourceEventType: message.messageType,
+    id: row.id,
+    outputText: displayTextFromRowContent(row.content),
+    sourceEventType: rowSourceEventType(row),
     attachments,
-    toolName: message.toolName ?? null,
+    toolName: row.metadata?.toolName ?? null,
     success: typeof payload.success === 'boolean' ? payload.success : null,
-    correlationId: message.requestId ?? message.bundleId ?? message.toolCallId ?? message.correlationId ?? null,
+    correlationId: rowCorrelationId(row),
     toolOutputDetails: payload,
-    turnRef: message.turnRef ?? null,
+    turnRef: row.turnRef ?? null,
     isComplete: true,
     preserveNullToolMetadata: false,
     preserveNullToolOutputDetails: false,
   }) as ChatMessage;
   return {
     ...base,
-    timestamp: message.timestamp,
+    timestamp: rowTimestamp(row),
   };
 }
 
-function buildToolProgressMessage(message: DisplayMessage): ChatMessage {
-  const payload = recordPayload(message);
+function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
+  const payload = recordPayloadFromRow(row);
   const sourceEventType = recordField(payload, 'sourceEventType');
   return {
-    id: message.id,
-    text: message.text,
+    id: row.id,
+    text: displayTextFromRowContent(row.content),
     sender: 'assistant',
     type: 'search-source',
     sourceEventType: typeof sourceEventType === 'string' && sourceEventType.trim()
       ? sourceEventType
       : 'web-search-progress',
     sourceChannel: sdkDisplayRowsSourceChannel,
-    turnRef: message.turnRef ?? undefined,
-    timestamp: message.timestamp,
-    toolName: message.toolName ?? undefined,
+    turnRef: row.turnRef ?? undefined,
+    timestamp: rowTimestamp(row),
+    toolName: row.metadata?.toolName ?? undefined,
     toolMetadata: payload,
-    correlationId: message.requestId ?? message.correlationId ?? undefined,
+    correlationId: row.metadata?.requestId ?? row.metadata?.correlationId ?? undefined,
   };
 }
 
-function buildChatMessagesFromDisplayMessage(message: DisplayMessage): ChatMessage[] {
-  if (message.sender === 'user') {
-    return [buildUserChatMessage(message)];
+function buildChatMessagesFromSdkDisplayRow(row: SdkDisplayRow): ChatMessage[] {
+  if (row.type === 'reasoning' || row.type === 'error') {
+    return [];
   }
-  if (message.messageType === 'tool_call' || message.messageType === 'tool_bundle_call') {
-    return [buildToolCallMessage(message)];
+  if (row.type === 'user_message') {
+    return [buildUserChatMessage(row)];
   }
-  if (message.messageType === 'tool_output' || message.messageType === 'tool_bundle_output') {
-    return [buildToolOutputMessage(message)];
+  if (row.type === 'tool_call' || row.type === 'tool_bundle_call') {
+    return [buildToolCallMessage(row)];
   }
-  if (message.messageType === 'tool_progress') {
-    return [buildToolProgressMessage(message)];
+  if (row.type === 'tool_output' || row.type === 'tool_bundle_output') {
+    return [buildToolOutputMessage(row)];
   }
-  if (message.sender === 'assistant') {
-    return [buildAssistantChatMessage(message)];
+  if (row.type === 'tool_progress') {
+    return [buildToolProgressMessage(row)];
+  }
+  if (row.type === 'assistant_message') {
+    return [buildAssistantChatMessage(row)];
   }
   return [];
 }
 
-function displayMessageFromSdkDisplayRow(row: SdkDisplayRow): DisplayMessage | null {
-  const payload = recordPayloadFromRow(row);
-  const revisionId = typeof row.metadata?.revisionId === 'string' ? row.metadata.revisionId : '';
-  const timestamp = typeof row.metadata?.timestamp === 'string' ? row.metadata.timestamp : '';
-  if (row.type === 'reasoning') {
-    return null;
-  }
-  if (row.type === 'error') {
-    return {
-      id: row.id,
-      conversationRef: row.conversationRef,
-      turnRef: row.turnRef,
-      revisionId,
-      timestamp,
-      sender: 'system',
-      text: row.content,
-      messageType: 'runtime_error',
-      metadata: payload,
-    };
-  }
-  if (row.type === 'tool_call') {
-    const content = row.content;
-    const modelFacingToolCall = recordFromPayloadValue(row.metadata?.modelFacingToolCall) ?? content;
-    return {
-      id: row.id,
-      conversationRef: row.conversationRef,
-      turnRef: row.turnRef,
-      revisionId,
-      timestamp,
-      sender: 'tool',
-      text: displayTextFromRowContent(content),
-      messageType: 'tool_call',
-      toolName: row.metadata?.toolName ?? null,
-      requestId: row.metadata?.requestId ?? null,
-      bundleId: row.metadata?.bundleId ?? null,
-      toolCallId: row.metadata?.toolCallId ?? null,
-      correlationId: row.metadata?.correlationId ?? null,
-      metadata: {
-        ...payload,
-        modelFacingToolCall,
-      },
-    };
-  }
-  if (row.type === 'tool_progress') {
-    return {
-      id: row.id,
-      conversationRef: row.conversationRef,
-      turnRef: row.turnRef,
-      revisionId,
-      timestamp,
-      sender: 'assistant',
-      text: row.content,
-      messageType: 'tool_progress',
-      toolName: row.metadata?.toolName ?? 'web_search',
-      requestId: row.metadata?.requestId ?? null,
-      bundleId: row.metadata?.bundleId ?? null,
-      toolCallId: row.metadata?.toolCallId ?? null,
-      correlationId: row.metadata?.correlationId ?? null,
-      metadata: payload,
-    };
-  }
-  if (row.type === 'tool_bundle_call') {
-    const content = row.content;
-    return {
-      id: row.id,
-      conversationRef: row.conversationRef,
-      turnRef: row.turnRef,
-      revisionId,
-      timestamp,
-      sender: 'tool',
-      text: displayTextFromRowContent(content),
-      messageType: 'tool_bundle_call',
-      toolName: row.metadata?.toolName ?? null,
-      requestId: row.metadata?.requestId ?? null,
-      bundleId: row.metadata?.bundleId ?? null,
-      toolCallId: row.metadata?.toolCallId ?? null,
-      correlationId: row.metadata?.correlationId ?? null,
-      metadata: {
-        ...payload,
-        ...content,
-      },
-    };
-  }
-  if (row.type === 'tool_output') {
-    return {
-      id: row.id,
-      conversationRef: row.conversationRef,
-      turnRef: row.turnRef,
-      revisionId,
-      timestamp,
-      sender: 'tool',
-      text: row.content,
-      messageType: 'tool_output',
-      toolName: row.metadata?.toolName ?? null,
-      requestId: row.metadata?.requestId ?? null,
-      bundleId: row.metadata?.bundleId ?? null,
-      toolCallId: row.metadata?.toolCallId ?? null,
-      correlationId: row.metadata?.correlationId ?? null,
-      metadata: payload,
-    };
-  }
-  if (row.type === 'tool_bundle_output') {
-    const content = row.content;
-    return {
-      id: row.id,
-      conversationRef: row.conversationRef,
-      turnRef: row.turnRef,
-      revisionId,
-      timestamp,
-      sender: 'tool',
-      text: displayTextFromRowContent(content),
-      messageType: 'tool_bundle_output',
-      toolName: row.metadata?.toolName ?? null,
-      requestId: row.metadata?.requestId ?? null,
-      bundleId: row.metadata?.bundleId ?? null,
-      toolCallId: row.metadata?.toolCallId ?? null,
-      correlationId: row.metadata?.correlationId ?? null,
-      metadata: {
-        ...payload,
-        ...content,
-      },
-    };
-  }
-  return {
-    id: row.id,
-    conversationRef: row.conversationRef,
-    turnRef: row.turnRef,
-    revisionId,
-    timestamp,
-    sender: row.role,
-    text: displayTextFromRowContent(row.content),
-    messageType: row.type === 'assistant_message' && row.isStreaming ? 'assistant_delta' : row.type,
-    metadata: payload,
-  };
-}
-
 export function buildChatMessagesFromSdkDisplayRows(rows: SdkDisplayRow[]): ChatMessage[] {
-  return rows.flatMap((row) => {
-    const message = displayMessageFromSdkDisplayRow(row);
-    if (!message) {
-      return [];
-    }
-    return buildChatMessagesFromDisplayMessage(message);
-  });
+  return rows.flatMap((row) => buildChatMessagesFromSdkDisplayRow(row));
 }
