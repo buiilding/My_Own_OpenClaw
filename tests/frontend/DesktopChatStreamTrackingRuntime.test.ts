@@ -6,6 +6,7 @@ import { DesktopChatStreamTrackingRuntime } from '../../frontend/src/renderer/ap
 import type { StreamTracking } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 
 const { applyTrackingEvent } = DesktopChatStreamTrackingRuntime;
+const { buildUpdateStreamTrackingStateUpdate } = DesktopChatStreamTrackingRuntime;
 
 function buildTracking(overrides: Partial<StreamTracking> = {}): StreamTracking {
   const seed: StreamTracking = {
@@ -137,5 +138,91 @@ describe('DesktopChatStreamTrackingRuntime', () => {
         completedAt: '2026-02-24T00:00:04.000Z',
       }),
     );
+  });
+
+  test('buildUpdateStreamTrackingStateUpdate resolves workspace and applies updater result', () => {
+    const state = {
+      activeConversationRef: 'conv-1',
+      workspaces: {
+        'conv-1': {
+          streamTracking: buildTracking({
+            activeTurnRef: 'turn-1',
+            phase: 'awaiting-first-chunk',
+            eventCount: 1,
+          }),
+        },
+      },
+    };
+    const deps = {
+      buildWorkspaceUpdate: jest.fn((currentState, workspaceRef, nextWorkspace) => ({
+        ...currentState,
+        workspaces: {
+          ...currentState.workspaces,
+          [workspaceRef]: nextWorkspace,
+        },
+      })),
+      readWorkspaceState: jest.fn((currentState, workspaceRef) => currentState.workspaces[workspaceRef]),
+      resolveWorkspaceKey: jest.fn(() => 'conv-1'),
+    };
+
+    const nextState = buildUpdateStreamTrackingStateUpdate({
+      conversationRef: 'conv-1',
+      deps,
+      state,
+      updater: (current) => ({
+        ...current,
+        phase: 'streaming',
+        eventCount: current.eventCount + 1,
+      }),
+    });
+
+    expect(deps.resolveWorkspaceKey).toHaveBeenCalledWith('conv-1', 'conv-1');
+    expect(deps.readWorkspaceState).toHaveBeenCalledWith(state, 'conv-1');
+    expect(deps.buildWorkspaceUpdate).toHaveBeenCalledWith(
+      state,
+      'conv-1',
+      expect.objectContaining({
+        streamTracking: expect.objectContaining({
+          phase: 'streaming',
+          eventCount: 2,
+        }),
+      }),
+    );
+    expect(nextState).toEqual(expect.objectContaining({
+      workspaces: {
+        'conv-1': expect.objectContaining({
+          streamTracking: expect.objectContaining({
+            phase: 'streaming',
+            eventCount: 2,
+          }),
+        }),
+      },
+    }));
+  });
+
+  test('buildUpdateStreamTrackingStateUpdate no-ops when updater returns same reference', () => {
+    const streamTracking = buildTracking();
+    const state = {
+      activeConversationRef: 'conv-1',
+      workspaces: {
+        'conv-1': {
+          streamTracking,
+        },
+      },
+    };
+    const deps = {
+      buildWorkspaceUpdate: jest.fn(),
+      readWorkspaceState: jest.fn((currentState, workspaceRef) => currentState.workspaces[workspaceRef]),
+      resolveWorkspaceKey: jest.fn(() => 'conv-1'),
+    };
+
+    const nextState = buildUpdateStreamTrackingStateUpdate({
+      deps,
+      state,
+      updater: (current) => current,
+    });
+
+    expect(nextState).toBeNull();
+    expect(deps.buildWorkspaceUpdate).not.toHaveBeenCalled();
   });
 });

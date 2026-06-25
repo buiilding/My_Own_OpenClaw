@@ -40,6 +40,9 @@ import {
   DesktopChatPendingTurnStateRuntime,
 } from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
 import {
+  DesktopChatStreamTrackingRuntime,
+} from '../../../app/runtime/desktopChatStreamTrackingRuntime';
+import {
   DesktopChatTurnConversationRefRuntime,
 } from '../../../app/runtime/desktopChatTurnConversationRefRuntime';
 import {
@@ -89,6 +92,9 @@ const {
   buildPendingTurnBroadcastStateUpdate,
 } = DesktopChatPendingTurnStateRuntime;
 const {
+  buildUpdateStreamTrackingStateUpdate,
+} = DesktopChatStreamTrackingRuntime;
+const {
   mergeTurnConversationRefs,
   registerTurnConversationRef,
   resolveConversationRefForTurn,
@@ -125,6 +131,12 @@ const currentTurnStateRuntimeDependencies = {
 const conversationViewStateRuntimeDependencies = {
   buildWorkspaceUpdate,
   isActiveWorkspaceRef,
+  readWorkspaceState,
+  resolveWorkspaceKey,
+};
+
+const streamTrackingStateRuntimeDependencies = {
+  buildWorkspaceUpdate,
   readWorkspaceState,
   resolveWorkspaceKey,
 };
@@ -558,17 +570,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   updateStreamTracking: (updater, conversationRef) =>
     set((state) => {
-      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
-      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
-      const nextStreamTracking = updater(currentWorkspace.streamTracking);
-      if (nextStreamTracking === currentWorkspace.streamTracking) {
-        return state;
-      }
-      const nextWorkspace = {
-        ...currentWorkspace,
-        streamTracking: nextStreamTracking,
-      };
-      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
+      return buildUpdateStreamTrackingStateUpdate<ChatState, ChatWorkspaceState>({
+        conversationRef,
+        deps: streamTrackingStateRuntimeDependencies,
+        state,
+        updater,
+      }) ?? state;
     }),
 
   clearMessages: (conversationRef) =>

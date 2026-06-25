@@ -84,7 +84,11 @@ replay/store compatibility adapters and low-level artifact helpers.
   in `desktopChatTurnConversationRefRuntime.ts`; the store only binds the
   resulting map update.
 - `setIsSending`, `setThinkingStatus`, `setTokenCounts` no-op when value/reference unchanged
-- `updateStreamTracking` always applies updater output
+- `updateStreamTracking` applies updater output through
+  `DesktopChatStreamTrackingRuntime.buildUpdateStreamTrackingStateUpdate(...)`.
+  Workspace resolution, stream-tracking reference no-op handling, and workspace
+  update assembly live in that app runtime; the store only passes updater intent
+  plus workspace dependency adapters.
 - `setCurrentTurnProjection` updates the target workspace and clears a matching
   `pendingTurn` only after the SDK current-turn projection for that
   conversation/turn arrives. The current-turn workspace state update,

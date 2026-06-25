@@ -735,6 +735,7 @@ describe('renderer chat runtime boundary', () => {
     expect(runtimeSource).toContain("'usage_updated'");
     expect(runtimeSource).toContain("'tool_bundle_output'");
     expect(trackingRuntimeSource).toContain('export const DesktopChatStreamTrackingRuntime = Object.freeze');
+    expect(trackingRuntimeSource).toContain('buildUpdateStreamTrackingStateUpdate');
     expect(trackingRuntimeSource).not.toContain('export function applyTrackingEvent');
     expect(terminalHandoffRuntimeSource).toContain('export const DesktopChatStreamTerminalHandoffRuntime = Object.freeze');
     expect(terminalHandoffRuntimeSource).toContain('pendingTurn');
@@ -3263,6 +3264,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('function buildWorkspaceUpdate');
     expect(chatStoreSource).not.toContain('function resolveWorkspaceMutationTarget');
     expect(chatStoreSource).toContain('DesktopChatPendingTurnStateRuntime');
+    expect(chatStoreSource).toContain('DesktopChatStreamTrackingRuntime');
+    expect(chatStoreSource).toContain('buildUpdateStreamTrackingStateUpdate');
     expect(chatStoreSource).toContain('DesktopResponseOverlayViewRuntime');
     expect(chatStoreSource).not.toContain('export function buildResponseOverlayDismissalKey');
     expect(chatStoreSource).toContain('DesktopCurrentTurnWorkspaceRuntime');

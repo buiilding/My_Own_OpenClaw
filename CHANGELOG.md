@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: move `updateStreamTracking` workspace update construction
+  behind `DesktopChatStreamTrackingRuntime` so `chatStore` no longer owns
+  stream-tracking workspace lookup or reference no-op handling. No migration
+  required.
 - frontend/store: move `setCurrentTurnProjection` state-update construction
   behind `DesktopCurrentTurnWorkspaceRuntime` so `chatStore` no longer owns
   workspace lookup or pending-bridge replacement for SDK current-turn
