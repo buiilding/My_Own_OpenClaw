@@ -136,7 +136,9 @@ When attachment(s) exist:
    same bridge identity and filename metadata contract.
    Normal sends preserve any existing `ConversationView` in chat-store state
    and let presentation merge the pending bridge beside SDK display rows until
-   the next SDK view arrives. Replay sends intentionally clear the old view when
+   the next SDK view arrives. That merge is driven by the typed `pendingTurn`
+   bridge itself, not by re-exposing raw renderer `messages` as a competing
+   view-time read model. Replay sends intentionally clear the old view when
    publishing replacement rows so stale suffix rows do not remain visible while
    SDK edit/retry commands complete.
 5. run send-surface window policy only (optional return-to-chatbox behavior).

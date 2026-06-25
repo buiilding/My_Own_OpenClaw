@@ -95,7 +95,7 @@ describe('chatSelectors', () => {
     }));
   });
 
-  test('keeps raw surface messages for the pending bridge before SDK view handoff', () => {
+  test('drops raw surface messages while carrying the pending bridge under ConversationView', () => {
     const activeWorkspace = {
       messages: [{ id: 'pending-user', text: 'pending', sender: 'user' }],
       currentTurnProjection: null,
@@ -116,7 +116,7 @@ describe('chatSelectors', () => {
     expect(projectDesktopChatSurfaceState({
       activeWorkspace,
     })).toEqual(expect.objectContaining({
-      messages: activeWorkspace.messages,
+      messages: [],
       currentTurnProjection: null,
       conversationView: activeWorkspace.conversationView,
       pendingTurn: activeWorkspace.pendingTurn,

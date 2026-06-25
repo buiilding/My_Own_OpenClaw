@@ -21,7 +21,7 @@ function projectDesktopChatSurfaceState({
   conversationView?: unknown | null;
 }) {
   const resolvedConversationView = conversationView ?? activeWorkspace.conversationView ?? null;
-  const projectedMessages = resolvedConversationView && !activeWorkspace.pendingTurn
+  const projectedMessages = resolvedConversationView
     ? []
     : activeWorkspace.messages;
   return {

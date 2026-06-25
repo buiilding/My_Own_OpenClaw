@@ -102,18 +102,14 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
           canRetry: true,
         },
       },
-      messages: [{
-        id: 'pending-user',
-        sender: 'user',
-        text: 'pending prompt',
-        turnRef: 'turn-pending',
-        sourceEventType: 'renderer-compose',
-        sourceChannel: 'renderer-local',
-      }],
+      messages: [],
       pendingTurn: {
+        conversationRef: 'conv-1',
         turnRef: 'turn-pending',
         userMessageId: 'pending-user',
         text: 'pending prompt',
+        timestamp: '2026-06-25T12:00:00.000Z',
+        attachmentFilenames: null,
       },
     });
 

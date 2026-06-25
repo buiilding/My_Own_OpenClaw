@@ -10,11 +10,17 @@ import {
 import {
   DesktopSdkDisplayAttachmentProjection,
 } from './desktopSdkDisplayAttachmentProjection';
+import {
+  DesktopPendingTurnBridgeRuntime,
+} from './desktopPendingTurnBridgeRuntime';
 
 const {
   countDisplayImageAttachments,
   summarizeSdkDisplayAttachments,
 } = DesktopSdkDisplayAttachmentProjection;
+const {
+  buildPendingTurnUserMessage,
+} = DesktopPendingTurnBridgeRuntime;
 
 type DisplayProjectionTraceInput = {
   currentMessages?: ChatMessage[];
@@ -24,6 +30,9 @@ type DisplayProjectionTraceInput = {
 };
 
 type PendingTurnLike = {
+  attachmentFilenames?: string[] | null;
+  conversationRef?: string | null;
+  timestamp?: string | null;
   turnRef?: string | null;
   userMessageId?: string | null;
   text?: string | null;
@@ -76,16 +85,32 @@ function sdkUserTurnRefs(messages: ChatMessage[]): Set<string> {
 function pendingOptimisticUserMessages(
   sdkMessages: ChatMessage[],
   currentMessages: ChatMessage[],
+  pendingTurn: PendingTurnLike,
 ): ChatMessage[] {
   const sdkMessageIds = new Set(sdkMessages.map((message) => message.id));
   const projectedUserTurns = sdkUserTurnRefs(sdkMessages);
-  return currentMessages.filter((message) => {
+  const optimisticMessages = currentMessages.filter((message) => {
     const turnRef = normalizeTurnRef(message.turnRef);
     return isOptimisticUserMessage(message)
       && turnRef !== null
       && !sdkMessageIds.has(message.id)
       && !projectedUserTurns.has(turnRef);
   });
+  const pendingMessage = buildPendingTurnUserMessage(pendingTurn) as ChatMessage | null;
+  const pendingTurnRef = normalizeTurnRef(pendingMessage?.turnRef);
+  if (
+    pendingMessage
+    && pendingTurnRef
+    && !sdkMessageIds.has(pendingMessage.id)
+    && !projectedUserTurns.has(pendingTurnRef)
+    && !optimisticMessages.some((message) => (
+      message.id === pendingMessage.id
+      || normalizeTurnRef(message.turnRef) === pendingTurnRef
+    ))
+  ) {
+    return [...optimisticMessages, pendingMessage];
+  }
+  return optimisticMessages;
 }
 
 function findPendingOptimisticUserMessage(
@@ -141,7 +166,7 @@ function mergeRendererAnnotationsIntoSdkMessages(
   currentMessages: ChatMessage[],
   options: MergeRendererAnnotationsOptions = {},
 ): ChatMessage[] {
-  if (currentMessages.length === 0) {
+  if (currentMessages.length === 0 && !options.pendingTurn) {
     return sdkMessages;
   }
   const currentById = new Map(currentMessages.map((message) => [message.id, message]));
@@ -167,7 +192,7 @@ function mergeRendererAnnotationsIntoSdkMessages(
   });
   return mergePendingOptimisticUserMessages(
     mergedSdkMessages,
-    pendingOptimisticUserMessages(mergedSdkMessages, currentMessages),
+    pendingOptimisticUserMessages(mergedSdkMessages, currentMessages, options.pendingTurn),
   );
 }
 

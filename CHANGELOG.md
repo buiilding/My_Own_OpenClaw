@@ -10,6 +10,9 @@ All notable changes to WindieOS will be documented in this file.
   normal pending-send bridge so renderer state keeps SDK display rows as the
   chat read model until the next SDK view arrives. Replay pending still clears
   stale view rows before publishing replacement rows. No migration required.
+- frontend/display: build the local pending bridge directly from `pendingTurn`
+  when `ConversationView` exists so surface selectors no longer pass raw
+  renderer messages as a view-time fallback. No migration required.
 - frontend/replay: stop passing unused chat-store mutators from
   `ChatInterface` into replay actions so the React replay boundary carries only
   row intent inputs. No migration required.
