@@ -3,8 +3,15 @@
  */
 
 import { DesktopResponseOverlayLayoutRuntime } from './desktopResponseOverlayLayoutRuntime';
+import { DesktopCurrentTurnMessageRuntime } from './desktopCurrentTurnMessageRuntime';
 
 const AWAITING_VISIBLE_LIFECYCLE_STATUSES = new Set(['local_pending', 'awaiting']);
+const {
+  buildConversationViewLiveTurnMessages,
+  buildCurrentTurnMessagesFromProjection,
+  buildCurrentTurnMessagesFromPresentation,
+  isVisibleResponseOverlayMessage,
+} = DesktopCurrentTurnMessageRuntime;
 
 type CurrentTurnPresentationStateLike = {
   visibleTurnLifecycle?: {
@@ -18,6 +25,41 @@ type CurrentTurnPresentationStateLike = {
 type ResponseOverlayEntryLike = {
   id?: string | null;
 };
+
+function normalizeProjectedCurrentTurnEntries(currentTurnProjection: unknown): ResponseOverlayEntryLike[] {
+  return buildCurrentTurnMessagesFromProjection(currentTurnProjection)
+    .filter(isVisibleResponseOverlayMessage);
+}
+
+function resolveResponseOverlayEntries({
+  conversationView = null,
+  currentTurnProjection = null,
+  liveTurnPresentationInput = {},
+}: {
+  conversationView?: unknown;
+  currentTurnProjection?: unknown;
+  liveTurnPresentationInput?: {
+    source?: string | null;
+    useLocalPendingTurn?: boolean;
+    useSdkLiveTurnPresentation?: boolean;
+  };
+}): ResponseOverlayEntryLike[] {
+  if (liveTurnPresentationInput.useLocalPendingTurn) {
+    return [];
+  }
+  if (liveTurnPresentationInput.source === 'conversation-view') {
+    return buildConversationViewLiveTurnMessages(conversationView)
+      .filter(isVisibleResponseOverlayMessage);
+  }
+  if (liveTurnPresentationInput.useSdkLiveTurnPresentation) {
+    const presentationMessages = buildCurrentTurnMessagesFromPresentation(currentTurnProjection)
+      .filter(isVisibleResponseOverlayMessage);
+    return presentationMessages.length > 0
+      ? presentationMessages
+      : normalizeProjectedCurrentTurnEntries(currentTurnProjection);
+  }
+  return normalizeProjectedCurrentTurnEntries(currentTurnProjection);
+}
 
 function resolveResponseOverlayViewContract({
   currentTurnPresentationState,
@@ -65,5 +107,6 @@ function resolveResponseOverlayViewContract({
 }
 
 export const DesktopResponseOverlayViewRuntime = Object.freeze({
+  resolveResponseOverlayEntries,
   resolveResponseOverlayViewContract,
 });

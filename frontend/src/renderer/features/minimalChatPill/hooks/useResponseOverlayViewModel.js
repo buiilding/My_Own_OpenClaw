@@ -15,6 +15,9 @@ import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desk
 import {
   DesktopCurrentTurnMessageRuntime,
 } from '../../../app/runtime/desktopCurrentTurnMessageRuntime';
+import {
+  DesktopResponseOverlayViewRuntime,
+} from '../../../app/runtime/desktopResponseOverlayViewRuntime';
 import { DesktopChatPillSessionRuntime } from '../../../app/runtime/desktopChatPillSessionRuntime';
 import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { DesktopVisibleTurnLifecycleRuntime } from '../../../app/runtime/desktopVisibleTurnLifecycleRuntime';
@@ -33,14 +36,13 @@ const {
   resolveSdkResponseOverlayPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
 const {
-  buildConversationViewLiveTurnMessages,
-  buildCurrentTurnMessagesFromProjection,
-  buildCurrentTurnMessagesFromPresentation,
   isResponseCloseable,
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
-  isVisibleResponseOverlayMessage,
 } = DesktopCurrentTurnMessageRuntime;
+const {
+  resolveResponseOverlayEntries,
+} = DesktopResponseOverlayViewRuntime;
 const {
   resolveLiveTurnPresentationInput,
 } = DesktopLiveTurnSurfaceRuntime;
@@ -51,11 +53,6 @@ const {
   applyVisibleTurnLifecycleToPresentationState,
   resolveVisibleTurnLifecycle,
 } = DesktopVisibleTurnLifecycleRuntime;
-
-function normalizeProjectedCurrentTurnEntries(currentTurnProjection) {
-  return buildCurrentTurnMessagesFromProjection(currentTurnProjection)
-    .filter(isVisibleResponseOverlayMessage);
-}
 
 function normalizeReasoningText(reasoningText) {
   return typeof reasoningText === 'string' ? reasoningText.trim() : '';
@@ -96,29 +93,15 @@ export function useResponseOverlayViewModel({
   const useLocalPendingTurn = liveTurnPresentationInput.useLocalPendingTurn;
   const currentTurnPhase = liveTurnPresentationInput.phase;
   const responseOverlayEntries = useMemo(
-    () => {
-      if (useLocalPendingTurn) {
-        return [];
-      }
-      if (liveTurnPresentationInput.source === 'conversation-view') {
-        return buildConversationViewLiveTurnMessages(conversationView)
-          .filter(isVisibleResponseOverlayMessage);
-      }
-      if (useSdkLiveTurnPresentation) {
-        const presentationMessages = buildCurrentTurnMessagesFromPresentation(currentTurnProjection)
-          .filter(isVisibleResponseOverlayMessage);
-        return presentationMessages.length > 0
-          ? presentationMessages
-          : normalizeProjectedCurrentTurnEntries(currentTurnProjection);
-      }
-      return normalizeProjectedCurrentTurnEntries(currentTurnProjection);
-    },
+    () => resolveResponseOverlayEntries({
+      conversationView,
+      currentTurnProjection,
+      liveTurnPresentationInput,
+    }),
     [
       conversationView,
       currentTurnProjection,
-      liveTurnPresentationInput.source,
-      useLocalPendingTurn,
-      useSdkLiveTurnPresentation,
+      liveTurnPresentationInput,
     ],
   );
 

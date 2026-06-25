@@ -11,12 +11,14 @@ import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desk
 import {
   DesktopConversationReplayRuntime,
 } from '../../../app/runtime/desktopConversationReplayRuntime';
+import { DesktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 
 const {
   executeReplayIntent,
   prepareReplayEditIntent,
   prepareReplayRetryIntent,
 } = DesktopConversationReplayRuntime;
+const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 
 export function useConversationReplayActions({
   messages,
@@ -37,6 +39,10 @@ export function useConversationReplayActions({
       sessionInfo,
       activeConversationRef,
       deferredQueryModelSelection,
+      failureMessages: {
+        sendFailureMessage: chatSkin.sendFailureMessage,
+        replayPreparationFailureMessage: chatSkin.replayPreparationFailureMessage,
+      },
       chatStore: useChatStore,
       intent: replayIntent,
       addMessage,
@@ -58,6 +64,10 @@ export function useConversationReplayActions({
       sessionInfo,
       activeConversationRef,
       deferredQueryModelSelection,
+      failureMessages: {
+        sendFailureMessage: chatSkin.sendFailureMessage,
+        replayPreparationFailureMessage: chatSkin.replayPreparationFailureMessage,
+      },
       chatStore: useChatStore,
       intent: replayIntent,
       addMessage,

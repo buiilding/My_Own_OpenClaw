@@ -6,8 +6,79 @@ import { DesktopResponseOverlayViewRuntime } from '../../frontend/src/renderer/a
 
 describe('desktopResponseOverlayViewRuntime', () => {
   const {
+    resolveResponseOverlayEntries,
     resolveResponseOverlayViewContract,
   } = DesktopResponseOverlayViewRuntime;
+
+  test('selects conversation view live-turn entries before raw projection rows', () => {
+    expect(resolveResponseOverlayEntries({
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: {
+          turnRef: 'turn-view',
+          entries: [{
+            id: 'entry-view',
+            kind: 'assistant_text',
+            text: 'from view',
+          }],
+        },
+      },
+      currentTurnProjection: {
+        conversationRef: 'conv-raw',
+        turnRef: 'turn-raw',
+        assistantText: 'from raw projection',
+      },
+      liveTurnPresentationInput: {
+        source: 'conversation-view',
+      },
+    })).toEqual([
+      expect.objectContaining({
+        id: 'entry-view',
+        text: 'from view',
+      }),
+    ]);
+  });
+
+  test('falls back to raw current-turn projection only when sdk presentation has no visible rows', () => {
+    expect(resolveResponseOverlayEntries({
+      currentTurnProjection: {
+        conversationRef: 'conv-sdk',
+        turnRef: 'turn-sdk',
+        phase: 'streaming',
+        assistantText: 'visible raw fallback',
+        presentation: {
+          entries: [],
+        },
+      },
+      liveTurnPresentationInput: {
+        useSdkLiveTurnPresentation: true,
+      },
+    })).toEqual([
+      expect.objectContaining({
+        text: 'visible raw fallback',
+      }),
+    ]);
+  });
+
+  test('suppresses response entries during local pending bridge display', () => {
+    expect(resolveResponseOverlayEntries({
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: {
+          turnRef: 'turn-view',
+          entries: [{
+            id: 'entry-view',
+            kind: 'assistant_text',
+            text: 'from view',
+          }],
+        },
+      },
+      liveTurnPresentationInput: {
+        source: 'conversation-view',
+        useLocalPendingTurn: true,
+      },
+    })).toEqual([]);
+  });
 
   test('shows response when entries exist and are not dismissed', () => {
     expect(resolveResponseOverlayViewContract({

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: move response-overlay entry source selection behind the
+  app-runtime view helper so the feature hook no longer branches between SDK
+  `ConversationView.liveTurn`, SDK presentation rows, raw current-turn
+  projection fallback, and local pending suppression. No migration required.
 - frontend/send: count SDK `ConversationView.displayRows` user rows when
   deciding first-user screenshot resources so resumed view-owned chats do not
   rely on `chatStore.messages` history. No migration required.

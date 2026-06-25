@@ -576,6 +576,10 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/minimalChatPill/hooks/useResponseOverlayViewModel.js'),
       'utf8',
     );
+    const responseViewRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopResponseOverlayViewRuntime.ts'),
+      'utf8',
+    );
     const chatInterfaceSource = await fs.readFile(
       path.join(rendererRoot, 'features/chat/components/ChatInterface.jsx'),
       'utf8',
@@ -586,6 +590,10 @@ describe('renderer app runtime boundary', () => {
     );
     const threadPresentationSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopThreadPresentationRuntime.js'),
+      'utf8',
+    );
+    const chatInterfacePresentationSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopChatInterfacePresentationRuntime.js'),
       'utf8',
     );
     const currentTurnPresentationSource = await fs.readFile(
@@ -599,7 +607,7 @@ describe('renderer app runtime boundary', () => {
 
     expect(currentTurnMessageSource).toContain('desktopChatMessageRuntimeClient');
     expect(currentTurnMessageSource).toContain('desktopPresentationSourceChannels');
-    expect(currentTurnMessageSource).toContain('desktopArtifactRuntimeClient');
+    expect(currentTurnMessageSource).not.toContain('desktopArtifactRuntimeClient');
     expect(currentTurnMessageSource).toContain('DesktopCurrentTurnMessageRuntime');
     expect(currentTurnMessageSource).toContain('isVisibleResponseOverlayMessage');
     expect(currentTurnMessageSource).toContain('isResponseOverlayProgressMessage');
@@ -675,7 +683,8 @@ describe('renderer app runtime boundary', () => {
     expect(overlayViewModelSource).not.toContain('resolveSdkCurrentTurnPresentationState');
     expect(overlayViewModelSource).toContain('desktopCurrentTurnMessageRuntime');
     expect(overlayViewModelSource).toContain('DesktopCurrentTurnMessageRuntime');
-    expect(overlayViewModelSource).toContain('isVisibleResponseOverlayMessage');
+    expect(responseViewRuntimeSource).toContain('isVisibleResponseOverlayMessage');
+    expect(overlayViewModelSource).not.toContain('isVisibleResponseOverlayMessage');
     expect(overlayViewModelSource).toContain('isResponseOverlayProgressMessage');
     expect(overlayViewModelSource).toContain('isResponseOverlaySourceTaggedMessage');
     expect(overlayViewModelSource).not.toContain('function buildSdkCurrentTurnPresentationState');
@@ -695,8 +704,11 @@ describe('renderer app runtime boundary', () => {
     expect(chatSurfaceControllerSource).toContain('resolveCurrentTurnPresentationState');
     expect(chatSurfaceControllerSource).not.toContain('useCurrentTurnPresentationState');
     expect(chatSurfaceControllerSource).not.toContain('resolveSdkCurrentTurnPresentationState');
-    expect(chatInterfaceSource).toContain('desktopThreadPresentationRuntime');
-    expect(chatInterfaceSource).toContain('DesktopThreadPresentationRuntime');
+    expect(chatInterfacePresentationSource).toContain('desktopThreadPresentationRuntime');
+    expect(chatInterfacePresentationSource).toContain('DesktopThreadPresentationRuntime');
+    expect(chatInterfaceSource).toContain('DesktopChatInterfacePresentationRuntime');
+    expect(chatInterfaceSource).not.toContain('desktopThreadPresentationRuntime');
+    expect(chatInterfaceSource).not.toContain('DesktopThreadPresentationRuntime');
     expect(chatInterfaceSource).not.toContain('showToolLogs');
     expect(chatInterfaceSource).not.toContain('show_tool_logs === true');
     expect(chatInterfaceSource).not.toContain('VISIBLE_ASSISTANT_REPLY_TYPE_SET');
@@ -821,8 +833,10 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(responseViewRuntimeSource).toContain('export const DesktopResponseOverlayViewRuntime = Object.freeze');
+    expect(responseViewRuntimeSource).toContain('resolveResponseOverlayEntries');
     expect(responseViewRuntimeSource).not.toContain('export function resolveResponseOverlayViewContract');
     expect(responseViewRuntimeSource).toContain('desktopResponseOverlayLayoutRuntime');
+    expect(responseViewRuntimeSource).toContain('desktopCurrentTurnMessageRuntime');
     expect(responseViewRuntimeSource).toContain(
       'DesktopResponseOverlayLayoutRuntime.isVisibleResponseOverlayLayoutMode',
     );
@@ -839,6 +853,10 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlayComponentSource).not.toContain('showAwaitingReply');
     expect(responseOverlayViewModelSource).not.toContain('showResponse');
     expect(responseOverlayViewModelSource).not.toContain('showAwaitingReply');
+    expect(responseOverlayViewModelSource).toContain('resolveResponseOverlayEntries');
+    expect(responseOverlayViewModelSource).not.toContain('buildCurrentTurnMessagesFromProjection');
+    expect(responseOverlayViewModelSource).not.toContain('buildCurrentTurnMessagesFromPresentation');
+    expect(responseOverlayViewModelSource).not.toContain('buildConversationViewLiveTurnMessages');
     expect(chatPillFlowSource).toContain('desktopResponseOverlayViewRuntime');
     expect(chatPillFlowSource).toContain('desktopMessageSendUiRuntime');
     expect(chatPillFlowSource).toContain('export const DesktopChatPillSessionRuntime = Object.freeze');
@@ -1808,6 +1826,10 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopLiveTurnSurfaceRuntime.js'),
       'utf8',
     );
+    const responseViewRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopResponseOverlayViewRuntime.ts'),
+      'utf8',
+    );
     const responseOverlayViewModelSource = await fs.readFile(
       path.join(rendererRoot, 'features/minimalChatPill/hooks/useResponseOverlayViewModel.js'),
       'utf8',
@@ -1848,8 +1870,10 @@ describe('renderer app runtime boundary', () => {
     );
     expect(liveSurfaceRuntimeSource).toContain('resolveConversationViewOverlayIntent');
     expect(liveSurfaceRuntimeSource).toContain("source: 'conversation-view'");
-    expect(responseOverlayViewModelSource).toContain('buildConversationViewLiveTurnMessages');
-    expect(responseOverlayViewModelSource).toContain("liveTurnPresentationInput.source === 'conversation-view'");
+    expect(responseViewRuntimeSource).toContain('buildConversationViewLiveTurnMessages');
+    expect(responseViewRuntimeSource).toContain("liveTurnPresentationInput.source === 'conversation-view'");
+    expect(responseOverlayViewModelSource).toContain('resolveResponseOverlayEntries');
+    expect(responseOverlayViewModelSource).not.toContain('buildConversationViewLiveTurnMessages');
     expect(normalizedResponseOverlaySource).not.toContain('thinkingStatus');
     expect(responseOverlayViewModelSource).not.toContain('thinkingStatus');
     expect(normalizedChatInterfaceSource).not.toContain('useChatSurfaceController({\n    isSending,');

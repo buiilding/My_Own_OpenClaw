@@ -4,7 +4,6 @@
 
 import { DesktopConversationRuntimeContracts } from './desktopConversationRuntimeContracts';
 import { DesktopPendingTurnBridgeRuntime } from './desktopPendingTurnBridgeRuntime';
-import { DesktopRuntimeSkin } from '../skin/desktopRuntimeSkin';
 import { DesktopConversationContinuityService } from './desktopConversationContinuityService';
 import {
   DesktopConversationSessionRuntime,
@@ -20,7 +19,6 @@ const {
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
 } = DesktopConversationRuntimeContracts;
-const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 const {
   applyRendererConversationSelection,
   createConversationRef,
@@ -363,6 +361,7 @@ async function executeReplayIntent({
   addMessage,
   chatStore,
   deferredQueryModelSelection,
+  failureMessages = {},
   intent,
   sessionInfo,
 }) {
@@ -504,8 +503,8 @@ async function executeReplayIntent({
       addMessage({
         id: crypto.randomUUID(),
         text: replayStep === 'send'
-          ? chatSkin.sendFailureMessage
-          : chatSkin.replayPreparationFailureMessage,
+          ? failureMessages.sendFailureMessage
+          : failureMessages.replayPreparationFailureMessage,
         sender: 'assistant',
         type: 'error',
         sourceEventType: 'renderer-replay',
