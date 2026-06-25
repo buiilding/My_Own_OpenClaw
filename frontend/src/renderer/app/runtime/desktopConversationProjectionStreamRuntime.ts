@@ -2,11 +2,25 @@ import type {
   ChatMessage,
 } from './desktopChatMessageTypes';
 import {
+  DesktopChatStreamEventRuntime,
+} from './desktopChatStreamEventRuntime';
+import {
+  DesktopCurrentTurnProjectionEffectsRuntime,
+  type CurrentTurnProjectionEffectsInput,
+  type ProjectionCursor,
+} from './desktopCurrentTurnProjectionEffectsRuntime';
+import {
   DesktopConversationDisplayProjection,
 } from './desktopConversationDisplayProjection';
 import type {
   SdkDisplayRow,
 } from './desktopConversationRuntimeContracts';
+import {
+  DesktopPresentationSourceChannels,
+} from './desktopPresentationSourceChannels';
+import {
+  DesktopRendererTraceRuntime,
+} from './desktopRendererTraceRuntime';
 
 type PendingTurnLike = {
   turnRef?: string | null;
@@ -31,6 +45,36 @@ type ProjectionWorkspace = {
   supersededTurnRefs?: Record<string, true>;
 };
 
+type CurrentTurnProjectionStreamDeps = {
+  getWorkspaceState: (conversationRef?: string | null) => ProjectionWorkspace;
+  setCurrentTurnProjection: (
+    currentTurn: CurrentTurnProjectionEffectsInput,
+    conversationRef?: string | null,
+  ) => void;
+  setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
+  setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
+  setThinkingSourceEventType: (sourceEventType: string | null, conversationRef?: string | null) => void;
+  updateStreamTracking: (updater: (current: unknown) => unknown, conversationRef?: string | null) => void;
+};
+
+type ApplyCurrentTurnProjectionEventInput = {
+  conversationRef: string;
+  currentTurn: CurrentTurnProjectionEffectsInput;
+  deps: CurrentTurnProjectionStreamDeps;
+  projectionCursors: Map<string, ProjectionCursor>;
+};
+
+type DisplayRowsProjectionStreamDeps = {
+  getWorkspaceState: (conversationRef?: string | null) => ProjectionWorkspace;
+  setMessages: (messages: ChatMessage[], conversationRef?: string | null) => void;
+};
+
+type ApplyDisplayRowsProjectionEventInput = {
+  conversationRef: string;
+  rows: SdkDisplayRow[];
+  deps: DisplayRowsProjectionStreamDeps;
+};
+
 type ReplayProjectionTracePayloadInput = {
   action: string;
   conversationRef: string;
@@ -48,6 +92,23 @@ const {
   buildDisplayProjectionTraceSummary,
   mergeRendererAnnotationsIntoSdkMessages,
 } = DesktopConversationDisplayProjection;
+const {
+  recordTrackingEvent,
+  shouldIgnoreConversationEventForStaleTurn,
+} = DesktopChatStreamEventRuntime;
+const {
+  applyCurrentTurnProjectionSideEffects,
+  buildProjectionCursorKey,
+  createProjectionCursor,
+  shouldAcceptCurrentTurnBeforeLocalSend,
+} = DesktopCurrentTurnProjectionEffectsRuntime;
+const {
+  logRendererCurrentTurnAppliedTrace,
+  logRendererDisplayRowsProjectionTrace,
+  logRendererReplayTrace,
+} = DesktopRendererTraceRuntime;
+
+const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 
 function normalizeTurnRef(turnRef: string | null | undefined): string | null {
   return typeof turnRef === 'string' && turnRef.trim()
@@ -116,6 +177,88 @@ function buildReplayProjectionTracePayload({
   };
 }
 
+function logReplayProjectionTrace(
+  action: string,
+  conversationRef: string,
+  workspace: ProjectionWorkspace,
+  values: Record<string, unknown> = {},
+): void {
+  logRendererReplayTrace(buildReplayProjectionTracePayload({
+    action,
+    conversationRef,
+    workspace,
+    values,
+  }));
+}
+
+function applyCurrentTurnProjectionEvent({
+  conversationRef,
+  currentTurn,
+  deps,
+  projectionCursors,
+}: ApplyCurrentTurnProjectionEventInput): void {
+  if (!currentTurn || !conversationRef) {
+    return;
+  }
+
+  const preProjectionWorkspace = deps.getWorkspaceState(conversationRef);
+  if (isSupersededTurn(preProjectionWorkspace, currentTurn.turnRef)) {
+    logReplayProjectionTrace('sdk_current_turn_superseded_ignored', conversationRef, preProjectionWorkspace, {
+      oldTurnRef: currentTurn.turnRef ?? null,
+      currentTurnRef: currentTurn.turnRef ?? null,
+      currentTurnPhase: currentTurn.phase ?? null,
+    });
+    return;
+  }
+
+  // Check stale-turn status before current-turn storage can resolve pendingTurn.
+  deps.setCurrentTurnProjection(currentTurn, conversationRef);
+
+  const shouldSkipDerivedSideEffects = (
+    !shouldAcceptCurrentTurnBeforeLocalSend(currentTurn)
+    && shouldIgnoreConversationEventForStaleTurn({
+      turnRef: currentTurn.turnRef,
+    }, conversationRef, {
+      getWorkspaceState: () => preProjectionWorkspace,
+    })
+  );
+  logRendererCurrentTurnAppliedTrace({
+    source: sdkCurrentTurnSourceChannel,
+    conversationRef,
+    currentTurn,
+    skipDerivedSideEffects: shouldSkipDerivedSideEffects,
+  });
+  if (shouldSkipDerivedSideEffects) {
+    logReplayProjectionTrace('sdk_current_turn_stale_side_effects_skipped', conversationRef, deps.getWorkspaceState(conversationRef), {
+      newTurnRef: currentTurn.turnRef ?? null,
+      currentTurnRef: currentTurn.turnRef ?? null,
+      currentTurnPhase: currentTurn.phase ?? null,
+    });
+    return;
+  }
+
+  const cursorKey = buildProjectionCursorKey(conversationRef, currentTurn.turnRef ?? null);
+  const previousCursor = projectionCursors.get(cursorKey) ?? createProjectionCursor();
+  projectionCursors.set(cursorKey, applyCurrentTurnProjectionSideEffects({
+    conversationRef,
+    currentTurn,
+    cursor: previousCursor,
+    deps: {
+      getWorkspaceState: deps.getWorkspaceState,
+      setIsSending: deps.setIsSending,
+      setThinkingStatus: deps.setThinkingStatus,
+      setThinkingSourceEventType: deps.setThinkingSourceEventType,
+      updateStreamTracking: deps.updateStreamTracking,
+      recordTrackingEvent,
+    },
+  }));
+  logReplayProjectionTrace('sdk_current_turn_applied', conversationRef, deps.getWorkspaceState(conversationRef), {
+    newTurnRef: currentTurn.turnRef ?? null,
+    currentTurnRef: currentTurn.turnRef ?? null,
+    currentTurnPhase: currentTurn.phase ?? null,
+  });
+}
+
 function buildDisplayRowsProjection({
   rows,
   workspace,
@@ -149,7 +292,43 @@ function buildDisplayRowsProjection({
   };
 }
 
+function applyDisplayRowsProjectionEvent({
+  conversationRef,
+  rows,
+  deps,
+}: ApplyDisplayRowsProjectionEventInput): void {
+  if (!conversationRef) {
+    return;
+  }
+  const workspace = deps.getWorkspaceState(conversationRef);
+  const {
+    filteredRows,
+    mergedMessages,
+    shouldApplyMessages,
+    traceSummary,
+  } = buildDisplayRowsProjection({ rows, workspace });
+  logRendererDisplayRowsProjectionTrace({
+    source: 'sdk-display-rows-stream',
+    conversationRef,
+    ...traceSummary,
+  });
+  logReplayProjectionTrace('sdk_display_rows_projected', conversationRef, workspace, {
+    displayRowCount: rows.length,
+    replacementRowCount: filteredRows.length,
+    shouldApplyMessages,
+  });
+  if (!shouldApplyMessages) {
+    return;
+  }
+  deps.setMessages(
+    mergedMessages,
+    conversationRef,
+  );
+}
+
 export const DesktopConversationProjectionStreamRuntime = Object.freeze({
+  applyCurrentTurnProjectionEvent,
+  applyDisplayRowsProjectionEvent,
   buildDisplayRowsProjection,
   buildReplayProjectionTracePayload,
   isSupersededTurn,

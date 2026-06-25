@@ -4,58 +4,18 @@
 
 import { useEffect, useRef } from 'react';
 import { useChatStore } from '../stores/chatStore';
-import {
-  DesktopChatStreamEventRuntime,
-} from '../../../app/runtime/desktopChatStreamEventRuntime';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
-import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
-import { DesktopPresentationSourceChannels } from '../../../app/runtime/desktopPresentationSourceChannels';
-import {
-  DesktopCurrentTurnProjectionEffectsRuntime,
-  type ProjectionCursor,
-} from '../../../app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
 import {
   DesktopConversationProjectionStreamRuntime,
 } from '../../../app/runtime/desktopConversationProjectionStreamRuntime';
 
-const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 const {
-  recordTrackingEvent: recordTrackingEventRuntime,
-  shouldIgnoreConversationEventForStaleTurn,
-} = DesktopChatStreamEventRuntime;
-const {
-  applyCurrentTurnProjectionSideEffects,
-  buildProjectionCursorKey,
-  createProjectionCursor,
-  shouldAcceptCurrentTurnBeforeLocalSend,
-} = DesktopCurrentTurnProjectionEffectsRuntime;
-const {
-  buildDisplayRowsProjection,
-  buildReplayProjectionTracePayload,
-  isSupersededTurn,
+  applyCurrentTurnProjectionEvent,
+  applyDisplayRowsProjectionEvent,
 } = DesktopConversationProjectionStreamRuntime;
-const {
-  logRendererCurrentTurnAppliedTrace,
-  logRendererDisplayRowsProjectionTrace,
-  logRendererReplayTrace,
-} = DesktopRendererTraceRuntime;
-
-function logReplayProjectionTrace(
-  action: string,
-  conversationRef: string,
-  workspace: Parameters<typeof buildReplayProjectionTracePayload>[0]['workspace'],
-  values: Record<string, unknown> = {},
-): void {
-  logRendererReplayTrace(buildReplayProjectionTracePayload({
-    action,
-    conversationRef,
-    workspace,
-    values,
-  }));
-}
 
 export function useConversationRuntimeProjectionStream(): void {
-  const projectionCursorsRef = useRef(new Map<string, ProjectionCursor>());
+  const projectionCursorsRef = useRef(new Map());
   const setMessages = useChatStore((state) => state.setMessages);
   const setCurrentTurnProjection = useChatStore((state) => state.setCurrentTurnProjection);
   const applyPendingTurnBroadcast = useChatStore((state) => state.applyPendingTurnBroadcast);
@@ -79,62 +39,18 @@ export function useConversationRuntimeProjectionStream(): void {
       if (!currentTurn || !conversationRef) {
         return;
       }
-
-      const preProjectionWorkspace = useChatStore.getState().getWorkspaceState(conversationRef);
-      if (isSupersededTurn(preProjectionWorkspace, currentTurn.turnRef)) {
-        logReplayProjectionTrace('sdk_current_turn_superseded_ignored', conversationRef, preProjectionWorkspace, {
-          oldTurnRef: currentTurn.turnRef ?? null,
-          currentTurnRef: currentTurn.turnRef ?? null,
-          currentTurnPhase: currentTurn.phase ?? null,
-        });
-        return;
-      }
-
-      // Check stale-turn status before current-turn storage can resolve pendingTurn.
-      setCurrentTurnProjection(currentTurn, conversationRef);
-
-      const shouldSkipDerivedSideEffects = (
-        !shouldAcceptCurrentTurnBeforeLocalSend(currentTurn)
-        && shouldIgnoreConversationEventForStaleTurn({
-          turnRef: currentTurn.turnRef,
-        }, conversationRef, {
-          getWorkspaceState: () => preProjectionWorkspace,
-        })
-      );
-      logRendererCurrentTurnAppliedTrace({
-        source: sdkCurrentTurnSourceChannel,
+      applyCurrentTurnProjectionEvent({
         conversationRef,
         currentTurn,
-        skipDerivedSideEffects: shouldSkipDerivedSideEffects,
-      });
-      if (shouldSkipDerivedSideEffects) {
-        logReplayProjectionTrace('sdk_current_turn_stale_side_effects_skipped', conversationRef, useChatStore.getState().getWorkspaceState(conversationRef), {
-          newTurnRef: currentTurn.turnRef ?? null,
-          currentTurnRef: currentTurn.turnRef ?? null,
-          currentTurnPhase: currentTurn.phase ?? null,
-        });
-        return;
-      }
-
-      const cursorKey = buildProjectionCursorKey(conversationRef, currentTurn.turnRef ?? null);
-      const previousCursor = projectionCursorsRef.current.get(cursorKey) ?? createProjectionCursor();
-      projectionCursorsRef.current.set(cursorKey, applyCurrentTurnProjectionSideEffects({
-        conversationRef,
-        currentTurn,
-        cursor: previousCursor,
+        projectionCursors: projectionCursorsRef.current,
         deps: {
           getWorkspaceState: useChatStore.getState().getWorkspaceState,
+          setCurrentTurnProjection,
           setIsSending,
           setThinkingStatus,
           setThinkingSourceEventType,
           updateStreamTracking,
-          recordTrackingEvent: recordTrackingEventRuntime,
         },
-      }));
-      logReplayProjectionTrace('sdk_current_turn_applied', conversationRef, useChatStore.getState().getWorkspaceState(conversationRef), {
-        newTurnRef: currentTurn.turnRef ?? null,
-        currentTurnRef: currentTurn.turnRef ?? null,
-        currentTurnPhase: currentTurn.phase ?? null,
       });
     });
     return () => {
@@ -154,30 +70,14 @@ export function useConversationRuntimeProjectionStream(): void {
       if (!conversationRef) {
         return;
       }
-      const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-      const {
-        filteredRows,
-        mergedMessages,
-        shouldApplyMessages,
-        traceSummary,
-      } = buildDisplayRowsProjection({ rows, workspace });
-      logRendererDisplayRowsProjectionTrace({
-        source: 'sdk-display-rows-stream',
+      applyDisplayRowsProjectionEvent({
         conversationRef,
-        ...traceSummary,
+        rows,
+        deps: {
+          getWorkspaceState: useChatStore.getState().getWorkspaceState,
+          setMessages,
+        },
       });
-      logReplayProjectionTrace('sdk_display_rows_projected', conversationRef, workspace, {
-        displayRowCount: rows.length,
-        replacementRowCount: filteredRows.length,
-        shouldApplyMessages,
-      });
-      if (!shouldApplyMessages) {
-        return;
-      }
-      setMessages(
-        mergedMessages,
-        conversationRef,
-      );
     });
     return () => {
       removeListener?.();

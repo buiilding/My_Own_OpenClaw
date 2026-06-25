@@ -129,9 +129,10 @@ Thinking status methods from `DesktopChatStreamThinkingRuntime`:
 
 `useConversationRuntimeProjectionStream` subscribes through
 `DesktopConversationRuntimeEventClient` to SDK `windie:current-turn` and
-`windie:rows` projections, then delegates display-row filtering, optimistic
-pending-row preservation, display-message projection, and replay trace payload
-shaping to `DesktopConversationProjectionStreamRuntime`. Display-row
+`windie:rows` projections, then delegates current-turn application,
+display-row filtering, optimistic pending-row preservation, display-message
+projection, and replay trace payload shaping to
+`DesktopConversationProjectionStreamRuntime`. Display-row
 presentation metadata uses `sdk:display-rows` as its source label; the
 `windie:rows` name is only the Electron IPC transport channel.
 
@@ -144,9 +145,11 @@ Renderer-only annotations such as prompt transparency, tool schemas, full
 message details, feedback, and token counts are merged back into matching
 SDK-projected messages by `desktopConversationDisplayProjection.ts`.
 `desktopConversationProjectionStreamRuntime.ts` composes that display adapter
-with replay superseded-turn filtering so the hook owns subscription wiring and
-store writes only; it does not own display-row annotation, optimistic-row
-merge, or stale replay display suppression semantics.
+with replay superseded-turn filtering, stale current-turn side-effect gating,
+projection cursor management, and trace routing so the hook owns subscription
+wiring and store dependency injection only; it does not own display-row
+annotation, optimistic-row merge, stale replay display suppression, or
+current-turn side-effect semantics.
 
 Display-row stream projections are a no-`ConversationView` bridge. When the
 workspace already has an SDK `ConversationView`, the hook may still build the
@@ -394,11 +397,11 @@ Handler composition boundary:
   instead of reading `event.payload` directly.
 - SDK `user_message` handling for backend `local-user-message` is delegated to
   `useChatStreamLocalUserHandler`
-- SDK current-turn `reasoningText`, `assistantText`, and terminal `phase` active-turn side effects are delegated through `useConversationRuntimeProjectionStream` to `DesktopCurrentTurnProjectionEffectsRuntime`
+- SDK current-turn `reasoningText`, `assistantText`, and terminal `phase` active-turn side effects are delegated through `useConversationRuntimeProjectionStream` to `DesktopConversationProjectionStreamRuntime`, which applies `DesktopCurrentTurnProjectionEffectsRuntime`.
 - SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`
   transparency projection is delegated to `useChatStreamMetadataHandlers`.
 - SDK `turn_error` transcript/error materialization plus SDK `usage_updated` terminal behavior is delegated to `useChatStreamTerminalHandlers`
-- SDK current-turn `toolEvents` active-turn display and phase tracking is delegated through `useConversationRuntimeProjectionStream` to `DesktopCurrentTurnProjectionEffectsRuntime`.
+- SDK current-turn `toolEvents` active-turn display and phase tracking is delegated through `useConversationRuntimeProjectionStream` to `DesktopConversationProjectionStreamRuntime`, which applies `DesktopCurrentTurnProjectionEffectsRuntime`.
 - SDK `tool_call`/`tool_output`/`tool_bundle_call` transcript persistence is delegated to `useChatStreamToolHandlers`; local tool execution remains owned by SDK/main local-runtime execution and the local-runtime Python implementation.
 - SDK `compaction_started`/`compaction_applied`/`compaction_skipped`/`compaction_failed`
   display and replay persistence is delegated to `useChatStreamCompactionHandlers`.

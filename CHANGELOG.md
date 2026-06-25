@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: move SDK current-turn and display-row projection event
+  application into the projection-stream runtime so the React subscription hook
+  no longer owns supersession, stale-turn gating, projection cursors, or
+  display-row store write decisions. No migration required.
 - frontend/attachments: remove renderer user-message filename-chip display
   fallback so visible user attachments render only from SDK typed
   `attachments[]`. No migration required.

@@ -760,6 +760,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts'),
       'utf8',
     );
+    const projectionStreamRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationProjectionStreamRuntime.ts'),
+      'utf8',
+    );
     const traceRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts'),
       'utf8',
@@ -772,10 +776,11 @@ describe('renderer chat runtime boundary', () => {
     expect(streamSource).not.toContain('assistant_delta');
     expect(streamSource).not.toContain('reasoning_delta');
     expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onCurrentTurnProjection');
-    expect(projectionSource).toContain('desktopCurrentTurnProjectionEffectsRuntime');
-    expect(projectionSource).toContain('DesktopCurrentTurnProjectionEffectsRuntime');
-    expect(projectionSource).toContain('applyCurrentTurnProjectionSideEffects');
-    expect(projectionSource).toContain('logRendererCurrentTurnAppliedTrace');
+    expect(projectionSource).toContain('applyCurrentTurnProjectionEvent');
+    expect(projectionSource).not.toContain('desktopCurrentTurnProjectionEffectsRuntime');
+    expect(projectionSource).not.toContain('DesktopCurrentTurnProjectionEffectsRuntime');
+    expect(projectionSource).not.toContain('applyCurrentTurnProjectionSideEffects');
+    expect(projectionSource).not.toContain('logRendererCurrentTurnAppliedTrace');
     expect(projectionSource).not.toContain('logRendererLiveSurfaceTrace');
     expect(projectionSource).not.toContain("'renderer.current_turn.applied'");
     expect(projectionSource).not.toContain('overlayMode');
@@ -792,6 +797,10 @@ describe('renderer chat runtime boundary', () => {
     expect(traceRuntimeSource).toContain('logRendererCurrentTurnAppliedTrace');
     expect(traceRuntimeSource).toContain("'renderer.current_turn.applied'");
     expect(traceRuntimeSource).toContain('staleSideEffectsSkipped');
+    expect(projectionStreamRuntimeSource).toContain('DesktopCurrentTurnProjectionEffectsRuntime');
+    expect(projectionStreamRuntimeSource).toContain('applyCurrentTurnProjectionSideEffects');
+    expect(projectionStreamRuntimeSource).toContain('logRendererCurrentTurnAppliedTrace');
+    expect(projectionStreamRuntimeSource).not.toContain('features/chat');
     expect(projectionSideEffectsSource).toContain('export const DesktopCurrentTurnProjectionEffectsRuntime = Object.freeze');
     expect(projectionSideEffectsSource).toContain('setThinkingStatus');
     expect(projectionSideEffectsSource).toContain('streaming-response');
@@ -999,7 +1008,12 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(projectionSource).toContain('desktopConversationProjectionStreamRuntime');
     expect(projectionSource).toContain('DesktopConversationProjectionStreamRuntime');
-    expect(projectionSource).toContain('buildDisplayRowsProjection');
+    expect(projectionSource).toContain('applyDisplayRowsProjectionEvent');
+    expect(projectionSource).not.toContain('buildDisplayRowsProjection');
+    expect(projectionSource).not.toContain('isSupersededTurn');
+    expect(projectionSource).not.toContain('buildReplayProjectionTracePayload');
+    expect(projectionSource).not.toContain('buildProjectionCursorKey');
+    expect(projectionSource).not.toContain('shouldIgnoreConversationEventForStaleTurn');
     expect(projectionSource).not.toContain('desktopConversationDisplayProjection');
     expect(projectionSource).not.toContain('DesktopConversationDisplayProjection');
     expect(projectionSource).not.toContain('mergeRendererAnnotationsIntoSdkMessages');
@@ -1019,7 +1033,7 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onPendingTurn');
     expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onCurrentTurnProjection');
     expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onDisplayRowsProjection');
-    expect(projectionSource).toContain('if (!shouldApplyMessages)');
+    expect(projectionSource).not.toContain('if (!shouldApplyMessages)');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.ROWS');
@@ -1035,6 +1049,8 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).not.toContain('export {\n  buildChatMessagesFromSdkDisplayRows');
     expect(displayProjectionSource).not.toContain('features/chat');
     expect(projectionStreamRuntimeSource).toContain('DesktopConversationProjectionStreamRuntime');
+    expect(projectionStreamRuntimeSource).toContain('applyCurrentTurnProjectionEvent');
+    expect(projectionStreamRuntimeSource).toContain('applyDisplayRowsProjectionEvent');
     expect(projectionStreamRuntimeSource).toContain('buildDisplayRowsProjection');
     expect(projectionStreamRuntimeSource).toContain('shouldApplyMessages');
     expect(projectionStreamRuntimeSource).toContain('!workspace.conversationView');
@@ -1609,8 +1625,9 @@ describe('renderer chat runtime boundary', () => {
 
     expect(streamSource).not.toContain("event.type !== 'tool_progress'");
     expect(streamSource).not.toContain("event.type === 'tool_progress'");
-    expect(projectionSource).toContain('DesktopCurrentTurnProjectionEffectsRuntime');
-    expect(projectionSource).toContain('applyCurrentTurnProjectionSideEffects');
+    expect(projectionSource).toContain('applyCurrentTurnProjectionEvent');
+    expect(projectionSource).not.toContain('DesktopCurrentTurnProjectionEffectsRuntime');
+    expect(projectionSource).not.toContain('applyCurrentTurnProjectionSideEffects');
     expect(projectionSideEffectsSource).toContain('export const DesktopCurrentTurnProjectionEffectsRuntime = Object.freeze');
     expect(projectionSideEffectsSource).toContain("toolEvent.kind === 'tool_progress'");
     expect(projectionSideEffectsSource).toContain('web-search-progress');

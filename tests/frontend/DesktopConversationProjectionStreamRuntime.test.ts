@@ -3,6 +3,8 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopConversationProjectionStreamRuntime';
 
 const {
+  applyCurrentTurnProjectionEvent,
+  applyDisplayRowsProjectionEvent,
   buildDisplayRowsProjection,
   buildReplayProjectionTracePayload,
   isSupersededTurn,
@@ -210,5 +212,141 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       currentMatchesNewTurn: false,
       currentMatchesOldTurn: true,
     }));
+  });
+
+  test('ignores superseded current-turn projection events before store writes', () => {
+    const deps = {
+      getWorkspaceState: jest.fn(() => ({
+        supersededTurnRefs: {
+          'turn-old': true,
+        },
+      })),
+      setCurrentTurnProjection: jest.fn(),
+      setIsSending: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      updateStreamTracking: jest.fn(),
+    };
+
+    applyCurrentTurnProjectionEvent({
+      conversationRef: 'conv-1',
+      currentTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-old',
+        phase: 'streaming',
+        assistantText: 'late old response',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      },
+      deps,
+      projectionCursors: new Map(),
+    });
+
+    expect(deps.setCurrentTurnProjection).not.toHaveBeenCalled();
+    expect(deps.setIsSending).not.toHaveBeenCalled();
+    expect(deps.updateStreamTracking).not.toHaveBeenCalled();
+  });
+
+  test('applies accepted current-turn projection events through runtime side effects', () => {
+    const deps = {
+      getWorkspaceState: jest.fn(() => ({
+        messages: [],
+        pendingTurn: null,
+        currentTurnProjection: {
+          turnRef: 'turn-1',
+          phase: 'streaming',
+        },
+        streamTracking: {
+          activeTurnRef: 'turn-1',
+          phase: 'streaming',
+        },
+        supersededTurnRefs: {},
+      })),
+      setCurrentTurnProjection: jest.fn(),
+      setIsSending: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      updateStreamTracking: jest.fn((updater) => updater({})),
+    };
+    const projectionCursors = new Map();
+
+    applyCurrentTurnProjectionEvent({
+      conversationRef: 'conv-1',
+      currentTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        phase: 'streaming',
+        assistantText: 'hello',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      },
+      deps,
+      projectionCursors,
+    });
+
+    expect(deps.setCurrentTurnProjection).toHaveBeenCalledWith(
+      expect.objectContaining({ turnRef: 'turn-1' }),
+      'conv-1',
+    );
+    expect(deps.setIsSending).toHaveBeenCalledWith(false, 'conv-1');
+    expect(deps.updateStreamTracking).toHaveBeenCalled();
+    expect(projectionCursors.size).toBe(1);
+  });
+
+  test('applies display-row projection events only while ConversationView is absent', () => {
+    const setMessages = jest.fn();
+
+    applyDisplayRowsProjectionEvent({
+      conversationRef: 'conv-1',
+      rows: [{
+        id: 'assistant-row',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant' as const,
+        type: 'assistant_message' as const,
+        content: 'sdk row',
+      }],
+      deps: {
+        getWorkspaceState: jest.fn(() => ({
+          conversationView: {
+            conversationRef: 'conv-1',
+            displayRows: [],
+          },
+          messages: [],
+        })),
+        setMessages,
+      },
+    });
+
+    expect(setMessages).not.toHaveBeenCalled();
+
+    applyDisplayRowsProjectionEvent({
+      conversationRef: 'conv-1',
+      rows: [{
+        id: 'assistant-row',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant' as const,
+        type: 'assistant_message' as const,
+        content: 'sdk row',
+      }],
+      deps: {
+        getWorkspaceState: jest.fn(() => ({
+          messages: [],
+        })),
+        setMessages,
+      },
+    });
+
+    expect(setMessages).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: 'assistant-row',
+        text: 'sdk row',
+      }),
+    ], 'conv-1');
   });
 });
