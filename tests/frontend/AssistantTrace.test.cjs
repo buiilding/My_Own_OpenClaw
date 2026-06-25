@@ -115,6 +115,28 @@ describe('assistant runtime trace logging', () => {
         },
       },
     });
+    tracer.traceRuntimeSend({
+      turnRef: 'turn-1',
+      conversationRef: 'conv-1',
+      text: 'private user request',
+      resources: [{ kind: 'screenshot' }],
+      payload: {
+        conversation_ref: 'conv-1',
+        agent_definition: {
+          mode: 'default_plus_overrides',
+          system_prompt: { mode: 'replace', content: 'private runtime prompt' },
+          tools: {
+            mode: 'explicit',
+            enabled_remote_tools: [],
+            disabled_tools: ['mouse_control', 'browser'],
+            client_manifest: {
+              version: 1,
+              tools: [],
+            },
+          },
+        },
+      },
+    });
     tracer.traceSettingsUpdate({
       model_provider: 'openai',
       selected_model_id: 'gpt-4.1',
@@ -129,11 +151,13 @@ describe('assistant runtime trace logging', () => {
     expect(messages).toEqual([
       '[ElectronTrace] backend connection.open connected=true user=user-1',
       '[ElectronTrace] renderer query.send turn=turn-1 conv=conv-1 text_len=20 resources=1 agent=true client_tools=0 disabled_tools=2',
+      '[ElectronTrace] sdk runtime.send turn=turn-1 conv=conv-1 text_len=20 resources=1 agent=true client_tools=0 disabled_tools=2 remote_tools=0',
       '[ElectronTrace] settings update.send source=renderer id=settings-1 keys=model_provider,selected_model_id provider=openai model=gpt-4.1 mode=- tools_mode=-',
       '[ElectronTrace] settings update.ack id=settings-1 success=true',
     ]);
     expect(JSON.stringify(messages)).not.toContain('private user request');
     expect(JSON.stringify(messages)).not.toContain('private prompt');
+    expect(JSON.stringify(messages)).not.toContain('private runtime prompt');
     expect(JSON.stringify(messages)).not.toContain('sk-secret');
     expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       action: 'connection.open',
@@ -155,12 +179,28 @@ describe('assistant runtime trace logging', () => {
       systemPromptMode: 'replace',
     }));
     expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'runtime.send',
+      phase: 'sdk',
+      textLength: 20,
+      resourceCount: 1,
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      hasAgentDefinition: true,
+      agentDefinitionMode: 'default_plus_overrides',
+      agentToolMode: 'explicit',
+      clientManifestToolCount: 0,
+      disabledToolCount: 2,
+      enabledRemoteToolCount: 0,
+      systemPromptMode: 'replace',
+    }));
+    expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       action: 'settings.update.send',
       updatedKeys: 'model_provider,selected_model_id',
       provider: 'openai',
       model: 'gpt-4.1',
     }));
     expect(JSON.stringify(appendIpcBridgeDiagnostic.mock.calls)).not.toContain('private user request');
+    expect(JSON.stringify(appendIpcBridgeDiagnostic.mock.calls)).not.toContain('private runtime prompt');
     expect(JSON.stringify(appendIpcBridgeDiagnostic.mock.calls)).not.toContain('sk-secret');
   });
 

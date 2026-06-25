@@ -68,6 +68,25 @@ function uniqueCsv(values) {
   return [...new Set(values.filter(value => typeof value === 'string' && value.trim()))].join(',') || '-';
 }
 
+function summarizeAgentDefinitionTools(agentDefinitionInput) {
+  const agentDefinition = safeObject(agentDefinitionInput);
+  const tools = safeObject(agentDefinition.tools);
+  const clientManifest = safeObject(tools.client_manifest);
+  const clientTools = Array.isArray(clientManifest.tools) ? clientManifest.tools : [];
+  const disabledTools = Array.isArray(tools.disabled_tools) ? tools.disabled_tools : [];
+  const enabledRemoteTools = Array.isArray(tools.enabled_remote_tools) ? tools.enabled_remote_tools : [];
+  const systemPrompt = safeObject(agentDefinition.system_prompt);
+  return {
+    hasAgentDefinition: Object.keys(agentDefinition).length > 0,
+    agentDefinitionMode: typeof agentDefinition.mode === 'string' ? agentDefinition.mode : null,
+    agentToolMode: typeof tools.mode === 'string' ? tools.mode : null,
+    clientManifestToolCount: clientTools.length,
+    disabledToolCount: disabledTools.length,
+    enabledRemoteToolCount: enabledRemoteTools.length,
+    systemPromptMode: typeof systemPrompt.mode === 'string' ? systemPrompt.mode : null,
+  };
+}
+
 function eventPayload(data) {
   return safeObject(data?.payload);
 }
@@ -315,13 +334,7 @@ function createElectronMainTraceLogger({
 
   function traceRendererQuery(input = {}) {
     const payload = safeObject(input.payload);
-    const agentDefinition = safeObject(payload.agent_definition);
-    const tools = safeObject(agentDefinition.tools);
-    const clientManifest = safeObject(tools.client_manifest);
-    const clientTools = Array.isArray(clientManifest.tools) ? clientManifest.tools : [];
-    const disabledTools = Array.isArray(tools.disabled_tools) ? tools.disabled_tools : [];
-    const enabledRemoteTools = Array.isArray(tools.enabled_remote_tools) ? tools.enabled_remote_tools : [];
-    const systemPrompt = safeObject(agentDefinition.system_prompt);
+    const agentSummary = summarizeAgentDefinitionTools(payload.agent_definition);
     const turnRef = safeId(input.queryMessageId);
     const conversationRef = safeId(input.conversationRef);
     record({
@@ -332,22 +345,42 @@ function createElectronMainTraceLogger({
       turnRef: turnRef !== '-' ? turnRef : null,
       textLength: typeof payload.text === 'string' ? payload.text.length : 0,
       resourceCount: Array.isArray(payload.resources) ? payload.resources.length : 0,
-      hasAgentDefinition: Object.keys(agentDefinition).length > 0,
-      agentDefinitionMode: typeof agentDefinition.mode === 'string' ? agentDefinition.mode : null,
-      agentToolMode: typeof tools.mode === 'string' ? tools.mode : null,
-      clientManifestToolCount: clientTools.length,
-      disabledToolCount: disabledTools.length,
-      enabledRemoteToolCount: enabledRemoteTools.length,
-      systemPromptMode: typeof systemPrompt.mode === 'string' ? systemPrompt.mode : null,
+      ...agentSummary,
     });
     return emit('renderer', 'query.send', [
       `turn=${turnRef}`,
       `conv=${conversationRef}`,
       `text_len=${typeof payload.text === 'string' ? payload.text.length : 0}`,
       `resources=${Array.isArray(payload.resources) ? payload.resources.length : 0}`,
-      `agent=${Object.keys(agentDefinition).length > 0 ? 'true' : 'false'}`,
-      `client_tools=${clientTools.length}`,
-      `disabled_tools=${disabledTools.length}`,
+      `agent=${agentSummary.hasAgentDefinition ? 'true' : 'false'}`,
+      `client_tools=${agentSummary.clientManifestToolCount}`,
+      `disabled_tools=${agentSummary.disabledToolCount}`,
+    ].join(' '));
+  }
+
+  function traceRuntimeSend(input = {}) {
+    const payload = safeObject(input.payload);
+    const agentSummary = summarizeAgentDefinitionTools(payload.agent_definition);
+    const turnRef = safeId(input.turnRef);
+    const conversationRef = safeId(input.conversationRef || payload.conversation_ref);
+    record({
+      action: 'runtime.send',
+      phase: 'sdk',
+      conversationRef: conversationRef !== '-' ? conversationRef : null,
+      turnRef: turnRef !== '-' ? turnRef : null,
+      textLength: typeof input.text === 'string' ? input.text.length : 0,
+      resourceCount: Array.isArray(input.resources) ? input.resources.length : 0,
+      ...agentSummary,
+    });
+    return emit('sdk', 'runtime.send', [
+      `turn=${turnRef}`,
+      `conv=${conversationRef}`,
+      `text_len=${typeof input.text === 'string' ? input.text.length : 0}`,
+      `resources=${Array.isArray(input.resources) ? input.resources.length : 0}`,
+      `agent=${agentSummary.hasAgentDefinition ? 'true' : 'false'}`,
+      `client_tools=${agentSummary.clientManifestToolCount}`,
+      `disabled_tools=${agentSummary.disabledToolCount}`,
+      `remote_tools=${agentSummary.enabledRemoteToolCount}`,
     ].join(' '));
   }
 
@@ -483,6 +516,7 @@ function createElectronMainTraceLogger({
     traceBackendConnection,
     traceBackendEvent,
     traceRendererQuery,
+    traceRuntimeSend,
     traceSettingsUpdate,
   };
 }

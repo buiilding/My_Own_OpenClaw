@@ -264,6 +264,13 @@ async def test_interaction_loop_emits_sanitized_prompt_and_provider_trace_events
         "modelProvider": None,
         "promptMessageCount": 1,
         "toolSchemaCount": 1,
+        "finalToolSourceCounts": {
+            "builtin": 1,
+            "client": 0,
+            "mcp": 0,
+            "plugin": 0,
+            "backend_remote": 0,
+        },
         "responseLength": len("secret provider response"),
     }
     serialized = repr([event.to_dict() for event in trace_events])

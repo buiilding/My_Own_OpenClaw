@@ -573,6 +573,7 @@ const directWakeUpAgentAdapterDepsRuntime = createDirectWakeUpAgentAdapterDepsRu
   summarizeCurrentTurn,
   isDebugFlagEnabled,
   currentTurnTraceLogger,
+  traceRuntimeSend: (input) => electronMainTraceLogger.traceRuntimeSend(input),
   getSyncSdkLiveTurnSurfaceIntent: () => hostOptionState.getSyncSdkLiveTurnSurfaceIntent(),
   log,
   buildConversationTerminalStatus,

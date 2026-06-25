@@ -91,6 +91,7 @@ function createDeps(overrides = {}) {
     summarizeCurrentTurn: jest.fn(currentTurn => ({ turnRef: currentTurn?.turnRef || null })),
     isDebugFlagEnabled: jest.fn(() => false),
     currentTurnTraceLogger: { trace: jest.fn() },
+    traceRuntimeSend: jest.fn(),
     getSyncSdkLiveTurnSurfaceIntent: jest.fn(() => null),
     log: jest.fn(),
     buildConversationTerminalStatus: jest.fn(() => null),
@@ -283,9 +284,10 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
   test('maps AgentQueryInput fields into the conversation runtime send payload', async () => {
     const runtime = createRuntime();
     const agent = createAgent(() => runtime);
+    const deps = createDeps();
     const adapter = createDirectWakeUpAgentAdapter({
       agent,
-      deps: createDeps(),
+      deps,
     });
     const agentDefinition = {
       system_prompt: { mode: 'replace', content: 'Use saved config.' },
@@ -337,6 +339,26 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       resources,
       metadata,
       model,
+    });
+    expect(deps.traceRuntimeSend).toHaveBeenCalledWith({
+      text: 'hello',
+      turnRef: 'turn-1',
+      payload: {
+        text: 'hello',
+        conversation_ref: 'conv-agent-input',
+        agent_definition: agentDefinition,
+        content: '<user_query>hello</user_query>',
+        screenshot_ref: 'art-1',
+        screenshot_refs: ['art-1'],
+        attachment_context: 'attachment summary',
+        attachment_filenames: ['notes.txt'],
+        system_state_internal: { platform: 'darwin' },
+        workspace_path: '/repo',
+      },
+      resources,
+      metadata,
+      model,
+      conversationRef: 'conv-agent-input',
     });
   });
 
