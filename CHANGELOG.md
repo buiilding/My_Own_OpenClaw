@@ -13,6 +13,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/dashboard: remove raw display-row and legacy display-message load
   helpers from the renderer conversation library facade so React dashboard
   resume code can only load the SDK `ConversationView`. No migration required.
+- frontend/replay: move replay target selection, retained-context construction,
+  and pending bridge publication shaping behind the renderer app-runtime replay
+  helper so the React hook passes prepared edit/retry intent to SDK commands.
+  No migration required.
 - frontend/renderer: move pending-turn user-row construction out of
   `chatStore.ts` into an app-runtime pending bridge helper shared by normal
   sends and replay. The store now mutates workspace state without hard-coding

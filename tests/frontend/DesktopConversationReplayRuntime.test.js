@@ -8,8 +8,11 @@ import {
 
 const {
   buildReplayPendingTurn,
+  buildReplayPendingPublication,
   buildReplayContextMessages,
   findReplayEditableUserMessageIndex,
+  prepareReplayEditIntent,
+  prepareReplayRetryIntent,
   resolveReplayRetryMessageIndexes,
 } = DesktopConversationReplayRuntime;
 
@@ -205,5 +208,108 @@ describe('desktopConversationReplayRuntime', () => {
       attachmentFilenames: null,
       userMessageId: 'turn-fallback-sdk-evt-000002-user_message',
     });
+  });
+
+  test('buildReplayPendingPublication returns pending bridge state and superseded turn', () => {
+    const replayMessages = [
+      { id: 'user-old', sender: 'user', text: 'old' },
+    ];
+    const publication = buildReplayPendingPublication({
+      conversationRef: 'conv-replay',
+      replayMessages,
+      sourceUserMessage: {
+        turnRef: 'turn-old',
+        attachmentFilenames: ['shot.png'],
+      },
+      turnRef: 'turn-new',
+      text: 'retry this',
+      timestamp: '2026-06-21T00:00:00.000Z',
+    });
+
+    expect(publication).toEqual({
+      pendingTurn: expect.objectContaining({
+        attachmentFilenames: ['shot.png'],
+        conversationRef: 'conv-replay',
+        text: 'retry this',
+        turnRef: 'turn-new',
+      }),
+      messages: [
+        replayMessages[0],
+        expect.objectContaining({
+          id: 'turn-new-sdk-evt-000002-user_message',
+          sender: 'user',
+          text: 'retry this',
+          turnRef: 'turn-new',
+        }),
+      ],
+      supersededTurnRef: 'turn-old',
+    });
+  });
+
+  test('prepareReplayEditIntent returns SDK command intent and retained context', () => {
+    const intent = prepareReplayEditIntent({
+      messages: [
+        { id: 'user-1', sender: 'user', text: 'first' },
+        { id: 'assistant-1', sender: 'assistant', text: 'reply' },
+        { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
+        { id: 'assistant-2', sender: 'assistant', text: 'reply 2' },
+      ],
+      userMessageId: 'user-2',
+      editedText: ' edited second ',
+    });
+
+    expect(intent).toEqual(expect.objectContaining({
+      action: 'edit_resend',
+      errorPrefix: 'Failed to edit user message',
+      messageId: 'user-2',
+      queryText: 'edited second',
+      targetUserMessageId: 'user-2',
+      sourceUserMessage: expect.objectContaining({
+        id: 'user-2',
+        text: 'edited second',
+        turnRef: 'turn-2',
+      }),
+    }));
+    expect(intent.replayMessages.map((message) => message.id)).toEqual(['user-1', 'assistant-1']);
+    expect(prepareReplayEditIntent({
+      messages: [],
+      userMessageId: 'missing',
+      editedText: 'text',
+    })).toBeNull();
+    expect(prepareReplayEditIntent({
+      messages: [{ id: 'user-1', sender: 'user' }],
+      userMessageId: 'user-1',
+      editedText: '   ',
+    })).toBeNull();
+  });
+
+  test('prepareReplayRetryIntent returns SDK command intent for the prior user row', () => {
+    const intent = prepareReplayRetryIntent({
+      messages: [
+        { id: 'user-1', sender: 'user', text: 'first' },
+        { id: 'assistant-1', sender: 'assistant', text: 'reply' },
+        { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
+        { id: 'assistant-2', sender: 'assistant', text: 'reply 2' },
+      ],
+      assistantMessageId: 'assistant-2',
+    });
+
+    expect(intent).toEqual(expect.objectContaining({
+      action: 'retry',
+      errorPrefix: 'Failed to retry assistant message',
+      messageId: 'assistant-2',
+      queryText: 'second',
+      targetUserMessageId: 'user-2',
+      sourceUserMessage: expect.objectContaining({
+        id: 'user-2',
+        text: 'second',
+        turnRef: 'turn-2',
+      }),
+    }));
+    expect(intent.replayMessages.map((message) => message.id)).toEqual(['user-1', 'assistant-1']);
+    expect(prepareReplayRetryIntent({
+      messages: [{ id: 'assistant-1', sender: 'assistant' }],
+      assistantMessageId: 'assistant-1',
+    })).toBeNull();
   });
 });

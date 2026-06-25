@@ -198,10 +198,85 @@ function buildReplayMessagesWithPendingTurn(messages, pendingTurn) {
   return mergePendingTurnUserMessage(messages, pendingTurn);
 }
 
+function resolveReplaySupersededTurnRef(sourceUserMessage, replayTurnRef) {
+  const sourceTurnRef = typeof sourceUserMessage?.turnRef === 'string'
+    ? sourceUserMessage.turnRef.trim()
+    : '';
+  return sourceTurnRef && sourceTurnRef !== replayTurnRef ? sourceTurnRef : null;
+}
+
+function buildReplayPendingPublication({
+  conversationRef,
+  replayMessages,
+  sourceUserMessage,
+  text,
+  timestamp,
+  turnRef,
+}) {
+  const pendingTurn = buildReplayPendingTurn({
+    attachmentFilenames: sourceUserMessage?.attachmentFilenames ?? null,
+    conversationRef,
+    turnRef,
+    text,
+    timestamp,
+  });
+  return {
+    pendingTurn,
+    messages: buildReplayMessagesWithPendingTurn(replayMessages, pendingTurn),
+    supersededTurnRef: resolveReplaySupersededTurnRef(sourceUserMessage, turnRef),
+  };
+}
+
+function prepareReplayEditIntent({ messages, userMessageId, editedText }) {
+  const normalizedEditedText = typeof editedText === 'string'
+    ? editedText.trim()
+    : '';
+  if (!normalizedEditedText) {
+    return null;
+  }
+  const userIndex = findReplayEditableUserMessageIndex(messages, userMessageId);
+  if (userIndex < 0) {
+    return null;
+  }
+  const sourceUserMessage = {
+    ...messages[userIndex],
+    text: normalizedEditedText,
+  };
+  return {
+    action: 'edit_resend',
+    errorPrefix: 'Failed to edit user message',
+    messageId: userMessageId,
+    queryText: normalizedEditedText,
+    replayMessages: buildReplayContextMessages(messages.slice(0, userIndex)),
+    sourceUserMessage,
+    targetUserMessageId: userMessageId,
+  };
+}
+
+function prepareReplayRetryIntent({ messages, assistantMessageId }) {
+  const { userIndex } = resolveReplayRetryMessageIndexes(messages, assistantMessageId);
+  if (userIndex < 0) {
+    return null;
+  }
+  const sourceUserMessage = messages[userIndex];
+  return {
+    action: 'retry',
+    errorPrefix: 'Failed to retry assistant message',
+    messageId: assistantMessageId,
+    queryText: sourceUserMessage.text,
+    replayMessages: buildReplayContextMessages(messages.slice(0, userIndex)),
+    sourceUserMessage,
+    targetUserMessageId: sourceUserMessage.id,
+  };
+}
+
 export const DesktopConversationReplayRuntime = Object.freeze({
+  buildReplayPendingPublication,
   buildReplayMessagesWithPendingTurn,
   buildReplayPendingTurn,
   buildReplayContextMessages,
   findReplayEditableUserMessageIndex,
+  prepareReplayEditIntent,
+  prepareReplayRetryIntent,
   resolveReplayRetryMessageIndexes,
 });

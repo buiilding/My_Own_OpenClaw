@@ -125,6 +125,10 @@ flowchart LR
      already projected messages; it must not load the active display timeline,
      construct durable replacement rows, call `conversation.replaceRows`, or
      dispatch a separate normal send for replay execution.
+   - React replay hooks should pass edit/retry intent through
+     `desktopConversationReplayRuntime`, which owns target-message selection,
+     retained visible-prefix construction, superseded-turn detection, and
+     pending bridge shaping before the hook dispatches the SDK command.
    - Renderer app-runtime facades should not expose direct display timeline
      load/replace helpers to React. Low-level display timeline operations remain
      SDK/main-owner diagnostics and command-handler concerns; normal UI paths

@@ -22,11 +22,9 @@ import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendere
 
 const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 const {
-  buildReplayMessagesWithPendingTurn,
-  buildReplayPendingTurn,
-  buildReplayContextMessages,
-  findReplayEditableUserMessageIndex,
-  resolveReplayRetryMessageIndexes,
+  buildReplayPendingPublication,
+  prepareReplayEditIntent,
+  prepareReplayRetryIntent,
 } = DesktopConversationReplayRuntime;
 const {
   logRendererReplayTrace,
@@ -143,25 +141,22 @@ async function executeReplayAction({
       ...(workspaceBinding.workspacePath ? { workspace_path: workspaceBinding.workspacePath } : {}),
     };
     const replayStartedAt = new Date().toISOString();
-    supersededTurnRef = (
-      typeof sourceUserMessage?.turnRef === 'string'
-      && sourceUserMessage.turnRef.trim()
-      && sourceUserMessage.turnRef.trim() !== replayTurnRef
-    ) ? sourceUserMessage.turnRef.trim() : null;
-    const pendingTurn = buildReplayPendingTurn({
-      attachmentFilenames: sourceUserMessage?.attachmentFilenames ?? null,
+    const pendingPublication = buildReplayPendingPublication({
       conversationRef,
+      replayMessages,
+      sourceUserMessage,
       turnRef: replayTurnRef,
       text: queryText,
       timestamp: replayStartedAt,
     });
+    supersededTurnRef = pendingPublication.supersededTurnRef;
     useChatStore.getState().acceptReplayPendingTurn({
       conversationRef,
-      messages: buildReplayMessagesWithPendingTurn(replayMessages, pendingTurn),
-      pendingTurn,
+      messages: pendingPublication.messages,
+      pendingTurn: pendingPublication.pendingTurn,
       supersededTurnRef,
     });
-    DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
+    DesktopPendingTurnRuntimeClient.setPending(pendingPublication.pendingTurn);
     pendingTurnPublished = true;
     logReplayTimeline('pending_published', {
       conversationRef,
@@ -272,37 +267,17 @@ export function useConversationReplayActions({
     .buildDeferredQueryModelSelection(config);
 
   const handleEditFromUser = useCallback(async (userMessageId, editedText) => {
-    const normalizedEditedText = typeof editedText === 'string'
-      ? editedText.trim()
-      : '';
-    if (!normalizedEditedText) {
+    const replayIntent = prepareReplayEditIntent({ messages, userMessageId, editedText });
+    if (!replayIntent) {
       return;
     }
-
-    const userIndex = findReplayEditableUserMessageIndex(messages, userMessageId);
-    if (userIndex < 0) {
-      return;
-    }
-
-    const editUserMessage = {
-      ...messages[userIndex],
-      text: normalizedEditedText,
-    };
-    const preservedMessages = messages.slice(0, userIndex);
-    const replayContextMessages = buildReplayContextMessages(preservedMessages);
     const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
     return executeReplayAction({
       sessionInfo,
       activeConversationRef,
-      replayMessages: replayContextMessages,
-      queryText: normalizedEditedText,
-      errorPrefix: 'Failed to edit user message',
       deferredQueryModelSelection,
-      action: 'edit_resend',
-      messageId: userMessageId,
-      targetUserMessageId: userMessageId,
-      sourceUserMessage: editUserMessage,
       addMessage,
+      ...replayIntent,
     });
   }, [
     activeConversationRef,
@@ -312,27 +287,17 @@ export function useConversationReplayActions({
   ]);
 
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
-    const { userIndex } = resolveReplayRetryMessageIndexes(messages, assistantMessageId);
-    if (userIndex < 0) {
+    const replayIntent = prepareReplayRetryIntent({ messages, assistantMessageId });
+    if (!replayIntent) {
       return;
     }
-
-    const retryUserMessage = messages[userIndex];
-    const preservedMessages = messages.slice(0, userIndex);
-    const replayContextMessages = buildReplayContextMessages(preservedMessages);
     const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
     return executeReplayAction({
       sessionInfo,
       activeConversationRef,
-      replayMessages: replayContextMessages,
-      queryText: retryUserMessage.text,
-      errorPrefix: 'Failed to retry assistant message',
       deferredQueryModelSelection,
-      action: 'retry',
-      messageId: assistantMessageId,
-      targetUserMessageId: retryUserMessage.id,
-      sourceUserMessage: retryUserMessage,
       addMessage,
+      ...replayIntent,
     });
   }, [
     activeConversationRef,
