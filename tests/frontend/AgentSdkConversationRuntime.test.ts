@@ -8064,6 +8064,25 @@ describe('Agent SDK conversation runtime core', () => {
     expect(eventListener).not.toHaveBeenCalled();
   });
 
+  test('conversation runtime rejects pre-normalized send fields in strict environments', async () => {
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport: createMockAgentRuntimeTransport(),
+    });
+
+    await expect(runtime.send({
+      text: 'hello',
+      agentDefinition: { id: 'wrong-level-agent' },
+      backendPayload: {
+        agent_definition: { id: 'wrong-level-backend-payload' },
+      },
+      workspacePath: '/tmp/project',
+    } as any)).rejects.toThrow(
+      'ConversationRuntime.send received pre-normalized top-level field(s): agentDefinition, backendPayload, workspacePath',
+    );
+  });
+
   test('conversation runtime stream yields normalized events until backend completion', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     let backendListener: ((event: unknown) => void) | null = null;

@@ -9,6 +9,9 @@ const {
 const {
   createDirectWakeUpAgentAdapter,
 } = require('../../frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs');
+const {
+  normalizeRuntimeSendInput,
+} = require('../../frontend/src/main/ipc/ipc_runtime_send_input.cjs');
 const directWakeUpAgentAdapterModule = require('../../frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs');
 
 function createRuntime(overrides = {}) {
@@ -359,6 +362,51 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       metadata,
       model,
       conversationRef: 'conv-agent-input',
+    });
+  });
+
+  test('normalizes query agent definition into payload.agent_definition with backend payload fallback', () => {
+    const backendPayloadAgentDefinition = {
+      tools: {
+        mode: 'explicit',
+        disabled_tools: ['browser'],
+        client_manifest: { version: 1, tools: [] },
+      },
+    };
+    const explicitAgentDefinition = {
+      tools: {
+        mode: 'explicit',
+        disabled_tools: ['mouse_control'],
+        client_manifest: { version: 1, tools: [] },
+      },
+    };
+
+    expect(normalizeRuntimeSendInput({
+      text: 'hello',
+      backendPayload: {
+        conversation_ref: 'conv-fallback',
+        agent_definition: backendPayloadAgentDefinition,
+      },
+    })).toMatchObject({
+      text: 'hello',
+      payload: {
+        conversation_ref: 'conv-fallback',
+        agent_definition: backendPayloadAgentDefinition,
+      },
+    });
+    expect(normalizeRuntimeSendInput({
+      text: 'hello',
+      backendPayload: {
+        conversation_ref: 'conv-explicit',
+        agent_definition: backendPayloadAgentDefinition,
+      },
+      agentDefinition: explicitAgentDefinition,
+    })).toMatchObject({
+      text: 'hello',
+      payload: {
+        conversation_ref: 'conv-explicit',
+        agent_definition: explicitAgentDefinition,
+      },
     });
   });
 

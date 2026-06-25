@@ -279,6 +279,39 @@ async def test_interaction_loop_emits_sanitized_prompt_and_provider_trace_events
 
 
 @pytest.mark.asyncio
+async def test_interaction_loop_provider_trace_preserves_zero_tool_surface():
+    session = _FakeSession([])
+    session.runtime.client_tool_manifest = {"version": 1, "tools": []}
+
+    loop = InteractionLoop(
+        session=session,
+        prompt_coordinator=_FakePromptCoordinator(),
+        llm_handler=_FakeLLMHandler(),
+        tool_executor=_FakeToolExecutor(),
+        event_presenter=_FakeEventPresenter(),
+    )
+
+    events = [event async for event in loop.run_loop()]
+    provider_trace = [
+        event
+        for event in events
+        if isinstance(event, TraceEvent)
+        and event.path == "provider.call"
+        and event.stage == "request"
+        and event.status == "succeeded"
+    ][0]
+
+    assert provider_trace.data["toolSchemaCount"] == 0
+    assert provider_trace.data["finalToolSourceCounts"] == {
+        "builtin": 0,
+        "client": 0,
+        "mcp": 0,
+        "plugin": 0,
+        "backend_remote": 0,
+    }
+
+
+@pytest.mark.asyncio
 async def test_interaction_loop_emits_fallback_when_final_response_empty_after_tool_output():
     stored_messages = [
         StoredMessage(

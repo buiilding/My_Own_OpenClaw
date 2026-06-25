@@ -4567,7 +4567,22 @@ describe('Agent SDK client behavior', () => {
     socket.emit('open', {});
     const agent = await wakePromise;
 
-    const iterator = agent.stream('save this note', { conversationRef: 'conv-stream' });
+    const streamAgentDefinition = {
+      id: 'stream-query-agent',
+      tools: {
+        mode: 'explicit',
+        disabled_tools: ['mouse_control'],
+        client_manifest: { version: 1, tools: [] },
+      },
+    };
+    const iterator = agent.stream('save this note', {
+      conversationRef: 'conv-stream',
+      backendPayload: {
+        repo_instruction_messages: [{ role: 'system', content: 'Use stream repo rules.' }],
+        agent_definition: { id: 'stale-backend-payload-agent' },
+      },
+      agentDefinition: streamAgentDefinition,
+    });
     await expect(iterator.next()).resolves.toMatchObject({
       done: false,
       value: {
@@ -4597,6 +4612,8 @@ describe('Agent SDK client behavior', () => {
         payload: {
           text: 'save this note',
           conversation_ref: 'conv-stream',
+          repo_instruction_messages: [{ role: 'system', content: 'Use stream repo rules.' }],
+          agent_definition: streamAgentDefinition,
         },
       });
     });
