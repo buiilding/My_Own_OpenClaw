@@ -2966,11 +2966,21 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatPendingTurnStateRuntime.ts'),
       'utf8',
     );
+    const displayAttachmentProjectionSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSdkDisplayAttachmentProjection.ts'),
+      'utf8',
+    );
     const sourceChannelPath = path.join(chatRoot, 'utils/message/sourceChannels.js');
 
     expect(source).toContain('sourceEventType');
     expect(source).toContain('desktopChatMessageTypes');
     expect(source).toContain('desktopPresentationSourceChannels');
+    expect(source).toContain('desktopSdkDisplayAttachmentProjection');
+    expect(source).not.toContain('function displayAttachmentsFromPayload');
+    expect(source).not.toContain('screenshotRef');
+    expect(source).not.toContain('screenshot_refs');
+    expect(displayAttachmentProjectionSource).toContain('readSdkDisplayAttachments');
+    expect(displayAttachmentProjectionSource).not.toContain('screenshot_refs');
     expect(source).toContain('packages/windie-sdk-js/src/conversation/types.js');
     expect(source).not.toContain("packages/windie-sdk-js/src';");
     expect(source).not.toContain('features/chat');

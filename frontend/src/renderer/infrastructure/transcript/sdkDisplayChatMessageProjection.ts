@@ -5,15 +5,18 @@
 import type { ChatMessage } from '../../app/runtime/desktopChatMessageTypes';
 import type {
   SdkDisplayRow,
-  SdkDisplayAttachment,
   DisplayMessage,
 } from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
 import { buildAssistantTextChatMessageState } from './assistantTextChatMessageState';
 import { buildToolCallChatMessageState } from './toolCallChatMessageState';
 import { buildToolOutputChatMessageState } from './toolOutputChatMessageState';
 import { DesktopPresentationSourceChannels } from '../../app/runtime/desktopPresentationSourceChannels';
+import { DesktopSdkDisplayAttachmentProjection } from '../../app/runtime/desktopSdkDisplayAttachmentProjection';
 
 const sdkDisplayRowsSourceChannel = DesktopPresentationSourceChannels.getSdkDisplayRowsSourceChannel();
+const {
+  readSdkDisplayAttachments,
+} = DesktopSdkDisplayAttachmentProjection;
 
 function recordField(record: Record<string, unknown> | null | undefined, key: string): unknown {
   return record && typeof record === 'object' ? record[key] : undefined;
@@ -69,33 +72,6 @@ function displayTextFromRowContent(content: unknown): string {
   return typeof content === 'string' ? content : JSON.stringify(content, null, 2);
 }
 
-function displayAttachmentsFromPayload(payload: Record<string, unknown>): SdkDisplayAttachment[] {
-  const value = recordField(payload, 'attachments');
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  return value.filter((entry): entry is SdkDisplayAttachment => {
-    const record = recordFromPayloadValue(entry);
-    return Boolean(
-      record
-      && typeof record.id === 'string'
-      && (record.kind === 'image' || record.kind === 'screenshot_request')
-      && (
-        record.source === 'user_included'
-        || record.source === 'camera_button'
-        || record.source === 'tool_result'
-        || record.source === 'replay'
-      )
-      && (
-        record.status === 'materializing'
-        || record.status === 'pending_capture'
-        || record.status === 'ready'
-        || record.status === 'failed'
-      ),
-    );
-  });
-}
-
 function recordFromPayloadValue(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -104,7 +80,7 @@ function recordFromPayloadValue(value: unknown): Record<string, unknown> | null 
 
 function buildUserChatMessage(message: DisplayMessage): ChatMessage {
   const payload = recordPayload(message);
-  const attachments = displayAttachmentsFromPayload(payload);
+  const attachments = readSdkDisplayAttachments(recordField(payload, 'attachments'));
   return {
     id: message.id,
     text: message.text,
@@ -171,7 +147,7 @@ function buildToolCallMessage(message: DisplayMessage): ChatMessage {
 
 function buildToolOutputMessage(message: DisplayMessage): ChatMessage {
   const payload = recordPayload(message);
-  const attachments = displayAttachmentsFromPayload(payload);
+  const attachments = readSdkDisplayAttachments(recordField(payload, 'attachments'));
   const base = buildToolOutputChatMessageState({
     id: message.id,
     outputText: message.text,
