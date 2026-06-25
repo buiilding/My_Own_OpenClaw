@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: remove renderer continuity facade methods for direct display
+  timeline load/replace. Replay and branch UI now stay on SDK command intent
+  (`editAndResend`, `retryTurn`, checkout, fork) instead of exposing
+  `conversation.loadDisplayTimeline` or `conversation.replaceRows` back to
+  React. Main-process SDK command handling remains the owner for low-level
+  display timeline operations. No migration required.
 - frontend/replay: stop renderer retry/edit actions from resolving
   `screenshotRef`/`screenshotUrl` aliases into SDK command payloads. Replay
   resource preservation now comes only from the SDK target display row, with

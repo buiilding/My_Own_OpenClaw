@@ -6,9 +6,6 @@ import {
   DesktopConversationRuntimeContracts,
   type ListConversationOptions,
   type DisplayConversation,
-  type DisplayTimelineCheckpoint,
-  type DisplayTimelineReplaceReason,
-  type DisplayTimelineRow,
   type CheckoutRevisionInput,
   type CheckoutRevisionResult,
   type EditAndResendInput,
@@ -49,14 +46,6 @@ const {
 const {
   metadataListToDashboardConversations,
 } = DesktopDashboardConversationLoadRuntime;
-
-type ReplaceDisplayRowsInput = {
-  userId: string;
-  conversationRef: string;
-  baseRevisionId: string;
-  reason: DisplayTimelineReplaceReason;
-  rows: DisplayTimelineRow[];
-};
 
 type EditAndResendCommandInput = EditAndResendInput & {
   userId: string;
@@ -137,34 +126,6 @@ export const DesktopConversationContinuityService = {
       },
     );
     return readSnapshotDisplayRows(snapshot);
-  },
-
-  async loadDisplayTimeline(
-    userId: string,
-    conversationRef: string,
-    revisionId: string | null = null,
-  ): Promise<DisplayTimelineCheckpoint> {
-    return invokeAgentSdkCommand<DisplayTimelineCheckpoint>(
-      SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY_TIMELINE,
-      {
-        userId,
-        conversationRef,
-        revisionId: revisionId ?? undefined,
-      },
-    );
-  },
-
-  async replaceRows(input: ReplaceDisplayRowsInput): Promise<DisplayTimelineCheckpoint> {
-    return invokeAgentSdkCommand<DisplayTimelineCheckpoint>(
-      SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_ROWS,
-      {
-        userId: input.userId,
-        conversationRef: input.conversationRef,
-        baseRevisionId: input.baseRevisionId,
-        reason: input.reason,
-        rows: input.rows,
-      },
-    );
   },
 
   async editAndResend(input: EditAndResendCommandInput): Promise<TurnResult> {

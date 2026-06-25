@@ -524,7 +524,9 @@ calling the SDK fork command with the selected `sourceRevisionId`. When
 `cutAfterRowId` is omitted, the SDK resolves the selected revision's last
 display row and returns the forked SDK view to the newly active conversation,
 so renderer code does not load display timelines just to reconstruct a branch
-prefix. Diagnostics can inspect a
+prefix. Renderer app-runtime facades should not expose direct display timeline
+load/replace helpers to React; low-level timeline mutation remains SDK/main
+command-handler and diagnostics ownership. Diagnostics can inspect a
 selected branch view with
 `<windie> conversation view <conversation-ref> --revision <revision-id>` and
 can inspect the matching storage ownership state with

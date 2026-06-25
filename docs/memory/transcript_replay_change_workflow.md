@@ -125,6 +125,10 @@ flowchart LR
      already projected messages; it must not load the active display timeline,
      construct durable replacement rows, call `conversation.replaceRows`, or
      dispatch a separate normal send for replay execution.
+   - Renderer app-runtime facades should not expose direct display timeline
+     load/replace helpers to React. Low-level display timeline operations remain
+     SDK/main-owner diagnostics and command-handler concerns; normal UI paths
+     use SDK intent commands such as retry, edit/resend, checkout, and fork.
    - If the SDK replay command fails after the renderer publishes the pending
      bridge, restore the retained prefix, clear only the pending turn, and
      append a send-failure row. Do not restore event-log cutting through
