@@ -216,6 +216,12 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
     currentTurnProjection: state.conversationView ? null : state.currentTurnProjection,
     conversationView: state.conversationView,
     pendingTurn: state.pendingTurn,
+    chatSurfaceState: {
+      messages: state.conversationView ? [] : state.messages,
+      currentTurnProjection: state.conversationView ? null : state.currentTurnProjection,
+      conversationView: state.conversationView,
+      pendingTurn: state.pendingTurn,
+    },
   }),
 }));
 

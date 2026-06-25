@@ -143,6 +143,12 @@ describe('chatSelectors', () => {
       currentTurnProjection: null,
       conversationView: null,
       pendingTurn: null,
+      chatSurfaceState: {
+        messages: state.messages,
+        currentTurnProjection: null,
+        conversationView: null,
+        pendingTurn: null,
+      },
     });
     expect(selectChatInterfaceState(state)).not.toHaveProperty('streamTracking');
     expect(selectChatInterfaceSurfaceState(state)).toEqual({
@@ -373,6 +379,13 @@ describe('chatSelectors', () => {
 
     expect(selected.conversationView).toBe(view);
     expect(selected.currentTurnProjection).toBeNull();
+    expect(selected.messages).toEqual([{ id: 'display-user-1', text: 'question', sender: 'user' }]);
+    expect(selected.chatSurfaceState).toEqual({
+      messages: [],
+      currentTurnProjection: null,
+      conversationView: view,
+      pendingTurn: null,
+    });
   });
 
   test('defaults optional active-workspace fields when not present', () => {

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: move main `ChatInterface` surface-state projection into
+  `selectChatInterfaceState(...)` so the component no longer imports the
+  surface selector or assembles raw message/current-turn/pending-turn surface
+  inputs. No migration required.
 - frontend/chat: move ChatInterface replay fallback row selection into
   `DesktopChatInterfacePresentationRuntime` so React no longer branches between
   raw store messages and SDK `ConversationView` rows for replay inputs. No

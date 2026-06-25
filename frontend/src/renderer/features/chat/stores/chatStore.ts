@@ -306,7 +306,13 @@ interface ChatState {
 }
 
 export function selectChatInterfaceState(state: ChatState) {
-  return projectDesktopChatInterfaceState(selectActiveWorkspaceState(state));
+  const activeWorkspace = selectActiveWorkspaceState(state);
+  return {
+    ...projectDesktopChatInterfaceState(activeWorkspace),
+    chatSurfaceState: projectDesktopChatSurfaceState({
+      activeWorkspace,
+    }),
+  };
 }
 
 export function selectChatInterfaceSurfaceState(state: ChatState) {

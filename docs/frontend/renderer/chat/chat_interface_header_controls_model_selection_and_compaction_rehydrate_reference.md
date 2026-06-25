@@ -30,7 +30,8 @@ title: "Chat Interface Header Controls, Model Selection, and Compaction Rehydrat
 `ChatInterface` derives loop state via:
 
 - `useChatSurfaceController({ chatSurfaceState, ... })`, where
-  `chatSurfaceState` comes from `DesktopChatSurfaceSelectorRuntime`
+  `chatSurfaceState` comes from `selectChatInterfaceState(...)`, which applies
+  `DesktopChatSurfaceSelectorRuntime` outside the component
 - `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
   inside that controller uses the app-runtime default visible-assistant reply
   types, keeping the raw type set private to

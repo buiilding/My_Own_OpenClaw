@@ -42,9 +42,6 @@ import {
   DesktopChatInterfacePresentationRuntime,
 } from '../../../app/runtime/desktopChatInterfacePresentationRuntime';
 import {
-  DesktopChatSurfaceSelectorRuntime,
-} from '../../../app/runtime/desktopChatSurfaceSelectorRuntime';
-import {
   DesktopChatRevisionActionRuntime,
 } from '../../../app/runtime/desktopChatRevisionActionRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
@@ -69,9 +66,6 @@ const {
   resolveConversationViewStoreRef,
 } = DesktopChatInterfacePresentationRuntime;
 const {
-  projectDesktopChatSurfaceState,
-} = DesktopChatSurfaceSelectorRuntime;
-const {
   buildRevisionCheckoutCommand,
   buildRevisionForkCommand,
 } = DesktopChatRevisionActionRuntime;
@@ -93,18 +87,11 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     compactionDebugInfo,
     currentTurnProjection,
     conversationView,
+    chatSurfaceState,
     pendingTurn,
   } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
-  const chatSurfaceState = useMemo(() => projectDesktopChatSurfaceState({
-    activeWorkspace: {
-      messages,
-      currentTurnProjection,
-      conversationView,
-      pendingTurn,
-    },
-  }), [conversationView, currentTurnProjection, messages, pendingTurn]);
   const clearMessages = useChatStore((state) => state.clearMessages);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const setConversationView = useChatStore((state) => state.setConversationView);
