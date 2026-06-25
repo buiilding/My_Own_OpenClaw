@@ -30,6 +30,10 @@ All notable changes to WindieOS will be documented in this file.
   and local-runtime snake_case workspace metadata, so chats with a selected
   workspace no longer appear under the no-workspace bucket. No migration
   required.
+- frontend/main: keep current Electron-generated Agent prompt and tool settings
+  authoritative when query payloads already carry an `agent_definition`, so
+  edit/resend and replay cannot resurrect stale client tool manifests or old
+  custom prompts after Agent settings change. No migration required.
 - skills: add a runtime tracing skill that documents when to use durable
   conversation traces, persistent app diagnostics, or gated live-surface traces
   for repeatable long-running agent loop evidence. No migration required.

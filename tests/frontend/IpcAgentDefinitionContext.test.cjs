@@ -295,6 +295,80 @@ describe('ipc_agent_definition_context', () => {
     ]);
   });
 
+  test('keeps current agent settings authoritative over supplied stale tools and prompt', () => {
+    const runtime = createAgentDefinitionContextRuntime({
+      getLatestDesktopUiConfig: () => ({
+        agent_custom_instructions: 'Current Agent prompt.',
+        agent_disabled_local_tools: [
+          'mouse_control',
+          'keyboard_control',
+          'screenshot',
+          'scroll_control',
+          'switch_window',
+          'wait',
+          'get_open_windows',
+          'get_system_stats',
+          'open_app',
+          'run_shell_command',
+          'process',
+          'read_file',
+          'replace',
+          'browser',
+        ],
+      }),
+      buildAgentDefinition,
+      isDefaultAgentDefinition,
+    });
+
+    const result = runtime.attach({
+      text: 'edited resend',
+      agent_definition: {
+        system_prompt: { mode: 'replace', content: 'Stale prompt.' },
+        tools: {
+          mode: 'default_plus_client',
+          client_manifest: {
+            version: 1,
+            tools: [
+              { name: 'mouse_control', schema: { type: 'object', properties: {} } },
+              { name: 'browser', schema: { type: 'object', properties: {} } },
+            ],
+          },
+          disabled_tools: [],
+        },
+        prompt_layers: [{ id: 'supplied-layer' }],
+      },
+    });
+
+    expect(result.agent_definition.system_prompt).toEqual({
+      mode: 'replace',
+      content: 'Current Agent prompt.',
+    });
+    expect(result.agent_definition.tools.client_manifest).toEqual({
+      version: 1,
+      tools: [],
+    });
+    expect(result.agent_definition.tools.disabled_tools).toEqual([
+      'mouse_control',
+      'keyboard_control',
+      'screenshot',
+      'scroll_control',
+      'switch_window',
+      'wait',
+      'get_open_windows',
+      'get_system_stats',
+      'open_app',
+      'run_shell_command',
+      'process',
+      'read_file',
+      'replace',
+      'browser',
+    ]);
+    expect(result.agent_definition.prompt_layers).toEqual([
+      expect.objectContaining({ id: 'extension-layer', content: 'extension instructions' }),
+      { id: 'supplied-layer' },
+    ]);
+  });
+
   test('ipc.cjs composes agent definition context through the runtime wrapper', async () => {
     const mainSource = await fs.promises.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
