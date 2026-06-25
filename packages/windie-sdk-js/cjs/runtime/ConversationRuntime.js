@@ -947,13 +947,6 @@ class SdkConversationRuntime {
             this.listeners.delete(listener);
         };
     }
-    async getView() {
-        const snapshot = await this.load();
-        return snapshot.view;
-    }
-    subscribeView(listener) {
-        return this.subscribe(snapshot => listener(snapshot.view));
-    }
     subscribeEvents(listener) {
         this.eventListeners.add(listener);
         return () => {
@@ -2807,13 +2800,6 @@ class SdkConversationRuntime {
     liveDisplayAttachmentsRecord() {
         return Object.fromEntries(this.liveDisplayAttachmentsByTurn.entries());
     }
-    pendingTurnRefForView() {
-        const activeTurnRef = this.state.activeTurnRef ?? null;
-        if (activeTurnRef && this.pendingTurns.has(activeTurnRef)) {
-            return activeTurnRef;
-        }
-        return this.pendingTurns.keys().next().value ?? null;
-    }
     async maybeExecuteTool(event) {
         if (event.source !== 'backend'
             || (event.type !== 'tool_call' && event.type !== 'tool_bundle_call')
@@ -2921,28 +2907,12 @@ class SdkConversationRuntime {
     snapshot(events) {
         const currentTurn = (0, conversationProjections_js_1.buildCurrentTurnProjection)(events);
         const displayRows = this.displayRowsForSnapshot(events);
-        const rehydrate = rehydrateSnapshotFromModelHistory(events, this.options.conversationRef, this.state.revisionId, displayRows) ?? (0, conversationProjections_js_1.buildRehydrateSnapshot)(events);
-        const viewInput = {
-            conversationRef: this.options.conversationRef,
-            revisionId: this.state.revisionId,
-            state: this.state,
-            displayRows,
-            currentTurn,
-            events,
-            pendingTurnRef: this.pendingTurnRefForView(),
-        };
-        const view = (0, conversationProjections_js_1.buildConversationView)(viewInput);
         return {
             state: this.state,
             display: this.displayConversationForSnapshot(events, displayRows),
             displayRows,
-            rehydrate,
+            rehydrate: rehydrateSnapshotFromModelHistory(events, this.options.conversationRef, this.state.revisionId, displayRows) ?? (0, conversationProjections_js_1.buildRehydrateSnapshot)(events),
             currentTurn,
-            view,
-            viewDiagnostics: (0, conversationProjections_js_1.buildConversationViewBuildDiagnostics)({
-                ...viewInput,
-                view,
-            }),
         };
     }
 }

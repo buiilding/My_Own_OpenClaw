@@ -64,7 +64,6 @@ Status and diagnostics:
   <windie> conversation list [--limit <n>] [--json]
   <windie> conversation inspect <conversation-ref> [--json]
   <windie> conversation state <conversation-ref> [--json]
-  <windie> conversation view <conversation-ref> [--json]
   <windie> conversation messages <conversation-ref> [--limit <n>] [--json]
   <windie> conversation events <conversation-ref> [--turn <turn-ref>] [--type <event-type>] [--limit <n>] [--json]
   <windie> conversation turns <conversation-ref> [--json]
@@ -1414,111 +1413,6 @@ function loadConversationState(conversationRef) {
   };
 }
 
-function conversationViewLivePhase(phase) {
-  if (phase === 'tool_call' || phase === 'tool_output') {
-    return 'tool';
-  }
-  if (['idle', 'awaiting', 'streaming', 'complete', 'error'].includes(phase)) {
-    return phase;
-  }
-  return 'idle';
-}
-
-function conversationViewOverlayMode(phase) {
-  if (phase === 'awaiting') {
-    return 'typing';
-  }
-  if (phase === 'streaming' || phase === 'tool_call' || phase === 'tool_output') {
-    return 'response';
-  }
-  return 'hidden';
-}
-
-function eventEnvelopeObject(row) {
-  const parsed = parseEventPayload(row.eventPayload);
-  return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
-}
-
-function eventRefFromRow(row) {
-  const envelope = eventEnvelopeObject(row);
-  return typeof envelope.eventId === 'string' && envelope.eventId.trim()
-    ? envelope.eventId.trim()
-    : row.id || null;
-}
-
-function eventSourceFromRow(row) {
-  const envelope = eventEnvelopeObject(row);
-  return (
-    row.producer
-    || (typeof envelope.source === 'string' ? envelope.source : null)
-    || null
-  );
-}
-
-function loadConversationViewEventRefs(conversationRef) {
-  const tables = historyTableNames();
-  const rows = queryHistoryDatabase(`
-    SELECT id,
-           event_type AS eventType,
-           producer,
-           event_payload AS eventPayload,
-           message_index AS messageIndex,
-           timestamp
-    FROM ${tables.events}
-    WHERE conversation_id = ${sqlString(conversationRef)}
-    ORDER BY message_index DESC, timestamp DESC, id DESC
-    LIMIT 1000
-  `);
-  const lastEvent = rows[0] || null;
-  const lastSdkEvent = rows.find(row => eventSourceFromRow(row) === 'sdk') || null;
-  const lastBackendEvent = rows.find(row => eventSourceFromRow(row) === 'backend') || null;
-  return {
-    lastEventRef: lastEvent ? eventRefFromRow(lastEvent) : null,
-    lastSdkEventRef: lastSdkEvent ? eventRefFromRow(lastSdkEvent) : null,
-    lastBackendEventRef: lastBackendEvent ? eventRefFromRow(lastBackendEvent) : null,
-  };
-}
-
-function loadFilteredInternalLaneCount() {
-  const tables = historyTableNames();
-  if (!historyObjectExists(tables.events)) {
-    return 0;
-  }
-  const rows = queryHistoryDatabase(`
-    SELECT COUNT(*) AS count
-    FROM ${tables.events}
-    WHERE conversation_id LIKE 'conv-agent-%'
-  `);
-  return Number(rows[0]?.count || 0);
-}
-
-function loadConversationView(conversationRef) {
-  const state = loadConversationState(conversationRef);
-  const activePhase = state.supersededLive.activePhase || 'idle';
-  const liveTurnPhase = conversationViewLivePhase(activePhase);
-  const responseOverlayMode = conversationViewOverlayMode(activePhase);
-  const isBusy = ['awaiting', 'streaming', 'tool'].includes(liveTurnPhase);
-  const eventRefs = loadConversationViewEventRefs(conversationRef);
-  return {
-    ok: true,
-    database: state.database,
-    conversationRef,
-    activeRevisionId: state.selectedRevision?.revisionId || state.displayTimeline.revisionId || null,
-    displayRowCount: state.displayTimeline.rowCount,
-    liveTurnRef: state.supersededLive.activeTurnRef || null,
-    liveTurnPhase,
-    responseOverlayMode,
-    responseOverlayGuardRef: responseOverlayMode === 'hidden' ? null : state.supersededLive.activeTurnRef || null,
-    pendingTurnRef: isBusy ? state.supersededLive.activeTurnRef || null : null,
-    supersededTurnCount: state.supersededLive.supersededTurnCount,
-    filteredInternalLaneCount: loadFilteredInternalLaneCount(),
-    modelHistoryCheckpointId: state.modelHistory.checkpointId || null,
-    lastEventRef: eventRefs.lastEventRef,
-    lastSdkEventRef: eventRefs.lastSdkEventRef,
-    lastBackendEventRef: eventRefs.lastBackendEventRef,
-  };
-}
-
 function printConversationRows(rows) {
   if (rows.length === 0) {
     console.log('No conversations found.');
@@ -1671,26 +1565,6 @@ function printConversationState(payload) {
   }
 }
 
-function printConversationView(payload) {
-  console.log(`database: ${payload.database}`);
-  printSection('Conversation View', [
-    `id: ${payload.conversationRef}`,
-    `active revision: ${payload.activeRevisionId || 'none'}`,
-    `display rows: ${payload.displayRowCount}`,
-    `live turn: ${payload.liveTurnRef || 'none'}`,
-    `live phase: ${payload.liveTurnPhase}`,
-    `response overlay: ${payload.responseOverlayMode}`,
-    `response overlay guard: ${payload.responseOverlayGuardRef || 'none'}`,
-    `pending turn: ${payload.pendingTurnRef || 'none'}`,
-    `superseded turns: ${payload.supersededTurnCount}`,
-    `filtered internal lanes: ${payload.filteredInternalLaneCount}`,
-    `model-history checkpoint: ${payload.modelHistoryCheckpointId || 'none'}`,
-    `last event: ${payload.lastEventRef || 'none'}`,
-    `last sdk event: ${payload.lastSdkEventRef || 'none'}`,
-    `last backend event: ${payload.lastBackendEventRef || 'none'}`,
-  ]);
-}
-
 function printDiagnosticEvents(events, emptyMessage) {
   if (events.length === 0) {
     console.log(emptyMessage);
@@ -1790,7 +1664,7 @@ function runConversation(args) {
 
   const [conversationRef] = positionalArgs(rest, ['--turn', '--type', '--path', '--limit']);
   if (!conversationRef) {
-    throw new Error('Usage: <windie> conversation list|inspect|state|view|messages|events|turns|traces <conversation-ref>');
+    throw new Error('Usage: <windie> conversation list|inspect|state|messages|events|turns|traces <conversation-ref>');
   }
 
   if (subcommand === 'inspect') {
@@ -1810,16 +1684,6 @@ function runConversation(args) {
       return;
     }
     printConversationState(payload);
-    return;
-  }
-
-  if (subcommand === 'view') {
-    const payload = loadConversationView(conversationRef);
-    if (json) {
-      printJson(payload);
-      return;
-    }
-    printConversationView(payload);
     return;
   }
 
@@ -1866,7 +1730,7 @@ function runConversation(args) {
     return;
   }
 
-  throw new Error('Usage: <windie> conversation list|inspect|state|view|messages|events|turns|traces <conversation-ref>');
+  throw new Error('Usage: <windie> conversation list|inspect|state|messages|events|turns|traces <conversation-ref>');
 }
 
 function portOpen(host, port, timeoutMs = 750) {
