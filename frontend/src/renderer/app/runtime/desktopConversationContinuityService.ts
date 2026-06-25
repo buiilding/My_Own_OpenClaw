@@ -5,15 +5,12 @@
 import {
   DesktopConversationRuntimeContracts,
   type ListConversationOptions,
-  type DisplayConversation,
   type CheckoutRevisionInput,
   type CheckoutRevisionResult,
   type EditAndResendInput,
   type ForkConversationInput,
   type ForkConversationResult,
   type RetryTurnInput,
-  type SdkDisplayRow,
-  type ConversationView,
   type ConversationMetadata,
   type ConversationRevision,
   type ConversationMetadataInvalidationListener,
@@ -77,15 +74,6 @@ function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
-function readSnapshotDisplayRows(
-  snapshot: { view?: ConversationView | null } | null | undefined,
-): SdkDisplayRow[] {
-  if (Array.isArray(snapshot?.view?.displayRows)) {
-    return snapshot.view.displayRows;
-  }
-  return [];
-}
-
 const desktopConversationContinuityService = new ConversationContinuityService({
   storeFactory: ({ userId }) => createDesktopConversationStore(userId),
   transportFactory: ({ workspacePath }) => createDesktopRuntimeTransport(workspacePath ?? null),
@@ -97,35 +85,6 @@ export const DesktopConversationContinuityService = {
       userId,
       limit: options?.limit,
     });
-  },
-
-  async loadForDisplay(userId: string, conversationRef: string): Promise<DisplayConversation> {
-    const snapshot = await invokeAgentSdkCommand<{ display?: DisplayConversation }>(
-      SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY,
-      {
-        userId,
-        conversationRef,
-      },
-    );
-    return snapshot?.display ?? {
-      conversationRef,
-      revisionId: '',
-      messages: [],
-      compaction: { status: 'idle' },
-    };
-  },
-
-  async loadDisplayRows(userId: string, conversationRef: string): Promise<SdkDisplayRow[]> {
-    const snapshot = await invokeAgentSdkCommand<{
-      view?: ConversationView | null;
-    }>(
-      SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY,
-      {
-        userId,
-        conversationRef,
-      },
-    );
-    return readSnapshotDisplayRows(snapshot);
   },
 
   async editAndResend(input: EditAndResendCommandInput): Promise<TurnResult> {

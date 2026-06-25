@@ -20,6 +20,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/replay: narrow the renderer replay helper export surface to prepared
   edit/retry intent plus pending bridge publication, keeping row-index and
   retained-context internals private. No migration required.
+- frontend/replay: remove unused raw display-message and display-row load
+  helpers from the renderer continuity service so React-facing replay code
+  cannot bypass SDK view or intent-command paths. No migration required.
 - frontend/renderer: move pending-turn user-row construction out of
   `chatStore.ts` into an app-runtime pending bridge helper shared by normal
   sends and replay. The store now mutates workspace state without hard-coding
