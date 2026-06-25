@@ -62,6 +62,9 @@ All notable changes to WindieOS will be documented in this file.
   normalization, and temporary fork conversation-ref generation into an
   app-runtime helper so `ChatInterface` only dispatches prepared SDK command
   inputs. No migration required.
+- frontend/store: move current-turn workspace mutation and pending-turn
+  replacement no-op handling into an app-runtime helper so `chatStore.ts` no
+  longer owns SDK current-turn/pending reconciliation. No migration required.
 - frontend/renderer: move pending-turn user-row construction out of
   `chatStore.ts` into an app-runtime pending bridge helper shared by normal
   sends and replay. The store now mutates workspace state without hard-coding

@@ -31,14 +31,14 @@ import {
   DesktopChatSurfaceSelectorRuntime,
 } from '../../../app/runtime/desktopChatSurfaceSelectorRuntime';
 import {
-  DesktopVisibleTurnLifecycleRuntime,
-} from '../../../app/runtime/desktopVisibleTurnLifecycleRuntime';
-import {
   DesktopChatPendingTurnStateRuntime,
 } from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
 import {
   DesktopChatTurnConversationRefRuntime,
 } from '../../../app/runtime/desktopChatTurnConversationRefRuntime';
+import {
+  DesktopCurrentTurnWorkspaceRuntime,
+} from '../../../app/runtime/desktopCurrentTurnWorkspaceRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const {
@@ -49,9 +49,6 @@ const {
   projectDesktopLiveTurnSurfaceState,
 } = DesktopChatSurfaceSelectorRuntime;
 const {
-  resolvePendingTurnForCurrentProjection,
-} = DesktopVisibleTurnLifecycleRuntime;
-const {
   buildPendingTurnWorkspaceMutation,
   doesPendingTurnMatch,
 } = DesktopChatPendingTurnStateRuntime;
@@ -61,6 +58,9 @@ const {
   registerTurnConversationRef,
   resolveConversationRefForTurn,
 } = DesktopChatTurnConversationRefRuntime;
+const {
+  buildCurrentTurnWorkspaceMutation,
+} = DesktopCurrentTurnWorkspaceRuntime;
 export type { ChatMessage, TokenCounts };
 
 export type StreamPhase =
@@ -534,21 +534,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set((state) => {
       const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
       const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
-      const nextPendingTurn = resolvePendingTurnForCurrentProjection({
-        pendingTurn: currentWorkspace.pendingTurn,
+      const nextWorkspace = buildCurrentTurnWorkspaceMutation({
+        currentWorkspace,
         currentTurnProjection,
       });
-      if (
-        currentWorkspace.currentTurnProjection === currentTurnProjection
-        && currentWorkspace.pendingTurn === nextPendingTurn
-      ) {
+      if (!nextWorkspace) {
         return state;
       }
-      const nextWorkspace = {
-        ...currentWorkspace,
-        currentTurnProjection,
-        pendingTurn: nextPendingTurn,
-      };
       return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
     }),
 
