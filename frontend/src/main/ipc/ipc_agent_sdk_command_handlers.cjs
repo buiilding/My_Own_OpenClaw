@@ -286,7 +286,6 @@ function buildAgentSdkCommandHandlers({
       });
       return {
         display: snapshot.display,
-        view: snapshot.view,
         displayRows: snapshot.displayRows,
         currentTurn: snapshot.currentTurn,
       };

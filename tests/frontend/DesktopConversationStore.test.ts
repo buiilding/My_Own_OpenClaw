@@ -105,46 +105,6 @@ describe('desktop conversation store factory', () => {
     });
   });
 
-  test('loads display rows from ConversationView before legacy display rows', async () => {
-    const store = createDesktopConversationStore('user-1');
-    mockInvokeAgentSdkCommand.mockResolvedValueOnce({
-      view: {
-        displayRows: [
-          {
-            id: 'row-view',
-            conversationRef: 'conv-1',
-            role: 'assistant',
-            type: 'assistant_message',
-            content: 'from view',
-          },
-        ],
-      },
-      displayRows: [
-        {
-          id: 'row-legacy',
-          conversationRef: 'conv-1',
-          role: 'assistant',
-          type: 'assistant_message',
-          content: 'legacy',
-        },
-      ],
-    } as never);
-
-    await expect(store.loadDisplayRows('conv-1')).resolves.toEqual([
-      {
-        id: 'row-view',
-        conversationRef: 'conv-1',
-        role: 'assistant',
-        type: 'assistant_message',
-        content: 'from view',
-      },
-    ]);
-    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.loadDisplay', {
-      userId: 'user-1',
-      conversationRef: 'conv-1',
-    });
-  });
-
   test('loads durable trace timelines through the SDK conversation load command', async () => {
     const traceEvent = createConversationEvent({
       eventId: 'evt-trace',

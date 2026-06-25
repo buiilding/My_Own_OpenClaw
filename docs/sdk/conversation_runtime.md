@@ -239,9 +239,6 @@ not re-enable Stop or keep the pill/dashboard busy.
 For the Phase 3 transcript migration, Electron renderer projects dashboard
 messages from `snapshot.view.displayRows` when a current-turn payload includes
 the view, and dashboard busy state reads `snapshot.view.surfaces.dashboard.mode`.
-The `conversation.loadDisplay` command also carries `snapshot.view`, and
-renderer display-row facades prefer `snapshot.view.displayRows` before the
-legacy `snapshot.displayRows` fallback.
 The separate `snapshot.displayRows`/display-rows stream remains a temporary
 fallback while non-view hosts and later dashboard loaders migrate.
 

@@ -66,42 +66,6 @@ All notable changes to WindieOS will be documented in this file.
   overrides through SDK `agent.run(..., { model })` options. Just-edited Agent
   settings now affect the next query's system prompt/tool policy, and model
   retries no longer race against the previous provider. No migration required.
-- frontend/main, frontend/renderer: carry SDK `ConversationView` through the
-  `conversation.loadDisplay` command and prefer `view.displayRows` in renderer
-  display-row facades. Legacy `displayRows` remain as a temporary fallback for
-  non-view payloads while dashboard transcript migration continues. No
-  migration required.
-- frontend/renderer: project dashboard transcript messages from SDK
-  `ConversationView.displayRows` when the current-turn payload carries a view.
-  The existing display-rows stream remains a migration fallback, but the
-  current-turn/view handoff can now update the workspace conversation view and
-  dashboard transcript in one renderer boundary step. No migration required.
-- frontend/renderer: migrate minimal pill and dashboard busy/Stop controls to
-  SDK `ConversationView` authority. `view.surfaces.pill.mode` now drives the
-  pill loop lock, `view.surfaces.dashboard.mode` drives the dashboard composer
-  loop lock, `view.liveTurn.canStop` drives Stop availability and target
-  selection, and the local pending-turn latch remains only as the pre-view send
-  bridge so idle SDK/view startup projections cannot clear a just-accepted
-  send. Stale raw current-turn snapshots can no longer re-enable Stop after
-  the view says the visible turn is not stoppable. No migration required.
-- frontend/main, frontend/renderer: migrate the response overlay to the SDK
-  `ConversationView` authority. Direct SDK snapshots now carry
-  `view`/`viewDiagnostics` through the current-turn IPC payload, renderer
-  workspace state stores the latest conversation view, `MinimalResponseOverlay`
-  renders `view.liveTurn.entries`, and Electron main applies
-  `view.surfaces.responseOverlay` before falling back to raw current-turn
-  overlay intent. This keeps stale awaiting snapshots and internal lanes from
-  shrinking or re-owning the native responsebox after visible response content
-  exists. No migration required for persisted data.
-- sdk/runtime: add the Phase 0 SDK `ConversationView` projection alongside
-  existing snapshots, with `getView()`/`subscribeView()` APIs, normal UI
-  filtering for internal `conv-agent-*` lanes, and separated build diagnostics
-  for pending turn, superseded turn count, filtered internal lane count,
-  model-history checkpoint id, and last SDK/backend event refs. `<windie>
-  conversation view` now prints the persisted view diagnostic without dumping
-  message text, raw tool output, local paths, screenshots, provider payloads,
-  credentials, or internal lane details. No migration required; renderer/main
-  consumers still migrate surface-by-surface.
 - backend/config: treat enabled provider API-key overrides with empty redacted
   keys as incomplete override state and fall back to the configured provider
   environment variable, so persisted redacted renderer settings cannot disable

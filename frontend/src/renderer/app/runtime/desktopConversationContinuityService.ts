@@ -10,7 +10,6 @@ import {
   type DisplayTimelineReplaceReason,
   type DisplayTimelineRow,
   type SdkDisplayRow,
-  type ConversationView,
   type ConversationMetadata,
   type ConversationMetadataInvalidationListener,
   type CompactedReplaySnapshot,
@@ -60,15 +59,6 @@ function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
-function readSnapshotDisplayRows(
-  snapshot: { view?: ConversationView | null; displayRows?: SdkDisplayRow[] } | null | undefined,
-): SdkDisplayRow[] {
-  if (Array.isArray(snapshot?.view?.displayRows)) {
-    return snapshot.view.displayRows;
-  }
-  return Array.isArray(snapshot?.displayRows) ? snapshot.displayRows : [];
-}
-
 const desktopConversationContinuityService = new ConversationContinuityService({
   storeFactory: ({ userId }) => createDesktopConversationStore(userId),
   transportFactory: ({ workspacePath }) => createDesktopRuntimeTransport(workspacePath ?? null),
@@ -99,17 +89,14 @@ export const DesktopConversationContinuityService = {
   },
 
   async loadDisplayRows(userId: string, conversationRef: string): Promise<SdkDisplayRow[]> {
-    const snapshot = await invokeAgentSdkCommand<{
-      view?: ConversationView | null;
-      displayRows?: SdkDisplayRow[];
-    }>(
+    const snapshot = await invokeAgentSdkCommand<{ displayRows?: SdkDisplayRow[] }>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY,
       {
         userId,
         conversationRef,
       },
     );
-    return readSnapshotDisplayRows(snapshot);
+    return Array.isArray(snapshot?.displayRows) ? snapshot.displayRows : [];
   },
 
   async loadDisplayTimeline(

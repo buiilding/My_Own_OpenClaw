@@ -56,67 +56,6 @@ describe('DesktopConversationContinuityService', () => {
     }
   });
 
-  test('loadDisplayRows prefers ConversationView rows from the SDK command bridge', async () => {
-    const originalIpc = window.ipc;
-    window.ipc = {
-      send: jest.fn(),
-      invoke: jest.fn(async () => ({
-        ok: true,
-        data: {
-          view: {
-            displayRows: [
-              {
-                id: 'row-view',
-                conversationRef: 'conv-display',
-                role: 'assistant',
-                type: 'assistant_message',
-                content: 'from view',
-              },
-            ],
-          },
-          displayRows: [
-            {
-              id: 'row-legacy',
-              conversationRef: 'conv-display',
-              role: 'assistant',
-              type: 'assistant_message',
-              content: 'legacy',
-            },
-          ],
-        },
-      })),
-      on: jest.fn(),
-      once: jest.fn(),
-    };
-    const { DesktopConversationContinuityService } = require(
-      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
-    );
-
-    try {
-      await expect(DesktopConversationContinuityService.loadDisplayRows(
-        'user-1',
-        'conv-display',
-      )).resolves.toEqual([
-        {
-          id: 'row-view',
-          conversationRef: 'conv-display',
-          role: 'assistant',
-          type: 'assistant_message',
-          content: 'from view',
-        },
-      ]);
-      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
-        command: 'conversation.loadDisplay',
-        payload: {
-          userId: 'user-1',
-          conversationRef: 'conv-display',
-        },
-      });
-    } finally {
-      window.ipc = originalIpc;
-    }
-  });
-
   test('replaceRows routes display timeline replacement through the SDK command bridge', async () => {
     const originalIpc = window.ipc;
     window.ipc = {

@@ -63,9 +63,6 @@ Command mapping:
 `desktopConversationLibraryClient.js` is the narrower dashboard/list facade. It
 uses `conversations.list`, `conversations.search`, `conversations.delete`, and
 `conversation.loadDisplay`; it does not load full event or rehydrate snapshots.
-`conversation.loadDisplay` carries the SDK `ConversationView` when available,
-and renderer display-row facades read `view.displayRows` before falling back to
-legacy top-level `displayRows`.
 
 Defaults:
 
