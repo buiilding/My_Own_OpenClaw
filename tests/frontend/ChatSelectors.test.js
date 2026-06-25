@@ -148,6 +148,12 @@ describe('chatSelectors', () => {
       canRetryMessages: true,
       renderedMessages: state.messages,
       replayFallbackMessages: state.messages,
+      stopTurnTarget: {
+        source: 'idle',
+        conversationRef: null,
+        turnRef: null,
+        canStop: false,
+      },
       chatSurfaceState: {
         messages: state.messages,
         currentTurnProjection: null,
@@ -341,6 +347,12 @@ describe('chatSelectors', () => {
       currentTurnProjection: null,
       conversationView: view,
       pendingTurn: null,
+      stopTurnTarget: {
+        source: 'idle',
+        conversationRef: 'conv-view',
+        turnRef: 'turn-view',
+        canStop: false,
+      },
     });
   });
 
@@ -394,6 +406,12 @@ describe('chatSelectors', () => {
       }),
     ]);
     expect(selected.replayFallbackMessages).toEqual([]);
+    expect(selected.stopTurnTarget).toEqual({
+      source: 'conversation-view',
+      conversationRef: 'conv-dashboard',
+      turnRef: 'turn-view',
+      canStop: true,
+    });
     expect(selected.chatSurfaceState).toEqual({
       messages: [],
       currentTurnProjection: null,
@@ -422,6 +440,12 @@ describe('chatSelectors', () => {
       canRetryMessages: true,
       renderedMessages: [],
       replayFallbackMessages: [],
+      stopTurnTarget: {
+        source: 'idle',
+        conversationRef: null,
+        turnRef: null,
+        canStop: false,
+      },
     }));
     expect(selected).not.toHaveProperty('streamTracking');
   });

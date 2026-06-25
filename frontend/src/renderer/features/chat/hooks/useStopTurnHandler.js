@@ -20,19 +20,26 @@ export function useStopTurnHandler({
   conversationView = null,
   pendingTurn = null,
   sessionConversationRef = null,
+  stopTurnTarget = null,
   stopPlayback = null,
   warningContext = 'StopTurnHandler',
 } = {}) {
   const acceptStoppedTurn = useChatStore((state) => state.acceptStoppedTurn);
   const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
-  const stopTarget = useMemo(() => resolveStopTurnTarget({
-    conversationView,
-    pendingTurn,
-    conversationRef: sessionConversationRef,
-  }), [
+  const stopTarget = useMemo(() => {
+    if (stopTurnTarget && typeof stopTurnTarget === 'object') {
+      return stopTurnTarget;
+    }
+    return resolveStopTurnTarget({
+      conversationView,
+      pendingTurn,
+      conversationRef: sessionConversationRef,
+    });
+  }, [
     conversationView,
     pendingTurn,
     sessionConversationRef,
+    stopTurnTarget,
   ]);
 
   const handleStopTurn = useCallback(() => {

@@ -215,6 +215,11 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
     } = jest.requireActual(
       '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime',
     );
+    const {
+      DesktopStopTurnRuntime,
+    } = jest.requireActual(
+      '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime',
+    );
     const chatSurfaceState = {
       messages: state.conversationView ? [] : state.messages,
       currentTurnProjection: state.conversationView ? null : state.currentTurnProjection,
@@ -234,6 +239,11 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
         conversationView: state.conversationView,
         currentTurnProjection: chatSurfaceState.currentTurnProjection,
         messages: state.messages,
+        pendingTurn: state.pendingTurn,
+      }),
+      stopTurnTarget: DesktopStopTurnRuntime.resolveStopTurnTarget({
+        conversationRef: state.activeConversationRef,
+        conversationView: state.conversationView,
         pendingTurn: state.pendingTurn,
       }),
       chatSurfaceState,

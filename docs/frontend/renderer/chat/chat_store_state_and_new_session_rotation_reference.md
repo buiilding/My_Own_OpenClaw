@@ -194,8 +194,11 @@ import chat feature store internals.
 - `renderedMessages`, `replayFallbackMessages`, `canEditMessages`,
   `canRetryMessages`, and `activeRevisionId` from
   `DesktopChatInterfacePresentationRuntime`
+- `stopTurnTarget` from `DesktopStopTurnRuntime.resolveStopTurnTarget(...)`,
+  selected from SDK `ConversationView` first and the renderer pending bridge
+  second
 - raw `messages`, `currentTurnProjection`, `conversationView`, and
-  `pendingTurn` as no-view/send/stop bridge inputs for hooks that still need
+  `pendingTurn` as no-view send/replay bridge inputs for hooks that still need
   them during migration
 
 Minimal chat pill and response overlay state now route through the live-turn

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stop: select dashboard and pill stop targets from chat selectors so
+  UI callers pass a narrow `stopTurnTarget` object to `useStopTurnHandler`
+  instead of transporting raw `ConversationView` and `pendingTurn` inputs. No
+  migration required.
 - frontend/chat: move main-thread presentation projection into
   `selectChatInterfaceState(...)` so `ChatInterface` receives rendered rows,
   action flags, active revision id, and replay fallback rows instead of calling

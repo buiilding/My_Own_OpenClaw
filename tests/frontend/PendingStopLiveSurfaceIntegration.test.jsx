@@ -44,7 +44,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopManualCompactionRuntim
 
 function PendingStopButton() {
   const chatSurfaceState = useChatStore(useShallow(selectLiveTurnSurfaceState));
-  const { pendingTurn } = chatSurfaceState;
+  const { stopTurnTarget } = chatSurfaceState;
   const chatSurface = useChatSurfaceController({
     chatSurfaceState,
     sessionInfo: {
@@ -57,8 +57,7 @@ function PendingStopButton() {
   });
   const { handleStopTurn } = useStopTurnHandler({
     enabled: chatSurface.isBusy,
-    pendingTurn,
-    sessionConversationRef: 'conv-pending-stop',
+    stopTurnTarget,
     warningContext: 'PendingStopLiveSurfaceIntegration',
   });
   return (

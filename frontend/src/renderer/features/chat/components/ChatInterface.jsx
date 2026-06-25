@@ -85,12 +85,12 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     compactionDebugInfo,
     conversationView,
     chatSurfaceState,
-    pendingTurn,
     activeRevisionId,
     canEditMessages,
     canRetryMessages,
     replayFallbackMessages,
     renderedMessages,
+    stopTurnTarget,
   } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
@@ -379,9 +379,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   }, []);
   const { handleStopTurn } = useStopTurnHandler({
     enabled: canStop,
-    conversationView,
-    pendingTurn,
-    sessionConversationRef: sessionInfo.conversationRef,
+    stopTurnTarget,
     stopPlayback,
     warningContext: 'ChatInterface',
   });

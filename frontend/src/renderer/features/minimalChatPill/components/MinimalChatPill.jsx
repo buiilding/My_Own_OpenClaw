@@ -55,8 +55,7 @@ function MinimalChatPill() {
   const closeBumpHeight = DesktopChatboxLayoutRuntime.getChatboxCloseBumpHeight();
   const chatSurfaceState = useChatStore(useShallow(selectLiveTurnSurfaceState));
   const {
-    conversationView,
-    pendingTurn,
+    stopTurnTarget,
   } = chatSurfaceState;
   const sessionInfo = useRendererConversationSessionInfo();
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
@@ -452,9 +451,7 @@ function MinimalChatPill() {
   }, [chatSurface]);
   const { handleStopTurn } = useStopTurnHandler({
     enabled: stopAvailable,
-    conversationView,
-    pendingTurn,
-    sessionConversationRef: sessionInfo?.conversationRef || null,
+    stopTurnTarget,
     warningContext: 'MinimalChatPill',
   });
 

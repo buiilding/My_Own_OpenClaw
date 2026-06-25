@@ -2025,6 +2025,14 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/useStopTurnHandler.js'),
       'utf8',
     );
+    const chatInterfaceSource = await fs.readFile(
+      path.join(chatRoot, 'components/ChatInterface.jsx'),
+      'utf8',
+    );
+    const minimalPillSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx'),
+      'utf8',
+    );
     const chatStoreSource = await fs.readFile(
       path.join(chatRoot, 'stores/chatStore.ts'),
       'utf8',
@@ -2038,6 +2046,13 @@ describe('renderer chat runtime boundary', () => {
     expect(stopHandlerSource).toContain('DesktopStopTurnRuntime');
     expect(chatStoreSource).toContain('desktopStopTurnRuntime');
     expect(chatStoreSource).toContain('DesktopStopTurnRuntime');
+    expect(chatStoreSource).toContain('resolveStopTurnTarget');
+    expect(chatInterfaceSource).toContain('stopTurnTarget');
+    expect(chatInterfaceSource).not.toContain('useStopTurnHandler({\n    enabled: canStop,\n    conversationView,');
+    expect(chatInterfaceSource).not.toContain('useStopTurnHandler({\n    enabled: canStop,\n    pendingTurn,');
+    expect(minimalPillSource).toContain('stopTurnTarget');
+    expect(minimalPillSource).not.toContain('useStopTurnHandler({\n    enabled: stopAvailable,\n    conversationView,');
+    expect(minimalPillSource).not.toContain('useStopTurnHandler({\n    enabled: stopAvailable,\n    pendingTurn,');
     expect(stopHandlerSource).not.toContain('currentTurnProjection');
     expect(chatStoreSource).not.toContain('input?.currentTurnProjection');
     expect(stopHandlerSource).not.toContain('utils/state/stopQueryState');

@@ -67,6 +67,7 @@ import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/des
 
 const {
   buildAcceptStoppedTurnStateUpdate,
+  resolveStopTurnTarget,
 } = DesktopStopTurnRuntime as {
   buildAcceptStoppedTurnStateUpdate: <TState extends Pick<ChatState, 'activeConversationRef'>, TWorkspace extends ChatWorkspaceState>(input: {
     deps: {
@@ -88,6 +89,16 @@ const {
     } | null;
     state: TState;
   }) => Partial<TState> | TState | null;
+  resolveStopTurnTarget: (input: {
+    conversationRef?: string | null;
+    conversationView?: ConversationView | null;
+    pendingTurn?: PendingTurn | null;
+  }) => {
+    source: string;
+    conversationRef: string | null;
+    turnRef: string | null;
+    canStop: boolean;
+  };
 };
 const {
   projectDesktopChatSurfaceState,
@@ -147,6 +158,42 @@ const {
   };
 };
 export type { ChatMessage, TokenCounts };
+
+interface StopTurnTarget {
+  source: string;
+  conversationRef: string | null;
+  turnRef: string | null;
+  canStop: boolean;
+}
+
+const stopTurnTargetCache = new Map<string, StopTurnTarget>();
+
+function buildStopTurnTargetSignature(stopTurnTarget: StopTurnTarget): string {
+  return [
+    stopTurnTarget.source,
+    stopTurnTarget.conversationRef ?? '',
+    stopTurnTarget.turnRef ?? '',
+    stopTurnTarget.canStop ? '1' : '0',
+  ].join('\u0001');
+}
+
+function selectStableStopTurnTarget(input: {
+  conversationRef?: string | null;
+  conversationView?: ConversationView | null;
+  pendingTurn?: PendingTurn | null;
+}): StopTurnTarget {
+  const stopTurnTarget = resolveStopTurnTarget(input);
+  const signature = buildStopTurnTargetSignature(stopTurnTarget);
+  const cachedStopTurnTarget = stopTurnTargetCache.get(signature);
+  if (cachedStopTurnTarget) {
+    return cachedStopTurnTarget;
+  }
+  if (stopTurnTargetCache.size > 64) {
+    stopTurnTargetCache.clear();
+  }
+  stopTurnTargetCache.set(signature, stopTurnTarget);
+  return stopTurnTarget;
+}
 
 const pendingTurnStateRuntimeDependencies = {
   buildWorkspaceUpdate,
@@ -328,6 +375,11 @@ interface ChatState {
 export function selectChatInterfaceState(state: ChatState) {
   const activeWorkspace = selectActiveWorkspaceState(state);
   const interfaceState = projectDesktopChatInterfaceState(activeWorkspace);
+  const stopTurnTarget = selectStableStopTurnTarget({
+    conversationRef: state.activeConversationRef,
+    conversationView: interfaceState.conversationView as ConversationView | null,
+    pendingTurn: interfaceState.pendingTurn as PendingTurn | null,
+  });
   return {
     ...interfaceState,
     ...buildChatInterfacePresentationState({
@@ -337,6 +389,7 @@ export function selectChatInterfaceState(state: ChatState) {
       messages: interfaceState.messages as ChatMessage[],
       pendingTurn: interfaceState.pendingTurn as PendingTurn | null,
     }),
+    stopTurnTarget,
     chatSurfaceState: projectDesktopChatSurfaceState({
       activeWorkspace,
     }),
@@ -350,10 +403,18 @@ export function selectChatInterfaceSurfaceState(state: ChatState) {
 }
 
 export function selectLiveTurnSurfaceState(state: ChatState) {
-  return projectDesktopLiveTurnSurfaceState({
+  const liveTurnSurfaceState = projectDesktopLiveTurnSurfaceState({
     activeWorkspace: selectActiveWorkspaceState(state),
     latestConversationView: state.latestConversationView,
   });
+  return {
+    ...liveTurnSurfaceState,
+    stopTurnTarget: selectStableStopTurnTarget({
+      conversationRef: state.activeConversationRef,
+      conversationView: liveTurnSurfaceState.conversationView as ConversationView | null,
+      pendingTurn: liveTurnSurfaceState.pendingTurn as PendingTurn | null,
+    }),
+  };
 }
 
 /**

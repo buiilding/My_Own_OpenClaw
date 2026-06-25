@@ -59,7 +59,8 @@ SDK view rows and raw store messages.
 Dashboard stop behavior is owned by `useStopTurnHandler(...)`:
 
 1. no-op when not busy
-2. resolve stop target from SDK current turn, then pending turn, then idle
+2. receive a selected `stopTurnTarget` from `selectChatInterfaceState(...)`
+   for SDK `ConversationView`, pending-turn bridge, or idle authority
 3. classify the target with `DesktopStopTurnRuntime` predicates before
    current-turn and pending-turn side effects
 4. atomically accept the stopped turn in chat store with `acceptStoppedTurn(...)`
