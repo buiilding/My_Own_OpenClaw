@@ -11,7 +11,9 @@ All notable changes to WindieOS will be documented in this file.
   assumptions. No migration required.
 - ops/deploy: make the GitHub Actions remote-backend deploy upload a temporary
   git bundle and deploy from that bundle remote, so production no longer needs
-  GitHub credentials to fetch private repository commits. No migration required.
+  GitHub credentials to fetch private repository commits. The SSH deploy calls
+  are bounded so cleanup cannot leave the workflow hanging. No migration
+  required.
 - backend/tools: detect and repair model-visible screenshot image MIME before
   provider dispatch, so JPEG/PNG/WebP/GIF tool-result images are not mislabeled
   as PNG and provider image validation details can surface when safe. No
