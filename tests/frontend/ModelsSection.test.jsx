@@ -183,9 +183,70 @@ describe('ModelsSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'API Keys' }));
 
     const anthropicInput = screen.getByLabelText('Anthropic API Key');
+    expect(anthropicInput.value).toMatch(/^\u2022+$/);
+    expect(anthropicInput.value).toHaveLength(48);
+    expect(anthropicInput).toHaveAttribute('readonly');
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
+  });
+
+  test('delete clears saved provider key state and unlocks the input', () => {
+    const onConfigChange = jest.fn();
+    const { rerender } = render(
+      <ModelsSection
+        config={{
+          ...config,
+          provider_api_keys: {
+            ...config.provider_api_keys,
+            anthropic: { enabled: true, api_key: '', has_saved_key: true },
+          },
+        }}
+        availableModels={availableModels}
+        onConfigChange={onConfigChange}
+        onClose={jest.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'API Keys' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+    expect(onConfigChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        provider_api_keys: expect.objectContaining({
+          anthropic: expect.objectContaining({
+            enabled: true,
+            api_key: '',
+            has_saved_key: false,
+            clear_saved_key: true,
+          }),
+        }),
+      }),
+    );
+
+    rerender(
+      <ModelsSection
+        config={{
+          ...config,
+          provider_api_keys: {
+            ...config.provider_api_keys,
+            anthropic: {
+              enabled: true,
+              api_key: '',
+              has_saved_key: false,
+              clear_saved_key: true,
+            },
+          },
+        }}
+        availableModels={availableModels}
+        onConfigChange={onConfigChange}
+        onClose={jest.fn()}
+      />,
+    );
+
+    const anthropicInput = screen.getByLabelText('Anthropic API Key');
     expect(anthropicInput).toHaveValue('');
-    expect(anthropicInput.getAttribute('placeholder')).toHaveLength(48);
-    expect(anthropicInput.getAttribute('placeholder')).not.toBe('Enter your Anthropic API Key');
+    expect(anthropicInput).not.toHaveAttribute('readonly');
+    expect(anthropicInput).toHaveAttribute('placeholder', 'Enter your Anthropic API Key');
+    expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
   });
 
   test('does not render unsupported oauth controls', () => {

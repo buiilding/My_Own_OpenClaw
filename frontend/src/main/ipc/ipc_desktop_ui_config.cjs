@@ -25,19 +25,25 @@ function redactProviderSecretsFromDesktopUiConfig(config) {
   const redacted = { ...config };
   if (isPlainObject(redacted.provider_api_keys)) {
     redacted.provider_api_keys = Object.fromEntries(
-      Object.entries(redacted.provider_api_keys).map(([provider, entry]) => [
-        provider,
-        isPlainObject(entry)
-          ? {
-            ...entry,
+      Object.entries(redacted.provider_api_keys).map(([provider, entry]) => {
+        if (!isPlainObject(entry)) {
+          return [provider, entry];
+        }
+        const { clear_saved_key: _clearSavedKey, ...entryWithoutClearSignal } = entry;
+        return [
+          provider,
+          {
+            ...entryWithoutClearSignal,
             api_key: '',
-            has_saved_key: entry.enabled === true && (
-              entry.has_saved_key === true
-              || (typeof entry.api_key === 'string' && entry.api_key.length > 0)
-            ),
-          }
-          : entry,
-      ]),
+            has_saved_key: entry.enabled === true
+              && entry.clear_saved_key !== true
+              && (
+                entry.has_saved_key === true
+                || (typeof entry.api_key === 'string' && entry.api_key.length > 0)
+              ),
+          },
+        ];
+      }),
     );
   }
   delete redacted.provider_oauth;
