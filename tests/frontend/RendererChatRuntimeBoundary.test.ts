@@ -3343,6 +3343,7 @@ describe('renderer chat runtime boundary', () => {
     expect(turnConversationRefRuntimeSource).toContain('normalizeTurnRef');
     expect(turnConversationRefRuntimeSource).toContain('mergeTurnConversationRefs');
     expect(turnConversationRefRuntimeSource).toContain('registerTurnConversationRef');
+    expect(turnConversationRefRuntimeSource).toContain('buildRegisterTurnConversationRefStateUpdate');
     expect(turnConversationRefRuntimeSource).toContain('resolveConversationRefForTurn');
     expect(turnConversationRefRuntimeSource).not.toContain('features/chat');
     expect(currentTurnWorkspaceRuntimeSource).toContain('buildCurrentTurnWorkspaceMutation');

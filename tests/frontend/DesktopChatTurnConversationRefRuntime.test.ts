@@ -3,6 +3,7 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime';
 
 const {
+  buildRegisterTurnConversationRefStateUpdate,
   mergeTurnConversationRefs,
   normalizeTurnRef,
   registerTurnConversationRef,
@@ -79,5 +80,38 @@ describe('DesktopChatTurnConversationRefRuntime', () => {
     );
 
     expect(next).toBe(current);
+  });
+
+  test('buildRegisterTurnConversationRefStateUpdate returns map update when routing changes', () => {
+    const state = {
+      turnConversationRefs: {
+        'turn-existing': 'conv-old',
+      },
+    };
+
+    expect(buildRegisterTurnConversationRefStateUpdate({
+      conversationRef: ' conv-new ',
+      state,
+      turnRef: ' turn-new ',
+    })).toEqual({
+      turnConversationRefs: {
+        'turn-existing': 'conv-old',
+        'turn-new': 'conv-new',
+      },
+    });
+  });
+
+  test('buildRegisterTurnConversationRefStateUpdate no-ops when routing is unchanged', () => {
+    const state = {
+      turnConversationRefs: {
+        'turn-existing': 'conv-old',
+      },
+    };
+
+    expect(buildRegisterTurnConversationRefStateUpdate({
+      conversationRef: ' conv-old ',
+      state,
+      turnRef: ' turn-existing ',
+    })).toBeNull();
   });
 });

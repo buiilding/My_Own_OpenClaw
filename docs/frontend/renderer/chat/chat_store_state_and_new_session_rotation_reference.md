@@ -163,7 +163,9 @@ replay/store compatibility adapters and low-level artifact helpers.
   `chatStore.ts` calls those helpers instead of defining the boilerplate.
 - `registerTurnConversationRef` / `resolveConversationRefForTurn` bind
   app-runtime turn->conversation routing helpers for events that omit
-  `conversation_ref`.
+  `conversation_ref`. The register action's map update/no-op decision lives in
+  `DesktopChatTurnConversationRefRuntime.buildRegisterTurnConversationRefStateUpdate(...)`;
+  the store only passes turn/conversation intent.
 - response-overlay dismissal state is persisted by the store, but normalized
   conversation/turn/entry dismissal-key construction lives in
   `DesktopResponseOverlayViewRuntime.buildResponseOverlayDismissalKey(...)`.

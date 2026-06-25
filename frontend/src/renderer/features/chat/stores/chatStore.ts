@@ -107,8 +107,8 @@ const {
   buildSetWorkspaceFieldStateUpdate,
 } = DesktopChatWorkspaceFieldRuntime;
 const {
+  buildRegisterTurnConversationRefStateUpdate,
   mergeTurnConversationRefs,
-  registerTurnConversationRef,
   resolveConversationRefForTurn,
 } = DesktopChatTurnConversationRefRuntime;
 const {
@@ -340,17 +340,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   registerTurnConversationRef: (turnRef, conversationRef) =>
     set((state) => {
-      const nextTurnConversationRefs = registerTurnConversationRef(
-        state.turnConversationRefs,
-        turnRef,
+      return buildRegisterTurnConversationRefStateUpdate<ChatState>({
         conversationRef,
-      );
-      if (nextTurnConversationRefs === state.turnConversationRefs) {
-        return state;
-      }
-      return {
-        turnConversationRefs: nextTurnConversationRefs,
-      };
+        state,
+        turnRef,
+      }) ?? state;
     }),
 
   resolveConversationRefForTurn: (turnRef) => {

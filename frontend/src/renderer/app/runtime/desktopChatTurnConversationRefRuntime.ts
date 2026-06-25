@@ -4,6 +4,10 @@ import type {
 
 type TurnConversationRefs = Record<string, string>;
 
+type TurnConversationRefStateSnapshot = {
+  turnConversationRefs: TurnConversationRefs;
+};
+
 function normalizeTurnRef(turnRef?: string | null): string | null {
   if (typeof turnRef !== 'string') {
     return null;
@@ -66,7 +70,30 @@ function resolveConversationRefForTurn(
   return currentTurnConversationRefs[normalizedTurnRef] || null;
 }
 
+function buildRegisterTurnConversationRefStateUpdate<TState extends TurnConversationRefStateSnapshot>({
+  conversationRef,
+  state,
+  turnRef,
+}: {
+  conversationRef?: string | null;
+  state: TState;
+  turnRef?: string | null;
+}): Pick<TState, 'turnConversationRefs'> | null {
+  const nextTurnConversationRefs = registerTurnConversationRef(
+    state.turnConversationRefs,
+    turnRef,
+    conversationRef,
+  );
+  if (nextTurnConversationRefs === state.turnConversationRefs) {
+    return null;
+  }
+  return {
+    turnConversationRefs: nextTurnConversationRefs,
+  };
+}
+
 export const DesktopChatTurnConversationRefRuntime = Object.freeze({
+  buildRegisterTurnConversationRefStateUpdate,
   mergeTurnConversationRefs,
   normalizeTurnRef,
   registerTurnConversationRef,

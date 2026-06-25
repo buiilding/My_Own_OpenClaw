@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: move `registerTurnConversationRef` map update/no-op
+  handling behind `DesktopChatTurnConversationRefRuntime` so `chatStore` no
+  longer owns turn-to-conversation routing map writes. No migration required.
 - frontend/store: move `clearMessages` workspace reset construction behind
   `DesktopChatClearMessagesRuntime` so `chatStore` no longer owns the
   clear-message reset field list or workspace update assembly. No migration
