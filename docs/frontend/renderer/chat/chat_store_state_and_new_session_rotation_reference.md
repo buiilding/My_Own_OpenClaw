@@ -11,6 +11,7 @@ title: "Chat Store State and New Session Rotation Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
+- `frontend/src/renderer/app/runtime/desktopChatInterfaceSelectorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatRevisionActionRuntime.js`
@@ -183,10 +184,13 @@ No-op guards reduce unnecessary re-renders on high-frequency stream paths.
 
 ## Selector Boundary
 
-`DesktopChatSurfaceSelectorRuntime` owns the pure projection rules for the full
-chat interface and live minimal surfaces. `chatStore.ts` binds those projection
-methods to `selectActiveWorkspaceState(...)` so the app-runtime helper does not
-import chat feature store internals.
+`DesktopChatInterfaceSelectorRuntime` owns the composed selector view model for
+the full chat interface and live minimal surfaces. It applies
+`DesktopChatSurfaceSelectorRuntime`, `DesktopChatInterfacePresentationRuntime`,
+and stop-target selection while keeping stable nested selector objects.
+`chatStore.ts` only binds those projection methods to
+`selectActiveWorkspaceState(...)` so the app-runtime helper does not import chat
+feature store internals.
 
 `selectChatInterfaceState` exposes active-workspace projection:
 

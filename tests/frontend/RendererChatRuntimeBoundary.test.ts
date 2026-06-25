@@ -2041,6 +2041,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'stores/chatStore.ts'),
       'utf8',
     );
+    const chatInterfaceSelectorRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatInterfaceSelectorRuntime.ts'),
+      'utf8',
+    );
     const stopRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime.js'),
       'utf8',
@@ -2050,7 +2054,9 @@ describe('renderer chat runtime boundary', () => {
     expect(stopHandlerSource).toContain('DesktopStopTurnRuntime');
     expect(chatStoreSource).toContain('desktopStopTurnRuntime');
     expect(chatStoreSource).toContain('DesktopStopTurnRuntime');
-    expect(chatStoreSource).toContain('resolveStopTurnTarget');
+    expect(chatStoreSource).not.toContain('resolveStopTurnTarget');
+    expect(chatInterfaceSelectorRuntimeSource).toContain('resolveStopTurnTarget');
+    expect(chatInterfaceSelectorRuntimeSource).toContain('selectStableStopTurnTarget');
     expect(chatInterfaceSource).toContain('stopTurnTarget');
     expect(chatInterfaceSource).not.toContain('useStopTurnHandler({\n    enabled: canStop,\n    conversationView,');
     expect(chatInterfaceSource).not.toContain('useStopTurnHandler({\n    enabled: canStop,\n    pendingTurn,');
@@ -3235,6 +3241,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime.js'),
       'utf8',
     );
+    const chatInterfaceSelectorRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatInterfaceSelectorRuntime.ts'),
+      'utf8',
+    );
     const chatRevisionActionRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatRevisionActionRuntime.js'),
       'utf8',
@@ -3259,7 +3269,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSource).toContain('DesktopChatRevisionActionRuntime');
     expect(chatInterfaceSource).not.toContain('buildChatInterfacePresentationState');
     expect(chatInterfaceSource).toContain('resolveConversationViewStoreRef');
-    expect(chatStoreSource).toContain('buildChatInterfacePresentationState');
+    expect(chatStoreSource).not.toContain('buildChatInterfacePresentationState');
+    expect(chatStoreSource).not.toContain('selectStableReplayReadModel');
+    expect(chatInterfaceSelectorRuntimeSource).toContain('buildChatInterfacePresentationState');
+    expect(chatInterfaceSelectorRuntimeSource).toContain('selectStableReplayReadModel');
     expect(chatInterfaceSource).toContain('buildRevisionCheckoutCommand');
     expect(chatInterfaceSource).toContain('buildRevisionForkCommand');
     expect(chatInterfaceSource).not.toContain('setMessages(projection.messages');

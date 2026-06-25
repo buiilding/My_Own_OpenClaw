@@ -31,8 +31,8 @@ import {
   DesktopStopTurnRuntime,
 } from '../../../app/runtime/desktopStopTurnRuntime';
 import {
-  DesktopChatSurfaceSelectorRuntime,
-} from '../../../app/runtime/desktopChatSurfaceSelectorRuntime';
+  DesktopChatInterfaceSelectorRuntime,
+} from '../../../app/runtime/desktopChatInterfaceSelectorRuntime';
 import {
   DesktopResponseOverlayViewRuntime,
 } from '../../../app/runtime/desktopResponseOverlayViewRuntime';
@@ -60,14 +60,10 @@ import {
 import {
   DesktopConversationViewWorkspaceRuntime,
 } from '../../../app/runtime/desktopConversationViewWorkspaceRuntime';
-import {
-  DesktopChatInterfacePresentationRuntime,
-} from '../../../app/runtime/desktopChatInterfacePresentationRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const {
   buildAcceptStoppedTurnStateUpdate,
-  resolveStopTurnTarget,
 } = DesktopStopTurnRuntime as {
   buildAcceptStoppedTurnStateUpdate: <TState extends Pick<ChatState, 'activeConversationRef'>, TWorkspace extends ChatWorkspaceState>(input: {
     deps: {
@@ -89,22 +85,12 @@ const {
     } | null;
     state: TState;
   }) => Partial<TState> | TState | null;
-  resolveStopTurnTarget: (input: {
-    conversationRef?: string | null;
-    conversationView?: ConversationView | null;
-    pendingTurn?: PendingTurn | null;
-  }) => {
-    source: string;
-    conversationRef: string | null;
-    turnRef: string | null;
-    canStop: boolean;
-  };
 };
 const {
-  projectDesktopChatSurfaceState,
-  projectDesktopChatInterfaceState,
-  projectDesktopLiveTurnSurfaceState,
-} = DesktopChatSurfaceSelectorRuntime;
+  buildChatInterfaceSelectorState,
+  buildChatInterfaceSurfaceSelectorState,
+  buildLiveTurnSurfaceSelectorState,
+} = DesktopChatInterfaceSelectorRuntime;
 const {
   buildResponseOverlayDismissalKey,
 } = DesktopResponseOverlayViewRuntime;
@@ -140,127 +126,7 @@ const {
   buildSetLatestConversationViewStateUpdate,
   buildSetConversationViewStateUpdate,
 } = DesktopConversationViewWorkspaceRuntime;
-const {
-  buildChatInterfacePresentationState,
-} = DesktopChatInterfacePresentationRuntime as {
-  buildChatInterfacePresentationState: (input: {
-    activeConversationRef?: string | null;
-    conversationView?: ConversationView | null;
-    currentTurnProjection?: CurrentTurnProjection | null;
-    messages?: ChatMessage[];
-    pendingTurn?: PendingTurn | null;
-  }) => {
-    activeRevisionId: string | null;
-    canEditMessages: boolean;
-    canRetryMessages: boolean;
-    renderedMessages: ChatMessage[];
-    replayFallbackMessages: ChatMessage[];
-  };
-};
 export type { ChatMessage, TokenCounts };
-
-interface StopTurnTarget {
-  source: string;
-  conversationRef: string | null;
-  turnRef: string | null;
-  canStop: boolean;
-}
-
-interface ReplayReadModel {
-  conversationView: ConversationView | null;
-  messages: ChatMessage[];
-}
-
-const replayReadModelObjectCache = new WeakMap<object, WeakMap<object, ReplayReadModel>>();
-const replayReadModelPrimitiveCache = new Map<string, ReplayReadModel>();
-const stopTurnTargetCache = new Map<string, StopTurnTarget>();
-
-function readReplayReadModelObjectCache(
-  conversationView: ConversationView | null,
-  messages: ChatMessage[],
-): ReplayReadModel | null {
-  if (!conversationView || typeof conversationView !== 'object') {
-    return null;
-  }
-  const messagesKey = messages as unknown as object;
-  let messageCache = replayReadModelObjectCache.get(conversationView);
-  if (!messageCache) {
-    messageCache = new WeakMap<object, ReplayReadModel>();
-    replayReadModelObjectCache.set(conversationView, messageCache);
-  }
-  const cached = messageCache.get(messagesKey);
-  if (cached) {
-    return cached;
-  }
-  const replayReadModel = {
-    conversationView,
-    messages,
-  };
-  messageCache.set(messagesKey, replayReadModel);
-  return replayReadModel;
-}
-
-function selectStableReplayReadModel({
-  conversationView = null,
-  messages = [],
-}: {
-  conversationView?: ConversationView | null;
-  messages?: ChatMessage[];
-}): ReplayReadModel {
-  const replayMessages = Array.isArray(messages) ? messages : [];
-  const objectCachedReadModel = readReplayReadModelObjectCache(conversationView, replayMessages);
-  if (objectCachedReadModel) {
-    return objectCachedReadModel;
-  }
-  const primitiveKey = [
-    conversationView ? 'view' : 'none',
-    replayMessages.length,
-  ].join('\u0001');
-  const cached = replayReadModelPrimitiveCache.get(primitiveKey);
-  if (
-    cached
-    && cached.conversationView === conversationView
-    && cached.messages === replayMessages
-  ) {
-    return cached;
-  }
-  if (replayReadModelPrimitiveCache.size > 64) {
-    replayReadModelPrimitiveCache.clear();
-  }
-  const replayReadModel = {
-    conversationView,
-    messages: replayMessages,
-  };
-  replayReadModelPrimitiveCache.set(primitiveKey, replayReadModel);
-  return replayReadModel;
-}
-
-function buildStopTurnTargetSignature(stopTurnTarget: StopTurnTarget): string {
-  return [
-    stopTurnTarget.source,
-    stopTurnTarget.conversationRef ?? '',
-    stopTurnTarget.turnRef ?? '',
-    stopTurnTarget.canStop ? '1' : '0',
-  ].join('\u0001');
-}
-
-function selectStableStopTurnTarget(input: {
-  conversationRef?: string | null;
-  conversationView?: ConversationView | null;
-  pendingTurn?: PendingTurn | null;
-}): StopTurnTarget {
-  const stopTurnTarget = resolveStopTurnTarget(input);
-  const signature = buildStopTurnTargetSignature(stopTurnTarget);
-  const cachedStopTurnTarget = stopTurnTargetCache.get(signature);
-  if (cachedStopTurnTarget) {
-    return cachedStopTurnTarget;
-  }
-  if (stopTurnTargetCache.size > 64) {
-    stopTurnTargetCache.clear();
-  }
-  stopTurnTargetCache.set(signature, stopTurnTarget);
-  return stopTurnTarget;
-}
 
 const pendingTurnStateRuntimeDependencies = {
   buildWorkspaceUpdate,
@@ -440,53 +306,24 @@ interface ChatState {
 }
 
 export function selectChatInterfaceState(state: ChatState) {
-  const activeWorkspace = selectActiveWorkspaceState(state);
-  const interfaceState = projectDesktopChatInterfaceState(activeWorkspace);
-  const stopTurnTarget = selectStableStopTurnTarget({
-    conversationRef: state.activeConversationRef,
-    conversationView: interfaceState.conversationView as ConversationView | null,
-    pendingTurn: interfaceState.pendingTurn as PendingTurn | null,
-  });
-  const presentationState = buildChatInterfacePresentationState({
+  return buildChatInterfaceSelectorState({
     activeConversationRef: state.activeConversationRef,
-    conversationView: interfaceState.conversationView as ConversationView | null,
-    currentTurnProjection: interfaceState.currentTurnProjection as CurrentTurnProjection | null,
-    messages: interfaceState.messages as ChatMessage[],
-    pendingTurn: interfaceState.pendingTurn as PendingTurn | null,
+    activeWorkspace: selectActiveWorkspaceState(state),
   });
-  return {
-    ...interfaceState,
-    ...presentationState,
-    replayReadModel: selectStableReplayReadModel({
-      conversationView: interfaceState.conversationView as ConversationView | null,
-      messages: presentationState.replayFallbackMessages,
-    }),
-    stopTurnTarget,
-    chatSurfaceState: projectDesktopChatSurfaceState({
-      activeWorkspace,
-    }),
-  };
 }
 
 export function selectChatInterfaceSurfaceState(state: ChatState) {
-  return projectDesktopChatSurfaceState({
+  return buildChatInterfaceSurfaceSelectorState({
     activeWorkspace: selectActiveWorkspaceState(state),
   });
 }
 
 export function selectLiveTurnSurfaceState(state: ChatState) {
-  const liveTurnSurfaceState = projectDesktopLiveTurnSurfaceState({
+  return buildLiveTurnSurfaceSelectorState({
+    activeConversationRef: state.activeConversationRef,
     activeWorkspace: selectActiveWorkspaceState(state),
     latestConversationView: state.latestConversationView,
   });
-  return {
-    ...liveTurnSurfaceState,
-    stopTurnTarget: selectStableStopTurnTarget({
-      conversationRef: state.activeConversationRef,
-      conversationView: liveTurnSurfaceState.conversationView as ConversationView | null,
-      pendingTurn: liveTurnSurfaceState.pendingTurn as PendingTurn | null,
-    }),
-  };
 }
 
 /**
