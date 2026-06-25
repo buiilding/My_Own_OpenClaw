@@ -97,7 +97,7 @@ const {
   buildCurrentTurnWorkspaceMutation,
 } = DesktopCurrentTurnWorkspaceRuntime;
 const {
-  buildConversationViewWorkspaceMutation,
+  buildSetConversationViewStateUpdate,
 } = DesktopConversationViewWorkspaceRuntime;
 export type { ChatMessage, TokenCounts };
 
@@ -112,6 +112,13 @@ const pendingTurnStateRuntimeDependencies = {
 
 const stopTurnStateRuntimeDependencies = {
   buildWorkspaceUpdate,
+  readWorkspaceState,
+  resolveWorkspaceKey,
+};
+
+const conversationViewStateRuntimeDependencies = {
+  buildWorkspaceUpdate,
+  isActiveWorkspaceRef,
   readWorkspaceState,
   resolveWorkspaceKey,
 };
@@ -482,29 +489,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setConversationView: (conversationView, conversationRef) =>
     set((state) => {
-      const targetWorkspaceRef = resolveWorkspaceKey(
-        conversationRef ?? conversationView?.conversationRef,
-        state.activeConversationRef,
-      );
-      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
-      const conversationViewMutation = buildConversationViewWorkspaceMutation({
+      return buildSetConversationViewStateUpdate<ChatState, ChatWorkspaceState>({
         conversationView,
-        currentWorkspace,
-        isActiveWorkspace: isActiveWorkspaceRef(state, targetWorkspaceRef),
-        latestConversationView: state.latestConversationView,
-      });
-      if (!conversationViewMutation) {
-        return state;
-      }
-      const latestConversationViewUpdate = conversationViewMutation.hasLatestConversationViewUpdate
-        ? { latestConversationView: conversationViewMutation.latestConversationView }
-        : {};
-      if (conversationViewMutation.workspace === currentWorkspace) {
-        return latestConversationViewUpdate;
-      }
-      return buildWorkspaceUpdate(state, targetWorkspaceRef, conversationViewMutation.workspace, {
-        ...latestConversationViewUpdate,
-      });
+        conversationRef,
+        deps: conversationViewStateRuntimeDependencies,
+        state,
+      }) ?? state;
     }),
 
   acceptReplayPendingTurn: ({ messages, pendingTurn, supersededTurnRef = null }) =>

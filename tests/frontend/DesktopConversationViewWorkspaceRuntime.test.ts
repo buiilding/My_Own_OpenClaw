@@ -3,6 +3,7 @@ import type { ConversationView } from '../../frontend/src/renderer/app/runtime/d
 
 const {
   buildConversationViewWorkspaceMutation,
+  buildSetConversationViewStateUpdate,
 } = DesktopConversationViewWorkspaceRuntime;
 
 function buildConversationView(conversationRef: string): ConversationView {
@@ -205,5 +206,61 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
       isSending: true,
       pendingTurn,
     });
+  });
+
+  test('buildSetConversationViewStateUpdate resolves workspace and applies latest view update', () => {
+    const previousView = buildConversationView('conv-1');
+    const nextView = buildConversationView('conv-1');
+    const workspace = {
+      conversationView: previousView,
+      messages: ['keep-ui-state'],
+    };
+    const state = {
+      activeConversationRef: 'conv-1',
+      latestConversationView: previousView,
+      workspaces: {
+        'conv-1': workspace,
+      },
+    };
+    const deps = {
+      buildWorkspaceUpdate: jest.fn((currentState, workspaceRef, nextWorkspace, extraState = {}) => ({
+        ...currentState,
+        ...extraState,
+        workspaces: {
+          ...currentState.workspaces,
+          [workspaceRef]: nextWorkspace,
+        },
+      })),
+      isActiveWorkspaceRef: jest.fn(() => true),
+      readWorkspaceState: jest.fn((currentState, workspaceRef) => currentState.workspaces[workspaceRef]),
+      resolveWorkspaceKey: jest.fn(() => 'conv-1'),
+    };
+
+    const nextState = buildSetConversationViewStateUpdate({
+      conversationView: nextView,
+      conversationRef: null,
+      deps,
+      state,
+    });
+
+    expect(deps.resolveWorkspaceKey).toHaveBeenCalledWith('conv-1', 'conv-1');
+    expect(deps.isActiveWorkspaceRef).toHaveBeenCalledWith(state, 'conv-1');
+    expect(deps.buildWorkspaceUpdate).toHaveBeenCalledWith(
+      state,
+      'conv-1',
+      expect.objectContaining({
+        conversationView: nextView,
+        messages: ['keep-ui-state'],
+      }),
+      { latestConversationView: nextView },
+    );
+    expect(nextState).toEqual(expect.objectContaining({
+      latestConversationView: nextView,
+      workspaces: {
+        'conv-1': expect.objectContaining({
+          conversationView: nextView,
+        }),
+      },
+    }));
   });
 });

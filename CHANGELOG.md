@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: move `setConversationView` state-update construction behind
+  `DesktopConversationViewWorkspaceRuntime` so `chatStore` delegates
+  workspace resolution, active latest-view selection, and same-turn pending
+  bridge clearing for SDK views. No migration required.
 - frontend/overlay: rename response-overlay hook row state away from
   `currentTurnMessages` so feature code consumes `responseOverlayMessages`
   selected by `DesktopResponseOverlayViewRuntime` instead of implying a

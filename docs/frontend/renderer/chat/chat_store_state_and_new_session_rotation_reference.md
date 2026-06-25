@@ -93,12 +93,12 @@ replay/store compatibility adapters and low-level artifact helpers.
   workspace.
 - `setConversationView` updates the target workspace and refreshes
   `latestConversationView` only when the target is the active workspace. The
-  conversation-view workspace/latest-view mutation decision lives in
-  `desktopConversationViewWorkspaceRuntime.ts`; the store only applies the
-  returned workspace and optional latest-view update. A same-turn authoritative
-  SDK `ConversationView.liveTurn` also clears the renderer-local pending bridge
-  there, so `chatStore.ts` does not keep a competing pending state after SDK
-  view authority exists.
+  conversation-view workspace/latest-view state update lives in
+  `desktopConversationViewWorkspaceRuntime.ts`; the store delegates
+  conversation-view intent plus workspace dependency adapters. A same-turn
+  authoritative SDK `ConversationView.liveTurn` also clears the renderer-local
+  pending bridge there, so `chatStore.ts` does not keep a competing pending
+  state after SDK view authority exists.
 - `acceptPendingTurn` stores the renderer-local pending turn before the SDK
   current-turn projection opens, so dashboard/pill surfaces can show awaiting
   state and stop can target the real outgoing `turnRef`; an echoed pending-turn

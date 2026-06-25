@@ -3267,6 +3267,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('export function buildResponseOverlayDismissalKey');
     expect(chatStoreSource).toContain('DesktopCurrentTurnWorkspaceRuntime');
     expect(chatStoreSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(chatStoreSource).toContain('buildSetConversationViewStateUpdate');
+    expect(chatStoreSource).not.toContain('buildConversationViewWorkspaceMutation');
     expect(chatStoreSource).toContain('buildAcceptStoppedTurnStateUpdate');
     expect(chatStoreSource).not.toContain('buildStoppedTurnWorkspaceMutation');
     expect(chatStoreSource).not.toContain('normalizeConversationRef(input?.conversationRef)');
@@ -3297,6 +3299,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateSource).toContain('buildWorkspaceUpdate');
     expect(chatWorkspaceStateSource).toContain('resolveWorkspaceMutationTarget');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildConversationViewWorkspaceMutation');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('buildSetConversationViewStateUpdate');
     expect(conversationViewWorkspaceRuntimeSource).toContain('hasLatestConversationViewUpdate');
     expect(conversationViewWorkspaceRuntimeSource).toContain('shouldClearPendingTurnForConversationView');
     expect(conversationViewWorkspaceRuntimeSource).toContain('pendingTurn: null');
