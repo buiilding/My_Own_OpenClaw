@@ -23,9 +23,15 @@ function normalizeProviderApiKeys(input = null) {
 
   for (const [provider, defaults] of Object.entries(DEFAULT_PROVIDER_API_KEYS)) {
     const candidate = isPlainRecord(source[provider]) ? source[provider] : {};
+    const apiKey = typeof candidate.api_key === 'string' ? candidate.api_key : defaults.api_key;
+    const enabled = candidate.enabled === true;
     normalized[provider] = {
-      enabled: candidate.enabled === true,
-      api_key: typeof candidate.api_key === 'string' ? candidate.api_key : defaults.api_key,
+      enabled,
+      api_key: apiKey,
+      has_saved_key: enabled && (
+        candidate.has_saved_key === true
+        || apiKey.length > 0
+      ),
     };
   }
 
@@ -40,6 +46,10 @@ function stripProviderApiKeySecrets(input = null) {
     stripped[provider] = {
       ...entry,
       api_key: '',
+      has_saved_key: entry.enabled === true && (
+        entry.has_saved_key === true
+        || entry.api_key.length > 0
+      ),
     };
   }
 

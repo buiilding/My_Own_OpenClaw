@@ -121,6 +121,8 @@ Behavior:
 - save validates object payload
 - save redacts provider API keys and OAuth access/refresh tokens before writing
 - load redacts provider API keys and OAuth access/refresh tokens before returning
+- redacted provider key entries may include non-secret `has_saved_key` display
+  state so Settings can show a masked saved-key placeholder after restart
 - provider API keys are saved encrypted outside `frontend-config.json`; Electron
   main rehydrates them only for backend-bound `update-settings` payloads
 - atomic write (`.tmp` then rename)

@@ -124,7 +124,9 @@ Provider credential runtime normalization
 fixed provider key set:
 
 - `openai`, `anthropic`, `kimi_coding`, `google`, `openrouter`, `mistral`
-- each entry shape: `{ enabled: boolean, api_key: string }`
+- each entry shape: `{ enabled: boolean, api_key: string, has_saved_key: boolean }`
+- `has_saved_key` is a non-secret display marker used to show a masked saved-key
+  placeholder after restart when `api_key` is intentionally redacted
 
 `ModelsSection` forwards API-key updates as partial config patch:
 
@@ -132,9 +134,10 @@ fixed provider key set:
 
 Persistence/sync remains owned by the AppConfig provider pipeline and Electron
 main config persistence. Renderer localStorage and `frontend-config.json` keep
-provider `api_key` fields redacted, while Electron main persists raw
-renderer-managed provider keys only in the encrypted provider credential store
-and hydrates enabled entries on restart.
+provider `api_key` fields redacted but may preserve `has_saved_key`, while
+Electron main persists raw renderer-managed provider keys only in the encrypted
+provider credential store and hydrates enabled entries for backend-bound
+settings sync.
 
 ## Test-Backed Signals
 

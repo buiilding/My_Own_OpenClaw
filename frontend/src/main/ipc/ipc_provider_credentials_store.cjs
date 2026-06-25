@@ -150,10 +150,14 @@ function hydrateProviderApiKeySecrets(config, log = () => {}, storage = safeStor
         log(`Failed to decrypt provider API key for '${provider}': ${error.message}`);
       }
       if (!secret) {
+        if (entry.has_saved_key === true) {
+          changed = true;
+          return [provider, { ...entry, has_saved_key: false }];
+        }
         return [provider, entry];
       }
       changed = true;
-      return [provider, { ...entry, api_key: secret }];
+      return [provider, { ...entry, api_key: secret, has_saved_key: true }];
     }),
   );
 

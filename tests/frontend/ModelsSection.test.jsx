@@ -164,6 +164,30 @@ describe('ModelsSection', () => {
     );
   });
 
+  test('shows a masked saved-key placeholder for redacted enabled provider keys', () => {
+    render(
+      <ModelsSection
+        config={{
+          ...config,
+          provider_api_keys: {
+            ...config.provider_api_keys,
+            anthropic: { enabled: true, api_key: '', has_saved_key: true },
+          },
+        }}
+        availableModels={availableModels}
+        onConfigChange={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'API Keys' }));
+
+    const anthropicInput = screen.getByLabelText('Anthropic API Key');
+    expect(anthropicInput).toHaveValue('');
+    expect(anthropicInput.getAttribute('placeholder')).toHaveLength(48);
+    expect(anthropicInput.getAttribute('placeholder')).not.toBe('Enter your Anthropic API Key');
+  });
+
   test('does not render unsupported oauth controls', () => {
     render(
       <ModelsSection

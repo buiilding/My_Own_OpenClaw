@@ -67,6 +67,7 @@ describe('IPC provider credential persistence', () => {
         anthropic: {
           enabled: true,
           api_key: '',
+          has_saved_key: true,
         },
       },
     });
@@ -80,7 +81,15 @@ describe('IPC provider credential persistence', () => {
       encoding: 'electron-safe-storage-v1',
       encrypted: Buffer.from('encrypted:sk-ant-secret', 'utf8').toString('base64'),
     });
-    await expect(loadDesktopUiConfigFromDisk(log)).resolves.toEqual(config);
+    await expect(loadDesktopUiConfigFromDisk(log)).resolves.toEqual({
+      provider_api_keys: {
+        anthropic: {
+          enabled: true,
+          api_key: 'sk-ant-secret',
+          has_saved_key: true,
+        },
+      },
+    });
   });
 
   test('redacted provider key saves preserve encrypted keys and disabled saves clear them', async () => {
@@ -103,7 +112,15 @@ describe('IPC provider credential persistence', () => {
         },
       },
     }, log)).resolves.toEqual({ success: true });
-    await expect(loadDesktopUiConfigFromDisk(log)).resolves.toEqual(initialConfig);
+    await expect(loadDesktopUiConfigFromDisk(log)).resolves.toEqual({
+      provider_api_keys: {
+        anthropic: {
+          enabled: true,
+          api_key: 'sk-ant-secret',
+          has_saved_key: true,
+        },
+      },
+    });
 
     await expect(saveDesktopUiConfigToDisk({
       provider_api_keys: {
@@ -118,6 +135,7 @@ describe('IPC provider credential persistence', () => {
         anthropic: {
           enabled: false,
           api_key: '',
+          has_saved_key: false,
         },
       },
     });
@@ -130,11 +148,20 @@ describe('IPC provider credential persistence', () => {
         anthropic: {
           enabled: true,
           api_key: '',
+          has_saved_key: true,
         },
       },
     };
 
-    expect(hydrateProviderApiKeySecretsForBackendSettings(config, log)).toEqual(config);
+    expect(hydrateProviderApiKeySecretsForBackendSettings(config, log)).toEqual({
+      provider_api_keys: {
+        anthropic: {
+          enabled: true,
+          api_key: '',
+          has_saved_key: false,
+        },
+      },
+    });
     expect(log).not.toHaveBeenCalled();
   });
 
@@ -161,11 +188,20 @@ describe('IPC provider credential persistence', () => {
         anthropic: {
           enabled: true,
           api_key: '',
+          has_saved_key: true,
         },
       },
     };
 
-    expect(hydrateProviderApiKeySecretsForBackendSettings(config, log)).toEqual(config);
+    expect(hydrateProviderApiKeySecretsForBackendSettings(config, log)).toEqual({
+      provider_api_keys: {
+        anthropic: {
+          enabled: true,
+          api_key: '',
+          has_saved_key: false,
+        },
+      },
+    });
     expect(log).toHaveBeenCalledWith(
       "Failed to decrypt provider API key for 'anthropic': decrypt failed",
     );

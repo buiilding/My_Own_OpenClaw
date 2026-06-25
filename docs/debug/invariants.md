@@ -35,7 +35,8 @@ this page.
   rehydrate enabled redacted provider credentials from its encrypted credential
   store only when building backend-bound `update-settings` payloads, so a
   restarted app cannot send `enabled: true` with an empty UI-redacted key to
-  backend provider selection.
+  backend provider selection. Renderer-visible config may expose only non-secret
+  saved-key presence such as `has_saved_key`, never raw key text.
 - Agent settings edited in the renderer must update Electron main's redacted
   desktop UI config store before the next query attaches `agent_definition`;
   disk persistence is not allowed to be the live-turn gate, and partial renderer

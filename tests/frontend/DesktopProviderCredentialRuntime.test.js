@@ -22,8 +22,16 @@ describe('desktopProviderCredentialRuntime', () => {
     expect(Object.keys(normalized).sort()).toEqual(
       DesktopProviderCredentialRuntime.getProviderApiKeySpecs().map((provider) => provider.id).sort(),
     );
-    expect(normalized.openai).toEqual({ enabled: true, api_key: 'sk-openai' });
-    expect(normalized.anthropic).toEqual({ enabled: false, api_key: '' });
+    expect(normalized.openai).toEqual({
+      enabled: true,
+      api_key: 'sk-openai',
+      has_saved_key: true,
+    });
+    expect(normalized.anthropic).toEqual({
+      enabled: false,
+      api_key: '',
+      has_saved_key: false,
+    });
     expect(normalized.unknown).toBeUndefined();
   });
 
@@ -44,12 +52,12 @@ describe('desktopProviderCredentialRuntime', () => {
       openai: { enabled: true, api_key: 'sk-openai' },
       google: { enabled: true, api_key: 'google-secret' },
     })).toEqual({
-      openai: { enabled: true, api_key: '' },
-      anthropic: { enabled: false, api_key: '' },
-      google: { enabled: true, api_key: '' },
-      openrouter: { enabled: false, api_key: '' },
-      mistral: { enabled: false, api_key: '' },
-      kimi_coding: { enabled: false, api_key: '' },
+      openai: { enabled: true, api_key: '', has_saved_key: true },
+      anthropic: { enabled: false, api_key: '', has_saved_key: false },
+      google: { enabled: true, api_key: '', has_saved_key: true },
+      openrouter: { enabled: false, api_key: '', has_saved_key: false },
+      mistral: { enabled: false, api_key: '', has_saved_key: false },
+      kimi_coding: { enabled: false, api_key: '', has_saved_key: false },
     });
   });
 });
