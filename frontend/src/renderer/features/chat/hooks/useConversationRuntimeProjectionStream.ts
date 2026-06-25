@@ -5,9 +5,6 @@
 import { useEffect, useRef } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import {
-  DesktopConversationDisplayProjection,
-} from '../../../app/runtime/desktopConversationDisplayProjection';
-import {
   DesktopChatStreamEventRuntime,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
@@ -17,7 +14,9 @@ import {
   DesktopCurrentTurnProjectionEffectsRuntime,
   type ProjectionCursor,
 } from '../../../app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
-import type { ChatWorkspaceState } from '../stores/chatWorkspaceState';
+import {
+  DesktopConversationProjectionStreamRuntime,
+} from '../../../app/runtime/desktopConversationProjectionStreamRuntime';
 
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 const {
@@ -31,70 +30,28 @@ const {
   shouldAcceptCurrentTurnBeforeLocalSend,
 } = DesktopCurrentTurnProjectionEffectsRuntime;
 const {
-  buildChatMessagesFromSdkDisplayRows,
-  buildDisplayProjectionTraceSummary,
-  mergeRendererAnnotationsIntoSdkMessages,
-} = DesktopConversationDisplayProjection;
+  buildDisplayRowsProjection,
+  buildReplayProjectionTracePayload,
+  isSupersededTurn,
+} = DesktopConversationProjectionStreamRuntime;
 const {
   logRendererCurrentTurnAppliedTrace,
   logRendererDisplayRowsProjectionTrace,
   logRendererReplayTrace,
 } = DesktopRendererTraceRuntime;
 
-function normalizeTurnRef(turnRef: string | null | undefined): string | null {
-  return typeof turnRef === 'string' && turnRef.trim()
-    ? turnRef.trim()
-    : null;
-}
-
-function isSupersededTurn(workspace: ChatWorkspaceState, turnRef: string | null | undefined): boolean {
-  const normalizedTurnRef = normalizeTurnRef(turnRef);
-  return Boolean(normalizedTurnRef && workspace.supersededTurnRefs?.[normalizedTurnRef]);
-}
-
-function rowTurnRef(row: unknown): string | null {
-  return row && typeof row === 'object' && !Array.isArray(row)
-    ? normalizeTurnRef((row as { turnRef?: string | null }).turnRef)
-    : null;
-}
-
-function withoutSupersededRows<TRow>(rows: TRow[], workspace: ChatWorkspaceState): TRow[] {
-  if (!workspace.supersededTurnRefs || Object.keys(workspace.supersededTurnRefs).length === 0) {
-    return rows;
-  }
-  return rows.filter((row) => !isSupersededTurn(workspace, rowTurnRef(row)));
-}
-
 function logReplayProjectionTrace(
   action: string,
   conversationRef: string,
-  workspace: ChatWorkspaceState,
+  workspace: Parameters<typeof buildReplayProjectionTracePayload>[0]['workspace'],
   values: Record<string, unknown> = {},
 ): void {
-  const pendingTurnRef = normalizeTurnRef(workspace.pendingTurn?.turnRef);
-  const currentTurnRef = normalizeTurnRef(workspace.currentTurnProjection?.turnRef);
-  logRendererReplayTrace({
+  logRendererReplayTrace(buildReplayProjectionTracePayload({
     action,
     conversationRef,
-    pendingTurnRef,
-    currentTurnRef,
-    currentTurnPhase: workspace.currentTurnProjection?.phase ?? null,
-    streamActiveTurnRef: workspace.streamTracking?.activeTurnRef ?? null,
-    streamPhase: workspace.streamTracking?.phase ?? null,
-    messageCount: Array.isArray(workspace.messages) ? workspace.messages.length : 0,
-    pendingPresent: Boolean(pendingTurnRef),
-    pendingMatchesNewTurn: Boolean(
-      pendingTurnRef
-        && typeof values.newTurnRef === 'string'
-        && pendingTurnRef === values.newTurnRef,
-    ),
-    currentMatchesNewTurn: Boolean(
-      currentTurnRef
-        && typeof values.newTurnRef === 'string'
-        && currentTurnRef === values.newTurnRef,
-    ),
-    ...values,
-  });
+    workspace,
+    values,
+  }));
 }
 
 export function useConversationRuntimeProjectionStream(): void {
@@ -198,22 +155,15 @@ export function useConversationRuntimeProjectionStream(): void {
         return;
       }
       const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-      const filteredRows = withoutSupersededRows(rows, workspace);
-      const sdkMessages = buildChatMessagesFromSdkDisplayRows(filteredRows);
-      const mergedMessages = mergeRendererAnnotationsIntoSdkMessages(
-        sdkMessages,
-        workspace.messages,
-        { pendingTurn: workspace.pendingTurn },
-      );
+      const {
+        filteredRows,
+        mergedMessages,
+        traceSummary,
+      } = buildDisplayRowsProjection({ rows, workspace });
       logRendererDisplayRowsProjectionTrace({
         source: 'sdk-display-rows-stream',
         conversationRef,
-        ...buildDisplayProjectionTraceSummary({
-          rows: filteredRows,
-          sdkMessages,
-          currentMessages: workspace.messages,
-          mergedMessages,
-        }),
+        ...traceSummary,
       });
       logReplayProjectionTrace('sdk_display_rows_projected', conversationRef, workspace, {
         displayRowCount: rows.length,

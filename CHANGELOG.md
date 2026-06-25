@@ -50,6 +50,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/store: move turn-to-conversation ref normalization and map merge
   rules into an app-runtime helper so `chatStore.ts` only binds routing state
   for events that omit `conversation_ref`. No migration required.
+- frontend/chat-stream: move SDK projection-stream display-row filtering,
+  optimistic pending-row merge orchestration, and replay trace payload shaping
+  into an app-runtime helper so `useConversationRuntimeProjectionStream` stays
+  focused on subscriptions and store writes. No migration required.
 - frontend/renderer: move pending-turn user-row construction out of
   `chatStore.ts` into an app-runtime pending bridge helper shared by normal
   sends and replay. The store now mutates workspace state without hard-coding

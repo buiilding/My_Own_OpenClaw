@@ -962,12 +962,23 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationDisplayProjection.ts'),
       'utf8',
     );
+    const projectionStreamRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationProjectionStreamRuntime.ts'),
+      'utf8',
+    );
     expect(projectionSource).not.toContain('DESKTOP_RUNTIME_ON_CHANNELS');
     expect(projectionSource).not.toContain('IpcBridge.on');
     expect(projectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
-    expect(projectionSource).toContain('desktopConversationDisplayProjection');
-    expect(projectionSource).toContain('DesktopConversationDisplayProjection');
-    expect(projectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
+    expect(projectionSource).toContain('desktopConversationProjectionStreamRuntime');
+    expect(projectionSource).toContain('DesktopConversationProjectionStreamRuntime');
+    expect(projectionSource).toContain('buildDisplayRowsProjection');
+    expect(projectionSource).not.toContain('desktopConversationDisplayProjection');
+    expect(projectionSource).not.toContain('DesktopConversationDisplayProjection');
+    expect(projectionSource).not.toContain('mergeRendererAnnotationsIntoSdkMessages');
+    expect(projectionSource).not.toContain('buildChatMessagesFromSdkDisplayRows');
+    expect(projectionSource).not.toContain('buildDisplayProjectionTraceSummary');
+    expect(projectionSource).not.toContain('function normalizeTurnRef');
+    expect(projectionSource).not.toContain('function withoutSupersededRows');
     expect(projectionSource).not.toContain('function mergeRendererAnnotations');
     expect(projectionSource).not.toContain('function pendingOptimisticUserMessages');
     expect(projectionSource).not.toContain('function isOptimisticUserMessage');
@@ -994,6 +1005,12 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).not.toContain('export function mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).not.toContain('export {\n  buildChatMessagesFromSdkDisplayRows');
     expect(displayProjectionSource).not.toContain('features/chat');
+    expect(projectionStreamRuntimeSource).toContain('DesktopConversationProjectionStreamRuntime');
+    expect(projectionStreamRuntimeSource).toContain('buildDisplayRowsProjection');
+    expect(projectionStreamRuntimeSource).toContain('withoutSupersededRows');
+    expect(projectionStreamRuntimeSource).toContain('buildReplayProjectionTracePayload');
+    expect(projectionStreamRuntimeSource).toContain('DesktopConversationDisplayProjection');
+    expect(projectionStreamRuntimeSource).not.toContain('features/chat');
   });
 
   test('dashboard conversation resume projects display rows through app runtime client', async () => {

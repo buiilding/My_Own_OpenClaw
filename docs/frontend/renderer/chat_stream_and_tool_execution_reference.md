@@ -24,6 +24,7 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationProjectionStreamRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopModelThinkingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts`
@@ -128,18 +129,19 @@ Thinking status methods from `DesktopChatStreamThinkingRuntime`:
 
 `useConversationRuntimeProjectionStream` subscribes through
 `DesktopConversationRuntimeEventClient` to SDK `windie:current-turn` and
-`windie:rows` projections, then maps SDK display rows through
-`buildChatMessagesFromSdkDisplayRows(...)`. Display-row presentation metadata
-uses `sdk:display-rows` as its source label; the `windie:rows` name is only the
-Electron IPC transport channel.
+`windie:rows` projections, then delegates display-row filtering, optimistic
+pending-row preservation, display-message projection, and replay trace payload
+shaping to `DesktopConversationProjectionStreamRuntime`. Display-row
+presentation metadata uses `sdk:display-rows` as its source label; the
+`windie:rows` name is only the Electron IPC transport channel.
 
 Renderer-only annotations such as prompt transparency, tool schemas, full
 message details, feedback, and token counts are merged back into matching
-SDK-projected messages by `desktopConversationDisplayProjection.ts`. The same
-app-runtime facade preserves pending optimistic user rows from the local
-composer until the SDK display rows include the same turn. The hook owns
-subscription wiring and store writes; it does not own display-row annotation or
-optimistic-row merge semantics.
+SDK-projected messages by `desktopConversationDisplayProjection.ts`.
+`desktopConversationProjectionStreamRuntime.ts` composes that display adapter
+with replay superseded-turn filtering so the hook owns subscription wiring and
+store writes only; it does not own display-row annotation, optimistic-row
+merge, or stale replay display suppression semantics.
 
 The old exported `mergeRendererAnnotations` helper remains removed. Stale
 searches for that name should route to `mergeRendererAnnotationsIntoSdkMessages`
