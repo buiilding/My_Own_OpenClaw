@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: move pending-turn accept, replay, clear, and broadcast
+  update decisions into the pending-turn state runtime so `chatStore.ts`
+  applies runtime-owned updates instead of branching over pending/replay IPC
+  semantics. No migration required.
 - frontend/projection: move SDK current-turn and display-row projection event
   application into the projection-stream runtime so the React subscription hook
   no longer owns supersession, stale-turn gating, projection cursors, or

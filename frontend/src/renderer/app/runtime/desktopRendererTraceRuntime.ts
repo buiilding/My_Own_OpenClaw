@@ -114,6 +114,7 @@ export type RendererReplayTraceValues = {
   sourceRowCount?: unknown;
   messageCount?: unknown;
   displayRowCount?: unknown;
+  shouldApplyMessages?: boolean;
   pendingMatchesNewTurn?: boolean;
   currentMatchesNewTurn?: boolean;
   currentMatchesOldTurn?: boolean;

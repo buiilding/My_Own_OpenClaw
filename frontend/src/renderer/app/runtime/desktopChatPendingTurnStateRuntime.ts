@@ -34,24 +34,91 @@ type PendingTurnWorkspaceState = {
   supersededTurnRefs: Record<string, true>;
 };
 
-type PendingTurnWorkspaceMutationInput = {
-  currentWorkspace: PendingTurnWorkspaceState;
+type PendingTurnWorkspaceMutationInput<TWorkspace extends PendingTurnWorkspaceState> = {
+  currentWorkspace: TWorkspace;
   pendingTurn: unknown;
   replayMessages?: ChatMessage[] | null;
   skipEchoedPendingTurn?: boolean;
   supersededTurnRef?: string | null;
 };
 
-type PendingTurnWorkspaceMutation = {
+type PendingTurnWorkspaceMutation<TWorkspace extends PendingTurnWorkspaceState> = {
   messages: ChatMessage[];
   normalizedPendingTurn: DesktopPendingTurnState;
   optimisticMessage: ChatMessage;
-  workspace: PendingTurnWorkspaceState;
+  workspace: TWorkspace;
 };
 
-type PendingTurnClearWorkspaceMutationInput = {
-  currentWorkspace: PendingTurnWorkspaceState;
+type PendingTurnClearWorkspaceMutationInput<TWorkspace extends PendingTurnWorkspaceState> = {
+  currentWorkspace: TWorkspace;
   input?: PendingTurnMatchInput;
+};
+
+type PendingTurnStateStoreSnapshot = {
+  activeConversationRef: string | null;
+  turnConversationRefs: Record<string, string>;
+};
+
+type PendingTurnStateStoreDependencies<
+  TState extends PendingTurnStateStoreSnapshot,
+  TWorkspace extends PendingTurnWorkspaceState,
+> = {
+  buildWorkspaceUpdate: (
+    state: TState,
+    workspaceRef: string,
+    workspace: TWorkspace,
+    extraState?: Partial<TState>,
+  ) => Partial<TState> | TState;
+  getProjectedWorkspaceFields: (workspace: TWorkspace) => Partial<TState>;
+  mergeTurnConversationRefs: (
+    current: Record<string, string>,
+    messages: ChatMessage[],
+    conversationRef: string | null,
+  ) => Record<string, string>;
+  readWorkspaceState: (state: TState, workspaceRef: string) => TWorkspace;
+  resolveChatWorkspaceRef: (conversationRef: string | null | undefined) => string;
+  resolveWorkspaceKey: (
+    requestedConversationRef: string | null | undefined,
+    activeConversationRef: string | null,
+  ) => string;
+};
+
+type AcceptReplayPendingTurnStateUpdateInput<
+  TState extends PendingTurnStateStoreSnapshot,
+  TWorkspace extends PendingTurnWorkspaceState,
+> = {
+  deps: PendingTurnStateStoreDependencies<TState, TWorkspace>;
+  messages: ChatMessage[];
+  pendingTurn: unknown;
+  state: TState;
+  supersededTurnRef?: string | null;
+};
+
+type AcceptPendingTurnStateUpdateInput<
+  TState extends PendingTurnStateStoreSnapshot,
+  TWorkspace extends PendingTurnWorkspaceState,
+> = {
+  deps: PendingTurnStateStoreDependencies<TState, TWorkspace>;
+  pendingTurn: unknown;
+  state: TState;
+};
+
+type ClearPendingTurnStateUpdateInput<
+  TState extends PendingTurnStateStoreSnapshot,
+  TWorkspace extends PendingTurnWorkspaceState,
+> = {
+  deps: PendingTurnStateStoreDependencies<TState, TWorkspace>;
+  input?: PendingTurnMatchInput;
+  state: TState;
+};
+
+type PendingTurnBroadcastStateUpdateInput<
+  TState extends PendingTurnStateStoreSnapshot,
+  TWorkspace extends PendingTurnWorkspaceState,
+> = {
+  action: unknown;
+  deps: PendingTurnStateStoreDependencies<TState, TWorkspace>;
+  state: TState;
 };
 
 const {
@@ -152,8 +219,8 @@ function removeSupersededTurnRef(
   return next;
 }
 
-function isEchoedPendingTurn(
-  currentWorkspace: PendingTurnWorkspaceState,
+function isEchoedPendingTurn<TWorkspace extends PendingTurnWorkspaceState>(
+  currentWorkspace: TWorkspace,
   pendingTurn: DesktopPendingTurnState,
 ): boolean {
   const echoedPendingMessage = currentWorkspace.messages.find((message) => (
@@ -185,13 +252,13 @@ function mergePendingTurnMessage(
     ));
 }
 
-function buildPendingTurnWorkspaceMutation({
+function buildPendingTurnWorkspaceMutation<TWorkspace extends PendingTurnWorkspaceState>({
   currentWorkspace,
   pendingTurn,
   replayMessages = null,
   skipEchoedPendingTurn = false,
   supersededTurnRef = null,
-}: PendingTurnWorkspaceMutationInput): PendingTurnWorkspaceMutation | null {
+}: PendingTurnWorkspaceMutationInput<TWorkspace>): PendingTurnWorkspaceMutation<TWorkspace> | null {
   const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
   if (!normalizedPendingTurn) {
     return null;
@@ -222,7 +289,7 @@ function buildPendingTurnWorkspaceMutation({
         : currentWorkspace.supersededTurnRefs,
       normalizedPendingTurn.turnRef,
     ),
-  };
+  } as TWorkspace;
   return {
     messages: nextMessages,
     normalizedPendingTurn,
@@ -231,10 +298,10 @@ function buildPendingTurnWorkspaceMutation({
   };
 }
 
-function buildPendingTurnClearWorkspaceMutation({
+function buildPendingTurnClearWorkspaceMutation<TWorkspace extends PendingTurnWorkspaceState>({
   currentWorkspace,
   input = null,
-}: PendingTurnClearWorkspaceMutationInput): PendingTurnWorkspaceState | null {
+}: PendingTurnClearWorkspaceMutationInput<TWorkspace>): TWorkspace | null {
   if (!doesPendingTurnMatch(currentWorkspace.pendingTurn, input)) {
     return null;
   }
@@ -242,12 +309,157 @@ function buildPendingTurnClearWorkspaceMutation({
     ...currentWorkspace,
     pendingTurn: null,
     isSending: false,
-  };
+  } as TWorkspace;
+}
+
+function buildAcceptReplayPendingTurnStateUpdate<
+  TState extends PendingTurnStateStoreSnapshot,
+  TWorkspace extends PendingTurnWorkspaceState,
+>({
+  deps,
+  messages,
+  pendingTurn,
+  state,
+  supersededTurnRef = null,
+}: AcceptReplayPendingTurnStateUpdateInput<TState, TWorkspace>): Partial<TState> | TState | null {
+  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
+  if (!normalizedPendingTurn) {
+    return null;
+  }
+  const workspaceRef = deps.resolveChatWorkspaceRef(normalizedPendingTurn.conversationRef);
+  const currentWorkspace = deps.readWorkspaceState(state, workspaceRef);
+  const pendingMutation = buildPendingTurnWorkspaceMutation({
+    currentWorkspace,
+    pendingTurn: normalizedPendingTurn,
+    replayMessages: Array.isArray(messages) ? messages : [],
+    supersededTurnRef,
+  });
+  if (!pendingMutation) {
+    return null;
+  }
+  const nextTurnConversationRefs = deps.mergeTurnConversationRefs(
+    state.turnConversationRefs,
+    pendingMutation.messages,
+    pendingMutation.normalizedPendingTurn.conversationRef,
+  );
+  const extraState = {
+    activeConversationRef: pendingMutation.normalizedPendingTurn.conversationRef,
+    latestConversationView: null,
+    turnConversationRefs: nextTurnConversationRefs,
+    ...deps.getProjectedWorkspaceFields(pendingMutation.workspace),
+  } as Partial<TState>;
+  return deps.buildWorkspaceUpdate(state, workspaceRef, pendingMutation.workspace, extraState);
+}
+
+function buildAcceptPendingTurnStateUpdate<
+  TState extends PendingTurnStateStoreSnapshot,
+  TWorkspace extends PendingTurnWorkspaceState,
+>({
+  deps,
+  pendingTurn,
+  state,
+}: AcceptPendingTurnStateUpdateInput<TState, TWorkspace>): Partial<TState> | TState | null {
+  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
+  if (!normalizedPendingTurn) {
+    return null;
+  }
+  const workspaceRef = deps.resolveChatWorkspaceRef(normalizedPendingTurn.conversationRef);
+  const currentWorkspace = deps.readWorkspaceState(state, workspaceRef);
+  const pendingMutation = buildPendingTurnWorkspaceMutation({
+    currentWorkspace,
+    pendingTurn: normalizedPendingTurn,
+    skipEchoedPendingTurn: true,
+  });
+  if (!pendingMutation) {
+    return null;
+  }
+  const nextTurnConversationRefs = deps.mergeTurnConversationRefs(
+    state.turnConversationRefs,
+    [pendingMutation.optimisticMessage],
+    pendingMutation.normalizedPendingTurn.conversationRef,
+  );
+  const extraState = {
+    activeConversationRef: pendingMutation.normalizedPendingTurn.conversationRef,
+    latestConversationView: null,
+    turnConversationRefs: nextTurnConversationRefs,
+    ...deps.getProjectedWorkspaceFields(pendingMutation.workspace),
+  } as Partial<TState>;
+  return deps.buildWorkspaceUpdate(state, workspaceRef, pendingMutation.workspace, extraState);
+}
+
+function buildClearPendingTurnStateUpdate<
+  TState extends PendingTurnStateStoreSnapshot,
+  TWorkspace extends PendingTurnWorkspaceState,
+>({
+  deps,
+  input = null,
+  state,
+}: ClearPendingTurnStateUpdateInput<TState, TWorkspace>): Partial<TState> | TState | null {
+  const conversationRef = normalizeConversationRef(input?.conversationRef);
+  const workspaceRef = deps.resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+  const currentWorkspace = deps.readWorkspaceState(state, workspaceRef);
+  const nextWorkspace = buildPendingTurnClearWorkspaceMutation({
+    currentWorkspace,
+    input,
+  });
+  if (!nextWorkspace) {
+    return null;
+  }
+  return deps.buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
+}
+
+function isPendingTurnBroadcastAction(value: unknown): value is {
+  conversationRef?: string | null;
+  kind: 'clear' | 'pending';
+  pendingTurn?: unknown;
+  turnRef?: string | null;
+} {
+  return Boolean(
+    value
+      && typeof value === 'object'
+      && !Array.isArray(value)
+      && (
+        (value as { kind?: unknown }).kind === 'clear'
+        || (value as { kind?: unknown }).kind === 'pending'
+      ),
+  );
+}
+
+function buildPendingTurnBroadcastStateUpdate<
+  TState extends PendingTurnStateStoreSnapshot,
+  TWorkspace extends PendingTurnWorkspaceState,
+>({
+  action,
+  deps,
+  state,
+}: PendingTurnBroadcastStateUpdateInput<TState, TWorkspace>): Partial<TState> | TState | null {
+  if (!isPendingTurnBroadcastAction(action)) {
+    return null;
+  }
+  if (action.kind === 'clear') {
+    return buildClearPendingTurnStateUpdate({
+      deps,
+      input: {
+        conversationRef: action.conversationRef,
+        turnRef: action.turnRef,
+      },
+      state,
+    });
+  }
+  return buildAcceptPendingTurnStateUpdate({
+    deps,
+    pendingTurn: action.pendingTurn,
+    state,
+  });
 }
 
 export const DesktopChatPendingTurnStateRuntime = Object.freeze({
   addSupersededTurnRef,
+  buildAcceptPendingTurnStateUpdate,
+  buildAcceptReplayPendingTurnStateUpdate,
+  buildClearPendingTurnStateUpdate,
   buildPendingTurnClearWorkspaceMutation,
+  buildPendingTurnBroadcastStateUpdate,
   buildPendingTurnWorkspaceMutation,
   doesPendingTurnMatch,
   normalizePendingTurn,

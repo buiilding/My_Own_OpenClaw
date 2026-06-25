@@ -17,6 +17,7 @@ const {
 } = DesktopResponseOverlayViewRuntime;
 
 type TurnRefMessage = {
+  id?: string | null;
   turnRef?: string | null;
 };
 

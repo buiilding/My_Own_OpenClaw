@@ -1932,6 +1932,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnWorkspaceRuntime.ts'),
       'utf8',
     );
+    const pendingStateRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatPendingTurnStateRuntime.ts'),
+      'utf8',
+    );
 
     expect(offenders).toEqual([]);
     expect(clientSource).toContain('DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
@@ -1944,9 +1948,11 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('hasAuthoritativeSameTurnSdkReplacement');
     expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForCurrentProjection');
     expect(currentTurnWorkspaceRuntimeSource).toContain('buildCurrentTurnWorkspaceMutation');
-    expect(chatStoreSource).toContain("action.kind === 'clear'");
+    expect(chatStoreSource).toContain('buildPendingTurnBroadcastStateUpdate');
+    expect(chatStoreSource).not.toContain("action.kind === 'clear'");
     expect(chatStoreSource).not.toContain("source.type === 'clear'");
     expect(chatStoreSource).not.toContain('source.pendingTurn');
+    expect(pendingStateRuntimeSource).toContain("action.kind === 'clear'");
     expect(visibleLifecycleSource).toContain('function hasAuthoritativeSameTurnSdkReplacement');
     expect(visibleLifecycleSource).not.toContain('hasAuthoritativeSameTurnSdkReplacement,');
   });
@@ -3203,8 +3209,12 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('buildStoppedTurnWorkspaceMutation');
     expect(chatStoreSource).not.toContain('DesktopChatCurrentTurnStateRuntime');
     expect(chatStoreSource).not.toContain('doesCurrentTurnProjectionMatch');
-    expect(chatStoreSource).toContain('buildPendingTurnWorkspaceMutation');
-    expect(chatStoreSource).toContain('buildPendingTurnClearWorkspaceMutation');
+    expect(chatStoreSource).toContain('buildAcceptPendingTurnStateUpdate');
+    expect(chatStoreSource).toContain('buildAcceptReplayPendingTurnStateUpdate');
+    expect(chatStoreSource).toContain('buildClearPendingTurnStateUpdate');
+    expect(chatStoreSource).toContain('buildPendingTurnBroadcastStateUpdate');
+    expect(chatStoreSource).not.toContain('buildPendingTurnWorkspaceMutation');
+    expect(chatStoreSource).not.toContain('buildPendingTurnClearWorkspaceMutation');
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBridgeRuntime');
     expect(chatStoreSource).not.toContain('buildPendingTurnUserMessage');
     expect(chatStoreSource).not.toContain('function normalizePendingTurn');
@@ -3229,6 +3239,10 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('features/chat');
     expect(pendingStateRuntimeSource).toContain('normalizePendingTurn');
     expect(pendingStateRuntimeSource).toContain('doesPendingTurnMatch');
+    expect(pendingStateRuntimeSource).toContain('buildAcceptPendingTurnStateUpdate');
+    expect(pendingStateRuntimeSource).toContain('buildAcceptReplayPendingTurnStateUpdate');
+    expect(pendingStateRuntimeSource).toContain('buildClearPendingTurnStateUpdate');
+    expect(pendingStateRuntimeSource).toContain('buildPendingTurnBroadcastStateUpdate');
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnWorkspaceMutation');
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnClearWorkspaceMutation');
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnUserMessage');

@@ -101,9 +101,11 @@ Message attachment fields used by current send/runtime paths include:
   IPC fan-out cannot repaint the existing user bubble. Pending turns preserve
   only identity, text, timestamp, and filename chips; visual attachment
   descriptors belong to SDK display rows. The pending user-row shape and
-  workspace mutation projection are built by app-runtime helpers, and
-  pending-turn normalization, matching, and superseded-turn map updates live in
-  `desktopChatPendingTurnStateRuntime.ts`, not hard-coded in the store.
+  workspace mutation projection are built by app-runtime helpers. The
+  store-level accept-pending, replay-pending, clear, and broadcast update
+  decisions also live in `desktopChatPendingTurnStateRuntime.ts`; `chatStore.ts`
+  only supplies workspace read/write dependencies and applies the returned
+  update.
 - `acceptReplayPendingTurn` stores the retained replay prefix and
   renderer-local pending turn in one workspace mutation before awaiting the SDK
   retry/edit command, so edit/resend never publishes a prefix-only frame before
@@ -114,7 +116,8 @@ Message attachment fields used by current send/runtime paths include:
   helper as normal sends.
 - `clearPendingTurn` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn.
-  Pending-turn clear matching and workspace mutation live in
+  Pending-turn clear matching, broadcast action branching, and workspace
+  mutation live in
   `desktopChatPendingTurnStateRuntime.ts`, including the pending-turn broadcast
   clear path.
 - `acceptStoppedTurn` immediately clears local busy/thinking state, clears a

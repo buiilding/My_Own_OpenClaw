@@ -4,6 +4,9 @@ import type {
 import {
   DesktopChatStreamEventRuntime,
 } from './desktopChatStreamEventRuntime';
+import type {
+  StreamPhase,
+} from './desktopChatStreamTrackingRuntime';
 import {
   DesktopCurrentTurnProjectionEffectsRuntime,
   type CurrentTurnProjectionEffectsInput,
@@ -20,6 +23,7 @@ import {
 } from './desktopPresentationSourceChannels';
 import {
   DesktopRendererTraceRuntime,
+  type RendererReplayTraceValues,
 } from './desktopRendererTraceRuntime';
 
 type PendingTurnLike = {
@@ -33,16 +37,17 @@ type CurrentTurnLike = {
 
 type StreamTrackingLike = {
   activeTurnRef?: string | null;
-  phase?: string | null;
-} | null | undefined;
+  phase: StreamPhase;
+};
 
 type ProjectionWorkspace = {
   conversationView?: unknown | null;
   currentTurnProjection?: CurrentTurnLike;
-  messages?: ChatMessage[];
+  messages: ChatMessage[];
   pendingTurn?: PendingTurnLike;
-  streamTracking?: StreamTrackingLike;
+  streamTracking: StreamTrackingLike;
   supersededTurnRefs?: Record<string, true>;
+  thinkingStatus?: string | null;
 };
 
 type CurrentTurnProjectionStreamDeps = {
@@ -78,7 +83,7 @@ type ApplyDisplayRowsProjectionEventInput = {
 type ReplayProjectionTracePayloadInput = {
   action: string;
   conversationRef: string;
-  values?: Record<string, unknown>;
+  values?: Partial<RendererReplayTraceValues>;
   workspace: ProjectionWorkspace;
 };
 
@@ -145,7 +150,7 @@ function buildReplayProjectionTracePayload({
   conversationRef,
   workspace,
   values = {},
-}: ReplayProjectionTracePayloadInput): Record<string, unknown> {
+}: ReplayProjectionTracePayloadInput): RendererReplayTraceValues {
   const pendingTurnRef = normalizeTurnRef(workspace.pendingTurn?.turnRef);
   const currentTurnRef = normalizeTurnRef(workspace.currentTurnProjection?.turnRef);
   return {
@@ -181,7 +186,7 @@ function logReplayProjectionTrace(
   action: string,
   conversationRef: string,
   workspace: ProjectionWorkspace,
-  values: Record<string, unknown> = {},
+  values: Partial<RendererReplayTraceValues> = {},
 ): void {
   logRendererReplayTrace(buildReplayProjectionTracePayload({
     action,

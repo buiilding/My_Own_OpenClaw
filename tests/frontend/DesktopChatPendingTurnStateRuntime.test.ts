@@ -8,6 +8,10 @@ import {
 
 const {
   addSupersededTurnRef,
+  buildAcceptPendingTurnStateUpdate,
+  buildAcceptReplayPendingTurnStateUpdate,
+  buildClearPendingTurnStateUpdate,
+  buildPendingTurnBroadcastStateUpdate,
   buildPendingTurnClearWorkspaceMutation,
   buildPendingTurnWorkspaceMutation,
   doesPendingTurnMatch,
@@ -28,6 +32,51 @@ function workspace(overrides = {}) {
     ...overrides,
   };
 }
+
+function storeState(overrides = {}) {
+  return {
+    activeConversationRef: null,
+    turnConversationRefs: {},
+    workspaces: {},
+    ...overrides,
+  };
+}
+
+const stateRuntimeDeps = {
+  buildWorkspaceUpdate: (state, workspaceRef, nextWorkspace, extraState = {}) => ({
+    workspaces: {
+      ...state.workspaces,
+      [workspaceRef]: nextWorkspace,
+    },
+    ...extraState,
+  }),
+  getProjectedWorkspaceFields: (nextWorkspace) => ({
+    currentTurnProjection: nextWorkspace.currentTurnProjection,
+    conversationView: nextWorkspace.conversationView,
+    isSending: nextWorkspace.isSending,
+    messages: nextWorkspace.messages,
+    pendingTurn: nextWorkspace.pendingTurn,
+    supersededTurnRefs: nextWorkspace.supersededTurnRefs,
+    thinkingSourceEventType: nextWorkspace.thinkingSourceEventType,
+    thinkingStatus: nextWorkspace.thinkingStatus,
+  }),
+  mergeTurnConversationRefs: (current, messages, conversationRef) => {
+    return messages.reduce((next, message) => {
+      if (message.turnRef && conversationRef) {
+        return {
+          ...next,
+          [message.turnRef]: conversationRef,
+        };
+      }
+      return next;
+    }, current);
+  },
+  readWorkspaceState: (state, workspaceRef) => state.workspaces[workspaceRef] ?? workspace(),
+  resolveChatWorkspaceRef: (conversationRef) => conversationRef || '__default__',
+  resolveWorkspaceKey: (conversationRef, activeConversationRef) => (
+    conversationRef || activeConversationRef || '__default__'
+  ),
+};
 
 describe('DesktopChatPendingTurnStateRuntime', () => {
   test('normalizes valid pending turns and strips empty attachment filenames', () => {
@@ -200,6 +249,135 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
     expect(buildPendingTurnClearWorkspaceMutation({
       currentWorkspace,
       input: { conversationRef: 'conv-other', turnRef: 'turn-1' },
+    })).toBeNull();
+  });
+
+  test('builds accept-pending store updates with active workspace projection', () => {
+    const state = storeState();
+
+    const update = buildAcceptPendingTurnStateUpdate({
+      deps: stateRuntimeDeps,
+      pendingTurn: {
+        conversationRef: 'conv-state',
+        turnRef: 'turn-state',
+        userMessageId: 'user-state',
+        text: 'hello state',
+        timestamp: '2026-06-25T12:00:00.000Z',
+        attachmentFilenames: null,
+      },
+      state,
+    });
+
+    expect(update).toEqual(expect.objectContaining({
+      activeConversationRef: 'conv-state',
+      isSending: true,
+      pendingTurn: expect.objectContaining({
+        turnRef: 'turn-state',
+      }),
+      turnConversationRefs: {
+        'turn-state': 'conv-state',
+      },
+    }));
+    expect(update?.workspaces['conv-state']).toEqual(expect.objectContaining({
+      pendingTurn: expect.objectContaining({
+        userMessageId: 'user-state',
+      }),
+    }));
+  });
+
+  test('builds replay-pending store updates with superseded turn tracking', () => {
+    const state = storeState({
+      workspaces: {
+        'conv-replay': workspace({
+          supersededTurnRefs: {},
+        }),
+      },
+    });
+
+    const update = buildAcceptReplayPendingTurnStateUpdate({
+      deps: stateRuntimeDeps,
+      messages: [],
+      pendingTurn: {
+        conversationRef: 'conv-replay',
+        turnRef: 'turn-new',
+        userMessageId: 'user-new',
+        text: 'edited',
+        timestamp: '2026-06-25T12:00:00.000Z',
+        attachmentFilenames: null,
+      },
+      state,
+      supersededTurnRef: 'turn-old',
+    });
+
+    expect(update?.workspaces['conv-replay']).toEqual(expect.objectContaining({
+      pendingTurn: expect.objectContaining({
+        turnRef: 'turn-new',
+      }),
+      supersededTurnRefs: {
+        'turn-old': true,
+      },
+    }));
+  });
+
+  test('builds pending broadcast clear store updates without store branching', () => {
+    const state = storeState({
+      activeConversationRef: 'conv-clear',
+      workspaces: {
+        'conv-clear': workspace({
+          isSending: true,
+          pendingTurn: {
+            conversationRef: 'conv-clear',
+            turnRef: 'turn-clear',
+            userMessageId: 'user-clear',
+            text: 'clear me',
+            timestamp: '2026-06-25T12:00:00.000Z',
+            attachmentFilenames: null,
+          },
+        }),
+      },
+    });
+
+    const update = buildPendingTurnBroadcastStateUpdate({
+      action: {
+        kind: 'clear',
+        conversationRef: 'conv-clear',
+        turnRef: 'turn-clear',
+      },
+      deps: stateRuntimeDeps,
+      state,
+    });
+
+    expect(update?.workspaces['conv-clear']).toEqual(expect.objectContaining({
+      isSending: false,
+      pendingTurn: null,
+    }));
+  });
+
+  test('builds clear-pending store updates only for matching pending turns', () => {
+    const state = storeState({
+      activeConversationRef: 'conv-clear',
+      workspaces: {
+        'conv-clear': workspace({
+          isSending: true,
+          pendingTurn: {
+            conversationRef: 'conv-clear',
+            turnRef: 'turn-clear',
+            userMessageId: 'user-clear',
+            text: 'clear me',
+            timestamp: '2026-06-25T12:00:00.000Z',
+            attachmentFilenames: null,
+          },
+        }),
+      },
+    });
+
+    expect(buildClearPendingTurnStateUpdate({
+      deps: stateRuntimeDeps,
+      input: {
+        conversationRef: 'conv-other',
+        turnRef: 'turn-clear',
+      },
+      state,
     })).toBeNull();
   });
 });

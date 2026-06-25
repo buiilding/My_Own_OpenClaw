@@ -53,7 +53,14 @@ import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/des
 
 const {
   buildStoppedTurnWorkspaceMutation,
-} = DesktopStopTurnRuntime;
+} = DesktopStopTurnRuntime as {
+  buildStoppedTurnWorkspaceMutation: (input: {
+    conversationRef?: string | null;
+    currentWorkspace: ChatWorkspaceState;
+    stoppedAt?: string | null;
+    turnRef?: string | null;
+  }) => ChatWorkspaceState | null;
+};
 const {
   projectDesktopChatInterfaceState,
   projectDesktopLiveTurnSurfaceState,
@@ -62,8 +69,10 @@ const {
   buildResponseOverlayDismissalKey,
 } = DesktopResponseOverlayViewRuntime;
 const {
-  buildPendingTurnClearWorkspaceMutation,
-  buildPendingTurnWorkspaceMutation,
+  buildAcceptPendingTurnStateUpdate,
+  buildAcceptReplayPendingTurnStateUpdate,
+  buildClearPendingTurnStateUpdate,
+  buildPendingTurnBroadcastStateUpdate,
 } = DesktopChatPendingTurnStateRuntime;
 const {
   mergeTurnConversationRefs,
@@ -78,6 +87,15 @@ const {
   buildConversationViewWorkspaceMutation,
 } = DesktopConversationViewWorkspaceRuntime;
 export type { ChatMessage, TokenCounts };
+
+const pendingTurnStateRuntimeDependencies = {
+  buildWorkspaceUpdate,
+  getProjectedWorkspaceFields,
+  mergeTurnConversationRefs,
+  readWorkspaceState,
+  resolveChatWorkspaceRef,
+  resolveWorkspaceKey,
+};
 
 export type StreamPhase =
   | 'idle'
@@ -466,73 +484,31 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   acceptReplayPendingTurn: ({ messages, pendingTurn, supersededTurnRef = null }) =>
     set((state) => {
-      const normalizedConversationRef = normalizeConversationRef(pendingTurn?.conversationRef);
-      const workspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
-      const currentWorkspace = readWorkspaceState(state, workspaceRef);
-      const pendingMutation = buildPendingTurnWorkspaceMutation({
-        currentWorkspace,
+      return buildAcceptReplayPendingTurnStateUpdate<ChatState, ChatWorkspaceState>({
+        deps: pendingTurnStateRuntimeDependencies,
+        messages,
         pendingTurn,
-        replayMessages: Array.isArray(messages) ? messages : [],
+        state,
         supersededTurnRef,
-      });
-      if (!pendingMutation) {
-        return state;
-      }
-      const nextTurnConversationRefs = mergeTurnConversationRefs(
-        state.turnConversationRefs,
-        pendingMutation.messages,
-        pendingMutation.normalizedPendingTurn.conversationRef,
-      );
-      return buildWorkspaceUpdate(state, workspaceRef, pendingMutation.workspace, {
-        activeConversationRef: pendingMutation.normalizedPendingTurn.conversationRef,
-        latestConversationView: null,
-        turnConversationRefs: nextTurnConversationRefs,
-        ...getProjectedWorkspaceFields(pendingMutation.workspace),
-      });
+      }) ?? state;
     }),
 
   acceptPendingTurn: (pendingTurn) =>
     set((state) => {
-      const normalizedConversationRef = normalizeConversationRef(pendingTurn.conversationRef);
-      if (!normalizedConversationRef) {
-        return state;
-      }
-      const workspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
-      const currentWorkspace = readWorkspaceState(state, workspaceRef);
-      const pendingMutation = buildPendingTurnWorkspaceMutation({
-        currentWorkspace,
+      return buildAcceptPendingTurnStateUpdate<ChatState, ChatWorkspaceState>({
+        deps: pendingTurnStateRuntimeDependencies,
         pendingTurn,
-        skipEchoedPendingTurn: true,
-      });
-      if (!pendingMutation) {
-        return state;
-      }
-      const nextTurnConversationRefs = mergeTurnConversationRefs(
-        state.turnConversationRefs,
-        [pendingMutation.optimisticMessage],
-        normalizedConversationRef,
-      );
-      return buildWorkspaceUpdate(state, workspaceRef, pendingMutation.workspace, {
-        activeConversationRef: normalizedConversationRef,
-        latestConversationView: null,
-        turnConversationRefs: nextTurnConversationRefs,
-        ...getProjectedWorkspaceFields(pendingMutation.workspace),
-      });
+        state,
+      }) ?? state;
     }),
 
   clearPendingTurn: (input = null) =>
     set((state) => {
-      const conversationRef = normalizeConversationRef(input?.conversationRef);
-      const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
-      const currentWorkspace = readWorkspaceState(state, workspaceRef);
-      const nextWorkspace = buildPendingTurnClearWorkspaceMutation({
-        currentWorkspace,
+      return buildClearPendingTurnStateUpdate<ChatState, ChatWorkspaceState>({
+        deps: pendingTurnStateRuntimeDependencies,
         input,
-      });
-      if (!nextWorkspace) {
-        return state;
-      }
-      return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
+        state,
+      }) ?? state;
     }),
 
   acceptStoppedTurn: (input = null) =>
@@ -555,42 +531,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   applyPendingTurnBroadcast: (action) =>
     set((state) => {
-      if (action.kind === 'clear') {
-        const conversationRef = action.conversationRef;
-        const turnRef = action.turnRef;
-        const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
-        const currentWorkspace = readWorkspaceState(state, workspaceRef);
-        const nextWorkspace = buildPendingTurnClearWorkspaceMutation({
-          currentWorkspace,
-          input: { conversationRef, turnRef },
-        });
-        if (!nextWorkspace) {
-          return state;
-        }
-        return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
-      }
-      const normalizedConversationRef = normalizeConversationRef(action.pendingTurn?.conversationRef);
-      const workspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
-      const currentWorkspace = readWorkspaceState(state, workspaceRef);
-      const pendingMutation = buildPendingTurnWorkspaceMutation({
-        currentWorkspace,
-        pendingTurn: action.pendingTurn,
-        skipEchoedPendingTurn: true,
-      });
-      if (!pendingMutation) {
-        return state;
-      }
-      const nextTurnConversationRefs = mergeTurnConversationRefs(
-        state.turnConversationRefs,
-        [pendingMutation.optimisticMessage],
-        pendingMutation.normalizedPendingTurn.conversationRef,
-      );
-      return buildWorkspaceUpdate(state, workspaceRef, pendingMutation.workspace, {
-        activeConversationRef: pendingMutation.normalizedPendingTurn.conversationRef,
-        latestConversationView: null,
-        turnConversationRefs: nextTurnConversationRefs,
-        ...getProjectedWorkspaceFields(pendingMutation.workspace),
-      });
+      return buildPendingTurnBroadcastStateUpdate<ChatState, ChatWorkspaceState>({
+        action,
+        deps: pendingTurnStateRuntimeDependencies,
+        state,
+      }) ?? state;
     }),
 
   setLatestConversationView: (conversationView) =>
