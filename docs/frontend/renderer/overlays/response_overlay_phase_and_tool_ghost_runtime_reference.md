@@ -150,6 +150,10 @@ Contract ownership:
   SDK current-turn projection-to-message conversion behind one renderer
   app-runtime facade.
 - `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
+- `useResponseOverlayViewModel` names the selected rows as
+  `responseOverlayMessages`; feature code should not reintroduce a
+  caller-built `currentTurnMessages` read model beside
+  `DesktopResponseOverlayViewRuntime.resolveResponseOverlayEntries(...)`.
 - `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
   returns explicit SDK response-entry data and overlay-intent metadata without
   merging a caller-supplied presentation fallback; response visibility requires

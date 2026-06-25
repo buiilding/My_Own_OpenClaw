@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: rename response-overlay hook row state away from
+  `currentTurnMessages` so feature code consumes `responseOverlayMessages`
+  selected by `DesktopResponseOverlayViewRuntime` instead of implying a
+  caller-built live-turn read model. No migration required.
 - frontend/presentation: remove the legacy `currentTurnMessages` input from
   thread presentation so live rows come only from SDK current-turn projection
   adapters or `ConversationView`, not caller-built renderer arrays. No

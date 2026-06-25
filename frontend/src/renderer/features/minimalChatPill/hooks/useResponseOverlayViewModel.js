@@ -105,7 +105,7 @@ export function useResponseOverlayViewModel({
     ],
   );
 
-  const currentTurnMessages = useMemo(
+  const responseOverlayMessages = useMemo(
     () => (
       useLocalPendingTurn
         ? messages
@@ -141,10 +141,10 @@ export function useResponseOverlayViewModel({
 
   const currentTurnPresentationState = useMemo(
     () => resolveCurrentTurnPresentationState({
-      messages: currentTurnMessages,
+      messages: responseOverlayMessages,
       dismissedResponseId,
     }),
-    [currentTurnMessages, dismissedResponseId],
+    [responseOverlayMessages, dismissedResponseId],
   );
 
   const resolvedCurrentTurnPresentationState = useMemo(
@@ -167,12 +167,12 @@ export function useResponseOverlayViewModel({
   );
 
   const viewIntent = useMemo(() => resolveChatPillViewIntent({
-    messages: currentTurnMessages,
+    messages: responseOverlayMessages,
     currentTurnPresentationState: resolvedCurrentTurnPresentationState,
     responseOverlayEntries,
     dismissedResponseId,
   }), [
-    currentTurnMessages,
+    responseOverlayMessages,
     dismissedResponseId,
     responseOverlayEntries,
     resolvedCurrentTurnPresentationState,

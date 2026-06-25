@@ -1915,6 +1915,7 @@ describe('renderer app runtime boundary', () => {
     expect(responseViewRuntimeSource).toContain("liveTurnPresentationInput.source === 'conversation-view'");
     expect(responseOverlayViewModelSource).toContain('resolveResponseOverlayEntries');
     expect(responseOverlayViewModelSource).not.toContain('buildConversationViewLiveTurnMessages');
+    expect(responseOverlayViewModelSource).not.toContain('currentTurnMessages');
     expect(normalizedResponseOverlaySource).not.toContain('thinkingStatus');
     expect(responseOverlayViewModelSource).not.toContain('thinkingStatus');
     expect(normalizedChatInterfaceSource).not.toContain('useChatSurfaceController({\n    isSending,');
