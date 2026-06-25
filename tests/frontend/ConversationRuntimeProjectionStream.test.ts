@@ -336,38 +336,13 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     expect(workspace.pendingTurn).toBeNull();
   });
 
-  test('stores conversation view and projects dashboard rows from SDK current-turn payload', () => {
+  test('stores conversation view from SDK current-turn payload', () => {
     const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
     useChatStore.getState().setActiveConversationRef('conv-1');
-    useChatStore.getState().setMessages([
-      message({
-        id: 'stale-row',
-        sender: 'assistant',
-        text: 'stale dashboard row',
-        turnRef: 'turn-stale',
-      }),
-    ], 'conv-1');
-    const displayRows = [{
-      id: 'turn-view-sdk-evt-000002-user_message',
-      conversationRef: 'conv-1',
-      turnRef: 'turn-view',
-      index: 0,
-      role: 'user',
-      type: 'user_message',
-      content: 'hello from view display rows',
-    }, {
-      id: 'turn-view-sdk-evt-000004-assistant_message',
-      conversationRef: 'conv-1',
-      turnRef: 'turn-view',
-      index: 1,
-      role: 'assistant',
-      type: 'assistant_message',
-      content: 'dashboard transcript from view',
-    }];
     const view = {
       conversationRef: 'conv-1',
       revisionId: 'rev-1',
-      displayRows,
+      displayRows: [],
       liveTurn: {
         turnRef: 'turn-view',
         phase: 'streaming',
@@ -420,19 +395,5 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     const workspace = state.getWorkspaceState('conv-1');
     expect(workspace.conversationView).toBe(view);
     expect(state.latestConversationView).toBe(view);
-    expect(workspace.messages).toEqual([
-      expect.objectContaining({
-        id: 'turn-view-sdk-evt-000002-user_message',
-        sender: 'user',
-        text: 'hello from view display rows',
-        turnRef: 'turn-view',
-      }),
-      expect.objectContaining({
-        id: 'turn-view-sdk-evt-000004-assistant_message',
-        sender: 'assistant',
-        text: 'dashboard transcript from view',
-        turnRef: 'turn-view',
-      }),
-    ]);
   });
 });

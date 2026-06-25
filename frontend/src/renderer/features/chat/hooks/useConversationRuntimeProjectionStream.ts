@@ -2,7 +2,7 @@
  * Coordinates the use conversation runtime projection stream for the renderer UI.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import {
   DesktopConversationDisplayProjection,
@@ -65,14 +65,6 @@ function withoutSupersededRows<TRow>(rows: TRow[], workspace: ChatWorkspaceState
   return rows.filter((row) => !isSupersededTurn(workspace, rowTurnRef(row)));
 }
 
-function readConversationViewDisplayRows(view: unknown): unknown[] | null {
-  if (!view || typeof view !== 'object' || !('displayRows' in view)) {
-    return null;
-  }
-  const rows = (view as { displayRows?: unknown }).displayRows;
-  return Array.isArray(rows) ? rows : null;
-}
-
 function logReplayProjectionTrace(
   action: string,
   conversationRef: string,
@@ -115,39 +107,6 @@ export function useConversationRuntimeProjectionStream(): void {
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
-  const applyDisplayRowsProjection = useCallback((
-    rows: unknown[],
-    conversationRef: string,
-    source: string,
-    replayAction: string,
-  ): void => {
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const filteredRows = withoutSupersededRows(rows, workspace);
-    const sdkMessages = buildChatMessagesFromSdkDisplayRows(filteredRows);
-    const mergedMessages = mergeRendererAnnotationsIntoSdkMessages(
-      sdkMessages,
-      workspace.messages,
-      { pendingTurn: workspace.pendingTurn },
-    );
-    logRendererDisplayRowsProjectionTrace({
-      source,
-      conversationRef,
-      ...buildDisplayProjectionTraceSummary({
-        rows: filteredRows,
-        sdkMessages,
-        currentMessages: workspace.messages,
-        mergedMessages,
-      }),
-    });
-    logReplayProjectionTrace(replayAction, conversationRef, workspace, {
-      displayRowCount: rows.length,
-      replacementRowCount: filteredRows.length,
-    });
-    setMessages(
-      mergedMessages,
-      conversationRef,
-    );
-  }, [setMessages]);
 
   useEffect(() => {
     const removeListener = DesktopConversationRuntimeEventClient.onPendingTurn((action) => {
@@ -179,15 +138,6 @@ export function useConversationRuntimeProjectionStream(): void {
       // Check stale-turn status before current-turn storage can resolve pendingTurn.
       setCurrentTurnProjection(currentTurn, conversationRef);
       setConversationView(view, conversationRef);
-      const viewDisplayRows = readConversationViewDisplayRows(view);
-      if (viewDisplayRows) {
-        applyDisplayRowsProjection(
-          viewDisplayRows,
-          conversationRef,
-          'sdk-conversation-view',
-          'sdk_view_display_rows_projected',
-        );
-      }
 
       const shouldSkipDerivedSideEffects = currentTurn
         ? (
@@ -239,7 +189,6 @@ export function useConversationRuntimeProjectionStream(): void {
       removeListener?.();
     };
   }, [
-    applyDisplayRowsProjection,
     setConversationView,
     setCurrentTurnProjection,
     setIsSending,
@@ -254,15 +203,35 @@ export function useConversationRuntimeProjectionStream(): void {
       if (!conversationRef) {
         return;
       }
-      applyDisplayRowsProjection(
-        rows,
+      const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+      const filteredRows = withoutSupersededRows(rows, workspace);
+      const sdkMessages = buildChatMessagesFromSdkDisplayRows(filteredRows);
+      const mergedMessages = mergeRendererAnnotationsIntoSdkMessages(
+        sdkMessages,
+        workspace.messages,
+        { pendingTurn: workspace.pendingTurn },
+      );
+      logRendererDisplayRowsProjectionTrace({
+        source: 'sdk-display-rows-stream',
         conversationRef,
-        'sdk-display-rows-stream',
-        'sdk_display_rows_projected',
+        ...buildDisplayProjectionTraceSummary({
+          rows: filteredRows,
+          sdkMessages,
+          currentMessages: workspace.messages,
+          mergedMessages,
+        }),
+      });
+      logReplayProjectionTrace('sdk_display_rows_projected', conversationRef, workspace, {
+        displayRowCount: rows.length,
+        replacementRowCount: filteredRows.length,
+      });
+      setMessages(
+        mergedMessages,
+        conversationRef,
       );
     });
     return () => {
       removeListener?.();
     };
-  }, [applyDisplayRowsProjection]);
+  }, [setMessages]);
 }
