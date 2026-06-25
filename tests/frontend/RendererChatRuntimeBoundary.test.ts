@@ -3020,6 +3020,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnWorkspaceRuntime.ts'),
       'utf8',
     );
+    const conversationViewWorkspaceRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationViewWorkspaceRuntime.ts'),
+      'utf8',
+    );
     const displayAttachmentProjectionSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSdkDisplayAttachmentProjection.ts'),
       'utf8',
@@ -3077,6 +3081,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('createInitialWorkspaceRecord');
     expect(chatStoreSource).toContain('DesktopChatPendingTurnStateRuntime');
     expect(chatStoreSource).toContain('DesktopCurrentTurnWorkspaceRuntime');
+    expect(chatStoreSource).toContain('DesktopConversationViewWorkspaceRuntime');
     expect(chatStoreSource).toContain('buildStoppedTurnWorkspaceMutation');
     expect(chatStoreSource).not.toContain('DesktopChatCurrentTurnStateRuntime');
     expect(chatStoreSource).not.toContain('doesCurrentTurnProjectionMatch');
@@ -3091,6 +3096,11 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('function normalizeTurnRef');
     expect(chatStoreSource).not.toContain('function mergeTurnConversationRefs');
     expect(chatStoreSource).not.toContain('resolvePendingTurnForCurrentProjection');
+    expect(chatStoreSource).not.toContain('shouldUpdateLatestView');
+    expect(chatStoreSource).not.toContain('Object.keys(latestUpdate)');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('buildConversationViewWorkspaceMutation');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('hasLatestConversationViewUpdate');
+    expect(conversationViewWorkspaceRuntimeSource).not.toContain('features/chat');
     expect(pendingStateRuntimeSource).toContain('normalizePendingTurn');
     expect(pendingStateRuntimeSource).toContain('doesPendingTurnMatch');
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnWorkspaceMutation');

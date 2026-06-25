@@ -39,6 +39,9 @@ import {
 import {
   DesktopCurrentTurnWorkspaceRuntime,
 } from '../../../app/runtime/desktopCurrentTurnWorkspaceRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from '../../../app/runtime/desktopConversationViewWorkspaceRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const {
@@ -61,6 +64,9 @@ const {
 const {
   buildCurrentTurnWorkspaceMutation,
 } = DesktopCurrentTurnWorkspaceRuntime;
+const {
+  buildConversationViewWorkspaceMutation,
+} = DesktopConversationViewWorkspaceRuntime;
 export type { ChatMessage, TokenCounts };
 
 export type StreamPhase =
@@ -551,20 +557,24 @@ export const useChatStore = create<ChatState>((set, get) => ({
         state.activeConversationRef,
       );
       const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
-      const shouldUpdateLatestView = isActiveWorkspaceRef(state, targetWorkspaceRef);
-      const latestUpdate = !shouldUpdateLatestView
-        ? {}
-        : state.latestConversationView === conversationView
-        ? {}
-        : { latestConversationView: conversationView };
-      if (currentWorkspace.conversationView === conversationView) {
-        return Object.keys(latestUpdate).length > 0 ? latestUpdate : state;
-      }
-      const nextWorkspace = {
-        ...currentWorkspace,
+      const conversationViewMutation = buildConversationViewWorkspaceMutation({
         conversationView,
-      };
-      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace, latestUpdate);
+        currentWorkspace,
+        isActiveWorkspace: isActiveWorkspaceRef(state, targetWorkspaceRef),
+        latestConversationView: state.latestConversationView,
+      });
+      if (!conversationViewMutation) {
+        return state;
+      }
+      const latestConversationViewUpdate = conversationViewMutation.hasLatestConversationViewUpdate
+        ? { latestConversationView: conversationViewMutation.latestConversationView }
+        : {};
+      if (conversationViewMutation.workspace === currentWorkspace) {
+        return latestConversationViewUpdate;
+      }
+      return buildWorkspaceUpdate(state, targetWorkspaceRef, conversationViewMutation.workspace, {
+        ...latestConversationViewUpdate,
+      });
     }),
 
   acceptReplayPendingTurn: ({ messages, pendingTurn, supersededTurnRef = null }) =>

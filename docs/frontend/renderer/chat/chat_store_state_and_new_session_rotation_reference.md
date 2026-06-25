@@ -15,6 +15,7 @@ title: "Chat Store State and New Session Rotation Reference"
 - `frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatRevisionActionRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnWorkspaceRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationViewWorkspaceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopPendingTurnBridgeRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatPendingTurnStateRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime.ts`
@@ -45,7 +46,7 @@ Conversation workspace state:
 - `activeConversationRef`
 - `workspaces: Record<workspaceRef, ChatWorkspaceState>`
 - `turnConversationRefs: Record<turnRef, conversationRef>`
-- `latestCurrentTurnProjection`
+- `latestConversationView`
 
 The default workspace key is private to `chatWorkspaceState.ts`. Store
 initialization uses `createInitialWorkspaceRecord()` so `chatStore.ts` and
@@ -85,6 +86,11 @@ Message attachment fields used by current send/runtime paths include:
   pending-turn replacement no-op guard live in
   `desktopCurrentTurnWorkspaceRuntime.ts`; the store only applies the returned
   workspace.
+- `setConversationView` updates the target workspace and refreshes
+  `latestConversationView` only when the target is the active workspace. The
+  conversation-view workspace/latest-view mutation decision lives in
+  `desktopConversationViewWorkspaceRuntime.ts`; the store only applies the
+  returned workspace and optional latest-view update.
 - `acceptPendingTurn` stores the renderer-local pending turn before the SDK
   current-turn projection opens, so dashboard/pill surfaces can show awaiting
   state and stop can target the real outgoing `turnRef`; an echoed pending-turn
