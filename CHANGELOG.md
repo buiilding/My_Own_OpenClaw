@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/surface: suppress raw workspace messages in shared surface
+  controller state once `ConversationView` exists, except for the pending-send
+  bridge. No migration required.
 - frontend/presentation: remove the legacy `screenshots[]` token-estimate
   fallback so dev image token estimates come only from SDK typed
   `attachments[]`. No migration required.

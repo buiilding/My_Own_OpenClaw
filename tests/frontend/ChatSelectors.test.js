@@ -65,6 +65,64 @@ describe('chatSelectors', () => {
     })).not.toHaveProperty('thinkingSourceEventType');
   });
 
+  test('drops raw surface messages once ConversationView owns the live surface', () => {
+    const activeWorkspace = {
+      messages: [{ id: 'stale-user', text: 'stale', sender: 'user' }],
+      currentTurnProjection: { turnRef: 'raw-turn', phase: 'streaming' },
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: {
+          turnRef: 'view-turn',
+          phase: 'complete',
+          entries: [{ id: 'view-entry', text: 'done', sender: 'assistant' }],
+          isBusy: false,
+          isTerminal: true,
+        },
+        surfaces: {
+          pill: { mode: 'idle' },
+          responseOverlay: { mode: 'response', visible: true },
+        },
+      },
+      pendingTurn: null,
+    };
+
+    expect(projectDesktopChatSurfaceState({
+      activeWorkspace,
+    })).toEqual(expect.objectContaining({
+      messages: [],
+      currentTurnProjection: null,
+      conversationView: activeWorkspace.conversationView,
+    }));
+  });
+
+  test('keeps raw surface messages for the pending bridge before SDK view handoff', () => {
+    const activeWorkspace = {
+      messages: [{ id: 'pending-user', text: 'pending', sender: 'user' }],
+      currentTurnProjection: null,
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: null,
+        surfaces: {
+          pill: { mode: 'idle' },
+        },
+      },
+      pendingTurn: {
+        conversationRef: 'conv-view',
+        turnRef: 'turn-pending',
+        userMessageId: 'pending-user',
+      },
+    };
+
+    expect(projectDesktopChatSurfaceState({
+      activeWorkspace,
+    })).toEqual(expect.objectContaining({
+      messages: activeWorkspace.messages,
+      currentTurnProjection: null,
+      conversationView: activeWorkspace.conversationView,
+      pendingTurn: activeWorkspace.pendingTurn,
+    }));
+  });
+
   test('selects only chat interface state fields', () => {
     const state = {
       messages: [{ id: '1', text: 'hello', sender: 'user' }],
@@ -255,7 +313,7 @@ describe('chatSelectors', () => {
     };
 
     const selected = selectLiveTurnSurfaceState({
-      messages: [],
+      messages: [{ id: 'stale-user', text: 'stale', sender: 'user' }],
       currentTurnProjection: workspaceProjection,
       conversationView: null,
       latestConversationView: view,
@@ -264,8 +322,9 @@ describe('chatSelectors', () => {
 
     expect(selected.conversationView).toBe(view);
     expect(selected.currentTurnProjection).toBeNull();
+    expect(selected.messages).toEqual([]);
     expect(selected).toEqual({
-      messages: selected.messages,
+      messages: [],
       currentTurnProjection: null,
       conversationView: view,
       pendingTurn: null,

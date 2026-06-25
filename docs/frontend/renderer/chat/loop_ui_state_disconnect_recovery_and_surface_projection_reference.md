@@ -210,6 +210,10 @@ instead of a send-latch alias.
 It also omits store `thinkingStatus`; response overlay reasoning text follows
 SDK `currentTurn.reasoningText`, while dashboard message-list compaction/manual
 status text remains on the chat-interface selector path.
+It suppresses raw workspace `messages[]` when a `ConversationView` exists, so
+shared live surfaces do not derive lifecycle or overlay state from stale
+renderer rows. The only exception is the accepted renderer `pendingTurn`
+bridge, which keeps its optimistic user row available until SDK view handoff.
 The decision to keep renderer-local pending typing through idle, hidden, stale,
 terminal, or visible SDK projections lives with the visible lifecycle owner and
 requires an accepted renderer `pendingTurn`.

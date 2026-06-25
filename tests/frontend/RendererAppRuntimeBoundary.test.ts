@@ -1870,6 +1870,7 @@ describe('renderer app runtime boundary', () => {
     expect(selectorRuntimeSource).toContain('projectDesktopChatInterfaceState');
     expect(selectorRuntimeSource).toContain('projectDesktopLiveTurnSurfaceState');
     expect(selectorRuntimeSource).toContain('projectDesktopChatSurfaceState');
+    expect(selectorRuntimeSource).toContain('const projectedMessages = resolvedConversationView && !activeWorkspace.pendingTurn');
     expect(selectorRuntimeSource).toContain('export const DesktopChatSurfaceSelectorRuntime = Object.freeze');
     expect(selectorRuntimeSource).not.toContain('export function projectDesktopChatInterfaceState');
     expect(selectorRuntimeSource).not.toContain('export function projectDesktopLiveTurnSurfaceState');
