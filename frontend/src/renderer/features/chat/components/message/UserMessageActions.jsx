@@ -9,7 +9,6 @@ import { useCopyMessageAction } from '../../hooks/useCopyMessageAction';
 function UserMessageActions({
   messageId,
   messageText = '',
-  editTargetMessageId = null,
   canEdit = true,
   onEdit = null,
 }) {
@@ -22,7 +21,7 @@ function UserMessageActions({
     if (!canEdit || typeof onEdit !== 'function') {
       return;
     }
-    onEdit(messageId, messageText, editTargetMessageId || messageId);
+    onEdit(messageId, messageText);
   };
 
   return (
@@ -54,7 +53,6 @@ function UserMessageActions({
 UserMessageActions.propTypes = {
   messageId: PropTypes.string.isRequired,
   messageText: PropTypes.string,
-  editTargetMessageId: PropTypes.string,
   canEdit: PropTypes.bool,
   onEdit: PropTypes.func,
 };

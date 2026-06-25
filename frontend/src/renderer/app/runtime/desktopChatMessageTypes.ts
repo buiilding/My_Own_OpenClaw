@@ -79,10 +79,4 @@ export interface ChatMessage {
   thinkingText?: string | null;
   thinkingSourceEventType?: string | null;
   tokenCounts?: TokenCounts | null;
-  actions?: {
-    canEdit?: boolean;
-    editTargetRowId?: string | null;
-    canRetry?: boolean;
-    retryTargetRowId?: string | null;
-  } | null;
 }

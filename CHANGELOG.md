@@ -49,11 +49,6 @@ All notable changes to WindieOS will be documented in this file.
   remain renderer-local, row type still constrains which rows can show commands,
   and replay execution remains on the existing display-timeline path while the
   later Phase 4 SDK revision operation lands. No migration required.
-- sdk/frontend: add row-level `ConversationView.displayRows[].actions`
-  metadata for edit and retry command capability plus stable target row ids.
-  Renderer display-row projection now carries those targets into chat messages,
-  so replacement rows can open the visible inline editor while replay submits
-  against the SDK-provided original row identity. No migration required.
 - docs/plans: add the Desktop UI Config Store Authority plan for replacing the
   duplicate Electron-main desktop UI config cache with a single main-owned
   config store runtime, keeping disk as persistence only while query-time Agent

@@ -32,12 +32,6 @@ const messageShapePropType = PropTypes.shape({
     cache_hit: PropTypes.oneOfType([PropTypes.bool, PropTypes.oneOf([null])]),
     cache_status: PropTypes.oneOfType([PropTypes.oneOf(['hit', 'miss', 'unknown']), PropTypes.oneOf([null])]),
   }),
-  actions: PropTypes.shape({
-    canEdit: PropTypes.bool,
-    editTargetRowId: PropTypes.string,
-    canRetry: PropTypes.bool,
-    retryTargetRowId: PropTypes.string,
-  }),
   systemPrompt: PropTypes.shape({
     content: PropTypes.string,
     toolSchemas: toolSchemaListPropType,

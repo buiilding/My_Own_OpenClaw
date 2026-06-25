@@ -162,7 +162,6 @@ flowchart LR
 | Change type | Focused validation |
 | --- | --- |
 | Stored-row conversion to visible chat messages | `<windie> test frontend -- SdkDisplayChatMessageProjection DesktopConversationContinuityService DesktopConversationStore` |
-| SDK view row action targets for replay commands | `<windie> test frontend -- AgentSdkConversationRuntime SdkDisplayChatMessageProjection MessageListAssistantActions` |
 | Transcript session identity or sync payloads | `<windie> test frontend -- TranscriptSessionState TranscriptSessionSyncPayload IpcTranscriptSessionSync` |
 | Dashboard resume actions | `<windie> test frontend -- ConversationReplayActions DashboardConversationLoad DesktopConversationStore UseDashboardConversations` |
 | Rehydrate payload construction | `<windie> test frontend -- AgentSdkConversationRuntime ConversationContinuityService DesktopConversationReplayRuntime` |

@@ -9145,20 +9145,12 @@ describe('Agent SDK conversation runtime core', () => {
         role: 'user',
         type: 'user_message',
         content: 'hello',
-        actions: expect.objectContaining({
-          canEdit: true,
-          editTargetRowId: expect.any(String),
-        }),
       }),
       expect.objectContaining({
         role: 'assistant',
         type: 'assistant_message',
         content: 'hi there',
         isStreaming: true,
-        actions: expect.objectContaining({
-          canRetry: false,
-          retryTargetRowId: expect.any(String),
-        }),
       }),
     ]);
     expect(view.liveTurn.entries).toEqual(expect.arrayContaining([
@@ -9221,15 +9213,7 @@ describe('Agent SDK conversation runtime core', () => {
       view,
     });
 
-    expect(view.displayRows).toEqual([
-      {
-        ...displayRows[0],
-        actions: {
-          canEdit: true,
-          editTargetRowId: 'turn-new-sdk-evt-000002-user_message',
-        },
-      },
-    ]);
+    expect(view.displayRows).toEqual(displayRows);
     expect(view.liveTurn).toMatchObject({
       turnRef: 'turn-new',
       phase: 'awaiting',
@@ -9244,71 +9228,6 @@ describe('Agent SDK conversation runtime core', () => {
       pendingTurnRef: 'turn-new',
       supersededTurnCount: 1,
       filteredInternalLaneCount: 0,
-    });
-  });
-
-  test('conversation view exposes stable row action targets after edit replacement', () => {
-    const events = [
-      eventForTurn('turn-new', 'user_message', { text: 'new' }),
-      eventForTurn('turn-new', 'assistant_message', { text: 'new answer' }),
-      eventForTurn('turn-new', 'turn_completed', {}),
-    ];
-    const displayRows = [
-      {
-        id: 'turn-new-sdk-evt-000002-user_message',
-        conversationRef: 'conv-sdk-runtime',
-        turnRef: 'turn-new',
-        index: 0,
-        role: 'user' as const,
-        type: 'user_message' as const,
-        content: 'new',
-        metadata: {
-          eventId: 'turn-new-sdk-evt-000002-user_message',
-          replacedDisplayRowId: 'turn-old-sdk-evt-000002-user_message',
-          revisionId: 'rev-child',
-          timestamp: '2026-06-24T12:00:00.000Z',
-        },
-      },
-      {
-        id: 'turn-new-sdk-evt-000003-assistant_message',
-        conversationRef: 'conv-sdk-runtime',
-        turnRef: 'turn-new',
-        index: 1,
-        role: 'assistant' as const,
-        type: 'assistant_message' as const,
-        content: 'new answer',
-        metadata: {
-          eventId: 'turn-new-sdk-evt-000003-assistant_message',
-          revisionId: 'rev-child',
-          timestamp: '2026-06-24T12:00:01.000Z',
-        },
-      },
-    ];
-
-    const view = buildConversationView({
-      conversationRef: 'conv-sdk-runtime',
-      revisionId: 'rev-child',
-      events,
-      displayRows,
-      currentTurn: buildCurrentTurnProjection(events),
-    });
-
-    expect(view.actions).toMatchObject({
-      canEdit: true,
-      canRetry: true,
-      canFork: true,
-    });
-    expect(view.displayRows[0]).toMatchObject({
-      actions: {
-        canEdit: true,
-        editTargetRowId: 'turn-old-sdk-evt-000002-user_message',
-      },
-    });
-    expect(view.displayRows[1]).toMatchObject({
-      actions: {
-        canRetry: true,
-        retryTargetRowId: 'turn-new-sdk-evt-000003-assistant_message',
-      },
     });
   });
 

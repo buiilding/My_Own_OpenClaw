@@ -20,10 +20,6 @@ describe('sdkDisplayChatMessageProjection', () => {
           revisionId: 'rev-1',
           timestamp: '2026-05-15T12:00:00.000Z',
         },
-        actions: {
-          canEdit: true,
-          editTargetRowId: 'msg-user',
-        },
       },
       {
         id: 'msg-tool-call',
@@ -76,10 +72,6 @@ describe('sdkDisplayChatMessageProjection', () => {
           revisionId: 'rev-1',
           timestamp: '2026-05-15T12:00:03.000Z',
         },
-        actions: {
-          canRetry: true,
-          retryTargetRowId: 'msg-assistant',
-        },
       },
     ])).toEqual([
       expect.objectContaining({
@@ -90,10 +82,6 @@ describe('sdkDisplayChatMessageProjection', () => {
         sourceEventType: 'user_message',
         sourceChannel: 'sdk:display-rows',
         timestamp: '2026-05-15T12:00:00.000Z',
-        actions: {
-          canEdit: true,
-          editTargetRowId: 'msg-user',
-        },
       }),
       expect.objectContaining({
         id: 'msg-tool-call',
@@ -117,10 +105,6 @@ describe('sdkDisplayChatMessageProjection', () => {
         sender: 'assistant',
         type: 'llm-text',
         text: 'package json is loaded',
-        actions: {
-          canRetry: true,
-          retryTargetRowId: 'msg-assistant',
-        },
       }),
     ]);
   });

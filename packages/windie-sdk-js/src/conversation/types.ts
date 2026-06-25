@@ -348,14 +348,7 @@ export type SdkDisplayRowMetadata = {
   raw?: JsonRecord | null;
 };
 
-export type SdkDisplayRowActions = {
-  canEdit?: boolean;
-  editTargetRowId?: string | null;
-  canRetry?: boolean;
-  retryTargetRowId?: string | null;
-};
-
-export type SdkDisplayRow = (
+export type SdkDisplayRow =
   | {
       id: string;
       conversationRef: string;
@@ -446,10 +439,7 @@ export type SdkDisplayRow = (
       type: 'error';
       content: string;
       metadata?: SdkDisplayRowMetadata;
-    }
-) & {
-  actions?: SdkDisplayRowActions;
-};
+    };
 
 export type CurrentTurnProjectionPhase =
   | 'idle'
