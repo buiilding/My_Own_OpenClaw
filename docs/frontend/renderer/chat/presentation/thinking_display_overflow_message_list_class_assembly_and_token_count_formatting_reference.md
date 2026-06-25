@@ -138,10 +138,9 @@ Current runtime keeps token usage in chat store/state:
 
 - `chatStore.ts` holds `tokenCounts` payload from backend.
 - `useChatStream` handles `token-count` events and calls `setTokenCounts`.
-- dev token image estimates count SDK typed image `attachments[]` and keep
-  legacy `screenshots[]` only as compatibility input; whole-message
-  `screenshotRef`/`screenshotUrl` aliases are not a renderer presentation
-  authority.
+- dev token image estimates count SDK typed image `attachments[]` only; legacy
+  `screenshots[]` and whole-message `screenshotRef`/`screenshotUrl` aliases are
+  not renderer presentation or token-estimate authorities.
 - React message prop contracts advertise typed `attachments[]`, not
   whole-message screenshot aliases.
 

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/presentation: remove the legacy `screenshots[]` token-estimate
+  fallback so dev image token estimates come only from SDK typed
+  `attachments[]`. No migration required.
 - frontend/surface: route dashboard and minimal pill surface controls through
   selector-projected `chatSurfaceState` so React call sites no longer assemble
   the controller read model from separate chat store authorities. No migration

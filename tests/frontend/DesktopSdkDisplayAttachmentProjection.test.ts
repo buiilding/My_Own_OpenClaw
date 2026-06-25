@@ -8,7 +8,6 @@ import {
 
 const {
   countDisplayImageAttachments,
-  countLegacyScreenshotAttachments,
   hasReadyDisplayImageAttachment,
   readSdkDisplayAttachments,
   summarizeSdkDisplayAttachments,
@@ -127,15 +126,5 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
       pendingScreenshotRequestCount: 1,
       failedAttachmentCount: 1,
     });
-  });
-
-  test('keeps legacy screenshot alias counting behind the attachment helper', () => {
-    expect(countLegacyScreenshotAttachments([
-      { screenshotRef: 'artifact-1' },
-      { screenshotUrl: '/api/artifacts/artifact-2' },
-      { screenshot: 'data:image/png;base64,abc' },
-      { screenshotRef: '   ' },
-      { value: 'not-a-screenshot' },
-    ])).toBe(4);
   });
 });

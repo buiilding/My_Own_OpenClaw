@@ -8,7 +8,6 @@ const APPROX_CHARS_PER_TOKEN = 4;
 const APPROX_IMAGE_TOKENS_PER_SCREENSHOT = 85;
 const {
   countDisplayImageAttachments,
-  countLegacyScreenshotAttachments,
 } = DesktopSdkDisplayAttachmentProjection;
 
 function normalizeText(value) {
@@ -35,15 +34,6 @@ function estimateTextTokens(text) {
 
 function resolveUserImageAttachmentCount(message) {
   return countDisplayImageAttachments(message?.attachments);
-}
-
-function resolveUserScreenshotCount(message) {
-  const typedAttachmentCount = resolveUserImageAttachmentCount(message);
-  if (typedAttachmentCount > 0) {
-    return typedAttachmentCount;
-  }
-
-  return countLegacyScreenshotAttachments(message?.screenshots);
 }
 
 function stringifyModelFacingToolCall(modelFacingToolCall) {
@@ -148,7 +138,7 @@ function resolveMessageTokenUsageTag(message) {
 
   if (message.sender === 'user') {
     const textTokens = estimateTextTokens(resolveUserText(message));
-    const imageTokens = resolveUserScreenshotCount(message) * APPROX_IMAGE_TOKENS_PER_SCREENSHOT;
+    const imageTokens = resolveUserImageAttachmentCount(message) * APPROX_IMAGE_TOKENS_PER_SCREENSHOT;
     const totalTokens = textTokens + imageTokens;
     if (totalTokens <= 0) {
       return null;

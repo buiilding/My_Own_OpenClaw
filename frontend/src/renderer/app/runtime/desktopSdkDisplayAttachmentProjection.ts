@@ -62,22 +62,6 @@ function countDisplayImageAttachments(value: unknown): number {
   return readSdkDisplayAttachments(value).filter(isDisplayImageAttachment).length;
 }
 
-function isLegacyScreenshotAttachment(value: unknown): boolean {
-  const record = recordFromUnknown(value);
-  return Boolean(
-    record
-    && (
-      typeof record.screenshot === 'string'
-      || typeof record.screenshotRef === 'string'
-      || typeof record.screenshotUrl === 'string'
-    ),
-  );
-}
-
-function countLegacyScreenshotAttachments(value: unknown): number {
-  return Array.isArray(value) ? value.filter(isLegacyScreenshotAttachment).length : 0;
-}
-
 function hasReadyDisplayImageAttachment(value: unknown): boolean {
   return readSdkDisplayAttachments(value).some(isReadyDisplayImageAttachment);
 }
@@ -125,7 +109,6 @@ function summarizeSdkDisplayAttachments(value: unknown): Record<string, unknown>
 
 export const DesktopSdkDisplayAttachmentProjection = Object.freeze({
   countDisplayImageAttachments,
-  countLegacyScreenshotAttachments,
   hasReadyDisplayImageAttachment,
   readSdkDisplayAttachments,
   summarizeSdkDisplayAttachments,

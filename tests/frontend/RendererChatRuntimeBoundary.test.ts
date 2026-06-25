@@ -1211,6 +1211,8 @@ describe('renderer chat runtime boundary', () => {
     expect(tokenUsageRuntimeSource).toContain('tokens(provider)');
     expect(tokenUsageRuntimeSource).toContain('message?.attachments');
     expect(tokenUsageRuntimeSource).toContain('countDisplayImageAttachments');
+    expect(tokenUsageRuntimeSource).not.toContain('message?.screenshots');
+    expect(tokenUsageRuntimeSource).not.toContain('countLegacyScreenshotAttachments');
     expect(tokenUsageRuntimeSource).not.toContain('screenshotRef');
     expect(tokenUsageRuntimeSource).not.toContain('screenshotUrl');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshotRef');
@@ -3167,6 +3169,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('screenshot_refs');
     expect(displayAttachmentProjectionSource).toContain('readSdkDisplayAttachments');
     expect(displayAttachmentProjectionSource).not.toContain('screenshot_refs');
+    expect(displayAttachmentProjectionSource).not.toContain('countLegacyScreenshotAttachments');
     expect(chatInterfaceSource).toContain('DesktopChatInterfacePresentationRuntime');
     expect(chatInterfaceSource).toContain('DesktopChatRevisionActionRuntime');
     expect(chatInterfaceSource).toContain('buildChatInterfacePresentationState');

@@ -44,7 +44,7 @@ describe('desktopMessageTokenUsageRuntime', () => {
     expect(tag).toBe('tokens~ txt:2 img(est):85 total:87');
   });
 
-  test('keeps legacy screenshot arrays as compatibility-only token input', () => {
+  test('ignores legacy screenshot arrays for user image token estimates', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'user',
       text: 'abcd',
@@ -54,7 +54,7 @@ describe('desktopMessageTokenUsageRuntime', () => {
       ],
     });
 
-    expect(tag).toBe('tokens~ txt:1 img(est):170 total:171');
+    expect(tag).toBe('tokens~ txt:1 img(est):0 total:1');
   });
 
   test('ignores whole-message screenshot aliases for user image token estimates', () => {
