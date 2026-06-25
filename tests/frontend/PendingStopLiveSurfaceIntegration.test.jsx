@@ -56,7 +56,6 @@ function PendingStopButton() {
   });
   const { handleStopTurn } = useStopTurnHandler({
     enabled: chatSurface.isBusy,
-    currentTurnProjection,
     pendingTurn,
     sessionConversationRef: 'conv-pending-stop',
     warningContext: 'PendingStopLiveSurfaceIntegration',

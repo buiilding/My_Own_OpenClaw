@@ -389,7 +389,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const { handleStopTurn } = useStopTurnHandler({
     enabled: canStop,
     conversationView,
-    currentTurnProjection,
     pendingTurn,
     sessionConversationRef: sessionInfo.conversationRef,
     stopPlayback,

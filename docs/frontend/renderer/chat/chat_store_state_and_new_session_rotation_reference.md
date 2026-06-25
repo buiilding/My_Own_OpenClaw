@@ -125,6 +125,9 @@ Message attachment fields used by current send/runtime paths include:
   derives busy/typing state from terminal phase plus visible entries. Stopped
   workspace mutation and current-turn identity matching live in
   `desktopStopTurnRuntime.js`, not hard-coded in the store.
+  React stop handlers pass only SDK `ConversationView` target identity or the
+  renderer pending bridge into that runtime; raw `currentTurnProjection` is not
+  a stop-target source at the component boundary.
 - `clearMessages` clears messages, clears raw send cleanup state, and resets
   `streamTracking` to initial idle shape
 - `setActiveConversationRef` switches the projected top-level state to that workspace snapshot

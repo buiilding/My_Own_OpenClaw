@@ -72,6 +72,9 @@ All notable changes to WindieOS will be documented in this file.
   once a `ConversationView` exists, so `chatStore.messages` remains a
   no-view/pending bridge fallback instead of competing with SDK view authority.
   No migration required.
+- frontend/stop: stop passing raw `currentTurnProjection` through React stop
+  handlers; Stop targets now enter the hook only from SDK `ConversationView`
+  state or the renderer pending bridge. No migration required.
 - frontend/chat: move main chat thread presentation, ConversationView action
   availability, and checked-out view store projection into an app-runtime
   helper so `ChatInterface` consumes a single presentation view model. No

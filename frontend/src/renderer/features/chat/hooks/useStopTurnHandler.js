@@ -11,7 +11,6 @@ import {
 } from '../../../app/runtime/desktopStopTurnRuntime';
 
 const {
-  isStopTurnTargetFromConversationView,
   isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
 } = DesktopStopTurnRuntime;
@@ -19,7 +18,6 @@ const {
 export function useStopTurnHandler({
   enabled = true,
   conversationView = null,
-  currentTurnProjection = null,
   pendingTurn = null,
   sessionConversationRef = null,
   stopPlayback = null,
@@ -47,12 +45,6 @@ export function useStopTurnHandler({
     acceptStoppedTurn({
       conversationRef: stopTarget.conversationRef,
       turnRef: stopTarget.turnRef,
-      currentTurnProjection: (
-        isStopTurnTargetFromConversationView(stopTarget)
-        && currentTurnProjection?.turnRef === stopTarget.turnRef
-      )
-        ? currentTurnProjection
-        : null,
     });
     if (typeof stopPlayback === 'function') {
       stopPlayback();
@@ -76,7 +68,6 @@ export function useStopTurnHandler({
     return true;
   }, [
     acceptStoppedTurn,
-    currentTurnProjection,
     enabled,
     setActiveConversationRef,
     stopPlayback,

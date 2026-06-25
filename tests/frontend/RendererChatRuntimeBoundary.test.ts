@@ -1890,6 +1890,7 @@ describe('renderer chat runtime boundary', () => {
     expect(stopHandlerSource).toContain('DesktopStopTurnRuntime');
     expect(chatStoreSource).toContain('desktopStopTurnRuntime');
     expect(chatStoreSource).toContain('DesktopStopTurnRuntime');
+    expect(stopHandlerSource).not.toContain('currentTurnProjection');
     expect(stopHandlerSource).not.toContain('utils/state/stopQueryState');
     expect(stopHandlerSource).not.toContain("stopTarget.source === 'sdk-current-turn'");
     expect(stopHandlerSource).not.toContain("stopTarget.source === 'pending-turn'");

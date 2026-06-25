@@ -469,7 +469,6 @@ function MinimalChatPill() {
   const { handleStopTurn } = useStopTurnHandler({
     enabled: stopAvailable,
     conversationView,
-    currentTurnProjection,
     pendingTurn,
     sessionConversationRef: sessionInfo?.conversationRef || null,
     warningContext: 'MinimalChatPill',
