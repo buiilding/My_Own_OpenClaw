@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stop: move `acceptStoppedTurn` state-update construction behind
+  `DesktopStopTurnRuntime` so `chatStore` delegates stop-target normalization,
+  workspace lookup, and stopped-turn mutation application to the app runtime.
+  No migration required.
 - frontend/projection: make replay projection traces prefer
   `ConversationView.liveTurn` and `displayRows` once a view exists, so raw
   renderer messages/current-turn state stay a no-view diagnostic fallback. No

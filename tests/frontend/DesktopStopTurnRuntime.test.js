@@ -7,6 +7,7 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime';
 
 const {
+  buildAcceptStoppedTurnStateUpdate,
   buildStoppedTurnWorkspaceMutation,
   buildStoppedCurrentTurnProjection,
   isStopTurnTargetFromConversationView,
@@ -322,6 +323,56 @@ describe('desktopStopTurnRuntime', () => {
       stoppedAt: '2026-06-25T12:01:00.000Z',
       turnRef: 'turn-stop',
     })).toBeNull();
+  });
+
+  test('buildAcceptStoppedTurnStateUpdate resolves workspace and applies stopped mutation', () => {
+    const state = {
+      activeConversationRef: 'conv-active',
+      workspaces: {
+        'conversation:conv-active': workspace(),
+      },
+    };
+    const deps = {
+      buildWorkspaceUpdate: jest.fn((currentState, workspaceRef, nextWorkspace) => ({
+        ...currentState,
+        workspaces: {
+          ...currentState.workspaces,
+          [workspaceRef]: nextWorkspace,
+        },
+      })),
+      readWorkspaceState: jest.fn((currentState, workspaceRef) => currentState.workspaces[workspaceRef]),
+      resolveWorkspaceKey: jest.fn(() => 'conversation:conv-active'),
+    };
+
+    const nextState = buildAcceptStoppedTurnStateUpdate({
+      deps,
+      input: {
+        conversationRef: ' conv-stop ',
+        stoppedAt: '2026-06-25T12:01:00.000Z',
+        turnRef: ' turn-stop ',
+      },
+      state,
+    });
+
+    expect(deps.resolveWorkspaceKey).toHaveBeenCalledWith('conv-stop', 'conv-active');
+    expect(deps.readWorkspaceState).toHaveBeenCalledWith(state, 'conversation:conv-active');
+    expect(deps.buildWorkspaceUpdate).toHaveBeenCalledWith(
+      state,
+      'conversation:conv-active',
+      expect.objectContaining({
+        pendingTurn: null,
+        currentTurnProjection: expect.objectContaining({
+          phase: 'complete',
+        }),
+        streamTracking: expect.objectContaining({
+          lastEventType: 'stop-query',
+        }),
+      }),
+    );
+    expect(nextState.workspaces['conversation:conv-active']).toEqual(expect.objectContaining({
+      pendingTurn: null,
+      isSending: false,
+    }));
   });
 
   test('buildStoppedCurrentTurnProjection does not use SDK visible-content flag as overlay evidence', () => {

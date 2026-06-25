@@ -20,7 +20,6 @@ import {
   createInitialWorkspaceRecord,
   getProjectedWorkspaceFields,
   isActiveWorkspaceRef,
-  normalizeConversationRef,
   readWorkspaceState,
   resolveChatWorkspaceRef,
   resolveWorkspaceMutationTarget,
@@ -52,14 +51,28 @@ import {
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const {
-  buildStoppedTurnWorkspaceMutation,
+  buildAcceptStoppedTurnStateUpdate,
 } = DesktopStopTurnRuntime as {
-  buildStoppedTurnWorkspaceMutation: (input: {
-    conversationRef?: string | null;
-    currentWorkspace: ChatWorkspaceState;
-    stoppedAt?: string | null;
-    turnRef?: string | null;
-  }) => ChatWorkspaceState | null;
+  buildAcceptStoppedTurnStateUpdate: <TState extends Pick<ChatState, 'activeConversationRef'>, TWorkspace extends ChatWorkspaceState>(input: {
+    deps: {
+      buildWorkspaceUpdate: (
+        state: TState,
+        workspaceRef: string,
+        workspace: TWorkspace,
+      ) => Partial<TState> | TState;
+      readWorkspaceState: (state: TState, workspaceRef: string) => TWorkspace;
+      resolveWorkspaceKey: (
+        requestedConversationRef: string | null | undefined,
+        activeConversationRef: string | null,
+      ) => string;
+    };
+    input?: {
+      conversationRef?: string | null;
+      stoppedAt?: string | null;
+      turnRef?: string | null;
+    } | null;
+    state: TState;
+  }) => Partial<TState> | TState | null;
 };
 const {
   projectDesktopChatSurfaceState,
@@ -77,7 +90,6 @@ const {
 } = DesktopChatPendingTurnStateRuntime;
 const {
   mergeTurnConversationRefs,
-  normalizeTurnRef,
   registerTurnConversationRef,
   resolveConversationRefForTurn,
 } = DesktopChatTurnConversationRefRuntime;
@@ -95,6 +107,12 @@ const pendingTurnStateRuntimeDependencies = {
   mergeTurnConversationRefs,
   readWorkspaceState,
   resolveChatWorkspaceRef,
+  resolveWorkspaceKey,
+};
+
+const stopTurnStateRuntimeDependencies = {
+  buildWorkspaceUpdate,
+  readWorkspaceState,
   resolveWorkspaceKey,
 };
 
@@ -520,20 +538,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   acceptStoppedTurn: (input = null) =>
     set((state) => {
-      const conversationRef = normalizeConversationRef(input?.conversationRef);
-      const turnRef = normalizeTurnRef(input?.turnRef);
-      const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
-      const currentWorkspace = readWorkspaceState(state, workspaceRef);
-      const nextWorkspace = buildStoppedTurnWorkspaceMutation({
-        conversationRef,
-        currentWorkspace,
-        stoppedAt: input?.stoppedAt,
-        turnRef,
-      });
-      if (!nextWorkspace) {
-        return state;
-      }
-      return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
+      return buildAcceptStoppedTurnStateUpdate<ChatState, ChatWorkspaceState>({
+        deps: stopTurnStateRuntimeDependencies,
+        input,
+        state,
+      }) ?? state;
     }),
 
   applyPendingTurnBroadcast: (action) =>

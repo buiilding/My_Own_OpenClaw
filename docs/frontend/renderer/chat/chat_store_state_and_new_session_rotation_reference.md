@@ -133,8 +133,9 @@ replay/store compatibility adapters and low-level artifact helpers.
   already visible assistant content. Stopped projections strip SDK
   `typingVisible` and `overlayVisible` compatibility fields; visible lifecycle
   derives busy/typing state from terminal phase plus visible entries. Stopped
-  workspace mutation and current-turn identity matching live in
-  `desktopStopTurnRuntime.js`, not hard-coded in the store.
+  workspace mutation, current-turn identity matching, stop-target normalization,
+  and workspace update application live in `desktopStopTurnRuntime.js`, not
+  hard-coded in the store.
   React stop handlers and `acceptStoppedTurn` callers pass only target identity
   from SDK `ConversationView` or the renderer pending bridge into that runtime;
   raw `currentTurnProjection` is not accepted as caller-supplied stop state.

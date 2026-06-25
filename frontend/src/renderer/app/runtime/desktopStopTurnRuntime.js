@@ -134,6 +134,30 @@ function buildStoppedTurnWorkspaceMutation({
   };
 }
 
+function buildAcceptStoppedTurnStateUpdate({
+  deps,
+  input = null,
+  state,
+} = {}) {
+  if (!deps || !state) {
+    return null;
+  }
+  const conversationRef = normalizeRef(input?.conversationRef);
+  const turnRef = normalizeRef(input?.turnRef);
+  const workspaceRef = deps.resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+  const currentWorkspace = deps.readWorkspaceState(state, workspaceRef);
+  const nextWorkspace = buildStoppedTurnWorkspaceMutation({
+    conversationRef,
+    currentWorkspace,
+    stoppedAt: input?.stoppedAt,
+    turnRef,
+  });
+  if (!nextWorkspace) {
+    return null;
+  }
+  return deps.buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
+}
+
 function isStopTurnTargetFromConversationView(stopTarget) {
   return stopTarget?.source === 'conversation-view';
 }
@@ -211,6 +235,7 @@ function resolveStopTurnTarget({
 }
 
 export const DesktopStopTurnRuntime = Object.freeze({
+  buildAcceptStoppedTurnStateUpdate,
   buildStopQueryTrackingPatch,
   buildStoppedTurnWorkspaceMutation,
   buildStoppedCurrentTurnProjection,
