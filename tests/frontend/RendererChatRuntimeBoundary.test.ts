@@ -1642,13 +1642,14 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopConversationContinuityService.prepareEditAndResend');
     expect(source).not.toContain('DesktopConversationContinuityService.prepareRetryTurn');
     expect(source).not.toContain('dispatchPreparedDesktopChatTurn');
-    expect(source).toContain('executeReplayIntent');
+    expect(source).toContain('executeReplayAction');
+    expect(source).not.toContain('executeReplayIntent');
     expect(source).not.toContain('buildReplayPendingPublication');
     expect(source).not.toContain('buildReplayPendingTurn');
     expect(source).not.toContain('buildPreparedReplayDesktopChatTurn');
     expect(source).not.toContain('DesktopPendingTurnRuntimeClient.setPending');
-    expect(source).toContain('prepareReplayEditIntent');
-    expect(source).toContain('prepareReplayRetryIntent');
+    expect(source).not.toContain('prepareReplayEditIntent');
+    expect(source).not.toContain('prepareReplayRetryIntent');
     expect(source).not.toContain('findReplayEditableUserMessageIndex');
     expect(source).not.toContain('resolveReplayRetryMessageIndexes');
     expect(source).not.toContain('buildReplayContextMessages');
@@ -1667,6 +1668,7 @@ describe('renderer chat runtime boundary', () => {
     expect(continuityServiceSource).not.toContain('loadDisplayRows');
     expect(replayRuntimeSource).toContain('buildReplayPendingTurn');
     expect(replayRuntimeSource).toContain('buildReplayPendingPublication');
+    expect(replayRuntimeSource).toContain('executeReplayAction');
     expect(replayRuntimeSource).toContain('executeReplayIntent');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.editAndResend');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.retryTurn');
@@ -2287,7 +2289,8 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).toContain('DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding');
     expect(replayActionsSource).not.toContain('DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding');
     expect(replayActionsSource).not.toContain('desktopConversationSessionRuntime');
-    expect(replayRuntimeSource).toContain('DesktopRuntimeSkin.desktopRuntimeSkin');
+    expect(replayActionsSource).toContain('DesktopRuntimeSkin.desktopRuntimeSkin');
+    expect(replayRuntimeSource).not.toContain('DesktopRuntimeSkin.desktopRuntimeSkin');
     expect(replayRuntimeSource).toContain('DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding');
     expect(replayRuntimeSource).toContain('desktopConversationSessionRuntime');
     expect(replayActionsSource).not.toContain('utils/session/conversationRef');

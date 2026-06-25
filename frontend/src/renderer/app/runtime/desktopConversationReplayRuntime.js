@@ -516,8 +516,61 @@ async function executeReplayIntent({
   }
 }
 
+function prepareReplayActionIntent({
+  action,
+  assistantMessageId,
+  editedText,
+  messages,
+  userMessageId,
+}) {
+  if (action === 'edit_resend') {
+    return prepareReplayEditIntent({ messages, userMessageId, editedText });
+  }
+  if (action === 'retry') {
+    return prepareReplayRetryIntent({ messages, assistantMessageId });
+  }
+  return null;
+}
+
+async function executeReplayAction({
+  action,
+  activeConversationRef,
+  addMessage,
+  assistantMessageId = null,
+  chatStore,
+  deferredQueryModelSelection,
+  editedText = null,
+  failureMessages = {},
+  messages = [],
+  sessionInfo = null,
+  userMessageId = null,
+}) {
+  const intent = prepareReplayActionIntent({
+    action,
+    assistantMessageId,
+    editedText,
+    messages,
+    userMessageId,
+  });
+  if (!intent) {
+    return undefined;
+  }
+  const resolvedSessionInfo = sessionInfo
+    || DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
+  return executeReplayIntent({
+    activeConversationRef,
+    addMessage,
+    chatStore,
+    deferredQueryModelSelection,
+    failureMessages,
+    intent,
+    sessionInfo: resolvedSessionInfo,
+  });
+}
+
 export const DesktopConversationReplayRuntime = Object.freeze({
   buildReplayPendingPublication,
+  executeReplayAction,
   executeReplayIntent,
   prepareReplayEditIntent,
   prepareReplayRetryIntent,

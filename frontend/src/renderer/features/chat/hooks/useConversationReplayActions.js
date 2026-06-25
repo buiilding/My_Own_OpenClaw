@@ -7,16 +7,13 @@ import { useChatStore } from '../stores/chatStore';
 import {
   DesktopRendererConfigRuntimeClient,
 } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
-import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
   DesktopConversationReplayRuntime,
 } from '../../../app/runtime/desktopConversationReplayRuntime';
 import { DesktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 
 const {
-  executeReplayIntent,
-  prepareReplayEditIntent,
-  prepareReplayRetryIntent,
+  executeReplayAction,
 } = DesktopConversationReplayRuntime;
 const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 
@@ -30,21 +27,18 @@ export function useConversationReplayActions({
     .buildDeferredQueryModelSelection(config);
 
   const handleEditFromUser = useCallback(async (userMessageId, editedText) => {
-    const replayIntent = prepareReplayEditIntent({ messages, userMessageId, editedText });
-    if (!replayIntent) {
-      return;
-    }
-    const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
-    return executeReplayIntent({
-      sessionInfo,
+    return executeReplayAction({
+      action: 'edit_resend',
       activeConversationRef,
       deferredQueryModelSelection,
+      messages,
+      userMessageId,
+      editedText,
       failureMessages: {
         sendFailureMessage: chatSkin.sendFailureMessage,
         replayPreparationFailureMessage: chatSkin.replayPreparationFailureMessage,
       },
       chatStore: useChatStore,
-      intent: replayIntent,
       addMessage,
     });
   }, [
@@ -55,21 +49,17 @@ export function useConversationReplayActions({
   ]);
 
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
-    const replayIntent = prepareReplayRetryIntent({ messages, assistantMessageId });
-    if (!replayIntent) {
-      return;
-    }
-    const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
-    return executeReplayIntent({
-      sessionInfo,
+    return executeReplayAction({
+      action: 'retry',
       activeConversationRef,
       deferredQueryModelSelection,
+      messages,
+      assistantMessageId,
       failureMessages: {
         sendFailureMessage: chatSkin.sendFailureMessage,
         replayPreparationFailureMessage: chatSkin.replayPreparationFailureMessage,
       },
       chatStore: useChatStore,
-      intent: replayIntent,
       addMessage,
     });
   }, [
