@@ -45,21 +45,31 @@ describe('desktopThreadPresentationRuntime', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
     ];
-    const currentTurnMessages = [
-      {
-        id: 'projected-tool-1',
-        sender: 'assistant',
-        text: 'tool call',
-        type: 'tool-call',
-        sourceChannel: 'sdk:current-turn',
+    const currentTurnProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: 'projected-tool-1',
+          type: 'tool-call',
+          text: 'tool call',
+        }],
       },
-    ];
+    };
 
     expect(buildThreadPresentationMessages(messages, {
-      currentTurnMessages,
+      currentTurnProjection,
+      activeConversationRef: 'conv-1',
     })).toEqual([
       messages[0],
-      currentTurnMessages[0],
+      expect.objectContaining({
+        id: 'projected-tool-1',
+        sender: 'assistant',
+        type: 'tool-call',
+        sourceChannel: 'sdk:current-turn',
+        turnRef: 'turn-1',
+      }),
     ]);
   });
 
@@ -74,25 +84,34 @@ describe('desktopThreadPresentationRuntime', () => {
         turnRef: 'turn-1',
       },
     ];
-    const currentTurnMessages = [
-      {
+    const currentTurnProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:thinking',
+          type: 'thinking',
+          text: 'Checking the project structure.',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      currentTurnProjection,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      messages[0],
+      messages[1],
+      expect.objectContaining({
         id: 'conv-1:turn-1:thinking',
         sender: 'assistant',
         text: '',
         type: 'llm-text',
         thinkingText: 'Checking the project structure.',
-        thinkingSourceEventType: 'reasoning_delta',
         sourceChannel: 'sdk:current-turn',
         turnRef: 'turn-1',
-      },
-    ];
-
-    expect(buildThreadPresentationMessages(messages, {
-      currentTurnMessages,
-    })).toEqual([
-      messages[0],
-      messages[1],
-      currentTurnMessages[0],
+      }),
     ]);
   });
 
@@ -487,21 +506,22 @@ describe('desktopThreadPresentationRuntime', () => {
         turnRef: 'turn-1',
       },
     ];
-    const currentTurnMessages = [
-      {
-        id: 'conv-1:turn-1:thinking',
-        sender: 'assistant',
-        text: '',
-        type: 'llm-text',
-        thinkingText: 'Checking the project structure.',
-        thinkingSourceEventType: 'reasoning_delta',
-        sourceChannel: 'sdk:current-turn',
-        turnRef: 'turn-1',
+    const currentTurnProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:thinking',
+          type: 'thinking',
+          text: 'Checking the project structure.',
+        }],
       },
-    ];
+    };
 
     expect(buildThreadPresentationMessages(messages, {
-      currentTurnMessages,
+      currentTurnProjection,
+      activeConversationRef: 'conv-1',
     })).toBe(messages);
   });
 
@@ -510,20 +530,22 @@ describe('desktopThreadPresentationRuntime', () => {
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
       { id: 'user-2', sender: 'user', text: 'Now answer this', turnRef: 'turn-2' },
     ];
-    const currentTurnMessages = [
-      {
-        id: 'conv-1:turn-1:thinking',
-        sender: 'assistant',
-        text: '',
-        type: 'llm-text',
-        thinkingText: 'Old turn thinking.',
-        sourceChannel: 'sdk:current-turn',
-        turnRef: 'turn-1',
+    const currentTurnProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:thinking',
+          type: 'thinking',
+          text: 'Old turn thinking.',
+        }],
       },
-    ];
+    };
 
     expect(buildThreadPresentationMessages(messages, {
-      currentTurnMessages,
+      currentTurnProjection,
+      activeConversationRef: 'conv-1',
     })).toBe(messages);
   });
 

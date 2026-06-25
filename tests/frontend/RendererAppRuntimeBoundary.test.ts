@@ -648,6 +648,7 @@ describe('renderer app runtime boundary', () => {
     expect(threadPresentationSource).toContain('DesktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopThreadPresentationRuntime');
     expect(threadPresentationSource).toContain('projectionFallbackMessages');
+    expect(threadPresentationSource).not.toContain('currentTurnMessages');
     expect(threadPresentationSource).not.toContain('legacyProjectionMessages');
     expect(threadPresentationSource).not.toContain('showToolLogs');
     expect(threadPresentationSource).not.toContain('isBusy');

@@ -155,7 +155,6 @@ function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
 }
 
 function resolveCurrentTurnMessages({
-  currentTurnMessages = [],
   currentTurnProjection = null,
   conversationView = null,
 }) {
@@ -174,17 +173,17 @@ function resolveCurrentTurnMessages({
   if (projectionFallbackMessages.length > 0) {
     return projectionFallbackMessages;
   }
-  return Array.isArray(currentTurnMessages) ? currentTurnMessages : [];
+  return [];
 }
 
 function selectVisibleCurrentTurnMessages({
   messages,
-  currentTurnMessages,
+  liveTurnMessages,
   currentTurnProjection,
   conversationView,
   activeConversationRef,
 }) {
-  if (!Array.isArray(currentTurnMessages) || currentTurnMessages.length === 0) {
+  if (!Array.isArray(liveTurnMessages) || liveTurnMessages.length === 0) {
     return [];
   }
   const projectionConversationRef = normalizeRef(
@@ -198,7 +197,7 @@ function selectVisibleCurrentTurnMessages({
   ) {
     return [];
   }
-  return currentTurnMessages.filter((message) => (
+  return liveTurnMessages.filter((message) => (
     isVisibleCurrentTurnMessage(message)
     && belongsToLatestUserTurn(messages, message)
     && !(
@@ -228,7 +227,6 @@ function resolveLiveMessageInsertIndex(messages, liveMessages) {
 function buildThreadPresentationMessages(
   messages,
   {
-    currentTurnMessages = [],
     currentTurnProjection = null,
     conversationView = null,
     activeConversationRef = null,
@@ -236,13 +234,12 @@ function buildThreadPresentationMessages(
 ) {
   const baseMessages = Array.isArray(messages) ? messages : [];
   const resolvedCurrentTurnMessages = resolveCurrentTurnMessages({
-    currentTurnMessages,
     currentTurnProjection,
     conversationView,
   });
   const liveMessages = selectVisibleCurrentTurnMessages({
     messages: baseMessages,
-    currentTurnMessages: resolvedCurrentTurnMessages,
+    liveTurnMessages: resolvedCurrentTurnMessages,
     currentTurnProjection,
     conversationView,
     activeConversationRef,

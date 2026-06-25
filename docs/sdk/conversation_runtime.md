@@ -304,6 +304,10 @@ temporary replay bridge retains the already projected visible prefix as UI rows
 only; it does not filter tool pairs or reconstruct model context for replay.
 SDK replay commands own the durable child revision and provider-safe
 replacement history.
+Thread presentation no longer accepts caller-built `currentTurnMessages` as an
+alternate live-row input; no-view live rows must come from the SDK current-turn
+projection/presentation adapter, and `ConversationView` remains the normal
+read model once present.
 
 For debugging, use:
 

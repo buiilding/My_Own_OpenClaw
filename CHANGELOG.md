@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/presentation: remove the legacy `currentTurnMessages` input from
+  thread presentation so live rows come only from SDK current-turn projection
+  adapters or `ConversationView`, not caller-built renderer arrays. No
+  migration required.
 - frontend/replay: stop filtering retained replay-prefix tool rows in the
   renderer pending bridge. Replay now keeps the already projected visible
   prefix as UI state only and leaves model/tool replay semantics to the SDK
