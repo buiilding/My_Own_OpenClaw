@@ -6,9 +6,6 @@ const TERMINAL_PHASES = new Set(['complete', 'error']);
 const ACTIVE_PROGRESS_PHASES = new Set(['tool_call', 'tool_output']);
 const AWAITING_PHASES = new Set(['awaiting']);
 const BUSY_PHASES = new Set(['awaiting', 'streaming', 'tool_call', 'tool_output']);
-const CONVERSATION_VIEW_TERMINAL_PHASES = new Set(['complete', 'error']);
-const CONVERSATION_VIEW_ACTIVE_PHASES = new Set(['streaming', 'tool']);
-const CONVERSATION_VIEW_AWAITING_PHASES = new Set(['awaiting']);
 
 function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
@@ -51,22 +48,6 @@ function projectionMatchesPendingTurn(pendingTurn, currentTurnProjection) {
     normalizeConversationRef(currentTurnProjection.conversationRef) === normalizedPendingTurn.conversationRef
     && normalizeTurnRef(currentTurnProjection.turnRef) === normalizedPendingTurn.turnRef
   );
-}
-
-function conversationViewMatchesPendingTurn(pendingTurn, conversationView) {
-  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
-  if (!normalizedPendingTurn || !conversationView) {
-    return false;
-  }
-  return (
-    normalizeConversationRef(conversationView.conversationRef) === normalizedPendingTurn.conversationRef
-    && normalizeTurnRef(conversationView.liveTurn?.turnRef) === normalizedPendingTurn.turnRef
-  );
-}
-
-function hasConversationViewEntries(conversationView) {
-  return Array.isArray(conversationView?.liveTurn?.entries)
-    && conversationView.liveTurn.entries.length > 0;
 }
 
 function hasVisiblePresentationContent(presentation) {
@@ -123,19 +104,6 @@ function hasAuthoritativeSameTurnSdkReplacement(pendingTurn, currentTurnProjecti
   return (
     projectionMatchesPendingTurn(pendingTurn, currentTurnProjection)
     && isAuthoritativeSdkProjection(currentTurnProjection)
-  );
-}
-
-function hasAuthoritativeSameTurnConversationViewReplacement(pendingTurn, conversationView) {
-  if (!conversationViewMatchesPendingTurn(pendingTurn, conversationView)) {
-    return false;
-  }
-  const phase = normalizeString(conversationView?.liveTurn?.phase);
-  return (
-    CONVERSATION_VIEW_AWAITING_PHASES.has(phase)
-    || CONVERSATION_VIEW_ACTIVE_PHASES.has(phase)
-    || CONVERSATION_VIEW_TERMINAL_PHASES.has(phase)
-    || hasConversationViewEntries(conversationView)
   );
 }
 
@@ -220,28 +188,10 @@ function resolveSdkLifecycleStatus(currentTurnProjection) {
   return 'idle';
 }
 
-function resolveConversationViewLifecycleStatus(conversationView) {
-  if (!conversationView) {
-    return 'idle';
-  }
-  const phase = normalizeString(conversationView.liveTurn?.phase);
-  if (CONVERSATION_VIEW_TERMINAL_PHASES.has(phase) || conversationView.liveTurn?.isTerminal === true) {
-    return 'terminal';
-  }
-  if (CONVERSATION_VIEW_ACTIVE_PHASES.has(phase) || hasConversationViewEntries(conversationView)) {
-    return 'active';
-  }
-  if (CONVERSATION_VIEW_AWAITING_PHASES.has(phase)) {
-    return 'awaiting';
-  }
-  return 'idle';
-}
-
 function resolveVisibleTurnLifecycle({
   activeConversationRef = null,
   pendingTurn = null,
   currentTurnProjection = null,
-  conversationView = null,
   messages = [],
 } = {}) {
   const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
@@ -251,9 +201,6 @@ function resolveVisibleTurnLifecycle({
   const sameTurnReplacement = hasAuthoritativeSameTurnSdkReplacement(
     normalizedPendingTurn,
     currentTurnProjection,
-  ) || hasAuthoritativeSameTurnConversationViewReplacement(
-    normalizedPendingTurn,
-    conversationView,
   );
 
   if (normalizedPendingTurn && !sameTurnReplacement) {
@@ -267,32 +214,6 @@ function resolveVisibleTurnLifecycle({
       terminalReason: null,
       isBusy: true,
       showTyping: true,
-    };
-  }
-
-  const viewStatus = resolveConversationViewLifecycleStatus(conversationView);
-  const viewConversationRef = normalizeConversationRef(conversationView?.conversationRef);
-  if (
-    conversationView
-    && viewStatus !== 'idle'
-    && (!normalizedActiveConversationRef || viewConversationRef === normalizedActiveConversationRef)
-  ) {
-    return {
-      status: viewStatus,
-      source: 'conversation-view',
-      conversationRef: viewConversationRef,
-      turnRef: normalizeTurnRef(conversationView.liveTurn?.turnRef),
-      awaitingAnchor: viewStatus === 'awaiting'
-        ? findAwaitingAnchor(messages, normalizedPendingTurn, currentTurnProjection)
-        : null,
-      entries: Array.isArray(conversationView.liveTurn?.entries)
-        ? conversationView.liveTurn.entries
-        : [],
-      terminalReason: viewStatus === 'terminal'
-        ? normalizeString(conversationView.liveTurn?.phase)
-        : null,
-      isBusy: conversationView.liveTurn?.isBusy === true,
-      showTyping: viewStatus === 'awaiting',
     };
   }
 

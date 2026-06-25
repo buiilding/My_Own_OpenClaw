@@ -5,10 +5,7 @@
  */
 
 import { create } from 'zustand';
-import type {
-  ConversationView,
-  CurrentTurnProjection,
-} from '../../../app/runtime/desktopConversationRuntimeContracts';
+import type { CurrentTurnProjection } from '../../../app/runtime/desktopConversationRuntimeContracts';
 import type {
   ChatMessage,
   TokenCounts,
@@ -125,11 +122,9 @@ interface ChatState {
   tokenCounts: TokenCounts | null;
   streamTracking: StreamTracking;
   currentTurnProjection: CurrentTurnProjection | null;
-  conversationView: ConversationView | null;
   pendingTurn: PendingTurn | null;
   supersededTurnRefs: Record<string, true>;
   latestCurrentTurnProjection: CurrentTurnProjection | null;
-  latestConversationView: ConversationView | null;
   getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceState;
   setActiveConversationRef: (conversationRef: string | null) => void;
   registerTurnConversationRef: (turnRef: string, conversationRef: string | null | undefined) => void;
@@ -160,10 +155,6 @@ interface ChatState {
     currentTurnProjection: CurrentTurnProjection | null,
     conversationRef?: string | null,
   ) => void;
-  setConversationView: (
-    conversationView: ConversationView | null,
-    conversationRef?: string | null,
-  ) => void;
   acceptReplayPendingTurn: (input: {
     conversationRef?: string | null;
     messages: ChatMessage[];
@@ -186,9 +177,6 @@ interface ChatState {
   setLatestCurrentTurnProjection: (
     currentTurnProjection: CurrentTurnProjection | null,
   ) => void;
-  setLatestConversationView: (
-    conversationView: ConversationView | null,
-  ) => void;
   updateStreamTracking: (
     updater: (current: StreamTracking) => StreamTracking,
     conversationRef?: string | null,
@@ -206,7 +194,6 @@ ChatState,
 | 'tokenCounts'
 | 'streamTracking'
 | 'currentTurnProjection'
-| 'conversationView'
 | 'pendingTurn'
 | 'supersededTurnRefs'
 >;
@@ -221,7 +208,6 @@ function getProjectedWorkspaceFields(workspace: ChatWorkspaceState): ProjectedWo
     tokenCounts: workspace.tokenCounts,
     streamTracking: workspace.streamTracking,
     currentTurnProjection: workspace.currentTurnProjection,
-    conversationView: workspace.conversationView,
     pendingTurn: workspace.pendingTurn,
     supersededTurnRefs: workspace.supersededTurnRefs,
   };
@@ -468,7 +454,6 @@ export function selectLiveTurnSurfaceState(state: ChatState) {
   return projectDesktopLiveTurnSurfaceState({
     activeWorkspace: selectActiveWorkspaceState(state),
     latestCurrentTurnProjection: state.latestCurrentTurnProjection,
-    latestConversationView: state.latestConversationView,
   });
 }
 
@@ -490,11 +475,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
   tokenCounts: null,
   streamTracking: createInitialStreamTracking(),
   currentTurnProjection: null,
-  conversationView: null,
   pendingTurn: null,
   supersededTurnRefs: {},
   latestCurrentTurnProjection: null,
-  latestConversationView: null,
   getWorkspaceState: (conversationRef) => {
     const state = get();
     const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
@@ -518,7 +501,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
         && state.tokenCounts === nextWorkspace.tokenCounts
         && state.streamTracking === nextWorkspace.streamTracking
         && state.currentTurnProjection === nextWorkspace.currentTurnProjection
-        && state.conversationView === nextWorkspace.conversationView
         && state.pendingTurn === nextWorkspace.pendingTurn
         && state.supersededTurnRefs === nextWorkspace.supersededTurnRefs
       ) {
@@ -534,7 +516,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
             [nextWorkspaceRef]: nextWorkspace,
           },
         latestCurrentTurnProjection: nextWorkspace.currentTurnProjection,
-        latestConversationView: nextWorkspace.conversationView,
         ...getProjectedWorkspaceFields(nextWorkspace),
       };
     }),
@@ -752,29 +733,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace, latestUpdate);
     }),
 
-  setConversationView: (conversationView, conversationRef) =>
-    set((state) => {
-      const targetWorkspaceRef = resolveWorkspaceKey(
-        conversationRef ?? conversationView?.conversationRef,
-        state.activeConversationRef,
-      );
-      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
-      const shouldUpdateLatestView = isActiveWorkspaceRef(state, targetWorkspaceRef);
-      const latestUpdate = !shouldUpdateLatestView
-        ? {}
-        : state.latestConversationView === conversationView
-        ? {}
-        : { latestConversationView: conversationView };
-      if (currentWorkspace.conversationView === conversationView) {
-        return Object.keys(latestUpdate).length > 0 ? latestUpdate : state;
-      }
-      const nextWorkspace = {
-        ...currentWorkspace,
-        conversationView,
-      };
-      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace, latestUpdate);
-    }),
-
   acceptReplayPendingTurn: ({ messages, pendingTurn, supersededTurnRef = null }) =>
     set((state) => {
       const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
@@ -800,7 +758,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
         thinkingStatus: null,
         thinkingSourceEventType: null,
         currentTurnProjection: null,
-        conversationView: null,
         pendingTurn: normalizedPendingTurn,
         supersededTurnRefs: removeSupersededTurnRef(
           addSupersededTurnRef(currentWorkspace.supersededTurnRefs, supersededTurnRef),
@@ -815,7 +772,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
         activeConversationRef: normalizedPendingTurn.conversationRef,
         latestCurrentTurnProjection: null,
-        latestConversationView: null,
         turnConversationRefs: nextTurnConversationRefs,
         ...getProjectedWorkspaceFields(nextWorkspace),
       });
@@ -863,7 +819,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
         thinkingStatus: null,
         thinkingSourceEventType: null,
         currentTurnProjection: null,
-        conversationView: null,
         pendingTurn: normalizedPendingTurn,
         supersededTurnRefs: removeSupersededTurnRef(
           currentWorkspace.supersededTurnRefs,
@@ -878,7 +833,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
         activeConversationRef: normalizedConversationRef,
         latestCurrentTurnProjection: null,
-        latestConversationView: null,
         turnConversationRefs: nextTurnConversationRefs,
         ...getProjectedWorkspaceFields(nextWorkspace),
       });
@@ -1008,7 +962,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
         thinkingStatus: null,
         thinkingSourceEventType: null,
         currentTurnProjection: null,
-        conversationView: null,
         pendingTurn: normalizedPendingTurn,
         supersededTurnRefs: removeSupersededTurnRef(
           currentWorkspace.supersededTurnRefs,
@@ -1023,7 +976,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
         activeConversationRef: normalizedPendingTurn.conversationRef,
         latestCurrentTurnProjection: null,
-        latestConversationView: null,
         turnConversationRefs: nextTurnConversationRefs,
         ...getProjectedWorkspaceFields(nextWorkspace),
       });
@@ -1036,16 +988,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }
       return {
         latestCurrentTurnProjection: currentTurnProjection,
-      };
-    }),
-
-  setLatestConversationView: (conversationView) =>
-    set((state) => {
-      if (state.latestConversationView === conversationView) {
-        return state;
-      }
-      return {
-        latestConversationView: conversationView,
       };
     }),
 
@@ -1076,7 +1018,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
         compactionDebugInfo: null,
         streamTracking: createInitialStreamTracking(),
         currentTurnProjection: null,
-        conversationView: null,
         pendingTurn: null,
         supersededTurnRefs: {},
       };

@@ -31,7 +31,6 @@ function MinimalResponseOverlay() {
   const {
     messages,
     currentTurnProjection,
-    conversationView,
     pendingTurn,
   } = useChatStore(useShallow(selectLiveTurnSurfaceState));
   const shellRef = useRef(null);
@@ -56,7 +55,6 @@ function MinimalResponseOverlay() {
   } = useResponseOverlayViewModel({
     messages,
     currentTurnProjection,
-    conversationView,
     pendingTurn,
   });
   const {

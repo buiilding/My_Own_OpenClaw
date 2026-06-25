@@ -225,10 +225,6 @@ but they must not replace the active display rows, live turn, response overlay
 owner, busy state, or action metadata for the user-facing conversation. During
 the migration, existing `snapshot.currentTurn` and `snapshot.displayRows`
 fields remain available so renderer/main surfaces can move one at a time.
-The response overlay is migrated first: renderer adapters render
-`snapshot.view.liveTurn.entries` and Electron main applies
-`snapshot.view.surfaces.responseOverlay` before falling back to raw
-`snapshot.currentTurn.presentation.overlayIntent`.
 
 For debugging, use:
 
@@ -252,11 +248,10 @@ owns `buildCurrentTurnProjection(...)`, the live-turn presentation builder, and
 the display/rehydrate projection helpers so one event sequence produces the
 same transcript, active-turn, and replay views.
 
-Electron main emits the projection to renderer surfaces on the SDK current-turn
-IPC payload. Renderer overlays should render `view.liveTurn.entries` when a
-`ConversationView` is present, falling back to `currentTurn.presentation.entries`
-only for non-migrated hosts. They must not independently interpret backend-wire
-stream/tool events or synthesize current-turn chat messages.
+Electron main emits the projection to renderer surfaces as
+`conversation-runtime-updated`. Renderer overlays should
+render `currentTurn.presentation.entries` instead of independently interpreting
+backend-wire stream/tool events or synthesizing current-turn chat messages.
 Conversation-control compaction events are not current-turn events: they must
 not reset the current-turn anchor to a compaction operation id, set
 `presentation.isBusy`, or turn a manual compaction failure into an assistant

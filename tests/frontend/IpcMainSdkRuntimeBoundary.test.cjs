@@ -329,8 +329,6 @@ describe('main ipc sdk runtime boundary', () => {
     expect(directWakeUpAdapterSource).toContain('agent.conversation({');
     expect(directWakeUpAdapterSource).toContain('buildConversationTerminalStatus(event, workspacePath)');
     expect(directWakeUpAdapterSource).toContain('setLatestCurrentTurnProjection(snapshot.currentTurn || null)');
-    expect(directWakeUpAdapterSource).toContain('syncSdkLiveTurnSurfaceIntent(snapshot || null)');
-    expect(directWakeUpAdapterSource).toContain('view: snapshot.view || null');
     expect(directWakeUpAdapterSource).toContain('pendingTurnMatchesCurrentTurn(latestPendingTurn, snapshot.currentTurn)');
     expect(source).toContain('createWorkspacePathRuntime({');
     expect(source).toContain('workspacePathRuntime.resolve(payload)');

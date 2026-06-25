@@ -58,57 +58,6 @@ const displayRow = {
   content: 'Hello',
 };
 
-const conversationView = {
-  conversationRef: 'conv-1',
-  revisionId: 'rev-1',
-  displayRows: [displayRow],
-  liveTurn: {
-    turnRef: 'turn-1',
-    phase: 'streaming',
-    entries: [{
-      id: 'entry-1',
-      sender: 'assistant',
-      type: 'llm-text',
-      text: 'Hello',
-    }],
-    isBusy: true,
-    isTerminal: false,
-    canStop: true,
-  },
-  surfaces: {
-    pill: { mode: 'busy' },
-    dashboard: { mode: 'busy' },
-    responseOverlay: {
-      mode: 'response',
-      visible: true,
-      guardRef: 'turn-1',
-      ownerConversationRef: 'conv-1',
-      turnRef: 'turn-1',
-    },
-  },
-  actions: {
-    canEdit: false,
-    canRetry: false,
-    canFork: false,
-  },
-};
-
-const viewDiagnostics = {
-  activeRevisionId: 'rev-1',
-  displayRowCount: 1,
-  liveTurnRef: 'turn-1',
-  liveTurnPhase: 'streaming',
-  responseOverlayMode: 'response',
-  responseOverlayGuardRef: 'turn-1',
-  pendingTurnRef: null,
-  supersededTurnCount: 0,
-  filteredInternalLaneCount: 0,
-  modelHistoryCheckpointId: null,
-  lastEventRef: 'event-1',
-  lastSdkEventRef: 'event-1',
-  lastBackendEventRef: null,
-};
-
 describe('DesktopConversationRuntimeEventClient', () => {
   beforeEach(() => {
     mockOn.mockClear();
@@ -133,63 +82,20 @@ describe('DesktopConversationRuntimeEventClient', () => {
     expect(events).toEqual([
       {
         currentTurn,
-        view: null,
-        viewDiagnostics: null,
         conversationRef: 'conv-1',
       },
       {
         currentTurn,
-        view: null,
-        viewDiagnostics: null,
         conversationRef: 'override-conv',
       },
       {
         currentTurn: null,
-        view: null,
-        viewDiagnostics: null,
         conversationRef: null,
       },
     ]);
 
     unsubscribe?.();
     expect(mockChannelListeners.has('windie:current-turn')).toBe(false);
-  });
-
-  test('current-turn subscriptions carry conversation view payloads', () => {
-    const events: unknown[] = [];
-    DesktopConversationRuntimeEventClient.onCurrentTurnProjection((event) => {
-      events.push(event);
-    });
-
-    mockChannelListeners.get('windie:current-turn')?.({
-      currentTurn,
-      view: conversationView,
-      viewDiagnostics,
-    });
-    mockChannelListeners.get('windie:current-turn')?.({
-      view: {
-        ...conversationView,
-        conversationRef: 'conv-view-only',
-      },
-    });
-
-    expect(events).toEqual([
-      {
-        currentTurn,
-        view: conversationView,
-        viewDiagnostics,
-        conversationRef: 'conv-1',
-      },
-      {
-        currentTurn: null,
-        view: {
-          ...conversationView,
-          conversationRef: 'conv-view-only',
-        },
-        viewDiagnostics: null,
-        conversationRef: 'conv-view-only',
-      },
-    ]);
   });
 
   test('display-row subscriptions emit normalized events', () => {

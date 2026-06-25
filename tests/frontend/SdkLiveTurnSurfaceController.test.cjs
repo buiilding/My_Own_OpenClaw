@@ -57,43 +57,6 @@ function createCurrentTurn({
   };
 }
 
-function createSnapshotWithView({
-  viewMode = 'response',
-  visible = true,
-  currentTurnMode = 'awaiting',
-  turnRef = 'turn-1',
-  conversationRef = 'conv-1',
-} = {}) {
-  return {
-    currentTurn: createCurrentTurn({
-      mode: currentTurnMode,
-      visible: currentTurnMode !== 'hidden',
-      turnRef,
-      conversationRef,
-    }),
-    view: {
-      conversationRef,
-      liveTurn: {
-        turnRef,
-        phase: viewMode === 'typing' ? 'awaiting' : 'streaming',
-        entries: viewMode === 'response'
-          ? [{ id: 'entry-view-response', text: 'view response' }]
-          : [],
-        isBusy: true,
-      },
-      surfaces: {
-        responseOverlay: {
-          mode: viewMode,
-          visible,
-          guardRef: turnRef,
-          ownerConversationRef: conversationRef,
-          turnRef,
-        },
-      },
-    },
-  };
-}
-
 function createDeps(overrides = {}) {
   const responseWindow = createWindow();
   let overlayVisible = false;
@@ -182,32 +145,6 @@ describe('sdk_live_turn_surface_controller', () => {
       height: 236,
     }, false);
     expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
-  });
-
-  test('applies response overlay from conversation view before stale current-turn intent', () => {
-    const deps = createDeps();
-
-    const result = handleSdkLiveTurnSurfaceIntent(createSnapshotWithView({
-      viewMode: 'response',
-      currentTurnMode: 'awaiting',
-    }), deps);
-
-    expect(result).toMatchObject({
-      success: true,
-      applied: true,
-      visible: true,
-      mode: 'response',
-      staleGuardRef: 'turn-1',
-    });
-    expect(deps.getResponseWindowBounds).toHaveBeenCalledWith(520, 236, {
-      compactHover: false,
-    });
-    expect(deps.responseWindow.setBounds).toHaveBeenCalledWith({
-      x: 10,
-      y: 20,
-      width: 520,
-      height: 236,
-    }, false);
   });
 
   test('ignores internal agent conversation intents before they can own the response overlay', () => {

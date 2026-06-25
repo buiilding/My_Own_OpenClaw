@@ -148,19 +148,14 @@ function createDirectWakeUpAgentAdapter({
         : null;
       if (typeof syncSdkLiveTurnSurfaceIntent === 'function') {
         try {
-          syncSdkLiveTurnSurfaceIntent(snapshot || null);
+          syncSdkLiveTurnSurfaceIntent(snapshot.currentTurn || null);
         } catch (error) {
           if (typeof log === 'function') {
             log('Failed to sync SDK live-turn surface intent:', error?.message || error);
           }
         }
       }
-      broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN, {
-        conversationRef: handle.conversationRef,
-        currentTurn: snapshot.currentTurn || null,
-        view: snapshot.view || null,
-        viewDiagnostics: snapshot.viewDiagnostics || null,
-      });
+      broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN, snapshot.currentTurn);
       const terminalStatus = typeof buildConversationTerminalStatus === 'function'
         ? buildConversationTerminalStatus(event, workspacePath)
         : null;

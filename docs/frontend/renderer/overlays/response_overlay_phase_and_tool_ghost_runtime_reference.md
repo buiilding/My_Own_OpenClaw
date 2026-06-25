@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for response overlay renderer behavior: SDK ConversationView authority, current-turn fallback, local pending-turn handoff, hidden SDK startup projection handoff, closeability rules, and deterministic fixed-frame sizing IPC updates."
+summary: "Deep reference for response overlay renderer behavior: SDK current-turn presentation, local pending-turn handoff, hidden SDK startup projection handoff, closeability rules, and deterministic fixed-frame sizing IPC updates."
 read_when:
   - When changing `MinimalResponseOverlay.jsx` rendering logic, overlay utility contracts, or response overlay UX states.
   - When debugging missing response panes, stale awaiting indicators, hidden SDK presentation handoff, local pending-turn flicker, removed `prime-response-overlay-awaiting`, or incorrect response overlay resize behavior.
@@ -38,15 +38,14 @@ title: "Response Overlay Phase Runtime Reference"
 
 Primary inputs:
 
-- SDK `ConversationView` projection from the current-turn IPC payload
-- SDK `currentTurn` projection fallback
+- SDK `currentTurn` projection from `conversation-runtime-updated`
 - `messages`
 - renderer `pendingTurn`
 
-Live-turn entry construction:
+Current-turn entry construction:
 
-- when SDK `ConversationView` is present, `MinimalResponseOverlay` renders
-  `view.liveTurn.entries` after response-overlay visibility filtering
+- when SDK `currentTurn` is present, `MinimalResponseOverlay` converts that projection
+  into overlay-ready current-turn messages and entries
 - SDK live-turn presentation rows are converted with
   `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromPresentation(...)`;
   when SDK presentation exists but has no visible rows, the overlay falls back
@@ -94,18 +93,16 @@ Closeability:
 
 ## SDK-Driven View Modes
 
-SDK current-turn/view channel: `windie:current-turn`.
+SDK current-turn channel: `windie:current-turn`.
 
 Phase ownership boundary:
 
-- `DesktopLiveTurnSurfaceRuntime` owns live surface input from
-  `ConversationView` first and SDK current-turn projection as fallback for chat
-  and response-overlay surfaces; feature hooks consume that facade instead of
-  importing standalone live-turn helpers. Its phase, busy, awaiting, and
-  response flags are mapped from `DesktopVisibleTurnLifecycleRuntime`;
-  `view.surfaces.responseOverlay` supplies normal overlay mode/guard ownership
-  while SDK current-turn overlay intent remains fallback metadata for refs,
-  stale guards, dismissal, and trace context.
+- `DesktopLiveTurnSurfaceRuntime` owns live current-turn surface input and SDK
+  overlay-intent fallback projection for chat and response-overlay surfaces;
+  feature hooks consume that facade instead of importing standalone live-turn
+  helpers. Its phase, busy, awaiting, and response flags are mapped from
+  `DesktopVisibleTurnLifecycleRuntime`; SDK overlay intent remains rendering
+  metadata for refs, stale guards, dismissal, and trace context.
 - React chat surfaces do not subscribe to generic `response-overlay-phase`
   changes for runtime state. Renderer send preflight is represented as a
   pending user turn in chat state and over `windie:pending-turn`; this keeps the
@@ -128,12 +125,11 @@ Modes:
 
 Contract ownership:
 
-- SDK owns `ConversationView` runtime meaning for normal UI surfaces: live-turn
-  entries, response-overlay mode/guard ownership, busy state, and terminal
-  state. `currentTurn` remains compatibility fallback during migration.
-- renderer owns only presentation mapping from SDK view/current-turn data into
-  compact overlay rows; it must not execute tools, write transcripts, or
-  reinterpret backend stream semantics for the overlay.
+- SDK owns current-turn runtime meaning: active phase, assistant text,
+  reasoning text, tool events, and terminal error state.
+- renderer owns only presentation mapping from `currentTurn` into compact overlay
+  rows; it must not execute tools, write transcripts, or reinterpret backend
+  stream semantics for the overlay.
 - local pending-turn handoff is presentation-only. It may keep the optimistic user
   row and sending state visible through early SDK startup projections, but it
   must not create transcript rows, execute tools, or become a second completion
@@ -158,11 +154,12 @@ Contract ownership:
   merging a caller-supplied presentation fallback; response visibility requires
   an actual response entry, and lifecycle, awaiting, busy, and typing fields
   are stamped by `DesktopVisibleTurnLifecycleRuntime` after that data step.
-- `DesktopVisibleTurnLifecycleRuntime` owns hidden SDK startup, local pending,
-  terminal handoff, and ConversationView-vs-currentTurn lifecycle rules used by
-  live-surface projection. `DesktopLiveTurnSurfaceRuntime` maps the resolved
-  visible lifecycle into overlay-compatible phase, busy, awaiting, and response
-  fields.
+- `DesktopVisibleTurnLifecycleRuntime.shouldUseLocalPendingTurn(...)` owns
+  hidden SDK startup and terminal handoff rules used by live-surface
+  projection. `DesktopLiveTurnSurfaceRuntime` maps the resolved visible
+  lifecycle into overlay-compatible phase, busy, awaiting, and response fields;
+  SDK overlay intent remains metadata for turn refs, stale guards, dismissal,
+  and trace context rather than lifecycle authority.
 - `DesktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
   owns the dismissal target projection from SDK overlay intent, current-turn
   refs, latest response entry id, and stale guard ref.

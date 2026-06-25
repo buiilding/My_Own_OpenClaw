@@ -101,7 +101,6 @@ export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map<string, ProjectionCursor>());
   const setMessages = useChatStore((state) => state.setMessages);
   const setCurrentTurnProjection = useChatStore((state) => state.setCurrentTurnProjection);
-  const setConversationView = useChatStore((state) => state.setConversationView);
   const applyPendingTurnBroadcast = useChatStore((state) => state.applyPendingTurnBroadcast);
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
@@ -119,47 +118,43 @@ export function useConversationRuntimeProjectionStream(): void {
 
   useEffect(() => {
     const removeListener = DesktopConversationRuntimeEventClient.onCurrentTurnProjection((event) => {
-      const { currentTurn, view, conversationRef } = event;
-      if ((!currentTurn && !view) || !conversationRef) {
+      const { currentTurn, conversationRef } = event;
+      if (!currentTurn || !conversationRef) {
         return;
       }
 
       const preProjectionWorkspace = useChatStore.getState().getWorkspaceState(conversationRef);
-      const turnRef = currentTurn?.turnRef ?? view?.liveTurn?.turnRef ?? null;
-      if (isSupersededTurn(preProjectionWorkspace, turnRef)) {
+      if (isSupersededTurn(preProjectionWorkspace, currentTurn.turnRef)) {
         logReplayProjectionTrace('sdk_current_turn_superseded_ignored', conversationRef, preProjectionWorkspace, {
-          oldTurnRef: turnRef,
-          currentTurnRef: turnRef,
-          currentTurnPhase: currentTurn?.phase ?? view?.liveTurn?.phase ?? null,
+          oldTurnRef: currentTurn.turnRef ?? null,
+          currentTurnRef: currentTurn.turnRef ?? null,
+          currentTurnPhase: currentTurn.phase ?? null,
         });
         return;
       }
 
       // Check stale-turn status before current-turn storage can resolve pendingTurn.
       setCurrentTurnProjection(currentTurn, conversationRef);
-      setConversationView(view, conversationRef);
 
-      const shouldSkipDerivedSideEffects = currentTurn
-        ? (
-          !shouldAcceptCurrentTurnBeforeLocalSend(currentTurn)
-          && shouldIgnoreConversationEventForStaleTurn({
-            turnRef: currentTurn.turnRef,
-          }, conversationRef, {
-            getWorkspaceState: () => preProjectionWorkspace,
-          })
-        )
-        : false;
+      const shouldSkipDerivedSideEffects = (
+        !shouldAcceptCurrentTurnBeforeLocalSend(currentTurn)
+        && shouldIgnoreConversationEventForStaleTurn({
+          turnRef: currentTurn.turnRef,
+        }, conversationRef, {
+          getWorkspaceState: () => preProjectionWorkspace,
+        })
+      );
       logRendererCurrentTurnAppliedTrace({
         source: sdkCurrentTurnSourceChannel,
         conversationRef,
         currentTurn,
         skipDerivedSideEffects: shouldSkipDerivedSideEffects,
       });
-      if (shouldSkipDerivedSideEffects || !currentTurn) {
+      if (shouldSkipDerivedSideEffects) {
         logReplayProjectionTrace('sdk_current_turn_stale_side_effects_skipped', conversationRef, useChatStore.getState().getWorkspaceState(conversationRef), {
-          newTurnRef: currentTurn?.turnRef ?? view?.liveTurn?.turnRef ?? null,
-          currentTurnRef: currentTurn?.turnRef ?? view?.liveTurn?.turnRef ?? null,
-          currentTurnPhase: currentTurn?.phase ?? view?.liveTurn?.phase ?? null,
+          newTurnRef: currentTurn.turnRef ?? null,
+          currentTurnRef: currentTurn.turnRef ?? null,
+          currentTurnPhase: currentTurn.phase ?? null,
         });
         return;
       }
@@ -189,7 +184,6 @@ export function useConversationRuntimeProjectionStream(): void {
       removeListener?.();
     };
   }, [
-    setConversationView,
     setCurrentTurnProjection,
     setIsSending,
     setThinkingSourceEventType,
