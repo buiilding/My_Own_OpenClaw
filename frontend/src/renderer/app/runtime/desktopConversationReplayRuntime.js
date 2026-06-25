@@ -585,10 +585,5 @@ async function executeReplayAction({
 }
 
 export const DesktopConversationReplayRuntime = Object.freeze({
-  buildReplayPendingPublication,
   executeReplayAction,
-  executeReplayIntent,
-  prepareReplayEditIntent,
-  prepareReplayRetryIntent,
-  resolveReplayReadModel,
 });

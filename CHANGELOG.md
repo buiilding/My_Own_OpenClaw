@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: narrow the renderer replay runtime facade to the single
+  `executeReplayAction` entrypoint so replay preparation helpers stay private
+  to the app runtime. No migration required.
 - frontend/send: remove filename metadata from SDK resource construction so
   send preparation builds resources only from typed SDK resource inputs. No
   migration required.

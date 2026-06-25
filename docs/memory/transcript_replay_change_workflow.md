@@ -130,8 +130,9 @@ flowchart LR
      retained visible-prefix construction, superseded-turn detection, pending
      bridge shaping, SDK command dispatch, and failure cleanup. Hooks call the
      runtime's single replay-action entrypoint with row ids/text plus UI
-     dependencies; they do not call replay preparation helpers or replay SDK
-     commands directly.
+     dependencies; that public facade exports only `executeReplayAction`, and
+     hooks do not call replay preparation helpers or replay SDK commands
+     directly.
    - Renderer app-runtime facades should not expose direct display timeline
      load/replace helpers to React. Low-level display timeline operations remain
      SDK/main-owner diagnostics and command-handler concerns; normal UI paths

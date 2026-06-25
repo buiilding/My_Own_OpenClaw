@@ -1756,6 +1756,11 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('  buildReplayMessagesWithPendingTurn,');
     expect(replayRuntimeSource).not.toContain('  buildReplayPendingTurn,');
     expect(replayRuntimeSource).not.toContain('  buildReplayContextMessages,');
+    expect(replayRuntimeSource).not.toContain('  buildReplayPendingPublication,');
+    expect(replayRuntimeSource).not.toContain('  executeReplayIntent,');
+    expect(replayRuntimeSource).not.toContain('  prepareReplayEditIntent,');
+    expect(replayRuntimeSource).not.toContain('  prepareReplayRetryIntent,');
+    expect(replayRuntimeSource).not.toContain('  resolveReplayReadModel,');
     expect(replayRuntimeSource).not.toContain('  findReplayEditableUserMessageIndex,');
     expect(replayRuntimeSource).not.toContain('  resolveReplayRetryMessageIndexes,');
     expect(replayRuntimeSource).not.toContain('screenshot_ref');
