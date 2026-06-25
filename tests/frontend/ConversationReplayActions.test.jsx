@@ -153,15 +153,9 @@ describe('useConversationReplayActions', () => {
       },
     ];
     mockDisplayTimelineRows = timelineRowsFromMessages(messages);
-    const setMessages = jest.fn();
-    const setThinkingStatus = jest.fn();
-    const setThinkingSourceEventType = jest.fn();
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages,
-      setThinkingStatus,
-      setThinkingSourceEventType,
     }));
 
     await act(async () => {
@@ -274,9 +268,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: useChatStore.getState().setMessages,
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     let replayPromise;
@@ -329,9 +320,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     await act(async () => {
@@ -373,9 +361,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     await act(async () => {
@@ -428,9 +413,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: useChatStore.getState().setMessages,
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     await act(async () => {
@@ -481,9 +463,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: useChatStore.getState().setMessages,
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     await act(async () => {
@@ -551,9 +530,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: useChatStore.getState().setMessages,
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     await act(async () => {
@@ -592,9 +568,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     await act(async () => {
@@ -646,9 +619,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     try {
@@ -756,9 +726,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     await act(async () => {
@@ -796,9 +763,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     await act(async () => {
@@ -845,9 +809,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     await act(async () => {
@@ -887,9 +848,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     await act(async () => {
@@ -923,9 +881,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     await act(async () => {
@@ -965,9 +920,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: useChatStore.getState().setMessages,
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     await act(async () => {
@@ -1008,9 +960,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: useChatStore.getState().setMessages,
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     await act(async () => {
@@ -1052,9 +1001,6 @@ describe('useConversationReplayActions', () => {
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages: useChatStore.getState().setMessages,
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
     }));
 
     await act(async () => {
