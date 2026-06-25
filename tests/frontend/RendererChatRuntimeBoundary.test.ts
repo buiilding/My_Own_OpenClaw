@@ -3217,6 +3217,9 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).toContain('buildThreadPresentationMessages');
     expect(chatInterfacePresentationRuntimeSource).toContain('DesktopConversationDisplayProjection');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildConversationViewChatMessages');
+    expect(chatInterfacePresentationRuntimeSource).toContain('selectRendererMessageAnnotations');
+    expect(chatInterfacePresentationRuntimeSource).toContain('rendererAnnotations: selectRendererMessageAnnotations(messages)');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('currentMessages: messages');
     expect(chatInterfacePresentationRuntimeSource).toContain('resolveConversationViewStoreRef');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('buildConversationViewStoreProjection');
     expect(chatInterfacePresentationRuntimeSource).toContain('canEditMessages');

@@ -214,7 +214,10 @@ current-turn bridge, stored messages, the local pending bridge, and
 and active revision id. When a view exists, it builds base thread messages from
 `ConversationView.displayRows` through
 `DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`
-and uses `chatStore.messages` only as renderer annotation/pending-bridge input.
+and passes only renderer annotation records selected from `chatStore.messages`
+for feedback, transparency metadata, and token counts. The pending bridge is
+projected from `pendingTurn` directly, so a view-time render does not receive
+the full raw `chatStore.messages` transcript as a competing read model.
 The component consumes that view model and does not choose between raw
 messages, current-turn rows, and `ConversationView` action metadata inline.
 When checkout/fork commands return a `ConversationView`, `ChatInterface` stores

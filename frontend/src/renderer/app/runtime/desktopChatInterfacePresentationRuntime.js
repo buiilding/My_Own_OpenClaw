@@ -14,6 +14,7 @@ const {
 } = DesktopThreadPresentationRuntime;
 const {
   buildConversationViewChatMessages,
+  selectRendererMessageAnnotations,
 } = DesktopConversationDisplayProjection;
 
 function isConversationView(value) {
@@ -31,9 +32,9 @@ function buildChatInterfacePresentationState({
   const baseMessages = hasConversationView
     ? buildConversationViewChatMessages({
       conversationView,
-      currentMessages: messages,
       pendingTurn,
       preserveRendererAnnotations: true,
+      rendererAnnotations: selectRendererMessageAnnotations(messages),
     })
     : messages;
   return {

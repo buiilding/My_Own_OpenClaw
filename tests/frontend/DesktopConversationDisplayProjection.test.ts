@@ -12,6 +12,7 @@ const {
   buildChatMessagesFromSdkDisplayRows,
   buildDisplayProjectionTraceSummary,
   mergeRendererAnnotationsIntoSdkMessages,
+  selectRendererMessageAnnotations,
 } = DesktopConversationDisplayProjection;
 
 function message(overrides: Partial<ChatMessage>): ChatMessage {
@@ -89,6 +90,42 @@ describe('desktopConversationDisplayProjection', () => {
         tokenCounts: currentAssistant.tokenCounts,
       }),
     ]);
+  });
+
+  test('selects only renderer annotations for ConversationView merges', () => {
+    const annotations = selectRendererMessageAnnotations([
+      message({
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'stale visible text',
+        turnRef: 'turn-stale',
+        sourceEventType: 'assistant_message',
+        feedback: 'like',
+        tokenCounts: {
+          usage_source: 'provider',
+          total_tokens: 42,
+        },
+      }),
+      message({
+        id: 'assistant-2',
+        sender: 'assistant',
+        text: 'no annotations',
+        turnRef: 'turn-stale',
+        sourceEventType: 'assistant_message',
+      }),
+    ]);
+
+    expect(annotations).toEqual([{
+      id: 'assistant-1',
+      feedback: 'like',
+      tokenCounts: {
+        usage_source: 'provider',
+        total_tokens: 42,
+      },
+    }]);
+    expect(annotations[0]).not.toHaveProperty('text');
+    expect(annotations[0]).not.toHaveProperty('turnRef');
+    expect(annotations[0]).not.toHaveProperty('sourceEventType');
   });
 
   test('preserves optimistic user rows until SDK display rows project that turn', () => {
@@ -240,6 +277,47 @@ describe('desktopConversationDisplayProjection', () => {
         id: 'sdk-user-edit',
         sender: 'user',
         sourceChannel: 'sdk:display-rows',
+      }),
+    ]);
+  });
+
+  test('builds conversation-view messages from annotation records without raw message fallback', () => {
+    const conversationView = {
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      displayRows: [{
+        id: 'assistant-1',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-view',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'SDK answer',
+      }],
+      liveTurn: null,
+      surfaces: {},
+      actions: {},
+    };
+
+    expect(buildConversationViewChatMessages({
+      conversationView,
+      currentMessages: [message({
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'stale renderer answer',
+        turnRef: 'turn-stale',
+      })],
+      rendererAnnotations: [{
+        id: 'assistant-1',
+        feedback: 'like',
+      }],
+      preserveRendererAnnotations: true,
+    })).toEqual([
+      expect.objectContaining({
+        id: 'assistant-1',
+        text: 'SDK answer',
+        turnRef: 'turn-view',
+        feedback: 'like',
       }),
     ]);
   });

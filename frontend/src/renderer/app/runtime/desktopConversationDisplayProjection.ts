@@ -42,11 +42,22 @@ type MergeRendererAnnotationsOptions = {
   pendingTurn?: PendingTurnLike;
 };
 
+type RendererMessageAnnotation = {
+  feedback?: ChatMessage['feedback'];
+  fullAssistantMessage?: ChatMessage['fullAssistantMessage'];
+  fullUserMessage?: ChatMessage['fullUserMessage'];
+  id: string;
+  systemPrompt?: ChatMessage['systemPrompt'];
+  tokenCounts?: ChatMessage['tokenCounts'];
+  toolSchemas?: ChatMessage['toolSchemas'];
+};
+
 type BuildConversationViewMessagesInput = {
   conversationView?: ConversationView | null;
   currentMessages?: ChatMessage[];
   pendingTurn?: PendingTurnLike;
   preserveRendererAnnotations?: boolean;
+  rendererAnnotations?: RendererMessageAnnotation[];
 };
 
 function recordFromUnknown(value: unknown): Record<string, unknown> | null {
@@ -66,6 +77,11 @@ function isOptimisticUserMessage(message: ChatMessage): boolean {
     && normalizeTurnRef(message.turnRef) !== null
     && message.sourceEventType === 'renderer-compose'
     && message.sourceChannel === 'renderer-local';
+}
+
+function isChatMessage(value: ChatMessage | RendererMessageAnnotation): value is ChatMessage {
+  return typeof (value as ChatMessage).sender === 'string'
+    && typeof (value as ChatMessage).text === 'string';
 }
 
 function sdkUserTurnRefs(messages: ChatMessage[]): Set<string> {
@@ -163,17 +179,18 @@ function mergePendingOptimisticUserMessages(
 
 function mergeRendererAnnotationsIntoSdkMessages(
   sdkMessages: ChatMessage[],
-  currentMessages: ChatMessage[],
+  currentMessages: Array<ChatMessage | RendererMessageAnnotation>,
   options: MergeRendererAnnotationsOptions = {},
 ): ChatMessage[] {
   if (currentMessages.length === 0 && !options.pendingTurn) {
     return sdkMessages;
   }
+  const currentChatMessages = currentMessages.filter(isChatMessage);
   const currentById = new Map(currentMessages.map((message) => [message.id, message]));
   const mergedSdkMessages = sdkMessages.map((message) => {
     const pendingOptimisticUser = findPendingOptimisticUserMessage(
       message,
-      currentMessages,
+      currentChatMessages,
       options.pendingTurn,
     );
     if (pendingOptimisticUser) {
@@ -192,8 +209,36 @@ function mergeRendererAnnotationsIntoSdkMessages(
   });
   return mergePendingOptimisticUserMessages(
     mergedSdkMessages,
-    pendingOptimisticUserMessages(mergedSdkMessages, currentMessages, options.pendingTurn),
+    pendingOptimisticUserMessages(mergedSdkMessages, currentChatMessages, options.pendingTurn),
   );
+}
+
+function hasRendererMessageAnnotations(message: ChatMessage): boolean {
+  return Boolean(
+    message.systemPrompt
+      || message.toolSchemas
+      || message.fullUserMessage
+      || message.fullAssistantMessage
+      || message.feedback
+      || message.tokenCounts,
+  );
+}
+
+function selectRendererMessageAnnotations(messages: ChatMessage[] = []): RendererMessageAnnotation[] {
+  return messages.flatMap((message) => {
+    if (typeof message.id !== 'string' || !message.id || !hasRendererMessageAnnotations(message)) {
+      return [];
+    }
+    return [{
+      id: message.id,
+      ...(message.systemPrompt ? { systemPrompt: message.systemPrompt } : {}),
+      ...(message.toolSchemas ? { toolSchemas: message.toolSchemas } : {}),
+      ...(message.fullUserMessage ? { fullUserMessage: message.fullUserMessage } : {}),
+      ...(message.fullAssistantMessage ? { fullAssistantMessage: message.fullAssistantMessage } : {}),
+      ...(message.feedback ? { feedback: message.feedback } : {}),
+      ...(message.tokenCounts ? { tokenCounts: message.tokenCounts } : {}),
+    }];
+  });
 }
 
 function buildConversationViewChatMessages({
@@ -201,6 +246,7 @@ function buildConversationViewChatMessages({
   currentMessages = [],
   pendingTurn = null,
   preserveRendererAnnotations = false,
+  rendererAnnotations = [],
 }: BuildConversationViewMessagesInput): ChatMessage[] {
   if (!conversationView || typeof conversationView !== 'object') {
     return [];
@@ -214,7 +260,7 @@ function buildConversationViewChatMessages({
   }
   return mergeRendererAnnotationsIntoSdkMessages(
     sdkMessages,
-    currentMessages,
+    rendererAnnotations.length > 0 ? rendererAnnotations : currentMessages,
     { pendingTurn },
   );
 }
@@ -365,4 +411,5 @@ export const DesktopConversationDisplayProjection = Object.freeze({
   buildDisplayProjectionTraceSummary,
   buildChatMessagesFromSdkDisplayRows,
   mergeRendererAnnotationsIntoSdkMessages,
+  selectRendererMessageAnnotations,
 });
