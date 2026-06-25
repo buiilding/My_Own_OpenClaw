@@ -21,11 +21,12 @@ import time
 from dataclasses import dataclass, replace
 from typing import Any, Dict, Optional
 
-from backend.src.core.interfaces.tool import ToolResult
 from backend.src.agent.tools.processing.tool_output_projection import (
     raw_tool_output_text,
     truncate_tool_output_for_model,
 )
+from backend.src.core.interfaces.tool import ToolResult
+from backend.src.core.messages.image_payloads import normalize_provider_image_data_url
 
 logger = logging.getLogger(__name__)
 
@@ -34,16 +35,12 @@ def _normalize_screenshot_payload(
     screenshot_data: str,
     *,
     content_type: Optional[Any] = None,
-) -> str:
+) -> Optional[str]:
     """Return a provider-ready image payload while preserving known MIME type."""
-    if screenshot_data.startswith("data:image/"):
-        return screenshot_data
-    mime_type = (
-        content_type
-        if isinstance(content_type, str) and content_type.startswith("image/")
-        else "image/png"
+    return normalize_provider_image_data_url(
+        screenshot_data,
+        content_type=content_type,
     )
-    return f"data:{mime_type};base64,{screenshot_data}"
 
 
 @dataclass
@@ -174,10 +171,16 @@ class ResultTransformer:
             logger.debug("Found screenshot in tool result artifacts")
             screenshot_data = artifacts["screenshot"]
             if isinstance(screenshot_data, str) and screenshot_data:
-                return _normalize_screenshot_payload(
+                normalized = _normalize_screenshot_payload(
                     screenshot_data,
                     content_type=artifacts.get("screenshot_content_type"),
                 )
+                if normalized:
+                    return normalized
+                logger.warning(
+                    "Screenshot artifact could not be identified as an image"
+                )
+                return None
             logger.warning(
                 f"Screenshot artifact found but invalid type: {type(screenshot_data)}"
             )
@@ -189,10 +192,16 @@ class ResultTransformer:
                 screenshot_data = tool_result.data["screenshot"]
                 if screenshot_data and isinstance(screenshot_data, str):
                     logger.debug("Found screenshot in tool result data")
-                    return _normalize_screenshot_payload(
+                    normalized = _normalize_screenshot_payload(
                         screenshot_data,
                         content_type=tool_result.data.get("screenshot_content_type"),
                     )
+                    if normalized:
+                        return normalized
+                    logger.warning(
+                        "Screenshot data could not be identified as an image"
+                    )
+                    return None
                 else:
                     logger.warning(
                         f"Screenshot data found but invalid type: {type(screenshot_data)}"

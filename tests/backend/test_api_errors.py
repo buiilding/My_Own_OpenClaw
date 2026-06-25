@@ -14,6 +14,7 @@ from backend.src.api.infrastructure.errors import (
 )
 from backend.src.core.infrastructure.user_facing_errors import (
     INTERNAL_SERVER_ERROR_MESSAGE,
+    sanitize_stream_error_message,
 )
 from backend.src.core.validation.validators import ValidationError
 
@@ -28,7 +29,9 @@ class FakeWebSocket:
     async def send_text(self, data: str) -> None:  # noqa: ARG002
         return None
 
-    async def close(self, code: int = 1000, reason: Optional[str] = None) -> None:  # noqa: ARG002
+    async def close(
+        self, code: int = 1000, reason: Optional[str] = None
+    ) -> None:  # noqa: ARG002
         return None
 
 
@@ -78,6 +81,28 @@ def test_sanitize_error_message_applies_context_for_internal_errors() -> None:
         sanitize_error_message(exc, context="registry")
         == f"registry: {INTERNAL_SERVER_ERROR_MESSAGE}"
     )
+
+
+def test_sanitize_stream_error_message_exposes_safe_provider_image_detail() -> None:
+    message = (
+        "Anthropic API error (HTTP 400): "
+        "messages.2.content.0.tool_result.content.1.image.source.base64: "
+        "The image was specified using the image/png media type, "
+        "but the image appears to be a image/jpeg image"
+    )
+
+    assert sanitize_stream_error_message(message) == message
+
+
+def test_sanitize_stream_error_message_hides_provider_image_detail_with_secret() -> (
+    None
+):
+    message = (
+        "Anthropic API error (HTTP 400): "
+        "image validation failed for api_key sk-ant-secret"
+    )
+
+    assert sanitize_stream_error_message(message) == INTERNAL_SERVER_ERROR_MESSAGE
 
 
 @pytest.mark.asyncio
@@ -142,7 +167,9 @@ async def test_send_error_response_respects_custom_error_type() -> None:
 
 
 @pytest.mark.asyncio
-async def test_send_error_response_sanitizes_raw_message_without_user_facing_flag() -> None:
+async def test_send_error_response_sanitizes_raw_message_without_user_facing_flag() -> (
+    None
+):
     websocket = FakeWebSocket()
 
     await send_error_response(

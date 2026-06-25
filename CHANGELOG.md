@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/tools: detect and repair model-visible screenshot image MIME before
+  provider dispatch, so JPEG/PNG/WebP/GIF tool-result images are not mislabeled
+  as PNG and provider image validation details can surface when safe. No
+  migration required.
 - frontend/main: make SDK retry/edit replay use the same Electron-main
   runtime-turn context helper as normal sends, so current Agent prompts and
   local/remote tool policy are attached before replay dispatch instead of

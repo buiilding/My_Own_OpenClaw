@@ -1,11 +1,16 @@
 """Covers conversation history behavior in the backend test suite."""
 
-import backend.src.services.token_service as token_service
+import base64
+
 import pytest
+
+import backend.src.services.token_service as token_service
 from backend.src.agent.session.state import ConversationHistory
 from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.llm.providers.base import LLMProvider
+
+PNG_BASE64 = base64.b64encode(b"\x89PNG\r\n\x1a\npng-bytes").decode("ascii")
 
 
 def test_get_history_includes_system_prompt_and_messages():
@@ -36,25 +41,34 @@ def test_history_retains_messages_without_count_pruning():
 def test_preserves_all_images_in_history():
     history = ConversationHistory()
 
-    history.add_user_message("one", image_data="img-1")
-    history.add_tool_output("two", image_data="img-2")
-    history.add_user_message("three", image_data="img-3")
+    history.add_user_message("one", image_data=PNG_BASE64)
+    history.add_tool_output("two", image_data=PNG_BASE64)
+    history.add_user_message("three", image_data=PNG_BASE64)
 
     stored = history.get_stored_messages()
-    assert stored[0].image_data == "img-1"
-    assert stored[1].image_data == "img-2"
-    assert stored[2].image_data == "img-3"
+    assert stored[0].image_data == PNG_BASE64
+    assert stored[1].image_data == PNG_BASE64
+    assert stored[2].image_data == PNG_BASE64
     assert stored[0].structured_content == [
         {"type": "text", "text": "one"},
-        {"type": "image_url", "image_url": {"url": "data:image/png;base64,img-1"}},
+        {
+            "type": "image_url",
+            "image_url": {"url": f"data:image/png;base64,{PNG_BASE64}"},
+        },
     ]
     assert stored[1].structured_content == [
         {"type": "text", "text": "two"},
-        {"type": "image_url", "image_url": {"url": "data:image/png;base64,img-2"}},
+        {
+            "type": "image_url",
+            "image_url": {"url": f"data:image/png;base64,{PNG_BASE64}"},
+        },
     ]
     assert stored[2].structured_content == [
         {"type": "text", "text": "three"},
-        {"type": "image_url", "image_url": {"url": "data:image/png;base64,img-3"}},
+        {
+            "type": "image_url",
+            "image_url": {"url": f"data:image/png;base64,{PNG_BASE64}"},
+        },
     ]
 
     llm_messages = history.get_history()
@@ -183,17 +197,20 @@ def test_tool_output_with_staged_tool_call_id_preserves_image_context_without_te
     history = ConversationHistory()
 
     history.stage_tool_call_ids(["call_1"])
-    history.add_tool_output("tool output", image_data="img-1")
+    history.add_tool_output("tool output", image_data=PNG_BASE64)
 
     stored = history.get_stored_messages()
     assert len(stored) == 1
     assert stored[0].role == MessageRole.TOOL
     assert stored[0].content == "tool output"
     assert stored[0].tool_call_id == "call_1"
-    assert stored[0].image_data == "img-1"
+    assert stored[0].image_data == PNG_BASE64
     assert stored[0].structured_content == [
         {"type": "text", "text": "tool output"},
-        {"type": "image_url", "image_url": {"url": "data:image/png;base64,img-1"}},
+        {
+            "type": "image_url",
+            "image_url": {"url": f"data:image/png;base64,{PNG_BASE64}"},
+        },
     ]
 
     llm_messages = history.get_history()

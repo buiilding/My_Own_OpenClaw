@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any, Dict, Iterator, Optional
 
@@ -21,6 +22,20 @@ TRANSIENT_NETWORK_MARKERS = (
     "temporary failure",
 )
 RETRYABLE_TRANSIENT_STATUS_CODES = {502, 503, 504}
+SENSITIVE_ERROR_MARKERS = re.compile(
+    r"(sk-[A-Za-z0-9_-]+|api[_ -]?key|authorization|bearer|password|secret)",
+    re.IGNORECASE,
+)
+SAFE_IMAGE_ERROR_MARKERS = (
+    "image",
+    "media type",
+    "base64",
+    "jpeg",
+    "jpg",
+    "png",
+    "webp",
+    "gif",
+)
 
 
 def iter_exception_chain(exc: Exception) -> Iterator[BaseException]:
@@ -56,16 +71,25 @@ def extract_status_code(exc: Exception) -> Optional[int]:
     return None
 
 
-def build_api_error_message(provider_label: str, status_code: Optional[int]) -> str:
+def build_api_error_message(
+    provider_label: str,
+    status_code: Optional[int],
+    *,
+    detail: Optional[str] = None,
+) -> str:
     """Return concise, user-facing provider API error text."""
     if status_code == 520:
-        return (
+        message = (
             f"{provider_label} upstream service is temporarily unavailable (HTTP 520). "
             "Please retry."
         )
-    if status_code is not None:
-        return f"{provider_label} API error (HTTP {status_code})"
-    return f"{provider_label} API error"
+    elif status_code is not None:
+        message = f"{provider_label} API error (HTTP {status_code})"
+    else:
+        message = f"{provider_label} API error"
+    if detail:
+        return f"{message}: {detail}"
+    return message
 
 
 def normalize_provider_label(provider_label: str) -> str:
@@ -127,3 +151,80 @@ def build_provider_error_metadata(
         "transient": transient,
         "retry_after_seconds": retry_after_seconds,
     }
+
+
+def extract_safe_provider_error_detail(exc: Optional[BaseException]) -> Optional[str]:
+    """Return a narrow, client-safe provider validation detail when available."""
+    if exc is None:
+        return None
+    for candidate in iter_exception_chain(exc):
+        for detail in _iter_provider_error_detail_candidates(candidate):
+            normalized = " ".join(str(detail).split())
+            if _is_safe_provider_error_detail(normalized):
+                return normalized[:500]
+    return None
+
+
+def _iter_provider_error_detail_candidates(exc: BaseException) -> Iterator[str]:
+    body = getattr(exc, "body", None)
+    for value in (body, str(exc)):
+        if isinstance(value, bytes):
+            value = value.decode("utf-8", errors="replace")
+        if not isinstance(value, str) or not value.strip():
+            continue
+        yield from _extract_detail_strings(value)
+
+
+def _extract_detail_strings(value: str) -> Iterator[str]:
+    text = value.strip()
+    yield text
+    for start in [index for index, char in enumerate(text) if char == "{"]:
+        try:
+            parsed = json.loads(text[start:])
+        except Exception:
+            continue
+        message = _find_provider_message(parsed)
+        if message:
+            yield message
+            return
+    for match in re.finditer(r'"message"\s*:\s*"((?:\\.|[^"\\])*)"', text):
+        try:
+            yield json.loads(f'"{match.group(1)}"')
+        except Exception:
+            continue
+
+
+def _find_provider_message(value: Any) -> Optional[str]:
+    if isinstance(value, dict):
+        message = value.get("message")
+        if isinstance(message, str) and message.strip():
+            return message
+        for child in value.values():
+            found = _find_provider_message(child)
+            if found:
+                return found
+    if isinstance(value, list):
+        for child in value:
+            found = _find_provider_message(child)
+            if found:
+                return found
+    return None
+
+
+def _is_safe_provider_error_detail(detail: str) -> bool:
+    if not detail or len(detail) > 1000:
+        return False
+    if SENSITIVE_ERROR_MARKERS.search(detail):
+        return False
+    normalized = detail.lower()
+    if not any(marker in normalized for marker in SAFE_IMAGE_ERROR_MARKERS):
+        return False
+    return "image" in normalized and (
+        "media type" in normalized
+        or "base64" in normalized
+        or "jpeg" in normalized
+        or "jpg" in normalized
+        or "png" in normalized
+        or "webp" in normalized
+        or "gif" in normalized
+    )

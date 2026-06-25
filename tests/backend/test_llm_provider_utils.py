@@ -8,6 +8,7 @@ from backend.src.core.infrastructure.error_types.llm import LLMAPIError
 from backend.src.llm.client_response_normalization import normalize_response_payload
 from backend.src.llm.providers.error_mapping import (
     build_api_error_message,
+    extract_safe_provider_error_detail,
     extract_status_code,
     iter_exception_chain,
 )
@@ -16,8 +17,8 @@ from backend.src.llm.providers.message_normalization import (
     normalize_tools_for_litellm,
 )
 from backend.src.llm.providers.response_parsing import (
-    extract_delta_content,
     extract_completion_response,
+    extract_delta_content,
     normalize_raw_tool_calls,
     normalize_tool_arguments,
 )
@@ -114,6 +115,40 @@ def test_build_api_error_message_formats_520_and_generic_paths():
     assert build_api_error_message("Provider", None) == "Provider API error"
 
 
+def test_build_api_error_message_appends_safe_detail():
+    detail = (
+        "messages.2.content.0.tool_result.content.1.image.source.base64: "
+        "The image was specified using the image/png media type, "
+        "but the image appears to be a image/jpeg image"
+    )
+    assert build_api_error_message("Anthropic", 400, detail=detail) == (
+        "Anthropic API error (HTTP 400): " + detail
+    )
+
+
+def test_extract_safe_provider_error_detail_allows_image_validation_message():
+    exc = RuntimeError(
+        'AnthropicError: {"type":"error","error":{"type":"invalid_request_error",'
+        '"message":"messages.2.content.0.tool_result.content.1.image.source.base64: '
+        "The image was specified using the image/png media type, "
+        'but the image appears to be a image/jpeg image"}}'
+    )
+
+    detail = extract_safe_provider_error_detail(exc)
+
+    assert detail is not None
+    assert "image/png media type" in detail
+    assert "image/jpeg image" in detail
+
+
+def test_extract_safe_provider_error_detail_blocks_secret_like_message():
+    exc = RuntimeError(
+        'ProviderError: {"error":{"message":"image failed for api_key sk-secret"}}'
+    )
+
+    assert extract_safe_provider_error_detail(exc) is None
+
+
 def test_normalize_usage_payload_supports_model_dump_and_collect_usage_payload():
     normalized = normalize_usage_payload(_ModelDumpPayload())
     assert normalized == {"prompt_tokens": 12}
@@ -208,7 +243,13 @@ def test_normalize_messages_for_provider_converts_internal_tool_calls_and_drops_
         {
             "role": "assistant",
             "content": "",
-            "tool_calls": [{"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/demo.txt"}}],
+            "tool_calls": [
+                {
+                    "id": "call_1",
+                    "name": "read_file",
+                    "arguments": {"path": "/tmp/demo.txt"},
+                }
+            ],
         },
         {"role": "tool", "tool_call_id": "call_1", "content": "ok"},
         {"role": "tool", "tool_call_id": "missing", "content": "orphan"},
@@ -217,7 +258,10 @@ def test_normalize_messages_for_provider_converts_internal_tool_calls_and_drops_
     normalized = normalize_messages_for_provider(messages, model="m")
     assert len(normalized) == 3
     assert normalized[1]["tool_calls"][0]["type"] == "function"
-    assert normalized[1]["tool_calls"][0]["function"]["arguments"] == "{\"path\":\"/tmp/demo.txt\"}"
+    assert (
+        normalized[1]["tool_calls"][0]["function"]["arguments"]
+        == '{"path":"/tmp/demo.txt"}'
+    )
     assert normalized[-1]["tool_call_id"] == "call_1"
 
 
@@ -241,7 +285,7 @@ def test_normalize_messages_for_provider_returns_isolated_tool_calls_when_any_ca
                 {
                     "id": "call_1",
                     "type": "function",
-                    "function": {"name": "read_file", "arguments": "{\"path\":\"/tmp/a\"}"},
+                    "function": {"name": "read_file", "arguments": '{"path":"/tmp/a"}'},
                 },
                 {
                     "id": "call_2",
@@ -255,10 +299,14 @@ def test_normalize_messages_for_provider_returns_isolated_tool_calls_when_any_ca
     ]
 
     normalized = normalize_messages_for_provider(messages, model="m")
-    messages[0]["tool_calls"][0]["function"]["arguments"] = "{\"path\":\"/tmp/mutated\"}"
+    messages[0]["tool_calls"][0]["function"]["arguments"] = '{"path":"/tmp/mutated"}'
 
-    assert normalized[0]["tool_calls"][0]["function"]["arguments"] == "{\"path\":\"/tmp/a\"}"
-    assert normalized[0]["tool_calls"][1]["function"]["arguments"] == "{\"path\":\"/tmp/b\"}"
+    assert (
+        normalized[0]["tool_calls"][0]["function"]["arguments"] == '{"path":"/tmp/a"}'
+    )
+    assert (
+        normalized[0]["tool_calls"][1]["function"]["arguments"] == '{"path":"/tmp/b"}'
+    )
 
 
 def test_normalize_messages_for_provider_preserves_thought_signature_for_gemini():
@@ -388,7 +436,7 @@ def test_extract_completion_response_preserves_tool_call_thought_signature():
                             "id": "call_1",
                             "function": {
                                 "name": "browser",
-                                "arguments": "{\"action\":\"snapshot\"}",
+                                "arguments": '{"action":"snapshot"}',
                                 "thoughtSignature": "sig-abc",
                             },
                         }
@@ -421,8 +469,16 @@ def test_extract_completion_response_rejects_duplicate_tool_call_ids():
                 "message": {
                     "content": "ok",
                     "tool_calls": [
-                        {"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/a"}},
-                        {"id": "call_1", "name": "replace", "arguments": {"path": "/tmp/b"}},
+                        {
+                            "id": "call_1",
+                            "name": "read_file",
+                            "arguments": {"path": "/tmp/a"},
+                        },
+                        {
+                            "id": "call_1",
+                            "name": "replace",
+                            "arguments": {"path": "/tmp/b"},
+                        },
                     ],
                 }
             }
@@ -443,8 +499,16 @@ def test_normalize_response_payload_rejects_duplicate_tool_call_ids():
             {
                 "content": "",
                 "tool_calls": [
-                    {"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/a"}},
-                    {"id": "call_1", "name": "replace", "arguments": {"path": "/tmp/b"}},
+                    {
+                        "id": "call_1",
+                        "name": "read_file",
+                        "arguments": {"path": "/tmp/a"},
+                    },
+                    {
+                        "id": "call_1",
+                        "name": "replace",
+                        "arguments": {"path": "/tmp/b"},
+                    },
                 ],
             },
             model="m",
@@ -501,7 +565,11 @@ def test_normalize_messages_for_provider_drops_tool_message_with_blank_tool_call
             "role": "assistant",
             "content": "",
             "tool_calls": [
-                {"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/demo.txt"}}
+                {
+                    "id": "call_1",
+                    "name": "read_file",
+                    "arguments": {"path": "/tmp/demo.txt"},
+                }
             ],
         },
         {"role": "tool", "tool_call_id": " ", "content": "invalid"},
@@ -522,7 +590,10 @@ def test_normalize_messages_for_provider_normalizes_openai_function_argument_sha
                 {
                     "id": "call_dict",
                     "type": "function",
-                    "function": {"name": "read_file", "arguments": {"path": "/tmp/demo.txt"}},
+                    "function": {
+                        "name": "read_file",
+                        "arguments": {"path": "/tmp/demo.txt"},
+                    },
                 },
                 {
                     "id": "call_none",
@@ -537,7 +608,7 @@ def test_normalize_messages_for_provider_normalizes_openai_function_argument_sha
 
     normalized = normalize_messages_for_provider(messages, model="m")
     assistant_calls = normalized[0]["tool_calls"]
-    assert assistant_calls[0]["function"]["arguments"] == "{\"path\":\"/tmp/demo.txt\"}"
+    assert assistant_calls[0]["function"]["arguments"] == '{"path":"/tmp/demo.txt"}'
     assert assistant_calls[1]["function"]["arguments"] == "{}"
     assert normalized[1]["tool_call_id"] == "call_dict"
     assert normalized[2]["tool_call_id"] == "call_none"
@@ -611,7 +682,11 @@ def test_normalize_messages_for_provider_drops_tool_message_without_tool_call_id
             "role": "assistant",
             "content": "",
             "tool_calls": [
-                {"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/demo.txt"}}
+                {
+                    "id": "call_1",
+                    "name": "read_file",
+                    "arguments": {"path": "/tmp/demo.txt"},
+                }
             ],
         },
         {"role": "tool", "content": "missing id"},
@@ -685,7 +760,7 @@ def test_normalize_raw_tool_calls_supports_tool_use_with_string_input():
                 "type": "tool_use",
                 "id": "call_1",
                 "name": "replace",
-                "input": "{\"path\":\"/tmp/demo.txt\"}",
+                "input": '{"path":"/tmp/demo.txt"}',
             }
         ],
         model="m",
@@ -708,7 +783,7 @@ def test_normalize_raw_tool_calls_rejects_missing_tool_call_id():
                 {
                     "type": "tool_use",
                     "name": "replace",
-                    "input": "{\"path\":\"/tmp/demo.txt\"}",
+                    "input": '{"path":"/tmp/demo.txt"}',
                 }
             ],
             model="m",
@@ -767,7 +842,10 @@ def test_normalize_tools_for_litellm_returns_deep_copy():
         {
             "type": "function",
             "name": "read_file",
-            "parameters": {"type": "object", "properties": {"path": {"type": "string"}}},
+            "parameters": {
+                "type": "object",
+                "properties": {"path": {"type": "string"}},
+            },
         }
     ]
 

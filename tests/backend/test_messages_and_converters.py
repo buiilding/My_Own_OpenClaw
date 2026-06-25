@@ -1,5 +1,7 @@
 """Covers messages and converters behavior in the backend test suite."""
 
+import base64
+
 from backend.src.core.messages.converters import content_to_message_content
 from backend.src.core.messages.structures import (
     ImageContent,
@@ -7,6 +9,9 @@ from backend.src.core.messages.structures import (
     TextContent,
 )
 from backend.src.core.types.enums import MessageRole, MessageType
+
+JPEG_BASE64 = base64.b64encode(b"\xff\xd8\xff\xe0jpeg-bytes").decode("ascii")
+PNG_BASE64 = base64.b64encode(b"\x89PNG\r\n\x1a\npng-bytes").decode("ascii")
 
 
 def test_stored_message_text_only():
@@ -25,7 +30,7 @@ def test_stored_message_image_adds_prefix():
         role=MessageRole.ASSISTANT,
         content="see this",
         message_type=MessageType.ASSISTANT_RESPONSE,
-        image_data="abc123",
+        image_data=PNG_BASE64,
     )
     llm_message = message.to_llm_message()
     content = llm_message["content"]
@@ -38,11 +43,25 @@ def test_stored_message_image_preserves_existing_prefix():
         role=MessageRole.ASSISTANT,
         content="already encoded",
         message_type=MessageType.ASSISTANT_RESPONSE,
-        image_data="data:image/png;base64,xyz",
+        image_data=f"data:image/png;base64,{PNG_BASE64}",
     )
     llm_message = message.to_llm_message()
     content = llm_message["content"]
-    assert content[1]["image_url"]["url"] == "data:image/png;base64,xyz"
+    assert content[1]["image_url"]["url"] == f"data:image/png;base64,{PNG_BASE64}"
+
+
+def test_stored_message_image_repairs_mismatched_existing_prefix():
+    message = StoredMessage(
+        role=MessageRole.TOOL,
+        content="screenshot",
+        message_type=MessageType.TOOL_OUTPUT,
+        image_data=f"data:image/png;base64,{JPEG_BASE64}",
+        tool_call_id="call_1",
+    )
+
+    llm_message = message.to_llm_message()
+    content = llm_message["content"]
+    assert content[1]["image_url"]["url"] == f"data:image/jpeg;base64,{JPEG_BASE64}"
 
 
 def test_stored_message_supports_multiple_images():
@@ -50,15 +69,15 @@ def test_stored_message_supports_multiple_images():
         role=MessageRole.USER,
         content="compare",
         message_type=MessageType.USER_QUERY,
-        image_data=["first", "data:image/png;base64,second"],
+        image_data=[PNG_BASE64, f"data:image/png;base64,{PNG_BASE64}"],
     )
 
     llm_message = message.to_llm_message()
     content = llm_message["content"]
     assert isinstance(content, list)
     assert content[0] == {"type": "text", "text": "compare"}
-    assert content[1]["image_url"]["url"] == "data:image/png;base64,first"
-    assert content[2]["image_url"]["url"] == "data:image/png;base64,second"
+    assert content[1]["image_url"]["url"] == f"data:image/png;base64,{PNG_BASE64}"
+    assert content[2]["image_url"]["url"] == f"data:image/png;base64,{PNG_BASE64}"
 
 
 def test_content_to_message_content_text_only():
@@ -170,7 +189,7 @@ def test_stored_message_tool_role_supports_multimodal_content_with_image():
         content="tool output with screenshot",
         message_type=MessageType.TOOL_OUTPUT,
         tool_call_id="call_1",
-        image_data="img123",
+        image_data=PNG_BASE64,
     )
 
     llm_message = message.to_llm_message()

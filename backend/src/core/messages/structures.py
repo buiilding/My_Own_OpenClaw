@@ -10,6 +10,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
+from backend.src.core.messages.image_payloads import normalize_provider_image_data_url
 from backend.src.core.types.enums import ContentType, MessageRole, MessageType
 from backend.src.core.types.schemas import LLMMessage, MultimodalContent
 
@@ -134,14 +135,14 @@ class StoredMessage:
             {"type": ContentType.TEXT.value, "text": text},
         ]
         for image_item in normalized_image_data:
-            image_url = (
-                image_item
-                if image_item.startswith("data:image/")
-                else f"data:image/png;base64,{image_item}"
-            )
+            image_url = normalize_provider_image_data_url(image_item)
+            if not image_url:
+                continue
             multimodal_content.append(
                 {"type": ContentType.IMAGE_URL.value, "image_url": {"url": image_url}}
             )
+        if len(multimodal_content) == 1:
+            return text
         return multimodal_content
 
     @staticmethod

@@ -55,6 +55,10 @@ into the agent definition for the websocket handshake.
   also return screenshot context for the bundle output; capture once after the
   bundle unless an explicit successful screenshot step already provides the
   needed image.
+- Model-visible tool-result images must carry MIME that matches the actual
+  bytes before provider dispatch. Backend shared image normalization detects
+  PNG/JPEG/WebP/GIF payloads, repairs stale data-URL MIME, and drops
+  unidentified bare image payloads instead of guessing a generic PNG default.
 - Built-in grounded tools should preserve the model-schema vs prepared-argument
   distinction. Use `backend_grounding` only when OCR, vision, or prediction
   prepares executable local-runtime arguments; otherwise use `passthrough`.

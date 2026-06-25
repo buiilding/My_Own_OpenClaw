@@ -93,10 +93,14 @@ Design intent:
 2. `tool_result.data["screenshot"]` when data is dict and screenshot is a non-empty string
 3. `None` otherwise
 
-If `screenshot_content_type` is available next to the screenshot payload, the
-transformer wraps bare base64 as a `data:<content-type>;base64,...` URL before
-history commit. Existing `data:image/...` URLs pass through unchanged. When no
-content type is present, the legacy default is `image/png`.
+The transformer normalizes provider-visible screenshot images through the shared
+image-payload helper before history commit. PNG, JPEG, WebP, and GIF payloads
+are detected from bytes; detected bytes win over stale or missing
+`screenshot_content_type`, so a JPEG screenshot cannot be committed as
+`image/png`. Existing `data:image/...` URLs keep their base64 payload but have
+their MIME repaired when the byte signature disagrees. Bare base64 with no
+identifiable image signature is not guessed as PNG and is dropped from
+model-visible image history.
 
 Type guard:
 
@@ -104,7 +108,8 @@ Type guard:
 
 Implication:
 
-- malformed screenshot types do not block history text commit, but image attachment is dropped
+- malformed or unidentified screenshot types do not block history text commit,
+  but image attachment is dropped
 
 ## `ToolResult.format_for_history` Contract
 

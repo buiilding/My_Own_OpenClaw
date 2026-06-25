@@ -21,6 +21,7 @@ from backend.src.llm.providers.base_payload_helpers import ProviderPayloadHelper
 from backend.src.llm.providers.error_mapping import (
     build_api_error_message,
     build_provider_error_metadata,
+    extract_safe_provider_error_detail,
     extract_status_code,
     iter_exception_chain,
 )
@@ -159,7 +160,11 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
             status_code = self._extract_status_code(e)
             metadata = build_provider_error_metadata(provider_label, status_code, e)
             raise LLMAPIError(
-                self._build_api_error_message(provider_label, status_code),
+                self._build_api_error_message(
+                    provider_label,
+                    status_code,
+                    detail=extract_safe_provider_error_detail(e),
+                ),
                 model=model,
                 status_code=status_code,
                 metadata=metadata,
@@ -176,7 +181,11 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
                     e,
                 )
                 raise LLMAPIError(
-                    self._build_api_error_message(provider_label, status_code),
+                    self._build_api_error_message(
+                        provider_label,
+                        status_code,
+                        detail=extract_safe_provider_error_detail(e),
+                    ),
                     model=model,
                     status_code=status_code,
                     metadata=metadata,
@@ -279,6 +288,7 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
                 content=self._build_api_error_message(
                     self.__class__.__name__,
                     status_code,
+                    detail=extract_safe_provider_error_detail(e),
                 ),
                 metadata=build_provider_error_metadata(
                     self.__class__.__name__,
@@ -307,6 +317,7 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
                     content=self._build_api_error_message(
                         self.__class__.__name__,
                         status_code,
+                        detail=extract_safe_provider_error_detail(e),
                     ),
                     metadata=build_provider_error_metadata(
                         self.__class__.__name__,
@@ -417,10 +428,13 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
 
     @staticmethod
     def _build_api_error_message(
-        provider_label: str, status_code: Optional[int]
+        provider_label: str,
+        status_code: Optional[int],
+        *,
+        detail: Optional[str] = None,
     ) -> str:
         """Return concise, user-facing API error text."""
-        return build_api_error_message(provider_label, status_code)
+        return build_api_error_message(provider_label, status_code, detail=detail)
 
     @staticmethod
     def _normalize_usage_payload(payload: Any) -> Optional[Dict[str, Any]]:

@@ -5,14 +5,18 @@ from __future__ import annotations
 import re
 from typing import Any
 
-INTERNAL_SERVER_ERROR_MESSAGE = (
-    "Internal server error. Start a new chat and try again."
-)
+INTERNAL_SERVER_ERROR_MESSAGE = "Internal server error. Start a new chat and try again."
 OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE = (
     "OpenAI Responses stream ended without final response payload"
 )
 PROVIDER_API_ERROR_MESSAGE_RE = re.compile(
     r"^[A-Za-z][A-Za-z0-9 _.-]{0,80} API error(?: \(HTTP [0-9]{3}\))?$"
+)
+PROVIDER_IMAGE_API_ERROR_MESSAGE_RE = re.compile(
+    r"^[A-Za-z][A-Za-z0-9 _.-]{0,80} API error(?: \(HTTP [0-9]{3}\))?: "
+    r"(?=[^\n]{1,500}$)(?=.*\bimage\b)(?=.*\b(?:media type|base64|jpe?g|png|webp|gif)\b)"
+    r"(?!.*(?:sk-[A-Za-z0-9_-]+|api[_ -]?key|authorization|bearer|password|secret)).+$",
+    re.IGNORECASE,
 )
 LLM_API_ERROR_MESSAGE_RE = re.compile(
     r"^LLM API error(?: \(HTTP [0-9]{3}\))?\. Please retry\.$"
@@ -39,6 +43,8 @@ def sanitize_stream_error_message(message: Any) -> str:
         if normalized == OPENAI_RESPONSES_EMPTY_STREAM_MESSAGE:
             return normalized
         if PROVIDER_API_ERROR_MESSAGE_RE.fullmatch(normalized):
+            return normalized
+        if PROVIDER_IMAGE_API_ERROR_MESSAGE_RE.fullmatch(normalized):
             return normalized
         if LLM_API_ERROR_MESSAGE_RE.fullmatch(normalized):
             return normalized
