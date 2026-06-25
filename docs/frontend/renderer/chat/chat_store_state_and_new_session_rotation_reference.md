@@ -54,12 +54,17 @@ feature callers do not import the raw sentinel string.
 
 All mutating actions accept optional `conversationRef` and write into that workspace. The projected top-level fields above always mirror the currently active workspace so existing selectors/components stay stable.
 
-Message attachment fields used by current send/runtime paths include:
+Message attachment fields used by current renderer message paths:
 
-- `screenshot`
-- `screenshotContentType`
-- `screenshotRef`
-- `screenshotUrl`
+- `attachments[]`: SDK typed display descriptors for visible image, screenshot
+  request, pending, and failed attachment states.
+- `attachmentFilenames[]`: filename metadata for the short pending bridge and
+  diagnostics only; it is not a visible attachment fallback.
+
+Whole-message screenshot aliases such as `screenshot`, `screenshotRef`,
+`screenshotUrl`, and `screenshots[]` are not part of the renderer
+`ChatMessage` contract. Legacy screenshot metadata remains confined to SDK
+replay/store compatibility adapters and low-level artifact helpers.
 
 `streamTracking` fields capture turn identity, phase, counters, and timestamps per workspace:
 

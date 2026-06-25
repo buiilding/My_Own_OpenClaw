@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/types: remove retired whole-message screenshot aliases from the
+  renderer `ChatMessage` contract so visible attachment state is typed only as
+  SDK `attachments[]`. No migration required.
 - frontend/replay: narrow the renderer replay runtime facade to the single
   `executeReplayAction` entrypoint so replay preparation helpers stay private
   to the app runtime. No migration required.

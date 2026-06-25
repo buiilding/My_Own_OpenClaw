@@ -1202,12 +1202,22 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/MessageContent.jsx'),
       'utf8',
     );
+    const messageTypeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatMessageTypes.ts'),
+      'utf8',
+    );
     expect(messageShapeSource).not.toContain('screenshotRef: PropTypes');
     expect(messageShapeSource).not.toContain('screenshotUrl: PropTypes');
     expect(messageShapeSource).not.toContain('screenshot: PropTypes');
     expect(messageContentSource).not.toContain('screenshotUrl: PropTypes');
     expect(messageContentSource).not.toContain('screenshotContentType: PropTypes');
     expect(messageContentSource).not.toContain('screenshot: PropTypes');
+    expect(messageTypeSource).toContain('attachments?: SdkDisplayAttachment[] | null');
+    expect(messageTypeSource).not.toContain('screenshot?:');
+    expect(messageTypeSource).not.toContain('screenshotRef?:');
+    expect(messageTypeSource).not.toContain('screenshotUrl?:');
+    expect(messageTypeSource).not.toContain('screenshotContentType?:');
+    expect(messageTypeSource).not.toContain('screenshots?:');
     expect(tokenUsageRuntimeSource).toContain('tokens(provider)');
     expect(tokenUsageRuntimeSource).toContain('message?.attachments');
     expect(tokenUsageRuntimeSource).toContain('countDisplayImageAttachments');

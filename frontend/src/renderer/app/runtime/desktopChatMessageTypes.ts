@@ -27,18 +27,8 @@ export interface ChatMessage {
   sourceEventType?: string | null;
   sourceChannel?: string | null;
   isComplete?: boolean;
-  screenshot?: string | null;
-  screenshotRef?: string | null;
-  screenshotUrl?: string | null;
-  screenshotContentType?: string | null;
   attachmentFilenames?: string[] | null;
   attachments?: SdkDisplayAttachment[] | null;
-  screenshots?: Array<{
-    screenshot?: string | null;
-    screenshotRef?: string | null;
-    screenshotUrl?: string | null;
-    screenshotContentType?: string | null;
-  }> | null;
   modelId?: string | null;
   modelProvider?: string | null;
   toolMetadata?: Record<string, unknown> | null;
