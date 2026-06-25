@@ -142,45 +142,6 @@ function resolveConversationViewOverlayIntent(conversationView) {
   };
 }
 
-function resolveConversationViewResponseOverlayDismissalTarget({
-  conversationView = null,
-  responseOverlayEntries = [],
-} = {}) {
-  if (
-    !conversationView
-    || typeof conversationView !== 'object'
-    || !Array.isArray(responseOverlayEntries)
-    || responseOverlayEntries.length === 0
-  ) {
-    return null;
-  }
-  const latestEntry = responseOverlayEntries[responseOverlayEntries.length - 1];
-  if (!latestEntry?.id) {
-    return null;
-  }
-  const overlayIntent = resolveConversationViewOverlayIntent(conversationView);
-  const turnRef = (
-    overlayIntent.turnRef
-    || normalizeTurnRef(latestEntry.turnRef)
-    || normalizeTurnRef(conversationView.liveTurn?.turnRef)
-  );
-  const conversationRef = (
-    overlayIntent.conversationRef
-    || normalizeConversationRef(conversationView.conversationRef)
-  );
-  const guardRef = (
-    overlayIntent.staleGuardRef
-    || overlayIntent.turnRef
-    || turnRef
-  );
-  return {
-    conversationRef,
-    turnRef,
-    guardRef,
-    responseEntryId: latestEntry.id,
-  };
-}
-
 function hasProjectionVisibleOverlayContent(currentTurnProjection) {
   const presentation = currentTurnProjection?.presentation;
   const entries = Array.isArray(presentation?.entries) ? presentation.entries : [];
@@ -363,7 +324,6 @@ function resolveLiveTurnPresentationInput({
 
 export const DesktopLiveTurnSurfaceRuntime = Object.freeze({
   resolveConversationViewOverlayIntent,
-  resolveConversationViewResponseOverlayDismissalTarget,
   resolveLiveTurnPresentationInput,
   resolveSdkOverlayIntent,
 });

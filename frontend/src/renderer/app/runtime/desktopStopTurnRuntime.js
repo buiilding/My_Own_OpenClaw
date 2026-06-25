@@ -66,10 +66,6 @@ function isStopTurnTargetFromCurrentTurn(stopTarget) {
   return stopTarget?.source === 'sdk-current-turn';
 }
 
-function isStopTurnTargetFromConversationView(stopTarget) {
-  return stopTarget?.source === 'conversation-view';
-}
-
 function isStopTurnTargetFromPendingTurn(stopTarget) {
   return stopTarget?.source === 'pending-turn';
 }
@@ -91,48 +87,11 @@ function isPendingTurn(value) {
   );
 }
 
-function isStoppableConversationView(conversationView) {
-  return Boolean(
-    conversationView
-      && typeof conversationView === 'object'
-      && conversationView.liveTurn?.canStop === true
-      && normalizeRef(conversationView.conversationRef)
-      && normalizeRef(conversationView.liveTurn?.turnRef)
-  );
-}
-
 function resolveStopTurnTarget({
-  conversationView = null,
   currentTurnProjection = null,
   pendingTurn = null,
   conversationRef = null,
 } = {}) {
-  if (isStoppableConversationView(conversationView)) {
-    return {
-      source: 'conversation-view',
-      conversationRef: normalizeRef(conversationView.conversationRef),
-      turnRef: normalizeRef(conversationView.liveTurn?.turnRef),
-      canStop: true,
-    };
-  }
-
-  if (conversationView && typeof conversationView === 'object') {
-    if (isPendingTurn(pendingTurn)) {
-      return {
-        source: 'pending-turn',
-        conversationRef: normalizeRef(pendingTurn.conversationRef),
-        turnRef: normalizeRef(pendingTurn.turnRef),
-        canStop: true,
-      };
-    }
-    return {
-      source: 'idle',
-      conversationRef: normalizeRef(conversationView.conversationRef) || normalizeRef(conversationRef),
-      turnRef: normalizeRef(conversationView.liveTurn?.turnRef),
-      canStop: false,
-    };
-  }
-
   if (isStoppableCurrentTurnProjection(currentTurnProjection)) {
     const resolvedConversationRef = normalizeRef(currentTurnProjection.conversationRef) || normalizeRef(conversationRef);
     const resolvedTurnRef = normalizeRef(currentTurnProjection.turnRef);
@@ -165,7 +124,6 @@ function resolveStopTurnTarget({
 export const DesktopStopTurnRuntime = Object.freeze({
   buildStopQueryTrackingPatch,
   buildStoppedCurrentTurnProjection,
-  isStopTurnTargetFromConversationView,
   isStopTurnTargetFromCurrentTurn,
   isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,

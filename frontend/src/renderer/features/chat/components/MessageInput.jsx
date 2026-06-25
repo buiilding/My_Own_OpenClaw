@@ -28,7 +28,6 @@ import {
 function MessageInput({
   onSendMessage,
   isLoopActive,
-  canStopResponse = true,
   onStopResponse = undefined,
   isCentered = false,
   focusRequestToken = 0,
@@ -280,7 +279,6 @@ function MessageInput({
                   type="button"
                   className="message-send-btn message-stop-btn"
                   onClick={() => onStopResponse?.()}
-                  disabled={!canStopResponse}
                   aria-label="Stop response"
                   data-testid="stop-generating-btn"
                 >
@@ -313,7 +311,6 @@ function MessageInput({
 MessageInput.propTypes = {
   onSendMessage: PropTypes.func.isRequired,
   isLoopActive: PropTypes.bool,
-  canStopResponse: PropTypes.bool,
   onStopResponse: PropTypes.func,
   isCentered: PropTypes.bool,
   focusRequestToken: PropTypes.number,

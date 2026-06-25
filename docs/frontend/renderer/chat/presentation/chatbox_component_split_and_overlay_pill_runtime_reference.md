@@ -47,13 +47,10 @@ Current-turn presentation ownership moved to shared chat hooks/state:
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 
 `useChatSurfaceController(...)` is the shared pill/dashboard control contract
-for SDK `ConversationView` busy state, stop availability, speech mode toggles,
+for SDK current-turn busy state, stop availability, speech mode toggles,
 query-screenshot toggles, wakeword-STT enablement, and manual compaction
-dispatch. Once a `ConversationView` is present, `view.surfaces.pill.mode`
-drives the shared loop lock and `view.liveTurn.canStop` drives Stop
-availability. The local pending-turn latch is the only pre-view bridge; raw
-SDK `currentTurnProjection` remains a fallback for hosts or moments that have
-not emitted a view yet.
+dispatch. It resolves live-turn state from SDK `currentTurnProjection` first,
+with only the local send latch covering the pre-SDK-open gap.
 `response-overlay-phase` is a window/layout hint and must not be used as chat
 runtime truth.
 `MinimalChatPill.jsx` and `ChatInterface.jsx` should keep layout, focus, window,
@@ -67,12 +64,9 @@ compaction behind its loop lock.
 
 - uses `useChatMessageSender(undefined, { senderSurface: "overlay-chatbox" })`
 - derives loop lock via
-  `useChatSurfaceController({ conversationView, currentTurnProjection, pendingTurn, messages })`
-- `conversationView` is the normal visible turn source for busy/Stop state;
-  `pendingTurn` keeps the immediate post-send latch alive until a same-turn
-  view becomes authoritative, and `currentTurnProjection` remains only a
-  fallback for non-view handoff moments
-- raw `isSending` remains store-local cleanup state and does not enter the
+  `useChatSurfaceController({ currentTurnProjection, pendingTurn, messages })`
+- `currentTurnProjection` and `pendingTurn` are the visible turn sources;
+  raw `isSending` remains store-local cleanup state and does not enter the
   surface controller or surface trace boundary
 - loop lock disables:
   - dashboard-open button
@@ -164,23 +158,11 @@ Main-process chat window height now tracks the compact-vs-preview visual-anchor 
   - sets compaction thinking status markers in chat store
   - calls `DesktopConversationContinuityService.compactHistory(true)`
 
-### Stop Targeting
-
-- Stop from the pill uses `view.liveTurn.canStop` for availability and targets
-  the view's `conversationRef`/`liveTurn.turnRef` when stoppable.
-- During the pre-view local pending bridge, Stop targets the pending turn and
-  clears the pending-turn IPC record.
-- A non-stoppable view suppresses stale raw current-turn Stop state; old SDK
-  streaming snapshots cannot re-enable Stop after the view says the visible
-  turn is complete or otherwise not stoppable.
-
 ## `ChatBoxResponse` Runtime Contract
 
 ### Response Selection and Visibility
 
-- response overlay entries are built from SDK `ConversationView.liveTurn`
-  entries when present, with SDK `currentTurnProjection` kept only as a
-  temporary fallback for unmigrated hosts
+- response overlay entries are built from SDK `currentTurnProjection`
 - candidate response types are restricted to `llm-text` and `error`
 - latest assistant response is selected from the projected current-turn messages
   through `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`

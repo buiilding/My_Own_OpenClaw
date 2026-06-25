@@ -141,8 +141,6 @@ const mockChatState = {
   setActiveConversationRef: (...args) => mockSetActiveConversationRef(...args),
   streamTracking: { phase: 'idle' },
   currentTurnProjection: null,
-  conversationView: null,
-  latestConversationView: null,
   pendingTurn: null,
 };
 
@@ -241,8 +239,6 @@ describe('ChatBox overlay mouse ignore', () => {
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.currentTurnProjection = null;
-    mockChatState.conversationView = null;
-    mockChatState.latestConversationView = null;
     mockChatState.pendingTurn = null;
     resizeObserverInstances.length = 0;
     requestAnimationFrameCallbacks.clear();
@@ -523,110 +519,6 @@ describe('ChatBox overlay mouse ignore', () => {
       turnRef: 'turn-active',
       currentTurnProjection: mockChatState.currentTurnProjection,
     });
-  });
-
-  test('uses ConversationView to render and target the pill stop control', async () => {
-    mockChatState.currentTurnProjection = {
-      conversationRef: 'conv-stale-current',
-      phase: 'streaming',
-      turnRef: 'turn-stale-current',
-      assistantText: 'stale stream',
-    };
-    mockChatState.latestConversationView = {
-      conversationRef: 'conv-view',
-      revisionId: 'rev-view',
-      displayRows: [],
-      liveTurn: {
-        turnRef: 'turn-view',
-        phase: 'streaming',
-        entries: [{ id: 'entry-view', text: 'view stream' }],
-        isBusy: true,
-        isTerminal: false,
-        canStop: true,
-        lastError: null,
-      },
-      surfaces: {
-        pill: {
-          mode: 'busy',
-        },
-        dashboard: {
-          mode: 'busy',
-        },
-        responseOverlay: {
-          mode: 'response',
-          visible: true,
-          guardRef: 'turn-view',
-          ownerConversationRef: 'conv-view',
-          turnRef: 'turn-view',
-        },
-      },
-      actions: {
-        canEdit: true,
-        canRetry: true,
-        canFork: true,
-      },
-    };
-    render(<MinimalChatPill />);
-
-    const stopButton = screen.getByRole('button', { name: 'Stop response' });
-    expect(stopButton).toBeEnabled();
-    await act(async () => {
-      fireEvent.click(stopButton);
-    });
-
-    expect(mockStopQuery).toHaveBeenCalledWith('conv-view', 'turn-view');
-    expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
-      conversationRef: 'conv-view',
-      turnRef: 'turn-view',
-      currentTurnProjection: null,
-    });
-  });
-
-  test('keeps the pill busy but disables Stop when ConversationView cannot stop', () => {
-    mockChatState.currentTurnProjection = {
-      conversationRef: 'conv-stale-current',
-      phase: 'streaming',
-      turnRef: 'turn-stale-current',
-      assistantText: 'stale stream',
-    };
-    mockChatState.latestConversationView = {
-      conversationRef: 'conv-view',
-      revisionId: 'rev-view',
-      displayRows: [],
-      liveTurn: {
-        turnRef: 'turn-view',
-        phase: 'tool',
-        entries: [{ id: 'entry-view', text: 'tool progress' }],
-        isBusy: true,
-        isTerminal: false,
-        canStop: false,
-        lastError: null,
-      },
-      surfaces: {
-        pill: {
-          mode: 'busy',
-        },
-        dashboard: {
-          mode: 'busy',
-        },
-        responseOverlay: {
-          mode: 'response',
-          visible: true,
-          guardRef: 'turn-view',
-          ownerConversationRef: 'conv-view',
-          turnRef: 'turn-view',
-        },
-      },
-      actions: {
-        canEdit: true,
-        canRetry: true,
-        canFork: true,
-      },
-    };
-    render(<MinimalChatPill />);
-
-    expect(screen.queryByRole('button', { name: 'Send message' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Stop response' })).toBeDisabled();
   });
 
   test('stop targets the current-turn conversation when pill session ref is stale', async () => {

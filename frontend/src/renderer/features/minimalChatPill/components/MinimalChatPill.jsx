@@ -51,9 +51,6 @@ function MinimalChatPill() {
   const currentTurnProjection = useChatStore((state) => (
     state.latestCurrentTurnProjection || state.currentTurnProjection
   ));
-  const conversationView = useChatStore((state) => (
-    state.latestConversationView || state.conversationView
-  ));
   const pendingTurn = useChatStore((state) => state.pendingTurn);
   const sessionInfo = useRendererConversationSessionInfo();
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
@@ -84,7 +81,6 @@ function MinimalChatPill() {
   const chatSurface = useChatSurfaceController({
     messages,
     currentTurnProjection,
-    conversationView,
     pendingTurn,
     sessionInfo,
     setThinkingStatus,
@@ -93,7 +89,6 @@ function MinimalChatPill() {
   });
   const {
     includeQueryScreenshot,
-    canStop: stopAvailable,
     isBusy: loopInteractionLocked,
     liveTurnPhase,
     liveTurnSource,
@@ -250,9 +245,6 @@ function MinimalChatPill() {
       liveTurnSource,
       currentTurnPhase: currentTurnProjection?.phase || null,
       currentTurnRef: currentTurnProjection?.turnRef || null,
-      viewTurnRef: conversationView?.liveTurn?.turnRef || null,
-      viewPillMode: conversationView?.surfaces?.pill?.mode || null,
-      viewCanStop: conversationView?.liveTurn?.canStop === true,
     });
     if (lastLoggedPillStateRef.current === nextPillStateSignature) {
       return;
@@ -265,13 +257,10 @@ function MinimalChatPill() {
       liveTurnPhase,
       liveTurnSource,
       busy: loopInteractionLocked,
-      stopAvailable,
+      stopAvailable: loopInteractionLocked,
       messageCount: messages.length,
     });
   }, [
-    conversationView?.liveTurn?.canStop,
-    conversationView?.liveTurn?.turnRef,
-    conversationView?.surfaces?.pill?.mode,
     currentTurnProjection?.phase,
     currentTurnProjection?.turnRef,
     liveTurnPhase,
@@ -279,7 +268,6 @@ function MinimalChatPill() {
     loopInteractionLocked,
     messages.length,
     sessionInfo?.conversationRef,
-    stopAvailable,
   ]);
 
   const applyComposerHeight = useCallback((height) => {
@@ -468,8 +456,7 @@ function MinimalChatPill() {
     chatSurface.toggleSpeechMode();
   }, [chatSurface]);
   const { handleStopTurn } = useStopTurnHandler({
-    enabled: stopAvailable,
-    conversationView,
+    enabled: loopInteractionLocked,
     currentTurnProjection,
     pendingTurn,
     sessionConversationRef: sessionInfo?.conversationRef || null,
@@ -647,8 +634,8 @@ function MinimalChatPill() {
                 className={`chatbox-icon ${loopInteractionLocked ? 'chatbox-stop' : 'chatbox-send'}`}
                 aria-label={loopInteractionLocked ? 'Stop response' : 'Send message'}
                 title={loopInteractionLocked ? 'Stop response' : 'Send message'}
-                disabled={loopInteractionLocked ? !stopAvailable : (!inputValue.trim() && !hasAttachments)}
-                onClick={loopInteractionLocked && stopAvailable ? handleStopTurn : undefined}
+                disabled={!loopInteractionLocked && !inputValue.trim() && !hasAttachments}
+                onClick={loopInteractionLocked ? handleStopTurn : undefined}
               >
                 {loopInteractionLocked ? <StopIcon /> : <SendIcon />}
               </button>

@@ -41,7 +41,7 @@ const {
   isVisibleResponseOverlayMessage,
 } = DesktopCurrentTurnMessageRuntime;
 const {
-  resolveConversationViewResponseOverlayDismissalTarget,
+  resolveConversationViewOverlayIntent,
   resolveLiveTurnPresentationInput,
 } = DesktopLiveTurnSurfaceRuntime;
 const {
@@ -134,10 +134,37 @@ export function useResponseOverlayViewModel({
 
   const responseOverlayDismissalTarget = useMemo(() => {
     if (useConversationViewPresentation) {
-      return resolveConversationViewResponseOverlayDismissalTarget({
-        conversationView,
-        responseOverlayEntries,
-      });
+      if (!Array.isArray(responseOverlayEntries) || responseOverlayEntries.length === 0) {
+        return null;
+      }
+      const latestEntry = responseOverlayEntries[responseOverlayEntries.length - 1];
+      if (!latestEntry?.id) {
+        return null;
+      }
+      const viewOverlayIntent = resolveConversationViewOverlayIntent(conversationView);
+      const turnRef = (
+        viewOverlayIntent?.turnRef
+        || latestEntry.turnRef
+        || conversationView?.liveTurn?.turnRef
+        || null
+      );
+      const conversationRef = (
+        viewOverlayIntent?.conversationRef
+        || conversationView?.conversationRef
+        || null
+      );
+      const guardRef = (
+        viewOverlayIntent?.staleGuardRef
+        || viewOverlayIntent?.turnRef
+        || turnRef
+        || null
+      );
+      return {
+        conversationRef,
+        turnRef,
+        guardRef,
+        responseEntryId: latestEntry.id,
+      };
     }
     return resolveResponseOverlayDismissalTarget({
       currentTurnProjection,

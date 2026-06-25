@@ -73,7 +73,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     thinkingSourceEventType,
     compactionDebugInfo,
     currentTurnProjection,
-    conversationView,
     pendingTurn,
   } = useChatStore(
     useShallow(selectChatInterfaceState),
@@ -201,7 +200,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const chatSurface = useChatSurfaceController({
     messages,
     currentTurnProjection,
-    conversationView,
     pendingTurn,
     sessionInfo,
     setThinkingStatus,
@@ -360,8 +358,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     audioPlayerRef.current?.stopPlayback();
   }, []);
   const { handleStopTurn } = useStopTurnHandler({
-    enabled: canStop,
-    conversationView,
+    enabled: composerBusy,
     currentTurnProjection,
     pendingTurn,
     sessionConversationRef: sessionInfo.conversationRef,
@@ -539,7 +536,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
           <MessageInput
             onSendMessage={sendMessage}
             isLoopActive={composerBusy}
-            canStopResponse={canStop}
             onStopResponse={handleStopTurn}
             isCentered
             focusRequestToken={focusComposerToken}
@@ -568,7 +564,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
           <MessageInput
             onSendMessage={sendMessage}
             isLoopActive={composerBusy}
-            canStopResponse={canStop}
             onStopResponse={handleStopTurn}
             focusRequestToken={focusComposerToken}
           />

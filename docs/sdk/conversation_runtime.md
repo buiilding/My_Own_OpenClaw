@@ -229,12 +229,6 @@ The response overlay is migrated first: renderer adapters render
 `snapshot.view.liveTurn.entries` and Electron main applies
 `snapshot.view.surfaces.responseOverlay` before falling back to raw
 `snapshot.currentTurn.presentation.overlayIntent`.
-The minimal pill and dashboard control surfaces also consume the view for the
-Phase 2 busy/Stop contract: `snapshot.view.surfaces.pill.mode` drives the
-shared loop lock and `snapshot.view.liveTurn.canStop` drives Stop availability.
-Renderer pending-turn state remains a short pre-view bridge immediately after
-send acceptance; after a view is present, stale raw current-turn snapshots must
-not re-enable Stop or keep the pill/dashboard busy.
 
 For debugging, use:
 

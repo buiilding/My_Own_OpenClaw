@@ -65,12 +65,9 @@ The chat pill is the small always-available desktop command surface. It is rende
   click-to-type, but if the pointer moves past the drag threshold that same
   gesture must drag the pill without requiring a prior focus click.
 - The pill should avoid focus stealing unless explicitly requested.
-- SDK `ConversationView` owns whether the pill is idle or busy and whether
-  Stop is available. `view.surfaces.pill.mode` drives the pill loop lock and
-  `view.liveTurn.canStop` drives Stop enablement. The local pending-turn latch
-  exists only to cover the short gap after send acceptance before the SDK view
-  for that turn arrives. The response overlay phase stays synchronized as
-  BrowserWindow shell policy, not as a second source of content or busy state.
+- SDK current-turn presentation owns whether the pill shows typing or response
+  content. The response overlay phase stays synchronized as BrowserWindow shell
+  policy, not as a second source of content state.
 - SDK current-turn presentation is also the live content source for the
   dashboard. The dashboard and floating response overlay both project SDK
   presentation entries into normal chat messages and render them through the
@@ -120,14 +117,13 @@ The chat pill is the small always-available desktop command surface. It is rende
   between user acceptance and SDK current-turn publication, and must be cleared
   or superseded by SDK projection rather than stored as transcript, replay, or
   backend stream state.
-- Stop from the pill must preserve the active SDK `ConversationView` turn id
-  when one is available and stoppable. The renderer may still stop a local
-  pending turn during the pre-view send latch, but stale raw current-turn
-  projections must not re-enable Stop after the view says the visible turn is
-  not stoppable. Stop must also prefer the visible SDK view conversation ref
-  over the renderer session fallback and clear busy, thinking, and
-  stream-tracking state on that same conversation ref so typing indicators
-  cannot survive after backend cancellation succeeds.
+- Stop from the pill must preserve the active SDK current-turn id when one is
+  available. The renderer may still send a null turn id during the pre-stream
+  send latch, but it must not discard an existing current-turn id. Stop must
+  also prefer the visible SDK current-turn conversation ref over the renderer
+  session fallback and clear busy, thinking, and stream-tracking state on that
+  same conversation ref so typing indicators cannot survive after backend
+  cancellation succeeds.
 - Active agent turns do not make the pill click-through by themselves. Electron
   main applies click-through only through the SDK `localToolLifecycle` pointer
   lease around `mouse_control` and `scroll_control`, then restores the pill
