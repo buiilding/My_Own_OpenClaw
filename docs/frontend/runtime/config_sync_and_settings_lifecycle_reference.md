@@ -20,6 +20,7 @@ title: "Config Sync and Settings Lifecycle Reference"
 - `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc/ipc_agent_definition_context.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync_runtime.cjs`
 - `frontend/src/main/ipc/ipc_agent_sdk_runtime_commands.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
@@ -149,6 +150,11 @@ Behavior:
   tool manifest from the same live store, including an empty manifest when all
   local Agent tools are disabled, so the SDK websocket query cannot resurrect
   startup handshake tool schemas
+- query-local agent-definition merge keeps the current Electron-generated Agent
+  system prompt and tool policy authoritative over supplied query definitions,
+  so edit/resend or replay payloads cannot resurrect stale prompts or client
+  tool manifests while still preserving additive supplied prompt layers and
+  runtime metadata
 - disk save failures still report save-status errors, but the live Electron
   session keeps using the latest redacted renderer config until the user changes
   or reloads settings

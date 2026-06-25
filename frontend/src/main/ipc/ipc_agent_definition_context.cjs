@@ -74,15 +74,21 @@ function mergeAgentDefinitionContext(generatedDefinition, suppliedDefinition) {
   }
 
   const generated = cloneJsonObject(generatedDefinition);
+  const generatedSystemPrompt = isPlainObject(generated.system_prompt)
+    ? generated.system_prompt
+    : null;
+  const mergedSystemPrompt = generatedSystemPrompt?.mode === 'replace'
+    ? generatedSystemPrompt
+    : (
+      isPlainObject(supplied.system_prompt)
+        ? supplied.system_prompt
+        : generated.system_prompt
+    );
   return JSON.parse(JSON.stringify({
     ...generated,
     ...supplied,
-    system_prompt: isPlainObject(supplied.system_prompt)
-      ? supplied.system_prompt
-      : generated.system_prompt,
-    tools: isPlainObject(supplied.tools)
-      ? supplied.tools
-      : generated.tools,
+    system_prompt: mergedSystemPrompt,
+    tools: generated.tools,
     runtime: {
       ...(isPlainObject(generated.runtime) ? generated.runtime : {}),
       ...(isPlainObject(supplied.runtime) ? supplied.runtime : {}),
