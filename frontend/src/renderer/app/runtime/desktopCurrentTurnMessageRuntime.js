@@ -315,25 +315,25 @@ function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
   return messages;
 }
 
-function buildBaseMessageFields(entry, currentTurnProjection) {
+function buildBaseMessageFields(entry, liveTurnContext) {
   return {
     id: entry.id,
     sourceEventType: entry.sourceEventType || null,
     sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel,
-    turnRef: entry.turnRef || currentTurnProjection?.turnRef || undefined,
+    turnRef: entry.turnRef || liveTurnContext?.turnRef || undefined,
     modelId: entry.modelId || null,
     modelProvider: entry.modelProvider || null,
     isComplete: entry.isComplete === true,
   };
 }
 
-function buildThinkingMessage(entry, currentTurnProjection) {
+function buildThinkingMessage(entry, liveTurnContext) {
   const thinkingText = normalizeText(entry.text);
   if (!thinkingText) {
     return null;
   }
   return {
-    ...buildBaseMessageFields(entry, currentTurnProjection),
+    ...buildBaseMessageFields(entry, liveTurnContext),
     text: '',
     sender: 'assistant',
     type: 'llm-text',
@@ -343,26 +343,26 @@ function buildThinkingMessage(entry, currentTurnProjection) {
   };
 }
 
-function buildAssistantTextMessage(entry, currentTurnProjection) {
+function buildAssistantTextMessage(entry, liveTurnContext) {
   const text = normalizeText(entry.text);
   if (!text) {
     return null;
   }
   return {
-    ...buildBaseMessageFields(entry, currentTurnProjection),
+    ...buildBaseMessageFields(entry, liveTurnContext),
     text,
     sender: 'assistant',
     type: 'llm-text',
   };
 }
 
-function buildErrorMessage(entry, currentTurnProjection) {
+function buildErrorMessage(entry, liveTurnContext) {
   const text = normalizeText(entry.text);
   if (!text) {
     return null;
   }
   return {
-    ...buildBaseMessageFields(entry, currentTurnProjection),
+    ...buildBaseMessageFields(entry, liveTurnContext),
     text,
     sender: 'assistant',
     type: 'error',
@@ -370,7 +370,7 @@ function buildErrorMessage(entry, currentTurnProjection) {
   };
 }
 
-function buildToolCallMessage(entry, currentTurnProjection) {
+function buildToolCallMessage(entry, liveTurnContext) {
   const toolName = normalizeOptionalText(entry.toolName);
   const text = normalizeText(entry.text) || (toolName ? `Using ${toolName}` : 'Using tool');
   const toolDetails = asRecord(entry.toolCallDetails);
@@ -382,7 +382,7 @@ function buildToolCallMessage(entry, currentTurnProjection) {
     };
     const bundleState = buildToolBundleMessageState(bundlePayload);
     return buildToolCallChatMessageState({
-      ...buildBaseMessageFields(entry, currentTurnProjection),
+      ...buildBaseMessageFields(entry, liveTurnContext),
       text: bundleState.text || text,
       toolCallDisplayText: bundleState.toolCallDisplayText || text,
       toolCallDetails: bundleState.toolCallDetails ?? toolDetails,
@@ -409,7 +409,7 @@ function buildToolCallMessage(entry, currentTurnProjection) {
   });
 
   return buildToolCallChatMessageState({
-    ...buildBaseMessageFields(entry, currentTurnProjection),
+    ...buildBaseMessageFields(entry, liveTurnContext),
     text: toolCallState.text || text,
     toolCallDisplayText: toolCallState.toolCallDisplayText || text,
     modelFacingToolCall: toolCallState.modelFacingToolCall ?? null,
@@ -418,13 +418,13 @@ function buildToolCallMessage(entry, currentTurnProjection) {
   });
 }
 
-function buildToolProgressMessage(entry, currentTurnProjection) {
+function buildToolProgressMessage(entry, liveTurnContext) {
   const text = normalizeText(entry.text) || normalizeOptionalText(entry.toolName);
   if (!text) {
     return null;
   }
   return {
-    ...buildBaseMessageFields(entry, currentTurnProjection),
+    ...buildBaseMessageFields(entry, liveTurnContext),
     text,
     sender: 'assistant',
     type: 'search-source',
@@ -433,7 +433,7 @@ function buildToolProgressMessage(entry, currentTurnProjection) {
   };
 }
 
-function buildToolOutputMessage(entry, currentTurnProjection) {
+function buildToolOutputMessage(entry, liveTurnContext) {
   const toolDetails = asRecord(entry.toolOutputDetails);
   const toolName = normalizeOptionalText(entry.toolName);
   const text = normalizeText(entry.text) || (toolName ? `${toolName} completed` : 'Tool completed');
@@ -450,45 +450,45 @@ function buildToolOutputMessage(entry, currentTurnProjection) {
     success: typeof entry.success === 'boolean' ? entry.success : null,
     correlationId: normalizeOptionalText(entry.correlationId),
     toolOutputDetails: toolDetails,
-    turnRef: entry.turnRef || currentTurnProjection?.turnRef || null,
+    turnRef: entry.turnRef || liveTurnContext?.turnRef || null,
     modelId: entry.modelId || null,
     modelProvider: entry.modelProvider || null,
     isComplete: entry.isComplete === true,
   });
 }
 
-function buildChatMessageFromLiveTurnEntry(entry, currentTurnProjection = null) {
+function buildChatMessageFromLiveTurnEntry(entry, liveTurnContext = null) {
   if (!entry || typeof entry !== 'object' || typeof entry.id !== 'string') {
     return null;
   }
   const type = normalizeEntryType(entry.type);
   if (type === 'thinking') {
-    return buildThinkingMessage(entry, currentTurnProjection);
+    return buildThinkingMessage(entry, liveTurnContext);
   }
   if (type === 'tool-call' || type === 'tool-explanation') {
-    return buildToolCallMessage(entry, currentTurnProjection);
+    return buildToolCallMessage(entry, liveTurnContext);
   }
   if (type === 'tool-progress' || type === 'search-source') {
-    return buildToolProgressMessage(entry, currentTurnProjection);
+    return buildToolProgressMessage(entry, liveTurnContext);
   }
   if (type === 'tool-output') {
-    return buildToolOutputMessage(entry, currentTurnProjection);
+    return buildToolOutputMessage(entry, liveTurnContext);
   }
   if (type === 'error') {
-    return buildErrorMessage(entry, currentTurnProjection);
+    return buildErrorMessage(entry, liveTurnContext);
   }
-  return buildAssistantTextMessage(entry, currentTurnProjection);
+  return buildAssistantTextMessage(entry, liveTurnContext);
 }
 
-function buildCurrentTurnMessagesFromPresentation(currentTurnProjection = null) {
-  const entries = Array.isArray(currentTurnProjection?.presentation?.entries)
-    ? currentTurnProjection.presentation.entries
+function buildCurrentTurnMessagesFromPresentation(sdkLiveTurn = null) {
+  const entries = Array.isArray(sdkLiveTurn?.presentation?.entries)
+    ? sdkLiveTurn.presentation.entries
     : [];
   if (entries.length === 0) {
     return [];
   }
   return entries
-    .map((entry) => buildChatMessageFromLiveTurnEntry(entry, currentTurnProjection))
+    .map((entry) => buildChatMessageFromLiveTurnEntry(entry, sdkLiveTurn))
     .filter(Boolean);
 }
 

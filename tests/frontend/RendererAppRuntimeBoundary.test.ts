@@ -625,6 +625,10 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopPresentationSourceChannels.js'),
       'utf8',
     );
+    const presentationMessageProjectionSource = currentTurnMessageSource.slice(
+      currentTurnMessageSource.indexOf('function buildCurrentTurnMessagesFromPresentation'),
+      currentTurnMessageSource.indexOf('function buildConversationViewLiveTurnMessages'),
+    );
 
     expect(currentTurnMessageSource).toContain('desktopChatMessageRuntimeClient');
     expect(currentTurnMessageSource).toContain('desktopPresentationSourceChannels');
@@ -640,6 +644,8 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnMessageSource).not.toContain('export function isResponseOverlayProgressMessage');
     expect(currentTurnMessageSource).not.toContain('export function isResponseOverlaySourceTaggedMessage');
     expect(currentTurnMessageSource).not.toContain('normalizeThinkingText');
+    expect(presentationMessageProjectionSource).toContain('function buildCurrentTurnMessagesFromPresentation(sdkLiveTurn = null)');
+    expect(presentationMessageProjectionSource).not.toContain('currentTurnProjection');
     expect(currentTurnPresentationSource).not.toContain('showAssistantAwaitingDot');
     expect(currentTurnPresentationSource).not.toContain('isAwaitingReply');
     expect(currentTurnPresentationSource).not.toContain('loopUiState');

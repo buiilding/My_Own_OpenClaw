@@ -22,6 +22,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/stop: tighten stop-target boundary tests so `resolveStopTurnTarget`
   is guarded as a `ConversationView`/pending-bridge-only resolver, not a raw
   current-turn fallback authority. No migration required.
+- frontend/projection: rename the SDK live-turn presentation-entry adapter
+  context to `sdkLiveTurn`, leaving raw current-turn projection terminology
+  only on the no-view fallback projector. No migration required.
 - frontend/attachments: rename the app-runtime artifact image resolver to
   `DesktopAttachmentImageRuntime`, so chat attachment rendering no longer
   imports a screenshot-named resolver facade. No migration required.
