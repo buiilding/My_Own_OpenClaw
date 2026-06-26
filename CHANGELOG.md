@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stream: move SDK completion terminal-tracking resolution behind
+  `DesktopChatStreamEventRuntime` so the completion hook no longer inspects raw
+  workspace state directly. No migration required.
 - frontend/projection: move SDK display-row to chat-message conversion behind
   `DesktopSdkDisplayChatMessageProjectionRuntime`; the old
   `sdkDisplayChatMessageProjection.ts` path is now a narrow compatibility

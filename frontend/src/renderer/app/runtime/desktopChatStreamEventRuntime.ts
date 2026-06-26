@@ -30,6 +30,10 @@ type ShouldIgnoreForStaleTurnDeps = {
   getWorkspaceState: (conversationRef?: string | null) => StreamGuardWorkspace;
 };
 
+type ResolveTerminalCompletionDeps = {
+  getWorkspaceState: (conversationRef?: string | null) => StreamCompletionWorkspace;
+};
+
 type TurnRefEvent = {
   turn_ref?: string | null;
 };
@@ -247,6 +251,33 @@ function shouldRecordTerminalCompletionTracking(
   );
 }
 
+function resolveTurnCompletedStreamEventState(
+  event: ConversationTypeEvent & ConversationStreamEventIdentityEvent,
+  conversationRef: string | null,
+  deps: ResolveTerminalCompletionDeps,
+): {
+  conversationRef: string | null;
+  shouldRecordTerminalTracking: boolean;
+  turnRef: string | null;
+} | null {
+  if (!isTurnCompletedConversationStreamEvent(event)) {
+    return null;
+  }
+  const resolvedConversationRef = (
+    conversationRef ?? resolveConversationStreamEventConversationRef(event)
+  );
+  const eventTurnRef = resolveConversationStreamEventTurnRef(event);
+  const workspace = deps.getWorkspaceState(resolvedConversationRef);
+  return {
+    conversationRef: resolvedConversationRef,
+    shouldRecordTerminalTracking: shouldRecordTerminalCompletionTracking(
+      workspace,
+      eventTurnRef,
+    ),
+    turnRef: eventTurnRef,
+  };
+}
+
 type UpdateStreamTracking = (
   updater: (current: any) => any,
   conversationRef?: string | null,
@@ -287,6 +318,7 @@ export const DesktopChatStreamEventRuntime = Object.freeze({
   isTurnErrorConversationStreamEvent,
   isUsageUpdatedConversationStreamEvent,
   shouldIgnoreConversationEventForStaleTurn,
+  resolveTurnCompletedStreamEventState,
   shouldRecordTerminalCompletionTracking,
   recordTrackingEvent,
 });

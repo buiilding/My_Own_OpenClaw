@@ -207,6 +207,10 @@ The utility does not create transcript rows or interpret backend-wire events.
 Transcript display still comes from SDK display rows, and conversation-event
 handlers still own metadata, compaction, terminal materialization, and tool-row
 persistence.
+Turn-completion handlers call
+`DesktopChatStreamEventRuntime.resolveTurnCompletedStreamEventState(...)` for
+resolved conversation identity, turn identity, and terminal tracking decisions;
+hooks should not read workspace stream state directly to make that decision.
 
 ### Removed Chat Stream Transparency and Thinking Helper Paths
 

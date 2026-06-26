@@ -449,6 +449,7 @@ describe('renderer chat runtime boundary', () => {
       'resolveConversationStreamEventConversationRef',
       'resolveConversationStreamEventTurnRef',
       'resolveConversationStreamEventTurnRefForUpdate',
+      'resolveTurnCompletedStreamEventState',
     ];
     const runtimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts'),
@@ -470,6 +471,7 @@ describe('renderer chat runtime boundary', () => {
     expect(runtimeSource).toContain('resolveConversationStreamEventConversationRef');
     expect(runtimeSource).toContain('resolveConversationStreamEventTurnRef');
     expect(runtimeSource).toContain('resolveConversationStreamEventTurnRefForUpdate');
+    expect(runtimeSource).toContain('resolveTurnCompletedStreamEventState');
     expect(runtimeSource).not.toContain('export function resolveConversationStreamEventConversationRef');
     expect(runtimeSource).not.toContain('export function resolveConversationStreamEventTurnRef');
     expect(runtimeSource).not.toContain('export function resolveConversationStreamEventTurnRefForUpdate');
@@ -1634,19 +1636,22 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
 
-    expect(source).toContain('isTurnCompletedConversationStreamEvent');
-    expect(source).toContain('shouldRecordTerminalCompletionTracking');
+    expect(source).toContain('resolveTurnCompletedStreamEventState');
+    expect(source).not.toContain('isTurnCompletedConversationStreamEvent');
+    expect(source).not.toContain('shouldRecordTerminalCompletionTracking');
     expect(source).not.toContain("event.type !== 'turn_completed'");
     expect(source).not.toContain('payload.rawEvent');
     expect(source).not.toContain('payload.sourceEvent');
     expect(source).not.toContain('rawConversationRef');
     expect(source).not.toContain('rawUserId');
-    expect(source).toContain('resolveConversationStreamEventConversationRef');
+    expect(source).not.toContain('resolveConversationStreamEventConversationRef');
     expect(source).not.toContain('event.conversationRef');
     expect(source).not.toContain('event.turnRef');
     expect(source).not.toContain('payload?.userId');
     expect(source).not.toContain('recordAssistantTranscriptMessage');
+    expect(source).not.toContain('const workspace =');
     expect(source).not.toContain('workspace.isSending');
+    expect(runtimeSource).toContain('resolveTurnCompletedStreamEventState');
     expect(runtimeSource).toContain('shouldRecordTerminalCompletionTracking');
     expect(runtimeSource).not.toContain('export function shouldRecordTerminalCompletionTracking');
   });

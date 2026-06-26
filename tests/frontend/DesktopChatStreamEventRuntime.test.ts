@@ -27,6 +27,7 @@ const {
   resolveConversationStreamEventConversationRef,
   resolveConversationStreamEventTurnRef,
   resolveConversationStreamEventTurnRefForUpdate,
+  resolveTurnCompletedStreamEventState,
   shouldIgnoreConversationEventForStaleTurn,
   shouldRecordTerminalCompletionTracking,
 } = DesktopChatStreamEventRuntime;
@@ -231,9 +232,52 @@ describe('DesktopChatStreamEventRuntime', () => {
       pendingTurn: null,
       streamTracking: {
         activeTurnRef: 'turn-old',
-        phase: 'streaming',
+      phase: 'streaming',
       },
     }, 'turn-old')).toBe(true);
+  });
+
+  test('resolves terminal completion state through runtime workspace dependency', () => {
+    const workspace = {
+      messages: [],
+      pendingTurn: pendingTurn('turn-new', 'conv-complete'),
+      streamTracking: {
+        activeTurnRef: 'turn-old',
+        phase: 'complete',
+      },
+    };
+
+    expect(resolveTurnCompletedStreamEventState(
+      {
+        type: 'turn_completed',
+        conversationRef: 'conv-complete',
+        turnRef: 'turn-new',
+      },
+      null,
+      {
+        getWorkspaceState: jest.fn(() => workspace),
+      },
+    )).toEqual({
+      conversationRef: 'conv-complete',
+      shouldRecordTerminalTracking: true,
+      turnRef: 'turn-new',
+    });
+  });
+
+  test('ignores non-completion events in terminal completion state resolver', () => {
+    expect(resolveTurnCompletedStreamEventState(
+      {
+        type: 'assistant_message',
+        conversationRef: 'conv-complete',
+        turnRef: 'turn-new',
+      },
+      null,
+      {
+        getWorkspaceState: jest.fn(() => {
+          throw new Error('workspace should not be read');
+        }),
+      },
+    )).toBeNull();
   });
 
   test('classifies supported SDK conversation stream event types', () => {
