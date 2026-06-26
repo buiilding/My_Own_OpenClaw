@@ -94,7 +94,6 @@ type PreparedDesktopChatTurn = {
   deferredQueryModelSelection: ReturnType<
     typeof DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection
   >;
-  metadata: Record<string, unknown> | null;
   model: AgentModelSelection | null;
   resources: TurnInputResource[];
   sendLifecycle: SendLifecycle;
@@ -329,16 +328,12 @@ async function prepareDesktopChatSend({
     workspacePath: workspaceBinding.workspacePath || null,
     turnId,
   });
-  const metadata = attachmentFilenames.length > 0
-    ? { attachment_filenames: attachmentFilenames }
-    : null;
 
   return {
     attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
     conversationRef,
     deferredQueryModelSelection: DesktopRendererConfigRuntimeClient
       .buildDeferredQueryModelSelection(config),
-    metadata,
     model: null,
     resources,
     sendLifecycle,
@@ -363,7 +358,6 @@ async function dispatchPreparedDesktopChatTurn(
     attachmentFilenames: preparedTurn.attachmentFilenames,
     workspacePath: preparedTurn.workspacePath,
     resources: preparedTurn.resources,
-    metadata: preparedTurn.metadata,
     model: preparedTurn.model,
     turnRef: preparedTurn.turnRef,
   });

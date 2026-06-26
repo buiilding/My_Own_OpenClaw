@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: stop duplicating attachment filenames into renderer-authored
+  send metadata; normal sends now pass typed SDK resources plus the existing
+  filename payload/pending bridge, leaving SDK resource resolution to own
+  user-row metadata. No migration required.
 - frontend/projection: stop subscribing the renderer chat projection stream to
   raw SDK display-row events; normal display rows now enter the main chat only
   through SDK `ConversationView` plus the explicit pending-send bridge. No

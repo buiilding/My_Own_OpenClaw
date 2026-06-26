@@ -128,7 +128,6 @@ describe('useChatMessageSender', () => {
     text: string,
     conversationRef: string,
     expectedResources: unknown[] | null = null,
-    expectedMetadata: Record<string, unknown> | null = null,
   ) {
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
     const call = mockSendQuery.mock.calls[0][0];
@@ -140,11 +139,9 @@ describe('useChatMessageSender', () => {
     expect(call).not.toHaveProperty('screenshotRefs');
     expect(call).not.toHaveProperty('captureMeta');
     expect(call).not.toHaveProperty('attachmentContext');
+    expect(call).not.toHaveProperty('metadata');
     if (expectedResources) {
       expect(call.resources).toEqual(expectedResources);
-    }
-    if (expectedMetadata) {
-      expect(call.metadata).toEqual(expectedMetadata);
     }
   }
 
@@ -611,9 +608,8 @@ describe('useChatMessageSender', () => {
       contentType: 'image/png',
       filename: 'clipboard-image.png',
       required: true,
-    }], {
-      attachment_filenames: ['clipboard-image.png'],
-    });
+    }]);
+    expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['clipboard-image.png']);
     expectOptimisticUserMessage('Please inspect this image', ['clipboard-image.png']);
   });
 
@@ -647,9 +643,8 @@ describe('useChatMessageSender', () => {
         reason: 'query_send_with_capture',
         required: false,
       },
-    ], {
-      attachment_filenames: ['clipboard-image.png'],
-    });
+    ]);
+    expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['clipboard-image.png']);
     expectOptimisticUserMessage('Please inspect this image and screen', ['clipboard-image.png']);
   });
 
@@ -689,9 +684,11 @@ describe('useChatMessageSender', () => {
         filename: 'clipboard-image-2.jpg',
         required: true,
       },
-    ], {
-      attachment_filenames: ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
-    });
+    ]);
+    expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual([
+      'clipboard-image-1.png',
+      'clipboard-image-2.jpg',
+    ]);
     expectOptimisticUserMessage(
       'Please inspect both images',
       ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
@@ -735,9 +732,8 @@ describe('useChatMessageSender', () => {
       filePath: '/tmp/notes.txt',
       filename: 'notes.txt',
       required: true,
-    }], {
-      attachment_filenames: ['notes.txt'],
-    });
+    }]);
+    expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['notes.txt']);
 
     expectOptimisticUserMessage('Summarize the attached file', ['notes.txt']);
   });
@@ -782,9 +778,8 @@ describe('useChatMessageSender', () => {
       filePath: '/tmp/private.txt',
       filename: 'private.txt',
       required: true,
-    }], {
-      attachment_filenames: ['private.txt'],
-    });
+    }]);
+    expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['private.txt']);
     expectOptimisticUserMessage('Summarize the attached file', ['private.txt']);
   });
 
