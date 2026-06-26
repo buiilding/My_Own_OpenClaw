@@ -209,8 +209,11 @@ feature store internals.
 
 `selectChatSendReadModel` is the send-only read model for
 `useChatMessageSender(...)`. It exposes SDK `ConversationView` plus raw
-`messages` for the no-view first-message fallback without adding those raw
-fields back to the React chat-interface selector.
+`messages` only for the no-view first-message fallback without adding those raw
+fields back to the React chat-interface selector. Once `ConversationView`
+exists, the send read model returns an empty raw message list so send
+preparation cannot accidentally use `chatStore.messages` as competing history
+authority beside SDK display rows.
 
 Minimal chat pill and response overlay state now route through the live-turn
 presentation/view-model helpers instead of a separate chat-box selector. The

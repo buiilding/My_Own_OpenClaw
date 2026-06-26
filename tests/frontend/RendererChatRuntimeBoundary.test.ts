@@ -2178,6 +2178,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatSendStateRuntime.ts'),
       'utf8',
     );
+    const selectorRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatInterfaceSelectorRuntime.ts'),
+      'utf8',
+    );
     const traceRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts'),
       'utf8',
@@ -2190,6 +2194,7 @@ describe('renderer chat runtime boundary', () => {
     expect(senderHookSource).not.toContain('selectChatInterfaceState');
     expect(senderHookSource).not.toContain('getState().conversationView');
     expect(senderHookSource).not.toContain('getState().messages');
+    expect(selectorRuntimeSource).toContain('messages: conversationView ? emptyChatMessages : activeWorkspace.messages');
     expect(sendPreparationSource).toContain('desktopChatSendPayloadRuntime');
     expect(sendPreparationSource).toContain('desktopChatSendStateRuntime');
     expect(sendPreparationSource).toContain('getSendReadModel');

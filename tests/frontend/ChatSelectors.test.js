@@ -301,12 +301,23 @@ describe('chatSelectors', () => {
 
     expect(selectChatSendReadModel(state)).toEqual({
       conversationView,
-      messages,
+      messages: [],
     });
     expect(selectChatInterfaceState(state)).not.toHaveProperty('messages');
     expect(selectChatInterfaceState(state)).not.toHaveProperty('conversationView');
     expect(selectChatInterfaceState(state)).not.toHaveProperty('currentTurnProjection');
     expect(selectChatInterfaceState(state)).not.toHaveProperty('pendingTurn');
+  });
+
+  test('keeps raw send history only for the no-view fallback path', () => {
+    const messages = [{ id: 'user-1', text: 'question', sender: 'user' }];
+    expect(selectChatSendReadModel({
+      messages,
+      conversationView: null,
+    })).toEqual({
+      conversationView: null,
+      messages,
+    });
   });
 
   test('uses only active workspace raw current turn for no-view minimal surfaces', () => {

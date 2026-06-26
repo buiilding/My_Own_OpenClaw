@@ -62,6 +62,7 @@ const {
 const chatSendReadModelObjectCache = new WeakMap<object, WeakMap<object, ChatSendReadModel>>();
 const chatSendReadModelPrimitiveCache = new Map<string, ChatSendReadModel>();
 const stopTurnTargetCache = new Map<string, StopTurnTarget>();
+const emptyChatMessages: ChatMessage[] = [];
 
 function readChatSendReadModelObjectCache(
   conversationView: ConversationView | null,
@@ -190,9 +191,10 @@ function buildChatSendReadModelSelectorState({
 }: {
   activeWorkspace: DesktopChatWorkspaceProjection;
 }): ChatSendReadModel {
+  const conversationView = activeWorkspace.conversationView ?? null;
   return selectStableChatSendReadModel({
-    conversationView: activeWorkspace.conversationView ?? null,
-    messages: activeWorkspace.messages,
+    conversationView,
+    messages: conversationView ? emptyChatMessages : activeWorkspace.messages,
   });
 }
 

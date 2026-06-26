@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
   `chatStore.streamTracking`; overlay trace payloads now use selected live
   lifecycle/view state instead of reading store runtime counters directly. No
   migration required.
+- frontend/send: make `selectChatSendReadModel(...)` expose raw `messages` only
+  when no SDK `ConversationView` exists, so send preparation uses view rows as
+  the normal history signal and keeps raw message history as a no-view fallback.
+  No migration required.
 - frontend/send: split the send-history read model into
   `selectChatSendReadModel(...)` so `useChatMessageSender` no longer depends on
   the full `selectChatInterfaceState(...)` UI selector. No migration required.
