@@ -64,6 +64,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/runtime: remove the unused raw current-turn event facade from
   `DesktopConversationRuntimeEventClient`; renderer chat code now enters
   through the normalized projection subscription only. No migration required.
+- frontend/hooks: stop exposing the unused `updateMessage` selector from
+  `useChatCommonActions`; feedback still updates messages through the direct
+  store action. No migration required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own
