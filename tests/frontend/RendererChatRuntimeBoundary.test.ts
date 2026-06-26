@@ -1753,9 +1753,15 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('getWorkspaceState');
     expect(source).not.toContain('findLastAssistantLlmTextMessageId');
     expect(source).toContain('updateStreamTargetMessage');
+    expect(source).toContain('buildLastAssistantLlmTextStreamTarget');
+    expect(source).not.toContain("kind: 'last_assistant_llm_text'");
     expect(streamUpdaterSource).not.toContain('useChatStore');
     expect(streamUpdaterSource).not.toContain('getWorkspaceState');
     expect(streamUpdaterSource).not.toContain('findLastMessageIdBySender');
+    expect(streamUpdaterSource).toContain('buildLastBySenderStreamTarget');
+    expect(streamUpdaterSource).toContain('buildLastAssistantLlmTextStreamTarget');
+    expect(streamUpdaterSource).not.toContain("kind: 'last_by_sender'");
+    expect(streamUpdaterSource).not.toContain("kind: 'last_assistant_llm_text'");
     expect(streamUpdaterSource).toContain('updateStreamTargetMessage');
     expect(source).toContain("recordTrackingEvent('token-count'");
     expect(source).not.toContain("recordTrackingEvent('memory-store'");

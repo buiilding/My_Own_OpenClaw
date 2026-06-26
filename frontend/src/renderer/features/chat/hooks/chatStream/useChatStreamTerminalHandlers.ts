@@ -13,6 +13,9 @@ import { DesktopChatStreamEventPayloadRuntime } from '../../../../app/runtime/de
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
+import {
+  DesktopChatStreamMessageUpdateRuntime,
+} from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
 
 const {
   buildTokenCountsFromPayload,
@@ -24,12 +27,12 @@ const {
 const {
   resolveConversationStreamEventIdentity,
 } = DesktopChatStreamEventRuntime;
+const {
+  buildLastAssistantLlmTextStreamTarget,
+} = DesktopChatStreamMessageUpdateRuntime;
 
 type UpdateStreamTargetMessage = (
-  target: {
-    kind: 'last_assistant_llm_text';
-    turnRef?: string | null;
-  },
+  target: ReturnType<typeof buildLastAssistantLlmTextStreamTarget>,
   updates: Partial<ChatMessage>,
   conversationRef?: string | null,
 ) => void;
@@ -47,10 +50,7 @@ export function useChatStreamTerminalHandlers({
     const eventIdentity = resolveConversationStreamEventIdentity(event, conversationRef);
     const tokenCounts = buildTokenCountsFromPayload(resolveConversationStreamEventPayload(event));
     setTokenCountsInChatStore(tokenCounts, eventIdentity.conversationRef);
-    updateStreamTargetMessage({
-      kind: 'last_assistant_llm_text',
-      turnRef: eventIdentity.turnRefForUpdate,
-    }, {
+    updateStreamTargetMessage(buildLastAssistantLlmTextStreamTarget(eventIdentity), {
       tokenCounts,
     }, eventIdentity.conversationRef);
     recordTrackingEvent('token-count', eventIdentity.turnRef, undefined, eventIdentity.conversationRef);

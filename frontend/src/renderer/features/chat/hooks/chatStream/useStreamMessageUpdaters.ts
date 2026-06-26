@@ -6,16 +6,20 @@ import { useCallback } from 'react';
 import type {
   ChatMessage,
 } from '../../../../app/runtime/desktopChatMessageTypes';
+import {
+  DesktopChatStreamMessageUpdateRuntime,
+} from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
+
+const {
+  buildLastAssistantLlmTextStreamTarget,
+  buildLastBySenderStreamTarget,
+} = DesktopChatStreamMessageUpdateRuntime;
+
+type StreamEventIdentity = Parameters<typeof buildLastBySenderStreamTarget>[1];
 
 type UpdateStreamTargetMessage = (
-  target: {
-    kind: 'last_by_sender';
-    sender: ChatMessage['sender'];
-    turnRef?: string | null;
-  } | {
-    kind: 'last_assistant_llm_text';
-    turnRef?: string | null;
-  },
+  target: ReturnType<typeof buildLastBySenderStreamTarget>
+    | ReturnType<typeof buildLastAssistantLlmTextStreamTarget>,
   updates: Partial<ChatMessage>,
   conversationRef?: string | null,
 ) => void;
@@ -26,25 +30,26 @@ export function useStreamMessageUpdaters(
   const updateLastMessageBySender = useCallback((
     sender: ChatMessage['sender'],
     updates: Partial<ChatMessage>,
-    turnRef?: string,
+    eventIdentity?: StreamEventIdentity | null,
     conversationRef?: string | null,
   ) => {
-    updateStreamTargetMessage({
-      kind: 'last_by_sender',
-      sender,
-      turnRef,
-    }, updates, conversationRef);
+    updateStreamTargetMessage(
+      buildLastBySenderStreamTarget(sender, eventIdentity),
+      updates,
+      conversationRef,
+    );
   }, [updateStreamTargetMessage]);
 
   const updateLastAssistantLlmTextMessage = useCallback((
     updates: Partial<ChatMessage>,
-    turnRef?: string,
+    eventIdentity?: StreamEventIdentity | null,
     conversationRef?: string | null,
   ) => {
-    updateStreamTargetMessage({
-      kind: 'last_assistant_llm_text',
-      turnRef,
-    }, updates, conversationRef);
+    updateStreamTargetMessage(
+      buildLastAssistantLlmTextStreamTarget(eventIdentity),
+      updates,
+      conversationRef,
+    );
   }, [updateStreamTargetMessage]);
 
   return {

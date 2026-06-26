@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stream: move chat-stream message update target construction into
+  `DesktopChatStreamMessageUpdateRuntime`, so hooks pass runtime event identity
+  instead of shaping turn-ref store targets. No migration required.
 - frontend/stream: keep low-level conversation-stream conversation/turn ref
   helpers internal to `DesktopChatStreamEventRuntime`; renderer consumers now
   use the exported identity object helper. No migration required.

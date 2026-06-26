@@ -33,6 +33,8 @@ const {
   resolveToolSchemasMetadataPayload,
 } = DesktopChatStreamEventPayloadRuntime;
 
+type StreamEventIdentity = ReturnType<typeof resolveConversationStreamEventIdentity>;
+
 type ShouldIgnoreForStaleTurn = (
   event: { turnRef?: string | null },
   conversationRef?: string | null,
@@ -48,13 +50,13 @@ type RecordTrackingEvent = (
 type UpdateLastMessageBySender = (
   sender: ChatMessage['sender'],
   updates: Partial<ChatMessage>,
-  turnRef?: string,
+  eventIdentity?: StreamEventIdentity | null,
   conversationRef?: string | null,
 ) => void;
 
 type UpdateLastAssistantLlmTextMessage = (
   updates: Partial<ChatMessage>,
-  turnRef?: string,
+  eventIdentity?: StreamEventIdentity | null,
   conversationRef?: string | null,
 ) => void;
 
@@ -81,7 +83,7 @@ export function useChatStreamMetadataHandlers({
     const payload = resolveConversationStreamEventPayload(event);
     updateLastMessageBySender('user', {
       systemPrompt: buildSystemPromptUpdate(payload),
-    }, eventIdentity.turnRefForUpdate, eventIdentity.conversationRef);
+    }, eventIdentity, eventIdentity.conversationRef);
     recordTrackingEvent('system-prompt', eventIdentity.turnRef, {}, eventIdentity.conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
@@ -97,7 +99,7 @@ export function useChatStreamMetadataHandlers({
     const payload = resolveConversationStreamEventPayload(event);
     updateLastMessageBySender('user', {
       fullUserMessage: buildUserMessageFullUpdate(payload),
-    }, eventIdentity.turnRefForUpdate, conversationRef);
+    }, eventIdentity, conversationRef);
     recordTrackingEvent('user-message-full', eventIdentity.turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
@@ -113,7 +115,7 @@ export function useChatStreamMetadataHandlers({
     const payload = resolveConversationStreamEventPayload(event);
     updateLastAssistantLlmTextMessage({
       fullAssistantMessage: buildAssistantMessageFullUpdate(payload),
-    }, eventIdentity.turnRefForUpdate, conversationRef);
+    }, eventIdentity, conversationRef);
     recordTrackingEvent('assistant-message-full', eventIdentity.turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastAssistantLlmTextMessage]);
 
@@ -129,7 +131,7 @@ export function useChatStreamMetadataHandlers({
     const payload = resolveConversationStreamEventPayload(event);
     updateLastMessageBySender('user', {
       ...buildToolSchemasUpdate(resolveToolSchemasMetadataPayload(payload)),
-    }, eventIdentity.turnRefForUpdate, conversationRef);
+    }, eventIdentity, conversationRef);
     recordTrackingEvent('tool-schemas', eventIdentity.turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 

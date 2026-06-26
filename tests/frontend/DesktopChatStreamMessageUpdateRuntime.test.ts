@@ -6,6 +6,8 @@ import { DesktopChatStreamMessageUpdateRuntime } from '../../frontend/src/render
 
 const {
   buildAssistantMessageFullUpdate,
+  buildLastAssistantLlmTextStreamTarget,
+  buildLastBySenderStreamTarget,
   buildSystemPromptUpdate,
   buildUserMessageFullUpdate,
 } = DesktopChatStreamMessageUpdateRuntime;
@@ -83,6 +85,26 @@ describe('desktopChatStreamMessageUpdateRuntime', () => {
       content: 'Wave 👋 then lone \udc9d',
     })).toEqual({
       content: 'Wave 👋 then lone \uFFFD',
+    });
+  });
+
+  test('builds stream update targets from runtime-owned event identity', () => {
+    expect(buildLastBySenderStreamTarget('user', {
+      turnRefForUpdate: 'turn-1',
+    })).toEqual({
+      kind: 'last_by_sender',
+      sender: 'user',
+      turnRef: 'turn-1',
+    });
+    expect(buildLastAssistantLlmTextStreamTarget({
+      turnRefForUpdate: 'turn-2',
+    })).toEqual({
+      kind: 'last_assistant_llm_text',
+      turnRef: 'turn-2',
+    });
+    expect(buildLastAssistantLlmTextStreamTarget(null)).toEqual({
+      kind: 'last_assistant_llm_text',
+      turnRef: undefined,
     });
   });
 });

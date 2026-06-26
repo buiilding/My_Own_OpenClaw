@@ -4,6 +4,9 @@
 
 import type { ToolSchema } from '../../types/toolSchemas';
 import { DesktopChatMessageRuntimeClient } from './desktopChatMessageRuntimeClient';
+import type {
+  ChatMessage,
+} from './desktopChatMessageTypes';
 
 const {
   normalizeIncomingText,
@@ -22,6 +25,10 @@ type UserMessageFullPayload = {
 
 type AssistantMessageFullPayload = {
   content?: unknown;
+};
+
+type ConversationStreamEventIdentity = {
+  turnRefForUpdate?: string | null;
 };
 
 function normalizeToolSchemas(value: unknown): ToolSchema[] | undefined {
@@ -57,9 +64,31 @@ function buildAssistantMessageFullUpdate(payload: AssistantMessageFullPayload | 
   };
 }
 
+function buildLastBySenderStreamTarget(
+  sender: ChatMessage['sender'],
+  eventIdentity: ConversationStreamEventIdentity | null | undefined,
+) {
+  return {
+    kind: 'last_by_sender' as const,
+    sender,
+    turnRef: eventIdentity?.turnRefForUpdate ?? undefined,
+  };
+}
+
+function buildLastAssistantLlmTextStreamTarget(
+  eventIdentity: ConversationStreamEventIdentity | null | undefined,
+) {
+  return {
+    kind: 'last_assistant_llm_text' as const,
+    turnRef: eventIdentity?.turnRefForUpdate ?? undefined,
+  };
+}
+
 export const DesktopChatStreamMessageUpdateRuntime = Object.freeze({
   buildToolSchemasUpdate,
   buildSystemPromptUpdate,
   buildUserMessageFullUpdate,
   buildAssistantMessageFullUpdate,
+  buildLastBySenderStreamTarget,
+  buildLastAssistantLlmTextStreamTarget,
 });

@@ -174,6 +174,10 @@ turn ref object instead of unpacking SDK event identity fields independently.
 Low-level conversation-ref and turn-ref helpers stay internal to
 `DesktopChatStreamEventRuntime`; renderer consumers should not import or
 destructure them from the facade.
+Chat-stream message target construction also stays in
+`DesktopChatStreamMessageUpdateRuntime`. Hooks pass the runtime-built event
+identity object into that facade instead of assembling `last_by_sender` or
+`last_assistant_llm_text` targets with raw turn refs.
 
 The old exported `mergeRendererAnnotations` helper remains removed.
 Annotation merging is internal to `desktopConversationDisplayProjection.ts`;
