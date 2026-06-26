@@ -323,6 +323,11 @@ Thread presentation no longer accepts caller-built `currentTurnMessages` as an
 alternate live-row input; no-view live rows must come from the SDK current-turn
 projection/presentation adapter, and `ConversationView` remains the normal
 read model once present.
+When a caller supplies `ConversationView`, thread presentation accepts only
+SDK display-row messages plus the explicit renderer pending-send bridge as its
+base rows. Raw renderer transcript rows are ignored in that mode so view-owned
+live rows cannot be positioned, deduped, or suppressed by stale chat-store
+messages.
 
 For debugging, use:
 

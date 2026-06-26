@@ -12,7 +12,10 @@ const {
   buildCurrentTurnMessagesFromPresentation,
   buildCurrentTurnMessagesFromSdkLiveTurn,
 } = DesktopCurrentTurnMessageRuntime;
-const { isSdkLiveTurnSourceChannel } = DesktopPresentationSourceChannels;
+const {
+  isSdkDisplayRowsSourceChannel,
+  isSdkLiveTurnSourceChannel,
+} = DesktopPresentationSourceChannels;
 
 function findLastUserIndex(messages) {
   if (!Array.isArray(messages)) {
@@ -36,6 +39,25 @@ function normalizeText(value) {
 
 function normalizeRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function isConversationView(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function isRendererPendingBridgeMessage(message) {
+  return (
+    message?.sender === 'user'
+    && message?.sourceChannel === 'renderer-local'
+    && message?.sourceEventType === 'renderer-compose'
+  );
+}
+
+function isConversationViewBaseMessage(message) {
+  return (
+    isSdkDisplayRowsSourceChannel(message?.sourceChannel)
+    || isRendererPendingBridgeMessage(message)
+  );
 }
 
 function isTextlessCurrentTurnThinkingMessage(message) {
@@ -232,7 +254,11 @@ function buildThreadPresentationMessages(
     activeConversationRef = null,
   } = {},
 ) {
-  const baseMessages = Array.isArray(messages) ? messages : [];
+  const hasConversationView = isConversationView(conversationView);
+  const inputMessages = Array.isArray(messages) ? messages : [];
+  const baseMessages = hasConversationView
+    ? inputMessages.filter(isConversationViewBaseMessage)
+    : inputMessages;
   const resolvedCurrentTurnMessages = resolveCurrentTurnMessages({
     sdkLiveTurn,
     conversationView,

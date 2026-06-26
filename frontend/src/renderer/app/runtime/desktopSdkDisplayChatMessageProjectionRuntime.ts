@@ -142,6 +142,7 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
     id: row.id,
     text: displayTextFromStringRowContent(row.content),
     sourceEventType,
+    sourceChannel: sdkDisplayRowsSourceChannel,
     turnRef: row.turnRef ?? null,
     isComplete: sourceEventType !== 'assistant_delta',
     thinkingText,
@@ -168,6 +169,7 @@ function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
     toolCallDetails: payload,
     correlationId: rowCorrelationId(row),
     sourceEventType: rowSourceEventType(row),
+    sourceChannel: sdkDisplayRowsSourceChannel,
     turnRef: row.turnRef ?? null,
     isComplete: true,
   }) as ChatMessage;
@@ -186,6 +188,7 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
       ? displayTextFromStructuredRowContent(row.content)
       : displayTextFromStringRowContent(row.content),
     sourceEventType: rowSourceEventType(row),
+    sourceChannel: sdkDisplayRowsSourceChannel,
     attachments,
     toolName: row.metadata?.toolName ?? null,
     success: typeof payload.success === 'boolean' ? payload.success : null,

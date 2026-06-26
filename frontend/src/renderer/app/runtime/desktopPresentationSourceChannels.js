@@ -31,6 +31,10 @@ function isSdkConversationViewSourceChannel(sourceChannel) {
   return sourceChannel === SDK_CONVERSATION_VIEW_SOURCE_CHANNEL;
 }
 
+function isSdkDisplayRowsSourceChannel(sourceChannel) {
+  return sourceChannel === SDK_DISPLAY_ROWS_SOURCE_CHANNEL;
+}
+
 function isSdkLiveTurnSourceChannel(sourceChannel) {
   return (
     isSdkCurrentTurnSourceChannel(sourceChannel)
@@ -45,5 +49,6 @@ export const DesktopPresentationSourceChannels = Object.freeze({
   getSdkDisplayRowsSourceChannel,
   isSdkConversationViewSourceChannel,
   isSdkCurrentTurnSourceChannel,
+  isSdkDisplayRowsSourceChannel,
   isSdkLiveTurnSourceChannel,
 });

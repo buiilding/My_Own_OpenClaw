@@ -236,7 +236,7 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
-  test('buildThreadPresentationMessages uses ConversationView live entries over stale current-turn rows', () => {
+  test('buildThreadPresentationMessages drops raw base rows when ConversationView exists', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-view' },
     ];
@@ -276,7 +276,6 @@ describe('desktopThreadPresentationRuntime', () => {
       sdkLiveTurn,
       activeConversationRef: 'conv-1',
     })).toEqual([
-      messages[0],
       expect.objectContaining({
         id: 'view-entry-1',
         sender: 'assistant',
@@ -284,6 +283,87 @@ describe('desktopThreadPresentationRuntime', () => {
         sourceChannel: 'sdk:conversation-view',
         turnRef: 'turn-view',
       }),
+    ]);
+  });
+
+  test('buildThreadPresentationMessages keeps SDK display rows with ConversationView', () => {
+    const sdkDisplayRow = {
+      id: 'sdk-user-row',
+      sender: 'user',
+      text: 'Inspect workspace',
+      turnRef: 'turn-view',
+      sourceChannel: 'sdk:display-rows',
+      sourceEventType: 'user_message',
+    };
+    const rawRow = {
+      id: 'raw-user-row',
+      sender: 'user',
+      text: 'stale raw prompt',
+      turnRef: 'turn-view',
+    };
+    const conversationView = {
+      conversationRef: 'conv-1',
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries: [{
+          id: 'view-entry-1',
+          type: 'llm-text',
+          text: 'View-owned live answer',
+          sourceEventType: 'assistant_delta',
+          turnRef: 'turn-view',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages([
+      rawRow,
+      sdkDisplayRow,
+    ], {
+      conversationView,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      sdkDisplayRow,
+      expect.objectContaining({
+        id: 'view-entry-1',
+        sender: 'assistant',
+        text: 'View-owned live answer',
+        sourceChannel: 'sdk:conversation-view',
+        turnRef: 'turn-view',
+      }),
+    ]);
+  });
+
+  test('buildThreadPresentationMessages keeps pending bridge rows with ConversationView', () => {
+    const rawRow = {
+      id: 'raw-user-row',
+      sender: 'user',
+      text: 'stale raw prompt',
+      turnRef: 'turn-view',
+    };
+    const pendingBridgeRow = {
+      id: 'pending-user-row',
+      sender: 'user',
+      text: 'Follow-up while view is catching up',
+      turnRef: 'turn-pending',
+      sourceChannel: 'renderer-local',
+      sourceEventType: 'renderer-compose',
+    };
+    const conversationView = {
+      conversationRef: 'conv-1',
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries: [],
+      },
+    };
+
+    expect(buildThreadPresentationMessages([
+      rawRow,
+      pendingBridgeRow,
+    ], {
+      conversationView,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      pendingBridgeRow,
     ]);
   });
 

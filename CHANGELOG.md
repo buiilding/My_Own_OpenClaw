@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: make thread presentation ignore untagged raw transcript rows
+  whenever `ConversationView` is present; only SDK display rows and the pending
+  bridge can act as base rows for view-owned live presentation. No migration
+  required.
 - frontend/replay: stop passing skin failure copy and chat-store add-message
   callbacks into replay actions; SDK replay command failures now stay
   diagnostic/status-only in the renderer instead of appending local chat rows.

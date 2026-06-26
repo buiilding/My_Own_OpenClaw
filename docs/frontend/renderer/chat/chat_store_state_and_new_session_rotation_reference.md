@@ -266,6 +266,10 @@ bridge own visible lifecycle and stop authority.
 The interface presentation adapter also blanks the no-view `sdkLiveTurn`
 fallback before invoking the thread presenter when a `ConversationView` exists,
 so stale raw current-turn rows cannot re-enter through the presentation layer.
+The thread presenter enforces the same read-model boundary for direct
+app-runtime callers: with `ConversationView` present, its base rows must be
+SDK display-row messages or the explicit renderer pending bridge. Untagged raw
+chat-store rows are ignored before live-row insertion and duplicate checks.
 The conversation projection-stream hook applies the same rule when it needs
 workspace context for stale-turn checks and replay traces: it wraps raw store
 workspace reads with `projectWorkspaceReadModelState(...)`, so projection-stream

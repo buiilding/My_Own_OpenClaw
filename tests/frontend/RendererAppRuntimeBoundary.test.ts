@@ -682,10 +682,12 @@ describe('renderer app runtime boundary', () => {
     expect(presentationSourceChannelsSource).toContain('getSdkCurrentTurnSourceChannel');
     expect(presentationSourceChannelsSource).toContain('getSdkDisplayRowsSourceChannel');
     expect(presentationSourceChannelsSource).toContain('isSdkCurrentTurnSourceChannel');
+    expect(presentationSourceChannelsSource).toContain('isSdkDisplayRowsSourceChannel');
     expect(presentationSourceChannelsSource).not.toContain('export function getSdkConversationEventSourceChannel');
     expect(presentationSourceChannelsSource).not.toContain('export function getSdkCurrentTurnSourceChannel');
     expect(presentationSourceChannelsSource).not.toContain('export function getSdkDisplayRowsSourceChannel');
     expect(presentationSourceChannelsSource).not.toContain('export function isSdkCurrentTurnSourceChannel');
+    expect(presentationSourceChannelsSource).not.toContain('export function isSdkDisplayRowsSourceChannel');
     expect(presentationSourceChannelsSource).not.toContain('export const SDK_CONVERSATION_EVENT_SOURCE_CHANNEL');
     expect(presentationSourceChannelsSource).not.toContain('export const SDK_CURRENT_TURN_SOURCE_CHANNEL');
     expect(presentationSourceChannelsSource).not.toContain('export const SDK_DISPLAY_ROWS_SOURCE_CHANNEL');
