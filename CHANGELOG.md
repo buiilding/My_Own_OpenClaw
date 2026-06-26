@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/thread: dedupe first-class `ConversationView` live tool-call rows
+  against already materialized SDK display rows using nested tool-call/request
+  identity, so scripted/runtime tool calls do not render once from
+  `SDK:DISPLAY-ROWS` and again from `SDK:CONVERSATION-VIEW`. No migration
+  required.
 - frontend/conversation-view: keep the renderer pending bridge and typing
   anchor through awaiting-only first-class `ConversationView` snapshots until
   the view has a same-turn SDK user row, live entries, or terminal lifecycle,
