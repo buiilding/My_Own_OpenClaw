@@ -22,9 +22,7 @@ const {
   shouldIgnoreStreamError,
 } = DesktopChatStreamEventPayloadRuntime;
 const {
-  resolveConversationStreamEventConversationRef,
-  resolveConversationStreamEventTurnRef,
-  resolveConversationStreamEventTurnRefForUpdate,
+  resolveConversationStreamEventIdentity,
 } = DesktopChatStreamEventRuntime;
 
 type UpdateStreamTargetMessage = (
@@ -46,17 +44,16 @@ export function useChatStreamTerminalHandlers({
   updateStreamTargetMessage,
 }: UseChatStreamTerminalHandlersDeps) {
   const handleTokenCount = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
-    const eventConversationRef = conversationRef ?? resolveConversationStreamEventConversationRef(event);
-    const turnRef = resolveConversationStreamEventTurnRef(event);
+    const eventIdentity = resolveConversationStreamEventIdentity(event, conversationRef);
     const tokenCounts = buildTokenCountsFromPayload(resolveConversationStreamEventPayload(event));
-    setTokenCountsInChatStore(tokenCounts, eventConversationRef);
+    setTokenCountsInChatStore(tokenCounts, eventIdentity.conversationRef);
     updateStreamTargetMessage({
       kind: 'last_assistant_llm_text',
-      turnRef: resolveConversationStreamEventTurnRefForUpdate(event),
+      turnRef: eventIdentity.turnRefForUpdate,
     }, {
       tokenCounts,
-    }, eventConversationRef);
-    recordTrackingEvent('token-count', turnRef, undefined, eventConversationRef);
+    }, eventIdentity.conversationRef);
+    recordTrackingEvent('token-count', eventIdentity.turnRef, undefined, eventIdentity.conversationRef);
   }, [
     updateStreamTargetMessage,
     recordTrackingEvent,
@@ -68,11 +65,12 @@ export function useChatStreamTerminalHandlers({
       return;
     }
     const errorText = resolveErrorText(errorPayload);
+    const eventIdentity = resolveConversationStreamEventIdentity(event, conversationRef);
     recordTrackingEvent(
       'error',
-      resolveConversationStreamEventTurnRef(event),
+      eventIdentity.turnRef,
       { errorText },
-      conversationRef ?? resolveConversationStreamEventConversationRef(event),
+      eventIdentity.conversationRef,
     );
   }, [recordTrackingEvent]);
 

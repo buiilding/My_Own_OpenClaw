@@ -166,6 +166,12 @@ annotations from it. Normal chat rendering should read
 `ConversationView.displayRows`; `chatStore.messages` remains only the local
 pending/no-view fallback.
 
+Conversation-stream sub-handlers resolve event identity through
+`DesktopChatStreamEventRuntime.resolveConversationStreamEventIdentity(...)`.
+Metadata and terminal handlers consume that runtime-built conversation ref,
+turn ref, and update-target turn ref object instead of unpacking SDK event
+identity fields independently.
+
 The old exported `mergeRendererAnnotations` helper remains removed.
 Annotation merging is internal to `desktopConversationDisplayProjection.ts`;
 callers pass narrow renderer annotation records into

@@ -454,6 +454,7 @@ describe('renderer chat runtime boundary', () => {
       'hooks/chatStream/useChatStreamTerminalHandlers.ts',
     ];
     const helperNeedles = [
+      'resolveConversationStreamEventIdentity',
       'resolveConversationStreamEventConversationRef',
       'resolveConversationStreamEventTurnRef',
       'resolveConversationStreamEventTurnRefForUpdate',
@@ -476,6 +477,7 @@ describe('renderer chat runtime boundary', () => {
     }
 
     expect(runtimeSource).toContain('export const DesktopChatStreamEventRuntime = Object.freeze');
+    expect(runtimeSource).toContain('resolveConversationStreamEventIdentity');
     expect(runtimeSource).toContain('resolveConversationStreamEventConversationRef');
     expect(runtimeSource).toContain('resolveConversationStreamEventTurnRef');
     expect(runtimeSource).toContain('resolveConversationStreamEventTurnRefForUpdate');

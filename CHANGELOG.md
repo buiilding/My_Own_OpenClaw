@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stream: move conversation-stream event identity tuple resolution
+  into `DesktopChatStreamEventRuntime`, so metadata and terminal stream hooks
+  consume one runtime-built conversation/turn/update target object instead of
+  unpacking turn refs independently. No migration required.
 - frontend/display: move no-view pending bridge row projection into
   `DesktopConversationDisplayProjection`, so
   `DesktopChatInterfacePresentationRuntime` no longer rebuilds pending user

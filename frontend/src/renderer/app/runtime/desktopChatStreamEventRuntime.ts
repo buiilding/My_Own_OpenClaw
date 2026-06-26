@@ -77,6 +77,23 @@ function resolveConversationStreamEventTurnRefForUpdate(
   return resolveConversationStreamEventTurnRef(event) ?? undefined;
 }
 
+function resolveConversationStreamEventIdentity(
+  event: ConversationStreamEventIdentityEvent | null | undefined,
+  fallbackConversationRef: string | null | undefined = null,
+): {
+  conversationRef: string | null;
+  turnRef: string | null;
+  turnRefForUpdate: string | undefined;
+} {
+  const turnRef = resolveConversationStreamEventTurnRef(event);
+  return {
+    conversationRef: optionalString(fallbackConversationRef)
+      ?? resolveConversationStreamEventConversationRef(event),
+    turnRef,
+    turnRefForUpdate: turnRef ?? undefined,
+  };
+}
+
 function resolveWorkspaceThinkingSourceEventType(
   conversationRef: string | null | undefined,
   deps: ResolveThinkingSourceDeps,
@@ -335,6 +352,7 @@ export type DesktopChatStreamRecordTrackingEvent = typeof recordTrackingEvent;
 
 export const DesktopChatStreamEventRuntime = Object.freeze({
   resolveConversationStreamEventConversationRef,
+  resolveConversationStreamEventIdentity,
   resolveConversationStreamEventTurnRef,
   resolveConversationStreamEventTurnRefForUpdate,
   resolveWorkspaceThinkingSourceEventType,

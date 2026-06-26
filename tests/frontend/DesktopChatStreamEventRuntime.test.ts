@@ -25,6 +25,7 @@ const {
   isUsageUpdatedConversationStreamEvent,
   recordTrackingEvent,
   resolveConversationStreamEventConversationRef,
+  resolveConversationStreamEventIdentity,
   resolveConversationStreamEventTurnRef,
   resolveConversationStreamEventTurnRefForUpdate,
   resolveTurnCompletedStreamEventState,
@@ -452,6 +453,22 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(resolveConversationStreamEventTurnRefForUpdate({
       turnRef: ' turn-1 ',
     })).toBe('turn-1');
+    expect(resolveConversationStreamEventIdentity({
+      conversationRef: ' conversation-1 ',
+      turnRef: ' turn-1 ',
+    })).toEqual({
+      conversationRef: 'conversation-1',
+      turnRef: 'turn-1',
+      turnRefForUpdate: 'turn-1',
+    });
+    expect(resolveConversationStreamEventIdentity({
+      conversationRef: ' conversation-1 ',
+      turnRef: ' turn-1 ',
+    }, ' fallback-conversation ')).toEqual({
+      conversationRef: 'fallback-conversation',
+      turnRef: 'turn-1',
+      turnRefForUpdate: 'turn-1',
+    });
 
     expect(resolveConversationStreamEventConversationRef({
       conversationRef: '   ',
@@ -464,6 +481,11 @@ describe('DesktopChatStreamEventRuntime', () => {
     })).toBeUndefined();
     expect(resolveConversationStreamEventConversationRef(null)).toBeNull();
     expect(resolveConversationStreamEventTurnRef(undefined)).toBeNull();
+    expect(resolveConversationStreamEventIdentity(null)).toEqual({
+      conversationRef: null,
+      turnRef: null,
+      turnRefForUpdate: undefined,
+    });
   });
 
   test('stale turn guard ignores packets from just-completed active turn during terminal pending handoff', () => {

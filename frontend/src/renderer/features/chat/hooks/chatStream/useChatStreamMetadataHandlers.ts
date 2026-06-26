@@ -26,9 +26,7 @@ const {
   isSystemPromptConversationStreamEvent,
   isToolSchemasMetadataConversationStreamEvent,
   isUserMessageMetadataConversationStreamEvent,
-  resolveConversationStreamEventConversationRef,
-  resolveConversationStreamEventTurnRef,
-  resolveConversationStreamEventTurnRefForUpdate,
+  resolveConversationStreamEventIdentity,
 } = DesktopChatStreamEventRuntime;
 const {
   resolveConversationStreamEventPayload,
@@ -75,64 +73,64 @@ export function useChatStreamMetadataHandlers({
     if (!isSystemPromptConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = resolveConversationStreamEventConversationRef(event);
-    const turnRef = resolveConversationStreamEventTurnRef(event);
+    const eventIdentity = resolveConversationStreamEventIdentity(event);
+    const conversationRef = eventIdentity.conversationRef;
     if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     const payload = resolveConversationStreamEventPayload(event);
     updateLastMessageBySender('user', {
       systemPrompt: buildSystemPromptUpdate(payload),
-    }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
-    recordTrackingEvent('system-prompt', turnRef, {}, conversationRef);
+    }, eventIdentity.turnRefForUpdate, eventIdentity.conversationRef);
+    recordTrackingEvent('system-prompt', eventIdentity.turnRef, {}, eventIdentity.conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
   const handleUserMessageFull = useCallback((event: ConversationEvent) => {
     if (!isUserMessageMetadataConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = resolveConversationStreamEventConversationRef(event);
-    const turnRef = resolveConversationStreamEventTurnRef(event);
+    const eventIdentity = resolveConversationStreamEventIdentity(event);
+    const conversationRef = eventIdentity.conversationRef;
     if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     const payload = resolveConversationStreamEventPayload(event);
     updateLastMessageBySender('user', {
       fullUserMessage: buildUserMessageFullUpdate(payload),
-    }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
-    recordTrackingEvent('user-message-full', turnRef, {}, conversationRef);
+    }, eventIdentity.turnRefForUpdate, conversationRef);
+    recordTrackingEvent('user-message-full', eventIdentity.turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
   const handleAssistantMessageFull = useCallback((event: ConversationEvent) => {
     if (!isAssistantMessageConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = resolveConversationStreamEventConversationRef(event);
-    const turnRef = resolveConversationStreamEventTurnRef(event);
+    const eventIdentity = resolveConversationStreamEventIdentity(event);
+    const conversationRef = eventIdentity.conversationRef;
     if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     const payload = resolveConversationStreamEventPayload(event);
     updateLastAssistantLlmTextMessage({
       fullAssistantMessage: buildAssistantMessageFullUpdate(payload),
-    }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
-    recordTrackingEvent('assistant-message-full', turnRef, {}, conversationRef);
+    }, eventIdentity.turnRefForUpdate, conversationRef);
+    recordTrackingEvent('assistant-message-full', eventIdentity.turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastAssistantLlmTextMessage]);
 
   const handleToolSchemas = useCallback((event: ConversationEvent) => {
     if (!isToolSchemasMetadataConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = resolveConversationStreamEventConversationRef(event);
-    const turnRef = resolveConversationStreamEventTurnRef(event);
+    const eventIdentity = resolveConversationStreamEventIdentity(event);
+    const conversationRef = eventIdentity.conversationRef;
     if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     const payload = resolveConversationStreamEventPayload(event);
     updateLastMessageBySender('user', {
       ...buildToolSchemasUpdate(resolveToolSchemasMetadataPayload(payload)),
-    }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
-    recordTrackingEvent('tool-schemas', turnRef, {}, conversationRef);
+    }, eventIdentity.turnRefForUpdate, conversationRef);
+    recordTrackingEvent('tool-schemas', eventIdentity.turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
   return {
