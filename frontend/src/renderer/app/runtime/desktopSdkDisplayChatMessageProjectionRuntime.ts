@@ -25,7 +25,16 @@ function optionalTrimmedString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
+function recordPayloadFromRow(
+  row: SdkDisplayRow,
+  {
+    includeAttachments = false,
+    includeModelFacingToolCall = false,
+  }: {
+    includeAttachments?: boolean;
+    includeModelFacingToolCall?: boolean;
+  } = {},
+): Record<string, unknown> {
   const metadata = row.metadata;
   if (!metadata || typeof metadata !== 'object') {
     return {};
@@ -38,13 +47,15 @@ function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
     'correlationId',
     'bundleId',
     'toolCallId',
-    'modelFacingToolCall',
-    'attachments',
     'sourceEventType',
     'success',
-    'modelId',
-    'modelProvider',
   ];
+  if (includeModelFacingToolCall) {
+    copyKeys.push('modelFacingToolCall');
+  }
+  if (includeAttachments) {
+    copyKeys.push('attachments');
+  }
   copyKeys.forEach((key) => {
     const value = metadata[key];
     if (value !== undefined && value !== null) {
@@ -116,7 +127,7 @@ function withRowActions(message: ChatMessage, row: SdkDisplayRow): ChatMessage {
 }
 
 function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
-  const payload = recordPayloadFromRow(row);
+  const payload = recordPayloadFromRow(row, { includeAttachments: true });
   const attachments = readSdkDisplayAttachments(recordField(payload, 'attachments'));
   return withRowActions({
     id: row.id,
@@ -156,16 +167,14 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
 
 function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
   const payload = recordPayloadFromRow(row);
-  const toolCall = recordFromPayloadValue(recordField(payload, 'modelFacingToolCall'));
-  const bundleToolCallPayload = row.type === 'tool_bundle_call'
-    ? payload
-    : null;
+  const modelFacingPayload = recordPayloadFromRow(row, { includeModelFacingToolCall: true });
+  const toolCall = recordFromPayloadValue(recordField(modelFacingPayload, 'modelFacingToolCall'));
   const text = displayTextFromStructuredRowContent(row.content);
   const base = buildToolCallChatMessageState({
     id: row.id,
     text,
     toolCallDisplayText: text,
-    modelFacingToolCall: bundleToolCallPayload ?? toolCall,
+    modelFacingToolCall: row.type === 'tool_bundle_call' ? null : toolCall,
     toolCallDetails: payload,
     correlationId: rowCorrelationId(row),
     sourceEventType: rowSourceEventType(row),
@@ -181,7 +190,7 @@ function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
 
 function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
   const payload = recordPayloadFromRow(row);
-  const attachments = readSdkDisplayAttachments(recordField(payload, 'attachments'));
+  const attachments = readSdkDisplayAttachments(row.metadata?.attachments);
   const base = buildToolOutputChatMessageState({
     id: row.id,
     outputText: row.type === 'tool_bundle_output'

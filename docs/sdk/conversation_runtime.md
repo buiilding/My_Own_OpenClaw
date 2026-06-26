@@ -305,6 +305,12 @@ tool-output, and progress rows. Producers must normalize those rows before they
 reach `ConversationView`; the renderer may only stringify SDK-declared
 structured tool rows such as tool calls and bundle outputs for component
 compatibility.
+Renderer display-row adapters also keep SDK attachment descriptors on the
+typed `attachments[]` prop only. Tool detail panels may receive display
+identity fields such as `toolName`, `requestId`, `correlationId`, `bundleId`,
+`toolCallId`, and `success`, but must not receive provider-facing
+`modelFacingToolCall`, model-selection metadata, or SDK attachment lifecycle
+descriptors as generic detail payload.
 Copy/feedback actions remain renderer-local affordances. Renderer
 replay execution calls the SDK edit/resend and retry commands directly; when a
 `ConversationView` exists, replay target preparation derives its row model from

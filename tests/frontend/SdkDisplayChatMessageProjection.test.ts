@@ -815,4 +815,91 @@ describe('sdkDisplayChatMessageProjection', () => {
     }));
     expect(message.toolOutputDetails).not.toHaveProperty('structuredPayload');
   });
+
+  test('keeps SDK display attachments out of generic tool details', () => {
+    const [message] = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-tool-output-attachment-details',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'tool',
+        type: 'tool_output',
+        content: 'captured screen',
+        metadata: {
+          revisionId: 'rev-1',
+          timestamp: '2026-06-22T12:00:00.000Z',
+          toolName: 'screenshot',
+          requestId: 'req-shot',
+          attachments: [{
+            id: 'tool-output-shot:attachment:000',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            screenshotRef: 'artifact-tool-1',
+            screenshotUrl: '/api/artifacts/artifact-tool-1',
+          }],
+        },
+      },
+    ]);
+
+    expect(message).toEqual(expect.objectContaining({
+      id: 'msg-tool-output-attachment-details',
+      attachments: [
+        expect.objectContaining({
+          id: 'tool-output-shot:attachment:000',
+        }),
+      ],
+      toolOutputDetails: expect.objectContaining({
+        toolName: 'screenshot',
+        requestId: 'req-shot',
+      }),
+    }));
+    expect(message.toolOutputDetails).not.toHaveProperty('attachments');
+  });
+
+  test('keeps provider-facing and model metadata out of tool details', () => {
+    const [message] = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-tool-call-details',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_call',
+        content: {
+          id: 'call-1',
+          name: 'read_file',
+          arguments: { path: 'package.json' },
+        },
+        metadata: {
+          revisionId: 'rev-1',
+          timestamp: '2026-05-15T12:00:01.000Z',
+          toolName: 'read_file',
+          requestId: 'req-1',
+          toolCallId: 'call-1',
+          modelId: 'model-1',
+          modelProvider: 'provider-1',
+          modelFacingToolCall: {
+            id: 'call-1',
+            name: 'read_file',
+            arguments: { path: 'package.json' },
+          },
+        },
+      },
+    ]);
+
+    expect(message).toEqual(expect.objectContaining({
+      id: 'msg-tool-call-details',
+      modelFacingToolCall: expect.objectContaining({
+        id: 'call-1',
+      }),
+      toolCallDetails: expect.objectContaining({
+        toolName: 'read_file',
+        requestId: 'req-1',
+        toolCallId: 'call-1',
+      }),
+    }));
+    expect(message.toolCallDetails).not.toHaveProperty('modelFacingToolCall');
+    expect(message.toolCallDetails).not.toHaveProperty('modelId');
+    expect(message.toolCallDetails).not.toHaveProperty('modelProvider');
+  });
 });

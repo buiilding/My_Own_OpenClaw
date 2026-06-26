@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display: narrow SDK display-row tool details so attachment
+  lifecycle descriptors, model-selection metadata, and provider-facing tool
+  calls no longer ride through generic renderer detail payloads. Typed
+  `attachments[]` and `modelFacingToolCall` remain the explicit display
+  channels. No migration required.
 - frontend/live-turn: stop using SDK live-entry row ids as fallback
   model-facing tool-call ids; live tool identity now comes only from SDK tool
   fields such as `requestId` or `modelFacingToolCall`. No migration required.
