@@ -10,6 +10,7 @@ import {
 } from '../../chat/stores/chatStore';
 import {
   clearMessagesInChatStore,
+  getWorkspaceStateFromChatStore,
   setConversationViewInChatStore,
   setIsSendingInChatStore,
   setThinkingStatusInChatStore,
@@ -101,7 +102,6 @@ function DashboardShell({
 
   const activeChatConversationRef = useChatStore((state) => state.activeConversationRef);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
-  const getChatWorkspaceState = useChatStore((state) => state.getWorkspaceState);
   const {
     searchQuery,
     isSearchingConversations,
@@ -123,7 +123,7 @@ function DashboardShell({
     resolvedUserId,
     sessionConversationRef: sessionInfo.conversationRef,
     activeConversationRef: activeChatConversationRef,
-    getChatWorkspaceState,
+    getChatWorkspaceState: getWorkspaceStateFromChatStore,
     clearChatMessages: clearMessagesInChatStore,
     setChatIsSending: setIsSendingInChatStore,
     setChatThinkingStatus: setThinkingStatusInChatStore,

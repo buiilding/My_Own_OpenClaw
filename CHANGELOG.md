@@ -15,6 +15,9 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopChatProviderTraceRuntime`, so `ChatProvider.jsx` only wires the store
   read model into trace transport while the runtime owns ConversationView-first
   trace summary selection. No migration required.
+- frontend/dashboard: route dashboard conversation-open workspace reads through
+  `getWorkspaceStateFromChatStore` instead of passing the raw Zustand
+  `getWorkspaceState` method from `DashboardShell`. No migration required.
 - frontend/live-turn: make renderer surface, visible-lifecycle, response
   overlay, thread presentation, live-turn side-effect, and trace-counter
   adapters use SDK `presentation.entries`, `presentation.lastError`, and

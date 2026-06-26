@@ -1175,6 +1175,10 @@ describe('renderer chat runtime boundary', () => {
   });
 
   test('dashboard conversation resume projects display rows through app runtime client', async () => {
+    const dashboardShellSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/components/DashboardShell.jsx'),
+      'utf8',
+    );
     const dashboardHookSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js'),
       'utf8',
@@ -1200,6 +1204,9 @@ describe('renderer chat runtime boundary', () => {
     expect(dashboardHookSource).not.toContain('hasWorkspaceConversationView');
     expect(dashboardHookSource).toContain('applyDashboardConversationOpenWorkspaceReset');
     expect(dashboardHookSource).not.toContain('cachedWorkspace?.conversationView');
+    expect(dashboardShellSource).toContain('getWorkspaceStateFromChatStore');
+    expect(dashboardShellSource).toContain('getChatWorkspaceState: getWorkspaceStateFromChatStore');
+    expect(dashboardShellSource).not.toContain('(state) => state.getWorkspaceState');
     expect(dashboardHookSource).toContain('DesktopConversationLibraryClient.loadConversationView');
     expect(dashboardHookSource).not.toContain('DesktopConversationLibraryClient.loadDisplayRows');
     expect(dashboardHookSource).toContain('setChatConversationView?.(conversationView, conversationRef)');
