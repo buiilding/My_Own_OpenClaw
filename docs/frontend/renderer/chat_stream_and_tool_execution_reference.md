@@ -239,10 +239,10 @@ assistant reasoning text comes from SDK `currentTurn.reasoningText`.
 9. let SDK `ConversationRuntime.send()` emit the authoritative base user row,
    resolve file/clipboard/workspace/query-screenshot resources, and update user
    metadata
-10. preserve the temporary renderer row across intermediate `windie:rows`
-    refreshes that do not yet include that turn's SDK user row
-11. replace the temporary renderer row with SDK display rows from `windie:rows`
-    once the matching SDK user row is projected
+10. keep the renderer pending bridge visible beside SDK `ConversationView`
+    rows while the matching SDK user row is absent
+11. let `ConversationView.displayRows` replace the pending bridge once the SDK
+    projects the matching user row
 
 The local send latch and temporary renderer row are latency cover only. They
 must be keyed to the outgoing turn and removed when the SDK row projection for
