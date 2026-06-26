@@ -55,6 +55,9 @@ export type RendererResponseOverlayHitTestTraceValues = {
 export type RendererResponseOverlayTypingRenderedTraceValues = {
   source?: string;
   typingRendered?: boolean;
+  conversationRef?: unknown;
+  turnRef?: unknown;
+  phase?: unknown;
   currentTurnProjection?: {
     turnRef?: unknown;
     conversationRef?: unknown;
@@ -467,16 +470,27 @@ function buildRendererResponseOverlayTypingRenderedTracePayload(
   const currentTurnProjection = values.currentTurnProjection;
   const overlayIntent = values.overlayIntent;
   const turnRef = (
-    traceString(currentTurnProjection?.turnRef)
+    traceString(values.turnRef)
+    || traceString(currentTurnProjection?.turnRef)
     || traceString(values.currentTurnId)
     || null
+  );
+  const conversationRef = (
+    traceString(values.conversationRef)
+    || traceString(currentTurnProjection?.conversationRef)
+    || null
+  );
+  const phase = (
+    traceString(values.phase)
+    || traceString(currentTurnProjection?.phase)
+    || 'idle'
   );
   return {
     source: traceString(values.source) || 'minimal-response-overlay',
     reason: typingRendered ? 'awaiting-indicator-rendered' : 'awaiting-indicator-not-rendered',
     turnRef,
-    conversationRef: traceString(currentTurnProjection?.conversationRef) || null,
-    phase: traceString(currentTurnProjection?.phase) || 'idle',
+    conversationRef,
+    phase,
     overlayMode: (
       traceString(overlayIntent?.mode)
       || traceString(values.overlayLayoutMode)
@@ -505,7 +519,9 @@ function logRendererResponseOverlayTypingRenderedTrace(
   logRendererLiveSurfaceTrace(
     typingRendered ? 'typing.rendered.show' : 'typing.rendered.hide',
     buildRendererResponseOverlayTypingRenderedTracePayload(values),
-    traceString(values.currentTurnProjection?.conversationRef) || null,
+    traceString(values.conversationRef)
+      || traceString(values.currentTurnProjection?.conversationRef)
+      || null,
   );
 }
 

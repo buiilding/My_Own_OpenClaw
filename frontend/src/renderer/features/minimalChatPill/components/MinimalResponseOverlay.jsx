@@ -31,7 +31,6 @@ function MinimalResponseOverlay() {
   const chatSurfaceState = useChatStore(useShallow(selectLiveTurnSurfaceState));
   const {
     messages,
-    currentTurnProjection,
   } = chatSurfaceState;
   const shellRef = useRef(null);
   const responseboxHitTestActiveRef = useRef(null);
@@ -44,6 +43,7 @@ function MinimalResponseOverlay() {
     responseEntrySignature,
     responseIsCloseable,
     overlayIntent,
+    currentTurnPhase,
     thinkingText,
     handleCloseResponse,
     latestResponseOverlayEntryId,
@@ -86,10 +86,10 @@ function MinimalResponseOverlay() {
     responseboxHitTestActiveRef.current = nextActive;
     DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(nextActive).catch(() => {});
     logRendererResponseOverlayHitTestTrace({
-      conversationRef: currentTurnProjection?.conversationRef || null,
+      conversationRef: overlayIntent?.conversationRef || null,
       active: nextActive,
     });
-  }, [currentTurnProjection?.conversationRef]);
+  }, [overlayIntent?.conversationRef]);
 
   useEffect(() => {
     setResponseboxHitTestActive(false);
@@ -113,7 +113,9 @@ function MinimalResponseOverlay() {
     lastRenderedTypingVisibleRef.current = typingRendered;
     logRendererResponseOverlayTypingRenderedTrace({
       typingRendered,
-      currentTurnProjection,
+      conversationRef: overlayIntent?.conversationRef || null,
+      turnRef: currentTurnId,
+      phase: currentTurnPhase,
       currentTurnId,
       overlayIntent,
       overlayLayoutMode,
@@ -124,12 +126,10 @@ function MinimalResponseOverlay() {
     });
   }, [
     currentTurnId,
-    currentTurnProjection,
-    currentTurnProjection?.conversationRef,
-    currentTurnProjection?.phase,
-    currentTurnProjection?.turnRef,
+    currentTurnPhase,
     isVisible,
     overlayIntent,
+    overlayIntent?.conversationRef,
     overlayIntent?.mode,
     overlayIntent?.staleGuardRef,
     overlayIntent?.turnRef,
@@ -148,7 +148,7 @@ function MinimalResponseOverlay() {
       awaitingVisible,
       responseVisible,
       overlayLayoutMode,
-      phase: currentTurnProjection?.phase || 'idle',
+      phase: currentTurnPhase || 'idle',
       turnId: currentTurnId || null,
       visibleResponseId: latestResponseOverlayEntryId || null,
       activeResponseTextLength,
@@ -157,7 +157,7 @@ function MinimalResponseOverlay() {
       lastLoggedSurfaceStateRef.current = nextSurfaceStateSignature;
       logRendererResponseOverlayStateTrace({
         turnRef: currentTurnId || null,
-        phase: currentTurnProjection?.phase || 'idle',
+        phase: currentTurnPhase || 'idle',
         isVisible,
         awaitingVisible,
         responseVisible,
@@ -170,7 +170,7 @@ function MinimalResponseOverlay() {
       });
     }
     logRendererResponseSurfaceSnapshotTrace({
-      phase: currentTurnProjection?.phase || 'idle',
+      phase: currentTurnPhase || 'idle',
       messageCount: messages.length,
       activeResponseTextLength,
       responseType: latestSourceTaggedResponseEntry?.type || null,
@@ -182,14 +182,14 @@ function MinimalResponseOverlay() {
     });
     logRendererResponseSurfaceRenderTrace({
       turnRef: currentTurnId,
-      phase: currentTurnProjection?.phase || 'idle',
+      phase: currentTurnPhase || 'idle',
       responseLayoutMode: overlayLayoutMode,
       responseVisible,
       awaitingVisible,
     });
   }, [
     currentTurnId,
-    currentTurnProjection?.phase,
+    currentTurnPhase,
     isVisible,
     latestResponseOverlayEntryId,
     latestSourceTaggedResponseEntry?.text,

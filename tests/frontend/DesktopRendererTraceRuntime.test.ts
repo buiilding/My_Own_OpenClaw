@@ -552,6 +552,24 @@ describe('desktopRendererTraceRuntime', () => {
       entryCount: 2,
       hasVisibleContent: true,
     });
+
+    expect(buildRendererResponseOverlayTypingRenderedTracePayload({
+      typingRendered: true,
+      conversationRef: ' conv-explicit ',
+      turnRef: ' turn-explicit ',
+      phase: ' awaiting ',
+      currentTurnProjection: {
+        turnRef: ' turn-projection ',
+        conversationRef: ' conv-projection ',
+        phase: ' streaming ',
+      },
+      overlayLayoutMode: 'awaiting-typing',
+    })).toMatchObject({
+      turnRef: 'turn-explicit',
+      conversationRef: 'conv-explicit',
+      phase: 'awaiting',
+      layoutMode: 'awaiting-typing',
+    });
   });
 
   test('builds response surface snapshot trace payloads', () => {

@@ -298,6 +298,7 @@ export function useResponseOverlayViewModel({
     latestSourceTaggedResponseEntry,
     responseEntrySignature,
     responseIsCloseable,
+    currentTurnPhase,
     thinkingText,
     handleCloseResponse,
     ...viewIntent,
