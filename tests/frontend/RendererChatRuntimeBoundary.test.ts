@@ -3429,14 +3429,23 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js'),
       'utf8',
     );
+    const toolDetailProjectionSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSdkToolDetailProjection.ts'),
+      'utf8',
+    );
 
     expect(source).toContain('toolCallDetails');
     expect(source).toContain('toolOutputDetails');
+    expect(source).toContain('sanitizeSdkToolDetailRecord');
     expect(source).toContain('buildCurrentTurnMessagesFromSdkLiveTurn');
     expect(source).not.toContain('buildCurrentTurnMessagesFromProjection');
     expect(source).not.toContain('|| entry.id');
     expect(source).not.toContain('entry.structuredPayload');
     expect(source).not.toContain('entry.payload');
+    expect(source).not.toContain('screenshotRef');
+    expect(source).not.toContain('screenshotUrl');
+    expect(toolDetailProjectionSource).toContain('screenshotRef');
+    expect(toolDetailProjectionSource).toContain('sanitizeSdkToolDetailRecord');
   });
 
   test('current-turn tool-event fallback does not read backend-shaped payload details', async () => {

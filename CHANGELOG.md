@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: move SDK tool-detail owned-channel sanitization into
+  `DesktopSdkToolDetailProjection`, so current-turn row construction no longer
+  carries screenshot alias filtering locally. No migration required.
 - frontend/display: make the `ConversationView` pending-send bridge independent
   from renderer feedback annotation merging, so SDK display rows stay the base
   read model while the short pending bridge remains explicit. No migration

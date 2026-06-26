@@ -5,6 +5,7 @@
 import { DesktopChatMessageRuntimeClient } from './desktopChatMessageRuntimeClient';
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
 import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
+import { DesktopSdkToolDetailProjection } from './desktopSdkToolDetailProjection';
 
 const {
   buildToolBundleMessageState,
@@ -15,6 +16,9 @@ const {
 const {
   readSdkDisplayAttachments,
 } = DesktopSdkDisplayAttachmentProjection;
+const {
+  sanitizeSdkToolDetailRecord,
+} = DesktopSdkToolDetailProjection;
 
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 const sdkConversationViewSourceChannel = DesktopPresentationSourceChannels
@@ -28,37 +32,6 @@ function asRecord(value) {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value
     : null;
-}
-
-const toolDetailOwnedChannelKeys = new Set([
-  'attachments',
-  'modelFacingToolCall',
-  'modelId',
-  'modelProvider',
-  'payload',
-  'raw',
-  'screenshot',
-  'screenshotRef',
-  'screenshotUrl',
-  `screenshot_${'ref'}`,
-  `screenshot_${'refs'}`,
-  `screenshot_${'url'}`,
-  'screenshotRefs',
-  `structured${'Payload'}`,
-]);
-
-function sanitizeToolDetailRecord(value) {
-  const record = asRecord(value);
-  if (!record) {
-    return null;
-  }
-  const sanitized = {};
-  Object.entries(record).forEach(([key, entryValue]) => {
-    if (!toolDetailOwnedChannelKeys.has(key)) {
-      sanitized[key] = entryValue;
-    }
-  });
-  return Object.keys(sanitized).length > 0 ? sanitized : null;
 }
 
 function readString(value) {
@@ -87,7 +60,7 @@ function buildProjectedToolCallMessage({
   toolEvent,
 }) {
   const toolCallDetails = asObject(toolEvent.toolCallDetails);
-  const displayToolCallDetails = sanitizeToolDetailRecord(toolCallDetails);
+  const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);
   const metadata = asObject(toolEvent.toolDisplayMetadata) || asObject(toolEvent.toolMetadata);
   const args = asObject(toolEvent.toolArguments);
   const toolName = readString(toolEvent.toolName) || '';
@@ -105,7 +78,7 @@ function buildProjectedToolCallMessage({
       id: `${baseId}:tool:${toolEvent.id}`,
       text: bundleState.text,
       toolCallDisplayText: bundleState.toolCallDisplayText,
-      toolCallDetails: sanitizeToolDetailRecord(bundleState.toolCallDetails),
+      toolCallDetails: sanitizeSdkToolDetailRecord(bundleState.toolCallDetails),
       correlationId: bundleState.correlationId ?? null,
       sourceEventType: toolEvent.kind,
       sourceChannel: sdkCurrentTurnSourceChannel,
@@ -179,7 +152,7 @@ function buildProjectedToolOutputMessage({
   toolEvent,
 }) {
   const toolOutputDetails = asObject(toolEvent.toolOutputDetails) || {};
-  const displayToolOutputDetails = sanitizeToolDetailRecord(toolOutputDetails);
+  const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);
   const requestId = readString(toolEvent.requestId);
   const correlationId = (
     readString(toolEvent.correlationId)
@@ -387,7 +360,7 @@ function buildToolCallMessage(entry, liveTurnContext) {
   const toolName = normalizeOptionalText(entry.toolName);
   const text = normalizeText(entry.text) || (toolName ? `Using ${toolName}` : 'Using tool');
   const toolDetails = asRecord(entry.toolCallDetails);
-  const displayToolDetails = sanitizeToolDetailRecord(toolDetails);
+  const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);
   if (toolName === 'tool_bundle' || Array.isArray(entry.toolCalls) || Array.isArray(toolDetails?.tools)) {
     const bundlePayload = {
       ...(toolDetails || {}),
@@ -399,7 +372,7 @@ function buildToolCallMessage(entry, liveTurnContext) {
       ...buildBaseMessageFields(entry, liveTurnContext),
       text: bundleState.text || text,
       toolCallDisplayText: bundleState.toolCallDisplayText || text,
-      toolCallDetails: sanitizeToolDetailRecord(bundleState.toolCallDetails) ?? displayToolDetails,
+      toolCallDetails: sanitizeSdkToolDetailRecord(bundleState.toolCallDetails) ?? displayToolDetails,
       correlationId: bundleState.correlationId ?? null,
     });
   }
@@ -448,7 +421,7 @@ function buildToolProgressMessage(entry, liveTurnContext) {
 
 function buildToolOutputMessage(entry, liveTurnContext) {
   const toolDetails = asRecord(entry.toolOutputDetails);
-  const displayToolDetails = sanitizeToolDetailRecord(toolDetails);
+  const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);
   const toolName = normalizeOptionalText(entry.toolName);
   const text = normalizeText(entry.text) || (toolName ? `${toolName} completed` : 'Tool completed');
   const attachments = readSdkDisplayAttachments(entry.attachments);
