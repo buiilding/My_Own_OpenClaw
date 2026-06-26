@@ -22,7 +22,6 @@ import {
 } from '../../../app/runtime/desktopChatSendPayloadRuntime';
 import { DesktopChatPillSessionRuntime } from '../../../app/runtime/desktopChatPillSessionRuntime';
 import { DesktopChatSendPreparationRuntime } from '../../../app/runtime/desktopChatSendPreparationRuntime';
-import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const {
   resolveChatPillSendLifecycle,
@@ -79,17 +78,11 @@ export function useChatMessageSender(
     }
 
     try {
-      await dispatchPreparedDesktopChatTurn(preparedTurn);
+      await dispatchPreparedDesktopChatTurn(preparedTurn, {
+        clearPendingTurn: clearPendingTurnInChatStore,
+      });
     } catch (error) {
       console.error('[useChatMessageSender] Failed to send query:', error);
-      clearPendingTurnInChatStore({
-        conversationRef: preparedTurn.conversationRef,
-        turnRef: preparedTurn.turnRef,
-      });
-      DesktopPendingTurnRuntimeClient.clear({
-        conversationRef: preparedTurn.conversationRef,
-        turnRef: preparedTurn.turnRef,
-      });
       throw error;
     }
   }, [

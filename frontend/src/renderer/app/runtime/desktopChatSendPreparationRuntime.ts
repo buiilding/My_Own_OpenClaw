@@ -71,6 +71,13 @@ type PrepareDesktopChatSendDependencies = {
   stopPlayback?: () => void;
 };
 
+type DispatchPreparedDesktopChatTurnDependencies = {
+  clearPendingTurn: (input: {
+    conversationRef?: string | null;
+    turnRef?: string | null;
+  }) => void;
+};
+
 type PreparedDesktopChatTurn = {
   conversationRef: string;
   deferredQueryModelSelection: ReturnType<
@@ -317,25 +324,38 @@ async function prepareDesktopChatSend({
 
 async function dispatchPreparedDesktopChatTurn(
   preparedTurn: PreparedDesktopChatTurn,
+  dependencies: DispatchPreparedDesktopChatTurnDependencies,
 ): Promise<void> {
-  if (preparedTurn.deferredQueryModelSelection) {
-    await DesktopSettingsRuntimeClient.setModel(preparedTurn.deferredQueryModelSelection);
+  try {
+    if (preparedTurn.deferredQueryModelSelection) {
+      await DesktopSettingsRuntimeClient.setModel(preparedTurn.deferredQueryModelSelection);
+    }
+    await DesktopLiveTurnRuntimeClient.sendQuery({
+      text: preparedTurn.text,
+      conversationRef: preparedTurn.conversationRef,
+      workspacePath: preparedTurn.workspacePath,
+      resources: preparedTurn.resources,
+      model: preparedTurn.model,
+      turnRef: preparedTurn.turnRef,
+    });
+    logRendererChatSendLifecycleTrace({
+      action: 'query-dispatched',
+      conversationRef: preparedTurn.conversationRef,
+      turnId: preparedTurn.turnId,
+      includeQueryScreenshot: preparedTurn.sendLifecycle.shouldCaptureQueryScreenshot,
+      reason: preparedTurn.sendLifecycle.surfaceReason,
+    });
+  } catch (error) {
+    dependencies.clearPendingTurn({
+      conversationRef: preparedTurn.conversationRef,
+      turnRef: preparedTurn.turnRef,
+    });
+    DesktopPendingTurnRuntimeClient.clear({
+      conversationRef: preparedTurn.conversationRef,
+      turnRef: preparedTurn.turnRef,
+    });
+    throw error;
   }
-  await DesktopLiveTurnRuntimeClient.sendQuery({
-    text: preparedTurn.text,
-    conversationRef: preparedTurn.conversationRef,
-    workspacePath: preparedTurn.workspacePath,
-    resources: preparedTurn.resources,
-    model: preparedTurn.model,
-    turnRef: preparedTurn.turnRef,
-  });
-  logRendererChatSendLifecycleTrace({
-    action: 'query-dispatched',
-    conversationRef: preparedTurn.conversationRef,
-    turnId: preparedTurn.turnId,
-    includeQueryScreenshot: preparedTurn.sendLifecycle.shouldCaptureQueryScreenshot,
-    reason: preparedTurn.sendLifecycle.surfaceReason,
-  });
 }
 
 export const DesktopChatSendPreparationRuntime = Object.freeze({

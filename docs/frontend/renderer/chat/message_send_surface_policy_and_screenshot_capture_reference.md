@@ -171,9 +171,13 @@ When attachment(s) exist:
 
 Steps 1-6 produce a `PreparedDesktopChatTurn`. The final dispatch helper applies
 deferred model selection and sends the prepared SDK turn input through
-`DesktopLiveTurnRuntimeClient.sendQuery`. Replay-prepared turns may still pass
-stored screenshot refs as legacy resolved payload because replay reuses durable
-transcript metadata rather than composer resources.
+`DesktopLiveTurnRuntimeClient.sendQuery`. If dispatch fails before SDK turn
+authority opens, the helper clears the short pending bridge from chat store and
+main-process pending-turn state using the prepared turn identity; React sender
+hooks do not inspect `PreparedDesktopChatTurn` refs for failure cleanup.
+Replay-prepared turns may still pass stored screenshot refs as legacy resolved
+payload because replay reuses durable transcript metadata rather than composer
+resources.
 
 `DesktopChatSendStateRuntime.hasPriorUserMessages(...)` owns the
 first-user-message predicate used by the send read-model selector. When a SDK

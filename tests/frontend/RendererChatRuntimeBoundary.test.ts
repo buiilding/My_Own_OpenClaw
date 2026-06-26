@@ -2345,6 +2345,8 @@ describe('renderer chat runtime boundary', () => {
     expect(senderHookSource).not.toContain('selectChatInterfaceState');
     expect(senderHookSource).not.toContain('getState().conversationView');
     expect(senderHookSource).not.toContain('getState().messages');
+    expect(senderHookSource).not.toContain('preparedTurn.conversationRef');
+    expect(senderHookSource).not.toContain('preparedTurn.turnRef');
     expect(selectorRuntimeSource).toContain('const messages = conversationView ? [] : activeWorkspace.messages;');
     expect(selectorRuntimeSource).toContain('hasPriorUserMessages({');
     expect(selectorRuntimeSource).toContain('hasPriorUserMessages: true');
@@ -2361,6 +2363,8 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).toContain('export const DesktopChatSendPreparationRuntime = Object.freeze');
     expect(sendPreparationSource).not.toContain('export async function prepareDesktopChatSend');
     expect(sendPreparationSource).not.toContain('export async function dispatchPreparedDesktopChatTurn');
+    expect(sendPreparationSource).toContain('DesktopPendingTurnRuntimeClient.clear');
+    expect(sendPreparationSource).toContain('dependencies.clearPendingTurn');
     expect(sendPreparationSource).toContain('logRendererChatSendLifecycleTrace');
     expect(sendPreparationSource).not.toContain('logRendererChatPillTrace');
     expect(sendPreparationSource).not.toContain("source: 'renderer-send'");

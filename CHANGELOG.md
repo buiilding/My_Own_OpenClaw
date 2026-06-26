@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: move prepared-turn pending cleanup on send-dispatch failure
+  into `DesktopChatSendPreparationRuntime`, so `useChatMessageSender` no
+  longer reads prepared turn refs to clear renderer pending state. No migration
+  required.
 - frontend/overlay: route response-overlay hit-test and rendered-typing trace
   identity through `DesktopRendererTraceRuntime`, so `MinimalResponseOverlay`
   no longer extracts SDK overlay-intent conversation or turn refs for trace
