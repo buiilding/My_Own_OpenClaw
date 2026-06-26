@@ -45,7 +45,7 @@ describe('desktopThreadPresentationRuntime', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
     ];
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'tool_call',
@@ -59,7 +59,7 @@ describe('desktopThreadPresentationRuntime', () => {
     };
 
     expect(buildThreadPresentationMessages(messages, {
-      currentTurnProjection,
+      sdkLiveTurn,
       activeConversationRef: 'conv-1',
     })).toEqual([
       messages[0],
@@ -84,7 +84,7 @@ describe('desktopThreadPresentationRuntime', () => {
         turnRef: 'turn-1',
       },
     ];
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'streaming',
@@ -98,7 +98,7 @@ describe('desktopThreadPresentationRuntime', () => {
     };
 
     expect(buildThreadPresentationMessages(messages, {
-      currentTurnProjection,
+      sdkLiveTurn,
       activeConversationRef: 'conv-1',
     })).toEqual([
       messages[0],
@@ -119,7 +119,7 @@ describe('desktopThreadPresentationRuntime', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
     ];
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'streaming',
@@ -150,7 +150,7 @@ describe('desktopThreadPresentationRuntime', () => {
     };
 
     expect(buildThreadPresentationMessages(messages, {
-      currentTurnProjection,
+      sdkLiveTurn,
       activeConversationRef: 'conv-1',
     })).toEqual([
       messages[0],
@@ -172,7 +172,7 @@ describe('desktopThreadPresentationRuntime', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
     ];
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'streaming',
@@ -186,7 +186,7 @@ describe('desktopThreadPresentationRuntime', () => {
     };
 
     expect(buildThreadPresentationMessages(messages, {
-      currentTurnProjection,
+      sdkLiveTurn,
       activeConversationRef: 'conv-1',
     })).toEqual([
       messages[0],
@@ -204,7 +204,7 @@ describe('desktopThreadPresentationRuntime', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
     ];
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'streaming',
@@ -225,7 +225,7 @@ describe('desktopThreadPresentationRuntime', () => {
     };
 
     expect(buildThreadPresentationMessages(messages, {
-      currentTurnProjection,
+      sdkLiveTurn,
       activeConversationRef: 'conv-1',
     })).toEqual([
       messages[0],
@@ -253,7 +253,7 @@ describe('desktopThreadPresentationRuntime', () => {
         }],
       },
     };
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-stale',
       phase: 'streaming',
@@ -273,7 +273,7 @@ describe('desktopThreadPresentationRuntime', () => {
 
     expect(buildThreadPresentationMessages(messages, {
       conversationView,
-      currentTurnProjection,
+      sdkLiveTurn,
       activeConversationRef: 'conv-1',
     })).toEqual([
       messages[0],
@@ -291,7 +291,7 @@ describe('desktopThreadPresentationRuntime', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
     ];
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'tool_call',
@@ -336,7 +336,7 @@ describe('desktopThreadPresentationRuntime', () => {
     };
 
     const rendered = buildThreadPresentationMessages(messages, {
-      currentTurnProjection,
+      sdkLiveTurn,
       activeConversationRef: 'conv-1',
     });
 
@@ -363,7 +363,7 @@ describe('desktopThreadPresentationRuntime', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
     ];
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'tool_call',
@@ -404,7 +404,7 @@ describe('desktopThreadPresentationRuntime', () => {
     };
 
     const rendered = buildThreadPresentationMessages(messages, {
-      currentTurnProjection,
+      sdkLiveTurn,
       activeConversationRef: 'conv-1',
     });
 
@@ -428,7 +428,7 @@ describe('desktopThreadPresentationRuntime', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
     ];
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-other',
       turnRef: 'turn-1',
       phase: 'streaming',
@@ -447,7 +447,7 @@ describe('desktopThreadPresentationRuntime', () => {
     };
 
     expect(buildThreadPresentationMessages(messages, {
-      currentTurnProjection,
+      sdkLiveTurn,
       activeConversationRef: 'conv-1',
     })).toBe(messages);
   });
@@ -463,7 +463,7 @@ describe('desktopThreadPresentationRuntime', () => {
         turnRef: 'turn-1',
       },
     ];
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'streaming',
@@ -482,7 +482,7 @@ describe('desktopThreadPresentationRuntime', () => {
     };
 
     expect(buildThreadPresentationMessages(messages, {
-      currentTurnProjection,
+      sdkLiveTurn,
       activeConversationRef: 'conv-1',
     })).toBe(messages);
   });
@@ -506,7 +506,7 @@ describe('desktopThreadPresentationRuntime', () => {
         turnRef: 'turn-1',
       },
     ];
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'streaming',
@@ -520,7 +520,7 @@ describe('desktopThreadPresentationRuntime', () => {
     };
 
     expect(buildThreadPresentationMessages(messages, {
-      currentTurnProjection,
+      sdkLiveTurn,
       activeConversationRef: 'conv-1',
     })).toBe(messages);
   });
@@ -530,7 +530,7 @@ describe('desktopThreadPresentationRuntime', () => {
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
       { id: 'user-2', sender: 'user', text: 'Now answer this', turnRef: 'turn-2' },
     ];
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'streaming',
@@ -544,7 +544,7 @@ describe('desktopThreadPresentationRuntime', () => {
     };
 
     expect(buildThreadPresentationMessages(messages, {
-      currentTurnProjection,
+      sdkLiveTurn,
       activeConversationRef: 'conv-1',
     })).toBe(messages);
   });

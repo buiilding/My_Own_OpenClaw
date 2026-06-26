@@ -658,6 +658,8 @@ describe('renderer app runtime boundary', () => {
     expect(threadPresentationSource).toContain('projectionFallbackMessages');
     expect(threadPresentationSource).not.toContain('currentTurnMessages');
     expect(threadPresentationSource).not.toContain('legacyProjectionMessages');
+    expect(threadPresentationSource).toContain('sdkLiveTurn = null');
+    expect(threadPresentationSource).not.toContain('currentTurnProjection');
     expect(threadPresentationSource).not.toContain('showToolLogs');
     expect(threadPresentationSource).not.toContain('isBusy');
     expect(threadPresentationSource).not.toContain('hasCurrentTurnLiveProgressMessages');

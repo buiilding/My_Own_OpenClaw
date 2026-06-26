@@ -41,7 +41,7 @@ function buildChatInterfacePresentationState({
   return {
     renderedMessages: buildThreadPresentationMessages(baseMessages, {
       conversationView,
-      currentTurnProjection: effectiveSdkLiveTurn,
+      sdkLiveTurn: effectiveSdkLiveTurn,
       activeConversationRef,
     }),
     canEditMessages: hasConversationView

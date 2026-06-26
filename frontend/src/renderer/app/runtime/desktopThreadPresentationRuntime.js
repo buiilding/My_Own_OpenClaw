@@ -155,7 +155,7 @@ function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
 }
 
 function resolveCurrentTurnMessages({
-  currentTurnProjection = null,
+  sdkLiveTurn = null,
   conversationView = null,
 }) {
   const conversationViewMessages = buildConversationViewLiveTurnMessages(conversationView);
@@ -165,11 +165,11 @@ function resolveCurrentTurnMessages({
   if (conversationView && typeof conversationView === 'object') {
     return [];
   }
-  const presentationMessages = buildCurrentTurnMessagesFromPresentation(currentTurnProjection);
+  const presentationMessages = buildCurrentTurnMessagesFromPresentation(sdkLiveTurn);
   if (presentationMessages.length > 0) {
     return presentationMessages;
   }
-  const projectionFallbackMessages = buildCurrentTurnMessagesFromProjection(currentTurnProjection);
+  const projectionFallbackMessages = buildCurrentTurnMessagesFromProjection(sdkLiveTurn);
   if (projectionFallbackMessages.length > 0) {
     return projectionFallbackMessages;
   }
@@ -179,7 +179,7 @@ function resolveCurrentTurnMessages({
 function selectVisibleCurrentTurnMessages({
   messages,
   liveTurnMessages,
-  currentTurnProjection,
+  sdkLiveTurn,
   conversationView,
   activeConversationRef,
 }) {
@@ -187,7 +187,7 @@ function selectVisibleCurrentTurnMessages({
     return [];
   }
   const projectionConversationRef = normalizeRef(
-    conversationView?.conversationRef || currentTurnProjection?.conversationRef,
+    conversationView?.conversationRef || sdkLiveTurn?.conversationRef,
   );
   const normalizedActiveConversationRef = normalizeRef(activeConversationRef);
   if (
@@ -227,20 +227,20 @@ function resolveLiveMessageInsertIndex(messages, liveMessages) {
 function buildThreadPresentationMessages(
   messages,
   {
-    currentTurnProjection = null,
+    sdkLiveTurn = null,
     conversationView = null,
     activeConversationRef = null,
   } = {},
 ) {
   const baseMessages = Array.isArray(messages) ? messages : [];
   const resolvedCurrentTurnMessages = resolveCurrentTurnMessages({
-    currentTurnProjection,
+    sdkLiveTurn,
     conversationView,
   });
   const liveMessages = selectVisibleCurrentTurnMessages({
     messages: baseMessages,
     liveTurnMessages: resolvedCurrentTurnMessages,
-    currentTurnProjection,
+    sdkLiveTurn,
     conversationView,
     activeConversationRef,
   });
