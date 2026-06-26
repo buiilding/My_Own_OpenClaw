@@ -11,6 +11,10 @@ All notable changes to WindieOS will be documented in this file.
   binding for persisted UI dismissal state and the minimal response-overlay
   view model as a consumer of the runtime dismissed-id selector. No migration
   required.
+- frontend/chat: move chat-provider trace snapshot construction into
+  `DesktopChatProviderTraceRuntime`, so `ChatProvider.jsx` only wires the store
+  read model into trace transport while the runtime owns ConversationView-first
+  trace summary selection. No migration required.
 - frontend/live-turn: make renderer surface, visible-lifecycle, response
   overlay, thread presentation, live-turn side-effect, and trace-counter
   adapters use SDK `presentation.entries`, `presentation.lastError`, and
