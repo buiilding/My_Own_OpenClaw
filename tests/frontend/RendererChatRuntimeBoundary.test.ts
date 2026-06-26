@@ -3294,6 +3294,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatClearMessagesRuntime.ts'),
       'utf8',
     );
+    const trackingRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts'),
+      'utf8',
+    );
     const workspaceMessageRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceMessageRuntime.ts'),
       'utf8',
@@ -3526,6 +3530,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateSource).not.toContain('currentTurnProjection?: CurrentTurnProjection | null;');
     expect(chatWorkspaceStateSource).not.toContain('conversationView?: ConversationView | null;');
     expect(chatWorkspaceStateSource).not.toContain('pendingTurn?: PendingTurn | null;');
+    expect(chatWorkspaceStateSource).not.toContain('export function createInitialStreamTracking');
+    expect(chatWorkspaceStateSource).toContain('DesktopChatStreamTrackingRuntime');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildConversationViewWorkspaceMutation');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildSetConversationViewStateUpdate');
     expect(conversationViewWorkspaceRuntimeSource).toContain('hasWorkspaceConversationView');
@@ -3549,6 +3555,7 @@ describe('renderer chat runtime boundary', () => {
     expect(clearMessagesRuntimeSource).toContain('buildClearMessagesStateUpdate');
     expect(clearMessagesRuntimeSource).toContain('createInitialStreamTracking');
     expect(clearMessagesRuntimeSource).not.toContain('features/chat');
+    expect(trackingRuntimeSource).toContain('createInitialStreamTracking');
     expect(workspaceMessageRuntimeSource).toContain('buildAddMessageStateUpdate');
     expect(workspaceMessageRuntimeSource).toContain('buildUpdateMessageStateUpdate');
     expect(workspaceMessageRuntimeSource).toContain('buildUpdateStreamTargetMessageStateUpdate');

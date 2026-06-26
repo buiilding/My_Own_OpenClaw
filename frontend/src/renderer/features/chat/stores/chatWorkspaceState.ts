@@ -10,10 +10,19 @@ import type {
   DesktopPendingTurnState,
 } from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
 import type {
-  ChatMessage,
   StreamTracking,
+} from '../../../app/runtime/desktopChatStreamTrackingRuntime';
+import {
+  DesktopChatStreamTrackingRuntime,
+} from '../../../app/runtime/desktopChatStreamTrackingRuntime';
+import type {
+  ChatMessage,
   TokenCounts,
 } from './chatStore';
+
+const {
+  createInitialStreamTracking,
+} = DesktopChatStreamTrackingRuntime;
 
 export interface ChatWorkspaceState {
   messages: ChatMessage[];
@@ -77,24 +86,6 @@ export function resolveWorkspaceKey(
   return resolveChatWorkspaceRef(
     resolveWorkspaceConversationRef(requestedConversationRef, activeConversationRef),
   );
-}
-
-export function createInitialStreamTracking(): StreamTracking {
-  return {
-    activeTurnRef: null,
-    phase: 'idle',
-    startedAt: null,
-    firstChunkAt: null,
-    completedAt: null,
-    lastEventAt: null,
-    lastEventType: null,
-    eventCount: 0,
-    chunkCount: 0,
-    toolCallCount: 0,
-    toolOutputCount: 0,
-    lastChunkSize: 0,
-    lastError: null,
-  };
 }
 
 export function createInitialWorkspaceState(): ChatWorkspaceState {

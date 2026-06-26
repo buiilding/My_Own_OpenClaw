@@ -61,6 +61,24 @@ export type StreamTrackingOptions = {
   resetForTurn?: boolean;
 };
 
+function createInitialStreamTracking(): StreamTracking {
+  return {
+    activeTurnRef: null,
+    phase: 'idle',
+    startedAt: null,
+    firstChunkAt: null,
+    completedAt: null,
+    lastEventAt: null,
+    lastEventType: null,
+    eventCount: 0,
+    chunkCount: 0,
+    toolCallCount: 0,
+    toolOutputCount: 0,
+    lastChunkSize: 0,
+    lastError: null,
+  };
+}
+
 function createTrackingForNewTurn(
   eventType: StreamTrackingEventType,
   now: string,
@@ -176,5 +194,6 @@ function buildUpdateStreamTrackingStateUpdate<
 
 export const DesktopChatStreamTrackingRuntime = Object.freeze({
   applyTrackingEvent,
+  createInitialStreamTracking,
   buildUpdateStreamTrackingStateUpdate,
 });

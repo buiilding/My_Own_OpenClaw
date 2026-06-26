@@ -16,7 +16,6 @@ import type {
 import {
   buildActiveConversationWorkspaceUpdate,
   buildWorkspaceUpdate,
-  createInitialStreamTracking,
   createInitialWorkspaceRecord,
   readWorkspaceState,
   resolveChatWorkspaceRef,
@@ -114,6 +113,7 @@ const {
   buildUpdateMessageStateUpdate,
 } = DesktopChatWorkspaceMessageRuntime;
 const {
+  createInitialStreamTracking,
   buildUpdateStreamTrackingStateUpdate,
 } = DesktopChatStreamTrackingRuntime;
 const {

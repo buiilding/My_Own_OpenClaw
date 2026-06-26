@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: move initial stream-tracking state construction into
+  `DesktopChatStreamTrackingRuntime` so workspace state no longer owns the
+  runtime phase/counter seed. No migration required.
 - frontend/store: remove the store-owned stream-tracking type definition;
   `chatStore` now imports/re-exports the app-runtime stream tracking contract.
   No migration required.

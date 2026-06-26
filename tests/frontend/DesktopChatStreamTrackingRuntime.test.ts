@@ -2,11 +2,16 @@
  * Covers desktop chat stream tracking runtime. behavior in the frontend test suite.
  */
 
-import { DesktopChatStreamTrackingRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime';
-import type { StreamTracking } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  DesktopChatStreamTrackingRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime';
+import type {
+  StreamTracking,
+} from '../../frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime';
 
 const { applyTrackingEvent } = DesktopChatStreamTrackingRuntime;
 const { buildUpdateStreamTrackingStateUpdate } = DesktopChatStreamTrackingRuntime;
+const { createInitialStreamTracking } = DesktopChatStreamTrackingRuntime;
 
 function buildTracking(overrides: Partial<StreamTracking> = {}): StreamTracking {
   const seed: StreamTracking = {
@@ -31,6 +36,24 @@ function buildTracking(overrides: Partial<StreamTracking> = {}): StreamTracking 
 }
 
 describe('DesktopChatStreamTrackingRuntime', () => {
+  test('creates the idle stream tracking seed', () => {
+    expect(createInitialStreamTracking()).toEqual({
+      activeTurnRef: null,
+      phase: 'idle',
+      startedAt: null,
+      firstChunkAt: null,
+      completedAt: null,
+      lastEventAt: null,
+      lastEventType: null,
+      eventCount: 0,
+      chunkCount: 0,
+      toolCallCount: 0,
+      toolOutputCount: 0,
+      lastChunkSize: 0,
+      lastError: null,
+    });
+  });
+
   test('resetForTurn seeds a fresh tracking state', () => {
     const now = '2026-02-24T00:00:00.000Z';
     const next = applyTrackingEvent(
