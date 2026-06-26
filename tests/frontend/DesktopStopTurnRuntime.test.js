@@ -74,18 +74,13 @@ function workspace(overrides = {}) {
 }
 
 describe('desktopStopTurnRuntime', () => {
-  test('resolveStopTurnTarget prioritizes stoppable ConversationView over stale raw state', () => {
+  test('resolveStopTurnTarget prioritizes stoppable ConversationView over pending bridge', () => {
     expect(resolveStopTurnTarget({
       conversationView: conversationView({
         conversationRef: 'conv-view',
         turnRef: 'turn-view',
         canStop: true,
       }),
-      currentTurnProjection: {
-        conversationRef: 'conv-sdk',
-        turnRef: 'turn-sdk',
-        phase: 'streaming',
-      },
       pendingTurn: {
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
@@ -99,13 +94,8 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
-  test('resolveStopTurnTarget ignores active SDK current-turn and keeps pending bridge', () => {
+  test('resolveStopTurnTarget keeps pending bridge without raw current-turn authority', () => {
     expect(resolveStopTurnTarget({
-      currentTurnProjection: {
-        conversationRef: 'conv-sdk',
-        turnRef: 'turn-sdk',
-        phase: 'streaming',
-      },
       pendingTurn: {
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
@@ -119,16 +109,8 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
-  test('resolveStopTurnTarget uses pending turn ref while SDK current-turn is terminal', () => {
+  test('resolveStopTurnTarget uses pending turn ref without terminal current-turn fallback', () => {
     expect(resolveStopTurnTarget({
-      currentTurnProjection: {
-        conversationRef: 'conv-sdk',
-        turnRef: 'turn-sdk',
-        phase: 'complete',
-        presentation: {
-          isBusy: false,
-        },
-      },
       pendingTurn: {
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
@@ -161,11 +143,6 @@ describe('desktopStopTurnRuntime', () => {
         phase: 'idle',
         canStop: false,
       }),
-      currentTurnProjection: {
-        conversationRef: 'conv-sdk',
-        turnRef: 'turn-sdk',
-        phase: 'idle',
-      },
       pendingTurn: {
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
@@ -187,11 +164,6 @@ describe('desktopStopTurnRuntime', () => {
         phase: 'complete',
         canStop: false,
       }),
-      currentTurnProjection: {
-        conversationRef: 'conv-sdk',
-        turnRef: 'turn-sdk',
-        phase: 'streaming',
-      },
       conversationRef: 'conv-session',
     })).toEqual({
       source: 'idle',
@@ -201,33 +173,7 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
-  test('does not use SDK presentation busy as a stop target without active phase', () => {
-    expect(resolveStopTurnTarget({
-      currentTurnProjection: {
-        conversationRef: 'conv-sdk',
-        turnRef: 'turn-sdk',
-        phase: 'idle',
-        presentation: {
-          isBusy: true,
-        },
-      },
-      conversationRef: 'conv-session',
-    })).toEqual({
-      source: 'idle',
-      conversationRef: 'conv-session',
-      turnRef: null,
-      canStop: false,
-    });
-  });
-
   test('classifies only pending bridge targets behind runtime predicates', () => {
-    const rawCurrentTurnTarget = resolveStopTurnTarget({
-      currentTurnProjection: {
-        conversationRef: 'conv-sdk',
-        turnRef: 'turn-sdk',
-        phase: 'awaiting',
-      },
-    });
     const pendingTarget = resolveStopTurnTarget({
       pendingTurn: {
         conversationRef: 'conv-pending',
@@ -238,7 +184,6 @@ describe('desktopStopTurnRuntime', () => {
       conversationRef: 'conv-idle',
     });
 
-    expect(isStopTurnTargetFromPendingTurn(rawCurrentTurnTarget)).toBe(false);
     expect(isStopTurnTargetFromPendingTurn(pendingTarget)).toBe(true);
     expect(isStopTurnTargetFromPendingTurn(idleTarget)).toBe(false);
 

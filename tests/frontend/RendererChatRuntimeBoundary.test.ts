@@ -2158,6 +2158,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime.js'),
       'utf8',
     );
+    const stopTargetResolverSource = stopRuntimeSource.slice(
+      stopRuntimeSource.indexOf('function resolveStopTurnTarget'),
+      stopRuntimeSource.indexOf('export const DesktopStopTurnRuntime'),
+    );
 
     expect(stopHandlerSource).toContain('desktopStopTurnRuntime');
     expect(stopHandlerSource).toContain('DesktopStopTurnRuntime');
@@ -2198,6 +2202,7 @@ describe('renderer chat runtime boundary', () => {
     expect(stopRuntimeSource).not.toContain('export function isStopTurnTargetFromPendingTurn');
     expect(stopRuntimeSource).not.toContain('export function resolveStopTurnTarget');
     expect(stopRuntimeSource).not.toContain('features/chat');
+    expect(stopTargetResolverSource).not.toContain('currentTurnProjection');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/state/stopQueryState.js'),
     )).rejects.toThrow();
