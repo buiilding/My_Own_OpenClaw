@@ -692,4 +692,32 @@ describe('sdkDisplayChatMessageProjection', () => {
     }));
     expect(message.toolOutputDetails).not.toHaveProperty('raw');
   });
+
+  test('does not forward structured payload aliases into renderer chat details', () => {
+    const [message] = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-tool-output-structured',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'tool',
+        type: 'tool_output',
+        content: 'done',
+        metadata: {
+          revisionId: 'rev-1',
+          timestamp: '2026-05-15T12:00:02.000Z',
+          toolName: 'read_file',
+          requestId: 'req-1',
+          structuredPayload: {
+            output: 'legacy structured output',
+          },
+        },
+      },
+    ] as any);
+
+    expect(message.toolOutputDetails).toEqual(expect.objectContaining({
+      toolName: 'read_file',
+      requestId: 'req-1',
+    }));
+    expect(message.toolOutputDetails).not.toHaveProperty('structuredPayload');
+  });
 });

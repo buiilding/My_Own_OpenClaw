@@ -39,7 +39,6 @@ function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
     'bundleId',
     'toolCallId',
     'modelFacingToolCall',
-    'structuredPayload',
     'attachments',
     'sourceEventType',
     'success',

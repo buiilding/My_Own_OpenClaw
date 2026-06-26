@@ -3446,6 +3446,7 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('displayMessageFromSdkDisplayRow');
     expect(projectionRuntimeSource).not.toContain('function displayAttachmentsFromPayload');
     expect(projectionRuntimeSource).not.toContain('screenshot_refs');
+    expect(projectionRuntimeSource).not.toContain('structuredPayload');
     expect(projectionRuntimeSource).not.toContain('reasoning_text');
     expect(projectionRuntimeSource).not.toContain('fallbackToolCall');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.toolName\n      ?');
