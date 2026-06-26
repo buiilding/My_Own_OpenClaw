@@ -566,7 +566,7 @@ describe('desktopRendererTraceRuntime', () => {
   test('ignores stale raw current-turn projection in rendered-typing traces', () => {
     expect(buildRendererResponseOverlayTypingRenderedTracePayload({
       typingRendered: true,
-      currentTurnProjection: {
+      sdkLiveTurn: {
         turnRef: ' turn-stale ',
         conversationRef: ' conv-stale ',
         phase: ' streaming ',
@@ -741,7 +741,7 @@ describe('desktopRendererTraceRuntime', () => {
 
   test('ignores stale raw current-turn projection in overlay view-model traces', () => {
     expect(buildRendererOverlayViewModelTracePayload({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: ' conv-stale ',
         turnRef: ' turn-stale ',
         phase: ' streaming ',
@@ -773,7 +773,7 @@ describe('desktopRendererTraceRuntime', () => {
 
   test('does not fall back to raw current-turn projection identity in overlay view-model traces', () => {
     expect(buildRendererOverlayViewModelTracePayload({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: ' conv-stale ',
         turnRef: ' turn-stale ',
         phase: ' streaming ',

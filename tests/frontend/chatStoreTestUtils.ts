@@ -61,7 +61,7 @@ export function resetChatStoreForTests(
         compactionDebugInfo: null,
         tokenCounts: null,
         streamTracking,
-        currentTurnProjection: null,
+        sdkLiveTurn: null,
         conversationView: null,
         pendingTurn: null,
       },

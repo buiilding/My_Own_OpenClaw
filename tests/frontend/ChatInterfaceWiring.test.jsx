@@ -90,7 +90,7 @@ const mockChatState = {
   thinkingSourceEventType: null,
   tokenCounts: null,
   streamTracking: { phase: 'idle' },
-  currentTurnProjection: null,
+  sdkLiveTurn: null,
   conversationView: null,
   pendingTurn: null,
   clearMessages: (...args) => mockClearMessages(...args),
@@ -132,7 +132,7 @@ function setMockCurrentTurnProjection(phase, overrides = {}) {
     'tool-call': 'tool_call',
     'tool-output': 'tool_output',
   }[phase] || phase;
-  mockChatState.currentTurnProjection = {
+  mockChatState.sdkLiveTurn = {
     conversationRef: 'conv_existing',
     turnRef: 'turn_test',
     phase: normalizedPhase,
@@ -217,7 +217,7 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
       compactionDebugInfo: state.compactionDebugInfo ?? null,
       tokenCounts: state.tokenCounts,
       streamTracking: state.streamTracking,
-      currentTurnProjection: state.currentTurnProjection,
+      sdkLiveTurn: state.sdkLiveTurn,
       conversationView: state.conversationView,
       pendingTurn: state.pendingTurn,
     };
@@ -245,7 +245,7 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
 jest.mock('../../frontend/src/renderer/features/chat/stores/chatStoreAdapters', () => ({
   clearMessagesInChatStore: (...args) => {
     mockChatState.messages = [];
-    mockChatState.currentTurnProjection = null;
+    mockChatState.sdkLiveTurn = null;
     mockChatState.conversationView = null;
     mockChatState.pendingTurn = null;
     mockClearMessages(...args);
@@ -611,7 +611,7 @@ describe('ChatInterface wiring', () => {
       userId: 'default_user',
     };
     mockChatState.streamTracking.phase = 'idle';
-    mockChatState.currentTurnProjection = null;
+    mockChatState.sdkLiveTurn = null;
     mockChatState.conversationView = null;
     mockChatState.pendingTurn = null;
     mockChatState.messages = [];
@@ -1640,7 +1640,7 @@ describe('ChatInterface wiring', () => {
 
   test('stop response handler targets the ConversationView turn over stale current-turn state', () => {
     mockChatState.streamTracking.phase = 'streaming';
-    mockChatState.currentTurnProjection = {
+    mockChatState.sdkLiveTurn = {
       conversationRef: 'conv_stale_current',
       turnRef: 'turn_stale_current',
       phase: 'streaming',
@@ -1701,7 +1701,7 @@ describe('ChatInterface wiring', () => {
 
   test('ConversationView can clear dashboard busy and Stop over stale current-turn state', () => {
     mockChatState.streamTracking.phase = 'streaming';
-    mockChatState.currentTurnProjection = {
+    mockChatState.sdkLiveTurn = {
       conversationRef: 'conv_existing',
       turnRef: 'turn_stale_current',
       phase: 'streaming',
@@ -1757,7 +1757,7 @@ describe('ChatInterface wiring', () => {
 
   test('ConversationView busy mode disables dashboard Stop when view cannot stop', () => {
     mockChatState.streamTracking.phase = 'streaming';
-    mockChatState.currentTurnProjection = {
+    mockChatState.sdkLiveTurn = {
       conversationRef: 'conv_existing',
       turnRef: 'turn_stale_current',
       phase: 'streaming',
@@ -1813,7 +1813,7 @@ describe('ChatInterface wiring', () => {
 
   test('dashboard loop state follows ConversationView dashboard mode over pill mode', () => {
     mockChatState.streamTracking.phase = 'streaming';
-    mockChatState.currentTurnProjection = {
+    mockChatState.sdkLiveTurn = {
       conversationRef: 'conv_existing',
       turnRef: 'turn_stale_current',
       phase: 'streaming',
@@ -2243,7 +2243,7 @@ describe('ChatInterface wiring', () => {
   test('SDK current-turn completion clears dashboard busy state over stale stream tracking', () => {
     mockChatState.streamTracking.phase = 'tool-output';
     mockChatState.isSending = false;
-    mockChatState.currentTurnProjection = {
+    mockChatState.sdkLiveTurn = {
       conversationRef: 'conv_existing',
       turnRef: 'turn-complete',
       phase: 'complete',
@@ -2362,7 +2362,7 @@ describe('ChatInterface wiring', () => {
 
   test('keeps assistant actions enabled when only raw isSending is stale', () => {
     mockChatState.isSending = true;
-    mockChatState.currentTurnProjection = {
+    mockChatState.sdkLiveTurn = {
       phase: 'complete',
       conversationRef: 'conv-test',
       turnRef: 'turn-complete',

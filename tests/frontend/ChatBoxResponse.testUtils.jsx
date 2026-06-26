@@ -61,7 +61,7 @@ const WORKSPACE_MIRROR_FIELDS = [
   'compactionDebugInfo',
   'tokenCounts',
   'streamTracking',
-  'currentTurnProjection',
+  'sdkLiveTurn',
   'conversationView',
   'pendingTurn',
 ];
@@ -103,15 +103,15 @@ useChatStore.setState = (partial, replace) => {
     && typeof partial === 'object'
     && !Array.isArray(partial)
     && Array.isArray(partial.messages)
-    && !Object.prototype.hasOwnProperty.call(partial, 'currentTurnProjection')
+    && !Object.prototype.hasOwnProperty.call(partial, 'sdkLiveTurn')
   ) {
-    const currentPhase = useChatStore.getState()?.currentTurnProjection?.phase || null;
+    const currentPhase = useChatStore.getState()?.sdkLiveTurn?.phase || null;
     const currentTurnProjection = partial.messages.length > 0
       ? buildCurrentTurnProjection(partial.messages, currentPhase)
       : null;
     return originalSetChatStoreState(withActiveWorkspaceMirror({
       ...partial,
-      currentTurnProjection,
+      sdkLiveTurn: currentTurnProjection,
       conversationView: null,
     }), replace);
   }

@@ -41,7 +41,7 @@ export interface ChatWorkspaceState {
   compactionDebugInfo: CompactionDebugInfo | null;
   tokenCounts: TokenCounts | null;
   streamTracking: StreamTracking;
-  currentTurnProjection: CurrentTurnProjection | null;
+  sdkLiveTurn: CurrentTurnProjection | null;
   conversationView: ConversationView | null;
   pendingTurn: DesktopPendingTurnState | null;
 }
@@ -51,13 +51,12 @@ interface ChatWorkspaceStoreSnapshot {
   workspaces?: Record<string, ChatWorkspaceState>;
 }
 
-export type ChatWorkspaceReadModelState = Omit<ChatWorkspaceState, 'currentTurnProjection'> & {
+export type ChatWorkspaceReadModelState = ChatWorkspaceState & {
   rendererAnnotations?: unknown[];
-  sdkLiveTurn?: CurrentTurnProjection | null;
 };
 
 export type NoViewSdkLiveTurnStorage = {
-  currentTurnProjection: CurrentTurnProjection | null;
+  sdkLiveTurn: CurrentTurnProjection | null;
 };
 
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
@@ -101,7 +100,7 @@ export function createInitialWorkspaceState(): ChatWorkspaceState {
     compactionDebugInfo: null,
     tokenCounts: null,
     streamTracking: createInitialStreamTracking(),
-    currentTurnProjection: null,
+    sdkLiveTurn: null,
     conversationView: null,
     pendingTurn: null,
   };
@@ -198,7 +197,7 @@ export function selectActiveWorkspaceState(
 export function readNoViewSdkLiveTurnStorage(
   workspace: NoViewSdkLiveTurnStorage,
 ): CurrentTurnProjection | null {
-  return workspace.currentTurnProjection ?? null;
+  return workspace.sdkLiveTurn ?? null;
 }
 
 export function buildNoViewSdkLiveTurnStorageUpdate<
@@ -209,7 +208,7 @@ export function buildNoViewSdkLiveTurnStorageUpdate<
 ): TWorkspace {
   return {
     ...workspace,
-    currentTurnProjection: sdkLiveTurn,
+    sdkLiveTurn,
   };
 }
 
@@ -221,16 +220,12 @@ export function projectWorkspaceReadModelState(
     return cachedReadModel;
   }
   const hasConversationView = Boolean(workspace.conversationView);
-  const {
-    currentTurnProjection,
-    ...workspaceWithoutNoViewSdkLiveTurn
-  } = workspace;
   const readModelWorkspace = {
-    ...workspaceWithoutNoViewSdkLiveTurn,
+    ...workspace,
     messages: hasConversationView ? emptyChatMessages : workspace.messages,
     sdkLiveTurn: hasConversationView
       ? null
-      : readNoViewSdkLiveTurnStorage({ currentTurnProjection }),
+      : readNoViewSdkLiveTurnStorage(workspace),
     rendererAnnotations: hasConversationView
       ? selectRendererMessageAnnotations(workspace.messages)
       : [],

@@ -22,7 +22,7 @@ function workspace(overrides = {}) {
     isSending: false,
     thinkingStatus: 'Thinking',
     thinkingSourceEventType: 'assistant_delta',
-    currentTurnProjection: { turnRef: 'turn-old' },
+    sdkLiveTurn: { turnRef: 'turn-old' },
     conversationView: { conversationRef: 'conv-1' },
     pendingTurn: null,
     ...overrides,
@@ -142,7 +142,7 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
       isSending: true,
       thinkingStatus: null,
       thinkingSourceEventType: null,
-      currentTurnProjection: null,
+      sdkLiveTurn: null,
       conversationView: null,
       pendingTurn: expect.objectContaining({
         turnRef: 'turn-new',
@@ -310,7 +310,7 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
     expect(update?.workspaces['conv-state']).toEqual(expect.objectContaining({
       messages: rawMessages,
       conversationView,
-      currentTurnProjection: null,
+      sdkLiveTurn: null,
       pendingTurn: expect.objectContaining({
         turnRef: 'turn-state',
       }),

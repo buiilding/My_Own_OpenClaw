@@ -319,9 +319,9 @@ describe('chatStore', () => {
 
     const state = useChatStore.getState();
     expect(state).not.toHaveProperty('latestCurrentTurnProjection');
-    expect(state.getWorkspaceState().currentTurnProjection).toBe(userProjection);
+    expect(state.getWorkspaceState().sdkLiveTurn).toBe(userProjection);
     expect(
-      state.getWorkspaceState('conv-agent-internal').currentTurnProjection,
+      state.getWorkspaceState('conv-agent-internal').sdkLiveTurn,
     ).toBe(internalProjection);
   });
 
@@ -483,7 +483,7 @@ describe('chatStore', () => {
     const state = useChatStore.getState();
     const activeWorkspace = state.getWorkspaceState();
     expect(activeWorkspace.pendingTurn).toBeNull();
-    expect(activeWorkspace.currentTurnProjection?.turnRef).toBe('turn-sdk');
+    expect(activeWorkspace.sdkLiveTurn?.turnRef).toBe('turn-sdk');
     expect(activeWorkspace.isSending).toBe(true);
   });
 
@@ -519,7 +519,7 @@ describe('chatStore', () => {
       conversationRef: 'conv-sdk-idle',
       turnRef: 'turn-sdk-idle',
     }));
-    expect(activeWorkspace.currentTurnProjection?.turnRef).toBe('turn-sdk-idle');
+    expect(activeWorkspace.sdkLiveTurn?.turnRef).toBe('turn-sdk-idle');
     expect(activeWorkspace.isSending).toBe(true);
   });
 
@@ -610,7 +610,7 @@ describe('chatStore', () => {
       turnRef: 'turn-stop-sdk',
     });
 
-    expect(getActiveWorkspace().currentTurnProjection).toEqual(expect.objectContaining({
+    expect(getActiveWorkspace().sdkLiveTurn).toEqual(expect.objectContaining({
       phase: 'complete',
       presentation: expect.objectContaining({
         isBusy: false,
@@ -622,10 +622,10 @@ describe('chatStore', () => {
         }),
       }),
     }));
-    expect(getActiveWorkspace().currentTurnProjection?.presentation).not.toHaveProperty(
+    expect(getActiveWorkspace().sdkLiveTurn?.presentation).not.toHaveProperty(
       'typingVisible',
     );
-    expect(getActiveWorkspace().currentTurnProjection?.presentation).not.toHaveProperty(
+    expect(getActiveWorkspace().sdkLiveTurn?.presentation).not.toHaveProperty(
       'overlayVisible',
     );
   });

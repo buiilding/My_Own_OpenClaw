@@ -60,7 +60,7 @@ function workspace(overrides = {}) {
       lastChunkSize: 0,
       lastError: null,
     },
-    currentTurnProjection: {
+    sdkLiveTurn: {
       conversationRef: 'conv-stop',
       turnRef: 'turn-stop',
       phase: 'streaming',
@@ -245,7 +245,7 @@ describe('desktopStopTurnRuntime', () => {
       thinkingStatus: null,
       thinkingSourceEventType: null,
       pendingTurn: null,
-      currentTurnProjection: expect.objectContaining({
+      sdkLiveTurn: expect.objectContaining({
         phase: 'complete',
       }),
       streamTracking: expect.objectContaining({
@@ -289,7 +289,7 @@ describe('desktopStopTurnRuntime', () => {
 
     expect(nextWorkspace).toEqual(expect.objectContaining({
       pendingTurn: null,
-      currentTurnProjection: null,
+      sdkLiveTurn: null,
       isSending: false,
       streamTracking: expect.objectContaining({
         phase: 'complete',
@@ -343,7 +343,7 @@ describe('desktopStopTurnRuntime', () => {
       'conversation:conv-active',
       expect.objectContaining({
         pendingTurn: null,
-        currentTurnProjection: expect.objectContaining({
+        sdkLiveTurn: expect.objectContaining({
           phase: 'complete',
         }),
         streamTracking: expect.objectContaining({

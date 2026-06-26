@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/state: rename private no-view live-turn workspace storage from
+  `currentTurnProjection` to `sdkLiveTurn`, removing the raw current-turn name
+  from production renderer workspace state. No migration required.
 - tests/frontend: remove stale renderer `attachmentFilenames` fixtures so
   chat-store, pending-bridge, and user-message attachment tests match the
   SDK-owned attachment metadata boundary. No migration required.

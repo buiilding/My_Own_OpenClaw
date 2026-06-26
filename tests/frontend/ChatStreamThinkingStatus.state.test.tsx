@@ -7,7 +7,7 @@ import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
-  setCurrentTurnProjectionInChatStore,
+  setSdkLiveTurnInChatStore,
   setThinkingSourceEventTypeInChatStore,
   setThinkingStatusInChatStore,
   updateStreamTrackingInChatStore,
@@ -122,7 +122,7 @@ describe('useChatStream state + stream handling', () => {
 
     act(() => {
       const store = useChatStore.getState();
-      setCurrentTurnProjectionInChatStore({
+      setSdkLiveTurnInChatStore({
         conversationRef: 'conv-test',
         turnRef: 'turn-new',
         phase: 'streaming',
@@ -310,7 +310,7 @@ describe('useChatStream state + stream handling', () => {
         messages: [
           { id: 'user-live', text: 'hello', sender: 'user', turnRef: 'turn-live' },
         ],
-        currentTurnProjection: {
+        sdkLiveTurn: {
           conversationRef: 'conv-test',
           turnRef: 'turn-live',
           phase: 'streaming',
@@ -338,7 +338,7 @@ describe('useChatStream state + stream handling', () => {
     act(() => {
       setActiveWorkspaceStateForTest({
         messages: [],
-        currentTurnProjection: null,
+        sdkLiveTurn: null,
       });
       emitBackendEvent({
         type: 'streaming-response',
@@ -358,7 +358,7 @@ describe('useChatStream state + stream handling', () => {
         messages: [
           { id: 'user-live', text: 'hello', sender: 'user', turnRef: 'turn-live' },
         ],
-        currentTurnProjection: {
+        sdkLiveTurn: {
           conversationRef: 'conv-test',
           turnRef: 'turn-live',
           phase: 'complete',
@@ -938,7 +938,7 @@ describe('useChatStream state + stream handling', () => {
           lastChunkSize: 4,
           lastError: null,
         },
-        currentTurnProjection: {
+        sdkLiveTurn: {
           conversationRef: 'conv-test',
           turnRef: 'turn-complete',
           phase: 'streaming',
@@ -1522,7 +1522,7 @@ describe('useChatStream state + stream handling', () => {
           },
         ],
         isSending: false,
-        currentTurnProjection: {
+        sdkLiveTurn: {
           conversationRef: 'conv-test',
           turnRef: 'turn-old',
           phase: 'complete',
@@ -1563,7 +1563,7 @@ describe('useChatStream state + stream handling', () => {
     });
 
     let state = getActiveWorkspaceStateForTest();
-    expect(state.currentTurnProjection).toEqual(expect.objectContaining({
+    expect(state.sdkLiveTurn).toEqual(expect.objectContaining({
       turnRef: 'turn-new',
       phase: 'awaiting',
     }));
@@ -1591,7 +1591,7 @@ describe('useChatStream state + stream handling', () => {
 
     state = getActiveWorkspaceStateForTest();
     expect(state.isSending).toBe(false);
-    expect(state.currentTurnProjection).toEqual(expect.objectContaining({
+    expect(state.sdkLiveTurn).toEqual(expect.objectContaining({
       turnRef: 'turn-new',
       phase: 'streaming',
       assistantText: 'new answer',

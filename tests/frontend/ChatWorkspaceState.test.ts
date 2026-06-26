@@ -186,7 +186,7 @@ describe('chatWorkspaceState', () => {
     const workspace = {
       ...createInitialWorkspaceState(),
       messages: [{ id: 'workspace', text: 'workspace', sender: 'assistant' as const }],
-      currentTurnProjection: { turnRef: 'turn-raw' } as never,
+      sdkLiveTurn: { turnRef: 'turn-raw' } as never,
     };
     const state = {
       activeConversationRef: 'thread-1',
@@ -200,7 +200,7 @@ describe('chatWorkspaceState', () => {
     expect(readModel).not.toBe(workspace);
     expect(readModel.messages).toBe(workspace.messages);
     expect(readModel).not.toHaveProperty('currentTurnProjection');
-    expect(readModel.sdkLiveTurn).toBe(workspace.currentTurnProjection);
+    expect(readModel.sdkLiveTurn).toBe(workspace.sdkLiveTurn);
     expect(readModel.rendererAnnotations).toEqual([]);
     expect(selectActiveWorkspaceReadModelState(state)).toBe(readModel);
   });
@@ -209,13 +209,13 @@ describe('chatWorkspaceState', () => {
     const sdkLiveTurn = { turnRef: 'turn-sdk' } as never;
     const workspace = {
       ...createInitialWorkspaceState(),
-      currentTurnProjection: sdkLiveTurn,
+      sdkLiveTurn: sdkLiveTurn,
     };
 
     expect(readNoViewSdkLiveTurnStorage(workspace)).toBe(sdkLiveTurn);
     expect(buildNoViewSdkLiveTurnStorageUpdate(workspace, null)).toEqual({
       ...workspace,
-      currentTurnProjection: null,
+      sdkLiveTurn: null,
     });
   });
 
@@ -242,7 +242,7 @@ describe('chatWorkspaceState', () => {
         fullUserMessage: 'full prompt',
         feedback: { rating: 'positive' },
       }],
-      currentTurnProjection: { turnRef: 'turn-raw' } as never,
+      sdkLiveTurn: { turnRef: 'turn-raw' } as never,
       conversationView,
       pendingTurn: pendingTurn as never,
     };

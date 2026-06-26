@@ -32,7 +32,7 @@ function createWorkspace(overrides = {}) {
     compactionDebugInfo: null,
     tokenCounts: null,
     streamTracking: { phase: 'idle' },
-    currentTurnProjection: null,
+    sdkLiveTurn: null,
     conversationView: null,
     pendingTurn: null,
     ...overrides,
@@ -59,7 +59,7 @@ describe('chatSelectors', () => {
       compactionDebugInfo: { strategy: 'summarize' },
       tokenCounts: { total_tokens: 7 },
       streamTracking: { phase: 'streaming' },
-      currentTurnProjection: { turnRef: 'workspace-turn' },
+      sdkLiveTurn: { turnRef: 'workspace-turn' },
       pendingTurn: { turnRef: 'pending-turn' },
     };
 
@@ -75,7 +75,7 @@ describe('chatSelectors', () => {
       tokenCounts: activeWorkspace.tokenCounts,
       conversationView: null,
       pendingTurn: activeWorkspace.pendingTurn,
-      sdkLiveTurn: activeWorkspace.currentTurnProjection,
+      sdkLiveTurn: activeWorkspace.sdkLiveTurn,
     });
     expect(interfaceState).not.toHaveProperty('currentTurnProjection');
     expect(interfaceState).not.toHaveProperty('streamTracking');
@@ -85,12 +85,12 @@ describe('chatSelectors', () => {
       messages: activeWorkspace.messages,
       conversationView: null,
       pendingTurn: activeWorkspace.pendingTurn,
-      sdkLiveTurn: activeWorkspace.currentTurnProjection,
+      sdkLiveTurn: activeWorkspace.sdkLiveTurn,
     });
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace: projectWorkspaceReadModelState(activeWorkspace),
     })).toEqual(expect.objectContaining({
-      sdkLiveTurn: activeWorkspace.currentTurnProjection,
+      sdkLiveTurn: activeWorkspace.sdkLiveTurn,
     }));
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace: projectWorkspaceReadModelState(activeWorkspace),
@@ -121,7 +121,7 @@ describe('chatSelectors', () => {
         feedback: { rating: 'positive' },
       }],
       thinkingStatus: null,
-      currentTurnProjection: { turnRef: 'raw-turn' },
+      sdkLiveTurn: { turnRef: 'raw-turn' },
       conversationView,
       pendingTurn: null,
     };
@@ -146,7 +146,7 @@ describe('chatSelectors', () => {
   test('drops raw surface messages once ConversationView owns the live surface', () => {
     const activeWorkspace = {
       messages: [{ id: 'stale-user', text: 'stale', sender: 'user' }],
-      currentTurnProjection: { turnRef: 'raw-turn', phase: 'streaming' },
+      sdkLiveTurn: { turnRef: 'raw-turn', phase: 'streaming' },
       conversationView: {
         conversationRef: 'conv-view',
         liveTurn: {
@@ -191,7 +191,7 @@ describe('chatSelectors', () => {
     const selected = projectDesktopChatSurfaceState({
       activeWorkspace: projectWorkspaceReadModelState({
         messages: [{ id: 'stale-user', text: 'stale', sender: 'user' }],
-        currentTurnProjection: {
+        sdkLiveTurn: {
           conversationRef: 'conv-raw',
           turnRef: 'turn-raw',
           phase: 'streaming',
@@ -248,7 +248,7 @@ describe('chatSelectors', () => {
   test('drops raw surface messages while carrying the pending bridge under ConversationView', () => {
     const activeWorkspace = {
       messages: [{ id: 'pending-user', text: 'pending', sender: 'user' }],
-      currentTurnProjection: null,
+      sdkLiveTurn: null,
       conversationView: {
         conversationRef: 'conv-view',
         liveTurn: null,
@@ -360,7 +360,7 @@ describe('chatSelectors', () => {
         messages,
         isSending: true,
         thinkingStatus: null,
-        currentTurnProjection: {
+        sdkLiveTurn: {
           conversationRef: 'conv-1',
           turnRef: 'turn-new',
           phase: 'streaming',
@@ -396,7 +396,7 @@ describe('chatSelectors', () => {
       messages,
       isSending: true,
       thinkingStatus: null,
-      currentTurnProjection,
+      sdkLiveTurn: currentTurnProjection,
       tokenCounts: null,
       streamTracking: { phase: 'streaming' },
     });
@@ -433,7 +433,7 @@ describe('chatSelectors', () => {
         messages,
         isSending: false,
         thinkingStatus: null,
-        currentTurnProjection: null,
+        sdkLiveTurn: null,
         tokenCounts: null,
         streamTracking: { phase: 'complete' },
       }),
@@ -452,7 +452,7 @@ describe('chatSelectors', () => {
     const state = createStateWithActiveWorkspace({
       messages,
       conversationView,
-      currentTurnProjection: { turnRef: 'raw-turn' },
+      sdkLiveTurn: { turnRef: 'raw-turn' },
       pendingTurn: { turnRef: 'pending-turn' },
       thinkingStatus: null,
     });
@@ -477,7 +477,7 @@ describe('chatSelectors', () => {
       activeWorkspace: projectWorkspaceReadModelState(createWorkspace({
         messages: [{ id: 'stale-user', text: 'stale raw', sender: 'user' }],
         conversationView,
-        currentTurnProjection: { turnRef: 'raw-turn' },
+        sdkLiveTurn: { turnRef: 'raw-turn' },
       })),
     })).toEqual({
       conversationView,
@@ -530,7 +530,7 @@ describe('chatSelectors', () => {
         messages: [],
         isSending: true,
         thinkingStatus: null,
-        currentTurnProjection: workspaceProjection,
+        sdkLiveTurn: workspaceProjection,
         tokenCounts: null,
         streamTracking: { phase: 'awaiting-first-chunk' },
       }),
@@ -575,7 +575,7 @@ describe('chatSelectors', () => {
     const selected = selectLiveTurnSurfaceState({
       ...createStateWithActiveWorkspace({
         messages: [{ id: 'stale-user', text: 'stale', sender: 'user' }],
-        currentTurnProjection: workspaceProjection,
+        sdkLiveTurn: workspaceProjection,
         conversationView: view,
         pendingTurn: null,
       }),
@@ -635,7 +635,7 @@ describe('chatSelectors', () => {
       ...createStateWithActiveWorkspace({
         messages: [{ id: 'display-user-1', text: 'question', sender: 'user' }],
         thinkingStatus: null,
-        currentTurnProjection: workspaceProjection,
+        sdkLiveTurn: workspaceProjection,
         conversationView: view,
         pendingTurn: null,
       }),

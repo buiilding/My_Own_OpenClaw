@@ -9,7 +9,7 @@ import {
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   setConversationViewInChatStore,
-  setCurrentTurnProjectionInChatStore,
+  setSdkLiveTurnInChatStore,
   setMessagesInChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import {
@@ -78,7 +78,7 @@ describe('useChatStream live SDK event ownership', () => {
           turnRef: 'turn-1',
         },
       ], 'conv-1');
-      setCurrentTurnProjectionInChatStore({
+      setSdkLiveTurnInChatStore({
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
         phase: 'complete',
@@ -275,7 +275,7 @@ describe('useChatStream live SDK event ownership', () => {
           },
         },
       ], 'conv-1');
-      setCurrentTurnProjectionInChatStore({
+      setSdkLiveTurnInChatStore({
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
         phase: 'complete',

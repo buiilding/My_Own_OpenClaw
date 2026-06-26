@@ -35,7 +35,6 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       userMessageId: 'turn-new-sdk-evt-000002-user_message',
       text: 'edited first question',
       timestamp: '2026-06-23T00:00:00.000Z',
-      attachmentFilenames: null,
     });
     const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
     const observedSnapshots: Array<{
@@ -45,7 +44,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     const unsubscribe = useChatStore.subscribe((state) => {
       const workspace = state.getWorkspaceState('conv-1');
       observedSnapshots.push({
-        workspaceTurnRef: workspace.currentTurnProjection?.turnRef ?? null,
+        workspaceTurnRef: workspace.sdkLiveTurn?.turnRef ?? null,
         pendingTurnRef: workspace.pendingTurn?.turnRef ?? null,
       });
     });
@@ -80,7 +79,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     const state = useChatStore.getState();
     const workspace = state.getWorkspaceState('conv-1');
     expect(state).not.toHaveProperty('latestCurrentTurnProjection');
-    expect(workspace.currentTurnProjection).toEqual(expect.objectContaining({
+    expect(workspace.sdkLiveTurn).toEqual(expect.objectContaining({
       turnRef: 'turn-new',
     }));
     expect(workspace.pendingTurn).toBeNull();

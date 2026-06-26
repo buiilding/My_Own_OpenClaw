@@ -19,7 +19,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       lastError: null,
     };
     const currentWorkspace = {
-      currentTurnProjection: sdkLiveTurn,
+      sdkLiveTurn: sdkLiveTurn,
       pendingTurn: null,
       messages: [],
     };
@@ -32,7 +32,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
 
   test('clears matching pending turn when SDK live turn is authoritative', () => {
     const currentWorkspace = {
-      currentTurnProjection: null,
+      sdkLiveTurn: null,
       pendingTurn: {
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
@@ -54,7 +54,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       currentWorkspace,
       sdkLiveTurn,
     })).toEqual({
-      currentTurnProjection: sdkLiveTurn,
+      sdkLiveTurn: sdkLiveTurn,
       pendingTurn: null,
       messages: [],
     });
@@ -78,13 +78,13 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
 
     expect(buildSdkLiveTurnWorkspaceMutation({
       currentWorkspace: {
-        currentTurnProjection: null,
+        sdkLiveTurn: null,
         pendingTurn,
         messages: [],
       },
       sdkLiveTurn,
     })).toEqual({
-      currentTurnProjection: sdkLiveTurn,
+      sdkLiveTurn: sdkLiveTurn,
       pendingTurn,
       messages: [],
     });
@@ -125,7 +125,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
             phase: 'streaming',
           },
         },
-        currentTurnProjection: staleProjection,
+        sdkLiveTurn: staleProjection,
         pendingTurn,
         messages: [],
       },
@@ -139,7 +139,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
           phase: 'streaming',
         },
       },
-      currentTurnProjection: null,
+      sdkLiveTurn: null,
       pendingTurn,
       messages: [],
     });
@@ -152,7 +152,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
           conversationRef: 'conv-1',
           displayRows: [],
         },
-        currentTurnProjection: null,
+        sdkLiveTurn: null,
         pendingTurn: {
           conversationRef: 'conv-1',
           turnRef: 'turn-1',
@@ -177,7 +177,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       activeConversationRef: 'conv-1',
       workspaces: {
         'conv-1': {
-          currentTurnProjection: null,
+          sdkLiveTurn: null,
           pendingTurn: {
             conversationRef: 'conv-1',
             turnRef: 'turn-1',
@@ -221,14 +221,14 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       state,
       'conv-1',
       expect.objectContaining({
-        currentTurnProjection: sdkLiveTurn,
+        sdkLiveTurn: sdkLiveTurn,
         pendingTurn: null,
       }),
     );
     expect(nextState).toEqual(expect.objectContaining({
       workspaces: {
         'conv-1': expect.objectContaining({
-          currentTurnProjection: sdkLiveTurn,
+          sdkLiveTurn: sdkLiveTurn,
           pendingTurn: null,
         }),
       },

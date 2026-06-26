@@ -68,7 +68,7 @@ function createChatStore() {
     getWorkspaceState: jest.fn(() => ({
       messages: [],
       pendingTurn: null,
-      currentTurnProjection: null,
+      sdkLiveTurn: null,
       conversationView: null,
     })),
     setMessages: jest.fn(),
@@ -183,7 +183,7 @@ describe('desktopConversationReplayRuntime', () => {
         conversationRef: 'conv-replay',
         turnRef: 'turn-pending',
       },
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-replay',
         turnRef: 'turn-raw',
         phase: 'streaming',

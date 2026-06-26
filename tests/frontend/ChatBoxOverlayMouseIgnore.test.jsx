@@ -139,7 +139,7 @@ const mockChatState = {
   setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
   setActiveConversationRef: (...args) => mockSetActiveConversationRef(...args),
   streamTracking: { phase: 'idle' },
-  currentTurnProjection: null,
+  sdkLiveTurn: null,
   conversationView: null,
   pendingTurn: null,
 };
@@ -155,7 +155,7 @@ function syncMockWorkspace() {
       compactionDebugInfo: null,
       tokenCounts: null,
       streamTracking: mockChatState.streamTracking,
-      currentTurnProjection: mockChatState.currentTurnProjection,
+      sdkLiveTurn: mockChatState.sdkLiveTurn,
       conversationView: mockChatState.conversationView,
       pendingTurn: mockChatState.pendingTurn,
     },
@@ -310,7 +310,7 @@ describe('ChatBox overlay mouse ignore', () => {
     mockChatState.activeConversationRef = 'conv-overlay';
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
-    mockChatState.currentTurnProjection = null;
+    mockChatState.sdkLiveTurn = null;
     mockChatState.conversationView = null;
     mockChatState.pendingTurn = null;
     mockChatState.workspaces = {};
@@ -528,7 +528,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('dispatches pill send path without private busy latch', async () => {
-    mockChatState.currentTurnProjection = {
+    mockChatState.sdkLiveTurn = {
       phase: 'complete',
       turnRef: 'previous-turn',
       presentation: {
@@ -775,7 +775,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('focuses input from chatbox-focus while active loop keeps pill interactive', async () => {
-    mockChatState.currentTurnProjection = {
+    mockChatState.sdkLiveTurn = {
       conversationRef: 'conv-overlay',
       phase: 'tool_call',
       turnRef: 'turn-active',
@@ -802,7 +802,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('adds ambient loop glow class while active overlay phases are running', () => {
-    mockChatState.currentTurnProjection = {
+    mockChatState.sdkLiveTurn = {
       conversationRef: 'conv-overlay',
       phase: 'tool_call',
       turnRef: 'turn-active',
@@ -814,7 +814,7 @@ describe('ChatBox overlay mouse ignore', () => {
 
     expect(shellWrap.classList.contains('loop-active')).toBe(true);
 
-    mockChatState.currentTurnProjection = {
+    mockChatState.sdkLiveTurn = {
       conversationRef: 'conv-overlay',
       phase: 'complete',
       turnRef: 'turn-active',

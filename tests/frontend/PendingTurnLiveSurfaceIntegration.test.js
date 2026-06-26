@@ -202,7 +202,7 @@ describe('pending-turn live surface integration', () => {
     expect(resolveLiveTurnPresentationInput({
       messages: state.messages,
       pendingTurn: state.pendingTurn,
-      sdkLiveTurn: state.currentTurnProjection,
+      sdkLiveTurn: state.sdkLiveTurn,
     })).toMatchObject({
       source: 'pending-turn',
       phase: 'awaiting-first-chunk',
@@ -223,7 +223,7 @@ describe('pending-turn live surface integration', () => {
     expect(resolveLiveTurnPresentationInput({
       messages: state.messages,
       pendingTurn: state.pendingTurn,
-      sdkLiveTurn: state.currentTurnProjection,
+      sdkLiveTurn: state.sdkLiveTurn,
     })).toMatchObject({
       source: 'pending-turn',
       phase: 'awaiting-first-chunk',
@@ -240,7 +240,7 @@ describe('pending-turn live surface integration', () => {
     expect(resolveLiveTurnPresentationInput({
       messages: state.messages,
       pendingTurn: state.pendingTurn,
-      sdkLiveTurn: state.currentTurnProjection,
+      sdkLiveTurn: state.sdkLiveTurn,
     })).toMatchObject({
       source: 'sdk-current-turn',
       phase: 'streaming',

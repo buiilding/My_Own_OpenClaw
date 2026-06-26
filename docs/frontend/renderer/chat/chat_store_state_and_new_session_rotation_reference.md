@@ -44,7 +44,7 @@ Primary `ChatWorkspaceState` fields:
 - `compactionDebugInfo`
 - `tokenCounts`
 - `streamTracking`
-- `currentTurnProjection`
+- `sdkLiveTurn`
 - `conversationView`
 - `pendingTurn`
 
@@ -66,7 +66,7 @@ The default workspace key is private to
 initialization uses `createInitialWorkspaceRecord()` so `chatStore.ts` and
 feature callers do not import the raw sentinel string.
 
-All mutating actions accept optional `conversationRef` and write into that workspace. The workspace record is the read authority. `chatStore.ts` no longer mirrors workspace fields such as `messages`, `isSending`, `currentTurnProjection`, `conversationView`, or `pendingTurn` onto the store root; production callers use selectors or `getWorkspaceState(...)` instead.
+All mutating actions accept optional `conversationRef` and write into that workspace. The workspace record is the read authority. `chatStore.ts` no longer mirrors workspace fields such as `messages`, `isSending`, `sdkLiveTurn`, `conversationView`, or `pendingTurn` onto the store root; production callers use selectors or `getWorkspaceState(...)` instead.
 `chatStore.ts` is the Zustand state/selector module. Workspace mutation
 adapter functions live in `chatStoreAdapters.ts`, which imports the runtime
 mutation helpers and applies their returned state updates through
@@ -242,8 +242,7 @@ import chat feature store internals.
 the normal read entrypoint for chat UI selectors. It always returns a cached
 selector read model rather than the raw workspace object. While no SDK
 `ConversationView` exists, raw stored messages remain available and the
-temporary live fallback is exposed as `sdkLiveTurn`; raw
-`currentTurnProjection` is omitted before selector consumers see the model.
+temporary live fallback is exposed as `sdkLiveTurn`.
 Once `ConversationView` exists, raw `messages` are replaced by the
 stable empty list and `sdkLiveTurn` is also `null`. The short `pendingTurn`
 bridge remains available, and renderer-only feedback/transparency/token
@@ -253,11 +252,11 @@ annotation merge.
 Surface, response-overlay, interface presentation, and send-read-model selector
 adapters consume that read model as their input contract. They should not
 rederive renderer annotations from raw messages or independently choose between
-`messages`, `currentTurnProjection`, and `ConversationView`; that choice belongs
+`messages`, `sdkLiveTurn`, and `ConversationView`; that choice belongs
 to the workspace read-model runtime. Selected surface state passes through the
-no-view live-turn fallback as `sdkLiveTurn`, not `currentTurnProjection`, so
-dashboard, pill, and response-overlay consumers receive SDK live-turn intent
-without reopening the raw workspace field. When `ConversationView` exists,
+no-view live-turn fallback as `sdkLiveTurn`, so dashboard, pill, and
+response-overlay consumers receive SDK live-turn intent without reopening raw
+current-turn storage. When `ConversationView` exists,
 `sdkLiveTurn` is `null` and raw messages have already been replaced by the
 stable empty list before those adapters run; the surface selector also enforces
 that blanking for direct app-runtime callers. The chat surface controller
@@ -272,7 +271,7 @@ so stale raw current-turn rows cannot re-enter through the presentation layer.
 The conversation projection-stream hook applies the same rule when it needs
 workspace context for stale-turn checks and replay traces: it wraps raw store
 workspace reads with `projectWorkspaceReadModelState(...)`, so projection-stream
-diagnostics consume `sdkLiveTurn` rather than raw `currentTurnProjection`.
+diagnostics consume `sdkLiveTurn`.
 Replay action diagnostics also route workspace snapshots through that read-model
 runtime before calling `buildReplayProjectionTracePayload(...)`, so SDK replay
 commands and their traces do not restore raw message/current-turn authority when

@@ -214,7 +214,7 @@ describe('ChatProvider', () => {
             ...createInitialStreamTracking(),
             activeTurnRef: 'turn-stale',
           },
-          currentTurnProjection: null,
+          sdkLiveTurn: null,
           pendingTurn: null,
           conversationView: {
             conversationRef: 'conv-provider',
