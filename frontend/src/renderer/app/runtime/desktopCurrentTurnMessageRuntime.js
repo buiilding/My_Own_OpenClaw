@@ -4,6 +4,7 @@
 
 import { DesktopChatMessageRuntimeClient } from './desktopChatMessageRuntimeClient';
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
+import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
 
 const {
   buildToolBundleMessageState,
@@ -11,6 +12,9 @@ const {
   buildToolCallMessageState,
   buildToolOutputChatMessageState,
 } = DesktopChatMessageRuntimeClient;
+const {
+  readSdkDisplayAttachments,
+} = DesktopSdkDisplayAttachmentProjection;
 
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 const sdkConversationViewSourceChannel = DesktopPresentationSourceChannels
@@ -63,30 +67,6 @@ function readString(value) {
 
 function readArray(value) {
   return Array.isArray(value) ? value : null;
-}
-
-function normalizeDisplayAttachments(value) {
-  return Array.isArray(value)
-    ? value.filter((attachment) => (
-      attachment
-      && typeof attachment === 'object'
-      && typeof attachment.id === 'string'
-      && attachment.id.trim().length > 0
-      && (attachment.kind === 'image' || attachment.kind === 'screenshot_request')
-      && (
-        attachment.source === 'user_included'
-        || attachment.source === 'camera_button'
-        || attachment.source === 'tool_result'
-        || attachment.source === 'replay'
-      )
-      && (
-        attachment.status === 'materializing'
-        || attachment.status === 'pending_capture'
-        || attachment.status === 'ready'
-        || attachment.status === 'failed'
-      )
-    ))
-    : [];
 }
 
 function normalizeText(value) {
@@ -206,7 +186,7 @@ function buildProjectedToolOutputMessage({
     || requestId
     || undefined
   );
-  const attachments = normalizeDisplayAttachments(toolEvent.attachments);
+  const attachments = readSdkDisplayAttachments(toolEvent.attachments);
   return buildToolOutputChatMessageState({
     id: `${baseId}:tool:${toolEvent.id}`,
     outputText: toolEvent.text || formatProjectedToolOutputText(toolOutputDetails),
@@ -471,7 +451,7 @@ function buildToolOutputMessage(entry, liveTurnContext) {
   const displayToolDetails = sanitizeToolDetailRecord(toolDetails);
   const toolName = normalizeOptionalText(entry.toolName);
   const text = normalizeText(entry.text) || (toolName ? `${toolName} completed` : 'Tool completed');
-  const attachments = normalizeDisplayAttachments(entry.attachments);
+  const attachments = readSdkDisplayAttachments(entry.attachments);
   return buildToolOutputChatMessageState({
     id: entry.id,
     outputText: text,

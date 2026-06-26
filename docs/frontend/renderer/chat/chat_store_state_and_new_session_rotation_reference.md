@@ -81,6 +81,10 @@ Whole-message screenshot aliases such as `screenshot`, `screenshotRef`,
 `screenshotUrl`, and `screenshots[]` are not part of the renderer
 `ChatMessage` contract. Legacy screenshot metadata remains confined to SDK
 replay/store compatibility adapters and low-level artifact helpers.
+SDK current-turn and display-row projection both read typed visual attachments
+through `DesktopSdkDisplayAttachmentProjection.readSdkDisplayAttachments(...)`;
+current-turn projection does not keep a separate attachment descriptor
+validator.
 
 `streamTracking` fields capture turn identity, phase, counters, and timestamps per workspace:
 

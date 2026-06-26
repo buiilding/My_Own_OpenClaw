@@ -3508,6 +3508,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSdkDisplayAttachmentProjection.ts'),
       'utf8',
     );
+    const currentTurnMessageRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js'),
+      'utf8',
+    );
     const chatInterfacePresentationRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime.js'),
       'utf8',
@@ -3562,6 +3566,8 @@ describe('renderer chat runtime boundary', () => {
     expect(displayAttachmentProjectionSource).toContain('readSdkDisplayAttachments');
     expect(displayAttachmentProjectionSource).not.toContain('screenshot_refs');
     expect(displayAttachmentProjectionSource).not.toContain('countLegacyScreenshotAttachments');
+    expect(currentTurnMessageRuntimeSource).toContain('readSdkDisplayAttachments');
+    expect(currentTurnMessageRuntimeSource).not.toContain('function normalizeDisplayAttachments');
     expect(chatInterfaceSource).toContain('DesktopChatInterfacePresentationRuntime');
     expect(chatInterfaceSource).toContain('DesktopChatRevisionActionRuntime');
     expect(chatInterfaceSource).not.toContain('DesktopConversationContinuityService');
