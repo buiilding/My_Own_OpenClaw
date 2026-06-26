@@ -125,10 +125,8 @@ function logReplayTimeline(chatStore, action, {
 
 async function executeReplayIntent({
   activeConversationRef,
-  addMessage,
   chatStore,
   deferredQueryModelSelection,
-  failureMessages = {},
   intent,
   sessionInfo,
 }) {
@@ -210,20 +208,6 @@ async function executeReplayIntent({
       errorKind: traceErrorKind(error),
       targetUserMessageId: messageId,
     });
-    if (typeof addMessage === 'function') {
-      const replayStep = error?.__desktopRuntimeReplayStep === 'send' ? 'send' : 'prepare';
-      addMessage({
-        id: crypto.randomUUID(),
-        text: replayStep === 'send'
-          ? failureMessages.sendFailureMessage
-          : failureMessages.replayPreparationFailureMessage,
-        sender: 'assistant',
-        type: 'error',
-        sourceEventType: 'renderer-replay',
-        sourceChannel: 'renderer-local',
-        isComplete: true,
-      }, conversationRef);
-    }
     return false;
   }
 }
@@ -246,12 +230,10 @@ function prepareReplayActionIntent({
 async function executeReplayAction({
   action,
   activeConversationRef,
-  addMessage = null,
   assistantMessageId = null,
   chatStore,
   deferredQueryModelSelection,
   editedText = null,
-  failureMessages = {},
   sessionInfo = null,
   userMessageId = null,
 }) {
@@ -272,10 +254,8 @@ async function executeReplayAction({
   const resolvedActiveConversationRef = activeConversationRef ?? storeState?.activeConversationRef ?? null;
   return executeReplayIntent({
     activeConversationRef: resolvedActiveConversationRef,
-    addMessage,
     chatStore,
     deferredQueryModelSelection,
-    failureMessages,
     intent,
     sessionInfo: resolvedSessionInfo,
   });

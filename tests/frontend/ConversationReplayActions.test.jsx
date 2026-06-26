@@ -223,7 +223,7 @@ describe('useConversationReplayActions', () => {
     expect(mockEditAndResend).not.toHaveBeenCalled();
   });
 
-  test('appends the send failure error when SDK retry rejects', async () => {
+  test('does not append a renderer replay error row when SDK retry rejects', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     mockRetryTurn.mockRejectedValue(new Error('send rejected'));
     useChatStore.getState().setActiveConversationRef('conv-existing');
@@ -234,14 +234,7 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-1');
     });
 
-    expect(getActiveWorkspace().messages).toEqual([
-      expect.objectContaining({
-        sender: 'assistant',
-        type: 'error',
-        sourceEventType: 'renderer-replay',
-        text: expect.stringContaining("Your message wasn't sent"),
-      }),
-    ]);
+    expect(getActiveWorkspace().messages).toEqual([]);
     errorSpy.mockRestore();
   });
 });

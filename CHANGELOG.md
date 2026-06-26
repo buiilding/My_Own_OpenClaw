@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: stop passing skin failure copy and chat-store add-message
+  callbacks into replay actions; SDK replay command failures now stay
+  diagnostic/status-only in the renderer instead of appending local chat rows.
+  No migration required.
 - frontend/send: stop appending renderer-local assistant error rows when
   normal `conversation.send` dispatch fails; the sender now clears only the
   pending bridge while SDK/main `turn_error` events own visible failure rows.

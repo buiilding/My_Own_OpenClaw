@@ -63,7 +63,6 @@ const {
 function createChatStore() {
   const state = {
     activeConversationRef: 'conv-replay',
-    addMessage: jest.fn(),
     clearPendingTurn: jest.fn(),
     getWorkspaceState: jest.fn(() => ({
       messages: [],
@@ -86,10 +85,6 @@ function replayArgs(overrides = {}) {
   return {
     chatStore,
     deferredQueryModelSelection: null,
-    failureMessages: {
-      sendFailureMessage: 'send failed',
-      replayPreparationFailureMessage: 'prepare failed',
-    },
     messages: [],
     sessionInfo: {
       conversationRef: 'conv-replay',

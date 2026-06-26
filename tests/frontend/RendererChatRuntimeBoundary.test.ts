@@ -2629,8 +2629,14 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).toContain('DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding');
     expect(replayActionsSource).not.toContain('DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding');
     expect(replayActionsSource).not.toContain('desktopConversationSessionRuntime');
-    expect(replayActionsSource).toContain('DesktopRuntimeSkin.desktopRuntimeSkin');
+    expect(replayActionsSource).not.toContain('DesktopRuntimeSkin.desktopRuntimeSkin');
+    expect(replayActionsSource).not.toContain('addMessageToChatStore');
+    expect(replayActionsSource).not.toContain('failureMessages');
+    expect(replayActionsSource).not.toContain('sendFailureMessage');
     expect(replayRuntimeSource).not.toContain('DesktopRuntimeSkin.desktopRuntimeSkin');
+    expect(replayRuntimeSource).not.toContain('addMessage');
+    expect(replayRuntimeSource).not.toContain('failureMessages');
+    expect(replayRuntimeSource).not.toContain('renderer-replay');
     expect(replayRuntimeSource).toContain('DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding');
     expect(replayRuntimeSource).toContain('desktopConversationSessionRuntime');
     expect(replayActionsSource).not.toContain('utils/session/conversationRef');

@@ -7,20 +7,15 @@ import {
   useChatStore,
 } from '../stores/chatStore';
 import {
-  addMessageToChatStore,
-} from '../stores/chatStoreAdapters';
-import {
   DesktopRendererConfigRuntimeClient,
 } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import {
   DesktopConversationReplayRuntime,
 } from '../../../app/runtime/desktopConversationReplayRuntime';
-import { DesktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 
 const {
   executeReplayAction,
 } = DesktopConversationReplayRuntime;
-const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 
 export function useConversationReplayActions() {
   const { config } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
@@ -33,11 +28,6 @@ export function useConversationReplayActions() {
       deferredQueryModelSelection,
       userMessageId,
       editedText,
-      failureMessages: {
-        sendFailureMessage: chatSkin.sendFailureMessage,
-        replayPreparationFailureMessage: chatSkin.replayPreparationFailureMessage,
-      },
-      addMessage: addMessageToChatStore,
       chatStore: useChatStore,
     });
   }, [
@@ -49,11 +39,6 @@ export function useConversationReplayActions() {
       action: 'retry',
       deferredQueryModelSelection,
       assistantMessageId,
-      failureMessages: {
-        sendFailureMessage: chatSkin.sendFailureMessage,
-        replayPreparationFailureMessage: chatSkin.replayPreparationFailureMessage,
-      },
-      addMessage: addMessageToChatStore,
       chatStore: useChatStore,
     });
   }, [

@@ -131,20 +131,22 @@ flowchart LR
    - React replay hooks should pass edit/retry intent through
      `desktopConversationReplayRuntime`. Hooks call the runtime's single
      replay-action entrypoint with row ids/text plus UI dependencies; active
-     conversation state and failure-row publication are resolved by the runtime
-     from the store dependency instead of selected in React. That public facade
-     exports only `executeReplayAction`, and hooks do not call replay preparation
-     helpers, inspect `ConversationView`/message arrays, or call replay SDK
-     commands directly.
+     conversation state is resolved by the runtime from the store dependency
+     instead of selected in React, and replay failures are trace/status outcomes
+     rather than renderer-published chat rows. That public facade exports only
+     `executeReplayAction`, and hooks do not call replay preparation helpers,
+     inspect `ConversationView`/message arrays, or call replay SDK commands
+     directly.
    - Renderer app-runtime facades should not expose direct display timeline
      load/replace helpers to React. Low-level display timeline operations remain
      SDK/main-owner diagnostics and command-handler concerns; normal UI paths
      use SDK intent commands such as retry, edit/resend, checkout, and fork.
-   - If the SDK replay command fails, append a send-failure row without
-     restoring renderer-cut prefixes or clearing renderer replay pending state.
-     Do not restore event-log cutting through `conversation.rewrite_after_event`,
-     SDK `prepareEditAndResend`, SDK `prepareRetryTurn`, or durable row
-     replacement from React.
+   - If the SDK replay command fails, record renderer replay diagnostics and
+     return failure without publishing a renderer-local chat row, restoring
+     renderer-cut prefixes, or clearing renderer replay pending state. Do not
+     restore event-log cutting through `conversation.rewrite_after_event`, SDK
+     `prepareEditAndResend`, SDK `prepareRetryTurn`, or durable row replacement
+     from React.
 
 5. Preserve model-history resume shape.
    - SDK `modelHistoryPayloadFromCheckpoint(...)` should emit
