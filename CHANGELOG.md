@@ -50,6 +50,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/docs: update replay surface guidance to describe SDK edit/retry
   commands instead of the removed renderer retained-prefix pending bridge. No
   migration required.
+- sdk/docs: align the conversation replay contract with SDK-owned edit/retry
+  commands and remove stale renderer replay-pending bridge wording. No
+  migration required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own

@@ -916,7 +916,6 @@ Edit/resend and retry are display revision operations:
 
 ```text
 visible row action/message id selects the SDK target
-  -> renderer publishes retained visible prefix plus pending turn as a temporary bridge
   -> SDK editAndResend/retryTurn resolves the stored display row
   -> SDK replaces the retained prefix plus replacement user row
   -> SDK send() sends the replacement user message as the same new turn
@@ -951,21 +950,14 @@ screenshot resolution inside the SDK command. Renderer replay command payloads
 must not infer or forward screenshot aliases; absent renderer payload fields
 must not erase prior resolved resources without an explicit removal operation.
 
-The Electron renderer publishes the retained replay prefix and `pendingTurn`
-as one visible optimistic frame before awaiting the SDK revision command. If
-the SDK command cannot resolve the stored target row or fails after the pending
-bridge is visible, the renderer restores the retained prefix, clears only that
-pending turn, and appends a send-failure row. Pending turn IPC
-preserves only identity/text/timestamp and attachment filename chips; typed
-visual `attachments[]`, screenshot descriptors, preview bytes, and ready
-artifact refs remain SDK display-row state. Echoed pending-turn broadcasts from
-Electron main must no-op in a renderer that already owns the same pending user
-row, and SDK display-row echoes for that pending turn must keep the existing
-optimistic bubble until the turn is no longer pending. Replay pending user rows
-use the SDK
-replacement event id (`<turnRef>-sdk-evt-000002-user_message`) so the final
-`sdk:display-rows` projection updates the existing user bubble instead of
-remounting it.
+The Electron renderer does not publish a replay-specific pending turn, retained
+display prefix, or separate replacement query. It passes row intent, edited
+text when applicable, workspace context, model override, user id, conversation
+ref, and a fresh turn ref into the SDK command. If the SDK command cannot
+resolve the stored target row or fails, the renderer appends the send-failure
+row without rolling its own display replacement or resource restoration. Typed
+visual `attachments[]`, screenshot descriptors, preview bytes, ready artifact
+refs, and replacement event ids remain SDK display-row state.
 
 Edit/resend can target a turn that is still awaiting or streaming. In that
 case the SDK treats the replacement as an active-turn handoff: once
@@ -980,10 +972,10 @@ the edit Send button usable under repeated clicks while the editable display
 document remains the visible authority. If the later normal send fails after
 the child display
 revision is accepted, the renderer keeps the accepted child timeline visible,
-removes the optimistic replay row, clears only the pending turn, and appends a
-send-failure error row instead of rolling back to the parent transcript. No
-migration is required for existing conversations; before their first display
-checkpoint, the active timeline loads from the event projection fallback.
+appends a send-failure error row instead of rolling back to the parent
+transcript. No migration is required for existing conversations; before their
+first display checkpoint, the active timeline loads from the event projection
+fallback.
 
 Fork is also a revision operation rather than a raw-event rewrite:
 
