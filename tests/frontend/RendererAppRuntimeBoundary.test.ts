@@ -1884,8 +1884,9 @@ describe('renderer app runtime boundary', () => {
     expect(selectorRuntimeSource).toContain('projectDesktopChatInterfaceState');
     expect(selectorRuntimeSource).toContain('projectDesktopLiveTurnSurfaceState');
     expect(selectorRuntimeSource).toContain('projectDesktopChatSurfaceState');
-    expect(selectorRuntimeSource).toContain('const projectedMessages = resolvedConversationView');
+    expect(selectorRuntimeSource).not.toContain('const projectedMessages = resolvedConversationView');
     expect(selectorRuntimeSource).not.toContain('&& !activeWorkspace.pendingTurn');
+    expect(selectorRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
     expect(selectorRuntimeSource).toContain('export const DesktopChatSurfaceSelectorRuntime = Object.freeze');
     expect(selectorRuntimeSource).not.toContain('export function projectDesktopChatInterfaceState');
     expect(selectorRuntimeSource).not.toContain('export function projectDesktopLiveTurnSurfaceState');
@@ -1909,8 +1910,8 @@ describe('renderer app runtime boundary', () => {
       'state.latestCurrentTurnProjection || state.currentTurnProjection',
     );
     expect(responseOverlaySource).toContain('selectLiveTurnSurfaceState');
-    expect(selectorRuntimeSource).toContain('currentTurnProjection: resolvedConversationView');
-    expect(selectorRuntimeSource).toContain('? null');
+    expect(selectorRuntimeSource).toContain('currentTurnProjection: activeWorkspace.currentTurnProjection ?? null');
+    expect(selectorRuntimeSource).not.toContain('currentTurnProjection: resolvedConversationView');
     expect(normalizedChatInterfaceSource).toContain('useChatSurfaceController({\n    chatSurfaceState,');
     expect(normalizedMinimalPillSource).toContain('useChatSurfaceController({\n    chatSurfaceState,');
     expect(normalizedChatInterfaceSource).not.toContain('useChatSurfaceController({\n    messages,');

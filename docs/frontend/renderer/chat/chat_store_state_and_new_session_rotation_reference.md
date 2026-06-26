@@ -230,6 +230,11 @@ bridge remains available, and renderer-only feedback/transparency/token
 metadata is carried separately as `rendererAnnotations` for display-row
 annotation merge.
 
+Surface and send-read-model selector adapters consume that read model as their
+input contract. They should not rederive renderer annotations from raw messages
+or independently choose between `messages`, `currentTurnProjection`, and
+`ConversationView`; that choice belongs to the workspace read-model runtime.
+
 When `ConversationView` exists, the shared interface projection returns the
 stable empty message list plus narrow `rendererAnnotations`; it does not pass
 the full raw workspace transcript into

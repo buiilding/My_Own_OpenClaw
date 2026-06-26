@@ -204,9 +204,26 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
     } = jest.requireActual(
       '../../frontend/src/renderer/app/runtime/desktopChatInterfaceSelectorRuntime',
     );
+    const {
+      projectWorkspaceReadModelState,
+    } = jest.requireActual(
+      '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceStateRuntime',
+    );
+    const activeWorkspace = {
+      messages: state.messages,
+      isSending: state.isSending,
+      thinkingStatus: state.thinkingStatus,
+      thinkingSourceEventType: state.thinkingSourceEventType,
+      compactionDebugInfo: state.compactionDebugInfo ?? null,
+      tokenCounts: state.tokenCounts,
+      streamTracking: state.streamTracking,
+      currentTurnProjection: state.currentTurnProjection,
+      conversationView: state.conversationView,
+      pendingTurn: state.pendingTurn,
+    };
     return DesktopChatInterfaceSelectorRuntime.buildChatInterfaceSelectorState({
       activeConversationRef: state.activeConversationRef,
-      activeWorkspace: state,
+      activeWorkspace: projectWorkspaceReadModelState(activeWorkspace),
     });
   },
   setConversationViewInChatStore: (...args) => {

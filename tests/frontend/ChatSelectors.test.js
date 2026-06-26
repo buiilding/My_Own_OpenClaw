@@ -9,6 +9,7 @@ import {
   selectLiveTurnSurfaceState,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { DesktopChatSurfaceSelectorRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime';
+import { projectWorkspaceReadModelState } from '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceStateRuntime';
 
 const {
   projectDesktopChatSurfaceState,
@@ -58,7 +59,9 @@ describe('chatSelectors', () => {
       pendingTurn: { turnRef: 'pending-turn' },
     };
 
-    const interfaceState = projectDesktopChatInterfaceState(activeWorkspace);
+    const interfaceState = projectDesktopChatInterfaceState(
+      projectWorkspaceReadModelState(activeWorkspace),
+    );
     expect(interfaceState).toEqual({
       messages: activeWorkspace.messages,
       rendererAnnotations: [],
@@ -118,7 +121,9 @@ describe('chatSelectors', () => {
       pendingTurn: null,
     };
 
-    const interfaceState = projectDesktopChatInterfaceState(activeWorkspace);
+    const interfaceState = projectDesktopChatInterfaceState(
+      projectWorkspaceReadModelState(activeWorkspace),
+    );
 
     expect(interfaceState).toEqual(expect.objectContaining({
       messages: [],
@@ -153,11 +158,12 @@ describe('chatSelectors', () => {
       pendingTurn: null,
     };
 
+    const readModelWorkspace = projectWorkspaceReadModelState(activeWorkspace);
     const firstSurfaceState = projectDesktopChatSurfaceState({
-      activeWorkspace,
+      activeWorkspace: readModelWorkspace,
     });
     const secondSurfaceState = projectDesktopChatSurfaceState({
-      activeWorkspace,
+      activeWorkspace: readModelWorkspace,
     });
     expect(firstSurfaceState).toEqual(expect.objectContaining({
       messages: [],
@@ -186,7 +192,7 @@ describe('chatSelectors', () => {
     };
 
     expect(projectDesktopChatSurfaceState({
-      activeWorkspace,
+      activeWorkspace: projectWorkspaceReadModelState(activeWorkspace),
     })).toEqual(expect.objectContaining({
       messages: [],
       currentTurnProjection: null,

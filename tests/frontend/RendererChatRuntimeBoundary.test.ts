@@ -2235,7 +2235,8 @@ describe('renderer chat runtime boundary', () => {
     expect(senderHookSource).not.toContain('selectChatInterfaceState');
     expect(senderHookSource).not.toContain('getState().conversationView');
     expect(senderHookSource).not.toContain('getState().messages');
-    expect(selectorRuntimeSource).toContain('messages: conversationView ? emptyChatMessages : activeWorkspace.messages');
+    expect(selectorRuntimeSource).toContain('messages: activeWorkspace.messages');
+    expect(selectorRuntimeSource).not.toContain('messages: conversationView ? emptyChatMessages : activeWorkspace.messages');
     expect(sendPreparationSource).toContain('desktopChatSendPayloadRuntime');
     expect(sendPreparationSource).toContain('desktopChatSendStateRuntime');
     expect(sendPreparationSource).toContain('getSendReadModel');
@@ -3389,11 +3390,13 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).toContain('rendererAnnotations = []');
     expect(chatInterfacePresentationRuntimeSource).toContain('rendererAnnotations,');
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('selectRendererMessageAnnotations(interfaceState.messages');
-    expect(chatSurfaceSelectorRuntimeSource).toContain('selectRendererMessageAnnotations(activeWorkspace.messages)');
+    expect(chatSurfaceSelectorRuntimeSource).not.toContain('selectRendererMessageAnnotations(activeWorkspace.messages)');
+    expect(chatSurfaceSelectorRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
     expect(chatSurfaceSelectorRuntimeSource).toContain('activeWorkspace.rendererAnnotations');
     expect(chatSurfaceSelectorRuntimeSource).toContain('messages: surfaceState.messages');
     expect(chatSurfaceSelectorRuntimeSource).toContain('rendererAnnotations: hasConversationView');
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('conversationView\n    ? emptyChatMessages\n    : interfaceState.messages');
+    expect(chatInterfaceSelectorRuntimeSource).not.toContain('messages: conversationView ?');
     expect(chatInterfaceSelectorRuntimeSource).toContain('messages: presentationMessages');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('currentMessages: messages');
     expect(chatInterfacePresentationRuntimeSource).toContain('resolveConversationViewStoreRef');

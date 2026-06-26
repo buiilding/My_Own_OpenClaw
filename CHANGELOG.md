@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/selectors: make chat surface and send-read-model selector adapters
+  consume the workspace read model without re-normalizing raw
+  `ConversationView` fallback state. No migration required.
 - frontend/store: route normal chat UI selectors through
   `DesktopChatWorkspaceStateRuntime.selectActiveWorkspaceReadModelState(...)`
   so SDK `ConversationView` suppresses raw message/current-turn fallback while
