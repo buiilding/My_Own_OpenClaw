@@ -263,7 +263,7 @@ describe('useChatStream message metadata handling', () => {
     );
   });
 
-  test('projected tool-call message keeps preserved model-facing payload visible for pre-dispatch validation failures', () => {
+  test('projected tool-call message uses SDK display fields for pre-dispatch validation failures', () => {
     const messages = buildCurrentTurnMessagesFromSdkLiveTurn({
       conversationRef: 'conv-test',
       turnRef: 'turn-test',
@@ -303,7 +303,6 @@ describe('useChatStream message metadata handling', () => {
     const toolCallMessage = messages.at(-1);
     expect(toolCallMessage?.text).toBe(
       JSON.stringify({
-        id: 'tool_raw_2',
         name: 'run_shell_command',
         arguments: {
           explanation: 'Create a temporary test file to test the replace tool',

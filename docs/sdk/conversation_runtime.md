@@ -198,15 +198,17 @@ UI adapters:
 - `presentation.entries[*].sourceChannel`: SDK presentation metadata uses
   `sdk:current-turn`; host IPC channel names are adapter details and must not
   leak into reusable SDK projections
-- Tool presentation entries carry explicit SDK display fields such as
-  `modelFacingToolCall`, `toolArguments`, `toolCallDetails`,
+- Tool presentation entries carry SDK-owned preview `text` plus explicit
+  display fields such as `modelFacingToolCall`, `toolArguments`, `toolCallDetails`,
   `toolOutputDetails`, `toolMetadata`, `toolDisplayMetadata`, normalized
   bundled `toolCalls`, recovery fields (`toolCallValidationFailed`,
   `rawToolCallPreview`, `rawArgumentsPreview`, `parseError`), typed
   `attachments[]`, compatibility screenshot refs/URLs, `executionTime`,
-  `success`, and `executionSkipped`. Renderer adapters should render live tool
-  screenshots from typed attachments rather than decoding backend-wire event
-  payloads or whole-message screenshot aliases; screenshot aliases remain
+  `success`, and `executionSkipped`. SDK projection builds live tool-call
+  preview text from recovery previews or normalized tool identity/arguments, so
+  renderer adapters should render live tool calls from entry `text` and typed
+  display fields instead of decoding `modelFacingToolCall`, backend-wire event
+  payloads, or whole-message screenshot aliases. Screenshot aliases remain
   compatibility metadata for replay/provider boundaries.
 
 Runtime snapshots also expose `snapshot.view`, and callers may use

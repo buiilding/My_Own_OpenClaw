@@ -1310,7 +1310,7 @@ describe('Agent SDK conversation runtime core', () => {
         expect.objectContaining({ type: 'thinking', sourceChannel: 'sdk:current-turn' }),
         expect.objectContaining({
           type: 'tool-call',
-          text: 'Using read_file',
+          text: '{"name":"read_file"}',
           sourceChannel: 'sdk:current-turn',
           requestId: 'req-read',
           correlationId: 'corr-read',

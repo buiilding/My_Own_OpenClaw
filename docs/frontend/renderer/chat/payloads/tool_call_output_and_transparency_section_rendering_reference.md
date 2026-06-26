@@ -198,6 +198,10 @@ display-only execution state come from SDK current-turn fields such as
 metadata keys in renderer message helpers. Transcript helper state must return
 display text, sanitized details, and correlation ids only; it must not return a
 model-facing tool-call object for renderer chat messages.
+SDK current-turn presentation entries own live tool-call preview text. Renderer
+current-turn adapters may pass SDK `text`, recovery previews, normalized
+`toolArguments`, and sanitized details through the transcript helper, but they
+must not read `modelFacingToolCall` to reconstruct the card body.
 When the renderer includes the display-only marker in the pretty-printed
 model-facing payload, it uses the neutral `execution_skipped` field.
 

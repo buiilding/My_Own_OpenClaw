@@ -87,7 +87,8 @@ function buildProjectedToolCallMessage({
   }
 
   const toolCallState = buildToolCallMessageState({
-    rawToolCall: asObject(toolEvent.modelFacingToolCall),
+    rawContent: readString(toolEvent.text),
+    rawToolCall: null,
     fallbackToolName: toolName || null,
     fallbackToolCallId: requestId,
     fallbackArguments: args,
@@ -357,7 +358,7 @@ function buildErrorMessage(entry, liveTurnContext) {
 
 function buildToolCallMessage(entry, liveTurnContext) {
   const toolName = normalizeOptionalText(entry.toolName);
-  const text = normalizeText(entry.text) || (toolName ? `Using ${toolName}` : 'Using tool');
+  const text = normalizeText(entry.text);
   const toolDetails = asRecord(entry.toolCallDetails);
   const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);
   if (toolName === 'tool_bundle' || Array.isArray(entry.toolCalls) || Array.isArray(toolDetails?.tools)) {
@@ -379,7 +380,8 @@ function buildToolCallMessage(entry, liveTurnContext) {
   const args = asRecord(entry.toolArguments) || null;
   const metadata = asRecord(entry.toolDisplayMetadata) || asRecord(entry.toolMetadata);
   const toolCallState = buildToolCallMessageState({
-    rawToolCall: asRecord(entry.modelFacingToolCall),
+    rawContent: text || null,
+    rawToolCall: null,
     fallbackToolName: toolName,
     fallbackToolCallId: normalizeOptionalText(entry.requestId),
     fallbackArguments: args,

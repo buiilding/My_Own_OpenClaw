@@ -955,6 +955,59 @@ function visibleText(value) {
     const trimmed = value.trim();
     return trimmed.length > 0 ? value : null;
 }
+function toolCallDisplayPreview(toolEvent) {
+    if (toolEvent.kind !== 'tool_call') {
+        return null;
+    }
+    if (toolEvent.toolCallValidationFailed === true) {
+        const rawPreview = visibleText(toolEvent.rawToolCallPreview);
+        if (rawPreview) {
+            return rawPreview;
+        }
+    }
+    const modelFacingToolCall = (0, toolOutputContent_js_1.recordFromUnknown)(toolEvent.modelFacingToolCall) ?? {};
+    const argumentsValue = (0, toolOutputContent_js_1.recordFromUnknown)(modelFacingToolCall.arguments)
+        ?? (0, toolOutputContent_js_1.recordFromUnknown)(modelFacingToolCall.args)
+        ?? (0, toolOutputContent_js_1.recordFromUnknown)(toolEvent.toolArguments);
+    const metadata = (0, toolOutputContent_js_1.recordFromUnknown)(toolEvent.toolDisplayMetadata);
+    const id = (0, toolOutputContent_js_1.stringField)(modelFacingToolCall, 'id') ?? visibleText(toolEvent.requestId ?? null);
+    const name = (0, toolOutputContent_js_1.stringField)(modelFacingToolCall, 'name') ?? visibleText(toolEvent.toolName ?? null);
+    const thoughtSignature = (0, toolOutputContent_js_1.stringField)(modelFacingToolCall, 'thought_signature', 'thoughtSignature')
+        ?? (metadata ? (0, toolOutputContent_js_1.stringField)(metadata, 'thought_signature', 'thoughtSignature') : null);
+    const preview = {};
+    if (id) {
+        preview.id = id;
+    }
+    if (name) {
+        preview.name = name;
+    }
+    if (argumentsValue
+        && (toolEvent.toolCallValidationFailed !== true || Object.keys(argumentsValue).length > 0)) {
+        preview.arguments = argumentsValue;
+    }
+    if (metadata && Object.keys(metadata).length > 0) {
+        preview.metadata = metadata;
+    }
+    if (thoughtSignature) {
+        preview.thought_signature = thoughtSignature;
+    }
+    const rawToolCallPreview = visibleText(toolEvent.rawToolCallPreview);
+    if (rawToolCallPreview) {
+        preview.raw_tool_call_preview = rawToolCallPreview;
+    }
+    const rawArgumentsPreview = visibleText(toolEvent.rawArgumentsPreview);
+    if (rawArgumentsPreview) {
+        preview.raw_arguments_preview = rawArgumentsPreview;
+    }
+    const parseError = visibleText(toolEvent.parseError);
+    if (parseError) {
+        preview.parse_error = parseError;
+    }
+    if (toolEvent.executionSkipped === true) {
+        preview.execution_skipped = true;
+    }
+    return Object.keys(preview).length > 0 ? JSON.stringify(preview, null, 2) : null;
+}
 function toolEntryText(toolEvent) {
     const text = visibleText(toolEvent.text);
     if (text) {
@@ -966,6 +1019,10 @@ function toolEntryText(toolEvent) {
     }
     if (toolEvent.kind === 'tool_progress') {
         return toolName ? `${toolName} is running` : 'Tool is running';
+    }
+    const toolCallPreview = toolCallDisplayPreview(toolEvent);
+    if (toolCallPreview) {
+        return toolCallPreview;
     }
     return toolName ? `Using ${toolName}` : 'Using tool';
 }
