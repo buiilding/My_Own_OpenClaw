@@ -3542,6 +3542,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js'),
       'utf8',
     );
+    const threadPresentationRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopThreadPresentationRuntime.js'),
+      'utf8',
+    );
     const chatInterfacePresentationRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime.js'),
       'utf8',
@@ -3641,6 +3645,7 @@ describe('renderer chat runtime boundary', () => {
     expect(headerControlsSource).not.toContain('revisionActionId');
     expect(headerControlsSource).not.toContain('activeRevisionId');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildThreadPresentationMessages');
+    expect(threadPresentationRuntimeSource).not.toContain('modelFacingToolCall');
     expect(chatInterfacePresentationRuntimeSource).toContain('DesktopConversationDisplayProjection');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildConversationViewChatMessages');
     expect(chatInterfacePresentationRuntimeSource).toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');

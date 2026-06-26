@@ -701,6 +701,53 @@ describe('desktopThreadPresentationRuntime', () => {
     })).toBe(messages);
   });
 
+  test('buildThreadPresentationMessages does not dedupe tools by provider-facing payload name', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+      {
+        id: 'legacy-tool-call-1',
+        sender: 'assistant',
+        text: 'legacy provider payload row',
+        type: 'tool-call',
+        turnRef: 'turn-1',
+        modelFacingToolCall: {
+          name: 'read_file',
+        },
+      },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:tool:tool-1',
+          type: 'tool-call',
+          sourceEventType: 'tool_call',
+          sourceChannel: 'sdk:current-turn',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+          requestId: 'req-read',
+          toolArguments: { path: 'README.md' },
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered).toEqual([
+      ...messages,
+      expect.objectContaining({
+        id: 'conv-1:turn-1:tool:tool-1',
+        type: 'tool-call',
+        toolCallDisplayText: expect.stringContaining('"name": "read_file"'),
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages drops current-turn thinking once assistant text is materialized', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },

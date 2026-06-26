@@ -85,9 +85,10 @@ All notable changes to WindieOS will be documented in this file.
   calls no longer ride through generic renderer detail payloads or chat message
   props. Typed `attachments[]` remain the explicit display channel. No
   migration required.
-- frontend/tools: make tool-call rendering, thread find, and estimated token
-  tags depend on `toolCallDisplayText` instead of recovering preview content
-  from provider-facing `modelFacingToolCall` payloads. No migration required.
+- frontend/tools: make tool-call rendering, thread find, duplicate suppression,
+  and estimated token tags depend on display fields instead of recovering
+  content or identity from provider-facing `modelFacingToolCall` payloads. No
+  migration required.
 - frontend/live-turn: stop using SDK live-entry row ids as fallback
   model-facing tool-call ids; live tool identity now comes only from SDK tool
   fields such as `requestId` or `modelFacingToolCall`. No migration required.

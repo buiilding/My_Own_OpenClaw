@@ -125,7 +125,6 @@ function resolveToolName(message) {
     message?.toolName,
     message?.toolCallDetails?.toolName,
     message?.toolOutputDetails?.toolName,
-    message?.modelFacingToolCall?.name,
   ];
   for (const candidate of candidates) {
     const normalized = normalizeRef(candidate);
