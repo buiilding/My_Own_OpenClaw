@@ -114,9 +114,9 @@ const {
   buildSetWorkspaceFieldStateUpdate,
 } = DesktopChatWorkspaceFieldRuntime;
 const {
-  buildRegisterTurnConversationRefStateUpdate,
-  mergeTurnConversationRefs,
-  resolveConversationRefForTurn,
+  recordRendererTurnConversationRefs,
+  registerRendererTurnConversationRef,
+  resolveRendererConversationRefForTurn,
 } = DesktopChatTurnConversationRefRuntime;
 const {
   buildSetCurrentTurnProjectionStateUpdate,
@@ -128,7 +128,7 @@ export type { ChatMessage, TokenCounts };
 
 const pendingTurnStateRuntimeDependencies = {
   buildWorkspaceUpdate,
-  mergeTurnConversationRefs,
+  recordTurnConversationRefs: recordRendererTurnConversationRefs,
   readWorkspaceState,
   resolveChatWorkspaceRef,
   resolveWorkspaceKey,
@@ -173,7 +173,7 @@ const clearMessagesStateRuntimeDependencies = {
 
 const workspaceMessageStateRuntimeDependencies = {
   buildWorkspaceUpdate,
-  mergeTurnConversationRefs,
+  recordTurnConversationRefs: recordRendererTurnConversationRefs,
   resolveWorkspaceMutationTarget,
 };
 
@@ -223,7 +223,6 @@ interface ResponseOverlayDismissalInput {
 interface ChatState {
   activeConversationRef: string | null;
   workspaces: Record<string, ChatWorkspaceState>;
-  turnConversationRefs: Record<string, string>;
   dismissedResponseOverlayEntries: Record<string, true>;
 
   getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceState;
@@ -325,7 +324,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
   // Initial state
   activeConversationRef: null,
   workspaces: createInitialWorkspaceRecord(),
-  turnConversationRefs: {},
   dismissedResponseOverlayEntries: {},
   getWorkspaceState: (conversationRef) => {
     const state = get();
@@ -336,17 +334,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setActiveConversationRef: (conversationRef) =>
     set((state) => buildActiveConversationWorkspaceUpdate(state, conversationRef)),
 
-  registerTurnConversationRef: (turnRef, conversationRef) =>
-    set((state) => {
-      return buildRegisterTurnConversationRefStateUpdate<ChatState>({
-        conversationRef,
-        state,
-        turnRef,
-      }) ?? state;
-    }),
+  registerTurnConversationRef: (turnRef, conversationRef) => {
+    registerRendererTurnConversationRef(turnRef, conversationRef);
+  },
 
   resolveConversationRefForTurn: (turnRef) => {
-    return resolveConversationRefForTurn(get().turnConversationRefs, turnRef);
+    return resolveRendererConversationRefForTurn(turnRef);
   },
 
   dismissResponseOverlayEntry: (input) =>

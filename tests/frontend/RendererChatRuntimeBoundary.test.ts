@@ -3353,6 +3353,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('currentTurnProjection: CurrentTurnProjection | null;');
     expect(chatStoreSource).not.toContain('conversationView: ConversationView | null;');
     expect(chatStoreSource).not.toContain('pendingTurn: PendingTurn | null;');
+    expect(chatStoreSource).not.toContain('turnConversationRefs:');
     expect(chatStoreSource).not.toContain('function buildWorkspaceUpdate');
     expect(chatStoreSource).not.toContain('function resolveWorkspaceMutationTarget');
     expect(chatStoreSource).toContain('DesktopChatPendingTurnStateRuntime');
@@ -3402,6 +3403,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('function removeSupersededTurnRef');
     expect(chatStoreSource).not.toContain('function normalizeTurnRef');
     expect(chatStoreSource).not.toContain('function mergeTurnConversationRefs');
+    expect(chatStoreSource).toContain('registerRendererTurnConversationRef');
+    expect(chatStoreSource).toContain('resolveRendererConversationRefForTurn');
     expect(chatStoreSource).not.toContain('resolvePendingTurnForCurrentProjection');
     expect(chatStoreSource).not.toContain('shouldUpdateLatestView');
     expect(chatStoreSource).not.toContain('Object.keys(latestUpdate)');
@@ -3443,6 +3446,8 @@ describe('renderer chat runtime boundary', () => {
     expect(workspaceMessageRuntimeSource).toContain('buildUpdateStreamTargetMessageStateUpdate');
     expect(workspaceMessageRuntimeSource).toContain('buildSetMessagesStateUpdate');
     expect(workspaceMessageRuntimeSource).toContain('existingMessageIndex');
+    expect(workspaceMessageRuntimeSource).toContain('recordTurnConversationRefs');
+    expect(workspaceMessageRuntimeSource).not.toContain('turnConversationRefs:');
     expect(workspaceMessageRuntimeSource).not.toContain('features/chat');
     expect(workspaceFieldRuntimeSource).toContain('buildSetWorkspaceFieldStateUpdate');
     expect(workspaceFieldRuntimeSource).not.toContain('features/chat');
@@ -3452,6 +3457,8 @@ describe('renderer chat runtime boundary', () => {
     expect(turnConversationRefRuntimeSource).toContain('normalizeTurnRef');
     expect(turnConversationRefRuntimeSource).toContain('mergeTurnConversationRefs');
     expect(turnConversationRefRuntimeSource).toContain('registerTurnConversationRef');
+    expect(turnConversationRefRuntimeSource).toContain('registerRendererTurnConversationRef');
+    expect(turnConversationRefRuntimeSource).toContain('resolveRendererConversationRefForTurn');
     expect(turnConversationRefRuntimeSource).toContain('buildRegisterTurnConversationRefStateUpdate');
     expect(turnConversationRefRuntimeSource).toContain('resolveConversationRefForTurn');
     expect(turnConversationRefRuntimeSource).not.toContain('features/chat');

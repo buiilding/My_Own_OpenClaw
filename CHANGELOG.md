@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: move turn-ref conversation routing out of Zustand
+  `chatStore` and into the renderer app-runtime registry; the store keeps
+  adapter methods for existing call sites but no longer owns the runtime
+  routing ledger. No migration required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own

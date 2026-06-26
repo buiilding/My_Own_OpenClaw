@@ -9,12 +9,18 @@ import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { ChatProvider } from '../../frontend/src/renderer/app/providers/ChatProvider';
+import {
+  DesktopChatTurnConversationRefRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime';
 
 const mockUseChatStream = jest.fn();
 const mockUseTranscriptSessionInfo = jest.fn();
 const mockBootstrapSession = jest.fn().mockResolvedValue({ conversationRef: null, userId: null });
 const mockIpcOn = jest.fn(() => jest.fn());
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
+const {
+  resetRendererTurnConversationRefs,
+} = DesktopChatTurnConversationRefRuntime;
 
 function createInitialStreamTracking() {
   return {
@@ -58,6 +64,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 }));
 
 function resetChatStore() {
+  resetRendererTurnConversationRefs();
   useChatStore.setState({
     activeConversationRef: null,
     workspaces: {
@@ -70,7 +77,6 @@ function resetChatStore() {
         streamTracking: createInitialStreamTracking(),
       },
     },
-    turnConversationRefs: {},
     messages: [],
     isSending: false,
     thinkingStatus: null,

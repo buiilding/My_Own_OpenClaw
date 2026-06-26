@@ -6,8 +6,6 @@ import type {
   ChatMessage,
 } from './desktopChatMessageTypes';
 
-type TurnConversationRefs = Record<string, string>;
-
 type MessageWorkspace = {
   messages: ChatMessage[];
 };
@@ -16,10 +14,6 @@ type WorkspaceMutationTarget<TWorkspace extends MessageWorkspace> = {
   normalizedConversationRef: string | null;
   workspaceRef: string;
   workspace: TWorkspace;
-};
-
-type MessageStateSnapshot = {
-  turnConversationRefs: TurnConversationRefs;
 };
 
 type StreamMessageTarget =
@@ -41,7 +35,7 @@ type ChatStreamMessageTarget = {
 };
 
 type MessageStateDependencies<
-  TState extends MessageStateSnapshot,
+  TState,
   TWorkspace extends MessageWorkspace,
 > = {
   buildWorkspaceUpdate: (
@@ -50,11 +44,10 @@ type MessageStateDependencies<
     workspace: TWorkspace,
     extra?: Partial<TState>,
   ) => Partial<TState> | TState;
-  mergeTurnConversationRefs: (
-    currentTurnConversationRefs: TurnConversationRefs,
+  recordTurnConversationRefs: (
     messages: ChatMessage[],
     conversationRef?: string | null,
-  ) => TurnConversationRefs;
+  ) => void;
   resolveWorkspaceMutationTarget: (
     state: TState,
     conversationRef?: string | null,
@@ -62,7 +55,7 @@ type MessageStateDependencies<
 };
 
 function buildAddMessageStateUpdate<
-  TState extends MessageStateSnapshot,
+  TState,
   TWorkspace extends MessageWorkspace,
 >({
   conversationRef = null,
@@ -94,19 +87,13 @@ function buildAddMessageStateUpdate<
     ...currentWorkspace,
     messages: nextMessages,
   };
-  const nextTurnConversationRefs = deps.mergeTurnConversationRefs(
-    state.turnConversationRefs,
-    [message],
-    normalizedConversationRef,
-  );
+  deps.recordTurnConversationRefs([message], normalizedConversationRef);
 
-  return deps.buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
-    turnConversationRefs: nextTurnConversationRefs,
-  } as Partial<TState>);
+  return deps.buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
 }
 
 function buildUpdateMessageStateUpdate<
-  TState extends MessageStateSnapshot,
+  TState,
   TWorkspace extends MessageWorkspace,
 >({
   conversationRef = null,
@@ -134,14 +121,10 @@ function buildUpdateMessageStateUpdate<
   const nextMessages = [...currentWorkspace.messages];
   nextMessages[index] = { ...nextMessages[index], ...updates };
   const nextWorkspace = { ...currentWorkspace, messages: nextMessages };
-  const nextTurnConversationRefs = deps.mergeTurnConversationRefs(
-    state.turnConversationRefs,
-    updates.turnRef !== undefined ? [nextMessages[index]] : [],
-    normalizedConversationRef,
-  );
-  return deps.buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
-    turnConversationRefs: nextTurnConversationRefs,
-  } as Partial<TState>);
+  if (updates.turnRef !== undefined) {
+    deps.recordTurnConversationRefs([nextMessages[index]], normalizedConversationRef);
+  }
+  return deps.buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
 }
 
 function findLastMessage(
@@ -208,7 +191,7 @@ function resolveStreamMessageTargetId(
 }
 
 function buildUpdateStreamTargetMessageStateUpdate<
-  TState extends MessageStateSnapshot,
+  TState,
   TWorkspace extends MessageWorkspace,
 >({
   conversationRef = null,
@@ -240,7 +223,7 @@ function buildUpdateStreamTargetMessageStateUpdate<
 }
 
 function buildSetMessagesStateUpdate<
-  TState extends MessageStateSnapshot,
+  TState,
   TWorkspace extends MessageWorkspace,
 >({
   conversationRef = null,
@@ -268,14 +251,8 @@ function buildSetMessagesStateUpdate<
     return null;
   }
   const nextWorkspace = { ...currentWorkspace, messages };
-  const nextTurnConversationRefs = deps.mergeTurnConversationRefs(
-    state.turnConversationRefs,
-    messages,
-    normalizedConversationRef,
-  );
-  return deps.buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
-    turnConversationRefs: nextTurnConversationRefs,
-  } as Partial<TState>);
+  deps.recordTurnConversationRefs(messages, normalizedConversationRef);
+  return deps.buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
 }
 
 export const DesktopChatWorkspaceMessageRuntime = Object.freeze({

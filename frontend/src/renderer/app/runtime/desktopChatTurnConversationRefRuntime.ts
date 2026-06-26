@@ -8,6 +8,8 @@ type TurnConversationRefStateSnapshot = {
   turnConversationRefs: TurnConversationRefs;
 };
 
+let rendererTurnConversationRefs: TurnConversationRefs = {};
+
 function normalizeTurnRef(turnRef?: string | null): string | null {
   if (typeof turnRef !== 'string') {
     return null;
@@ -92,10 +94,49 @@ function buildRegisterTurnConversationRefStateUpdate<TState extends TurnConversa
   };
 }
 
+function recordRendererTurnConversationRefs(
+  messages: ChatMessage[],
+  conversationRef?: string | null,
+): void {
+  rendererTurnConversationRefs = mergeTurnConversationRefs(
+    rendererTurnConversationRefs,
+    messages,
+    conversationRef,
+  );
+}
+
+function registerRendererTurnConversationRef(
+  turnRef?: string | null,
+  conversationRef?: string | null,
+): void {
+  rendererTurnConversationRefs = registerTurnConversationRef(
+    rendererTurnConversationRefs,
+    turnRef,
+    conversationRef,
+  );
+}
+
+function resolveRendererConversationRefForTurn(turnRef?: string | null): string | null {
+  return resolveConversationRefForTurn(rendererTurnConversationRefs, turnRef);
+}
+
+function getRendererTurnConversationRefsSnapshot(): TurnConversationRefs {
+  return { ...rendererTurnConversationRefs };
+}
+
+function resetRendererTurnConversationRefs(): void {
+  rendererTurnConversationRefs = {};
+}
+
 export const DesktopChatTurnConversationRefRuntime = Object.freeze({
   buildRegisterTurnConversationRefStateUpdate,
+  getRendererTurnConversationRefsSnapshot,
   mergeTurnConversationRefs,
   normalizeTurnRef,
+  recordRendererTurnConversationRefs,
   registerTurnConversationRef,
+  registerRendererTurnConversationRef,
   resolveConversationRefForTurn,
+  resolveRendererConversationRefForTurn,
+  resetRendererTurnConversationRefs,
 });

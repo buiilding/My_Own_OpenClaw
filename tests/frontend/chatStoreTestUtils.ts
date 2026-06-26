@@ -6,6 +6,13 @@ import {
   ChatMessage,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  DesktopChatTurnConversationRefRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime';
+
+const {
+  resetRendererTurnConversationRefs,
+} = DesktopChatTurnConversationRefRuntime;
 
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 
@@ -41,9 +48,9 @@ export function resetChatStoreForTests(
 ) {
   const messages = initialMessage ? [initialMessage] : [];
   const streamTracking = createInitialStreamTracking();
+  resetRendererTurnConversationRefs();
   useChatStore.setState({
     activeConversationRef: null,
-    turnConversationRefs: {},
     dismissedResponseOverlayEntries: {},
     workspaces: {
       [DEFAULT_CHAT_WORKSPACE_REF]: {

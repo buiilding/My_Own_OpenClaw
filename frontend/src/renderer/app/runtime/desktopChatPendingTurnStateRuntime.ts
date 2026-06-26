@@ -54,7 +54,6 @@ type PendingTurnClearWorkspaceMutationInput<TWorkspace extends PendingTurnWorksp
 
 type PendingTurnStateStoreSnapshot = {
   activeConversationRef: string | null;
-  turnConversationRefs: Record<string, string>;
 };
 
 type PendingTurnStateStoreDependencies<
@@ -67,11 +66,10 @@ type PendingTurnStateStoreDependencies<
     workspace: TWorkspace,
     extraState?: Partial<TState>,
   ) => Partial<TState> | TState;
-  mergeTurnConversationRefs: (
-    current: Record<string, string>,
+  recordTurnConversationRefs: (
     messages: ChatMessage[],
     conversationRef: string | null,
-  ) => Record<string, string>;
+  ) => void;
   readWorkspaceState: (state: TState, workspaceRef: string) => TWorkspace;
   resolveChatWorkspaceRef: (conversationRef: string | null | undefined) => string;
   resolveWorkspaceKey: (
@@ -285,14 +283,12 @@ function buildAcceptPendingTurnStateUpdate<
   if (!pendingMutation) {
     return null;
   }
-  const nextTurnConversationRefs = deps.mergeTurnConversationRefs(
-    state.turnConversationRefs,
+  deps.recordTurnConversationRefs(
     [pendingMutation.optimisticMessage],
     pendingMutation.normalizedPendingTurn.conversationRef,
   );
   const extraState = {
     activeConversationRef: pendingMutation.normalizedPendingTurn.conversationRef,
-    turnConversationRefs: nextTurnConversationRefs,
   } as Partial<TState>;
   return deps.buildWorkspaceUpdate(state, workspaceRef, pendingMutation.workspace, extraState);
 }

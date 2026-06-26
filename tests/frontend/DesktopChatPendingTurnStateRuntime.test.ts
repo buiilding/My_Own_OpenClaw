@@ -32,7 +32,6 @@ function workspace(overrides = {}) {
 function storeState(overrides = {}) {
   return {
     activeConversationRef: null,
-    turnConversationRefs: {},
     workspaces: {},
     ...overrides,
   };
@@ -46,17 +45,7 @@ const stateRuntimeDeps = {
     },
     ...extraState,
   }),
-  mergeTurnConversationRefs: (current, messages, conversationRef) => {
-    return messages.reduce((next, message) => {
-      if (message.turnRef && conversationRef) {
-        return {
-          ...next,
-          [message.turnRef]: conversationRef,
-        };
-      }
-      return next;
-    }, current);
-  },
+  recordTurnConversationRefs: jest.fn(),
   readWorkspaceState: (state, workspaceRef) => state.workspaces[workspaceRef] ?? workspace(),
   resolveChatWorkspaceRef: (conversationRef) => conversationRef || '__default__',
   resolveWorkspaceKey: (conversationRef, activeConversationRef) => (
@@ -65,6 +54,10 @@ const stateRuntimeDeps = {
 };
 
 describe('DesktopChatPendingTurnStateRuntime', () => {
+  beforeEach(() => {
+    stateRuntimeDeps.recordTurnConversationRefs.mockClear();
+  });
+
   test('normalizes valid pending turns and strips empty attachment filenames', () => {
     expect(normalizePendingTurn({
       conversationRef: ' conv-1 ',
@@ -241,10 +234,14 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
 
     expect(update).toEqual(expect.objectContaining({
       activeConversationRef: 'conv-state',
-      turnConversationRefs: {
-        'turn-state': 'conv-state',
-      },
     }));
+    expect(stateRuntimeDeps.recordTurnConversationRefs).toHaveBeenCalledWith(
+      [expect.objectContaining({
+        id: 'user-state',
+        turnRef: 'turn-state',
+      })],
+      'conv-state',
+    );
     expect(update?.workspaces['conv-state']).toEqual(expect.objectContaining({
       isSending: true,
       pendingTurn: expect.objectContaining({

@@ -4,6 +4,9 @@
 
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { DesktopChatStreamEventRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime';
+import {
+  DesktopChatTurnConversationRefRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime';
 
 const {
   isAssistantMessageConversationStreamEvent,
@@ -27,6 +30,9 @@ const {
   shouldIgnoreConversationEventForStaleTurn,
   shouldRecordTerminalCompletionTracking,
 } = DesktopChatStreamEventRuntime;
+const {
+  resetRendererTurnConversationRefs,
+} = DesktopChatTurnConversationRefRuntime;
 
 function createEvent(overrides: Record<string, unknown> = {}) {
   return {
@@ -58,10 +64,10 @@ function shouldIgnore(event: ReturnType<typeof createEvent>, conversationRef?: s
 
 describe('DesktopChatStreamEventRuntime', () => {
   beforeEach(() => {
+    resetRendererTurnConversationRefs();
     useChatStore.setState((state) => ({
       ...state,
       activeConversationRef: null,
-      turnConversationRefs: {},
       isSending: false,
       pendingTurn: null,
       streamTracking: {

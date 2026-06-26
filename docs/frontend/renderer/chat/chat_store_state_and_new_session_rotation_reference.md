@@ -50,7 +50,14 @@ Conversation workspace state:
 
 - `activeConversationRef`
 - `workspaces: Record<workspaceRef, ChatWorkspaceState>`
-- `turnConversationRefs: Record<turnRef, conversationRef>`
+
+Turn-scoped event routing state:
+
+- `desktopChatTurnConversationRefRuntime.ts` owns the renderer
+  `turnRef -> conversationRef` registry.
+- `chatStore.ts` exposes `registerTurnConversationRef` and
+  `resolveConversationRefForTurn` adapter methods for existing call sites, but
+  it does not persist the routing map in Zustand state.
 
 The default workspace key is private to `chatWorkspaceState.ts`. Store
 initialization uses `createInitialWorkspaceRecord()` so `chatStore.ts` and
@@ -91,13 +98,14 @@ replay/store compatibility adapters and low-level artifact helpers.
   so chat-stream hooks pass target intent instead of reading workspace
   `messages` to choose row ids.
 - `setMessages` no-op when array reference unchanged; when hydrating a concrete
-  conversation workspace, it indexes message `turnRef` values into
-  `turnConversationRefs` so later turn-scoped stream events can route even when
-  `conversation_ref` is absent. Turn-ref normalization and map merge rules live
-  in `desktopChatTurnConversationRefRuntime.ts`; message array replacement,
-  duplicate id replacement, missing-id no-op handling, and resulting map update
-  assembly live in `desktopChatWorkspaceMessageRuntime.ts`. The store only
-  passes message intent plus workspace dependency adapters.
+  conversation workspace, it records message `turnRef` values through the
+  app-runtime turn-routing registry so later turn-scoped stream events can
+  route even when `conversation_ref` is absent. Turn-ref normalization and map
+  merge rules live in `desktopChatTurnConversationRefRuntime.ts`; message array
+  replacement, duplicate id replacement, missing-id no-op handling, and
+  workspace update assembly live in `desktopChatWorkspaceMessageRuntime.ts`.
+  The store only passes message intent plus workspace and registry dependency
+  adapters.
 - `setIsSending`, `setThinkingStatus`, `setThinkingSourceEventType`,
   `setCompactionDebugInfo`, and `setTokenCounts` apply simple workspace field
   updates through
@@ -178,9 +186,10 @@ replay/store compatibility adapters and low-level artifact helpers.
   store root.
 - `registerTurnConversationRef` / `resolveConversationRefForTurn` bind
   app-runtime turn->conversation routing helpers for events that omit
-  `conversation_ref`. The register action's map update/no-op decision lives in
-  `DesktopChatTurnConversationRefRuntime.buildRegisterTurnConversationRefStateUpdate(...)`;
-  the store only passes turn/conversation intent.
+  `conversation_ref`. The renderer map lives in
+  `desktopChatTurnConversationRefRuntime.ts`; the store only records or resolves
+  turn/conversation intent through that app-runtime adapter and must not add a
+  second Zustand-owned copy.
 - response-overlay dismissal state is persisted by the store, but normalized
   conversation/turn/entry dismissal-key construction lives in
   `DesktopResponseOverlayViewRuntime.buildResponseOverlayDismissalKey(...)`.

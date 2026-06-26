@@ -4,13 +4,22 @@ import {
 
 const {
   buildRegisterTurnConversationRefStateUpdate,
+  getRendererTurnConversationRefsSnapshot,
   mergeTurnConversationRefs,
   normalizeTurnRef,
+  recordRendererTurnConversationRefs,
   registerTurnConversationRef,
+  registerRendererTurnConversationRef,
   resolveConversationRefForTurn,
+  resolveRendererConversationRefForTurn,
+  resetRendererTurnConversationRefs,
 } = DesktopChatTurnConversationRefRuntime;
 
 describe('DesktopChatTurnConversationRefRuntime', () => {
+  beforeEach(() => {
+    resetRendererTurnConversationRefs();
+  });
+
   test('normalizes turn refs', () => {
     expect(normalizeTurnRef(undefined)).toBeNull();
     expect(normalizeTurnRef(null)).toBeNull();
@@ -113,5 +122,30 @@ describe('DesktopChatTurnConversationRefRuntime', () => {
       state,
       turnRef: ' turn-existing ',
     })).toBeNull();
+  });
+
+  test('stores renderer turn routing outside chat store state', () => {
+    registerRendererTurnConversationRef(' turn-explicit ', ' conv-a ');
+    recordRendererTurnConversationRefs(
+      [{
+        id: 'message-1',
+        sender: 'assistant',
+        text: 'hello',
+        turnRef: ' turn-from-message ',
+      }],
+      ' conv-b ',
+    );
+
+    expect(resolveRendererConversationRefForTurn('turn-explicit')).toBe('conv-a');
+    expect(resolveRendererConversationRefForTurn('turn-from-message')).toBe('conv-b');
+    expect(getRendererTurnConversationRefsSnapshot()).toEqual({
+      'turn-explicit': 'conv-a',
+      'turn-from-message': 'conv-b',
+    });
+
+    resetRendererTurnConversationRefs();
+
+    expect(resolveRendererConversationRefForTurn('turn-explicit')).toBeNull();
+    expect(getRendererTurnConversationRefsSnapshot()).toEqual({});
   });
 });

@@ -191,7 +191,6 @@ describe('useChatMessageSender', () => {
     const streamTracking = createInitialStreamTracking();
     useChatStore.setState({
       activeConversationRef: null,
-      turnConversationRefs: {},
       workspaces: {
         [DEFAULT_CHAT_WORKSPACE_REF]: {
           messages: [],

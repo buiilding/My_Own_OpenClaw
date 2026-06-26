@@ -21,15 +21,7 @@ function createDeps(workspace) {
         [workspaceRef]: nextWorkspace,
       },
     })),
-    mergeTurnConversationRefs: jest.fn((currentRefs, messages, conversationRef) => {
-      const nextRefs = { ...currentRefs };
-      for (const message of messages) {
-        if (message.turnRef && conversationRef) {
-          nextRefs[message.turnRef] = conversationRef;
-        }
-      }
-      return nextRefs;
-    }),
+    recordTurnConversationRefs: jest.fn(),
     resolveWorkspaceMutationTarget: jest.fn(() => ({
       normalizedConversationRef: 'conv-1',
       workspace,
@@ -46,7 +38,6 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
       ],
     };
     const state = {
-      turnConversationRefs: {},
       workspaces: {
         'conv-1': workspace,
       },
@@ -67,23 +58,15 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
     });
 
     expect(deps.resolveWorkspaceMutationTarget).toHaveBeenCalledWith(state, 'conv-1');
-    expect(deps.mergeTurnConversationRefs).toHaveBeenCalledWith({}, [message], 'conv-1');
+    expect(deps.recordTurnConversationRefs).toHaveBeenCalledWith([message], 'conv-1');
     expect(deps.buildWorkspaceUpdate).toHaveBeenCalledWith(
       state,
       'conv-1',
       expect.objectContaining({
         messages: [workspace.messages[0], message],
       }),
-      {
-        turnConversationRefs: {
-          'turn-1': 'conv-1',
-        },
-      },
     );
     expect(nextState).toEqual(expect.objectContaining({
-      turnConversationRefs: {
-        'turn-1': 'conv-1',
-      },
       workspaces: {
         'conv-1': expect.objectContaining({
           messages: [workspace.messages[0], message],
@@ -99,7 +82,6 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
       ],
     };
     const state = {
-      turnConversationRefs: {},
       workspaces: {
         'conv-1': workspace,
       },
@@ -133,7 +115,6 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
       ],
     };
     const state = {
-      turnConversationRefs: {},
       workspaces: {
         'conv-1': workspace,
       },
@@ -150,8 +131,7 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
       },
     });
 
-    expect(deps.mergeTurnConversationRefs).toHaveBeenCalledWith(
-      {},
+    expect(deps.recordTurnConversationRefs).toHaveBeenCalledWith(
       [expect.objectContaining({ id: 'assistant-1', text: 'new', turnRef: 'turn-2' })],
       'conv-1',
     );
@@ -176,7 +156,6 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
       deps,
       id: 'missing',
       state: {
-        turnConversationRefs: {},
         workspaces: {
           'conv-1': workspace,
         },
@@ -196,7 +175,6 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
       ],
     };
     const state = {
-      turnConversationRefs: {},
       workspaces: {
         'conv-1': workspace,
       },
@@ -243,7 +221,6 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
     expect(buildUpdateStreamTargetMessageStateUpdate({
       deps,
       state: {
-        turnConversationRefs: {},
         workspaces: {
           'conv-1': workspace,
         },
@@ -263,7 +240,6 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
       messages: [message],
     };
     const state = {
-      turnConversationRefs: {},
       workspaces: {
         'conv-1': workspace,
       },
@@ -284,8 +260,7 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
     });
 
     expect(nextState.workspaces['conv-1'].messages).toEqual([message, nextMessage]);
-    expect(deps.mergeTurnConversationRefs).toHaveBeenLastCalledWith(
-      {},
+    expect(deps.recordTurnConversationRefs).toHaveBeenLastCalledWith(
       [message, nextMessage],
       'conv-1',
     );
