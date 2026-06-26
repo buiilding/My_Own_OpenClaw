@@ -3289,7 +3289,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('buildChatInterfacePresentationState');
     expect(chatStoreSource).not.toContain('selectStableReplayReadModel');
     expect(chatInterfaceSelectorRuntimeSource).toContain('buildChatInterfacePresentationState');
-    expect(chatInterfaceSelectorRuntimeSource).toContain('selectStableReplayReadModel');
+    expect(chatInterfaceSelectorRuntimeSource).not.toContain('selectStableReplayReadModel');
+    expect(chatInterfaceSelectorRuntimeSource).toContain('selectStableChatSendReadModel');
     expect(chatInterfaceSource).toContain('buildRevisionCheckoutCommand');
     expect(chatInterfaceSource).toContain('buildRevisionForkCommand');
     expect(chatInterfaceSource).not.toContain('setMessages(projection.messages');

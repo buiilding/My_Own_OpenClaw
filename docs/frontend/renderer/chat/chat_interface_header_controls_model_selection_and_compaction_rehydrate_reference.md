@@ -49,12 +49,12 @@ Derived flags:
 `selectChatInterfaceState(...)` calls
 `DesktopChatInterfacePresentationRuntime.buildChatInterfacePresentationState(...)`
 before `ChatInterface` renders. The component receives rendered thread rows,
-action gating, active revision id, and the replay read model as selected props.
-When a `ConversationView` exists, that runtime projects SDK display rows and
-keeps the fallback row list empty while building `replayReadModel`, so React
-does not choose between SDK view rows and raw store messages.
-Replay actions receive the selector-owned `replayReadModel` object instead of
-separate `ConversationView` and fallback-row props from `ChatInterface`.
+action gating, active revision id, and selected stop target props. When a
+`ConversationView` exists, that runtime projects SDK display rows so React does
+not choose between SDK view rows and raw store messages. Replay actions no
+longer receive a selector row model; they pass row ids/text through
+`desktopConversationReplayRuntime` and SDK commands resolve the authoritative
+display rows.
 
 ## Stop Query Contract
 

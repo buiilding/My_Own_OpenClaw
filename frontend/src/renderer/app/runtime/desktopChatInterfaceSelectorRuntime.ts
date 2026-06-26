@@ -35,7 +35,7 @@ type PendingTurnProjection = {
   turnRef: string;
 } | null;
 
-type ReplayReadModel = {
+type ChatSendReadModel = {
   conversationView: ConversationView | null;
   messages: ChatMessage[];
 };
@@ -59,68 +59,68 @@ const {
   resolveStopTurnTarget,
 } = DesktopStopTurnRuntime;
 
-const replayReadModelObjectCache = new WeakMap<object, WeakMap<object, ReplayReadModel>>();
-const replayReadModelPrimitiveCache = new Map<string, ReplayReadModel>();
+const chatSendReadModelObjectCache = new WeakMap<object, WeakMap<object, ChatSendReadModel>>();
+const chatSendReadModelPrimitiveCache = new Map<string, ChatSendReadModel>();
 const stopTurnTargetCache = new Map<string, StopTurnTarget>();
 
-function readReplayReadModelObjectCache(
+function readChatSendReadModelObjectCache(
   conversationView: ConversationView | null,
   messages: ChatMessage[],
-): ReplayReadModel | null {
+): ChatSendReadModel | null {
   if (!conversationView || typeof conversationView !== 'object') {
     return null;
   }
   const messagesKey = messages as unknown as object;
-  let messageCache = replayReadModelObjectCache.get(conversationView);
+  let messageCache = chatSendReadModelObjectCache.get(conversationView);
   if (!messageCache) {
-    messageCache = new WeakMap<object, ReplayReadModel>();
-    replayReadModelObjectCache.set(conversationView, messageCache);
+    messageCache = new WeakMap<object, ChatSendReadModel>();
+    chatSendReadModelObjectCache.set(conversationView, messageCache);
   }
   const cached = messageCache.get(messagesKey);
   if (cached) {
     return cached;
   }
-  const replayReadModel = {
+  const sendReadModel = {
     conversationView,
     messages,
   };
-  messageCache.set(messagesKey, replayReadModel);
-  return replayReadModel;
+  messageCache.set(messagesKey, sendReadModel);
+  return sendReadModel;
 }
 
-function selectStableReplayReadModel({
+function selectStableChatSendReadModel({
   conversationView = null,
   messages = [],
 }: {
   conversationView?: ConversationView | null;
   messages?: ChatMessage[];
-}): ReplayReadModel {
-  const replayMessages = Array.isArray(messages) ? messages : [];
-  const objectCachedReadModel = readReplayReadModelObjectCache(conversationView, replayMessages);
+}): ChatSendReadModel {
+  const fallbackMessages = Array.isArray(messages) ? messages : [];
+  const objectCachedReadModel = readChatSendReadModelObjectCache(conversationView, fallbackMessages);
   if (objectCachedReadModel) {
     return objectCachedReadModel;
   }
   const primitiveKey = [
     conversationView ? 'view' : 'none',
-    replayMessages.length,
+    fallbackMessages.length,
   ].join('\u0001');
-  const cached = replayReadModelPrimitiveCache.get(primitiveKey);
+  const cached = chatSendReadModelPrimitiveCache.get(primitiveKey);
   if (
     cached
     && cached.conversationView === conversationView
-    && cached.messages === replayMessages
+    && cached.messages === fallbackMessages
   ) {
     return cached;
   }
-  if (replayReadModelPrimitiveCache.size > 64) {
-    replayReadModelPrimitiveCache.clear();
+  if (chatSendReadModelPrimitiveCache.size > 64) {
+    chatSendReadModelPrimitiveCache.clear();
   }
-  const replayReadModel = {
+  const sendReadModel = {
     conversationView,
-    messages: replayMessages,
+    messages: fallbackMessages,
   };
-  replayReadModelPrimitiveCache.set(primitiveKey, replayReadModel);
-  return replayReadModel;
+  chatSendReadModelPrimitiveCache.set(primitiveKey, sendReadModel);
+  return sendReadModel;
 }
 
 function buildStopTurnTargetSignature(stopTurnTarget: StopTurnTarget): string {
@@ -194,8 +194,8 @@ function buildChatSendReadModelSelectorState({
   activeWorkspace,
 }: {
   activeWorkspace: DesktopChatWorkspaceProjection;
-}): ReplayReadModel {
-  return selectStableReplayReadModel({
+}): ChatSendReadModel {
+  return selectStableChatSendReadModel({
     conversationView: activeWorkspace.conversationView ?? null,
     messages: activeWorkspace.messages,
   });
