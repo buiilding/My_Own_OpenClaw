@@ -18,6 +18,9 @@ const TYPING_FRAME_HEIGHT = (
   DesktopResponseOverlayLayoutRuntime.getResponseOverlayAwaitingFrameHeight()
 );
 const {
+  buildResponseOverlayWindowLifecycleTraceValues,
+  buildResponseOverlayWindowSizeTraceValues,
+  buildResponseOverlayWindowSizeValues,
   createResponseOverlayWindowGuardSnapshot,
   resolveResponseOverlayWindowGuardSnapshot,
   resolveResponseOverlayWindowSizeIdentity,
@@ -69,23 +72,20 @@ export function useResponseOverlayWindowSync({
       }
       lastFrameRef.current = createHiddenFrameState();
       try {
-        logRendererResponseSurfaceSizeTrace({
+        logRendererResponseSurfaceSizeTrace(buildResponseOverlayWindowSizeTraceValues({
           action: 'hide-requested',
-          conversationRef: sizeIdentity.conversationRef,
           visible: false,
           layoutMode: DesktopResponseOverlayLayoutRuntime.getHiddenResponseOverlayLayoutMode(),
-          turnRef: sizeIdentity.turnRef,
-          staleGuardRef: sizeIdentity.staleGuardRef,
+          sizeIdentity,
           width: 0,
           height: 0,
-        });
-        await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({
+        }));
+        await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues(buildResponseOverlayWindowSizeValues({
           visible: false,
           width: 0,
           height: 0,
-          turnRef: sizeIdentity.turnRef,
-          staleGuardRef: sizeIdentity.staleGuardRef,
-        });
+          sizeIdentity,
+        }));
       } catch (error) {
         console.warn('[MinimalResponseOverlay] Failed to hide response overlay:', error);
       }
@@ -125,27 +125,24 @@ export function useResponseOverlayWindowSync({
     };
 
     try {
-      logRendererResponseSurfaceSizeTrace({
+      logRendererResponseSurfaceSizeTrace(buildResponseOverlayWindowSizeTraceValues({
         action: 'show-or-resize-requested',
-        conversationRef: sizeIdentity.conversationRef,
         visible: true,
         layoutMode,
         responseVisible,
         thinkingText,
         compactHover: Boolean(compactHover),
-        turnRef: sizeIdentity.turnRef,
-        staleGuardRef: sizeIdentity.staleGuardRef,
+        sizeIdentity,
         width,
         height,
-      });
-      await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({
+      }));
+      await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues(buildResponseOverlayWindowSizeValues({
         visible: true,
         width,
         height,
         compactHover: Boolean(compactHover),
-        turnRef: sizeIdentity.turnRef,
-        staleGuardRef: sizeIdentity.staleGuardRef,
-      });
+        sizeIdentity,
+      }));
     } catch (error) {
       console.warn('[MinimalResponseOverlay] Failed to resize response overlay:', error);
     }
@@ -225,19 +222,15 @@ export function useResponseOverlayWindowSync({
   ]);
 
   useEffect(() => {
-    logRendererResponseOverlayLifecycleTrace({
+    logRendererResponseOverlayLifecycleTrace(buildResponseOverlayWindowLifecycleTraceValues({
       action: 'mount',
-      conversationRef: overlayWindowGuardRef.current.conversationRef,
-      turnRef: overlayWindowGuardRef.current.turnRef,
-      staleGuardRef: overlayWindowGuardRef.current.staleGuardRef,
-    });
+      guardSnapshot: overlayWindowGuardRef.current,
+    }));
     return () => {
-      logRendererResponseOverlayLifecycleTrace({
+      logRendererResponseOverlayLifecycleTrace(buildResponseOverlayWindowLifecycleTraceValues({
         action: 'unmount',
-        conversationRef: overlayWindowGuardRef.current.conversationRef,
-        turnRef: overlayWindowGuardRef.current.turnRef,
-        staleGuardRef: overlayWindowGuardRef.current.staleGuardRef,
-      });
+        guardSnapshot: overlayWindowGuardRef.current,
+      }));
       const report = reportOverlaySizeRef.current;
       if (typeof report !== 'function') {
         return;

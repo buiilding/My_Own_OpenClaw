@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: move response-overlay window size and lifecycle trace value
+  construction into `DesktopResponseOverlayViewRuntime`, so
+  `useResponseOverlayWindowSync` no longer unpacks turn or stale-guard identity
+  fields for responsebox IPC and trace payloads. No migration required.
 - frontend/revisions: move checkout-result active revision marking into
   `DesktopChatRevisionActionRuntime.markActiveRevisionFromCheckoutResult`, so
   `ChatInterface` no longer reads checkout result revision ids directly. No

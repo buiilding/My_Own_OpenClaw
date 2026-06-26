@@ -69,6 +69,23 @@ type ResponseOverlayWindowGuardSnapshotInput = {
   previousSnapshot?: Partial<ResponseOverlayWindowGuardSnapshot> | null;
 };
 
+type ResponseOverlayWindowSizeRuntimeInput = {
+  action: 'hide-requested' | 'show-or-resize-requested';
+  compactHover?: boolean;
+  height?: number;
+  layoutMode?: string | null;
+  responseVisible?: boolean;
+  sizeIdentity?: Partial<ResponseOverlayWindowGuardSnapshot> | null;
+  thinkingText?: string | null;
+  visible: boolean;
+  width?: number;
+};
+
+type ResponseOverlayWindowLifecycleRuntimeInput = {
+  action: 'mount' | 'unmount';
+  guardSnapshot?: Partial<ResponseOverlayWindowGuardSnapshot> | null;
+};
+
 type ResponseOverlayTraceSummaryInput = {
   awaitingVisible?: boolean;
   currentTurnPhase?: string | null;
@@ -375,6 +392,71 @@ function resolveResponseOverlayWindowSizeIdentity({
   };
 }
 
+function buildResponseOverlayWindowSizeTraceValues({
+  action,
+  compactHover = false,
+  height = 0,
+  layoutMode = null,
+  responseVisible = false,
+  sizeIdentity = null,
+  thinkingText = null,
+  visible,
+  width = 0,
+}: ResponseOverlayWindowSizeRuntimeInput) {
+  return {
+    action,
+    conversationRef: normalizeString(sizeIdentity?.conversationRef),
+    visible: visible === true,
+    layoutMode,
+    responseVisible,
+    thinkingText,
+    compactHover: Boolean(compactHover),
+    turnRef: normalizeString(sizeIdentity?.turnRef),
+    staleGuardRef: normalizeString(sizeIdentity?.staleGuardRef),
+    width,
+    height,
+  };
+}
+
+function buildResponseOverlayWindowSizeValues({
+  compactHover = false,
+  height = 0,
+  sizeIdentity = null,
+  visible,
+  width = 0,
+}: Omit<ResponseOverlayWindowSizeRuntimeInput, 'action' | 'layoutMode' | 'responseVisible' | 'thinkingText'>) {
+  const values: {
+    visible: boolean;
+    width: number;
+    height: number;
+    compactHover?: boolean;
+    turnRef: string | null;
+    staleGuardRef: string | null;
+  } = {
+    visible: visible === true,
+    width,
+    height,
+    turnRef: normalizeString(sizeIdentity?.turnRef),
+    staleGuardRef: normalizeString(sizeIdentity?.staleGuardRef),
+  };
+  if (visible === true) {
+    values.compactHover = Boolean(compactHover);
+  }
+  return values;
+}
+
+function buildResponseOverlayWindowLifecycleTraceValues({
+  action,
+  guardSnapshot = null,
+}: ResponseOverlayWindowLifecycleRuntimeInput) {
+  return {
+    action,
+    conversationRef: normalizeString(guardSnapshot?.conversationRef),
+    turnRef: normalizeString(guardSnapshot?.turnRef),
+    staleGuardRef: normalizeString(guardSnapshot?.staleGuardRef),
+  };
+}
+
 function resolveResponseOverlayThinkingText({
   responseOverlayEntries,
   sdkLiveTurn,
@@ -607,6 +689,9 @@ export const DesktopResponseOverlayViewRuntime = Object.freeze({
   buildResponseOverlayEntrySignature,
   buildResponseOverlayDismissalKey,
   buildResponseOverlayTraceSummary,
+  buildResponseOverlayWindowLifecycleTraceValues,
+  buildResponseOverlayWindowSizeTraceValues,
+  buildResponseOverlayWindowSizeValues,
   createResponseOverlayWindowGuardSnapshot,
   isResponseOverlayEntryDismissedInState,
   resolveDismissedResponseOverlayEntryId,

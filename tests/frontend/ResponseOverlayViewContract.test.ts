@@ -10,6 +10,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
     buildResponseOverlayEntrySignature,
     buildResponseOverlayDismissalKey,
     buildResponseOverlayTraceSummary,
+    buildResponseOverlayWindowLifecycleTraceValues,
+    buildResponseOverlayWindowSizeTraceValues,
+    buildResponseOverlayWindowSizeValues,
     createResponseOverlayWindowGuardSnapshot,
     isResponseOverlayEntryDismissedInState,
     resolveDismissedResponseOverlayEntryId,
@@ -312,6 +315,85 @@ describe('desktopResponseOverlayViewRuntime', () => {
       conversationRef: 'conv-current',
       turnRef: 'turn-current',
       staleGuardRef: 'turn-current',
+    });
+  });
+
+  test('builds response overlay window trace and IPC values from runtime identity', () => {
+    const sizeIdentity = resolveResponseOverlayWindowSizeIdentity({
+      overlayIntent: {
+        conversationRef: ' conv-current ',
+        turnRef: ' turn-current ',
+        staleGuardRef: ' guard-current ',
+      },
+    });
+
+    expect(buildResponseOverlayWindowSizeTraceValues({
+      action: 'show-or-resize-requested',
+      visible: true,
+      layoutMode: 'compact-hover',
+      responseVisible: true,
+      thinkingText: 'Thinking',
+      compactHover: true,
+      sizeIdentity,
+      width: 320,
+      height: 48,
+    })).toEqual({
+      action: 'show-or-resize-requested',
+      conversationRef: 'conv-current',
+      visible: true,
+      layoutMode: 'compact-hover',
+      responseVisible: true,
+      thinkingText: 'Thinking',
+      compactHover: true,
+      turnRef: 'turn-current',
+      staleGuardRef: 'guard-current',
+      width: 320,
+      height: 48,
+    });
+
+    expect(buildResponseOverlayWindowSizeValues({
+      visible: true,
+      compactHover: true,
+      sizeIdentity,
+      width: 320,
+      height: 48,
+    })).toEqual({
+      visible: true,
+      width: 320,
+      height: 48,
+      compactHover: true,
+      turnRef: 'turn-current',
+      staleGuardRef: 'guard-current',
+    });
+
+    expect(buildResponseOverlayWindowSizeValues({
+      visible: false,
+      compactHover: true,
+      sizeIdentity,
+      width: 0,
+      height: 0,
+    })).toEqual({
+      visible: false,
+      width: 0,
+      height: 0,
+      turnRef: 'turn-current',
+      staleGuardRef: 'guard-current',
+    });
+  });
+
+  test('builds response overlay window lifecycle trace values from runtime guard snapshots', () => {
+    expect(buildResponseOverlayWindowLifecycleTraceValues({
+      action: 'mount',
+      guardSnapshot: {
+        conversationRef: ' conv-current ',
+        turnRef: ' turn-current ',
+        staleGuardRef: ' guard-current ',
+      },
+    })).toEqual({
+      action: 'mount',
+      conversationRef: 'conv-current',
+      turnRef: 'turn-current',
+      staleGuardRef: 'guard-current',
     });
   });
 

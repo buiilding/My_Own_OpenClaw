@@ -185,11 +185,15 @@ Contract ownership:
 - `DesktopResponseOverlayViewRuntime.resolveResponseOverlayWindowGuardSnapshot(...)`
   and `resolveResponseOverlayWindowSizeIdentity(...)` own response-window
   conversation, turn, and stale-guard fallback resolution from SDK overlay
-  intent plus the last valid guard snapshot.
+  intent plus the last valid guard snapshot. The same runtime builds
+  response-window size trace values, responsebox size values, and lifecycle
+  trace values from that identity, so the hook does not unpack turn or guard
+  fields itself.
 - `useResponseOverlayWindowSync(...)` owns response-window sizing policy and
-  visibility re-report behavior, delegating responsebox size payload assembly,
-  IPC, and visibility payload normalization/boolean subscription projection to
-  `DesktopResponseOverlayRuntimeClient`.
+  visibility re-report behavior. It passes value-level visibility, layout,
+  frame size, and runtime identity into `DesktopResponseOverlayViewRuntime`,
+  then delegates IPC and visibility payload normalization/boolean subscription
+  projection to `DesktopResponseOverlayRuntimeClient`.
 - `DesktopResponseOverlayInteractionRuntime` owns the browser scheduling behind
   response-window visibility re-reporting and visible size updates:
   animation-frame scheduling, retry timer scheduling, `ResizeObserver`, and
@@ -197,14 +201,15 @@ Contract ownership:
   and refs.
 - `DesktopRendererTraceRuntime` owns response-surface stream-trace and
   live-surface size-report payload field shaping.
-  `useResponseOverlayWindowSync(...)` reports value-level sizing and turn
-  inputs to `logRendererResponseSurfaceSizeTrace(...)`; the trace runtime maps
-  those values to the existing stream diagnostic fields and live
+  `useResponseOverlayWindowSync(...)` reports
+  `DesktopResponseOverlayViewRuntime`-built sizing trace values to
+  `logRendererResponseSurfaceSizeTrace(...)`; the trace runtime maps those
+  values to the existing stream diagnostic fields and live
   `response_overlay.renderer.size_report` event fields.
 - `DesktopRendererTraceRuntime` owns response overlay mount/unmount
   live-surface event labels and payload shaping through
   `logRendererResponseOverlayLifecycleTrace(...)`; the window-sync hook reports
-  only turn, guard, conversation, and lifecycle action values.
+  `DesktopResponseOverlayViewRuntime`-built lifecycle trace values.
 - `DesktopRendererTraceRuntime` owns response overlay hit-test and
   rendered-typing live-surface event labels, reason strings, and payload field
   shaping through `logRendererResponseOverlayHitTestTrace(...)` and
@@ -292,7 +297,8 @@ Response overlay size re-report and resize scheduling use
 and `DesktopResponseOverlayInteractionRuntime.startResponseOverlaySizeUpdateSync(...)`.
 `useResponseOverlayWindowSync(...)` remains the owner for hidden/shown sizing
 policy and responsebox size IPC calls; `DesktopResponseOverlayViewRuntime`
-owns turn guard metadata fallback resolution before those calls.
+owns turn guard metadata fallback resolution and identity-bearing size value
+assembly before those calls.
 
 Layout-specific sizing:
 

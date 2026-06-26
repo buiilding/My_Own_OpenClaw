@@ -3177,7 +3177,16 @@ describe('renderer chat runtime boundary', () => {
     expect(syncSource).not.toContain('overlayIntent?.conversationRef');
     expect(syncSource).not.toContain('overlayIntent?.turnRef');
     expect(syncSource).not.toContain('overlayIntent?.staleGuardRef');
+    expect(syncSource).not.toContain('sizeIdentity.conversationRef');
+    expect(syncSource).not.toContain('sizeIdentity.turnRef');
+    expect(syncSource).not.toContain('sizeIdentity.staleGuardRef');
+    expect(syncSource).not.toContain('overlayWindowGuardRef.current.conversationRef');
+    expect(syncSource).not.toContain('overlayWindowGuardRef.current.turnRef');
+    expect(syncSource).not.toContain('overlayWindowGuardRef.current.staleGuardRef');
     expect(syncSource).not.toContain('lastOverlayGuardRef');
+    expect(syncSource).toContain('buildResponseOverlayWindowLifecycleTraceValues');
+    expect(syncSource).toContain('buildResponseOverlayWindowSizeTraceValues');
+    expect(syncSource).toContain('buildResponseOverlayWindowSizeValues');
     expect(syncSource).toContain('resolveResponseOverlayWindowGuardSnapshot');
     expect(syncSource).toContain('resolveResponseOverlayWindowSizeIdentity');
     expect(syncSource).not.toContain('payload?.visible');
