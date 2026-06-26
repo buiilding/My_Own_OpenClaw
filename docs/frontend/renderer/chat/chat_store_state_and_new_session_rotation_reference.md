@@ -194,7 +194,7 @@ feature store internals.
 
 `selectChatInterfaceState` exposes active-workspace projection:
 
-- `messages`, `thinkingStatus`, `tokenCounts`
+- `thinkingStatus`, `tokenCounts`
 - `renderedMessages`, `canEditMessages`, `canRetryMessages`, and
   `activeRevisionId` from
   `DesktopChatInterfacePresentationRuntime`
@@ -203,9 +203,13 @@ feature store internals.
 - `stopTurnTarget` from `DesktopStopTurnRuntime.resolveStopTurnTarget(...)`,
   selected from SDK `ConversationView` first and the renderer pending bridge
   second
-- raw `messages`, `currentTurnProjection`, `conversationView`, and
-  `pendingTurn` as no-view send/replay bridge inputs for hooks that still need
-  them during migration
+- `chatSurfaceState`, a nested selected surface read model for
+  `useChatSurfaceController(...)`
+
+`selectChatSendReadModel` is the send-only read model for
+`useChatMessageSender(...)`. It exposes SDK `ConversationView` plus raw
+`messages` for the no-view first-message fallback without adding those raw
+fields back to the React chat-interface selector.
 
 Minimal chat pill and response overlay state now route through the live-turn
 presentation/view-model helpers instead of a separate chat-box selector. The

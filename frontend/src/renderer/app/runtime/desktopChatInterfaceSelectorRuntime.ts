@@ -171,8 +171,14 @@ function buildChatInterfaceSelectorState({
     replayFallbackMessages,
     ...chatPresentationState
   } = presentationState;
+  const chatSurfaceState = projectDesktopChatSurfaceState({
+    activeWorkspace,
+  });
   return {
-    ...interfaceState,
+    thinkingStatus: interfaceState.thinkingStatus,
+    thinkingSourceEventType: interfaceState.thinkingSourceEventType,
+    compactionDebugInfo: interfaceState.compactionDebugInfo,
+    tokenCounts: interfaceState.tokenCounts,
     ...chatPresentationState,
     replayReadModel: selectStableReplayReadModel({
       conversationView,
@@ -183,10 +189,19 @@ function buildChatInterfaceSelectorState({
       conversationView,
       pendingTurn,
     }),
-    chatSurfaceState: projectDesktopChatSurfaceState({
-      activeWorkspace,
-    }),
+    chatSurfaceState,
   };
+}
+
+function buildChatSendReadModelSelectorState({
+  activeWorkspace,
+}: {
+  activeWorkspace: DesktopChatWorkspaceProjection;
+}): ReplayReadModel {
+  return selectStableReplayReadModel({
+    conversationView: activeWorkspace.conversationView ?? null,
+    messages: activeWorkspace.messages,
+  });
 }
 
 function buildChatInterfaceSurfaceSelectorState({
@@ -225,5 +240,6 @@ function buildLiveTurnSurfaceSelectorState({
 export const DesktopChatInterfaceSelectorRuntime = Object.freeze({
   buildChatInterfaceSelectorState,
   buildChatInterfaceSurfaceSelectorState,
+  buildChatSendReadModelSelectorState,
   buildLiveTurnSurfaceSelectorState,
 });

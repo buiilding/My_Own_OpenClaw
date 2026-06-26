@@ -234,13 +234,9 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
       pendingTurn: state.pendingTurn,
     });
     return {
-      messages: state.messages,
       thinkingStatus: state.thinkingStatus,
       thinkingSourceEventType: state.thinkingSourceEventType,
       compactionDebugInfo: state.compactionDebugInfo,
-      currentTurnProjection: chatSurfaceState.currentTurnProjection,
-      conversationView: state.conversationView,
-      pendingTurn: state.pendingTurn,
       renderedMessages: presentationState.renderedMessages,
       canEditMessages: presentationState.canEditMessages,
       canRetryMessages: presentationState.canRetryMessages,

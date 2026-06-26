@@ -6,6 +6,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: split the send-history read model into
+  `selectChatSendReadModel(...)` so `useChatMessageSender` no longer depends on
+  the full `selectChatInterfaceState(...)` UI selector. No migration required.
+- frontend/chat: remove raw `messages`, `currentTurnProjection`,
+  `conversationView`, and `pendingTurn` from `selectChatInterfaceState(...)`
+  output; ChatInterface now receives rendered rows, action state, replay read
+  model, stop target, and nested surface state only. No migration required.
 - frontend/replay: keep `replayFallbackMessages` internal to
   `DesktopChatInterfaceSelectorRuntime` when building `replayReadModel` so
   `selectChatInterfaceState(...)` no longer exposes fallback rows to React. No

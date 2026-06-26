@@ -89,6 +89,7 @@ const {
 const {
   buildChatInterfaceSelectorState,
   buildChatInterfaceSurfaceSelectorState,
+  buildChatSendReadModelSelectorState,
   buildLiveTurnSurfaceSelectorState,
 } = DesktopChatInterfaceSelectorRuntime;
 const {
@@ -308,6 +309,12 @@ interface ChatState {
 export function selectChatInterfaceState(state: ChatState) {
   return buildChatInterfaceSelectorState({
     activeConversationRef: state.activeConversationRef,
+    activeWorkspace: selectActiveWorkspaceState(state),
+  });
+}
+
+export function selectChatSendReadModel(state: ChatState) {
+  return buildChatSendReadModelSelectorState({
     activeWorkspace: selectActiveWorkspaceState(state),
   });
 }

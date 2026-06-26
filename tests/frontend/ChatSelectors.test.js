@@ -5,6 +5,7 @@
 import {
   selectChatInterfaceState,
   selectChatInterfaceSurfaceState,
+  selectChatSendReadModel,
   selectLiveTurnSurfaceState,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { DesktopChatSurfaceSelectorRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime';
@@ -135,14 +136,10 @@ describe('chatSelectors', () => {
     };
 
     expect(selectChatInterfaceState(state)).toEqual({
-      messages: state.messages,
       thinkingStatus: 'thinking',
       thinkingSourceEventType: null,
       compactionDebugInfo: null,
       tokenCounts: { total_tokens: 42 },
-      currentTurnProjection: null,
-      conversationView: null,
-      pendingTurn: null,
       activeRevisionId: null,
       canEditMessages: true,
       canRetryMessages: true,
@@ -165,6 +162,10 @@ describe('chatSelectors', () => {
       },
     });
     expect(selectChatInterfaceState(state)).not.toHaveProperty('streamTracking');
+    expect(selectChatInterfaceState(state)).not.toHaveProperty('messages');
+    expect(selectChatInterfaceState(state)).not.toHaveProperty('currentTurnProjection');
+    expect(selectChatInterfaceState(state)).not.toHaveProperty('conversationView');
+    expect(selectChatInterfaceState(state)).not.toHaveProperty('pendingTurn');
     expect(selectChatInterfaceSurfaceState(state)).toEqual({
       messages: state.messages,
       currentTurnProjection: null,
@@ -188,7 +189,7 @@ describe('chatSelectors', () => {
     const chatInterface = selectChatInterfaceState(state);
     const nextChatInterface = selectChatInterfaceState(state);
 
-    expect(chatInterface.messages).toBe(messages);
+    expect(chatInterface).not.toHaveProperty('messages');
     expect(chatInterface.renderedMessages).toBe(messages);
     expect(chatInterface).not.toHaveProperty('replayFallbackMessages');
     expect(chatInterface.replayReadModel.messages).toBe(messages);
@@ -221,10 +222,11 @@ describe('chatSelectors', () => {
       streamTracking: { phase: 'streaming' },
     });
 
-    expect(selected.messages).toBe(messages);
+    expect(selected).not.toHaveProperty('messages');
+    expect(selected.renderedMessages).toEqual(expect.arrayContaining(messages));
   });
 
-  test('keeps dashboard message references stable without projection cloning', () => {
+  test('keeps dashboard read models stable without exposing raw messages', () => {
     const messages = [
       { id: 'user-1', text: 'question', sender: 'user', turnRef: 'turn-1' },
       { id: 'assistant-1', text: 'stale partial', sender: 'assistant', type: 'llm-text', turnRef: 'turn-1' },
@@ -250,7 +252,10 @@ describe('chatSelectors', () => {
     const first = selectChatInterfaceState(state);
     const second = selectChatInterfaceState(state);
 
-    expect(first.messages).toBe(second.messages);
+    expect(first).not.toHaveProperty('messages');
+    expect(first.replayReadModel.messages).toBe(messages);
+    expect(first.replayReadModel).toBe(second.replayReadModel);
+    expect(first.renderedMessages).toEqual(second.renderedMessages);
   });
 
   test('does not dedupe dashboard rows in the selector', () => {
@@ -280,7 +285,32 @@ describe('chatSelectors', () => {
       streamTracking: { phase: 'complete' },
     });
 
-    expect(selected.messages).toBe(messages);
+    expect(selected).not.toHaveProperty('messages');
+    expect(selected.renderedMessages).toBe(messages);
+  });
+
+  test('selects send read model separately from chat interface presentation state', () => {
+    const messages = [{ id: 'user-1', text: 'question', sender: 'user' }];
+    const conversationView = {
+      conversationRef: 'conv-send',
+      displayRows: [{ id: 'row-user', role: 'user' }],
+    };
+    const state = {
+      messages,
+      conversationView,
+      currentTurnProjection: { turnRef: 'raw-turn' },
+      pendingTurn: { turnRef: 'pending-turn' },
+      thinkingStatus: null,
+    };
+
+    expect(selectChatSendReadModel(state)).toEqual({
+      conversationView,
+      messages,
+    });
+    expect(selectChatInterfaceState(state)).not.toHaveProperty('messages');
+    expect(selectChatInterfaceState(state)).not.toHaveProperty('conversationView');
+    expect(selectChatInterfaceState(state)).not.toHaveProperty('currentTurnProjection');
+    expect(selectChatInterfaceState(state)).not.toHaveProperty('pendingTurn');
   });
 
   test('uses only active workspace raw current turn for no-view minimal surfaces', () => {
@@ -402,9 +432,9 @@ describe('chatSelectors', () => {
       pendingTurn: null,
     });
 
-    expect(selected.conversationView).toBe(view);
-    expect(selected.currentTurnProjection).toBeNull();
-    expect(selected.messages).toEqual([{ id: 'display-user-1', text: 'question', sender: 'user' }]);
+    expect(selected).not.toHaveProperty('conversationView');
+    expect(selected).not.toHaveProperty('currentTurnProjection');
+    expect(selected).not.toHaveProperty('messages');
     expect(selected.renderedMessages).toEqual([
       expect.objectContaining({
         id: 'entry-view',
@@ -438,13 +468,10 @@ describe('chatSelectors', () => {
     });
 
     expect(selected).toEqual(expect.objectContaining({
-      messages: [],
       thinkingStatus: null,
       thinkingSourceEventType: null,
       compactionDebugInfo: null,
       tokenCounts: null,
-      currentTurnProjection: null,
-      pendingTurn: null,
       activeRevisionId: null,
       canEditMessages: true,
       canRetryMessages: true,
@@ -460,6 +487,9 @@ describe('chatSelectors', () => {
         canStop: false,
       },
     }));
+    expect(selected).not.toHaveProperty('messages');
+    expect(selected).not.toHaveProperty('currentTurnProjection');
+    expect(selected).not.toHaveProperty('conversationView');
     expect(selected).not.toHaveProperty('streamTracking');
   });
 

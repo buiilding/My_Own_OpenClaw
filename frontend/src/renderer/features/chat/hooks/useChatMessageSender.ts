@@ -5,7 +5,7 @@
 
 import { useCallback, useMemo } from 'react';
 import {
-  selectChatInterfaceState,
+  selectChatSendReadModel,
   useChatStore,
 } from '../stores/chatStore';
 import { DesktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
@@ -32,7 +32,7 @@ const {
 } = DesktopChatSendPreparationRuntime;
 
 function getChatSendReadModel() {
-  return selectChatInterfaceState(useChatStore.getState());
+  return selectChatSendReadModel(useChatStore.getState());
 }
 
 type ChatMessageSenderOptions = {

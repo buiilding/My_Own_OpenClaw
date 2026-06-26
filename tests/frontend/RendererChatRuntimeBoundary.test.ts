@@ -2170,8 +2170,9 @@ describe('renderer chat runtime boundary', () => {
 
     expect(senderHookSource).toContain('desktopChatSendPayloadRuntime');
     expect(senderHookSource).toContain('DesktopChatSendPreparationRuntime');
-    expect(senderHookSource).toContain('selectChatInterfaceState');
+    expect(senderHookSource).toContain('selectChatSendReadModel');
     expect(senderHookSource).toContain('getSendReadModel: getChatSendReadModel');
+    expect(senderHookSource).not.toContain('selectChatInterfaceState');
     expect(senderHookSource).not.toContain('getState().conversationView');
     expect(senderHookSource).not.toContain('getState().messages');
     expect(sendPreparationSource).toContain('desktopChatSendPayloadRuntime');
