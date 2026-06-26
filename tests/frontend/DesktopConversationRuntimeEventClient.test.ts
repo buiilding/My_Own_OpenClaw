@@ -48,16 +48,6 @@ const currentTurn = {
   },
 };
 
-const displayRow = {
-  id: 'row-1',
-  conversationRef: ' conv-1 ',
-  turnRef: 'turn-1',
-  index: 0,
-  role: 'assistant',
-  type: 'assistant_message',
-  content: 'Hello',
-};
-
 describe('DesktopConversationRuntimeEventClient', () => {
   beforeEach(() => {
     mockOn.mockClear();
@@ -98,38 +88,10 @@ describe('DesktopConversationRuntimeEventClient', () => {
     expect(mockChannelListeners.has('windie:current-turn')).toBe(false);
   });
 
-  test('display-row subscriptions emit normalized events', () => {
+  test('does not expose display-row projection subscriptions', () => {
     expect(DesktopConversationRuntimeEventModule).not.toHaveProperty('normalizeDisplayRowsProjectionEvent');
-    const events: unknown[] = [];
-    const unsubscribe = DesktopConversationRuntimeEventClient.onDisplayRowsProjection((event) => {
-      events.push(event);
-    });
-
-    mockChannelListeners.get('windie:rows')?.([displayRow]);
-    mockChannelListeners.get('windie:rows')?.({
-      conversationRef: ' conv-empty ',
-      rows: [],
-    });
-    mockChannelListeners.get('windie:rows')?.([{ id: 'row-1' }]);
-
-    expect(mockOn).toHaveBeenCalledWith('windie:rows', expect.any(Function));
-    expect(events).toEqual([
-      {
-        rows: [displayRow],
-        conversationRef: 'conv-1',
-      },
-      {
-        rows: [],
-        conversationRef: 'conv-empty',
-      },
-      {
-        rows: [],
-        conversationRef: null,
-      },
-    ]);
-
-    unsubscribe?.();
-    expect(mockChannelListeners.has('windie:rows')).toBe(false);
+    expect(DesktopConversationRuntimeEventClient).not.toHaveProperty('onDisplayRows');
+    expect(DesktopConversationRuntimeEventClient).not.toHaveProperty('onDisplayRowsProjection');
   });
 
   test('pending-turn subscriptions emit normalized broadcast actions', () => {

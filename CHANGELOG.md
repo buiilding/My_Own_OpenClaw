@@ -57,6 +57,10 @@ All notable changes to WindieOS will be documented in this file.
   to `windie:rows` for normal chat rendering; display rows arrive through SDK
   `ConversationView`, including pending-send bridge handoff. No migration
   required.
+- frontend/runtime: remove the unused renderer display-row projection
+  subscription facade from `DesktopConversationRuntimeEventClient`; normal
+  chat display rows are consumed through SDK `ConversationView`. No migration
+  required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own

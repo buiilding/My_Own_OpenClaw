@@ -1041,11 +1041,12 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSource).not.toContain('if (!shouldApplyMessages)');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN');
-    expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.ROWS');
     expect(eventClientSource).toContain('function normalizeCurrentTurnProjectionEvent');
-    expect(eventClientSource).toContain('function normalizeDisplayRowsProjectionEvent');
     expect(eventClientSource).not.toContain('export function normalizeCurrentTurnProjectionEvent');
+    expect(eventClientSource).not.toContain('DESKTOP_RUNTIME_ON_CHANNELS.ROWS');
+    expect(eventClientSource).not.toContain('function normalizeDisplayRowsProjectionEvent');
     expect(eventClientSource).not.toContain('export function normalizeDisplayRowsProjectionEvent');
+    expect(eventClientSource).not.toContain('onDisplayRows');
     expect(displayProjectionSource).toContain('export const DesktopConversationDisplayProjection = Object.freeze');
     expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).toContain('pendingBridgeUserMessages');
