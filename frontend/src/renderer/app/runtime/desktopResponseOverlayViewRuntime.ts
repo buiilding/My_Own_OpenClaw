@@ -120,11 +120,11 @@ function resolveResponseOverlaySurfaceState({
   const useLocalPendingTurn = liveTurnPresentationInput.useLocalPendingTurn;
   const responseOverlayEntries = resolveResponseOverlayEntries({
     conversationView,
-    currentTurnProjection: sdkLiveTurn,
+    sdkLiveTurn,
     liveTurnPresentationInput,
   });
   const responseOverlayDismissalTarget = resolveResponseOverlayDismissalTarget({
-    currentTurnProjection: sdkLiveTurn,
+    sdkLiveTurn,
     overlayIntent: liveTurnPresentationInput.overlayIntent,
     responseOverlayEntries,
     useSdkLiveTurnPresentation,
@@ -150,18 +150,18 @@ function resolveResponseOverlaySurfaceState({
   };
 }
 
-function normalizeProjectedCurrentTurnEntries(currentTurnProjection: unknown): ResponseOverlayEntryLike[] {
-  return buildCurrentTurnMessagesFromProjection(currentTurnProjection)
+function normalizeProjectedCurrentTurnEntries(sdkLiveTurn: unknown): ResponseOverlayEntryLike[] {
+  return buildCurrentTurnMessagesFromProjection(sdkLiveTurn)
     .filter(isVisibleResponseOverlayMessage);
 }
 
 function resolveResponseOverlayEntries({
   conversationView = null,
-  currentTurnProjection = null,
+  sdkLiveTurn = null,
   liveTurnPresentationInput = {},
 }: {
   conversationView?: unknown;
-  currentTurnProjection?: unknown;
+  sdkLiveTurn?: unknown;
   liveTurnPresentationInput?: {
     source?: string | null;
     useLocalPendingTurn?: boolean;
@@ -176,13 +176,13 @@ function resolveResponseOverlayEntries({
       .filter(isVisibleResponseOverlayMessage);
   }
   if (liveTurnPresentationInput.useSdkLiveTurnPresentation) {
-    const presentationMessages = buildCurrentTurnMessagesFromPresentation(currentTurnProjection)
+    const presentationMessages = buildCurrentTurnMessagesFromPresentation(sdkLiveTurn)
       .filter(isVisibleResponseOverlayMessage);
     return presentationMessages.length > 0
       ? presentationMessages
-      : normalizeProjectedCurrentTurnEntries(currentTurnProjection);
+      : normalizeProjectedCurrentTurnEntries(sdkLiveTurn);
   }
-  return normalizeProjectedCurrentTurnEntries(currentTurnProjection);
+  return normalizeProjectedCurrentTurnEntries(sdkLiveTurn);
 }
 
 function resolveResponseOverlayViewContract({
@@ -232,14 +232,14 @@ function resolveResponseOverlayViewContract({
 
 function resolveResponseOverlayPresentationState({
   currentTurnPresentationState,
-  currentTurnProjection = null,
+  sdkLiveTurn = null,
   dismissedResponseId = null,
   liveTurnPresentationInput = {},
   responseOverlayEntries = [],
   visibleTurnLifecycle = null,
 }: {
   currentTurnPresentationState: Record<string, unknown>;
-  currentTurnProjection?: unknown;
+  sdkLiveTurn?: unknown;
   dismissedResponseId?: string | null;
   liveTurnPresentationInput?: {
     overlayIntent?: unknown;
@@ -257,7 +257,7 @@ function resolveResponseOverlayPresentationState({
     && liveTurnPresentationInput.source !== 'conversation-view'
   ) {
     presentationState = resolveSdkResponseOverlayPresentationState({
-      currentTurnProjection,
+      sdkLiveTurn,
       responseOverlayEntries,
       dismissedResponseId,
       includeOverlayIntent: true,
@@ -290,7 +290,7 @@ function resolveResponseOverlayPresentationStateForSurfaceState({
   currentTurnPresentationState: Record<string, unknown>;
   dismissedResponseId?: string | null;
   responseOverlaySurfaceState?: {
-    currentTurnProjection?: unknown;
+    sdkLiveTurn?: unknown;
     liveTurnPresentationInput?: {
       overlayIntent?: unknown;
       source?: string | null;
@@ -303,7 +303,7 @@ function resolveResponseOverlayPresentationStateForSurfaceState({
 }) {
   return resolveResponseOverlayPresentationState({
     currentTurnPresentationState,
-    currentTurnProjection: responseOverlaySurfaceState.sdkLiveTurn,
+    sdkLiveTurn: responseOverlaySurfaceState.sdkLiveTurn,
     dismissedResponseId,
     liveTurnPresentationInput: responseOverlaySurfaceState.liveTurnPresentationInput,
     responseOverlayEntries: responseOverlaySurfaceState.responseOverlayEntries,

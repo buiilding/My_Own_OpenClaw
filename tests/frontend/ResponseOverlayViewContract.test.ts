@@ -45,7 +45,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
           }],
         },
       },
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-raw',
         turnRef: 'turn-raw',
         assistantText: 'from raw projection',
@@ -70,7 +70,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
           entries: [],
         },
       },
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-raw',
         turnRef: 'turn-raw',
         assistantText: 'stale raw projection',
@@ -81,7 +81,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
 
   test('falls back to raw current-turn projection only when sdk presentation has no visible rows', () => {
     expect(resolveResponseOverlayEntries({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-sdk',
         turnRef: 'turn-sdk',
         phase: 'streaming',
@@ -222,7 +222,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
         visibleResponse: null,
         chatboxSurfaceState: 'compact',
       },
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-sdk',
         turnRef: 'turn-sdk',
         presentation: {
@@ -342,7 +342,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
         },
         chatboxSurfaceState: 'response',
       },
-      currentTurnProjection: {
+      sdkLiveTurn: {
         presentation: {
           overlayIntent: {
             visible: true,

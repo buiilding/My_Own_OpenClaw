@@ -79,7 +79,7 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
   test('projects SDK response entries into explicit response-overlay state', () => {
     const state = resolveSdkResponseOverlayPresentationState({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
         presentation: {
@@ -120,7 +120,7 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
   test('does not let SDK overlay intent alone force response state', () => {
     const state = resolveSdkResponseOverlayPresentationState({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
         presentation: {
@@ -150,7 +150,7 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
   test('treats dismissed SDK response entries as hidden response data', () => {
     const state = resolveSdkResponseOverlayPresentationState({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         presentation: {
           hasVisibleContent: true,
           overlayVisible: true,
@@ -175,7 +175,7 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
   test('resolves SDK response overlay dismissal target from overlay intent', () => {
     expect(resolveResponseOverlayDismissalTarget({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-projection',
         turnRef: 'turn-projection',
         presentation: {
@@ -202,7 +202,7 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
   test('resolves legacy response overlay dismissal target from entry and projection refs', () => {
     expect(resolveResponseOverlayDismissalTarget({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-projection',
         turnRef: 'turn-projection',
       },

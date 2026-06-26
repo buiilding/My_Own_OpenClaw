@@ -683,6 +683,8 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationSource).toContain('resolveSdkResponseOverlayPresentationState');
     expect(currentTurnPresentationSource).toContain('resolveResponseOverlayDismissalTarget');
     expect(currentTurnPresentationSource).toContain('resolveSdkOverlayIntent');
+    expect(currentTurnPresentationSource).toContain('sdkLiveTurn = null');
+    expect(currentTurnPresentationSource).not.toContain('currentTurnProjection');
     expect(currentTurnPresentationSource).not.toContain('desktopChatLoopUiRuntime');
     expect(currentTurnPresentationSource).not.toContain('DesktopChatLoopUiRuntime');
     expect(currentTurnPresentationSource).not.toContain('desktopOverlayTurnLifecycleRuntime');

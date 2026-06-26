@@ -79,12 +79,12 @@ function resolveCurrentTurnPresentationState({
 }
 
 function resolveSdkResponseOverlayPresentationState({
-  currentTurnProjection = null,
+  sdkLiveTurn = null,
   responseOverlayEntries = [],
   dismissedResponseId = null,
   includeOverlayIntent = false,
 } = {}) {
-  const presentation = currentTurnProjection?.presentation;
+  const presentation = sdkLiveTurn?.presentation;
   if (!presentation) {
     return null;
   }
@@ -96,7 +96,7 @@ function resolveSdkResponseOverlayPresentationState({
       ? latestEntry
       : null
   );
-  const overlayIntent = resolveSdkOverlayIntent(presentation, currentTurnProjection);
+  const overlayIntent = resolveSdkOverlayIntent(presentation, sdkLiveTurn);
   const responseVisible = Boolean(visibleResponse);
   const state = {
     activeResponse: visibleResponse,
@@ -113,7 +113,7 @@ function resolveSdkResponseOverlayPresentationState({
 }
 
 function resolveResponseOverlayDismissalTarget({
-  currentTurnProjection = null,
+  sdkLiveTurn = null,
   overlayIntent = null,
   responseOverlayEntries = [],
   useSdkLiveTurnPresentation = false,
@@ -128,18 +128,18 @@ function resolveResponseOverlayDismissalTarget({
   const sdkOverlayIntent = useSdkLiveTurnPresentation
     ? (
       overlayIntent
-      || resolveSdkOverlayIntent(currentTurnProjection?.presentation, currentTurnProjection)
+      || resolveSdkOverlayIntent(sdkLiveTurn?.presentation, sdkLiveTurn)
     )
     : null;
   const turnRef = (
     sdkOverlayIntent?.turnRef
     || latestEntry.turnRef
-    || currentTurnProjection?.turnRef
+    || sdkLiveTurn?.turnRef
     || null
   );
   const conversationRef = (
     sdkOverlayIntent?.conversationRef
-    || currentTurnProjection?.conversationRef
+    || sdkLiveTurn?.conversationRef
     || null
   );
   const guardRef = (
