@@ -242,6 +242,36 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
   setTokenCountsInChatStore: (...args) => mockSetTokenCounts(...args),
 }));
 
+jest.mock('../../frontend/src/renderer/features/chat/stores/chatStoreAdapters', () => ({
+  clearMessagesInChatStore: (...args) => {
+    mockChatState.messages = [];
+    mockChatState.currentTurnProjection = null;
+    mockChatState.conversationView = null;
+    mockChatState.pendingTurn = null;
+    mockClearMessages(...args);
+  },
+  updateMessageInChatStore: (...args) => mockChatState.updateMessage(...args),
+  setConversationViewInChatStore: (...args) => {
+    mockChatState.conversationView = args[0] ?? null;
+    mockSetConversationView(...args);
+  },
+  setThinkingStatusInChatStore: (...args) => {
+    mockChatState.thinkingStatus = args[0] ?? null;
+    mockSetThinkingStatus(...args);
+  },
+  setThinkingSourceEventTypeInChatStore: (...args) => {
+    mockChatState.thinkingSourceEventType = args[0] ?? null;
+    mockSetThinkingSourceEventType(...args);
+  },
+  setTokenCountsInChatStore: (...args) => {
+    mockChatState.tokenCounts = args[0] ?? null;
+    mockSetTokenCounts(...args);
+  },
+  acceptStoppedTurnInChatStore: (...args) => mockChatState.acceptStoppedTurn(...args),
+  acceptPendingTurnInChatStore: (...args) => mockChatState.acceptPendingTurn(...args),
+  clearPendingTurnInChatStore: (...args) => mockChatState.clearPendingTurn(...args),
+}));
+
 jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: () => ({
     config: mockConfig,
@@ -2409,8 +2439,8 @@ describe('ChatInterface wiring', () => {
       conversationRef: 'conv_existing',
       userId: 'default_user',
       messageId: 'assistant-final',
-      turnRef: 'turn-wiring-retry',
     }));
+    expect(retryPayload).not.toHaveProperty('turnRef');
     expect(retryPayload).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).not.toHaveBeenCalled();
   });
@@ -2440,8 +2470,8 @@ describe('ChatInterface wiring', () => {
       userId: 'default_user',
       messageId: 'user-1',
       text: 'new prompt',
-      turnRef: 'turn-wiring-edit',
     }));
+    expect(editPayload).not.toHaveProperty('turnRef');
     expect(editPayload).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).not.toHaveBeenCalled();
   });
