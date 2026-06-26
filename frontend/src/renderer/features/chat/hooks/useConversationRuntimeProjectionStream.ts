@@ -11,12 +11,10 @@ import {
 
 const {
   applyCurrentTurnProjectionEvent,
-  applyDisplayRowsProjectionEvent,
 } = DesktopConversationProjectionStreamRuntime;
 
 export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map());
-  const setMessages = useChatStore((state) => state.setMessages);
   const setCurrentTurnProjection = useChatStore((state) => state.setCurrentTurnProjection);
   const applyPendingTurnBroadcast = useChatStore((state) => state.applyPendingTurnBroadcast);
   const setIsSending = useChatStore((state) => state.setIsSending);
@@ -63,24 +61,4 @@ export function useConversationRuntimeProjectionStream(): void {
     setThinkingStatus,
     updateStreamTracking,
   ]);
-
-  useEffect(() => {
-    const removeListener = DesktopConversationRuntimeEventClient.onDisplayRowsProjection((event) => {
-      const { rows, conversationRef } = event;
-      if (!conversationRef) {
-        return;
-      }
-      applyDisplayRowsProjectionEvent({
-        conversationRef,
-        rows,
-        deps: {
-          getWorkspaceState: useChatStore.getState().getWorkspaceState,
-          setMessages,
-        },
-      });
-    });
-    return () => {
-      removeListener?.();
-    };
-  }, [setMessages]);
 }

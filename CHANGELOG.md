@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: stop subscribing the renderer chat projection stream to
+  raw SDK display-row events; normal display rows now enter the main chat only
+  through SDK `ConversationView` plus the explicit pending-send bridge. No
+  migration required.
 - frontend/store: remove the remaining root `chatStore` projection mirrors for
   messages, send/thinking state, stream tracking, current turn, conversation
   view, and pending turn; production callers now read those fields through

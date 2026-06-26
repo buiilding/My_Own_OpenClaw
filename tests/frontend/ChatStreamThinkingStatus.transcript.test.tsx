@@ -3,7 +3,10 @@
  */
 
 import { act } from '@testing-library/react';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  selectChatInterfaceState,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   getActiveWorkspaceStateForTest,
   registerBackendAndProjectionListeners,
@@ -96,72 +99,102 @@ describe('useChatStream live SDK event ownership', () => {
     );
   });
 
-  test('SDK display rows preserve screenshot tool rows when the next turn replaces currentTurn', () => {
+  test('ConversationView display rows preserve screenshot tool rows when the next turn replaces currentTurn', () => {
     setMockActiveConversationRef('conv-1');
-    const { emitDisplayRows, emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
+    useChatStore.getState().setActiveConversationRef('conv-1');
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
-      emitDisplayRows([
-        {
-          id: 'user-1',
-          conversationRef: 'conv-1',
-          turnRef: 'turn-1',
-          index: 0,
-          role: 'user',
-          type: 'user_message',
-          content: 'take a screenshot',
-        },
-        {
-          id: 'tool-call-row-1',
-          conversationRef: 'conv-1',
-          turnRef: 'turn-1',
-          index: 1,
-          role: 'assistant',
-          type: 'tool_call',
-          content: {
-            id: 'call-screenshot-1',
-            name: 'screenshot',
-            arguments: {
-              explanation: 'Capture the screen.',
-            },
+      useChatStore.getState().setConversationView({
+        conversationRef: 'conv-1',
+        revisionId: 'revision-1',
+        displayRows: [
+          {
+            id: 'user-1',
+            conversationRef: 'conv-1',
+            turnRef: 'turn-1',
+            index: 0,
+            role: 'user',
+            type: 'user_message',
+            content: 'take a screenshot',
           },
-          metadata: {
-            toolName: 'screenshot',
-            requestId: 'request-screenshot-1',
-            raw: {
-              args: {
+          {
+            id: 'tool-call-row-1',
+            conversationRef: 'conv-1',
+            turnRef: 'turn-1',
+            index: 1,
+            role: 'assistant',
+            type: 'tool_call',
+            content: {
+              id: 'call-screenshot-1',
+              name: 'screenshot',
+              arguments: {
                 explanation: 'Capture the screen.',
               },
             },
-          },
-        },
-        {
-          id: 'tool-output-row-1',
-          conversationRef: 'conv-1',
-          turnRef: 'turn-1',
-          index: 2,
-          role: 'tool',
-          type: 'tool_output',
-          content: 'Screenshot captured successfully.',
-          metadata: {
-            toolName: 'screenshot',
-            requestId: 'request-screenshot-1',
-            raw: {
-              output: 'Screenshot captured successfully.',
-              success: true,
+            metadata: {
+              toolName: 'screenshot',
+              requestId: 'request-screenshot-1',
+              raw: {
+                args: {
+                  explanation: 'Capture the screen.',
+                },
+              },
             },
           },
+          {
+            id: 'tool-output-row-1',
+            conversationRef: 'conv-1',
+            turnRef: 'turn-1',
+            index: 2,
+            role: 'tool',
+            type: 'tool_output',
+            content: 'Screenshot captured successfully.',
+            metadata: {
+              toolName: 'screenshot',
+              requestId: 'request-screenshot-1',
+              raw: {
+                output: 'Screenshot captured successfully.',
+                success: true,
+              },
+            },
+          },
+          {
+            id: 'conv-1:turn-1:assistant',
+            conversationRef: 'conv-1',
+            turnRef: 'turn-1',
+            index: 3,
+            role: 'assistant',
+            type: 'assistant_message',
+            content: 'Done.',
+          },
+        ],
+        liveTurn: {
+          turnRef: null,
+          phase: 'idle',
+          entries: [],
+          isBusy: false,
+          isTerminal: false,
+          canStop: false,
+          lastError: null,
         },
-        {
-          id: 'conv-1:turn-1:assistant',
-          conversationRef: 'conv-1',
-          turnRef: 'turn-1',
-          index: 3,
-          role: 'assistant',
-          type: 'assistant_message',
-          content: 'Done.',
+        surfaces: {
+          pill: { mode: 'idle' },
+          dashboard: { mode: 'idle' },
+          responseOverlay: {
+            mode: 'hidden',
+            visible: false,
+            guardRef: null,
+            ownerConversationRef: 'conv-1',
+            turnRef: null,
+          },
         },
-      ]);
+        actions: {
+          canEdit: true,
+          canRetry: true,
+          canFork: true,
+        },
+      }, 'conv-1');
       emitConversationRuntimeUpdated({
         conversationRef: 'conv-1',
         currentTurn: {
@@ -176,7 +209,8 @@ describe('useChatStream live SDK event ownership', () => {
       });
     });
 
-    expect(useChatStore.getState().getWorkspaceState('conv-1').messages).toEqual([
+    const renderedMessages = selectChatInterfaceState(useChatStore.getState()).renderedMessages;
+    expect(renderedMessages).toEqual([
       expect.objectContaining({
         id: 'user-1',
         sender: 'user',
@@ -203,7 +237,7 @@ describe('useChatStream live SDK event ownership', () => {
       }),
     ]);
 
-    const messageIds = useChatStore.getState().getWorkspaceState('conv-1').messages.map((message) => message.id);
+    const messageIds = renderedMessages.map((message) => message.id);
     expect(messageIds).toEqual([
       'user-1',
       'tool-call-row-1',

@@ -13,17 +13,11 @@ import {
   type ProjectionCursor,
 } from './desktopCurrentTurnProjectionEffectsRuntime';
 import {
-  DesktopConversationDisplayProjection,
-} from './desktopConversationDisplayProjection';
-import type {
-  SdkDisplayRow,
-} from './desktopConversationRuntimeContracts';
-import {
   DesktopPresentationSourceChannels,
 } from './desktopPresentationSourceChannels';
 import {
-  DesktopRendererTraceRuntime,
   type RendererReplayTraceValues,
+  DesktopRendererTraceRuntime,
 } from './desktopRendererTraceRuntime';
 
 type PendingTurnLike = {
@@ -76,17 +70,6 @@ type ApplyCurrentTurnProjectionEventInput = {
   projectionCursors: Map<string, ProjectionCursor>;
 };
 
-type DisplayRowsProjectionStreamDeps = {
-  getWorkspaceState: (conversationRef?: string | null) => ProjectionWorkspace;
-  setMessages: (messages: ChatMessage[], conversationRef?: string | null) => void;
-};
-
-type ApplyDisplayRowsProjectionEventInput = {
-  conversationRef: string;
-  rows: SdkDisplayRow[];
-  deps: DisplayRowsProjectionStreamDeps;
-};
-
 type ReplayProjectionTracePayloadInput = {
   action: string;
   conversationRef: string;
@@ -94,16 +77,6 @@ type ReplayProjectionTracePayloadInput = {
   workspace: ProjectionWorkspace;
 };
 
-type DisplayRowsProjectionInput = {
-  rows: SdkDisplayRow[];
-  workspace: ProjectionWorkspace;
-};
-
-const {
-  buildChatMessagesFromSdkDisplayRows,
-  buildDisplayProjectionTraceSummary,
-  mergeRendererAnnotationsIntoSdkMessages,
-} = DesktopConversationDisplayProjection;
 const {
   recordTrackingEvent,
   shouldIgnoreConversationEventForStaleTurn,
@@ -116,7 +89,6 @@ const {
 } = DesktopCurrentTurnProjectionEffectsRuntime;
 const {
   logRendererCurrentTurnAppliedTrace,
-  logRendererDisplayRowsProjectionTrace,
   logRendererReplayTrace,
 } = DesktopRendererTraceRuntime;
 
@@ -256,84 +228,8 @@ function applyCurrentTurnProjectionEvent({
   });
 }
 
-function buildDisplayRowsProjection({
-  rows,
-  workspace,
-}: DisplayRowsProjectionInput): {
-  mergedMessages: ChatMessage[];
-  shouldApplyMessages: boolean;
-  sdkMessages: ChatMessage[];
-  traceSummary: Record<string, unknown>;
-} {
-  const shouldApplyMessages = !workspace.conversationView;
-  if (!shouldApplyMessages) {
-    return {
-      mergedMessages: [],
-      shouldApplyMessages,
-      sdkMessages: [],
-      traceSummary: buildDisplayProjectionTraceSummary({
-        rows,
-      }),
-    };
-  }
-
-  const currentMessages = Array.isArray(workspace.messages) ? workspace.messages : [];
-  const sdkMessages = buildChatMessagesFromSdkDisplayRows(rows);
-  const mergedMessages = mergeRendererAnnotationsIntoSdkMessages(
-    sdkMessages,
-    currentMessages,
-    { pendingTurn: workspace.pendingTurn },
-  );
-  return {
-    mergedMessages,
-    shouldApplyMessages,
-    sdkMessages,
-    traceSummary: buildDisplayProjectionTraceSummary({
-      rows,
-      sdkMessages,
-      currentMessages,
-      mergedMessages,
-    }),
-  };
-}
-
-function applyDisplayRowsProjectionEvent({
-  conversationRef,
-  rows,
-  deps,
-}: ApplyDisplayRowsProjectionEventInput): void {
-  if (!conversationRef) {
-    return;
-  }
-  const workspace = deps.getWorkspaceState(conversationRef);
-  const {
-    mergedMessages,
-    shouldApplyMessages,
-    traceSummary,
-  } = buildDisplayRowsProjection({ rows, workspace });
-  logRendererDisplayRowsProjectionTrace({
-    source: 'sdk-display-rows-stream',
-    conversationRef,
-    ...traceSummary,
-  });
-  logReplayProjectionTrace('sdk_display_rows_projected', conversationRef, workspace, {
-    displayRowCount: rows.length,
-    projectedRowCount: rows.length,
-    shouldApplyMessages,
-  });
-  if (!shouldApplyMessages) {
-    return;
-  }
-  deps.setMessages(
-    mergedMessages,
-    conversationRef,
-  );
-}
-
 export const DesktopConversationProjectionStreamRuntime = Object.freeze({
   applyCurrentTurnProjectionEvent,
-  applyDisplayRowsProjectionEvent,
-  buildDisplayRowsProjection,
   buildReplayProjectionTracePayload,
   normalizeTurnRef,
 });

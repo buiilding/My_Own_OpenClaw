@@ -4,8 +4,6 @@ import {
 
 const {
   applyCurrentTurnProjectionEvent,
-  applyDisplayRowsProjectionEvent,
-  buildDisplayRowsProjection,
   buildReplayProjectionTracePayload,
   normalizeTurnRef,
 } = DesktopConversationProjectionStreamRuntime;
@@ -14,106 +12,6 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
   test('normalizes turn refs', () => {
     expect(normalizeTurnRef(' turn-old ')).toBe('turn-old');
     expect(normalizeTurnRef('   ')).toBeNull();
-  });
-
-  test('builds display-row projection with only the explicit pending bridge row', () => {
-    const optimisticUser = {
-      id: 'turn-1-sdk-evt-000002-user_message',
-      sender: 'user' as const,
-      text: 'inspect recent commits',
-      turnRef: 'turn-1',
-      sourceEventType: 'renderer-compose',
-      sourceChannel: 'renderer-local',
-      isComplete: true,
-    };
-
-    const projection = buildDisplayRowsProjection({
-      rows: [{
-        id: 'tool-row',
-        conversationRef: 'conv-1',
-        turnRef: 'turn-1',
-        index: 0,
-        role: 'assistant' as const,
-        type: 'tool_call' as const,
-        content: {
-          id: 'call-1',
-          name: 'read_file',
-          arguments: {
-            path: 'CHANGELOG.md',
-          },
-        },
-        metadata: {
-          toolName: 'read_file',
-          requestId: 'request-1',
-        },
-      }],
-      workspace: {
-        messages: [optimisticUser],
-        pendingTurn: {
-          userMessageId: 'turn-1-sdk-evt-000002-user_message',
-          text: 'inspect recent commits',
-          turnRef: 'turn-1',
-        },
-      },
-    });
-
-    expect(projection).not.toHaveProperty('projectedRows');
-    expect(projection.sdkMessages).toEqual([
-      expect.objectContaining({
-        id: 'tool-row',
-        sender: 'assistant',
-        type: 'tool-call',
-      }),
-    ]);
-    expect(projection.mergedMessages).toEqual([
-      expect.objectContaining(optimisticUser),
-      expect.objectContaining({
-        id: 'tool-row',
-        sender: 'assistant',
-        type: 'tool-call',
-      }),
-    ]);
-    expect(projection.traceSummary).toEqual(expect.objectContaining({
-      rowCount: 1,
-      currentMessageCount: 1,
-      mergedMessageCount: 2,
-    }));
-    expect(projection.shouldApplyMessages).toBe(true);
-  });
-
-  test('keeps display-row projection as row-count trace only once ConversationView exists', () => {
-    const projection = buildDisplayRowsProjection({
-      rows: [{
-        id: 'assistant-row',
-        conversationRef: 'conv-1',
-        turnRef: 'turn-1',
-        index: 0,
-        role: 'assistant' as const,
-        type: 'assistant_message' as const,
-        content: 'sdk row',
-      }],
-      workspace: {
-        conversationView: {
-          conversationRef: 'conv-1',
-          displayRows: [],
-        },
-        messages: [{
-          id: 'existing',
-          sender: 'user' as const,
-          text: 'existing pending bridge',
-        }],
-      },
-    });
-
-    expect(projection.shouldApplyMessages).toBe(false);
-    expect(projection.sdkMessages).toEqual([]);
-    expect(projection.mergedMessages).toEqual([]);
-    expect(projection.traceSummary).toEqual(expect.objectContaining({
-      rowCount: 1,
-      sdkMessageCount: 0,
-      currentMessageCount: 0,
-      mergedMessageCount: 0,
-    }));
   });
 
   test('builds replay trace payloads from workspace state', () => {
@@ -265,58 +163,12 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
     expect(projectionCursors.size).toBe(1);
   });
 
-  test('applies display-row projection events only while ConversationView is absent', () => {
-    const setMessages = jest.fn();
-
-    applyDisplayRowsProjectionEvent({
-      conversationRef: 'conv-1',
-      rows: [{
-        id: 'assistant-row',
-        conversationRef: 'conv-1',
-        turnRef: 'turn-1',
-        index: 0,
-        role: 'assistant' as const,
-        type: 'assistant_message' as const,
-        content: 'sdk row',
-      }],
-      deps: {
-        getWorkspaceState: jest.fn(() => ({
-          conversationView: {
-            conversationRef: 'conv-1',
-            displayRows: [],
-          },
-          messages: [],
-        })),
-        setMessages,
-      },
-    });
-
-    expect(setMessages).not.toHaveBeenCalled();
-
-    applyDisplayRowsProjectionEvent({
-      conversationRef: 'conv-1',
-      rows: [{
-        id: 'assistant-row',
-        conversationRef: 'conv-1',
-        turnRef: 'turn-1',
-        index: 0,
-        role: 'assistant' as const,
-        type: 'assistant_message' as const,
-        content: 'sdk row',
-      }],
-      deps: {
-        getWorkspaceState: jest.fn(() => ({
-          messages: [],
-        })),
-        setMessages,
-      },
-    });
-
-    expect(setMessages).toHaveBeenCalledWith([
-      expect.objectContaining({
-        id: 'assistant-row',
-        text: 'sdk row',
-      }),
-    ], 'conv-1');
+  test('does not expose a display-row stream writer', () => {
+    expect(DesktopConversationProjectionStreamRuntime).not.toHaveProperty(
+      'applyDisplayRowsProjectionEvent',
+    );
+    expect(DesktopConversationProjectionStreamRuntime).not.toHaveProperty(
+      'buildDisplayRowsProjection',
+    );
   });
 });

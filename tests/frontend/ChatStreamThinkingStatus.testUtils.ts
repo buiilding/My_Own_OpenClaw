@@ -201,11 +201,6 @@ export function registerBackendAndProjectionListeners(enableTranscript = true) {
       expect(projectionHandler).toEqual(expect.any(Function));
       projectionHandler(payload);
     },
-    emitDisplayRows: (payload: unknown) => {
-      const rowsHandler = handlers[DESKTOP_RUNTIME_ON_CHANNELS.ROWS];
-      expect(rowsHandler).toEqual(expect.any(Function));
-      rowsHandler(payload);
-    },
   };
 }
 

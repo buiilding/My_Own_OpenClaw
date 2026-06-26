@@ -269,10 +269,13 @@ and active revision id. When a view exists, it builds base thread messages from
 `DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`
 and passes only renderer annotation records selected from active workspace
 messages for feedback, transparency metadata, and token counts. The pending
-bridge is projected from `pendingTurn` directly, so a view-time render does not receive
-the full raw active workspace message transcript as a competing read model.
-The component consumes that view model and does not choose between raw
-messages, current-turn rows, and `ConversationView` action metadata inline.
+bridge is projected from `pendingTurn` directly, so a view-time render does not
+receive the full raw active workspace message transcript as a competing read
+model. Raw `ROWS`/display-row stream events remain Electron IPC compatibility
+plumbing only; the renderer chat projection hook does not subscribe to them or
+write those rows into `ChatWorkspaceState.messages`. The component consumes
+that view model and does not choose between raw messages, current-turn rows,
+and `ConversationView` action metadata inline.
 When checkout/fork commands return a `ConversationView`, `ChatInterface` stores
 only that SDK view for the target conversation; it does not project
 `displayRows` back into active workspace messages.

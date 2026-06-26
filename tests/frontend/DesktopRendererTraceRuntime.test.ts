@@ -18,7 +18,6 @@ const {
   buildRendererChatPillLifecycleTracePayload,
   buildRendererChatPillResetTracePayload,
   buildRendererCurrentTurnAppliedTracePayload,
-  buildRendererDisplayRowsProjectionTracePayload,
   buildRendererReplayTracePayload,
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
@@ -34,7 +33,6 @@ const {
   logRendererChatPillLifecycleTrace,
   logRendererChatPillResetTrace,
   logRendererCurrentTurnAppliedTrace,
-  logRendererDisplayRowsProjectionTrace,
   logRendererReplayTrace,
   logRendererOverlayViewModelTrace,
   logRendererOverlayViewModelResolvedTrace,
@@ -115,48 +113,6 @@ describe('desktopRendererTraceRuntime', () => {
     expect(mockSendLiveSurfaceTrace.mock.calls[0]?.[0]).not.toHaveProperty('isSending');
     expect(mockSendLiveSurfaceTrace.mock.calls[0]?.[0]).not.toHaveProperty('thinkingStatus');
     expect(mockSendLiveSurfaceTrace.mock.calls[0]?.[0]).not.toHaveProperty('phase');
-  });
-
-  test('builds and emits display-row projection image-count traces', () => {
-    setSearch('?debug_live_surface=1&view=main');
-
-    expect(buildRendererDisplayRowsProjectionTracePayload({
-      source: 'sdk-display-rows-stream',
-      conversationRef: 'conv-1',
-      rowCount: 2,
-      sdkUserRowCount: 1,
-      sdkUserRowsWithImages: 1,
-      sdkUserImageCount: 1,
-      sdkMessageCount: 2,
-      sdkProjectedUserImageCount: 1,
-      currentMessageCount: 1,
-      currentOptimisticUserCount: 1,
-      mergedMessageCount: 2,
-      mergedUserImageCount: 1,
-    })).toEqual(expect.objectContaining({
-      source: 'sdk-display-rows-stream',
-      conversationRef: 'conv-1',
-      sdkUserImageCount: 1,
-      currentOptimisticUserCount: 1,
-      mergedUserImageCount: 1,
-    }));
-
-    logRendererDisplayRowsProjectionTrace({
-      source: 'sdk-display-rows-stream',
-      conversationRef: 'conv-1',
-      rowCount: 2,
-      sdkUserRowCount: 1,
-      sdkUserImageCount: 1,
-      mergedUserImageCount: 1,
-    });
-
-    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
-      event: 'renderer.display_rows.projected',
-      source: 'sdk-display-rows-stream',
-      conversationRef: 'conv-1',
-      sdkUserImageCount: 1,
-      mergedUserImageCount: 1,
-    }));
   });
 
   test('builds chat send lifecycle trace payloads', () => {

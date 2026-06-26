@@ -170,25 +170,6 @@ export type RendererCurrentTurnAppliedTraceValues = {
   skipDerivedSideEffects?: boolean;
 };
 
-export type RendererDisplayRowsProjectionTraceValues = {
-  source?: string;
-  conversationRef?: unknown;
-  currentMessageCount?: unknown;
-  currentOptimisticUserCount?: unknown;
-  mergedMessageCount?: unknown;
-  mergedUserImageCount?: unknown;
-  mergedUserMessageCount?: unknown;
-  mergedUserMessagesWithImages?: unknown;
-  rowCount?: unknown;
-  sdkMessageCount?: unknown;
-  sdkProjectedUserImageCount?: unknown;
-  sdkProjectedUserMessageCount?: unknown;
-  sdkProjectedUserMessagesWithImages?: unknown;
-  sdkUserImageCount?: unknown;
-  sdkUserRowCount?: unknown;
-  sdkUserRowsWithImages?: unknown;
-};
-
 export type RendererResponseOverlayStateTraceValues = {
   source?: string;
   action?: string;
@@ -806,39 +787,6 @@ function logRendererCurrentTurnAppliedTrace(
   );
 }
 
-function buildRendererDisplayRowsProjectionTracePayload(
-  values: RendererDisplayRowsProjectionTraceValues,
-): Record<string, unknown> {
-  return {
-    source: traceString(values.source) || 'sdk-display-rows',
-    conversationRef: traceString(values.conversationRef) || null,
-    rowCount: traceNumberOrZero(values.rowCount),
-    sdkUserRowCount: traceNumberOrZero(values.sdkUserRowCount),
-    sdkUserRowsWithImages: traceNumberOrZero(values.sdkUserRowsWithImages),
-    sdkUserImageCount: traceNumberOrZero(values.sdkUserImageCount),
-    sdkMessageCount: traceNumberOrZero(values.sdkMessageCount),
-    sdkProjectedUserMessageCount: traceNumberOrZero(values.sdkProjectedUserMessageCount),
-    sdkProjectedUserMessagesWithImages: traceNumberOrZero(values.sdkProjectedUserMessagesWithImages),
-    sdkProjectedUserImageCount: traceNumberOrZero(values.sdkProjectedUserImageCount),
-    currentMessageCount: traceNumberOrZero(values.currentMessageCount),
-    currentOptimisticUserCount: traceNumberOrZero(values.currentOptimisticUserCount),
-    mergedMessageCount: traceNumberOrZero(values.mergedMessageCount),
-    mergedUserMessageCount: traceNumberOrZero(values.mergedUserMessageCount),
-    mergedUserMessagesWithImages: traceNumberOrZero(values.mergedUserMessagesWithImages),
-    mergedUserImageCount: traceNumberOrZero(values.mergedUserImageCount),
-  };
-}
-
-function logRendererDisplayRowsProjectionTrace(
-  values: RendererDisplayRowsProjectionTraceValues,
-): void {
-  logRendererLiveSurfaceTrace(
-    'renderer.display_rows.projected',
-    buildRendererDisplayRowsProjectionTracePayload(values),
-    traceString(values.conversationRef) || null,
-  );
-}
-
 function buildRendererResponseSurfaceRenderTracePayload(
   values: RendererResponseSurfaceRenderTraceValues,
 ): Record<string, unknown> {
@@ -1002,7 +950,6 @@ export const DesktopRendererTraceRuntime = Object.freeze({
   buildRendererChatPillStateTracePayload,
   buildRendererChatSendLifecycleTracePayload,
   buildRendererCurrentTurnAppliedTracePayload,
-  buildRendererDisplayRowsProjectionTracePayload,
   buildRendererReplayTracePayload,
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
@@ -1022,7 +969,6 @@ export const DesktopRendererTraceRuntime = Object.freeze({
   logRendererChatPillTrace,
   logRendererChatSendLifecycleTrace,
   logRendererCurrentTurnAppliedTrace,
-  logRendererDisplayRowsProjectionTrace,
   logRendererReplayTrace,
   logRendererLiveSurfaceTrace,
   logRendererOverlayViewModelResolvedTrace,
