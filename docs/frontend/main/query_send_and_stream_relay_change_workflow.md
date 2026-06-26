@@ -92,13 +92,13 @@ into the `windie:invoke` command `conversation.send`. Chat UI calls
 `DesktopLiveTurnRuntimeClient.stop(...)`; that creates an SDK conversation
 runtime and calls `runtime.stop(...)`, which the same adapter maps into the
 `windie:invoke` command `conversation.stop`. Stop targets resolve from SDK
-current turn first, renderer pending turn second, and idle conversation fallback
-last. Pending-turn stops carry the pending `turnRef`; they are not turnless
-stops. Renderer surfaces share `useStopTurnHandler(...)`, which calls
-`DesktopStopTurnRuntime.resolveStopTurnTarget(...)`, consumes the runtime's
-stop-target source predicates for current-turn/pending-turn side effects, and
-then calls `chatStore.acceptStoppedTurn(...)` before dispatching
-`DesktopLiveTurnRuntimeClient.stop(...)`.
+`ConversationView` first, renderer pending turn second, and idle conversation
+fallback last. Pending-turn stops carry the pending `turnRef`; they are not
+turnless stops. Renderer surfaces share `useStopTurnHandler(...)`, which passes
+an already resolved stop target and UI dependency callbacks into
+`DesktopStopTurnRuntime.executeStopTurnExecutionPlan(...)`; the app runtime owns
+the stop-plan field handling, stopped-turn store acceptance, pending-bridge
+cleanup classification, and dispatch to `DesktopLiveTurnRuntimeClient.stop(...)`.
 
 ## Change Sequence
 

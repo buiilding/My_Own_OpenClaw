@@ -195,6 +195,49 @@ function buildStopTurnExecutionPlan(stopTarget = null) {
   };
 }
 
+function executeStopTurnExecutionPlan({
+  deps = {},
+  enabled = true,
+  stopTarget = null,
+  warningContext = 'StopTurnHandler',
+} = {}) {
+  const stopPlan = buildStopTurnExecutionPlan(stopTarget);
+  if (!enabled || !stopPlan.canStop) {
+    return false;
+  }
+  if (stopPlan.conversationRef && typeof deps.setActiveConversationRef === 'function') {
+    deps.setActiveConversationRef(stopPlan.conversationRef);
+  }
+  if (typeof deps.acceptStoppedTurn === 'function') {
+    deps.acceptStoppedTurn({
+      conversationRef: stopPlan.conversationRef,
+      turnRef: stopPlan.turnRef,
+    });
+  }
+  if (typeof deps.stopPlayback === 'function') {
+    deps.stopPlayback();
+  }
+  if (stopPlan.shouldClearPendingBridge && typeof deps.clearPendingTurn === 'function') {
+    try {
+      deps.clearPendingTurn({
+        conversationRef: stopPlan.conversationRef,
+        turnRef: stopPlan.turnRef,
+      });
+    } catch (error) {
+      console.warn(`[${warningContext}] Failed to clear pending turn before stop:`, error);
+    }
+  }
+  if (typeof deps.stopLiveTurn === 'function') {
+    void Promise.resolve(deps.stopLiveTurn(
+      stopPlan.conversationRef,
+      stopPlan.turnRef,
+    )).catch((error) => {
+      console.warn(`[${warningContext}] Failed to stop query:`, error);
+    });
+  }
+  return true;
+}
+
 function isPendingTurn(value) {
   return Boolean(
     value
@@ -269,5 +312,6 @@ export const DesktopStopTurnRuntime = Object.freeze({
   buildStopTurnExecutionPlan,
   buildStoppedTurnWorkspaceMutation,
   buildStoppedSdkLiveTurn,
+  executeStopTurnExecutionPlan,
   resolveStopTurnTarget,
 });

@@ -229,10 +229,11 @@ current-turn row construction on typed SDK presentation fields.
   React stop handlers and stopped-turn callers pass only target identity from
   SDK `ConversationView` or the renderer pending bridge into that runtime; raw
   `currentTurnProjection` is not accepted as caller-supplied stop state.
-  `DesktopStopTurnRuntime.buildStopTurnExecutionPlan(...)` owns pending-bridge
-  cleanup classification, so React handlers consume `conversationRef`,
-  `turnRef`, `canStop`, and `shouldClearPendingBridge` plan values instead of
-  inspecting stop-target source.
+  `DesktopStopTurnRuntime.executeStopTurnExecutionPlan(...)` owns
+  pending-bridge cleanup classification and stop-plan field handling, so React
+  handlers wire UI dependencies into the runtime instead of consuming
+  `conversationRef`, `turnRef`, `canStop`, or `shouldClearPendingBridge` plan
+  values directly.
   When a workspace already has a `ConversationView`, stopped-turn mutation
   ignores the raw no-view live-turn fallback, clears it to `null`, and only
   applies renderer-local cleanup for a matching pending bridge.

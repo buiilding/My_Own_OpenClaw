@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stop: move stop-plan execution into
+  `DesktopStopTurnRuntime.executeStopTurnExecutionPlan`, so
+  `useStopTurnHandler` wires UI dependencies instead of unpacking
+  `conversationRef` and `turnRef` for store, pending-bridge, and live-turn stop
+  side effects. No migration required.
 - frontend/overlay: move no-view SDK live-turn thinking fallback resolution into
   `DesktopCurrentTurnMessageRuntime.resolveNoViewSdkLiveTurnThinkingText`, so
   response-overlay state no longer reads raw `reasoningText` or presentation

@@ -11,6 +11,7 @@ const {
   buildStopTurnExecutionPlan,
   buildStoppedTurnWorkspaceMutation,
   buildStoppedSdkLiveTurn,
+  executeStopTurnExecutionPlan,
   resolveStopTurnTarget,
 } = DesktopStopTurnRuntime;
 
@@ -218,6 +219,166 @@ describe('desktopStopTurnRuntime', () => {
       turnRef: 'turn-view',
       shouldClearPendingBridge: false,
     });
+  });
+
+  test('executes pending stop plans inside runtime with bridge cleanup', () => {
+    const deps = {
+      acceptStoppedTurn: jest.fn(),
+      clearPendingTurn: jest.fn(),
+      setActiveConversationRef: jest.fn(),
+      stopLiveTurn: jest.fn(),
+      stopPlayback: jest.fn(),
+    };
+
+    const result = executeStopTurnExecutionPlan({
+      deps,
+      stopTarget: resolveStopTurnTarget({
+        pendingTurn: {
+          conversationRef: ' conv-pending ',
+          turnRef: ' turn-pending ',
+        },
+      }),
+    });
+
+    expect(result).toBe(true);
+    expect(deps.setActiveConversationRef).toHaveBeenCalledWith('conv-pending');
+    expect(deps.acceptStoppedTurn).toHaveBeenCalledWith({
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+    });
+    expect(deps.stopPlayback).toHaveBeenCalledTimes(1);
+    expect(deps.clearPendingTurn).toHaveBeenCalledWith({
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+    });
+    expect(deps.stopLiveTurn).toHaveBeenCalledWith('conv-pending', 'turn-pending');
+  });
+
+  test('executes ConversationView stop plans without pending bridge cleanup', () => {
+    const deps = {
+      acceptStoppedTurn: jest.fn(),
+      clearPendingTurn: jest.fn(),
+      setActiveConversationRef: jest.fn(),
+      stopLiveTurn: jest.fn(),
+      stopPlayback: jest.fn(),
+    };
+
+    const result = executeStopTurnExecutionPlan({
+      deps,
+      stopTarget: resolveStopTurnTarget({
+        conversationView: conversationView({
+          conversationRef: 'conv-view',
+          turnRef: 'turn-view',
+        }),
+      }),
+    });
+
+    expect(result).toBe(true);
+    expect(deps.setActiveConversationRef).toHaveBeenCalledWith('conv-view');
+    expect(deps.acceptStoppedTurn).toHaveBeenCalledWith({
+      conversationRef: 'conv-view',
+      turnRef: 'turn-view',
+    });
+    expect(deps.clearPendingTurn).not.toHaveBeenCalled();
+    expect(deps.stopLiveTurn).toHaveBeenCalledWith('conv-view', 'turn-view');
+  });
+
+  test('does not execute stop side effects for disabled or idle plans', () => {
+    const deps = {
+      acceptStoppedTurn: jest.fn(),
+      clearPendingTurn: jest.fn(),
+      setActiveConversationRef: jest.fn(),
+      stopLiveTurn: jest.fn(),
+      stopPlayback: jest.fn(),
+    };
+
+    expect(executeStopTurnExecutionPlan({
+      deps,
+      enabled: false,
+      stopTarget: resolveStopTurnTarget({
+        pendingTurn: {
+          conversationRef: 'conv-pending',
+          turnRef: 'turn-pending',
+        },
+      }),
+    })).toBe(false);
+    expect(executeStopTurnExecutionPlan({
+      deps,
+      stopTarget: resolveStopTurnTarget({
+        conversationRef: 'conv-idle',
+      }),
+    })).toBe(false);
+    expect(deps.acceptStoppedTurn).not.toHaveBeenCalled();
+    expect(deps.clearPendingTurn).not.toHaveBeenCalled();
+    expect(deps.setActiveConversationRef).not.toHaveBeenCalled();
+    expect(deps.stopLiveTurn).not.toHaveBeenCalled();
+    expect(deps.stopPlayback).not.toHaveBeenCalled();
+  });
+
+  test('continues stop execution when pending bridge cleanup throws', () => {
+    const cleanupError = new Error('clear failed');
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const deps = {
+      acceptStoppedTurn: jest.fn(),
+      clearPendingTurn: jest.fn(() => {
+        throw cleanupError;
+      }),
+      stopLiveTurn: jest.fn(),
+    };
+
+    try {
+      const result = executeStopTurnExecutionPlan({
+        deps,
+        stopTarget: resolveStopTurnTarget({
+          pendingTurn: {
+            conversationRef: 'conv-pending',
+            turnRef: 'turn-pending',
+          },
+        }),
+        warningContext: 'StopTest',
+      });
+
+      expect(result).toBe(true);
+      expect(deps.acceptStoppedTurn).toHaveBeenCalledWith({
+        conversationRef: 'conv-pending',
+        turnRef: 'turn-pending',
+      });
+      expect(deps.stopLiveTurn).toHaveBeenCalledWith('conv-pending', 'turn-pending');
+      expect(warnSpy).toHaveBeenCalledWith(
+        '[StopTest] Failed to clear pending turn before stop:',
+        cleanupError,
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  test('reports async stop failures without throwing from stop execution', async () => {
+    const stopError = new Error('stop failed');
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const deps = {
+      acceptStoppedTurn: jest.fn(),
+      stopLiveTurn: jest.fn(() => Promise.reject(stopError)),
+    };
+
+    try {
+      const result = executeStopTurnExecutionPlan({
+        deps,
+        stopTarget: resolveStopTurnTarget({
+          conversationView: conversationView(),
+        }),
+        warningContext: 'StopTest',
+      });
+
+      expect(result).toBe(true);
+      await Promise.resolve();
+      expect(warnSpy).toHaveBeenCalledWith(
+        '[StopTest] Failed to stop query:',
+        stopError,
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 
   test('buildStoppedSdkLiveTurn strips legacy SDK visibility fields', () => {
