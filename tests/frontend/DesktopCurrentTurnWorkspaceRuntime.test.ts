@@ -4,7 +4,7 @@ import {
 
 const {
   buildCurrentTurnWorkspaceMutation,
-  buildSetCurrentTurnProjectionStateUpdate,
+  buildSetSdkLiveTurnStateUpdate,
 } = DesktopCurrentTurnWorkspaceRuntime;
 
 describe('DesktopCurrentTurnWorkspaceRuntime', () => {
@@ -172,7 +172,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
     })).toBeNull();
   });
 
-  test('buildSetCurrentTurnProjectionStateUpdate resolves workspace and applies mutation', () => {
+  test('buildSetSdkLiveTurnStateUpdate resolves workspace and applies mutation', () => {
     const state = {
       activeConversationRef: 'conv-1',
       workspaces: {
@@ -208,10 +208,10 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       resolveWorkspaceKey: jest.fn(() => 'conv-1'),
     };
 
-    const nextState = buildSetCurrentTurnProjectionStateUpdate({
+    const nextState = buildSetSdkLiveTurnStateUpdate({
       conversationRef: 'conv-1',
-      currentTurnProjection,
       deps,
+      sdkLiveTurn: currentTurnProjection,
       state,
     });
 

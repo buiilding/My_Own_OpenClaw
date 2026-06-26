@@ -12,7 +12,7 @@ import {
   applyPendingTurnBroadcastToChatStore,
   clearMessagesInChatStore,
   clearPendingTurnInChatStore,
-  setCurrentTurnProjectionInChatStore,
+  setSdkLiveTurnInChatStore,
   setIsSendingInChatStore,
   setMessagesInChatStore,
   setThinkingSourceEventTypeInChatStore,
@@ -311,8 +311,8 @@ describe('chatStore', () => {
     };
 
     useChatStore.getState().setActiveConversationRef('conv-user');
-    setCurrentTurnProjectionInChatStore(userProjection, 'conv-user');
-    setCurrentTurnProjectionInChatStore(
+    setSdkLiveTurnInChatStore(userProjection, 'conv-user');
+    setSdkLiveTurnInChatStore(
       internalProjection,
       'conv-agent-internal',
     );
@@ -468,7 +468,7 @@ describe('chatStore', () => {
       attachmentFilenames: null,
     });
 
-    setCurrentTurnProjectionInChatStore({
+    setSdkLiveTurnInChatStore({
       conversationRef: 'conv-sdk',
       turnRef: 'turn-sdk',
       phase: 'awaiting',
@@ -502,7 +502,7 @@ describe('chatStore', () => {
       attachmentFilenames: null,
     });
 
-    setCurrentTurnProjectionInChatStore({
+    setSdkLiveTurnInChatStore({
       conversationRef: 'conv-sdk-idle',
       turnRef: 'turn-sdk-idle',
       phase: 'idle',
@@ -611,7 +611,7 @@ describe('chatStore', () => {
       },
     };
     useChatStore.getState().setActiveConversationRef('conv-stop-sdk');
-    setCurrentTurnProjectionInChatStore(currentTurnProjection, 'conv-stop-sdk');
+    setSdkLiveTurnInChatStore(currentTurnProjection, 'conv-stop-sdk');
 
     acceptStoppedTurnInChatStore({
       conversationRef: 'conv-stop-sdk',

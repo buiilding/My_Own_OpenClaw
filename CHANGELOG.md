@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/state: rename the feature-facing SDK current-turn store adapter to
+  `setSdkLiveTurnInChatStore`, keeping raw `currentTurnProjection` workspace
+  field plumbing behind app-runtime boundaries. No migration required.
 - frontend/overlay: move response overlay dismissal and SDK presentation
   fallback plumbing behind `DesktopResponseOverlayViewRuntime`, so the feature
   hook no longer passes raw `currentTurnProjection`. No migration required.

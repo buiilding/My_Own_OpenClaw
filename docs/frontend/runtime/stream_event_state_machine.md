@@ -188,9 +188,9 @@ are diagnostic compatibility state and do not record another terminal tracking
 event by themselves.
 
 SDK current-turn projection side effects run stale-turn checks against the
-workspace snapshot captured before `setCurrentTurnProjectionInChatStore(...)`
-stores the new projection. This preserves renderer pending-turn handoff evidence
-for the guard even when storing an authoritative same-turn projection clears
+workspace snapshot captured before `setSdkLiveTurnInChatStore(...)` stores the
+new projection. This preserves renderer pending-turn handoff evidence for the
+guard even when storing an authoritative same-turn projection clears
 `pendingTurn`.
 
 Dashboard/pill presentation note:

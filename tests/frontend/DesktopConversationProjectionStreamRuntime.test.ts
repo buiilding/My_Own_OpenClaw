@@ -133,7 +133,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
           phase: 'streaming',
         },
       })),
-      setCurrentTurnProjection: jest.fn(),
+      setSdkLiveTurn: jest.fn(),
       setIsSending: jest.fn(),
       setThinkingStatus: jest.fn(),
       setThinkingSourceEventType: jest.fn(),
@@ -156,7 +156,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       projectionCursors,
     });
 
-    expect(deps.setCurrentTurnProjection).toHaveBeenCalledWith(
+    expect(deps.setSdkLiveTurn).toHaveBeenCalledWith(
       expect.objectContaining({ turnRef: 'turn-1' }),
       'conv-1',
     );

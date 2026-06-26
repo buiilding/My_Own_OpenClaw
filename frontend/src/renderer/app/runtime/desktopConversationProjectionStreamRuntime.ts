@@ -53,7 +53,7 @@ type ProjectionWorkspace = {
 
 type CurrentTurnProjectionStreamDeps = {
   getWorkspaceState: (conversationRef?: string | null) => ProjectionWorkspace;
-  setCurrentTurnProjection: (
+  setSdkLiveTurn: (
     currentTurn: CurrentTurnProjectionEffectsInput,
     conversationRef?: string | null,
   ) => void;
@@ -184,7 +184,7 @@ function applyCurrentTurnProjectionEvent({
 
   const preProjectionWorkspace = deps.getWorkspaceState(conversationRef);
   // Check stale-turn status before current-turn storage can resolve pendingTurn.
-  deps.setCurrentTurnProjection(currentTurn, conversationRef);
+  deps.setSdkLiveTurn(currentTurn, conversationRef);
 
   const shouldSkipDerivedSideEffects = (
     !shouldAcceptCurrentTurnBeforeLocalSend(currentTurn)

@@ -108,7 +108,7 @@ const {
   recordRendererTurnConversationRefs,
 } = DesktopChatTurnConversationRefRuntime;
 const {
-  buildSetCurrentTurnProjectionStateUpdate,
+  buildSetSdkLiveTurnStateUpdate,
 } = DesktopCurrentTurnWorkspaceRuntime;
 const {
   buildSetConversationViewStateUpdate,
@@ -296,15 +296,15 @@ export function acceptStoppedTurnInChatStore(
   ));
 }
 
-export function setCurrentTurnProjectionInChatStore(
-  currentTurnProjection: CurrentTurnProjection | null,
+export function setSdkLiveTurnInChatStore(
+  sdkLiveTurn: CurrentTurnProjection | null,
   conversationRef?: string | null,
 ): void {
   useChatStore.setState((state) => (
-    buildSetCurrentTurnProjectionStateUpdate<ChatState, ChatWorkspaceState>({
+    buildSetSdkLiveTurnStateUpdate<ChatState, ChatWorkspaceState>({
       conversationRef,
-      currentTurnProjection,
       deps: currentTurnStateRuntimeDependencies,
+      sdkLiveTurn,
       state,
     }) ?? state
   ));

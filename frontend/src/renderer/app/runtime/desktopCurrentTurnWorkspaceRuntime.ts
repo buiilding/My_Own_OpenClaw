@@ -97,7 +97,29 @@ function buildSetCurrentTurnProjectionStateUpdate<
   return deps.buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
 }
 
+function buildSetSdkLiveTurnStateUpdate<
+  TState extends CurrentTurnStateSnapshot,
+  TWorkspace extends CurrentTurnWorkspace,
+>({
+  conversationRef = null,
+  deps,
+  sdkLiveTurn,
+  state,
+}: {
+  conversationRef?: string | null;
+  deps: CurrentTurnStateDependencies<TState, TWorkspace>;
+  sdkLiveTurn: CurrentTurnProjection | null;
+  state: TState;
+}): Partial<TState> | TState | null {
+  return buildSetCurrentTurnProjectionStateUpdate({
+    conversationRef,
+    currentTurnProjection: sdkLiveTurn,
+    deps,
+    state,
+  });
+}
+
 export const DesktopCurrentTurnWorkspaceRuntime = Object.freeze({
   buildCurrentTurnWorkspaceMutation,
-  buildSetCurrentTurnProjectionStateUpdate,
+  buildSetSdkLiveTurnStateUpdate,
 });
