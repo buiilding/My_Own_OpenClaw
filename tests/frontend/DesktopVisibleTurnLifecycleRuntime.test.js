@@ -361,6 +361,43 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
   });
 
+  test('does not fall through to raw current-turn lifecycle when ConversationView is idle', () => {
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-view',
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: null,
+        surfaces: {
+          responseOverlay: {
+            mode: 'hidden',
+            visible: false,
+          },
+        },
+      },
+      currentTurnProjection: projection({
+        conversationRef: 'conv-stale',
+        turnRef: 'turn-stale',
+        phase: 'streaming',
+        assistantText: 'stale raw answer',
+      }),
+      messages: [{
+        id: 'stale-user',
+        sender: 'user',
+        text: 'stale',
+      }],
+    })).toEqual({
+      status: 'idle',
+      source: 'conversation-view',
+      conversationRef: 'conv-view',
+      turnRef: null,
+      awaitingAnchor: null,
+      entries: [],
+      terminalReason: null,
+      isBusy: false,
+      showTyping: false,
+    });
+  });
+
   test('adapts visible lifecycle into overlay-compatible presentation fields for surface consumers', () => {
     const visibleLifecycle = resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',

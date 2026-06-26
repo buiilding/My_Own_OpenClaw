@@ -227,6 +227,10 @@ function resolveConversationViewLifecycleStatus(conversationView) {
   return 'idle';
 }
 
+function isConversationView(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
 function resolveVisibleTurnLifecycle({
   activeConversationRef = null,
   conversationView = null,
@@ -275,6 +279,20 @@ function resolveVisibleTurnLifecycle({
       terminalReason: liveTurn.isTerminal === true ? 'complete' : null,
       isBusy: liveTurn.isBusy === true && viewStatus !== 'terminal',
       showTyping: viewStatus === 'awaiting',
+    };
+  }
+
+  if (isConversationView(conversationView)) {
+    return {
+      status: 'idle',
+      source: 'conversation-view',
+      conversationRef: normalizeConversationRef(conversationView.conversationRef) || normalizedActiveConversationRef,
+      turnRef: normalizeTurnRef(conversationView.liveTurn?.turnRef),
+      awaitingAnchor: null,
+      entries: [],
+      terminalReason: null,
+      isBusy: false,
+      showTyping: false,
     };
   }
 

@@ -74,6 +74,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/surfaces: stop borrowing raw `currentTurnProjection.conversationRef`
   for local pending surface identity; pending overlays now use only the
   renderer pending bridge conversation ref. No migration required.
+- frontend/surfaces: treat an idle `ConversationView` as authoritative in
+  live-surface and visible-lifecycle runtimes, preventing stale raw
+  current-turn projections from resurfacing through direct runtime calls. No
+  migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.

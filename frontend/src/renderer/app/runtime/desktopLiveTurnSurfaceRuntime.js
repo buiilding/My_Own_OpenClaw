@@ -184,6 +184,10 @@ function hasConversationViewLiveTurn(conversationView) {
   );
 }
 
+function isConversationView(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
 function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
   const intent = presentation?.overlayIntent;
   const mode = resolveSdkOverlayIntentMode(currentTurnProjection);
@@ -261,6 +265,21 @@ function resolveLiveTurnPresentationInput({
       turnRef: overlayIntent.turnRef || liveTurn.turnRef || null,
       conversationRef: overlayIntent.conversationRef || conversationView.conversationRef || null,
       guardRef: overlayIntent.staleGuardRef || overlayIntent.turnRef || liveTurn.turnRef || null,
+    };
+  }
+
+  if (isConversationView(conversationView)) {
+    return {
+      phase: getIdleResponseOverlayPhase(),
+      isBusy: false,
+      source: 'conversation-view',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: false,
+      overlayIntent: resolveConversationViewOverlayIntent(conversationView),
+      entries: [],
+      turnRef: normalizeTurnRef(conversationView.liveTurn?.turnRef),
+      conversationRef: normalizeConversationRef(conversationView.conversationRef),
+      guardRef: normalizeTurnRef(conversationView.liveTurn?.turnRef),
     };
   }
 

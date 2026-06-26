@@ -134,6 +134,50 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
+  test('does not fall through to raw current-turn surface state when ConversationView is idle', () => {
+    const result = resolveLiveTurnPresentationInput({
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: null,
+        surfaces: {
+          responseOverlay: {
+            mode: 'hidden',
+            visible: false,
+          },
+        },
+      },
+      currentTurnProjection: {
+        conversationRef: 'conv-stale',
+        turnRef: 'turn-stale',
+        phase: 'streaming',
+        assistantText: 'stale raw answer',
+        presentation: {
+          entries: [{
+            id: 'stale-entry',
+            type: 'llm-text',
+            text: 'stale raw answer',
+          }],
+        },
+      },
+    });
+
+    expect(result).toMatchObject({
+      source: 'conversation-view',
+      phase: 'idle',
+      isBusy: false,
+      turnRef: null,
+      conversationRef: 'conv-view',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: false,
+      entries: [],
+      overlayIntent: expect.objectContaining({
+        mode: 'hidden',
+        visible: false,
+        conversationRef: 'conv-view',
+      }),
+    });
+  });
+
   test('lets same-turn ConversationView replace local pending surface state', () => {
     const result = resolveLiveTurnPresentationInput({
       conversationView: conversationView({
