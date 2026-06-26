@@ -165,10 +165,12 @@ annotations from it. Normal chat rendering should read
 `ConversationView.displayRows`; `chatStore.messages` remains only the local
 pending/no-view fallback.
 
-The old exported `mergeRendererAnnotations` helper remains removed. Stale
-searches for that name should route to `mergeRendererAnnotationsIntoSdkMessages`
-in `desktopConversationDisplayProjection.ts` and tests should exercise the
-app-runtime facade or the public hook listener.
+The old exported `mergeRendererAnnotations` helper remains removed.
+Annotation merging is internal to `desktopConversationDisplayProjection.ts`;
+callers pass narrow renderer annotation records into
+`DesktopChatInterfacePresentationRuntime` through the selector boundary and
+tests should exercise the `ConversationView` projection facade or the public
+hook listener.
 
 The hook delegates current-turn UI side effects to
 `DesktopCurrentTurnProjectionEffectsRuntime`. That runtime reducer owns cursor-based delta

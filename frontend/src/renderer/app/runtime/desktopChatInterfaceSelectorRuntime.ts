@@ -18,6 +18,9 @@ import {
 import {
   DesktopStopTurnRuntime,
 } from './desktopStopTurnRuntime';
+import {
+  DesktopConversationDisplayProjection,
+} from './desktopConversationDisplayProjection';
 
 type DesktopChatWorkspaceProjection = {
   messages: ChatMessage[];
@@ -58,6 +61,9 @@ const {
 const {
   resolveStopTurnTarget,
 } = DesktopStopTurnRuntime;
+const {
+  selectRendererMessageAnnotations,
+} = DesktopConversationDisplayProjection;
 
 const chatSendReadModelObjectCache = new WeakMap<object, WeakMap<object, ChatSendReadModel>>();
 const chatSendReadModelPrimitiveCache = new Map<string, ChatSendReadModel>();
@@ -161,12 +167,18 @@ function buildChatInterfaceSelectorState({
   const interfaceState = projectDesktopChatInterfaceState(activeWorkspace);
   const conversationView = interfaceState.conversationView as ConversationView | null;
   const pendingTurn = interfaceState.pendingTurn as PendingTurnProjection;
+  const fallbackMessages = conversationView
+    ? emptyChatMessages
+    : interfaceState.messages as ChatMessage[];
   const chatPresentationState = buildChatInterfacePresentationState({
     activeConversationRef,
     conversationView,
     currentTurnProjection: interfaceState.currentTurnProjection as CurrentTurnProjection | null,
-    messages: interfaceState.messages as ChatMessage[],
+    messages: fallbackMessages,
     pendingTurn,
+    rendererAnnotations: conversationView
+      ? selectRendererMessageAnnotations(interfaceState.messages as ChatMessage[])
+      : [],
   });
   const chatSurfaceState = projectDesktopChatSurfaceState({
     activeWorkspace,

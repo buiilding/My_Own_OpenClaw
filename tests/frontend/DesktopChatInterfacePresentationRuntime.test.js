@@ -33,9 +33,10 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
 
   test('projects ConversationView display rows as main chat messages without store messages', () => {
     const staleMessages = [{
-      id: 'stale-store-row',
+      id: 'assistant-row',
       sender: 'user',
       text: 'stale store prompt',
+      feedback: 'like',
     }];
     const state = buildChatInterfacePresentationState({
       activeConversationRef: 'conv-1',
@@ -82,7 +83,52 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         text: 'view answer',
       }),
     ]);
+    expect(state.renderedMessages[1]).not.toHaveProperty('feedback');
     expect(state).not.toHaveProperty('replayFallbackMessages');
+  });
+
+  test('applies only explicit renderer annotations to ConversationView rows', () => {
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        revisionId: 'rev-1',
+        displayRows: [{
+          id: 'assistant-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          index: 0,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'view answer',
+        }],
+        liveTurn: {
+          entries: [],
+        },
+        actions: {
+          canEdit: true,
+          canRetry: true,
+        },
+      },
+      messages: [{
+        id: 'assistant-row',
+        sender: 'assistant',
+        text: 'stale raw answer',
+        feedback: 'dislike',
+      }],
+      rendererAnnotations: [{
+        id: 'assistant-row',
+        feedback: 'like',
+      }],
+    });
+
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'assistant-row',
+        text: 'view answer',
+        feedback: 'like',
+      }),
+    ]);
   });
 
   test('keeps renderer pending bridge beside ConversationView display rows', () => {

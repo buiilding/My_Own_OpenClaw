@@ -30,6 +30,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: delete the unused display-projection trace summarizer
   from the ConversationView message adapter; attachment lifecycle counts stay
   in the SDK display attachment projection owner. No migration required.
+- frontend/chat: move renderer annotation selection out of the ChatInterface
+  presentation runtime; the ConversationView path now receives annotation
+  records from the selector instead of full raw workspace messages. No
+  migration required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own
