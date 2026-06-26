@@ -40,7 +40,7 @@ flowchart LR
 | Readable file appears as a chip but model never sees content | SDK turn resource pipeline | `desktopChatSendPreparationRuntime.ts`, `DefaultTurnResourceResolvers.ts`, `ContextEnrichmentPipeline.ts` | local-runtime `read_file` behavior and SDK runtime tests |
 | Attachment-only send is blocked | Composer outgoing payload builder | `desktopMessageInputRuntime.js`, `MessageInput.jsx` | `DesktopMessageInputRuntime.test.js`, `MessageInput.test.jsx` |
 | Send failure clears text or attachment previews | Composer draft lifecycle | `useChatComposerDraft.js`, `MessageInput.jsx` | `ChatComposerDraft.test.jsx`, `MessageInput.test.jsx` |
-| SDK user row lacks filename chips | Sender payload normalization and SDK metadata | `desktopChatSendPayloadRuntime.ts`, `desktopChatSendPreparationRuntime.ts`, `ConversationRuntime.ts` | `DesktopChatSendPayloadRuntime.test.ts`, `ChatMessageSender.test.tsx`, `AgentSdkConversationRuntime.test.ts` |
+| SDK user row lacks filename chips | SDK turn resource resolution and metadata | `desktopChatSendPreparationRuntime.ts`, `DefaultTurnResourceResolvers.ts`, `ConversationRuntime.ts` | `ChatMessageSender.test.tsx`, `AgentSdkConversationRuntime.test.ts` |
 | Uploaded image has wrong content type or URL | SDK artifact resolver | `DefaultTurnResourceResolvers.ts`, `ArtifactImageUtils.ts` | `AgentSdkConversationRuntime.test.ts`, artifact tests |
 | Query sends only one of multiple images | SDK clipboard image resources | `desktopChatSendPreparationRuntime.ts`, `DefaultTurnResourceResolvers.ts` | `ChatMessageSender.test.tsx`, SDK runtime tests |
 | Electron query payload drops attachment resources | Main query IPC runtime and SDK enrichment | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | `IpcQueryRuntime.test.cjs`, `AgentSdkContextEnrichment.test.ts` |
@@ -93,7 +93,8 @@ Clipboard image IPC trust boundary:
    - SDK display metadata must preserve `screenshot_refs` as compatibility input
      and adapt it into ordered typed `attachments[]` before renderer projection.
    - `attachment_context`: hidden readable-file context.
-   - `attachment_filenames`: visible filename list for user row/query metadata.
+   - `attachment_filenames`: visible filename list derived during SDK resource
+     resolution for user row/query metadata.
 
 6. Update docs and tests at the producer and consumer.
    - Composer change: update MessageInput/utility tests.

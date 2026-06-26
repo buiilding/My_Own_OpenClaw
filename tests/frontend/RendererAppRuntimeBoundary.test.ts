@@ -1305,11 +1305,13 @@ describe('renderer app runtime boundary', () => {
     expect(liveTurnSource).not.toContain('screenshotRefs');
     expect(liveTurnSource).not.toContain('captureMeta');
     expect(liveTurnSource).not.toContain('attachmentContext');
+    expect(liveTurnSource).not.toContain('attachmentFilenames');
     expect(liveTurnSource).not.toContain('screenshot_ref');
     expect(liveTurnSource).not.toContain('screenshot_url');
     expect(liveTurnSource).not.toContain('screenshot_refs');
     expect(liveTurnSource).not.toContain('capture_meta');
     expect(liveTurnSource).not.toContain('attachment_context');
+    expect(liveTurnSource).not.toContain('attachment_filenames');
     expect(liveTurnSource).not.toContain('WINDIE_SEND');
     expect(liveTurnSource).not.toContain('WINDIE_STOP');
 

@@ -2352,6 +2352,7 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
     expect(sendPreparationSource).not.toContain('displayAttachmentId');
     expect(sendPreparationSource).not.toContain('attachments:');
+    expect(sendPreparationSource).not.toContain('attachmentFilenames');
     expect(sendPreparationSource).not.toContain('{ attachmentFilenames, attachment_filenames');
     expect(senderTestSource).toContain('function expectPendingBridgeUserMessage');
     expect(senderTestSource).not.toContain('function expectOptimisticUserMessage');

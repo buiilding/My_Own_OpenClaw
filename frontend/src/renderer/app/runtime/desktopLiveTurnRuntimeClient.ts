@@ -22,7 +22,6 @@ const {
 type SendConversationQueryInput = {
   text: string;
   conversationRef: string;
-  attachmentFilenames?: string[] | null;
   workspacePath?: string | null;
   resources?: TurnInputResource[] | null;
   metadata?: Record<string, unknown> | null;
@@ -35,16 +34,6 @@ function optionalString(value: unknown): string | null {
     return null;
   }
   const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function optionalStringArray(value: unknown): string[] | null {
-  if (!Array.isArray(value)) {
-    return null;
-  }
-  const normalized = value
-    .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
-    .map((entry) => entry.trim());
   return normalized.length > 0 ? normalized : null;
 }
 
@@ -72,7 +61,6 @@ export const DesktopLiveTurnRuntimeClient = {
       conversation_ref: optionalString(input.conversationRef) ?? '',
       query_message_id: turnRef ?? null,
       ...(input.model ? { model: input.model } : {}),
-      attachment_filenames: optionalStringArray(input.attachmentFilenames) ?? null,
       workspace_path: optionalString(input.workspacePath) ?? null,
       resources: Array.isArray(input.resources) ? input.resources : [],
       metadata: input.metadata && typeof input.metadata === 'object' && !Array.isArray(input.metadata)

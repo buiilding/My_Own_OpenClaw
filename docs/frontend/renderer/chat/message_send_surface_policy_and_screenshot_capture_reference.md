@@ -151,14 +151,12 @@ When attachment(s) exist:
    - `readable_file` for selected non-image files
    - `query_screenshot_request` when overlay/config policy asks for a query screenshot
    - `workspace` when the conversation has a workspace binding
-   Filename labels are metadata/pending-bridge hints only; they do not make a
-   SDK turn resource by themselves. Renderer resources do not assign
-   `displayAttachmentId`; SDK turn processing assigns stable display attachment
-   ids before producing live visual attachment projection state.
+   Renderer resources do not assign `displayAttachmentId`; SDK turn processing
+   assigns stable display attachment ids before producing live visual
+   attachment projection state.
 7. call `DesktopLiveTurnRuntimeClient.sendQuery` with text, conversation ref,
-   turn ref, typed resources, and the legacy filename payload used for filename
-   chips/query compatibility. Normal sends do not also build a renderer-owned
-   `metadata` object for those filenames.
+   turn ref, and typed resources. Normal sends do not build a renderer-owned
+   filename payload or metadata object for filenames.
 8. Electron main preserves `resources` for SDK `send()` while keeping them out
    of the backend query allowlist; SDK resource resolution owns user-row
    metadata updates.
@@ -238,8 +236,7 @@ Capture path specifics:
 SDK base user row includes:
 
 - `text`
-- optional filename metadata from the normalized SDK payload for
-  picker/clipboard filenames
+- live visual attachment placeholders from typed SDK resources when applicable
 
 SDK `user_message_metadata` patches later add resolved screenshot refs,
 attachment filenames, capture metadata, or resource failures. Final backend

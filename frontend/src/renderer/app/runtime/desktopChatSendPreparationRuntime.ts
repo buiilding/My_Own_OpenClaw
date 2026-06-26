@@ -26,7 +26,6 @@ import { DesktopChatSendStateRuntime } from './desktopChatSendStateRuntime';
 import { DesktopRendererTraceRuntime } from './desktopRendererTraceRuntime';
 
 const {
-  normalizeAttachmentFilenames,
   normalizeOutgoingPayload,
 } = DesktopChatSendPayloadRuntime;
 const {
@@ -88,7 +87,6 @@ type PrepareDesktopChatSendDependencies = {
 };
 
 type PreparedDesktopChatTurn = {
-  attachmentFilenames: string[] | null;
   conversationRef: string;
   deferredQueryModelSelection: ReturnType<
     typeof DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection
@@ -259,7 +257,6 @@ async function prepareDesktopChatSend({
   const text = normalizedPayload.text;
   const clipboardImages = normalizedPayload.clipboardImages;
   const readableFiles = normalizedPayload.readableFiles;
-  const attachmentFilenames = normalizeAttachmentFilenames(clipboardImages, readableFiles);
 
   dependencies.stopPlayback?.();
 
@@ -291,7 +288,7 @@ async function prepareDesktopChatSend({
     senderSurface,
     messageText: text,
     textLength: text.length,
-    attachmentCount: attachmentFilenames.length,
+    attachmentCount: clipboardImages.length + readableFiles.length,
     imageCount: clipboardImages.length,
     readableFileCount: readableFiles.length,
   });
@@ -318,7 +315,6 @@ async function prepareDesktopChatSend({
   });
 
   return {
-    attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
     conversationRef,
     deferredQueryModelSelection: DesktopRendererConfigRuntimeClient
       .buildDeferredQueryModelSelection(config),
@@ -343,7 +339,6 @@ async function dispatchPreparedDesktopChatTurn(
   await DesktopLiveTurnRuntimeClient.sendQuery({
     text: preparedTurn.text,
     conversationRef: preparedTurn.conversationRef,
-    attachmentFilenames: preparedTurn.attachmentFilenames,
     workspacePath: preparedTurn.workspacePath,
     resources: preparedTurn.resources,
     model: preparedTurn.model,

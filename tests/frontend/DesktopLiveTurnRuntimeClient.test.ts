@@ -40,7 +40,6 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     await DesktopLiveTurnRuntimeClient.sendQuery({
       text: 'hello',
       conversationRef: 'conv-send',
-      attachmentFilenames: [' notes.txt ', '   ', 'image.png'],
       workspacePath: ' /workspace/project-alpha ',
       resources: [{
         kind: 'readable_file',
@@ -49,7 +48,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
         required: true,
       }],
       metadata: {
-        attachmentFilenames: ['notes.txt'],
+        source: 'renderer',
       },
       turnRef: ' turn-explicit ',
     });
@@ -57,7 +56,6 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', {
       text: 'hello',
       conversation_ref: 'conv-send',
-      attachment_filenames: ['notes.txt', 'image.png'],
       workspace_path: '/workspace/project-alpha',
       resources: [{
         kind: 'readable_file',
@@ -66,7 +64,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
         required: true,
       }],
       metadata: {
-        attachmentFilenames: ['notes.txt'],
+        source: 'renderer',
       },
       query_message_id: 'turn-explicit',
       memory_retrieval_enabled: true,
@@ -77,6 +75,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('screenshot_refs');
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('capture_meta');
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('attachment_context');
+    expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('attachment_filenames');
   });
 
   test('sendQuery throws a generic runtime fallback when command invoke fails without an error', async () => {

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: remove the renderer-authored attachment filename command
+  payload from normal chat sends; typed SDK resources now carry filenames for
+  SDK resource resolution and display metadata. No migration required.
 - frontend/pending-turn: make echoed pending-turn broadcasts no-op from the
   stored pending bridge identity, not by scanning raw workspace messages. No
   migration required.

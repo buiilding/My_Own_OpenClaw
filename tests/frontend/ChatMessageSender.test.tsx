@@ -603,7 +603,7 @@ describe('useChatMessageSender', () => {
       filename: 'clipboard-image.png',
       required: true,
     }]);
-    expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['clipboard-image.png']);
+    expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('attachmentFilenames');
     expectPendingBridgeUserMessage('Please inspect this image');
   });
 
@@ -636,7 +636,7 @@ describe('useChatMessageSender', () => {
         required: false,
       },
     ]);
-    expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['clipboard-image.png']);
+    expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('attachmentFilenames');
     expectPendingBridgeUserMessage('Please inspect this image and screen');
   });
 
@@ -675,10 +675,7 @@ describe('useChatMessageSender', () => {
         required: true,
       },
     ]);
-    expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual([
-      'clipboard-image-1.png',
-      'clipboard-image-2.jpg',
-    ]);
+    expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('attachmentFilenames');
     expectPendingBridgeUserMessage('Please inspect both images');
   });
 
@@ -720,7 +717,7 @@ describe('useChatMessageSender', () => {
       filename: 'notes.txt',
       required: true,
     }]);
-    expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['notes.txt']);
+    expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('attachmentFilenames');
 
     expectPendingBridgeUserMessage('Summarize the attached file');
   });
@@ -766,7 +763,7 @@ describe('useChatMessageSender', () => {
       filename: 'private.txt',
       required: true,
     }]);
-    expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['private.txt']);
+    expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('attachmentFilenames');
     expectPendingBridgeUserMessage('Summarize the attached file');
   });
 
