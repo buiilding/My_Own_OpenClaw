@@ -472,9 +472,20 @@ describe('renderer chat runtime boundary', () => {
     expect(runtimeSource).toContain('resolveConversationStreamEventTurnRef');
     expect(runtimeSource).toContain('resolveConversationStreamEventTurnRefForUpdate');
     expect(runtimeSource).toContain('resolveTurnCompletedStreamEventState');
+    expect(runtimeSource).toContain('resolveWorkspaceThinkingSourceEventType');
     expect(runtimeSource).not.toContain('export function resolveConversationStreamEventConversationRef');
     expect(runtimeSource).not.toContain('export function resolveConversationStreamEventTurnRef');
     expect(runtimeSource).not.toContain('export function resolveConversationStreamEventTurnRefForUpdate');
+  });
+
+  test('chat stream compaction thinking source reads stay behind app runtime', async () => {
+    const streamSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatStream.ts'),
+      'utf8',
+    );
+
+    expect(streamSource).toContain('resolveWorkspaceThinkingSourceEventType');
+    expect(streamSource).not.toContain('.thinkingSourceEventType');
   });
 
   test('chat stream backend ingress normalization stays behind the app runtime', async () => {

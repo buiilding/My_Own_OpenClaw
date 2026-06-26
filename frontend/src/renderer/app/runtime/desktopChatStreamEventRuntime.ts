@@ -34,6 +34,12 @@ type ResolveTerminalCompletionDeps = {
   getWorkspaceState: (conversationRef?: string | null) => StreamCompletionWorkspace;
 };
 
+type ResolveThinkingSourceDeps = {
+  getWorkspaceState: (conversationRef?: string | null) => {
+    thinkingSourceEventType?: string | null;
+  } | null | undefined;
+};
+
 type TurnRefEvent = {
   turn_ref?: string | null;
 };
@@ -69,6 +75,14 @@ function resolveConversationStreamEventTurnRefForUpdate(
   event: ConversationStreamEventIdentityEvent | null | undefined,
 ): string | undefined {
   return resolveConversationStreamEventTurnRef(event) ?? undefined;
+}
+
+function resolveWorkspaceThinkingSourceEventType(
+  conversationRef: string | null | undefined,
+  deps: ResolveThinkingSourceDeps,
+): string | null {
+  const sourceEventType = deps.getWorkspaceState(conversationRef)?.thinkingSourceEventType;
+  return optionalString(sourceEventType);
 }
 
 const SUPPORTED_CONVERSATION_STREAM_EVENT_TYPES = new Set([
@@ -303,6 +317,7 @@ export const DesktopChatStreamEventRuntime = Object.freeze({
   resolveConversationStreamEventConversationRef,
   resolveConversationStreamEventTurnRef,
   resolveConversationStreamEventTurnRefForUpdate,
+  resolveWorkspaceThinkingSourceEventType,
   isSupportedConversationStreamEvent,
   isToolDisplayOnlyConversationStreamEvent,
   isCompactionStartedConversationStreamEvent,

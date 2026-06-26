@@ -28,6 +28,7 @@ const {
   resolveConversationStreamEventTurnRef,
   resolveConversationStreamEventTurnRefForUpdate,
   resolveTurnCompletedStreamEventState,
+  resolveWorkspaceThinkingSourceEventType,
   shouldIgnoreConversationEventForStaleTurn,
   shouldRecordTerminalCompletionTracking,
 } = DesktopChatStreamEventRuntime;
@@ -278,6 +279,28 @@ describe('DesktopChatStreamEventRuntime', () => {
         }),
       },
     )).toBeNull();
+  });
+
+  test('resolves workspace thinking source event type through runtime dependency', () => {
+    const getWorkspaceState = jest.fn(() => ({
+      thinkingSourceEventType: ' context-compaction-started ',
+    }));
+
+    expect(resolveWorkspaceThinkingSourceEventType('conv-thinking', {
+      getWorkspaceState,
+    })).toBe('context-compaction-started');
+    expect(getWorkspaceState).toHaveBeenCalledWith('conv-thinking');
+  });
+
+  test('normalizes missing workspace thinking source event type to null', () => {
+    expect(resolveWorkspaceThinkingSourceEventType('conv-thinking', {
+      getWorkspaceState: jest.fn(() => null),
+    })).toBeNull();
+    expect(resolveWorkspaceThinkingSourceEventType('conv-thinking', {
+      getWorkspaceState: jest.fn(() => ({
+        thinkingSourceEventType: '   ',
+      })),
+    })).toBeNull();
   });
 
   test('classifies supported SDK conversation stream event types', () => {

@@ -56,6 +56,7 @@ const {
   isUsageUpdatedConversationStreamEvent,
   recordTrackingEvent: recordTrackingEventRuntime,
   resolveConversationStreamEventConversationRef,
+  resolveWorkspaceThinkingSourceEventType,
   shouldIgnoreConversationEventForStaleTurn,
 } = DesktopChatStreamEventRuntime;
 const {
@@ -118,7 +119,9 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus,
     setThinkingSourceEventType,
     getThinkingSourceEventType: (conversationRef?: string | null) => (
-      useChatStore.getState().getWorkspaceState(conversationRef).thinkingSourceEventType
+      resolveWorkspaceThinkingSourceEventType(conversationRef, {
+        getWorkspaceState: useChatStore.getState().getWorkspaceState,
+      })
     ),
     setCompactionDebugInfo: setCompactionDebugInfoInChatStore,
     recordTrackingEvent,

@@ -211,6 +211,10 @@ Turn-completion handlers call
 `DesktopChatStreamEventRuntime.resolveTurnCompletedStreamEventState(...)` for
 resolved conversation identity, turn identity, and terminal tracking decisions;
 hooks should not read workspace stream state directly to make that decision.
+Compaction handlers similarly read the current thinking source through
+`DesktopChatStreamEventRuntime.resolveWorkspaceThinkingSourceEventType(...)`;
+the hook wires store access as an adapter dependency and does not dereference
+workspace thinking fields inline.
 
 ### Removed Chat Stream Transparency and Thinking Helper Paths
 

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stream: resolve compaction thinking-source reads through
+  `DesktopChatStreamEventRuntime` so `useChatStream` no longer dereferences
+  workspace thinking fields directly. No migration required.
 - frontend/stream: move SDK completion terminal-tracking resolution behind
   `DesktopChatStreamEventRuntime` so the completion hook no longer inspects raw
   workspace state directly. No migration required.
