@@ -64,6 +64,7 @@ export function useResponseOverlayViewModel({
     currentTurnProjection = null,
     pendingTurn = null,
   } = chatSurfaceState || {};
+  const effectiveCurrentTurnProjection = conversationView ? null : currentTurnProjection;
   const dismissedResponseOverlayEntries = useChatStore(
     (state) => state.dismissedResponseOverlayEntries,
   );
@@ -76,12 +77,12 @@ export function useResponseOverlayViewModel({
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
     conversationView,
     pendingTurn,
-    currentTurnProjection,
+    currentTurnProjection: effectiveCurrentTurnProjection,
     messages,
   });
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
     conversationView,
-    currentTurnProjection,
+    currentTurnProjection: effectiveCurrentTurnProjection,
     pendingTurn,
     messages,
     visibleTurnLifecycle,
@@ -92,12 +93,12 @@ export function useResponseOverlayViewModel({
   const responseOverlayEntries = useMemo(
     () => resolveResponseOverlayEntries({
       conversationView,
-      currentTurnProjection,
+      currentTurnProjection: effectiveCurrentTurnProjection,
       liveTurnPresentationInput,
     }),
     [
       conversationView,
-      currentTurnProjection,
+      effectiveCurrentTurnProjection,
       liveTurnPresentationInput,
     ],
   );
@@ -113,13 +114,13 @@ export function useResponseOverlayViewModel({
 
   const responseOverlayDismissalTarget = useMemo(() => {
     return resolveResponseOverlayDismissalTarget({
-      currentTurnProjection,
+      currentTurnProjection: effectiveCurrentTurnProjection,
       overlayIntent: liveTurnPresentationInput.overlayIntent,
       responseOverlayEntries,
       useSdkLiveTurnPresentation,
     });
   }, [
-    currentTurnProjection,
+    effectiveCurrentTurnProjection,
     liveTurnPresentationInput.overlayIntent,
     responseOverlayEntries,
     useSdkLiveTurnPresentation,
@@ -147,7 +148,7 @@ export function useResponseOverlayViewModel({
   const resolvedCurrentTurnPresentationState = useMemo(
     () => resolveResponseOverlayPresentationState({
       currentTurnPresentationState,
-      currentTurnProjection,
+      currentTurnProjection: effectiveCurrentTurnProjection,
       dismissedResponseId,
       liveTurnPresentationInput,
       responseOverlayEntries,
@@ -155,7 +156,7 @@ export function useResponseOverlayViewModel({
     }),
     [
       currentTurnPresentationState,
-      currentTurnProjection,
+      effectiveCurrentTurnProjection,
       dismissedResponseId,
       liveTurnPresentationInput,
       visibleTurnLifecycle,
@@ -208,16 +209,16 @@ export function useResponseOverlayViewModel({
 
   const thinkingText = useMemo(
     () => normalizeReasoningText(
-      currentTurnProjection?.reasoningText,
+      effectiveCurrentTurnProjection?.reasoningText,
     ),
-    [currentTurnProjection?.reasoningText],
+    [effectiveCurrentTurnProjection?.reasoningText],
   );
 
   useEffect(() => {
     const overlayIntent = resolvedCurrentTurnPresentationState.overlayIntent ?? null;
     const tracePayload = buildRendererOverlayViewModelTracePayload({
       conversationView,
-      currentTurnProjection,
+      currentTurnProjection: effectiveCurrentTurnProjection,
       pendingTurn,
       visibleTurnLifecycle,
       currentTurnPhase,
@@ -254,7 +255,7 @@ export function useResponseOverlayViewModel({
   }, [
     currentTurnPhase,
     conversationView,
-    currentTurnProjection,
+    effectiveCurrentTurnProjection,
     responseOverlayEntries,
     resolvedCurrentTurnPresentationState,
     pendingTurn,

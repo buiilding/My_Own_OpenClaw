@@ -2896,6 +2896,9 @@ describe('renderer chat runtime boundary', () => {
     expect(syncSource).not.toContain('payload.visible');
     expect(syncSource).toContain('setResponseboxSizeValues');
     expect(syncSource).not.toContain('setResponseboxSize({');
+    expect(viewModelSource).toContain('const effectiveCurrentTurnProjection = conversationView ? null : currentTurnProjection');
+    expect(viewModelSource).toContain('currentTurnProjection: effectiveCurrentTurnProjection');
+    expect(viewModelSource).toContain('effectiveCurrentTurnProjection?.reasoningText');
     expect(viewModelSource).toContain('hideDismissedResponsebox');
     expect(viewModelSource).not.toContain('setResponseboxSizeValues');
     expect(viewModelSource).not.toContain('setResponseboxSize({');

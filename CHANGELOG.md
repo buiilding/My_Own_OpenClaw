@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: make the response overlay view-model hook drop raw
+  current-turn projection input whenever `ConversationView` exists before
+  resolving entries, dismissal state, traces, or thinking text. No migration
+  required.
 - frontend/projection: make the ChatInterface presentation adapter drop raw
   current-turn projection input whenever `ConversationView` exists, even when
   the view has no live rows. No migration required.
