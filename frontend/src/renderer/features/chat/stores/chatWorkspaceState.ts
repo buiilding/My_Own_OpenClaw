@@ -7,8 +7,10 @@ import type {
   CurrentTurnProjection,
 } from '../../../app/runtime/desktopConversationRuntimeContracts';
 import type {
+  DesktopPendingTurnState,
+} from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
+import type {
   ChatMessage,
-  PendingTurn,
   StreamTracking,
   TokenCounts,
 } from './chatStore';
@@ -39,7 +41,7 @@ export interface ChatWorkspaceState {
   streamTracking: StreamTracking;
   currentTurnProjection: CurrentTurnProjection | null;
   conversationView: ConversationView | null;
-  pendingTurn: PendingTurn | null;
+  pendingTurn: DesktopPendingTurnState | null;
 }
 
 interface ChatWorkspaceStoreSnapshot {

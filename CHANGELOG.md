@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: remove the duplicate store-owned pending-turn type; chat
+  workspace state now uses the app-runtime `DesktopPendingTurnState` contract.
+  No migration required.
 - frontend/overlay: expose the response overlay surface presentation input under
   a neutral hook-local name while keeping the app-runtime live-turn parameter
   contract unchanged. No migration required.

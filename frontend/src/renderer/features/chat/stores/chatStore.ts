@@ -37,6 +37,9 @@ import {
 import {
   DesktopChatPendingTurnStateRuntime,
 } from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
+import type {
+  DesktopPendingTurnState,
+} from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
 import {
   DesktopChatClearMessagesRuntime,
 } from '../../../app/runtime/desktopChatClearMessagesRuntime';
@@ -198,15 +201,6 @@ export interface StreamTracking {
   toolOutputCount: number;
   lastChunkSize: number;
   lastError: string | null;
-}
-
-export interface PendingTurn {
-  conversationRef: string;
-  turnRef: string;
-  userMessageId: string;
-  text: string;
-  timestamp: string;
-  attachmentFilenames: string[] | null;
 }
 
 interface ResponseOverlayDismissalInput {
@@ -387,7 +381,7 @@ export function clearMessagesInChatStore(
 }
 
 export function acceptPendingTurnInChatStore(
-  pendingTurn: PendingTurn,
+  pendingTurn: DesktopPendingTurnState,
 ): void {
   useChatStore.setState((state) => (
     buildAcceptPendingTurnStateUpdate<ChatState, ChatWorkspaceState>({

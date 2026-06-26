@@ -3420,6 +3420,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('currentTurnProjection: CurrentTurnProjection | null;');
     expect(chatStoreSource).not.toContain('conversationView: ConversationView | null;');
     expect(chatStoreSource).not.toContain('pendingTurn: PendingTurn | null;');
+    expect(chatStoreSource).not.toContain('export interface PendingTurn');
+    expect(chatStoreSource).toContain('DesktopPendingTurnState');
     expect(chatStoreSource).not.toContain('turnConversationRefs:');
     expect(chatStoreSource).not.toContain('function buildWorkspaceUpdate');
     expect(chatStoreSource).not.toContain('function resolveWorkspaceMutationTarget');
