@@ -75,8 +75,8 @@ or session conversation refs stay in the selector runtime so React event
 handlers do not run a second stop-target authority beside the SDK view/pending
 bridge selection.
 
-`DesktopStopTurnRuntime.buildStoppedCurrentTurnProjection(...)` terminalizes
-the stopped SDK projection without restamping SDK `typingVisible` or
+`DesktopStopTurnRuntime.buildStoppedSdkLiveTurn(...)` terminalizes
+the stopped SDK live turn without restamping SDK `typingVisible` or
 `overlayVisible`; renderer visible lifecycle owns post-stop typing and response
 visibility from terminal phase and visible entries.
 

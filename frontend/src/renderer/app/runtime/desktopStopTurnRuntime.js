@@ -1,5 +1,5 @@
 /**
- * Provides stop-turn target and terminal projection helpers for renderer app-runtime consumers.
+ * Provides stop-turn target and terminal SDK live-turn helpers for renderer app-runtime consumers.
  */
 
 function normalizeRef(value) {
@@ -19,14 +19,14 @@ function hasVisibleCurrentTurnContent(presentation) {
   return Array.isArray(presentation?.entries) && presentation.entries.length > 0;
 }
 
-function buildStoppedCurrentTurnProjection(currentTurnProjection) {
-  if (!currentTurnProjection || typeof currentTurnProjection !== 'object') {
+function buildStoppedSdkLiveTurn(sdkLiveTurn) {
+  if (!sdkLiveTurn || typeof sdkLiveTurn !== 'object') {
     return null;
   }
-  const presentation = currentTurnProjection.presentation;
+  const presentation = sdkLiveTurn.presentation;
   if (!presentation || typeof presentation !== 'object') {
     return {
-      ...currentTurnProjection,
+      ...sdkLiveTurn,
       phase: 'complete',
     };
   }
@@ -39,7 +39,7 @@ function buildStoppedCurrentTurnProjection(currentTurnProjection) {
   delete nextPresentation.overlayVisible;
   delete nextPresentation.hasVisibleContent;
   return {
-    ...currentTurnProjection,
+    ...sdkLiveTurn,
     phase: 'complete',
     presentation: {
       ...nextPresentation,
@@ -55,17 +55,17 @@ function buildStoppedCurrentTurnProjection(currentTurnProjection) {
   };
 }
 
-function doesProjectionMatch(currentTurnProjection, input = null) {
-  if (!currentTurnProjection || !input) {
+function doesSdkLiveTurnMatch(sdkLiveTurn, input = null) {
+  if (!sdkLiveTurn || !input) {
     return false;
   }
   const conversationRef = normalizeRef(input.conversationRef);
   const turnRef = normalizeRef(input.turnRef);
-  const projectionConversationRef = normalizeRef(currentTurnProjection.conversationRef);
-  const projectionTurnRef = normalizeRef(currentTurnProjection.turnRef);
+  const sdkLiveTurnConversationRef = normalizeRef(sdkLiveTurn.conversationRef);
+  const sdkLiveTurnRef = normalizeRef(sdkLiveTurn.turnRef);
   return (
-    (!conversationRef || projectionConversationRef === conversationRef)
-    && (!turnRef || projectionTurnRef === turnRef)
+    (!conversationRef || sdkLiveTurnConversationRef === conversationRef)
+    && (!turnRef || sdkLiveTurnRef === turnRef)
   );
 }
 
@@ -92,8 +92,8 @@ function resolveStoppedAt(stoppedAt) {
 
 function buildStoppedTurnWorkspaceMutation({
   conversationRef = null,
-  currentTurnProjection = null,
   currentWorkspace,
+  sdkLiveTurn = null,
   stoppedAt = null,
   turnRef = null,
 } = {}) {
@@ -104,18 +104,18 @@ function buildStoppedTurnWorkspaceMutation({
     conversationRef: normalizeRef(conversationRef),
     turnRef: normalizeRef(turnRef),
   };
-  const workspaceProjection = currentWorkspace.currentTurnProjection ?? null;
-  const isWorkspaceProjectionTarget = doesProjectionMatch(workspaceProjection, target);
+  const workspaceSdkLiveTurn = currentWorkspace.currentTurnProjection ?? null;
+  const isWorkspaceSdkLiveTurnTarget = doesSdkLiveTurnMatch(workspaceSdkLiveTurn, target);
   const isPendingTurnTarget = doesPendingTurnMatch(currentWorkspace.pendingTurn, target);
-  if (!isWorkspaceProjectionTarget && !isPendingTurnTarget) {
+  if (!isWorkspaceSdkLiveTurnTarget && !isPendingTurnTarget) {
     return null;
   }
-  const projectionToStop = isWorkspaceProjectionTarget
-    ? workspaceProjection
-    : currentTurnProjection;
-  const nextCurrentTurnProjection = projectionToStop
-    ? buildStoppedCurrentTurnProjection(projectionToStop)
-    : workspaceProjection;
+  const sdkLiveTurnToStop = isWorkspaceSdkLiveTurnTarget
+    ? workspaceSdkLiveTurn
+    : sdkLiveTurn;
+  const nextSdkLiveTurn = sdkLiveTurnToStop
+    ? buildStoppedSdkLiveTurn(sdkLiveTurnToStop)
+    : workspaceSdkLiveTurn;
   const nextPendingTurn = isPendingTurnTarget
     ? null
     : currentWorkspace.pendingTurn;
@@ -126,7 +126,7 @@ function buildStoppedTurnWorkspaceMutation({
     thinkingStatus: null,
     thinkingSourceEventType: null,
     pendingTurn: nextPendingTurn,
-    currentTurnProjection: nextCurrentTurnProjection,
+    currentTurnProjection: nextSdkLiveTurn,
     streamTracking: {
       ...currentWorkspace.streamTracking,
       ...buildStopQueryTrackingPatch(nextStoppedAt),
@@ -234,7 +234,7 @@ export const DesktopStopTurnRuntime = Object.freeze({
   buildAcceptStoppedTurnStateUpdate,
   buildStopQueryTrackingPatch,
   buildStoppedTurnWorkspaceMutation,
-  buildStoppedCurrentTurnProjection,
+  buildStoppedSdkLiveTurn,
   isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
 });

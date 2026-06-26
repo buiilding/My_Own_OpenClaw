@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stop: rename the stopped no-view live-turn terminalizer to
+  `buildStoppedSdkLiveTurn`, keeping raw `currentTurnProjection` naming scoped
+  to workspace storage instead of stop helper semantics. No migration required.
 - frontend/chat: enforce empty raw send-history messages inside the send read
   selector whenever `ConversationView` exists, so direct selector callers cannot
   reintroduce renderer messages as a competing send authority. No migration

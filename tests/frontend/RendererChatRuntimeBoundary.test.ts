@@ -2199,6 +2199,11 @@ describe('renderer chat runtime boundary', () => {
     expect(stopHandlerSource).not.toContain("stopTarget.source === 'pending-turn'");
     expect(chatStoreSource).not.toContain('utils/state/stopQueryState');
     expect(stopRuntimeSource).toContain('DesktopStopTurnRuntime');
+    expect(stopRuntimeSource).toContain('buildStoppedSdkLiveTurn');
+    expect(stopRuntimeSource).toContain('doesSdkLiveTurnMatch');
+    expect(stopRuntimeSource).not.toContain('buildStoppedCurrentTurnProjection');
+    expect(stopRuntimeSource).not.toContain('doesProjectionMatch');
+    expect(stopRuntimeSource).not.toContain('currentTurnProjection = null');
     expect(stopRuntimeSource).toContain('delete nextPresentation.typingVisible');
     expect(stopRuntimeSource).toContain('delete nextPresentation.overlayVisible');
     expect(stopRuntimeSource).toContain('delete nextPresentation.hasVisibleContent');
@@ -2206,7 +2211,7 @@ describe('renderer chat runtime boundary', () => {
     expect(stopRuntimeSource).not.toContain('overlayVisible: hasVisibleContent');
     expect(stopRuntimeSource).not.toContain('presentation?.hasVisibleContent');
     expect(stopRuntimeSource).not.toContain('export function buildStopQueryTrackingPatch');
-    expect(stopRuntimeSource).not.toContain('export function buildStoppedCurrentTurnProjection');
+    expect(stopRuntimeSource).not.toContain('export function buildStoppedSdkLiveTurn');
     expect(stopRuntimeSource).not.toContain('export function isStopTurnTargetFromCurrentTurn');
     expect(stopRuntimeSource).not.toContain('isStopTurnTargetFromConversationView');
     expect(stopRuntimeSource).not.toContain('export function isStopTurnTargetFromPendingTurn');

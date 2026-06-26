@@ -9,7 +9,7 @@ import {
 const {
   buildAcceptStoppedTurnStateUpdate,
   buildStoppedTurnWorkspaceMutation,
-  buildStoppedCurrentTurnProjection,
+  buildStoppedSdkLiveTurn,
   isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
 } = DesktopStopTurnRuntime;
@@ -194,8 +194,8 @@ describe('desktopStopTurnRuntime', () => {
     expect(isStopTurnTargetFromPendingTurn(viewTarget)).toBe(false);
   });
 
-  test('buildStoppedCurrentTurnProjection strips legacy SDK visibility fields', () => {
-    const stoppedProjection = buildStoppedCurrentTurnProjection({
+  test('buildStoppedSdkLiveTurn strips legacy SDK visibility fields', () => {
+    const stoppedSdkLiveTurn = buildStoppedSdkLiveTurn({
       conversationRef: 'conv-stop',
       turnRef: 'turn-stop',
       phase: 'streaming',
@@ -214,7 +214,7 @@ describe('desktopStopTurnRuntime', () => {
       },
     });
 
-    expect(stoppedProjection).toEqual(expect.objectContaining({
+    expect(stoppedSdkLiveTurn).toEqual(expect.objectContaining({
       phase: 'complete',
       presentation: expect.objectContaining({
         phase: 'complete',
@@ -227,12 +227,12 @@ describe('desktopStopTurnRuntime', () => {
         }),
       }),
     }));
-    expect(stoppedProjection.presentation).not.toHaveProperty('typingVisible');
-    expect(stoppedProjection.presentation).not.toHaveProperty('overlayVisible');
-    expect(stoppedProjection.presentation).not.toHaveProperty('hasVisibleContent');
+    expect(stoppedSdkLiveTurn.presentation).not.toHaveProperty('typingVisible');
+    expect(stoppedSdkLiveTurn.presentation).not.toHaveProperty('overlayVisible');
+    expect(stoppedSdkLiveTurn.presentation).not.toHaveProperty('hasVisibleContent');
   });
 
-  test('buildStoppedTurnWorkspaceMutation clears matching pending turn and terminalizes projection', () => {
+  test('buildStoppedTurnWorkspaceMutation clears matching pending turn and terminalizes SDK live turn', () => {
     const nextWorkspace = buildStoppedTurnWorkspaceMutation({
       conversationRef: 'conv-stop',
       currentWorkspace: workspace(),
@@ -316,8 +316,8 @@ describe('desktopStopTurnRuntime', () => {
     }));
   });
 
-  test('buildStoppedCurrentTurnProjection does not use SDK visible-content flag as overlay evidence', () => {
-    const stoppedProjection = buildStoppedCurrentTurnProjection({
+  test('buildStoppedSdkLiveTurn does not use SDK visible-content flag as overlay evidence', () => {
+    const stoppedSdkLiveTurn = buildStoppedSdkLiveTurn({
       conversationRef: 'conv-stop',
       turnRef: 'turn-stop',
       phase: 'streaming',
@@ -334,7 +334,7 @@ describe('desktopStopTurnRuntime', () => {
       },
     });
 
-    expect(stoppedProjection).toEqual(expect.objectContaining({
+    expect(stoppedSdkLiveTurn).toEqual(expect.objectContaining({
       phase: 'complete',
       presentation: expect.objectContaining({
         phase: 'complete',
@@ -347,6 +347,6 @@ describe('desktopStopTurnRuntime', () => {
         }),
       }),
     }));
-    expect(stoppedProjection.presentation).not.toHaveProperty('hasVisibleContent');
+    expect(stoppedSdkLiveTurn.presentation).not.toHaveProperty('hasVisibleContent');
   });
 });

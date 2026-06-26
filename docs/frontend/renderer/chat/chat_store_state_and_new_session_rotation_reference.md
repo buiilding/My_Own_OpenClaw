@@ -150,7 +150,7 @@ replay/store compatibility adapters and low-level artifact helpers.
   pending bridge there, so `chatStore.ts` does not keep a competing pending
   state after SDK view authority exists.
 - `acceptPendingTurnInChatStore(...)` stores the renderer-local pending turn
-  before the SDK current-turn projection opens, so dashboard/pill surfaces can
+  before the SDK live turn opens, so dashboard/pill surfaces can
   show awaiting state and stop can target the real outgoing `turnRef`; an
   echoed pending-turn broadcast for the same conversation/user/turn/text is a
   no-op so renderer IPC fan-out cannot repaint the existing user bubble.
@@ -178,8 +178,8 @@ replay/store compatibility adapters and low-level artifact helpers.
   clear path.
 - `acceptStoppedTurnInChatStore(...)` immediately clears local busy/thinking
   state, clears a matching pending turn, patches stream tracking to terminal
-  `complete`, and terminalizes the matching SDK current-turn projection while
-  preserving any already visible assistant content. Stopped projections strip SDK
+  `complete`, and terminalizes the matching SDK live turn while preserving any
+  already visible assistant content. Stopped SDK live turns strip SDK
   `typingVisible` and `overlayVisible` compatibility fields; visible lifecycle
   derives busy/typing state from terminal phase plus visible entries. Stopped
   workspace mutation, current-turn identity matching, stop-target normalization,
