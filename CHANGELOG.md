@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pending-turn: remove attachment filename metadata from renderer
+  pending-turn state and bridge rows; filename compatibility stays on the SDK
+  send command while SDK display rows own visible attachment metadata. No
+  migration required.
 - frontend/state: route pending-turn and clear-message live-turn resets through
   the workspace-state SDK live-turn storage helper, keeping raw
   `currentTurnProjection` writes private to the workspace-state runtime. No

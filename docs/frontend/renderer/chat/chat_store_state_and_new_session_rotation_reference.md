@@ -76,9 +76,9 @@ Message attachment fields used by current renderer message paths:
 
 - `attachments[]`: SDK typed display descriptors for visible image, screenshot
   request, pending, and failed attachment states.
-- `attachmentFilenames[]`: filename metadata for the short pending bridge and
-  send transport only; it is not part of visible `ChatMessage` rows and is not
-  a display attachment fallback.
+- `attachmentFilenames[]`: SDK send compatibility payload only; it is not part
+  of pending bridge rows, visible `ChatMessage` rows, or a display attachment
+  fallback.
 
 Whole-message screenshot aliases such as `screenshot`, `screenshotRef`,
 `screenshotUrl`, and `screenshots[]` are not part of the renderer

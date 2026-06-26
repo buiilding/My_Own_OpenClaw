@@ -20,7 +20,6 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
       userMessageId: 'turn-pending-sdk-evt-000002-user_message',
       text: '',
       timestamp: '2026-06-25T12:00:00.000Z',
-      attachmentFilenames: [' one.png ', 'two.txt'],
     });
 
     expect(DesktopPendingTurnBridgeRuntime.buildPendingTurn({
@@ -32,7 +31,6 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
       attachmentFilenames: [],
     })).toEqual(expect.objectContaining({
       userMessageId: 'explicit-user-row',
-      attachmentFilenames: null,
     }));
   });
 
@@ -99,7 +97,6 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
       userMessageId: 'user-pending',
       text: 'new text',
       timestamp: '2026-06-25T12:01:00.000Z',
-      attachmentFilenames: null,
     })).toEqual([
       expect.objectContaining({
         id: 'user-pending',

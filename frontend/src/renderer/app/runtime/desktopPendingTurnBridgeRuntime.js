@@ -6,14 +6,7 @@ function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-function normalizeAttachmentFilenames(attachmentFilenames) {
-  return Array.isArray(attachmentFilenames)
-    ? attachmentFilenames.filter((entry) => typeof entry === 'string' && entry.trim().length > 0)
-    : [];
-}
-
 function buildPendingTurn({
-  attachmentFilenames = null,
   conversationRef,
   text,
   timestamp,
@@ -31,16 +24,12 @@ function buildPendingTurn({
   }
   const normalizedUserMessageId = normalizeString(userMessageId)
     || `${normalizedTurnRef}-sdk-evt-000002-user_message`;
-  const normalizedAttachmentFilenames = normalizeAttachmentFilenames(attachmentFilenames);
   return {
     conversationRef: normalizedConversationRef,
     turnRef: normalizedTurnRef,
     userMessageId: normalizedUserMessageId,
     text: normalizedText,
     timestamp: normalizedTimestamp,
-    attachmentFilenames: normalizedAttachmentFilenames.length > 0
-      ? normalizedAttachmentFilenames
-      : null,
   };
 }
 

@@ -159,10 +159,7 @@ describe('useChatMessageSender', () => {
     );
   }
 
-  function expectPendingBridgeUserMessage(
-    text: string,
-    attachmentFilenames: string[] | null = null,
-  ) {
+  function expectPendingBridgeUserMessage(text: string) {
     expect(getActiveWorkspace().messages).toEqual([
       expect.objectContaining({
         id: 'msg-1-sdk-evt-000002-user_message',
@@ -172,7 +169,6 @@ describe('useChatMessageSender', () => {
         sourceEventType: 'renderer-compose',
         sourceChannel: 'renderer-local',
         isComplete: true,
-        attachmentFilenames,
         attachments: null,
       }),
     ]);
@@ -608,7 +604,7 @@ describe('useChatMessageSender', () => {
       required: true,
     }]);
     expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['clipboard-image.png']);
-    expectPendingBridgeUserMessage('Please inspect this image', ['clipboard-image.png']);
+    expectPendingBridgeUserMessage('Please inspect this image');
   });
 
   test('sends pasted image before camera screenshot request for mixed visual sends', async () => {
@@ -641,7 +637,7 @@ describe('useChatMessageSender', () => {
       },
     ]);
     expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['clipboard-image.png']);
-    expectPendingBridgeUserMessage('Please inspect this image and screen', ['clipboard-image.png']);
+    expectPendingBridgeUserMessage('Please inspect this image and screen');
   });
 
   test('sends multiple pasted clipboard images as SDK resource handles', async () => {
@@ -683,10 +679,7 @@ describe('useChatMessageSender', () => {
       'clipboard-image-1.png',
       'clipboard-image-2.jpg',
     ]);
-    expectPendingBridgeUserMessage(
-      'Please inspect both images',
-      ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
-    );
+    expectPendingBridgeUserMessage('Please inspect both images');
   });
 
   test('sends selected non-image files as required SDK resource handles', async () => {
@@ -729,7 +722,7 @@ describe('useChatMessageSender', () => {
     }]);
     expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['notes.txt']);
 
-    expectPendingBridgeUserMessage('Summarize the attached file', ['notes.txt']);
+    expectPendingBridgeUserMessage('Summarize the attached file');
   });
 
   test('does not block renderer send when selected file resolution will happen in SDK', async () => {
@@ -774,7 +767,7 @@ describe('useChatMessageSender', () => {
       required: true,
     }]);
     expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['private.txt']);
-    expectPendingBridgeUserMessage('Summarize the attached file', ['private.txt']);
+    expectPendingBridgeUserMessage('Summarize the attached file');
   });
 
   test('resets sending state and appends error message when send fails', async () => {

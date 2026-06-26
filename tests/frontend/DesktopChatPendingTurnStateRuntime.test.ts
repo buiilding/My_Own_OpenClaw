@@ -58,7 +58,7 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
     stateRuntimeDeps.recordTurnConversationRefs.mockClear();
   });
 
-  test('normalizes valid pending turns and strips empty attachment filenames', () => {
+  test('normalizes valid pending turns without retaining attachment filenames', () => {
     expect(normalizePendingTurn({
       conversationRef: ' conv-1 ',
       turnRef: ' turn-1 ',
@@ -72,7 +72,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
       userMessageId: 'user-row-1',
       text: '',
       timestamp: '2026-06-25T12:00:00.000Z',
-      attachmentFilenames: [' one.png ', 'two.txt'],
     });
   });
 
@@ -120,7 +119,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
         userMessageId: 'user-row-new',
         text: 'hello',
         timestamp: '2026-06-25T12:00:00.000Z',
-        attachmentFilenames: ['one.png'],
       },
     });
 
@@ -156,7 +154,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
       userMessageId: 'user-row-new',
       text: 'hello',
       timestamp: '2026-06-25T12:00:00.000Z',
-      attachmentFilenames: null,
     };
     const currentWorkspace = workspace({
       messages: [{
@@ -184,7 +181,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
         userMessageId: 'user-row-1',
         text: 'hello',
         timestamp: '2026-06-25T12:00:00.000Z',
-        attachmentFilenames: null,
       },
     });
 
@@ -206,7 +202,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
         userMessageId: 'user-row-1',
         text: 'hello',
         timestamp: '2026-06-25T12:00:00.000Z',
-        attachmentFilenames: null,
       },
     });
 
@@ -227,7 +222,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
         userMessageId: 'user-state',
         text: 'hello state',
         timestamp: '2026-06-25T12:00:00.000Z',
-        attachmentFilenames: null,
       },
       state,
     });
@@ -280,7 +274,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
         userMessageId: 'user-state',
         text: 'hello state',
         timestamp: '2026-06-25T12:00:00.000Z',
-        attachmentFilenames: null,
       },
       state,
     });
@@ -314,7 +307,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
             userMessageId: 'user-clear',
             text: 'clear me',
             timestamp: '2026-06-25T12:00:00.000Z',
-            attachmentFilenames: null,
           },
         }),
       },
@@ -348,7 +340,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
             userMessageId: 'user-clear',
             text: 'clear me',
             timestamp: '2026-06-25T12:00:00.000Z',
-            attachmentFilenames: null,
           },
         }),
       },

@@ -2122,6 +2122,7 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).not.toContain('export function resolveDesktopPendingTurnBroadcastAction');
     expect(clientSource).toContain('resolveBroadcastAction(payload');
     expect(clientSource).not.toContain("attachments?: ChatMessage['attachments']");
+    expect(clientSource).not.toContain('attachmentFilenames?:');
     expect(eventClientSource).toContain('DesktopPendingTurnRuntimeClient.resolveBroadcastAction(payload)');
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBroadcastAction');
     expect(chatStoreAdaptersSource).toContain('DesktopPendingTurnBroadcastAction');
@@ -3764,6 +3765,7 @@ describe('renderer chat runtime boundary', () => {
     expect(pendingStateRuntimeSource).toContain('buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace, null)');
     expect(pendingStateRuntimeSource).not.toContain('currentTurnProjection: null');
     expect(pendingStateRuntimeSource).not.toContain('currentTurnProjection: unknown');
+    expect(pendingStateRuntimeSource).not.toContain('attachmentFilenames');
     expect(pendingStateRuntimeSource).not.toContain('addSupersededTurnRef');
     expect(pendingStateRuntimeSource).not.toContain('removeSupersededTurnRef');
     expect(clearMessagesRuntimeSource).toContain('buildClearMessagesStateUpdate');
@@ -3808,6 +3810,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain("sourceEventType: 'renderer-compose'");
     expect(pendingBridgeSource).toContain("sourceEventType: 'renderer-compose'");
     expect(pendingBridgeSource).toContain('attachments: null');
+    expect(pendingBridgeSource).not.toContain('attachmentFilenames');
     expect(pendingBridgeSource).not.toContain('readSdkDisplayAttachments');
     expect(pendingBridgeSource).not.toContain('screenshotRef');
     expect(pendingBridgeSource).not.toContain('screenshot_refs');

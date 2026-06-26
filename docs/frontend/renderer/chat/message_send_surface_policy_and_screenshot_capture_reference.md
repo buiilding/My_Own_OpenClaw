@@ -129,13 +129,13 @@ When attachment(s) exist:
      pending row.
 4. accept the pending turn locally and send `windie:pending-turn` so Electron
    main can broadcast/replay the pending user row across renderer windows.
-   The pending bridge carries identity, text, timestamp, and filename metadata
-   only; SDK display projection owns visible image/screenshot attachment states
-   and preview/ready artifact descriptors. Renderer `UserMessage` display
-   consumes typed SDK `attachments[]` only and does not render filename metadata
-   as a separate attachment fallback. `DesktopPendingTurnBridgeRuntime` owns
+   The pending bridge carries identity, text, and timestamp only; SDK display
+   projection owns visible filename/image/screenshot attachment states and
+   preview/ready artifact descriptors. Renderer `UserMessage` display consumes
+   typed SDK `attachments[]` only and does not render filename metadata as a
+   separate attachment fallback. `DesktopPendingTurnBridgeRuntime` owns
    pending-turn payload construction so normal sends and replay sends use the
-   same bridge identity and filename metadata contract.
+   same bridge identity contract.
    Normal sends preserve any existing `ConversationView` in chat-store state
    and let presentation merge the pending bridge beside SDK display rows until
    the next SDK view arrives. That merge is driven by the typed `pendingTurn`

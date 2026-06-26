@@ -152,8 +152,9 @@ Clipboard image IPC trust boundary:
 - `screenshot_ref` and `screenshot_refs` stay compatible.
 - Artifact upload failure keeps an inline fallback where supported.
 - Query payload, SDK display row, transcript row, and replay target row carry
-  compatible attachment metadata; renderer pending rows carry filename chips
-  only and do not own visual attachment descriptors or display attachment ids.
+  compatible attachment metadata; renderer pending rows carry no attachment
+  metadata and do not own visual attachment descriptors or display attachment
+  ids.
 - Tests cover both the producer and downstream consumer for any changed field.
 
 ## Related Docs

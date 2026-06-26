@@ -77,7 +77,6 @@ type PendingDesktopChatTurn = {
   userMessageId: string;
   text: string;
   timestamp: string;
-  attachmentFilenames: string[] | null;
 };
 
 type PrepareDesktopChatSendDependencies = {
@@ -200,14 +199,12 @@ async function resolveImmediateConversationRef(
 }
 
 function acceptPendingTurn({
-  attachmentFilenames,
   conversationRef,
   dependencies,
   text,
   timestamp,
   turnId,
 }: {
-  attachmentFilenames: string[];
   conversationRef: string;
   dependencies: Pick<PrepareDesktopChatSendDependencies, 'acceptPendingTurn'>;
   text: string;
@@ -215,7 +212,6 @@ function acceptPendingTurn({
   turnId: string;
 }): void {
   const pendingTurn = buildPendingTurn({
-    attachmentFilenames,
     conversationRef,
     turnRef: turnId,
     text,
@@ -273,7 +269,6 @@ async function prepareDesktopChatSend({
   const timestamp = new Date().toISOString();
   const conversationRef = await resolveImmediateConversationRef(dependencies);
   acceptPendingTurn({
-    attachmentFilenames,
     conversationRef,
     dependencies,
     text,

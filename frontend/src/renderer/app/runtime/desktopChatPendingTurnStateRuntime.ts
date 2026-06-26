@@ -26,7 +26,6 @@ export type DesktopPendingTurnState = {
   userMessageId: string;
   text: string;
   timestamp: string;
-  attachmentFilenames: string[] | null;
 };
 
 type PendingTurnWorkspaceState = NoViewSdkLiveTurnStorage & {
@@ -150,20 +149,12 @@ function normalizePendingTurn(value: unknown): DesktopPendingTurnState | null {
   if (!conversationRef || !turnRef || !userMessageId || text === null || !timestamp) {
     return null;
   }
-  const attachmentFilenames = Array.isArray(source.attachmentFilenames)
-    ? source.attachmentFilenames.filter((entry): entry is string => (
-      typeof entry === 'string' && entry.trim().length > 0
-    ))
-    : null;
   return {
     conversationRef,
     turnRef,
     userMessageId,
     text,
     timestamp,
-    attachmentFilenames: attachmentFilenames && attachmentFilenames.length > 0
-      ? attachmentFilenames
-      : null,
   };
 }
 

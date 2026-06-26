@@ -19,7 +19,6 @@ const {
 } = DesktopPendingTurnBridgeRuntime;
 
 type PendingTurnLike = {
-  attachmentFilenames?: string[] | null;
   conversationRef?: string | null;
   timestamp?: string | null;
   turnRef?: string | null;

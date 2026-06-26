@@ -11,7 +11,6 @@ export type DesktopPendingTurn = {
   userMessageId?: string | null;
   text?: string | null;
   timestamp?: string | null;
-  attachmentFilenames?: string[] | null;
 };
 
 export type DesktopPendingTurnClearInput = {
