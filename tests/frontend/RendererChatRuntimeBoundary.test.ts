@@ -960,6 +960,7 @@ describe('renderer chat runtime boundary', () => {
     expect(resolvedAttachmentSource).not.toContain('desktopMessageScreenshotRuntime');
     expect(resolvedAttachmentSource).toContain('export const DesktopAttachmentImageRuntime = Object.freeze');
     expect(resolvedAttachmentSource).not.toContain('useResolvedMessageScreenshotSrc');
+    expect(resolvedAttachmentSource).toContain('function isSdkImageAttachment');
     expect(resolvedAttachmentSource).toContain('DesktopArtifactRuntimeClient.inferArtifactRefFromUrl');
     expect(resolvedAttachmentSource).toContain('DesktopArtifactRuntimeClient.fetchArtifactImage');
     expect(replayActionsSource).not.toContain('DesktopArtifactRuntimeClient.resolveReplayScreenshotState');

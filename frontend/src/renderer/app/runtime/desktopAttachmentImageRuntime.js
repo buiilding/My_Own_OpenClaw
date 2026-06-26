@@ -10,6 +10,16 @@ const MAX_ATTACHMENT_IMAGE_SOURCE_CACHE_ENTRIES = 100;
 
 const artifactImagePromiseCache = new Map();
 const artifactImageSourceCache = new Map();
+const SDK_IMAGE_ATTACHMENT_SOURCES = new Set([
+  'user_included',
+  'camera_button',
+  'tool_result',
+  'replay',
+]);
+const SDK_IMAGE_ATTACHMENT_STATUSES = new Set([
+  'materializing',
+  'ready',
+]);
 
 function rememberBoundedCacheEntry(cache, key, value) {
   if (!key) {
@@ -26,7 +36,7 @@ function rememberBoundedCacheEntry(cache, key, value) {
 }
 
 function buildArtifactCacheKey(attachment) {
-  if (!attachment || typeof attachment !== 'object') {
+  if (!isSdkImageAttachment(attachment)) {
     return null;
   }
   if (typeof attachment.screenshotRef === 'string' && attachment.screenshotRef.trim()) {
@@ -77,7 +87,7 @@ async function resolveArtifactAttachmentSrc(attachment) {
 }
 
 function resolveStaticAttachmentImageSrc(attachment) {
-  if (!attachment || typeof attachment !== 'object') {
+  if (!isSdkImageAttachment(attachment)) {
     return null;
   }
   const normalizedUrl = normalizeNonEmptyString(attachment.screenshotUrl);
@@ -85,6 +95,18 @@ function resolveStaticAttachmentImageSrc(attachment) {
     return normalizedUrl;
   }
   return null;
+}
+
+function isSdkImageAttachment(attachment) {
+  return Boolean(
+    attachment
+      && typeof attachment === 'object'
+      && typeof attachment.id === 'string'
+      && attachment.id.trim().length > 0
+      && attachment.kind === 'image'
+      && SDK_IMAGE_ATTACHMENT_SOURCES.has(attachment.source)
+      && SDK_IMAGE_ATTACHMENT_STATUSES.has(attachment.status),
+  );
 }
 
 function useAttachmentIdentityNonce(attachment) {
@@ -103,15 +125,23 @@ function useAttachmentIdentityNonce(attachment) {
 }
 
 function useResolvedAttachmentImageSrc(attachment) {
+  const id = attachment?.id ?? null;
+  const kind = attachment?.kind ?? null;
+  const source = attachment?.source ?? null;
+  const status = attachment?.status ?? null;
   const screenshotRef = attachment?.screenshotRef ?? null;
   const screenshotUrl = attachment?.screenshotUrl ?? null;
   const screenshotContentType = attachment?.contentType ?? attachment?.screenshotContentType ?? null;
   const attachmentIdentityNonce = useAttachmentIdentityNonce(attachment);
   const normalizedAttachment = useMemo(() => ({
+    id,
+    kind,
+    source,
+    status,
     screenshotRef,
     screenshotUrl,
     screenshotContentType,
-  }), [screenshotRef, screenshotUrl, screenshotContentType]);
+  }), [id, kind, source, status, screenshotRef, screenshotUrl, screenshotContentType]);
   const [resolvedSrc, setResolvedSrc] = useState(
     resolveStaticAttachmentImageSrc(normalizedAttachment)
     || cachedArtifactAttachmentSrc(normalizedAttachment)

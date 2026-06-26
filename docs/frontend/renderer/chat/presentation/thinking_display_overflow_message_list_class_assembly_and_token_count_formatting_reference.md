@@ -143,6 +143,9 @@ Current runtime keeps token usage in chat store/state:
   not renderer presentation or token-estimate authorities.
 - React message prop contracts advertise typed `attachments[]`, not
   whole-message screenshot aliases.
+- `DesktopAttachmentImageRuntime` resolves image refs/URLs only from typed SDK
+  image attachment descriptors; whole-message screenshot alias-shaped objects
+  are ignored before artifact fetch.
 
 Important:
 

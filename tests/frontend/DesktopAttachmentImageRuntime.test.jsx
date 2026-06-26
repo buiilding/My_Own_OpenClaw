@@ -49,6 +49,9 @@ describe('DesktopAttachmentImageRuntime', () => {
         initialProps: {
           attachment: {
             id: 'attachment-1',
+            kind: 'image',
+            source: 'user_included',
+            status: 'ready',
             screenshotRef: 'artifact-screen-1',
           },
         },
@@ -77,6 +80,9 @@ describe('DesktopAttachmentImageRuntime', () => {
       rerender({
         attachment: {
           id: 'attachment-1',
+          kind: 'image',
+          source: 'user_included',
+          status: 'ready',
           screenshotRef: 'artifact-screen-1',
         },
       });
@@ -89,11 +95,27 @@ describe('DesktopAttachmentImageRuntime', () => {
     const { result } = renderHook(
       () => DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc({
         id: 'attachment-static',
+        kind: 'image',
+        source: 'user_included',
+        status: 'ready',
         screenshotUrl: 'https://cdn.example/static.png',
       }),
     );
 
     expect(result.current).toBe('https://cdn.example/static.png');
+    expect(DesktopArtifactRuntimeClient.fetchArtifactImage).not.toHaveBeenCalled();
+  });
+
+  test('ignores whole-message screenshot aliases outside typed attachments', () => {
+    const { result } = renderHook(
+      () => DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc({
+        id: 'message-row',
+        screenshotRef: 'artifact-row-alias',
+        screenshotUrl: 'https://cdn.example/row-alias.png',
+      }),
+    );
+
+    expect(result.current).toBeNull();
     expect(DesktopArtifactRuntimeClient.fetchArtifactImage).not.toHaveBeenCalled();
   });
 

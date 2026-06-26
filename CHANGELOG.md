@@ -15,6 +15,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/overlay: stop classifying action-only metadata as a
   `ConversationView` in response-overlay view resolution; overlay authority now
   requires view identity, rows, live turn, or surfaces. No migration required.
+- frontend/attachments: require typed SDK image attachment descriptors before
+  resolving attachment screenshot refs/URLs, preventing whole-message screenshot
+  aliases from re-entering image rendering. No migration required.
 - frontend/state: rename private no-view live-turn workspace storage from
   `currentTurnProjection` to `sdkLiveTurn`, removing the raw current-turn name
   from production renderer workspace state. No migration required.
