@@ -3740,8 +3740,8 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('rawEventType');
     expect(projectionRuntimeSource).not.toContain('metadata.raw');
     expect(projectionRuntimeSource).not.toContain('payload.raw');
-    expect(chatStoreSource).toContain('desktopChatMessageTypes');
-    expect(chatStoreSource).toContain('export type { ChatMessage, TokenCounts }');
+    expect(chatStoreSource).not.toContain('desktopChatMessageTypes');
+    expect(chatStoreSource).not.toContain('export type { ChatMessage, TokenCounts }');
     expect(chatStoreSource).toContain('createInitialWorkspaceRecord');
     expect(chatStoreSource).toContain('desktopChatWorkspaceStateRuntime');
     expect(chatStoreSource).not.toContain('./chatWorkspaceState');

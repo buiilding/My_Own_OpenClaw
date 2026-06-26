@@ -4,10 +4,6 @@
  */
 
 import { create } from 'zustand';
-import type {
-  ChatMessage,
-  TokenCounts,
-} from '../../../app/runtime/desktopChatMessageTypes';
 import {
   buildActiveConversationWorkspaceUpdate,
   createInitialWorkspaceRecord,
@@ -32,7 +28,6 @@ const {
 const {
   buildResponseOverlayDismissalKey,
 } = DesktopResponseOverlayViewRuntime;
-export type { ChatMessage, TokenCounts };
 export type {
   StreamPhase,
   StreamTracking,

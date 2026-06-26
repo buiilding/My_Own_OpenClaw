@@ -13,7 +13,7 @@ import type {
   StreamTrackingEventType,
   StreamTrackingOptions,
 } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
-import type { ChatMessage } from '../../stores/chatStore';
+import type { ChatMessage } from '../../../../app/runtime/desktopChatMessageTypes';
 
 const {
   buildAssistantMessageFullUpdate,

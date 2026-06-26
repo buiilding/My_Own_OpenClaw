@@ -5,7 +5,7 @@
 import { useCallback } from 'react';
 import type {
   ChatMessage,
-} from '../../stores/chatStore';
+} from '../../../../app/runtime/desktopChatMessageTypes';
 
 type UpdateStreamTargetMessage = (
   target: {

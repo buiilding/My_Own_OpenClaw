@@ -10,6 +10,9 @@ All notable changes to WindieOS will be documented in this file.
   metadata and make the renderer display-row adapter read only that field for
   component correlation identity, removing request/bundle/tool-call fallback
   recovery from the renderer. No migration required.
+- frontend/chat: remove the `ChatMessage`/`TokenCounts` type barrel from
+  `chatStore.ts`; chat stream helpers now import message prop types from the
+  app-runtime message contract directly. No migration required.
 - docs/frontend: update dashboard resume references to name
   `DesktopConversationLibraryClient.loadConversationView(...)` as the normal
   renderer read path, with a boundary test preventing the old dashboard
