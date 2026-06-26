@@ -8,9 +8,13 @@ import {
   selectChatSendReadModel,
   selectLiveTurnSurfaceState,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import { DesktopChatInterfaceSelectorRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatInterfaceSelectorRuntime';
 import { DesktopChatSurfaceSelectorRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime';
 import { projectWorkspaceReadModelState } from '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceStateRuntime';
 
+const {
+  buildChatSendReadModelSelectorState,
+} = DesktopChatInterfaceSelectorRuntime;
 const {
   projectDesktopChatSurfaceState,
   projectDesktopChatInterfaceState,
@@ -428,6 +432,24 @@ describe('chatSelectors', () => {
     expect(selectChatInterfaceState(state)).not.toHaveProperty('conversationView');
     expect(selectChatInterfaceState(state)).not.toHaveProperty('currentTurnProjection');
     expect(selectChatInterfaceState(state)).not.toHaveProperty('pendingTurn');
+  });
+
+  test('send read model helper does not expose raw messages under ConversationView', () => {
+    const conversationView = {
+      conversationRef: 'conv-send',
+      displayRows: [{ id: 'row-user', role: 'user' }],
+    };
+
+    expect(buildChatSendReadModelSelectorState({
+      activeWorkspace: createWorkspace({
+        messages: [{ id: 'stale-user', text: 'stale raw', sender: 'user' }],
+        conversationView,
+        currentTurnProjection: { turnRef: 'raw-turn' },
+      }),
+    })).toEqual({
+      conversationView,
+      messages: [],
+    });
   });
 
   test('keeps raw send history only for the no-view fallback path', () => {

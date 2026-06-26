@@ -59,9 +59,14 @@ const {
 const {
   resolveStopTurnTarget,
 } = DesktopStopTurnRuntime;
+const emptyChatMessages: ChatMessage[] = [];
 const chatSendReadModelObjectCache = new WeakMap<object, WeakMap<object, ChatSendReadModel>>();
 const chatSendReadModelPrimitiveCache = new Map<string, ChatSendReadModel>();
 const stopTurnTargetCache = new Map<string, StopTurnTarget>();
+
+function hasConversationView(value: unknown): boolean {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
 
 function readChatSendReadModelObjectCache(
   conversationView: ConversationView | null,
@@ -195,7 +200,7 @@ function buildChatSendReadModelSelectorState({
   const conversationView = activeWorkspace.conversationView ?? null;
   return selectStableChatSendReadModel({
     conversationView,
-    messages: activeWorkspace.messages,
+    messages: hasConversationView(conversationView) ? emptyChatMessages : activeWorkspace.messages,
   });
 }
 
