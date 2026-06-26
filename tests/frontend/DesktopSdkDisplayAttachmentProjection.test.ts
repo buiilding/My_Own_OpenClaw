@@ -9,6 +9,7 @@ import {
 const {
   countDisplayImageAttachments,
   hasReadyDisplayImageAttachment,
+  readSdkImageAttachmentSource,
   readSdkDisplayAttachments,
   summarizeSdkDisplayAttachments,
 } = DesktopSdkDisplayAttachmentProjection;
@@ -83,6 +84,35 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
     expect(countDisplayImageAttachments(attachments)).toBe(2);
     expect(hasReadyDisplayImageAttachment(attachments)).toBe(true);
     expect(hasReadyDisplayImageAttachment([attachments[1], attachments[2]])).toBe(false);
+  });
+
+  test('reads image source fields only from typed SDK image attachments', () => {
+    expect(readSdkImageAttachmentSource({
+      id: 'attachment-ready',
+      kind: 'image',
+      source: 'replay',
+      status: 'ready',
+      contentType: ' image/png ',
+      screenshotRef: ' artifact-ready ',
+      screenshotUrl: ' https://cdn.example/ready.png ',
+    })).toEqual({
+      id: 'attachment-ready',
+      status: 'ready',
+      artifactId: 'artifact-ready',
+      url: 'https://cdn.example/ready.png',
+      contentType: 'image/png',
+    });
+    expect(readSdkImageAttachmentSource({
+      id: 'message-row',
+      screenshotRef: 'artifact-row-alias',
+      screenshotUrl: 'https://cdn.example/row-alias.png',
+    })).toBeNull();
+    expect(readSdkImageAttachmentSource({
+      id: 'attachment-pending',
+      kind: 'screenshot_request',
+      source: 'camera_button',
+      status: 'pending_capture',
+    })).toBeNull();
   });
 
   test('summarizes SDK display attachment lifecycle fields without payload aliases', () => {

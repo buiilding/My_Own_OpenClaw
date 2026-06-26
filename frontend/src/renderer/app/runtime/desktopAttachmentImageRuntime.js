@@ -4,22 +4,16 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DesktopArtifactRuntimeClient } from './desktopArtifactRuntimeClient';
+import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 
 const MAX_ATTACHMENT_IMAGE_SOURCE_CACHE_ENTRIES = 100;
 
 const artifactImagePromiseCache = new Map();
 const artifactImageSourceCache = new Map();
-const SDK_IMAGE_ATTACHMENT_SOURCES = new Set([
-  'user_included',
-  'camera_button',
-  'tool_result',
-  'replay',
-]);
-const SDK_IMAGE_ATTACHMENT_STATUSES = new Set([
-  'materializing',
-  'ready',
-]);
+const {
+  readSdkImageAttachmentSource,
+} = DesktopSdkDisplayAttachmentProjection;
 
 function rememberBoundedCacheEntry(cache, key, value) {
   if (!key) {
@@ -35,23 +29,23 @@ function rememberBoundedCacheEntry(cache, key, value) {
   }
 }
 
-function buildArtifactCacheKey(attachment) {
-  if (!isSdkImageAttachment(attachment)) {
+function buildArtifactCacheKey(imageSource) {
+  if (!imageSource) {
     return null;
   }
-  if (typeof attachment.screenshotRef === 'string' && attachment.screenshotRef.trim()) {
-    return attachment.screenshotRef.trim();
+  if (typeof imageSource.artifactId === 'string' && imageSource.artifactId.trim()) {
+    return imageSource.artifactId.trim();
   }
-  return DesktopArtifactRuntimeClient.inferArtifactRefFromUrl(attachment.screenshotUrl);
+  return DesktopArtifactRuntimeClient.inferArtifactRefFromUrl(imageSource.url);
 }
 
-function cachedArtifactAttachmentSrc(attachment) {
-  const cacheKey = buildArtifactCacheKey(attachment);
+function cachedArtifactAttachmentSrc(imageSource) {
+  const cacheKey = buildArtifactCacheKey(imageSource);
   return cacheKey ? artifactImageSourceCache.get(cacheKey) ?? null : null;
 }
 
-async function resolveArtifactAttachmentSrc(attachment) {
-  const cacheKey = buildArtifactCacheKey(attachment);
+async function resolveArtifactAttachmentSrc(imageSource) {
+  const cacheKey = buildArtifactCacheKey(imageSource);
   if (!cacheKey) {
     return null;
   }
@@ -59,8 +53,8 @@ async function resolveArtifactAttachmentSrc(attachment) {
   let pending = artifactImagePromiseCache.get(cacheKey);
   if (!pending) {
     pending = DesktopArtifactRuntimeClient.fetchArtifactImage({
-      artifactId: attachment.screenshotRef || null,
-      url: attachment.screenshotUrl || null,
+      artifactId: imageSource.artifactId || null,
+      url: imageSource.url || null,
     })
       .then((result) => (
         result?.success === true
@@ -86,27 +80,15 @@ async function resolveArtifactAttachmentSrc(attachment) {
   return pending;
 }
 
-function resolveStaticAttachmentImageSrc(attachment) {
-  if (!isSdkImageAttachment(attachment)) {
+function resolveStaticAttachmentImageSrc(imageSource) {
+  if (!imageSource) {
     return null;
   }
-  const normalizedUrl = normalizeNonEmptyString(attachment.screenshotUrl);
+  const normalizedUrl = normalizeNonEmptyString(imageSource.url);
   if (normalizedUrl && !DesktopArtifactRuntimeClient.inferArtifactRefFromUrl(normalizedUrl)) {
     return normalizedUrl;
   }
   return null;
-}
-
-function isSdkImageAttachment(attachment) {
-  return Boolean(
-    attachment
-      && typeof attachment === 'object'
-      && typeof attachment.id === 'string'
-      && attachment.id.trim().length > 0
-      && attachment.kind === 'image'
-      && SDK_IMAGE_ATTACHMENT_SOURCES.has(attachment.source)
-      && SDK_IMAGE_ATTACHMENT_STATUSES.has(attachment.status),
-  );
 }
 
 function useAttachmentIdentityNonce(attachment) {
@@ -125,26 +107,14 @@ function useAttachmentIdentityNonce(attachment) {
 }
 
 function useResolvedAttachmentImageSrc(attachment) {
-  const id = attachment?.id ?? null;
-  const kind = attachment?.kind ?? null;
-  const source = attachment?.source ?? null;
-  const status = attachment?.status ?? null;
-  const screenshotRef = attachment?.screenshotRef ?? null;
-  const screenshotUrl = attachment?.screenshotUrl ?? null;
-  const screenshotContentType = attachment?.contentType ?? attachment?.screenshotContentType ?? null;
   const attachmentIdentityNonce = useAttachmentIdentityNonce(attachment);
-  const normalizedAttachment = useMemo(() => ({
-    id,
-    kind,
-    source,
-    status,
-    screenshotRef,
-    screenshotUrl,
-    screenshotContentType,
-  }), [id, kind, source, status, screenshotRef, screenshotUrl, screenshotContentType]);
+  const imageSource = useMemo(
+    () => readSdkImageAttachmentSource(attachment),
+    [attachment],
+  );
   const [resolvedSrc, setResolvedSrc] = useState(
-    resolveStaticAttachmentImageSrc(normalizedAttachment)
-    || cachedArtifactAttachmentSrc(normalizedAttachment)
+    resolveStaticAttachmentImageSrc(imageSource)
+    || cachedArtifactAttachmentSrc(imageSource)
     || null,
   );
 
@@ -152,21 +122,21 @@ function useResolvedAttachmentImageSrc(attachment) {
     let cancelled = false;
     const retryNonce = attachmentIdentityNonce;
     void retryNonce;
-    const staticSrc = resolveStaticAttachmentImageSrc(normalizedAttachment);
+    const staticSrc = resolveStaticAttachmentImageSrc(imageSource);
     if (staticSrc) {
       setResolvedSrc((currentSrc) => (currentSrc === staticSrc ? currentSrc : staticSrc));
       return () => {
         cancelled = true;
       };
     }
-    const cachedSrc = cachedArtifactAttachmentSrc(normalizedAttachment);
+    const cachedSrc = cachedArtifactAttachmentSrc(imageSource);
     if (cachedSrc) {
       setResolvedSrc((currentSrc) => (currentSrc === cachedSrc ? currentSrc : cachedSrc));
       return () => {
         cancelled = true;
       };
     }
-    const cacheKey = buildArtifactCacheKey(normalizedAttachment);
+    const cacheKey = buildArtifactCacheKey(imageSource);
     if (!cacheKey) {
       setResolvedSrc((currentSrc) => (currentSrc === null ? currentSrc : null));
       return () => {
@@ -174,7 +144,7 @@ function useResolvedAttachmentImageSrc(attachment) {
       };
     }
     setResolvedSrc((currentSrc) => (currentSrc === null ? currentSrc : null));
-    void resolveArtifactAttachmentSrc(normalizedAttachment).then((src) => {
+    void resolveArtifactAttachmentSrc(imageSource).then((src) => {
       if (!cancelled) {
         setResolvedSrc((currentSrc) => (currentSrc === src ? currentSrc : src));
       }
@@ -182,7 +152,7 @@ function useResolvedAttachmentImageSrc(attachment) {
     return () => {
       cancelled = true;
     };
-  }, [attachmentIdentityNonce, normalizedAttachment]);
+  }, [attachmentIdentityNonce, imageSource]);
 
   return resolvedSrc;
 }

@@ -84,7 +84,9 @@ replay/store compatibility adapters and low-level artifact helpers.
 SDK current-turn and display-row projection both read typed visual attachments
 through `DesktopSdkDisplayAttachmentProjection.readSdkDisplayAttachments(...)`;
 current-turn projection does not keep a separate attachment descriptor
-validator.
+validator. Artifact image rendering also receives normalized SDK image source
+fields from `DesktopSdkDisplayAttachmentProjection.readSdkImageAttachmentSource(...)`
+instead of validating attachment lifecycle fields in the React hook.
 
 `streamTracking` fields capture turn identity, phase, counters, and timestamps per workspace:
 

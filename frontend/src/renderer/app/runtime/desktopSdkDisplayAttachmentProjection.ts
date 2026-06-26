@@ -6,9 +6,23 @@ import type {
   SdkDisplayAttachment,
 } from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
 
+type SdkDisplayImageAttachmentSource = {
+  id: string;
+  status: SdkDisplayAttachment['status'];
+  artifactId: string | null;
+  url: string | null;
+  contentType: string | null;
+};
+
 function recordFromUnknown(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
+    : null;
+}
+
+function optionalTrimmedString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0
+    ? value.trim()
     : null;
 }
 
@@ -66,6 +80,19 @@ function hasReadyDisplayImageAttachment(value: unknown): boolean {
   return readSdkDisplayAttachments(value).some(isReadyDisplayImageAttachment);
 }
 
+function readSdkImageAttachmentSource(value: unknown): SdkDisplayImageAttachmentSource | null {
+  if (!isSdkDisplayAttachment(value) || !isDisplayImageAttachment(value)) {
+    return null;
+  }
+  return {
+    id: value.id.trim(),
+    status: value.status,
+    artifactId: optionalTrimmedString(value.screenshotRef),
+    url: optionalTrimmedString(value.screenshotUrl),
+    contentType: optionalTrimmedString(value.contentType),
+  };
+}
+
 function summarizeSdkDisplayAttachments(value: unknown): Record<string, unknown> {
   let userAttachmentCount = 0;
   let readyArtifactCount = 0;
@@ -110,6 +137,7 @@ function summarizeSdkDisplayAttachments(value: unknown): Record<string, unknown>
 export const DesktopSdkDisplayAttachmentProjection = Object.freeze({
   countDisplayImageAttachments,
   hasReadyDisplayImageAttachment,
+  readSdkImageAttachmentSource,
   readSdkDisplayAttachments,
   summarizeSdkDisplayAttachments,
 });

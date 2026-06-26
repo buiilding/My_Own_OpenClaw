@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: move SDK image attachment source extraction into
+  `DesktopSdkDisplayAttachmentProjection.readSdkImageAttachmentSource`, so the
+  React artifact image resolver no longer validates SDK attachment lifecycle
+  fields itself. No migration required.
 - frontend/attachments: make SDK current-turn projection use
   `DesktopSdkDisplayAttachmentProjection.readSdkDisplayAttachments`, removing
   its duplicate display attachment validator. No migration required.
