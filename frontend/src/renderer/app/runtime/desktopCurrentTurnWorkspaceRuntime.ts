@@ -39,12 +39,12 @@ function hasConversationView(value: unknown): boolean {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-function buildCurrentTurnWorkspaceMutation<TWorkspace extends CurrentTurnWorkspace>({
-  currentTurnProjection,
+function buildSdkLiveTurnWorkspaceMutation<TWorkspace extends CurrentTurnWorkspace>({
   currentWorkspace,
+  sdkLiveTurn,
 }: {
-  currentTurnProjection: CurrentTurnProjection | null;
   currentWorkspace: TWorkspace;
+  sdkLiveTurn: CurrentTurnProjection | null;
 }): TWorkspace | null {
   if (hasConversationView(currentWorkspace.conversationView)) {
     return currentWorkspace.currentTurnProjection === null
@@ -56,40 +56,40 @@ function buildCurrentTurnWorkspaceMutation<TWorkspace extends CurrentTurnWorkspa
   }
   const nextPendingTurn = resolvePendingTurnForSdkLiveTurn({
     pendingTurn: currentWorkspace.pendingTurn,
-    sdkLiveTurn: currentTurnProjection,
+    sdkLiveTurn,
   });
   if (
-    currentWorkspace.currentTurnProjection === currentTurnProjection
+    currentWorkspace.currentTurnProjection === sdkLiveTurn
     && currentWorkspace.pendingTurn === nextPendingTurn
   ) {
     return null;
   }
   return {
     ...currentWorkspace,
-    currentTurnProjection,
+    currentTurnProjection: sdkLiveTurn,
     pendingTurn: nextPendingTurn,
   };
 }
 
-function buildSetCurrentTurnProjectionStateUpdate<
+function buildSetSdkLiveTurnStorageStateUpdate<
   TState extends CurrentTurnStateSnapshot,
   TWorkspace extends CurrentTurnWorkspace,
 >({
   conversationRef = null,
-  currentTurnProjection,
   deps,
+  sdkLiveTurn,
   state,
 }: {
   conversationRef?: string | null;
-  currentTurnProjection: CurrentTurnProjection | null;
   deps: CurrentTurnStateDependencies<TState, TWorkspace>;
+  sdkLiveTurn: CurrentTurnProjection | null;
   state: TState;
 }): Partial<TState> | TState | null {
   const targetWorkspaceRef = deps.resolveWorkspaceKey(conversationRef, state.activeConversationRef);
   const currentWorkspace = deps.readWorkspaceState(state, targetWorkspaceRef);
-  const nextWorkspace = buildCurrentTurnWorkspaceMutation({
+  const nextWorkspace = buildSdkLiveTurnWorkspaceMutation({
     currentWorkspace,
-    currentTurnProjection,
+    sdkLiveTurn,
   });
   if (!nextWorkspace) {
     return null;
@@ -111,15 +111,15 @@ function buildSetSdkLiveTurnStateUpdate<
   sdkLiveTurn: CurrentTurnProjection | null;
   state: TState;
 }): Partial<TState> | TState | null {
-  return buildSetCurrentTurnProjectionStateUpdate({
+  return buildSetSdkLiveTurnStorageStateUpdate({
     conversationRef,
-    currentTurnProjection: sdkLiveTurn,
     deps,
+    sdkLiveTurn,
     state,
   });
 }
 
 export const DesktopCurrentTurnWorkspaceRuntime = Object.freeze({
-  buildCurrentTurnWorkspaceMutation,
+  buildSdkLiveTurnWorkspaceMutation,
   buildSetSdkLiveTurnStateUpdate,
 });

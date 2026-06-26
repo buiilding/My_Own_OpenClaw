@@ -2128,7 +2128,9 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('hasAuthoritativeSameTurnSdkReplacement');
     expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForSdkLiveTurn');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('resolvePendingTurnForCurrentProjection');
-    expect(currentTurnWorkspaceRuntimeSource).toContain('buildCurrentTurnWorkspaceMutation');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('buildSdkLiveTurnWorkspaceMutation');
+    expect(currentTurnWorkspaceRuntimeSource).not.toContain('buildCurrentTurnWorkspaceMutation');
+    expect(currentTurnWorkspaceRuntimeSource).not.toContain('buildSetCurrentTurnProjectionStateUpdate');
     expect(chatStoreSource).not.toContain('buildPendingTurnBroadcastStateUpdate');
     expect(chatStoreAdaptersSource).toContain('buildPendingTurnBroadcastStateUpdate');
     expect(chatStoreSource).not.toContain("action.kind === 'clear'");
@@ -3624,6 +3626,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('buildSetSdkLiveTurnStateUpdate');
     expect(chatStoreSource).not.toContain('setSdkLiveTurnInChatStore');
     expect(chatStoreSource).not.toContain('setSdkLiveTurn:');
+    expect(chatStoreSource).not.toContain('buildSdkLiveTurnWorkspaceMutation');
     expect(chatStoreSource).not.toContain('buildCurrentTurnWorkspaceMutation');
     expect(chatStoreSource).not.toContain('DesktopConversationViewWorkspaceRuntime');
     expect(chatStoreSource).not.toContain('buildSetConversationViewStateUpdate');
@@ -3767,7 +3770,8 @@ describe('renderer chat runtime boundary', () => {
     expect(turnConversationRefRuntimeSource).not.toContain('buildRegisterTurnConversationRefStateUpdate');
     expect(turnConversationRefRuntimeSource).toContain('resolveConversationRefForTurn');
     expect(turnConversationRefRuntimeSource).not.toContain('features/chat');
-    expect(currentTurnWorkspaceRuntimeSource).toContain('buildCurrentTurnWorkspaceMutation');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('buildSdkLiveTurnWorkspaceMutation');
+    expect(currentTurnWorkspaceRuntimeSource).not.toContain('buildCurrentTurnWorkspaceMutation');
     expect(currentTurnWorkspaceRuntimeSource).toContain('buildSetSdkLiveTurnStateUpdate');
     expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForSdkLiveTurn');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('resolvePendingTurnForCurrentProjection');

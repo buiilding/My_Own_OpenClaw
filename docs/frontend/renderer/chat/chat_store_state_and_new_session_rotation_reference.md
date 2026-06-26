@@ -156,7 +156,7 @@ replay/store compatibility adapters and low-level artifact helpers.
   no-op so renderer IPC fan-out cannot repaint the existing user bubble.
   Pending turns preserve only identity, text, timestamp, and filename chips;
   visual attachment descriptors belong to SDK display rows. The pending
-  user-row shape and workspace mutation projection are built by app-runtime
+  user-row shape and SDK live-turn workspace mutation are built by app-runtime
   helpers. The accept-pending and clear decisions also live in
   `desktopChatPendingTurnStateRuntime.ts`; `chatStoreAdapters.ts` supplies
   workspace read/write dependencies and applies the returned update through the

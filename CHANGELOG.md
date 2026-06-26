@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/state: rename the current-turn workspace mutation helper to
+  `buildSdkLiveTurnWorkspaceMutation`, so the app-runtime storage bridge exposes
+  SDK live-turn intent while keeping `currentTurnProjection` as a private
+  workspace storage field. No migration required.
 - frontend/stop: rename the stopped no-view live-turn terminalizer to
   `buildStoppedSdkLiveTurn`, keeping raw `currentTurnProjection` naming scoped
   to workspace storage instead of stop helper semantics. No migration required.

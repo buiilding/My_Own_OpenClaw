@@ -3,13 +3,13 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnWorkspaceRuntime';
 
 const {
-  buildCurrentTurnWorkspaceMutation,
+  buildSdkLiveTurnWorkspaceMutation,
   buildSetSdkLiveTurnStateUpdate,
 } = DesktopCurrentTurnWorkspaceRuntime;
 
 describe('DesktopCurrentTurnWorkspaceRuntime', () => {
-  test('returns null when projection and pending turn do not change', () => {
-    const currentTurnProjection = {
+  test('returns null when SDK live turn and pending turn do not change', () => {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'idle',
@@ -19,18 +19,18 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       lastError: null,
     };
     const currentWorkspace = {
-      currentTurnProjection,
+      currentTurnProjection: sdkLiveTurn,
       pendingTurn: null,
       messages: [],
     };
 
-    expect(buildCurrentTurnWorkspaceMutation({
+    expect(buildSdkLiveTurnWorkspaceMutation({
       currentWorkspace,
-      currentTurnProjection,
+      sdkLiveTurn,
     })).toBeNull();
   });
 
-  test('clears matching pending turn when SDK projection is authoritative', () => {
+  test('clears matching pending turn when SDK live turn is authoritative', () => {
     const currentWorkspace = {
       currentTurnProjection: null,
       pendingTurn: {
@@ -40,7 +40,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       },
       messages: [],
     };
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'streaming',
@@ -50,23 +50,23 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       lastError: null,
     };
 
-    expect(buildCurrentTurnWorkspaceMutation({
+    expect(buildSdkLiveTurnWorkspaceMutation({
       currentWorkspace,
-      currentTurnProjection,
+      sdkLiveTurn,
     })).toEqual({
-      currentTurnProjection,
+      currentTurnProjection: sdkLiveTurn,
       pendingTurn: null,
       messages: [],
     });
   });
 
-  test('keeps pending turn through non-authoritative same-turn idle projection', () => {
+  test('keeps pending turn through non-authoritative same-turn idle live turn', () => {
     const pendingTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       userMessageId: 'user-1',
     };
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'idle',
@@ -76,21 +76,21 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       lastError: null,
     };
 
-    expect(buildCurrentTurnWorkspaceMutation({
+    expect(buildSdkLiveTurnWorkspaceMutation({
       currentWorkspace: {
         currentTurnProjection: null,
         pendingTurn,
         messages: [],
       },
-      currentTurnProjection,
+      sdkLiveTurn,
     })).toEqual({
-      currentTurnProjection,
+      currentTurnProjection: sdkLiveTurn,
       pendingTurn,
       messages: [],
     });
   });
 
-  test('does not store raw current-turn projection when conversation view exists', () => {
+  test('does not store raw SDK live turn when conversation view exists', () => {
     const staleProjection = {
       conversationRef: 'conv-1',
       turnRef: 'turn-stale',
@@ -100,7 +100,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       toolEvents: [],
       lastError: null,
     };
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-2',
       phase: 'streaming',
@@ -115,7 +115,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       userMessageId: 'user-2',
     };
 
-    expect(buildCurrentTurnWorkspaceMutation({
+    expect(buildSdkLiveTurnWorkspaceMutation({
       currentWorkspace: {
         conversationView: {
           conversationRef: 'conv-1',
@@ -129,7 +129,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
         pendingTurn,
         messages: [],
       },
-      currentTurnProjection,
+      sdkLiveTurn,
     })).toEqual({
       conversationView: {
         conversationRef: 'conv-1',
@@ -146,7 +146,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
   });
 
   test('returns null when conversation view already owns live-turn state', () => {
-    expect(buildCurrentTurnWorkspaceMutation({
+    expect(buildSdkLiveTurnWorkspaceMutation({
       currentWorkspace: {
         conversationView: {
           conversationRef: 'conv-1',
@@ -160,7 +160,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
         },
         messages: [],
       },
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
         phase: 'streaming',
@@ -187,7 +187,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
         },
       },
     };
-    const currentTurnProjection = {
+    const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'streaming',
@@ -211,7 +211,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
     const nextState = buildSetSdkLiveTurnStateUpdate({
       conversationRef: 'conv-1',
       deps,
-      sdkLiveTurn: currentTurnProjection,
+      sdkLiveTurn: sdkLiveTurn,
       state,
     });
 
@@ -221,14 +221,14 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       state,
       'conv-1',
       expect.objectContaining({
-        currentTurnProjection,
+        currentTurnProjection: sdkLiveTurn,
         pendingTurn: null,
       }),
     );
     expect(nextState).toEqual(expect.objectContaining({
       workspaces: {
         'conv-1': expect.objectContaining({
-          currentTurnProjection,
+          currentTurnProjection: sdkLiveTurn,
           pendingTurn: null,
         }),
       },
