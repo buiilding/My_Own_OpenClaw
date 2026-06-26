@@ -29,6 +29,9 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopStopTurnRuntime`; production stop handling only needs the pending
   bridge predicate while conversation-view targets stay plain SDK view targets.
   No migration required.
+- frontend/replay: remove the unused renderer replay-trace `supersededTurnRef`
+  field now that replay supersession is SDK-owned and renderer replay traces
+  only report intent and view/pending bridge state. No migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.

@@ -162,7 +162,6 @@ describe('desktopRendererTraceRuntime', () => {
       latestCurrentTurnPhase: null,
       streamActiveTurnRef: 'turn-old',
       streamPhase: 'awaiting-first-chunk',
-      supersededTurnRef: null,
       targetUserMessageId: 'user-row-1',
       projectedRowCount: 2,
       sourceRowCount: 4,
