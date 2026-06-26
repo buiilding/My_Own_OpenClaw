@@ -257,7 +257,9 @@ Fatal failure:
 - required clipboard-image upload failure
 - `DesktopLiveTurnRuntimeClient.sendQuery` throw
 - sender clears the matching renderer `pendingTurn`
-- appends assistant error message (`Failed to send message. Please try again.`)
+- visible failure display arrives through the SDK/main `turn_error`
+  conversation event path; the sender does not append a renderer-local error
+  row
 - error rethrown
 
 ## Test-Backed Invariants

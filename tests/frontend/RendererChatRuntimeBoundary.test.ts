@@ -108,7 +108,6 @@ describe('renderer chat runtime boundary', () => {
     const skinConsumerFiles = [
       'components/ChatBrowserSessionControl.jsx',
       'components/ChatInterface.jsx',
-      'hooks/useChatMessageSender.ts',
     ];
 
     for (const relativePath of skinConsumerFiles) {
@@ -2325,6 +2324,11 @@ describe('renderer chat runtime boundary', () => {
     expect(senderHookSource).toContain('DesktopChatSendPreparationRuntime');
     expect(senderHookSource).toContain('selectChatSendReadModel');
     expect(senderHookSource).toContain('getSendReadModel: getChatSendReadModel');
+    expect(senderHookSource).not.toContain('useChatCommonActions');
+    expect(senderHookSource).not.toContain('addMessage');
+    expect(senderHookSource).not.toContain('DesktopRuntimeSkin');
+    expect(senderHookSource).not.toContain('sendFailureMessage');
+    expect(senderHookSource).not.toContain("type: 'error'");
     expect(senderHookSource).not.toContain('selectChatInterfaceState');
     expect(senderHookSource).not.toContain('getState().conversationView');
     expect(senderHookSource).not.toContain('getState().messages');

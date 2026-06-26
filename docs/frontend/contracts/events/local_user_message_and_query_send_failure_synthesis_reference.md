@@ -95,6 +95,10 @@ local-user-message event.
 
 Synthetic send-failure `turn_error` events are handled through the normal
 renderer error path unless filtered by `DesktopChatStreamEventPayloadRuntime.shouldIgnoreStreamError(...)`.
+Renderer send hooks may clear the short local pending bridge when
+`conversation.send` rejects, but they must not append their own assistant error
+chat row for the same failure. Visible failure rows come from SDK/main
+conversation events and `ConversationView` projection.
 
 ## Drift Hotspots
 

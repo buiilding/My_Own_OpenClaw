@@ -18,6 +18,9 @@ import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/
 import { DesktopLiveTurnRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
+import {
+  DesktopChatInterfacePresentationRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime';
 
 let mockRendererConfig: Record<string, unknown> = {
   include_query_screenshot: true,
@@ -30,20 +33,6 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
     config: mockRendererConfig,
   })),
 }));
-
-jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => {
-  const desktopRuntimeSkin = {
-    chat: {
-      sendFailureMessage: "Sample app isn't connected right now. Try again when the connection is restored.",
-    },
-  };
-  return {
-    desktopRuntimeSkin,
-    DesktopRuntimeSkin: {
-      desktopRuntimeSkin,
-    },
-  };
-});
 
 let mockActiveConversationRef: string | null = null;
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
@@ -81,6 +70,7 @@ const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getAc
 const mockSetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.setActiveConversationRef as jest.Mock;
 const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock;
 const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo as jest.Mock;
+const { buildChatInterfacePresentationState } = DesktopChatInterfacePresentationRuntime;
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 
 function getActiveWorkspace() {
@@ -160,7 +150,17 @@ describe('useChatMessageSender', () => {
   }
 
   function expectPendingBridgeUserMessage(text: string) {
-    expect(getActiveWorkspace().messages).toEqual([
+    const activeWorkspace = getActiveWorkspace();
+    expect(activeWorkspace.messages).toEqual([]);
+    const renderedMessages = buildChatInterfacePresentationState({
+      activeConversationRef: useChatStore.getState().activeConversationRef,
+      conversationView: activeWorkspace.conversationView,
+      messages: activeWorkspace.messages,
+      pendingTurn: activeWorkspace.pendingTurn,
+      rendererAnnotations: [],
+      sdkLiveTurn: activeWorkspace.sdkLiveTurn,
+    }).renderedMessages;
+    expect(renderedMessages).toEqual([
       expect.objectContaining({
         id: 'msg-1-sdk-evt-000002-user_message',
         sender: 'user',
@@ -172,6 +172,7 @@ describe('useChatMessageSender', () => {
         attachments: null,
       }),
     ]);
+    return renderedMessages[0];
   }
 
   beforeEach(() => {
@@ -563,8 +564,7 @@ describe('useChatMessageSender', () => {
       reason: 'query_send_with_capture',
       required: false,
     }]);
-    expectPendingBridgeUserMessage('hello');
-    expect(getActiveWorkspace().messages[0].attachments).toBeNull();
+    expect(expectPendingBridgeUserMessage('hello').attachments).toBeNull();
     expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
   });
@@ -767,7 +767,7 @@ describe('useChatMessageSender', () => {
     expectPendingBridgeUserMessage('Summarize the attached file');
   });
 
-  test('resets sending state and appends error message when send fails', async () => {
+  test('clears pending bridge without appending a renderer error row when send fails', async () => {
     mockSendQuery.mockRejectedValue(new Error('send failed'));
 
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
@@ -783,15 +783,10 @@ describe('useChatMessageSender', () => {
 
     expect(thrownError?.message).toBe('send failed');
 
-    expect(getActiveWorkspace().isSending).toBe(false);
-    const messages = getActiveWorkspace().messages;
-    expect(messages.at(-1)).toEqual(
-      expect.objectContaining({
-        sender: 'assistant',
-        type: 'error',
-        text: "Sample app isn't connected right now. Try again when the connection is restored.",
-      }),
-    );
+    const activeWorkspace = getActiveWorkspace();
+    expect(activeWorkspace.isSending).toBe(false);
+    expect(activeWorkspace.pendingTurn).toBeNull();
+    expect(activeWorkspace.messages).toEqual([]);
   });
 
   test('reuses existing conversation ref and synchronizes renderer stores immediately', async () => {

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: stop appending renderer-local assistant error rows when
+  normal `conversation.send` dispatch fails; the sender now clears only the
+  pending bridge while SDK/main `turn_error` events own visible failure rows.
+  No migration required.
 - frontend/pending-turn: project pending-send user rows from `pendingTurn` in
   chat presentation instead of appending renderer-composed rows into raw
   workspace `messages`, keeping the pending bridge out of durable chat state.
