@@ -64,9 +64,6 @@ export function useResponseOverlayViewModel({
     currentTurnProjection = null,
     pendingTurn = null,
   } = chatSurfaceState || {};
-  const streamTracking = useChatStore(
-    (state) => state.streamTracking,
-  );
   const dismissedResponseOverlayEntries = useChatStore(
     (state) => state.dismissedResponseOverlayEntries,
   );
@@ -222,7 +219,6 @@ export function useResponseOverlayViewModel({
       conversationView,
       currentTurnProjection,
       pendingTurn,
-      streamTracking,
       visibleTurnLifecycle,
       currentTurnPhase,
       overlayIntent,
@@ -262,7 +258,6 @@ export function useResponseOverlayViewModel({
     responseOverlayEntries,
     resolvedCurrentTurnPresentationState,
     pendingTurn,
-    streamTracking,
     useLocalPendingTurn,
     useSdkLiveTurnPresentation,
     visibleTurnLifecycle,

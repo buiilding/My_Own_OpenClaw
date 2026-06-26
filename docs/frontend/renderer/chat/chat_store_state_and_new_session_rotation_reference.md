@@ -216,7 +216,10 @@ Minimal chat pill and response overlay state now route through the live-turn
 presentation/view-model helpers instead of a separate chat-box selector. The
 dashboard selector remains scoped to fields rendered by the full interface, so
 raw `isSending` stays store/diagnostic state rather than dashboard surface
-authority.
+authority. Response overlay view-model tracing must not subscribe to raw
+`chatStore.streamTracking`; overlay diagnostics should use the selected
+`chatSurfaceState`/visible lifecycle instead of reopening store runtime state
+as a surface input.
 
 ## New Chat Session Lifecycle
 

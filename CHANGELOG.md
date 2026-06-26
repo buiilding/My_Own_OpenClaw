@@ -31,6 +31,10 @@ All notable changes to WindieOS will be documented in this file.
   `buildConversationViewChatMessages`; conversation-view projection now accepts
   only renderer annotation records plus the explicit pending bridge. No
   migration required.
+- frontend/overlay: remove the response overlay view-model subscription to raw
+  `chatStore.streamTracking`; overlay trace payloads now use selected live
+  lifecycle/view state instead of reading store runtime counters directly. No
+  migration required.
 - frontend/send: split the send-history read model into
   `selectChatSendReadModel(...)` so `useChatMessageSender` no longer depends on
   the full `selectChatInterfaceState(...)` UI selector. No migration required.
