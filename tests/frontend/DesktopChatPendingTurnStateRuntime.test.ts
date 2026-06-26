@@ -156,12 +156,7 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
       timestamp: '2026-06-25T12:00:00.000Z',
     };
     const currentWorkspace = workspace({
-      messages: [{
-        id: 'user-row-new',
-        sender: 'user',
-        text: 'hello',
-        turnRef: 'turn-new',
-      }],
+      messages: [],
       pendingTurn,
     });
 
@@ -170,6 +165,35 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
       pendingTurn,
       skipEchoedPendingTurn: true,
     })).toBeNull();
+  });
+
+  test('does not skip pending turns solely because a raw message row matches', () => {
+    const pendingTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-new',
+      userMessageId: 'user-row-new',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    };
+    const currentWorkspace = workspace({
+      messages: [{
+        id: 'user-row-new',
+        sender: 'user',
+        text: 'hello',
+        turnRef: 'turn-new',
+      }],
+      pendingTurn: null,
+    });
+
+    expect(buildPendingTurnWorkspaceMutation({
+      currentWorkspace,
+      pendingTurn,
+      skipEchoedPendingTurn: true,
+    })).toEqual(expect.objectContaining({
+      pendingMessage: expect.objectContaining({
+        id: 'user-row-new',
+      }),
+    }));
   });
 
   test('clears matching pending-turn workspace state', () => {

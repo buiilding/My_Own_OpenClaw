@@ -180,15 +180,8 @@ function isEchoedPendingTurn<TWorkspace extends PendingTurnWorkspaceState>(
   currentWorkspace: TWorkspace,
   pendingTurn: DesktopPendingTurnState,
 ): boolean {
-  const echoedPendingMessage = currentWorkspace.messages.find((message) => (
-    message.id === pendingTurn.userMessageId
-    && message.sender === 'user'
-    && message.text === pendingTurn.text
-    && message.turnRef === pendingTurn.turnRef
-  ));
   return Boolean(
-    echoedPendingMessage
-    && currentWorkspace.pendingTurn?.conversationRef === pendingTurn.conversationRef
+    currentWorkspace.pendingTurn?.conversationRef === pendingTurn.conversationRef
     && currentWorkspace.pendingTurn?.turnRef === pendingTurn.turnRef
     && currentWorkspace.pendingTurn?.userMessageId === pendingTurn.userMessageId
     && currentWorkspace.pendingTurn?.text === pendingTurn.text,

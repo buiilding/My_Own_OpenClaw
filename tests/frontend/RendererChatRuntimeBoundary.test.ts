@@ -3765,6 +3765,7 @@ describe('renderer chat runtime boundary', () => {
     expect(pendingStateRuntimeSource).toContain('const shouldPreserveViewReadModel = preserveConversationView');
     expect(pendingStateRuntimeSource).toContain('&& hasConversationView(currentWorkspace.conversationView)');
     expect(pendingStateRuntimeSource).toContain('? currentWorkspace.messages');
+    expect(pendingStateRuntimeSource).not.toContain('currentWorkspace.messages.find((message)');
     expect(pendingStateRuntimeSource).toContain('buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace, null)');
     expect(pendingStateRuntimeSource).not.toContain('currentTurnProjection: null');
     expect(pendingStateRuntimeSource).not.toContain('currentTurnProjection: unknown');

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pending-turn: make echoed pending-turn broadcasts no-op from the
+  stored pending bridge identity, not by scanning raw workspace messages. No
+  migration required.
 - frontend/stream: make terminal pending-turn handoff depend only on the
   explicit pending bridge identity, removing raw workspace message-tail scans
   from stale-turn filtering. No migration required.
