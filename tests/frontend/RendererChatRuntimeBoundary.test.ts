@@ -1723,7 +1723,7 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSideEffectsSource).toContain("toolEvent.kind === 'tool_output'");
   });
 
-  test('conversation replay prepares locally and dispatches with SDK revision commands', async () => {
+  test('conversation replay dispatches intent through SDK revision commands', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/useConversationReplayActions.js'),
       'utf8',

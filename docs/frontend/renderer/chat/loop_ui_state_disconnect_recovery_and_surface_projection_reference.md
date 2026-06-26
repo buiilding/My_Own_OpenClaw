@@ -222,14 +222,12 @@ The decision to keep renderer-local pending typing through idle, hidden, stale,
 terminal, or visible SDK projections lives with the visible lifecycle owner and
 requires an accepted renderer `pendingTurn`.
 
-Conversation replay actions now allocate a replay `turnRef`, load the active
-display timeline, replace the display prefix through
-`DesktopConversationContinuityService.replaceRows(...)`, then publish a
-renderer `pendingTurn` through
-`DesktopConversationReplayRuntime.buildReplayPendingTurn(...)` before sending
-the normal replacement query. That keeps edit/resend and retry in the same
-`local_pending -> SDK handoff` path as normal sends; display replacement
-latency does not rely on bare `isSending` as a visible lifecycle authority.
+Conversation replay actions now pass only edit/retry intent to
+`DesktopConversationReplayRuntime`, which delegates to SDK edit/resend and
+retry commands. The renderer does not load display timelines, replace display
+prefix rows, publish replay pending turns, or send a separate replacement
+query. SDK commands own target-row resolution, child display/model revisions,
+supersession, replacement rows, and attachment/resource preservation.
 
 `useResponseOverlayViewModel(...)` also resolves the same visible lifecycle,
 passes `ConversationView` into the live-surface runtime, and applies

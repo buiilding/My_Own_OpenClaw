@@ -47,6 +47,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: remove the stale `reasoning_text` display-row alias
   from the SDK chat-message adapter; streaming assistant rows now read the
   SDK `reasoningText` contract only. No migration required.
+- frontend/docs: update replay surface guidance to describe SDK edit/retry
+  commands instead of the removed renderer retained-prefix pending bridge. No
+  migration required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own
