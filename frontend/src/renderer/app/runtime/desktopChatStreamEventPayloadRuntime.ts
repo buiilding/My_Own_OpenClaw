@@ -2,7 +2,6 @@
  * Normalizes renderer chat stream event payloads for UI side effects.
  */
 
-import { DesktopArtifactRuntimeClient } from './desktopArtifactRuntimeClient';
 import type { TokenCounts } from './desktopChatMessageTypes';
 import type {
   CompactedReplaySnapshot,
@@ -270,13 +269,6 @@ function shouldIgnoreStreamError(payload: ErrorPayload | null | undefined): bool
   );
 }
 
-function buildScreenshotAttachment(
-  screenshotRef: string | null | undefined,
-  screenshotUrl?: string | null,
-) {
-  return DesktopArtifactRuntimeClient.buildRemoteScreenshotAttachment(screenshotRef, screenshotUrl);
-}
-
 function resolveErrorText(payload: ErrorPayload | null | undefined): string {
   const content = payload?.content;
   if (typeof content === 'string' && content.length > 0) {
@@ -304,6 +296,5 @@ export const DesktopChatStreamEventPayloadRuntime = Object.freeze({
   buildCompactedReplaySnapshot,
   resolveCompactionUserId,
   shouldIgnoreStreamError,
-  buildScreenshotAttachment,
   resolveErrorText,
 });

@@ -382,11 +382,11 @@ SDK dispatch behavior:
     model history.
   - backend-wire `tool-call`, `tool-output`, `tool-bundle`, and `web-search-progress` events are not live-row or active-phase fallbacks in renderer chat code.
 - SDK `tool_call` from backend `tool-call`: persists a transcript tool-call row only. Live display comes from `currentTurn.toolEvents`.
-  - the renderer consumes SDK `tool_call` payloads directly for transcript persistence, using `structuredPayload` for backend detail fields such as metadata and parameters. It does not fall back to backend-wire `tool-call` payloads.
+  - renderer-visible rows use explicit SDK projection fields for metadata and parameters. They do not read `structuredPayload` or fall back to backend-wire `tool-call` payloads.
 - SDK `tool_output` from backend `tool-output`: persists a transcript tool-output row only. Live display comes from `currentTurn.toolEvents`.
-  - the renderer consumes SDK `tool_output` payloads directly for transcript persistence, using `structuredPayload` for backend detail fields such as output text, metadata, request ids, and screenshot refs. It does not fall back to backend-wire `tool-output` payloads.
+  - renderer-visible rows use explicit SDK projection fields for output text, metadata, request ids, and typed attachments. They do not read `structuredPayload` or fall back to backend-wire `tool-output` payloads.
 - SDK `tool_bundle_call` from backend `tool-bundle`: persists a transcript `tool-bundle` trace row so later transcript loads can reconstruct the bundle call card without reclassifying it as a normal executable tool-call. Live display comes from `currentTurn.toolEvents`.
-  - the renderer consumes SDK `tool_bundle_call` payloads directly for transcript persistence, using normalized bundle identity fields plus `structuredPayload` for backend detail fields such as `bundle_id` and per-tool metadata. It does not fall back to backend-wire `tool-bundle` payloads.
+  - renderer-visible rows use explicit SDK projection fields for bundle identity and per-tool metadata. They do not read `structuredPayload` or fall back to backend-wire `tool-bundle` payloads.
 - SDK `system_prompt` from backend `system-prompt`: annotate last user message with system prompt + tool schema snapshot
 - SDK `user_message_metadata` from backend `user-message-full`: annotate user message with full payload metadata
 - SDK `assistant_message` from backend `assistant-message-full`: annotate latest assistant `llm-text` message

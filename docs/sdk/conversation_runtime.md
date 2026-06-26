@@ -800,17 +800,17 @@ Desktop local-user projection consumes SDK `user_message` directly for backend
 
 Desktop tool-call transcript persistence may consume SDK `tool_call` directly.
 The SDK payload exposes normalized fields such as `toolName`, `args`,
-request/correlation ids, and `userId`, while `structuredPayload` carries backend
-detail fields needed for transcript trace rows. Renderer active tool-call
-display should come from `snapshot.currentTurn.toolEvents`, and should not
-reconstruct backend `tool-call` events from `payload.sourceEvent`.
+request/correlation ids, and `userId`, and SDK projection owns any backend
+detail recovery before emitting renderer-visible rows. Renderer active
+tool-call display should come from `snapshot.currentTurn.toolEvents`, and
+should not reconstruct backend `tool-call` events from `payload.sourceEvent`.
 
 Desktop tool-output transcript persistence may consume SDK `tool_output`
 directly. The SDK payload exposes normalized identity, request/correlation id,
 tool name, and typed display attachments adapted from either
-`attachments[]`/`display_attachments` or old screenshot refs, while
-`structuredPayload` carries backend detail fields used for transcript trace
-rows and malformed-payload fallbacks.
+`attachments[]`/`display_attachments` or old screenshot refs. SDK projection
+owns backend detail recovery and malformed-payload fallback before emitting
+renderer-visible rows.
 For `tool_output` and `tool_progress`, normalized `correlationId` prefers
 backend `payload.correlation_id` and falls back to `payload.request_id`.
 Renderer active tool-output display should come from
@@ -819,9 +819,9 @@ Renderer active tool-output display should come from
 
 Desktop tool-bundle transcript persistence may consume SDK `tool_bundle_call`
 directly. The SDK payload exposes normalized bundle identity, correlation id,
-tool list, and user id, while `structuredPayload` carries backend detail fields
-used for transcript trace rows. Renderer active bundle display should come from
-`snapshot.currentTurn.toolEvents`, and should not reconstruct backend
+tool list, and user id. SDK projection owns backend detail recovery before
+emitting renderer-visible rows. Renderer active bundle display should come
+from `snapshot.currentTurn.toolEvents`, and should not reconstruct backend
 `tool-bundle` events from `payload.sourceEvent`.
 
 ## Continuity Service Rule

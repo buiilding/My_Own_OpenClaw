@@ -7,7 +7,6 @@ import { DesktopChatStreamEventPayloadRuntime } from '../../frontend/src/rendere
 const {
   buildCompactedReplaySnapshot,
   buildCompactionDebugInfo,
-  buildScreenshotAttachment,
   buildTokenCountsFromPayload,
   getCompactionReplacementHistoryEntries,
   resolveErrorText,
@@ -36,30 +35,6 @@ describe('desktopChatStreamEventPayloadRuntime', () => {
         + 'Raw arguments preview: \'{"command":"cat > index.html << \\"EOF\\""}\''
       ),
     })).toBe(true);
-  });
-
-  test('buildScreenshotAttachment resolves URL from explicit url or artifact ref', () => {
-    expect(
-      buildScreenshotAttachment('artifact-123', 'https://cdn.example/override.png'),
-    ).toEqual({
-      screenshotRef: 'artifact-123',
-      screenshotUrl: 'https://cdn.example/override.png',
-    });
-
-    expect(buildScreenshotAttachment('artifact-123')).toEqual({
-      screenshotRef: 'artifact-123',
-      screenshotUrl: expect.stringContaining('/api/artifacts/artifact-123'),
-    });
-
-    expect(buildScreenshotAttachment(null)).toEqual({
-      screenshotRef: null,
-      screenshotUrl: null,
-    });
-
-    expect(buildScreenshotAttachment('   ', '   ')).toEqual({
-      screenshotRef: null,
-      screenshotUrl: null,
-    });
   });
 
   test('resolveErrorText prefers payload content then message then fallback', () => {

@@ -31,6 +31,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: stop forwarding `structuredPayload` display-row metadata
   through renderer tool details; display rows now use explicit SDK projection
   fields only. No migration required.
+- frontend/attachments: remove the dead chat-stream screenshot attachment
+  builder, keeping renderer visual attachment resolution on SDK `attachments[]`
+  descriptors. No migration required.
 - frontend/attachments: rename the app-runtime artifact image resolver to
   `DesktopAttachmentImageRuntime`, so chat attachment rendering no longer
   imports a screenshot-named resolver facade. No migration required.

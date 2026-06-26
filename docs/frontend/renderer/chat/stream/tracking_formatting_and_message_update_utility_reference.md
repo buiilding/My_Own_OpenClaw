@@ -56,7 +56,7 @@ Core behavior:
 ## Event Payload Contracts (`DesktopChatStreamEventPayloadRuntime`)
 
 - `DesktopChatStreamEventPayloadRuntime.shouldIgnoreStreamError(...)` suppresses known settings-update transport noise through `DesktopSettingsUpdateErrorRuntime` from user-visible assistant error rows.
-- `DesktopChatStreamEventPayloadRuntime.buildScreenshotAttachment(...)` normalizes `screenshotRef` and derives URL through the artifact runtime client when URL is missing.
+- `DesktopChatStreamEventPayloadRuntime` does not build screenshot attachment descriptors; SDK display rows and live-turn entries own visual attachment state, and renderer image resolution starts from those `attachments[]` descriptors.
 - Tool-call and tool-output correlation id normalization is owned by the SDK
   helper surface imported through the SDK package, not by
   `DesktopChatStreamEventPayloadRuntime`.
