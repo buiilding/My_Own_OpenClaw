@@ -8,6 +8,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { AppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';
 import {
+  acceptPendingTurnInChatStore,
   selectLiveTurnSurfaceState,
   setIsSendingInChatStore,
   useChatStore,
@@ -80,7 +81,7 @@ describe('pending stop live surface integration', () => {
   });
 
   test('stops a pending turn from visible lifecycle when raw isSending is stale false', () => {
-    useChatStore.getState().acceptPendingTurn({
+    acceptPendingTurnInChatStore({
       conversationRef: 'conv-pending-stop',
       turnRef: 'turn-pending-stop',
       userMessageId: 'user-pending-stop',

@@ -3,9 +3,12 @@
  */
 
 import {
+  acceptPendingTurnInChatStore,
+  acceptStoppedTurnInChatStore,
   addMessageToChatStore,
   applyPendingTurnBroadcastToChatStore,
   clearMessagesInChatStore,
+  clearPendingTurnInChatStore,
   setCurrentTurnProjectionInChatStore,
   setIsSendingInChatStore,
   setMessagesInChatStore,
@@ -345,7 +348,7 @@ describe('chatStore', () => {
   });
 
   test('acceptPendingTurn adds the optimistic user row and marks the conversation busy', () => {
-    useChatStore.getState().acceptPendingTurn({
+    acceptPendingTurnInChatStore({
       conversationRef: 'conv-pending',
       turnRef: 'turn-pending',
       userMessageId: 'user-pending',
@@ -433,7 +436,7 @@ describe('chatStore', () => {
       }],
     };
 
-    useChatStore.getState().acceptPendingTurn(pendingTurn);
+    acceptPendingTurnInChatStore(pendingTurn);
     const beforeState = useChatStore.getState();
     const beforeMessages = beforeState.getWorkspaceState().messages;
 
@@ -454,7 +457,7 @@ describe('chatStore', () => {
   });
 
   test('setCurrentTurnProjection replaces matching pending turn without clearing busy state first', () => {
-    useChatStore.getState().acceptPendingTurn({
+    acceptPendingTurnInChatStore({
       conversationRef: 'conv-sdk',
       turnRef: 'turn-sdk',
       userMessageId: 'user-sdk',
@@ -488,7 +491,7 @@ describe('chatStore', () => {
   });
 
   test('setCurrentTurnProjection keeps pending turn through non-authoritative same-turn SDK idle', () => {
-    useChatStore.getState().acceptPendingTurn({
+    acceptPendingTurnInChatStore({
       conversationRef: 'conv-sdk-idle',
       turnRef: 'turn-sdk-idle',
       userMessageId: 'user-sdk-idle',
@@ -525,7 +528,7 @@ describe('chatStore', () => {
   });
 
   test('clearPendingTurn clears only the matching pending turn', () => {
-    useChatStore.getState().acceptPendingTurn({
+    acceptPendingTurnInChatStore({
       conversationRef: 'conv-clear',
       turnRef: 'turn-clear',
       userMessageId: 'user-clear',
@@ -534,14 +537,14 @@ describe('chatStore', () => {
       attachmentFilenames: null,
     });
 
-    useChatStore.getState().clearPendingTurn({
+    clearPendingTurnInChatStore({
       conversationRef: 'conv-other',
       turnRef: 'turn-clear',
     });
     expect(getActiveWorkspace().pendingTurn?.turnRef).toBe('turn-clear');
     expect(getActiveWorkspace().isSending).toBe(true);
 
-    useChatStore.getState().clearPendingTurn({
+    clearPendingTurnInChatStore({
       conversationRef: 'conv-clear',
       turnRef: 'turn-clear',
     });
@@ -550,7 +553,7 @@ describe('chatStore', () => {
   });
 
   test('acceptStoppedTurn clears matching pending turn and local busy state immediately', () => {
-    useChatStore.getState().acceptPendingTurn({
+    acceptPendingTurnInChatStore({
       conversationRef: 'conv-stop-pending',
       turnRef: 'turn-stop-pending',
       userMessageId: 'user-stop-pending',
@@ -561,7 +564,7 @@ describe('chatStore', () => {
     setThinkingStatusInChatStore('thinking', 'conv-stop-pending');
     setThinkingSourceEventTypeInChatStore('assistant', 'conv-stop-pending');
 
-    useChatStore.getState().acceptStoppedTurn({
+    acceptStoppedTurnInChatStore({
       conversationRef: 'conv-stop-pending',
       turnRef: 'turn-stop-pending',
       stoppedAt: '2026-06-16T00:00:01.000Z',
@@ -608,7 +611,7 @@ describe('chatStore', () => {
     useChatStore.getState().setActiveConversationRef('conv-stop-sdk');
     setCurrentTurnProjectionInChatStore(currentTurnProjection, 'conv-stop-sdk');
 
-    useChatStore.getState().acceptStoppedTurn({
+    acceptStoppedTurnInChatStore({
       conversationRef: 'conv-stop-sdk',
       turnRef: 'turn-stop-sdk',
     });

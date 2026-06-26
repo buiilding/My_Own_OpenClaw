@@ -5,6 +5,8 @@
 
 import { useCallback, useMemo } from 'react';
 import {
+  acceptPendingTurnInChatStore,
+  clearPendingTurnInChatStore,
   selectChatSendReadModel,
   useChatStore,
 } from '../stores/chatStore';
@@ -49,7 +51,6 @@ export function useChatMessageSender(
   options: ChatMessageSenderOptions = {},
 ) {
   const { addMessage } = useChatCommonActions();
-  const clearPendingTurn = useChatStore((state) => state.clearPendingTurn);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const { config } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const { senderSurface = 'overlay-chatbox', returnToChatboxPolicy } = options;
@@ -77,7 +78,7 @@ export function useChatMessageSender(
       payload,
       config,
       dependencies: {
-        acceptPendingTurn: (pendingTurn) => useChatStore.getState().acceptPendingTurn(pendingTurn),
+        acceptPendingTurn: acceptPendingTurnInChatStore,
         getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
         getSendReadModel: getChatSendReadModel,
         setChatActiveConversationRef,
@@ -95,7 +96,7 @@ export function useChatMessageSender(
       await dispatchPreparedDesktopChatTurn(preparedTurn);
     } catch (error) {
       console.error('[useChatMessageSender] Failed to send query:', error);
-      clearPendingTurn({
+      clearPendingTurnInChatStore({
         conversationRef: preparedTurn.conversationRef,
         turnRef: preparedTurn.turnRef,
       });
@@ -108,7 +109,6 @@ export function useChatMessageSender(
     }
   }, [
     appendSendFailureMessage,
-    clearPendingTurn,
     stopPlayback,
     senderSurface,
     sendLifecycle,

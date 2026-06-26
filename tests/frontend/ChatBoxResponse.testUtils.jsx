@@ -41,6 +41,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => {
 
 import MinimalResponseOverlay from '../../frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay';
 import {
+  clearPendingTurnInChatStore,
   setConversationViewInChatStore,
   setCurrentTurnProjectionInChatStore,
   setIsSendingInChatStore,
@@ -235,7 +236,7 @@ export function setChatState(messages) {
   setMessagesInChatStore(messages);
   setIsSendingInChatStore(false);
   setThinkingStatusInChatStore(null);
-  useChatStore.getState().clearPendingTurn();
+  clearPendingTurnInChatStore();
   setCurrentTurnProjectionInChatStore(currentTurnProjection);
   setConversationViewInChatStore(null);
 }

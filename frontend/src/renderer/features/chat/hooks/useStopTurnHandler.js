@@ -3,7 +3,10 @@
  */
 
 import { useCallback, useMemo } from 'react';
-import { useChatStore } from '../stores/chatStore';
+import {
+  acceptStoppedTurnInChatStore,
+  useChatStore,
+} from '../stores/chatStore';
 import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 import {
@@ -27,7 +30,6 @@ export function useStopTurnHandler({
   stopPlayback = null,
   warningContext = 'StopTurnHandler',
 } = {}) {
-  const acceptStoppedTurn = useChatStore((state) => state.acceptStoppedTurn);
   const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const stopTarget = useMemo(() => {
     if (stopTurnTarget && typeof stopTurnTarget === 'object') {
@@ -43,7 +45,7 @@ export function useStopTurnHandler({
     if (stopTarget.conversationRef) {
       setActiveConversationRef(stopTarget.conversationRef);
     }
-    acceptStoppedTurn({
+    acceptStoppedTurnInChatStore({
       conversationRef: stopTarget.conversationRef,
       turnRef: stopTarget.turnRef,
     });
@@ -68,7 +70,6 @@ export function useStopTurnHandler({
     });
     return true;
   }, [
-    acceptStoppedTurn,
     enabled,
     setActiveConversationRef,
     stopPlayback,

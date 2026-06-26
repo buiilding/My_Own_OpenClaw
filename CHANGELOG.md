@@ -224,6 +224,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/store: move stream-tracking writes out of the Zustand action
   surface; stream/projection hooks now call the module-level
   `updateStreamTrackingInChatStore(...)` adapter. No migration required.
+- frontend/store: move pending-turn and stopped-turn bridge writes out of the
+  Zustand action surface; send, projection, and stop handlers now use
+  module-level bridge adapters. No migration required.
 - frontend/store: move `setCurrentTurnProjection` state-update construction
   behind `DesktopCurrentTurnWorkspaceRuntime` so `chatStore` no longer owns
   workspace lookup or pending-bridge replacement for SDK current-turn

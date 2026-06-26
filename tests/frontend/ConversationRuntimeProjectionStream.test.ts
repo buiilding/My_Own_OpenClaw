@@ -8,7 +8,10 @@ import {
   resetChatStreamTestState,
   setMockActiveConversationRef,
 } from './ChatStreamThinkingStatus.testUtils';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  acceptPendingTurnInChatStore,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 
 describe('useConversationRuntimeProjectionStream display row merging', () => {
@@ -24,7 +27,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
   });
 
   test('applies SDK current-turn projection atomically with pending-turn replacement', () => {
-    useChatStore.getState().acceptPendingTurn({
+    acceptPendingTurnInChatStore({
       conversationRef: 'conv-1',
       turnRef: 'turn-new',
       userMessageId: 'turn-new-sdk-evt-000002-user_message',

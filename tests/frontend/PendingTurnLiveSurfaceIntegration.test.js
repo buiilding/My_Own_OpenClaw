@@ -5,6 +5,7 @@
 import { waitFor } from '@testing-library/react';
 import { DesktopChatSendPreparationRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime';
 import {
+  acceptPendingTurnInChatStore,
   applyPendingTurnBroadcastToChatStore,
   setCurrentTurnProjectionInChatStore,
   useChatStore,
@@ -160,7 +161,7 @@ describe('pending-turn live surface integration', () => {
       payload: 'Live now',
       config: { include_query_screenshot: false },
       dependencies: {
-        acceptPendingTurn: (pendingTurn) => useChatStore.getState().acceptPendingTurn(pendingTurn),
+        acceptPendingTurn: acceptPendingTurnInChatStore,
         getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
         getSendReadModel: () => {
           const workspace = getActiveWorkspace();

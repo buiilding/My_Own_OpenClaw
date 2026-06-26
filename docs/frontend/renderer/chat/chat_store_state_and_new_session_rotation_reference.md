@@ -143,20 +143,20 @@ replay/store compatibility adapters and low-level artifact helpers.
   authoritative SDK `ConversationView.liveTurn` also clears the renderer-local
   pending bridge there, so `chatStore.ts` does not keep a competing pending
   state after SDK view authority exists.
-- `acceptPendingTurn` stores the renderer-local pending turn before the SDK
-  current-turn projection opens, so dashboard/pill surfaces can show awaiting
-  state and stop can target the real outgoing `turnRef`; an echoed pending-turn
-  broadcast for the same conversation/user/turn/text is a no-op so renderer
-  IPC fan-out cannot repaint the existing user bubble. Pending turns preserve
-  only identity, text, timestamp, and filename chips; visual attachment
-  descriptors belong to SDK display rows. The pending user-row shape and
-  workspace mutation projection are built by app-runtime helpers. The
-  store-level accept-pending and clear decisions also live in
+- `acceptPendingTurnInChatStore(...)` stores the renderer-local pending turn
+  before the SDK current-turn projection opens, so dashboard/pill surfaces can
+  show awaiting state and stop can target the real outgoing `turnRef`; an
+  echoed pending-turn broadcast for the same conversation/user/turn/text is a
+  no-op so renderer IPC fan-out cannot repaint the existing user bubble.
+  Pending turns preserve only identity, text, timestamp, and filename chips;
+  visual attachment descriptors belong to SDK display rows. The pending
+  user-row shape and workspace mutation projection are built by app-runtime
+  helpers. The accept-pending and clear decisions also live in
   `desktopChatPendingTurnStateRuntime.ts`; `chatStore.ts` only supplies
-  workspace read/write dependencies and applies the returned update.
-  Pending-turn IPC broadcasts use the module-level
-  `applyPendingTurnBroadcastToChatStore(...)` adapter instead of a Zustand
-  action, so React components do not select broadcast handling from store state.
+  workspace read/write dependencies through module-level adapters and applies
+  the returned update. Pending-turn IPC broadcasts use
+  `applyPendingTurnBroadcastToChatStore(...)` instead of a Zustand action, so
+  React components do not select broadcast handling from store state.
 - Replay/edit/retry commands do not use the renderer pending-turn bridge.
   `desktopConversationReplayRuntime` passes only row ids/text, workspace path,
   model selection, and session identity to SDK command APIs; SDK runtime owns
@@ -164,24 +164,24 @@ replay/store compatibility adapters and low-level artifact helpers.
   display rows, and display-row `attachments[]`. The legacy replay-pending
   reducer and renderer superseded-turn ledger have been removed; renderer
   pending state is now only the normal post-send bridge.
-- `clearPendingTurn` clears only a pending turn matching the provided
+- `clearPendingTurnInChatStore(...)` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn.
   Pending-turn clear matching, broadcast action branching, and workspace
   mutation live in
   `desktopChatPendingTurnStateRuntime.ts`, including the pending-turn broadcast
   clear path.
-- `acceptStoppedTurn` immediately clears local busy/thinking state, clears a
-  matching pending turn, patches stream tracking to terminal `complete`, and
-  terminalizes the matching SDK current-turn projection while preserving any
-  already visible assistant content. Stopped projections strip SDK
+- `acceptStoppedTurnInChatStore(...)` immediately clears local busy/thinking
+  state, clears a matching pending turn, patches stream tracking to terminal
+  `complete`, and terminalizes the matching SDK current-turn projection while
+  preserving any already visible assistant content. Stopped projections strip SDK
   `typingVisible` and `overlayVisible` compatibility fields; visible lifecycle
   derives busy/typing state from terminal phase plus visible entries. Stopped
   workspace mutation, current-turn identity matching, stop-target normalization,
   and workspace update application live in `desktopStopTurnRuntime.js`, not
   hard-coded in the store.
-  React stop handlers and `acceptStoppedTurn` callers pass only target identity
-  from SDK `ConversationView` or the renderer pending bridge into that runtime;
-  raw `currentTurnProjection` is not accepted as caller-supplied stop state.
+  React stop handlers and stopped-turn callers pass only target identity from
+  SDK `ConversationView` or the renderer pending bridge into that runtime; raw
+  `currentTurnProjection` is not accepted as caller-supplied stop state.
 - `clearMessagesInChatStore(...)` clears messages, clears raw send cleanup
   state, and resets `streamTracking` to initial idle shape through
   `DesktopChatClearMessagesRuntime.buildClearMessagesStateUpdate(...)`. The

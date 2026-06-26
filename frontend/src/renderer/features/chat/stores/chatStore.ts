@@ -228,18 +228,6 @@ interface ChatState {
   dismissResponseOverlayEntry: (input: ResponseOverlayDismissalInput) => void;
   isResponseOverlayEntryDismissed: (input: ResponseOverlayDismissalInput) => boolean;
 
-  // Actions
-  acceptPendingTurn: (pendingTurn: PendingTurn) => void;
-  clearPendingTurn: (
-    input?: { conversationRef?: string | null; turnRef?: string | null } | null,
-  ) => void;
-  acceptStoppedTurn: (
-    input?: {
-      conversationRef?: string | null;
-      turnRef?: string | null;
-      stoppedAt?: string | null;
-    } | null,
-  ) => void;
 }
 
 export function selectChatInterfaceState(state: ChatState) {
@@ -304,34 +292,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const dismissalKey = buildResponseOverlayDismissalKey(input);
     return Boolean(dismissalKey && get().dismissedResponseOverlayEntries[dismissalKey]);
   },
-
-  // Actions
-  acceptPendingTurn: (pendingTurn) =>
-    set((state) => {
-      return buildAcceptPendingTurnStateUpdate<ChatState, ChatWorkspaceState>({
-        deps: pendingTurnStateRuntimeDependencies,
-        pendingTurn,
-        state,
-      }) ?? state;
-    }),
-
-  clearPendingTurn: (input = null) =>
-    set((state) => {
-      return buildClearPendingTurnStateUpdate<ChatState, ChatWorkspaceState>({
-        deps: pendingTurnStateRuntimeDependencies,
-        input,
-        state,
-      }) ?? state;
-    }),
-
-  acceptStoppedTurn: (input = null) =>
-    set((state) => {
-      return buildAcceptStoppedTurnStateUpdate<ChatState, ChatWorkspaceState>({
-        deps: stopTurnStateRuntimeDependencies,
-        input,
-        state,
-      }) ?? state;
-    }),
 
 }));
 
@@ -423,6 +383,46 @@ export function clearMessagesInChatStore(
       deps: clearMessagesStateRuntimeDependencies,
       state,
     })
+  ));
+}
+
+export function acceptPendingTurnInChatStore(
+  pendingTurn: PendingTurn,
+): void {
+  useChatStore.setState((state) => (
+    buildAcceptPendingTurnStateUpdate<ChatState, ChatWorkspaceState>({
+      deps: pendingTurnStateRuntimeDependencies,
+      pendingTurn,
+      state,
+    }) ?? state
+  ));
+}
+
+export function clearPendingTurnInChatStore(
+  input: { conversationRef?: string | null; turnRef?: string | null } | null = null,
+): void {
+  useChatStore.setState((state) => (
+    buildClearPendingTurnStateUpdate<ChatState, ChatWorkspaceState>({
+      deps: pendingTurnStateRuntimeDependencies,
+      input,
+      state,
+    }) ?? state
+  ));
+}
+
+export function acceptStoppedTurnInChatStore(
+  input: {
+    conversationRef?: string | null;
+    turnRef?: string | null;
+    stoppedAt?: string | null;
+  } | null = null,
+): void {
+  useChatStore.setState((state) => (
+    buildAcceptStoppedTurnStateUpdate<ChatState, ChatWorkspaceState>({
+      deps: stopTurnStateRuntimeDependencies,
+      input,
+      state,
+    }) ?? state
   ));
 }
 

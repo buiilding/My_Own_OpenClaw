@@ -21,6 +21,11 @@ import {
   setChatState,
   useChatStore,
 } from './ChatBoxResponse.testUtils';
+import {
+  acceptPendingTurnInChatStore,
+  acceptStoppedTurnInChatStore,
+  clearPendingTurnInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { DesktopCurrentTurnMessageRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 
 const {
@@ -151,7 +156,7 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
 
     act(() => {
-      useChatStore.getState().acceptPendingTurn(pendingTurn());
+      acceptPendingTurnInChatStore(pendingTurn());
     });
 
     await waitFor(() => {
@@ -165,7 +170,7 @@ describe('ChatBoxResponse state behavior', () => {
     render(<ChatBoxResponse />);
 
     act(() => {
-      useChatStore.getState().acceptPendingTurn(pendingTurn());
+      acceptPendingTurnInChatStore(pendingTurn());
     });
 
     await waitFor(() => {
@@ -173,7 +178,7 @@ describe('ChatBoxResponse state behavior', () => {
     });
 
     act(() => {
-      useChatStore.getState().acceptStoppedTurn({
+      acceptStoppedTurnInChatStore({
         conversationRef: 'conv-test',
         turnRef: 'turn-pending',
         stoppedAt: '2026-06-16T00:00:01.000Z',
@@ -191,7 +196,7 @@ describe('ChatBoxResponse state behavior', () => {
     render(<ChatBoxResponse />);
 
     act(() => {
-      useChatStore.getState().acceptPendingTurn(pendingTurn());
+      acceptPendingTurnInChatStore(pendingTurn());
     });
 
     expect(mockInvoke).toHaveBeenCalledWith(
@@ -209,7 +214,7 @@ describe('ChatBoxResponse state behavior', () => {
     render(<ChatBoxResponse />);
 
     act(() => {
-      useChatStore.getState().acceptPendingTurn(pendingTurn());
+      acceptPendingTurnInChatStore(pendingTurn());
     });
 
     await waitFor(() => {
@@ -508,7 +513,7 @@ describe('ChatBoxResponse state behavior', () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
     ]);
-    useChatStore.getState().acceptPendingTurn(pendingTurn({
+    acceptPendingTurnInChatStore(pendingTurn({
       turnRef: 'turn-1',
       userMessageId: 'user-1',
       text: 'run command',
@@ -812,7 +817,7 @@ describe('ChatBoxResponse state behavior', () => {
     setChatState([
       { id: 'user-1', text: 'think', sender: 'user' },
     ]);
-    useChatStore.getState().acceptPendingTurn(pendingTurn({
+    acceptPendingTurnInChatStore(pendingTurn({
       turnRef: 'turn-1',
       userMessageId: 'user-1',
       text: 'think',
@@ -853,14 +858,14 @@ describe('ChatBoxResponse state behavior', () => {
     render(<ChatBoxResponse />);
 
     act(() => {
-      useChatStore.getState().acceptPendingTurn(pendingTurn());
+      acceptPendingTurnInChatStore(pendingTurn());
     });
     await waitFor(() => {
       expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
     });
 
     act(() => {
-      useChatStore.getState().clearPendingTurn({
+      clearPendingTurnInChatStore({
         conversationRef: 'conv-test',
         turnRef: 'turn-pending',
       });
@@ -954,7 +959,7 @@ describe('ChatBoxResponse state behavior', () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
     ]);
-    useChatStore.getState().acceptPendingTurn(pendingTurn({
+    acceptPendingTurnInChatStore(pendingTurn({
       turnRef: 'turn-1',
       userMessageId: 'user-1',
       text: 'run command',
@@ -1085,7 +1090,7 @@ describe('ChatBoxResponse state behavior', () => {
     });
 
     act(() => {
-      useChatStore.getState().acceptPendingTurn(pendingTurn({
+      acceptPendingTurnInChatStore(pendingTurn({
         turnRef: 'turn-2',
         userMessageId: 'user-2',
         text: 'again',
@@ -1164,7 +1169,7 @@ describe('ChatBoxResponse state behavior', () => {
 
     mockInvoke.mockClear();
     act(() => {
-      useChatStore.getState().acceptPendingTurn(pendingTurn({
+      acceptPendingTurnInChatStore(pendingTurn({
         turnRef: 'turn-2',
         userMessageId: 'user-2',
         text: 'again',
