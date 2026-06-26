@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/tests: update the chat-pill overlay stop harness to exercise
   `chatStoreAdapters` state mutations directly, keeping SDK-view stops
   command-focused and pending-bridge stops state-focused. No migration required.
+- frontend/trace: prefer response overlay visible lifecycle identity over raw
+  current-turn projection fields in overlay view-model live-surface trace
+  payloads. No migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.

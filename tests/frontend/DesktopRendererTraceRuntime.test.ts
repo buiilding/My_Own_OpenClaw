@@ -705,8 +705,8 @@ describe('desktopRendererTraceRuntime', () => {
       useLocalPendingTurn: false,
     })).toEqual({
       source: 'renderer-overlay-view-model',
-      turnRef: 'turn-projection',
-      conversationRef: 'conv-projection',
+      turnRef: 'turn-lifecycle',
+      conversationRef: 'conv-lifecycle',
       phase: 'streaming',
       pendingTurnRef: 'turn-pending',
       pendingUserMessageId: 'user-pending',

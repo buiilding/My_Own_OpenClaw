@@ -216,7 +216,9 @@ Contract ownership:
   reason mapping. `useResponseOverlayViewModel(...)` reports value-level SDK,
   presentation, and view-intent inputs, then logs the app-runtime-built trace
   records when the resolved payload, typing visibility, or overlay intent mode
-  changes.
+  changes. Trace identity follows the resolved visible lifecycle first, then
+  overlay intent/current-turn/pending fallback fields only when no visible
+  lifecycle identity exists.
 - `useResponseOverlayScrollState(...)` owns fixed-height transcript scroll pinning and overflow affordance state.
 
 Rendering:
