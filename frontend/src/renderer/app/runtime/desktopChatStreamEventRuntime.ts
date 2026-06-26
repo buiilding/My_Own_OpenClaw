@@ -85,6 +85,19 @@ function resolveWorkspaceThinkingSourceEventType(
   return optionalString(sourceEventType);
 }
 
+function resolveWorkspaceActiveTurnRef(workspace: StreamGuardWorkspace | null | undefined): string | null {
+  return (
+    normalizeTurnRef((workspace as {
+      conversationView?: {
+        liveTurn?: {
+          turnRef?: string | null;
+        } | null;
+      } | null;
+    } | null | undefined)?.conversationView?.liveTurn?.turnRef)
+    || normalizeTurnRef(workspace?.streamTracking?.activeTurnRef)
+  );
+}
+
 const SUPPORTED_CONVERSATION_STREAM_EVENT_TYPES = new Set([
   'user_message',
   'turn_completed',
@@ -220,8 +233,7 @@ function shouldIgnoreForStaleTurn(
   if (!workspace) {
     return false;
   }
-  const activeTurnRef = workspace.streamTracking.activeTurnRef;
-  const normalizedActiveTurnRef = normalizeTurnRef(activeTurnRef);
+  const normalizedActiveTurnRef = resolveWorkspaceActiveTurnRef(workspace);
   // During awaiting-first-chunk, fail-open on turn-ref mismatch so the first real
   // runtime packets can re-anchor stream state if optimistic local turn wiring
   // never seeded this workspace with the current turn ref.
@@ -237,7 +249,7 @@ function shouldIgnoreForStaleTurn(
       normalizedActiveTurnRef,
     );
   }
-  return isStaleTurnForActiveStream(eventTurnRef, activeTurnRef);
+  return isStaleTurnForActiveStream(eventTurnRef, normalizedActiveTurnRef);
 }
 
 function shouldIgnoreConversationEventForStaleTurn(

@@ -757,6 +757,41 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(shouldIgnore(createEvent({ turnRef: ' turn-1 ' }), null)).toBe(false);
   });
 
+  test('stale turn guard prefers ConversationView live turn over stale stream tracking', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-stale',
+        phase: 'streaming',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          conversationView: {
+            conversationRef: 'conv-view',
+            displayRows: [],
+            liveTurn: {
+              turnRef: ' turn-view ',
+              phase: 'streaming',
+              entries: [],
+              canStop: true,
+            },
+          },
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-stale',
+            phase: 'streaming',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-view' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-stale' }), null)).toBe(true);
+  });
+
   test('stale turn guard allows next-turn packets when pending handoff has no active turn ref', () => {
     useChatStore.setState((state) => ({
       ...state,

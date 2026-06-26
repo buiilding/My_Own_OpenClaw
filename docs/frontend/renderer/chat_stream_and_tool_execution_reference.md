@@ -215,6 +215,11 @@ Compaction handlers similarly read the current thinking source through
 `DesktopChatStreamEventRuntime.resolveWorkspaceThinkingSourceEventType(...)`;
 the hook wires store access as an adapter dependency and does not dereference
 workspace thinking fields inline.
+SDK conversation-event stale-turn gating also belongs to
+`DesktopChatStreamEventRuntime`: it resolves active turn identity from
+`ConversationView.liveTurn.turnRef` first and uses raw `streamTracking` only as
+the no-view fallback so stale renderer stream tracking cannot reject the
+SDK-owned live turn.
 
 ### Removed Chat Stream Transparency and Thinking Helper Paths
 
