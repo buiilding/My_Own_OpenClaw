@@ -83,7 +83,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
-      currentTurnProjection: null,
+      sdkLiveTurn: null,
       messages,
     })).toMatchObject({
       status: 'local_pending',
@@ -105,7 +105,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
-      currentTurnProjection: projection({ phase: 'idle' }),
+      sdkLiveTurn: projection({ phase: 'idle' }),
       messages,
     })).toMatchObject({
       status: 'local_pending',
@@ -119,7 +119,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
-      currentTurnProjection: projection({ phase: 'streaming' }),
+      sdkLiveTurn: projection({ phase: 'streaming' }),
       messages,
     })).toMatchObject({
       status: 'local_pending',
@@ -128,7 +128,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
 
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
-      currentTurnProjection: projection({
+      sdkLiveTurn: projection({
         phase: 'streaming',
         assistantText: 'visible response',
       }),
@@ -152,7 +152,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
-      currentTurnProjection: projection({
+      sdkLiveTurn: projection({
         turnRef: 'turn-previous',
         phase: 'complete',
         presentation: {
@@ -189,7 +189,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
-      currentTurnProjection: awaitingProjection,
+      sdkLiveTurn: awaitingProjection,
       messages,
     })).toMatchObject({
       status: 'awaiting',
@@ -223,7 +223,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
-      currentTurnProjection: progressProjection,
+      sdkLiveTurn: progressProjection,
     })).toMatchObject({
       status: 'active',
       source: 'sdk',
@@ -250,7 +250,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
-      currentTurnProjection: textProjection,
+      sdkLiveTurn: textProjection,
     })).toMatchObject({
       status: 'active',
       entries: [{
@@ -275,7 +275,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
-      currentTurnProjection: flagOnlyProjection,
+      sdkLiveTurn: flagOnlyProjection,
     })).toMatchObject({
       status: 'local_pending',
       source: 'local',
@@ -284,7 +284,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
-      currentTurnProjection: flagOnlyProjection,
+      sdkLiveTurn: flagOnlyProjection,
     })).toMatchObject({
       status: 'idle',
       source: 'sdk',
@@ -306,7 +306,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
-      currentTurnProjection: terminalProjection,
+      sdkLiveTurn: terminalProjection,
     })).toMatchObject({
       status: 'terminal',
       terminalReason: 'complete',
@@ -374,7 +374,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
           },
         },
       },
-      currentTurnProjection: projection({
+      sdkLiveTurn: projection({
         conversationRef: 'conv-stale',
         turnRef: 'turn-stale',
         phase: 'streaming',
@@ -406,7 +406,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         userMessageId: 'user-local',
         text: 'local send',
       }),
-      currentTurnProjection: projection({
+      sdkLiveTurn: projection({
         phase: 'idle',
         turnRef: 'startup-hidden',
       }),
@@ -507,7 +507,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
 
     expect(resolveVisibleTurnLifecycle({
-      currentTurnProjection: hiddenIdleProjection,
+      sdkLiveTurn: hiddenIdleProjection,
       pendingTurn: pending,
       messages: [],
     })).toMatchObject({
@@ -518,7 +518,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
 
     expect(resolveVisibleTurnLifecycle({
-      currentTurnProjection: hiddenIdleProjection,
+      sdkLiveTurn: hiddenIdleProjection,
       messages: [],
     })).toMatchObject({
       status: 'idle',
@@ -528,7 +528,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
 
     expect(resolveVisibleTurnLifecycle({
-      currentTurnProjection: projection({
+      sdkLiveTurn: projection({
         phase: 'awaiting',
         presentation: {
           typingVisible: true,
@@ -560,7 +560,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
 
     expect(resolveVisibleTurnLifecycle({
-      currentTurnProjection: projection({
+      sdkLiveTurn: projection({
         phase: 'complete',
         turnRef: 'turn-1',
         assistantText: 'previous complete response',
@@ -584,7 +584,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
 
     expect(resolveVisibleTurnLifecycle({
-      currentTurnProjection: projection({
+      sdkLiveTurn: projection({
         phase: 'complete',
         turnRef: 'turn-2',
         presentation: {

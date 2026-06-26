@@ -16,6 +16,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/chat: rename thread presentation live fallback inputs to
   `sdkLiveTurn`, leaving raw current-turn projection decoding in the lower
   current-turn message runtime only. No migration required.
+- frontend/surfaces: rename visible lifecycle surface inputs to `sdkLiveTurn`,
+  keeping raw current-turn projection names on the workspace handoff helper
+  only. No migration required.
 - frontend/attachments: rename the app-runtime artifact image resolver to
   `DesktopAttachmentImageRuntime`, so chat attachment rendering no longer
   imports a screenshot-named resolver facade. No migration required.

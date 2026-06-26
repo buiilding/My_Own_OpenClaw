@@ -65,7 +65,7 @@ function buildChatSurfaceControllerState({
       sessionConversationRef,
     }),
     pendingTurn,
-    currentTurnProjection: effectiveSdkLiveTurn,
+    sdkLiveTurn: effectiveSdkLiveTurn,
     conversationView,
     messages: rendererFallbackMessages,
   });

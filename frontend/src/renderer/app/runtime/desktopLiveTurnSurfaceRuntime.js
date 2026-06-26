@@ -222,7 +222,7 @@ function resolveLiveTurnPresentationInput({
   const resolvedVisibleTurnLifecycle = visibleTurnLifecycle ?? resolveVisibleTurnLifecycle({
     conversationView,
     pendingTurn,
-    currentTurnProjection: sdkLiveTurn,
+    sdkLiveTurn,
     messages,
   });
   const useLocalPendingTurn = resolvedVisibleTurnLifecycle?.status === 'local_pending';

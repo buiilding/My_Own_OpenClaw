@@ -27,11 +27,11 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 ## Visible Turn Lifecycle Contract (`desktopVisibleTurnLifecycleRuntime.js`)
 
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` owns the
-renderer-visible handoff from local pending sends to SDK current-turn
-projection. It combines:
+renderer-visible handoff from local pending sends to the selected SDK live-turn
+fallback. It combines:
 
 - renderer `pendingTurn`
-- SDK `currentTurnProjection`
+- SDK live-turn fallback (`sdkLiveTurn`)
 - active conversation ref
 - message rows used only for awaiting-anchor lookup
 
@@ -50,7 +50,7 @@ owns pending-turn handoff for store updates, while
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` owns the
 surface local-pending status consumed by dashboard, pill, and overlay surfaces.
 Both use the same visible lifecycle authority so SDK idle, wrong-turn terminal,
-stale, and visible-empty projections do not replace `local_pending`.
+stale, and visible-empty live-turn fallbacks do not replace `local_pending`.
 Local pending rendering requires a valid renderer `pendingTurn`; bare
 `isSending=true` is store/diagnostic compatibility state and does not create
 visible typing or busy lifecycle by itself.

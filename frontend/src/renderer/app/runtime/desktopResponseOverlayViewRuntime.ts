@@ -106,7 +106,7 @@ function resolveResponseOverlaySurfaceState({
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
     conversationView,
     pendingTurn,
-    currentTurnProjection: sdkLiveTurn,
+    sdkLiveTurn,
     messages,
   });
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({

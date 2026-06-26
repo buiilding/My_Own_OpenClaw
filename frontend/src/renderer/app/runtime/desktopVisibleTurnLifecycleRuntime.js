@@ -35,18 +35,18 @@ function normalizePendingTurn(value) {
   };
 }
 
-function normalizeProjectionPhase(currentTurnProjection) {
-  return normalizeString(currentTurnProjection?.phase);
+function normalizeSdkLiveTurnPhase(sdkLiveTurn) {
+  return normalizeString(sdkLiveTurn?.phase);
 }
 
-function projectionMatchesPendingTurn(pendingTurn, currentTurnProjection) {
+function sdkLiveTurnMatchesPendingTurn(pendingTurn, sdkLiveTurn) {
   const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
-  if (!normalizedPendingTurn || !currentTurnProjection) {
+  if (!normalizedPendingTurn || !sdkLiveTurn) {
     return false;
   }
   return (
-    normalizeConversationRef(currentTurnProjection.conversationRef) === normalizedPendingTurn.conversationRef
-    && normalizeTurnRef(currentTurnProjection.turnRef) === normalizedPendingTurn.turnRef
+    normalizeConversationRef(sdkLiveTurn.conversationRef) === normalizedPendingTurn.conversationRef
+    && normalizeTurnRef(sdkLiveTurn.turnRef) === normalizedPendingTurn.turnRef
   );
 }
 
@@ -61,9 +61,9 @@ function hasVisiblePresentationContent(presentation) {
   );
 }
 
-function hasToolProgress(currentTurnProjection) {
-  const toolEvents = Array.isArray(currentTurnProjection?.toolEvents)
-    ? currentTurnProjection.toolEvents
+function hasToolProgress(sdkLiveTurn) {
+  const toolEvents = Array.isArray(sdkLiveTurn?.toolEvents)
+    ? sdkLiveTurn.toolEvents
     : [];
   return toolEvents.some((event) => (
     event?.kind === 'tool_call'
@@ -72,38 +72,38 @@ function hasToolProgress(currentTurnProjection) {
   ));
 }
 
-function hasVisibleTextOrError(currentTurnProjection) {
+function hasVisibleTextOrError(sdkLiveTurn) {
   return Boolean(
-    normalizeString(currentTurnProjection?.assistantText)
-      || normalizeString(currentTurnProjection?.reasoningText)
-      || normalizeString(currentTurnProjection?.lastError),
+    normalizeString(sdkLiveTurn?.assistantText)
+      || normalizeString(sdkLiveTurn?.reasoningText)
+      || normalizeString(sdkLiveTurn?.lastError),
   );
 }
 
-function isAuthoritativeSdkProjection(currentTurnProjection) {
-  if (!currentTurnProjection) {
+function isAuthoritativeSdkLiveTurn(sdkLiveTurn) {
+  if (!sdkLiveTurn) {
     return false;
   }
-  const phase = normalizeProjectionPhase(currentTurnProjection);
+  const phase = normalizeSdkLiveTurnPhase(sdkLiveTurn);
   if (AWAITING_PHASES.has(phase)) {
     return true;
   }
   if (ACTIVE_PROGRESS_PHASES.has(phase) || TERMINAL_PHASES.has(phase)) {
     return true;
   }
-  if (hasVisibleTextOrError(currentTurnProjection)) {
+  if (hasVisibleTextOrError(sdkLiveTurn)) {
     return true;
   }
-  if (hasToolProgress(currentTurnProjection)) {
+  if (hasToolProgress(sdkLiveTurn)) {
     return true;
   }
-  return hasVisiblePresentationContent(currentTurnProjection.presentation);
+  return hasVisiblePresentationContent(sdkLiveTurn.presentation);
 }
 
-function hasAuthoritativeSameTurnSdkReplacement(pendingTurn, currentTurnProjection) {
+function hasAuthoritativeSameTurnSdkReplacement(pendingTurn, sdkLiveTurn) {
   return (
-    projectionMatchesPendingTurn(pendingTurn, currentTurnProjection)
-    && isAuthoritativeSdkProjection(currentTurnProjection)
+    sdkLiveTurnMatchesPendingTurn(pendingTurn, sdkLiveTurn)
+    && isAuthoritativeSdkLiveTurn(sdkLiveTurn)
   );
 }
 
@@ -130,8 +130,8 @@ function resolvePendingTurnForCurrentProjection({
     : pendingTurn;
 }
 
-function findAwaitingAnchor(messages, pendingTurn, currentTurnProjection) {
-  const presentationAnchor = currentTurnProjection?.presentation?.awaitingAnchor;
+function findAwaitingAnchor(messages, pendingTurn, sdkLiveTurn) {
+  const presentationAnchor = sdkLiveTurn?.presentation?.awaitingAnchor;
   if (
     presentationAnchor?.kind === 'user-message'
     && normalizeString(presentationAnchor.rowId)
@@ -165,30 +165,30 @@ function findAwaitingAnchor(messages, pendingTurn, currentTurnProjection) {
   return null;
 }
 
-function resolveTerminalReason(currentTurnProjection) {
-  const phase = normalizeProjectionPhase(currentTurnProjection);
-  if (phase === 'error' || normalizeString(currentTurnProjection?.lastError)) {
+function resolveTerminalReason(sdkLiveTurn) {
+  const phase = normalizeSdkLiveTurnPhase(sdkLiveTurn);
+  if (phase === 'error' || normalizeString(sdkLiveTurn?.lastError)) {
     return 'error';
   }
-  if (phase === 'complete' || currentTurnProjection?.presentation?.isTerminal === true) {
+  if (phase === 'complete' || sdkLiveTurn?.presentation?.isTerminal === true) {
     return 'complete';
   }
   return null;
 }
 
-function resolveSdkLifecycleStatus(currentTurnProjection) {
-  if (!currentTurnProjection) {
+function resolveSdkLifecycleStatus(sdkLiveTurn) {
+  if (!sdkLiveTurn) {
     return 'idle';
   }
-  const phase = normalizeProjectionPhase(currentTurnProjection);
-  if (TERMINAL_PHASES.has(phase) || currentTurnProjection?.presentation?.isTerminal === true) {
+  const phase = normalizeSdkLiveTurnPhase(sdkLiveTurn);
+  if (TERMINAL_PHASES.has(phase) || sdkLiveTurn?.presentation?.isTerminal === true) {
     return 'terminal';
   }
   if (
     ACTIVE_PROGRESS_PHASES.has(phase)
-    || hasVisibleTextOrError(currentTurnProjection)
-    || hasToolProgress(currentTurnProjection)
-    || hasVisiblePresentationContent(currentTurnProjection.presentation)
+    || hasVisibleTextOrError(sdkLiveTurn)
+    || hasToolProgress(sdkLiveTurn)
+    || hasVisiblePresentationContent(sdkLiveTurn.presentation)
   ) {
     return 'active';
   }
@@ -213,7 +213,7 @@ function resolveConversationViewLifecycleStatus(conversationView) {
   if (liveTurn?.isTerminal === true) {
     return 'terminal';
   }
-  const phase = normalizeProjectionPhase(liveTurn);
+  const phase = normalizeSdkLiveTurnPhase(liveTurn);
   if (TERMINAL_PHASES.has(phase)) {
     return 'terminal';
   }
@@ -235,16 +235,16 @@ function resolveVisibleTurnLifecycle({
   activeConversationRef = null,
   conversationView = null,
   pendingTurn = null,
-  currentTurnProjection = null,
+  sdkLiveTurn = null,
   messages = [],
 } = {}) {
   const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
   const normalizedActiveConversationRef = normalizeConversationRef(activeConversationRef);
-  const projectionConversationRef = normalizeConversationRef(currentTurnProjection?.conversationRef);
-  const projectionTurnRef = normalizeTurnRef(currentTurnProjection?.turnRef);
+  const sdkLiveTurnConversationRef = normalizeConversationRef(sdkLiveTurn?.conversationRef);
+  const sdkLiveTurnRef = normalizeTurnRef(sdkLiveTurn?.turnRef);
   const sameTurnReplacement = hasAuthoritativeSameTurnSdkReplacement(
     normalizedPendingTurn,
-    currentTurnProjection,
+    sdkLiveTurn,
   );
   const viewStatus = resolveConversationViewLifecycleStatus(conversationView);
   const sameTurnConversationViewReplacement = (
@@ -296,26 +296,26 @@ function resolveVisibleTurnLifecycle({
     };
   }
 
-  const sdkStatus = resolveSdkLifecycleStatus(currentTurnProjection);
+  const sdkStatus = resolveSdkLifecycleStatus(sdkLiveTurn);
   if (
-    currentTurnProjection
+    sdkLiveTurn
     && sdkStatus !== 'idle'
-    && (!normalizedActiveConversationRef || projectionConversationRef === normalizedActiveConversationRef)
+    && (!normalizedActiveConversationRef || sdkLiveTurnConversationRef === normalizedActiveConversationRef)
   ) {
-    const entries = Array.isArray(currentTurnProjection.presentation?.entries)
-      ? currentTurnProjection.presentation.entries
+    const entries = Array.isArray(sdkLiveTurn.presentation?.entries)
+      ? sdkLiveTurn.presentation.entries
       : [];
     return {
       status: sdkStatus,
       source: 'sdk',
-      conversationRef: projectionConversationRef,
-      turnRef: projectionTurnRef,
+      conversationRef: sdkLiveTurnConversationRef,
+      turnRef: sdkLiveTurnRef,
       awaitingAnchor: sdkStatus === 'awaiting'
-        ? findAwaitingAnchor(messages, normalizedPendingTurn, currentTurnProjection)
+        ? findAwaitingAnchor(messages, normalizedPendingTurn, sdkLiveTurn)
         : null,
       entries,
-      terminalReason: resolveTerminalReason(currentTurnProjection),
-      isBusy: BUSY_PHASES.has(normalizeProjectionPhase(currentTurnProjection)),
+      terminalReason: resolveTerminalReason(sdkLiveTurn),
+      isBusy: BUSY_PHASES.has(normalizeSdkLiveTurnPhase(sdkLiveTurn)),
       showTyping: sdkStatus === 'awaiting',
     };
   }
