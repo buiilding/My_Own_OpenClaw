@@ -134,6 +134,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 const mockChatState = {
   messages: [],
   activeConversationRef: 'conv-overlay',
+  workspaces: {},
   thinkingStatus: null,
   setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
   setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
@@ -144,6 +145,24 @@ const mockChatState = {
   conversationView: null,
   pendingTurn: null,
 };
+
+function syncMockWorkspace() {
+  mockChatState.workspaces = {
+    ...mockChatState.workspaces,
+    [mockChatState.activeConversationRef]: {
+      messages: mockChatState.messages,
+      isSending: false,
+      thinkingStatus: mockChatState.thinkingStatus,
+      thinkingSourceEventType: null,
+      compactionDebugInfo: null,
+      tokenCounts: null,
+      streamTracking: mockChatState.streamTracking,
+      currentTurnProjection: mockChatState.currentTurnProjection,
+      conversationView: mockChatState.conversationView,
+      pendingTurn: mockChatState.pendingTurn,
+    },
+  };
+}
 
 function setMockConversationView({
   conversationRef = 'conv-overlay',
@@ -180,6 +199,7 @@ function setMockConversationView({
       canFork: true,
     },
   };
+  syncMockWorkspace();
 }
 
 let mockConfig = {
@@ -283,6 +303,8 @@ describe('ChatBox overlay mouse ignore', () => {
     mockChatState.currentTurnProjection = null;
     mockChatState.conversationView = null;
     mockChatState.pendingTurn = null;
+    mockChatState.workspaces = {};
+    syncMockWorkspace();
     resizeObserverInstances.length = 0;
     requestAnimationFrameCallbacks.clear();
     nextAnimationFrameId = 1;
@@ -505,6 +527,7 @@ describe('ChatBox overlay mouse ignore', () => {
         isBusy: false,
       },
     };
+    syncMockWorkspace();
     render(<MinimalChatPill />);
 
     await act(async () => {
@@ -753,6 +776,7 @@ describe('ChatBox overlay mouse ignore', () => {
       phase: 'tool_call',
       turnRef: 'turn-active',
     };
+    syncMockWorkspace();
     const { container } = render(<MinimalChatPill />);
     const input = screen.getByPlaceholderText('Ask me to do anything...');
     await waitFor(() => {
@@ -779,6 +803,7 @@ describe('ChatBox overlay mouse ignore', () => {
       phase: 'tool_call',
       turnRef: 'turn-active',
     };
+    syncMockWorkspace();
     const { container, rerender } = render(<MinimalChatPill />);
     const shellWrap = container.querySelector('.chatbox-shell-wrap');
     expect(shellWrap).toBeTruthy();
@@ -790,6 +815,7 @@ describe('ChatBox overlay mouse ignore', () => {
       phase: 'complete',
       turnRef: 'turn-active',
     };
+    syncMockWorkspace();
     rerender(<MinimalChatPill />);
     expect(shellWrap.classList.contains('loop-active')).toBe(false);
   });
@@ -966,6 +992,7 @@ describe('ChatBox overlay mouse ignore', () => {
       timestamp: '2026-06-16T00:00:00.000Z',
       attachmentFilenames: null,
     };
+    syncMockWorkspace();
     render(<MinimalChatPill />);
 
     expect(screen.queryByRole('button', { name: 'Send message' })).not.toBeInTheDocument();

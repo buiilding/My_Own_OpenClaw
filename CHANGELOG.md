@@ -12,6 +12,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/store: narrow the chat workspace helper snapshot contract to
   `activeConversationRef` plus `workspaces`, so root chat-store projection
   fields are no longer typed as workspace read inputs. No migration required.
+- frontend/selectors: keep ConversationView-owned live surfaces on a stable
+  empty message array so `useShallow(selectLiveTurnSurfaceState)` does not
+  repaint or loop while SDK rows own the visible transcript. No migration
+  required.
 - frontend/replay: route edit/retry UI actions as SDK command intent without
   renderer retained-prefix or pending-row publication; SDK runtime now remains
   the owner of replay target resolution, supersession, replacement rows, and

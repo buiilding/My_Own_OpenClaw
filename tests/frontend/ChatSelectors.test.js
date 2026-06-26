@@ -115,13 +115,18 @@ describe('chatSelectors', () => {
       pendingTurn: null,
     };
 
-    expect(projectDesktopChatSurfaceState({
+    const firstSurfaceState = projectDesktopChatSurfaceState({
       activeWorkspace,
-    })).toEqual(expect.objectContaining({
+    });
+    const secondSurfaceState = projectDesktopChatSurfaceState({
+      activeWorkspace,
+    });
+    expect(firstSurfaceState).toEqual(expect.objectContaining({
       messages: [],
       currentTurnProjection: null,
       conversationView: activeWorkspace.conversationView,
     }));
+    expect(secondSurfaceState.messages).toBe(firstSurfaceState.messages);
   });
 
   test('drops raw surface messages while carrying the pending bridge under ConversationView', () => {

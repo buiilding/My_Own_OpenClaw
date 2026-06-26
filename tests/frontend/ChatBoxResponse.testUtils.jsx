@@ -42,7 +42,50 @@ jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => {
 import MinimalResponseOverlay from '../../frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 
+const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
+const WORKSPACE_MIRROR_FIELDS = [
+  'messages',
+  'isSending',
+  'thinkingStatus',
+  'thinkingSourceEventType',
+  'compactionDebugInfo',
+  'tokenCounts',
+  'streamTracking',
+  'currentTurnProjection',
+  'conversationView',
+  'pendingTurn',
+];
+
 const originalSetChatStoreState = useChatStore.setState.bind(useChatStore);
+
+function withActiveWorkspaceMirror(partial) {
+  const state = useChatStore.getState();
+  const workspaceRef = state.activeConversationRef || DEFAULT_CHAT_WORKSPACE_REF;
+  const currentWorkspace = state.workspaces?.[workspaceRef];
+  if (!currentWorkspace) {
+    return partial;
+  }
+  let shouldMirror = false;
+  const nextWorkspace = {
+    ...currentWorkspace,
+  };
+  WORKSPACE_MIRROR_FIELDS.forEach((fieldName) => {
+    if (Object.prototype.hasOwnProperty.call(partial, fieldName)) {
+      nextWorkspace[fieldName] = partial[fieldName];
+      shouldMirror = true;
+    }
+  });
+  if (!shouldMirror) {
+    return partial;
+  }
+  return {
+    ...partial,
+    workspaces: {
+      ...state.workspaces,
+      [workspaceRef]: nextWorkspace,
+    },
+  };
+}
 
 useChatStore.setState = (partial, replace) => {
   if (
@@ -56,12 +99,15 @@ useChatStore.setState = (partial, replace) => {
     const currentTurnProjection = partial.messages.length > 0
       ? buildCurrentTurnProjection(partial.messages, currentPhase)
       : null;
-    return originalSetChatStoreState({
+    return originalSetChatStoreState(withActiveWorkspaceMirror({
       ...partial,
       currentTurnProjection,
       conversationView: null,
       latestConversationView: null,
-    }, replace);
+    }), replace);
+  }
+  if (partial && typeof partial === 'object' && !Array.isArray(partial)) {
+    return originalSetChatStoreState(withActiveWorkspaceMirror(partial), replace);
   }
   return originalSetChatStoreState(partial, replace);
 };

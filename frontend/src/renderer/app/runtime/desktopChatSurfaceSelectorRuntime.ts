@@ -13,6 +13,8 @@ type DesktopChatWorkspaceProjection = {
   pendingTurn?: unknown | null;
 };
 
+const emptyChatMessages: unknown[] = [];
+
 function projectDesktopChatSurfaceState({
   activeWorkspace,
   conversationView,
@@ -22,7 +24,7 @@ function projectDesktopChatSurfaceState({
 }) {
   const resolvedConversationView = conversationView ?? activeWorkspace.conversationView ?? null;
   const projectedMessages = resolvedConversationView
-    ? []
+    ? emptyChatMessages
     : activeWorkspace.messages;
   return {
     messages: projectedMessages,
