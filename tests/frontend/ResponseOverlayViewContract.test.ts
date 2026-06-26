@@ -193,13 +193,29 @@ describe('desktopResponseOverlayViewRuntime', () => {
     ]);
   });
 
-  test('falls back to raw current-turn projection only when sdk presentation has no visible rows', () => {
+  test('falls back to raw current-turn projection only when sdk presentation is absent', () => {
     expect(resolveResponseOverlayEntries({
       sdkLiveTurn: {
         conversationRef: 'conv-sdk',
         turnRef: 'turn-sdk',
         phase: 'streaming',
         assistantText: 'visible raw fallback',
+      },
+      liveTurnPresentationInput: {
+        useSdkLiveTurnPresentation: false,
+      },
+    })).toEqual([
+      expect.objectContaining({
+        text: 'visible raw fallback',
+      }),
+    ]);
+
+    expect(resolveResponseOverlayEntries({
+      sdkLiveTurn: {
+        conversationRef: 'conv-sdk',
+        turnRef: 'turn-sdk',
+        phase: 'streaming',
+        assistantText: 'hidden raw fallback',
         presentation: {
           entries: [],
         },
@@ -207,11 +223,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
       liveTurnPresentationInput: {
         useSdkLiveTurnPresentation: true,
       },
-    })).toEqual([
-      expect.objectContaining({
-        text: 'visible raw fallback',
-      }),
-    ]);
+    })).toEqual([]);
   });
 
   test('suppresses response entries during local pending bridge display', () => {

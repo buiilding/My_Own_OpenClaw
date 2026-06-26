@@ -236,6 +236,16 @@ function normalizeProjectedCurrentTurnEntries(sdkLiveTurn: unknown): ResponseOve
     .filter(isVisibleResponseOverlayMessage);
 }
 
+function hasSdkLiveTurnPresentationObject(sdkLiveTurn: unknown): boolean {
+  const projection = recordFromUnknown(sdkLiveTurn);
+  const presentation = projection.presentation;
+  return Boolean(
+    presentation
+      && typeof presentation === 'object'
+      && !Array.isArray(presentation),
+  );
+}
+
 function resolveResponseOverlayEntries({
   conversationView = null,
   sdkLiveTurn = null,
@@ -256,12 +266,9 @@ function resolveResponseOverlayEntries({
     return buildConversationViewLiveTurnMessages(conversationView)
       .filter(isVisibleResponseOverlayMessage);
   }
-  if (liveTurnPresentationInput.useSdkLiveTurnPresentation) {
-    const presentationMessages = buildCurrentTurnMessagesFromPresentation(sdkLiveTurn)
+  if (hasSdkLiveTurnPresentationObject(sdkLiveTurn)) {
+    return buildCurrentTurnMessagesFromPresentation(sdkLiveTurn)
       .filter(isVisibleResponseOverlayMessage);
-    return presentationMessages.length > 0
-      ? presentationMessages
-      : normalizeProjectedCurrentTurnEntries(sdkLiveTurn);
   }
   return normalizeProjectedCurrentTurnEntries(sdkLiveTurn);
 }

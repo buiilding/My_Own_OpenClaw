@@ -90,32 +90,33 @@ function hasSdkLiveTurnPresentation(sdkLiveTurn) {
   );
 }
 
-function hasSdkLiveTurnVisibleOverlayContent(sdkLiveTurn) {
+function hasSdkLiveTurnPresentationObject(sdkLiveTurn) {
   const presentation = sdkLiveTurn?.presentation;
+  return Boolean(presentation && typeof presentation === 'object');
+}
+
+function hasSdkLiveTurnVisibleOverlayContent(presentation) {
   const entries = Array.isArray(presentation?.entries) ? presentation.entries : [];
-  const toolEvents = Array.isArray(sdkLiveTurn?.toolEvents)
-    ? sdkLiveTurn.toolEvents
-    : [];
   return Boolean(
-    normalizePhase(sdkLiveTurn?.phase) === 'error'
-      || normalizeString(sdkLiveTurn?.assistantText)
-      || normalizeString(sdkLiveTurn?.reasoningText)
-      || normalizeString(sdkLiveTurn?.lastError)
-      || entries.length > 0
-      || toolEvents.some((event) => (
-        event?.kind === 'tool_call'
-        || event?.kind === 'tool_output'
-        || event?.kind === 'tool_progress'
-      )),
+    entries.length > 0
+      || normalizeString(presentation?.lastError)
   );
 }
 
-function resolveSdkOverlayIntentMode(sdkLiveTurn) {
-  if (hasSdkLiveTurnVisibleOverlayContent(sdkLiveTurn)) {
+function resolveSdkOverlayIntentMode(presentation, sdkLiveTurn) {
+  const presentationMode = normalizeSurfaceOverlayMode(presentation?.overlayIntent?.mode);
+  if (hasSdkLiveTurnVisibleOverlayContent(presentation)) {
     return 'response';
   }
-  if (normalizePhase(sdkLiveTurn?.phase) === 'awaiting') {
+  if (
+    presentationMode === 'awaiting'
+    || normalizePhase(sdkLiveTurn?.phase) === 'awaiting'
+    || presentation?.isBusy === true
+  ) {
     return 'awaiting';
+  }
+  if (hasSdkLiveTurnPresentationObject(sdkLiveTurn)) {
+    return 'hidden';
   }
   return 'hidden';
 }
@@ -190,7 +191,7 @@ function isConversationView(value) {
 
 function resolveSdkOverlayIntent(presentation, sdkLiveTurn) {
   const intent = presentation?.overlayIntent;
-  const mode = resolveSdkOverlayIntentMode(sdkLiveTurn);
+  const mode = resolveSdkOverlayIntentMode(presentation, sdkLiveTurn);
   const turnRef = (
     normalizeTurnRef(intent?.turnRef)
     || normalizeTurnRef(sdkLiveTurn?.turnRef)

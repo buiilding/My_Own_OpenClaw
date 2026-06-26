@@ -132,6 +132,13 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       sdkLiveTurn: projection({
         phase: 'streaming',
         assistantText: 'visible response',
+        presentation: {
+          entries: [{
+            id: 'entry-raw-ignored',
+            type: 'llm-text',
+            text: 'visible response',
+          }],
+        },
       }),
       messages,
     })).toMatchObject({
@@ -216,6 +223,14 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         toolName: 'web_search',
         message: 'Searching',
       }],
+      presentation: {
+        entries: [{
+          id: 'entry-progress',
+          type: 'tool-progress',
+          text: 'Searching',
+          toolName: 'web_search',
+        }],
+      },
     });
     expect(resolvePendingTurnForSdkLiveTurn({
       pendingTurn: pending,

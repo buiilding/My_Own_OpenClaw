@@ -61,22 +61,11 @@ function hasVisiblePresentationContent(presentation) {
   );
 }
 
-function hasToolProgress(sdkLiveTurn) {
-  const toolEvents = Array.isArray(sdkLiveTurn?.toolEvents)
-    ? sdkLiveTurn.toolEvents
-    : [];
-  return toolEvents.some((event) => (
-    event?.kind === 'tool_call'
-    || event?.kind === 'tool_output'
-    || event?.kind === 'tool_progress'
-  ));
-}
-
-function hasVisibleTextOrError(sdkLiveTurn) {
+function hasPresentationLifecycleEvidence(presentation) {
   return Boolean(
-    normalizeString(sdkLiveTurn?.assistantText)
-      || normalizeString(sdkLiveTurn?.reasoningText)
-      || normalizeString(sdkLiveTurn?.lastError),
+    hasVisiblePresentationContent(presentation)
+      || presentation?.isBusy === true
+      || presentation?.isTerminal === true,
   );
 }
 
@@ -91,13 +80,7 @@ function isAuthoritativeSdkLiveTurn(sdkLiveTurn) {
   if (ACTIVE_PROGRESS_PHASES.has(phase) || TERMINAL_PHASES.has(phase)) {
     return true;
   }
-  if (hasVisibleTextOrError(sdkLiveTurn)) {
-    return true;
-  }
-  if (hasToolProgress(sdkLiveTurn)) {
-    return true;
-  }
-  return hasVisiblePresentationContent(sdkLiveTurn.presentation);
+  return hasPresentationLifecycleEvidence(sdkLiveTurn.presentation);
 }
 
 function hasAuthoritativeSameTurnSdkReplacement(pendingTurn, sdkLiveTurn) {
@@ -155,7 +138,7 @@ function findAwaitingAnchor(pendingTurn, sdkLiveTurn) {
 
 function resolveTerminalReason(sdkLiveTurn) {
   const phase = normalizeSdkLiveTurnPhase(sdkLiveTurn);
-  if (phase === 'error' || normalizeString(sdkLiveTurn?.lastError)) {
+  if (phase === 'error' || normalizeString(sdkLiveTurn?.presentation?.lastError)) {
     return 'error';
   }
   if (phase === 'complete' || sdkLiveTurn?.presentation?.isTerminal === true) {
@@ -174,14 +157,15 @@ function resolveSdkLifecycleStatus(sdkLiveTurn) {
   }
   if (
     ACTIVE_PROGRESS_PHASES.has(phase)
-    || hasVisibleTextOrError(sdkLiveTurn)
-    || hasToolProgress(sdkLiveTurn)
     || hasVisiblePresentationContent(sdkLiveTurn.presentation)
   ) {
     return 'active';
   }
   if (AWAITING_PHASES.has(phase)) {
     return 'awaiting';
+  }
+  if (sdkLiveTurn?.presentation?.isBusy === true) {
+    return 'active';
   }
   return 'idle';
 }

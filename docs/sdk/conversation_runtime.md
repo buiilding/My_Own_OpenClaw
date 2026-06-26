@@ -195,6 +195,12 @@ UI adapters:
 - `presentation`: SDK-owned live-turn UI contract with ordered visible entries,
   `hasVisibleContent`, `typingVisible`, `overlayVisible`, `isBusy`, and
   `isTerminal`
+- Renderer surface and visible-lifecycle adapters treat the presence of
+  `presentation` as the SDK-owned visual contract: visible rows come from
+  `presentation.entries`, terminal error display from `presentation.lastError`,
+  and busy/terminal lifecycle from presentation fields plus phase. They must
+  not scan raw `assistantText`, `reasoningText`, or `toolEvents` to decide
+  overlay visibility when a presentation object exists.
 - `presentation.entries[*].sourceChannel`: SDK presentation metadata uses
   `sdk:current-turn`; host IPC channel names are adapter details and must not
   leak into reusable SDK projections
@@ -382,8 +388,11 @@ same transcript, active-turn, and replay views.
 Electron main emits the projection to renderer surfaces on the SDK current-turn
 IPC payload. Renderer overlays should render `view.liveTurn.entries` when a
 `ConversationView` is present, falling back to `currentTurn.presentation.entries`
-only for non-migrated hosts. They must not independently interpret backend-wire
-stream/tool events or synthesize current-turn chat messages.
+only for non-migrated hosts. If `currentTurn.presentation` exists, an empty
+`presentation.entries` array is authoritative and must not trigger raw
+`assistantText`/`toolEvents` row synthesis. They must not independently
+interpret backend-wire stream/tool events or synthesize current-turn chat
+messages.
 Conversation-control compaction events are not current-turn events: they must
 not reset the current-turn anchor to a compaction operation id, set
 `presentation.isBusy`, or turn a manual compaction failure into an assistant

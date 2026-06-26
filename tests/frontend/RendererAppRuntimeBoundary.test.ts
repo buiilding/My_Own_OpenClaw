@@ -557,6 +557,9 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceSource).not.toContain('typingVisible');
     expect(liveSurfaceSource).not.toContain('overlayVisible');
     expect(liveSurfaceSource).not.toContain('hasVisibleContent');
+    expect(liveSurfaceSource).not.toContain('assistantText');
+    expect(liveSurfaceSource).not.toContain('reasoningText');
+    expect(liveSurfaceSource).not.toContain('toolEvents');
     expect(liveSurfaceSource).not.toContain('overlayIntent.mode ===');
     expect(liveSurfaceSource).not.toContain('useLocalSendLatch');
     expect(liveSurfaceSource).not.toContain('shouldUseSendPreflight');
@@ -566,6 +569,10 @@ describe('renderer app runtime boundary', () => {
     expect(visibleLifecycleSource).not.toContain('shouldUseLocalSendPreflight');
     expect(visibleLifecycleSource).not.toContain('overlayTurnLifecycle');
     expect(visibleLifecycleSource).not.toContain('presentationStateWithoutLegacyLifecycle');
+    expect(visibleLifecycleSource).not.toContain('assistantText');
+    expect(visibleLifecycleSource).not.toContain('reasoningText');
+    expect(visibleLifecycleSource).not.toContain('toolEvents');
+    expect(visibleLifecycleSource).not.toContain('sdkLiveTurn?.lastError');
     expect(overlayRuntimeDoc).toContain('overlay-compatible phase, busy, awaiting, and response fields');
     expect(overlayRuntimeDoc).not.toContain('legacy overlay phase');
     expect(liveSurfaceSource).not.toContain('export function resolveSdkOverlayIntent');

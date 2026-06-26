@@ -496,7 +496,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
-  test('uses visible lifecycle instead of SDK overlay intent for response state', () => {
+  test('requires SDK presentation rows before showing raw response text', () => {
     const state = resolveLiveTurnPresentationInput({
       sdkLiveTurn: {
         phase: 'streaming',
@@ -524,13 +524,13 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
 
     expect(state).toMatchObject({
-      phase: 'streaming',
-      isBusy: true,
+      phase: 'idle',
+      isBusy: false,
       source: 'current-turn',
       useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: false,
       overlayIntent: expect.objectContaining({
-        mode: 'response',
+        mode: 'hidden',
       }),
     });
   });
