@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/surfaces: enforce `ConversationView` authority inside the surface
+  selector itself, blanking raw messages and the no-view `sdkLiveTurn` fallback
+  even for direct app-runtime selector callers. No migration required.
 - frontend/state: rename the current-turn workspace mutation helper to
   `buildSdkLiveTurnWorkspaceMutation`, so the app-runtime storage bridge exposes
   SDK live-turn intent while keeping `currentTurnProjection` as a private

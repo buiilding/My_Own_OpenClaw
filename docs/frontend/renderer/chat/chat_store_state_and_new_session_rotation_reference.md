@@ -246,7 +246,8 @@ no-view live-turn fallback as `sdkLiveTurn`, not `currentTurnProjection`, so
 dashboard, pill, and response-overlay consumers receive SDK live-turn intent
 without reopening the raw workspace field. When `ConversationView` exists,
 `sdkLiveTurn` is `null` and raw messages have already been replaced by the
-stable empty list before those adapters run; the view plus pending bridge own
+stable empty list before those adapters run; the surface selector also enforces
+that blanking for direct app-runtime callers. The view plus pending bridge own
 visible lifecycle and stop authority.
 The conversation projection-stream hook applies the same rule when it needs
 workspace context for stale-turn checks and replay traces: it wraps raw store

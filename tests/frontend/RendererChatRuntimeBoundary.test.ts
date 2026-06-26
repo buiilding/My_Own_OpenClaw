@@ -3525,7 +3525,9 @@ describe('renderer chat runtime boundary', () => {
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('emptyChatMessages');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('activeWorkspace.currentTurnProjection ?? null');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('currentTurnProjection');
-    expect(chatSurfaceSelectorRuntimeSource).toContain('sdkLiveTurn: activeWorkspace.sdkLiveTurn ?? null');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('const messages = conversationView ? emptySurfaceMessages : activeWorkspace.messages;');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('const sdkLiveTurn = conversationView ? null : activeWorkspace.sdkLiveTurn ?? null;');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('sdkLiveTurn,');
     expect(chatSurfaceSelectorRuntimeSource).toContain('activeWorkspace.rendererAnnotations');
     expect(chatSurfaceSelectorRuntimeSource).toContain('messages: surfaceState.messages');
     expect(chatSurfaceSelectorRuntimeSource).toContain('rendererAnnotations: surfaceState.conversationView');

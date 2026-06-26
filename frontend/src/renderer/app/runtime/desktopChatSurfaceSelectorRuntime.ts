@@ -16,6 +16,7 @@ type DesktopChatWorkspaceProjection = {
   sdkLiveTurn?: unknown | null;
 };
 
+const emptySurfaceMessages: ChatMessage[] = [];
 const emptyRendererAnnotations: unknown[] = [];
 function projectDesktopChatSurfaceState({
   activeWorkspace,
@@ -23,9 +24,11 @@ function projectDesktopChatSurfaceState({
   activeWorkspace: DesktopChatWorkspaceProjection;
 }) {
   const conversationView = activeWorkspace.conversationView ?? null;
+  const messages = conversationView ? emptySurfaceMessages : activeWorkspace.messages;
+  const sdkLiveTurn = conversationView ? null : activeWorkspace.sdkLiveTurn ?? null;
   return {
-    messages: activeWorkspace.messages,
-    sdkLiveTurn: activeWorkspace.sdkLiveTurn ?? null,
+    messages,
+    sdkLiveTurn,
     conversationView,
     pendingTurn: activeWorkspace.pendingTurn ?? null,
   };

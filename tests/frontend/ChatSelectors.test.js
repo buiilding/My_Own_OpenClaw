@@ -215,6 +215,36 @@ describe('chatSelectors', () => {
     });
   });
 
+  test('surface selector rejects raw messages under direct ConversationView input', () => {
+    const conversationView = {
+      conversationRef: 'conv-direct',
+      liveTurn: {
+        turnRef: 'turn-direct',
+        phase: 'streaming',
+      },
+    };
+
+    expect(projectDesktopChatSurfaceState({
+      activeWorkspace: {
+        messages: [{ id: 'stale-user', text: 'stale raw', sender: 'user' }],
+        conversationView,
+        pendingTurn: {
+          conversationRef: 'conv-direct',
+          turnRef: 'turn-pending',
+        },
+        sdkLiveTurn: { turnRef: 'raw-live-turn' },
+      },
+    })).toEqual({
+      messages: [],
+      conversationView,
+      pendingTurn: {
+        conversationRef: 'conv-direct',
+        turnRef: 'turn-pending',
+      },
+      sdkLiveTurn: null,
+    });
+  });
+
   test('drops raw surface messages while carrying the pending bridge under ConversationView', () => {
     const activeWorkspace = {
       messages: [{ id: 'pending-user', text: 'pending', sender: 'user' }],
