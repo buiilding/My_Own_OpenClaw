@@ -3,7 +3,6 @@ import type { ConversationView } from '../../frontend/src/renderer/app/runtime/d
 
 const {
   buildConversationViewWorkspaceMutation,
-  buildSetLatestConversationViewStateUpdate,
   buildSetConversationViewStateUpdate,
 } = DesktopConversationViewWorkspaceRuntime;
 
@@ -53,7 +52,7 @@ function buildLiveConversationView({
 }
 
 describe('DesktopConversationViewWorkspaceRuntime', () => {
-  test('returns null when workspace and latest view are already current', () => {
+  test('returns null when workspace view is already current', () => {
     const conversationView = buildConversationView('conv-1');
     const workspace = {
       conversationView,
@@ -63,12 +62,10 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     expect(buildConversationViewWorkspaceMutation({
       conversationView,
       currentWorkspace: workspace,
-      isActiveWorkspace: true,
-      latestConversationView: conversationView,
     })).toBeNull();
   });
 
-  test('updates active workspace and latest conversation view together', () => {
+  test('updates workspace conversation view without root latest mirror', () => {
     const previousView = buildConversationView('conv-1');
     const nextView = buildConversationView('conv-1');
     const workspace = {
@@ -79,8 +76,6 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     const mutation = buildConversationViewWorkspaceMutation({
       conversationView: nextView,
       currentWorkspace: workspace,
-      isActiveWorkspace: true,
-      latestConversationView: previousView,
     });
 
     expect(mutation).toEqual({
@@ -88,16 +83,13 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
         conversationView: nextView,
         messages: ['keep-ui-state'],
       },
-      hasLatestConversationViewUpdate: true,
-      latestConversationView: nextView,
     });
     expect(mutation?.workspace).not.toBe(workspace);
   });
 
-  test('does not update latest conversation view for inactive workspaces', () => {
+  test('updates inactive workspace conversation view the same way', () => {
     const previousView = buildConversationView('conv-old');
     const nextView = buildConversationView('conv-inactive');
-    const latestConversationView = buildConversationView('conv-active');
     const workspace = {
       conversationView: previousView,
       messages: [],
@@ -106,8 +98,6 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     const mutation = buildConversationViewWorkspaceMutation({
       conversationView: nextView,
       currentWorkspace: workspace,
-      isActiveWorkspace: false,
-      latestConversationView,
     });
 
     expect(mutation).toEqual({
@@ -115,31 +105,7 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
         conversationView: nextView,
         messages: [],
       },
-      hasLatestConversationViewUpdate: false,
-      latestConversationView,
     });
-  });
-
-  test('can refresh only the active latest view without cloning workspace', () => {
-    const conversationView = buildConversationView('conv-1');
-    const workspace = {
-      conversationView,
-      messages: [],
-    };
-
-    const mutation = buildConversationViewWorkspaceMutation({
-      conversationView,
-      currentWorkspace: workspace,
-      isActiveWorkspace: true,
-      latestConversationView: null,
-    });
-
-    expect(mutation).toEqual({
-      workspace,
-      hasLatestConversationViewUpdate: true,
-      latestConversationView: conversationView,
-    });
-    expect(mutation?.workspace).toBe(workspace);
   });
 
   test('clears same-turn pending bridge when ConversationView becomes authoritative', () => {
@@ -163,16 +129,12 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     expect(buildConversationViewWorkspaceMutation({
       conversationView,
       currentWorkspace: workspace,
-      isActiveWorkspace: true,
-      latestConversationView: null,
     })).toEqual({
       workspace: {
         conversationView,
         isSending: false,
         pendingTurn: null,
       },
-      hasLatestConversationViewUpdate: true,
-      latestConversationView: conversationView,
     });
   });
 
@@ -198,8 +160,6 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     const mutation = buildConversationViewWorkspaceMutation({
       conversationView,
       currentWorkspace: workspace,
-      isActiveWorkspace: true,
-      latestConversationView: null,
     });
 
     expect(mutation?.workspace).toEqual({
@@ -209,7 +169,7 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     });
   });
 
-  test('buildSetConversationViewStateUpdate resolves workspace and applies latest view update', () => {
+  test('buildSetConversationViewStateUpdate resolves workspace and applies workspace view update', () => {
     const previousView = buildConversationView('conv-1');
     const nextView = buildConversationView('conv-1');
     const workspace = {
@@ -218,7 +178,6 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     };
     const state = {
       activeConversationRef: 'conv-1',
-      latestConversationView: previousView,
       workspaces: {
         'conv-1': workspace,
       },
@@ -232,7 +191,6 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
           [workspaceRef]: nextWorkspace,
         },
       })),
-      isActiveWorkspaceRef: jest.fn(() => true),
       readWorkspaceState: jest.fn((currentState, workspaceRef) => currentState.workspaces[workspaceRef]),
       resolveWorkspaceKey: jest.fn(() => 'conv-1'),
     };
@@ -245,7 +203,6 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     });
 
     expect(deps.resolveWorkspaceKey).toHaveBeenCalledWith('conv-1', 'conv-1');
-    expect(deps.isActiveWorkspaceRef).toHaveBeenCalledWith(state, 'conv-1');
     expect(deps.buildWorkspaceUpdate).toHaveBeenCalledWith(
       state,
       'conv-1',
@@ -253,40 +210,13 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
         conversationView: nextView,
         messages: ['keep-ui-state'],
       }),
-      { latestConversationView: nextView },
     );
     expect(nextState).toEqual(expect.objectContaining({
-      latestConversationView: nextView,
       workspaces: {
         'conv-1': expect.objectContaining({
           conversationView: nextView,
         }),
       },
     }));
-  });
-
-  test('buildSetLatestConversationViewStateUpdate updates latest view when reference changes', () => {
-    const previousView = buildConversationView('conv-1');
-    const nextView = buildConversationView('conv-1');
-
-    expect(buildSetLatestConversationViewStateUpdate({
-      conversationView: nextView,
-      state: {
-        latestConversationView: previousView,
-      },
-    })).toEqual({
-      latestConversationView: nextView,
-    });
-  });
-
-  test('buildSetLatestConversationViewStateUpdate no-ops when latest view reference is unchanged', () => {
-    const conversationView = buildConversationView('conv-1');
-
-    expect(buildSetLatestConversationViewStateUpdate({
-      conversationView,
-      state: {
-        latestConversationView: conversationView,
-      },
-    })).toBeNull();
   });
 });

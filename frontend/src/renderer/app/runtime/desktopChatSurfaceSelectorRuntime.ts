@@ -56,15 +56,11 @@ function projectDesktopChatInterfaceState(
 
 function projectDesktopLiveTurnSurfaceState({
   activeWorkspace,
-  latestConversationView,
 }: {
   activeWorkspace: DesktopChatWorkspaceProjection;
-  latestConversationView?: unknown | null;
 }) {
-  const conversationView = latestConversationView || activeWorkspace.conversationView || null;
   return projectDesktopChatSurfaceState({
     activeWorkspace,
-    conversationView,
   });
 }
 

@@ -213,12 +213,12 @@ describe('chatWorkspaceState', () => {
     expect(isActiveWorkspaceRef(state, 'active-thread')).toBe(true);
     expect(isActiveWorkspaceRef(state, 'inactive-thread')).toBe(false);
     expect(buildWorkspaceUpdate(state, 'inactive-thread', workspace, {
-      latestConversationView: null,
+      extraUiState: true,
     })).toEqual({
       workspaces: {
         'inactive-thread': workspace,
       },
-      latestConversationView: null,
+      extraUiState: true,
     });
   });
 
@@ -295,7 +295,6 @@ describe('chatWorkspaceState', () => {
         'next-thread': nextWorkspace,
       },
       messages: [{ id: 'active', text: 'active', sender: 'assistant' as const }],
-      latestConversationView: null,
     };
 
     expect(buildActiveConversationWorkspaceUpdate(state, ' next-thread ')).toEqual(expect.objectContaining({
@@ -303,7 +302,6 @@ describe('chatWorkspaceState', () => {
       workspaces: state.workspaces,
       messages: nextWorkspace.messages,
       conversationView: nextWorkspace.conversationView,
-      latestConversationView: nextWorkspace.conversationView,
     }));
   });
 

@@ -211,15 +211,12 @@ function buildChatInterfaceSurfaceSelectorState({
 function buildLiveTurnSurfaceSelectorState({
   activeConversationRef = null,
   activeWorkspace,
-  latestConversationView = null,
 }: {
   activeConversationRef?: string | null;
   activeWorkspace: DesktopChatWorkspaceProjection;
-  latestConversationView?: ConversationView | null;
 }) {
   const liveTurnSurfaceState = projectDesktopLiveTurnSurfaceState({
     activeWorkspace,
-    latestConversationView,
   });
   return {
     ...liveTurnSurfaceState,

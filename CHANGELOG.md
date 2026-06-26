@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: remove renderer `latestConversationView` from `chatStore`;
+  live surfaces now read the active workspace `conversationView` directly while
+  Electron main keeps its separate IPC latest-view cache. No migration required.
 - frontend/store: make chat workspace records the only source for active
   workspace reads; top-level chat-store fields remain compatibility mirrors and
   no longer override `workspaces[...]`. No migration required.

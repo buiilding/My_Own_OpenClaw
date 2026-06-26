@@ -421,11 +421,12 @@ describe('chatSelectors', () => {
     };
 
     const selected = selectLiveTurnSurfaceState({
-      messages: [{ id: 'stale-user', text: 'stale', sender: 'user' }],
-      currentTurnProjection: workspaceProjection,
-      conversationView: null,
-      latestConversationView: view,
-      pendingTurn: null,
+      ...createStateWithActiveWorkspace({
+        messages: [{ id: 'stale-user', text: 'stale', sender: 'user' }],
+        currentTurnProjection: workspaceProjection,
+        conversationView: view,
+        pendingTurn: null,
+      }),
     });
 
     expect(selected.conversationView).toBe(view);

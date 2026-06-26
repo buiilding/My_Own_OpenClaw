@@ -273,7 +273,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
     };
     const state = storeState({
       activeConversationRef: 'conv-state',
-      latestConversationView: conversationView,
       workspaces: {
         'conv-state': workspace({
           conversationView,
@@ -296,7 +295,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
 
     expect(update).toEqual(expect.objectContaining({
       conversationView,
-      latestConversationView: conversationView,
     }));
     expect(update?.workspaces['conv-state']).toEqual(expect.objectContaining({
       conversationView,

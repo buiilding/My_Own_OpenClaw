@@ -103,7 +103,6 @@ useChatStore.setState = (partial, replace) => {
       ...partial,
       currentTurnProjection,
       conversationView: null,
-      latestConversationView: null,
     }), replace);
   }
   if (partial && typeof partial === 'object' && !Array.isArray(partial)) {
@@ -233,7 +232,6 @@ export function setChatState(messages) {
     pendingTurn: null,
     currentTurnProjection,
     conversationView: null,
-    latestConversationView: null,
   });
 }
 
@@ -244,7 +242,6 @@ export function emitOverlayPhase(phase) {
     useChatStore.setState({
       currentTurnProjection,
       conversationView: null,
-      latestConversationView: null,
     });
   });
 }

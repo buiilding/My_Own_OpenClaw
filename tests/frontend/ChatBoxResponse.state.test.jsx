@@ -1249,7 +1249,6 @@ describe('ChatBoxResponse state behavior', () => {
       isSending: false,
       currentTurnProjection: awaitingProjection,
       conversationView: view,
-      latestConversationView: view,
     });
 
     render(<ChatBoxResponse />);

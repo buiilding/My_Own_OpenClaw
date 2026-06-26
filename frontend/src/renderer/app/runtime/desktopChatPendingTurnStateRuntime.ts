@@ -293,7 +293,6 @@ function buildAcceptPendingTurnStateUpdate<
   );
   const extraState = {
     activeConversationRef: pendingMutation.normalizedPendingTurn.conversationRef,
-    latestConversationView: pendingMutation.workspace.conversationView,
     turnConversationRefs: nextTurnConversationRefs,
     ...deps.getProjectedWorkspaceFields(pendingMutation.workspace),
   } as Partial<TState>;

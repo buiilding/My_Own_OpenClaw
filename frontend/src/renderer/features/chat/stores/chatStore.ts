@@ -19,7 +19,6 @@ import {
   createInitialStreamTracking,
   createInitialWorkspaceRecord,
   getProjectedWorkspaceFields,
-  isActiveWorkspaceRef,
   readWorkspaceState,
   resolveChatWorkspaceRef,
   resolveWorkspaceMutationTarget,
@@ -124,7 +123,6 @@ const {
   buildSetCurrentTurnProjectionStateUpdate,
 } = DesktopCurrentTurnWorkspaceRuntime;
 const {
-  buildSetLatestConversationViewStateUpdate,
   buildSetConversationViewStateUpdate,
 } = DesktopConversationViewWorkspaceRuntime;
 export type { ChatMessage, TokenCounts };
@@ -152,7 +150,6 @@ const currentTurnStateRuntimeDependencies = {
 
 const conversationViewStateRuntimeDependencies = {
   buildWorkspaceUpdate,
-  isActiveWorkspaceRef,
   readWorkspaceState,
   resolveWorkspaceKey,
 };
@@ -242,7 +239,6 @@ interface ChatState {
   currentTurnProjection: CurrentTurnProjection | null;
   conversationView: ConversationView | null;
   pendingTurn: PendingTurn | null;
-  latestConversationView: ConversationView | null;
   getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceState;
   setActiveConversationRef: (conversationRef: string | null) => void;
   registerTurnConversationRef: (turnRef: string, conversationRef: string | null | undefined) => void;
@@ -301,9 +297,6 @@ interface ChatState {
     } | null,
   ) => void;
   applyPendingTurnBroadcast: (action: DesktopPendingTurnBroadcastAction) => void;
-  setLatestConversationView: (
-    conversationView: ConversationView | null,
-  ) => void;
   updateStreamTracking: (
     updater: (current: StreamTracking) => StreamTracking,
     conversationRef?: string | null,
@@ -334,7 +327,6 @@ export function selectLiveTurnSurfaceState(state: ChatState) {
   return buildLiveTurnSurfaceSelectorState({
     activeConversationRef: state.activeConversationRef,
     activeWorkspace: selectActiveWorkspaceState(state),
-    latestConversationView: state.latestConversationView,
   });
 }
 
@@ -358,7 +350,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
   currentTurnProjection: null,
   conversationView: null,
   pendingTurn: null,
-  latestConversationView: null,
   getWorkspaceState: (conversationRef) => {
     const state = get();
     const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
@@ -550,14 +541,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return buildPendingTurnBroadcastStateUpdate<ChatState, ChatWorkspaceState>({
         action,
         deps: pendingTurnStateRuntimeDependencies,
-        state,
-      }) ?? state;
-    }),
-
-  setLatestConversationView: (conversationView) =>
-    set((state) => {
-      return buildSetLatestConversationViewStateUpdate<ChatState>({
-        conversationView,
         state,
       }) ?? state;
     }),

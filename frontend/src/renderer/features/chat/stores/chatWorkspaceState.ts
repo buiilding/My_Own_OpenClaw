@@ -218,9 +218,8 @@ export function buildActiveConversationWorkspaceUpdate<TState extends ChatWorksp
         ...state.workspaces,
         [nextWorkspaceRef]: nextWorkspace,
       },
-    latestConversationView: nextWorkspace.conversationView,
     ...getProjectedWorkspaceFields(nextWorkspace),
-  } as Partial<TState>;
+  } as unknown as Partial<TState>;
 }
 
 export function selectActiveWorkspaceState(

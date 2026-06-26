@@ -8,13 +8,10 @@ type ConversationViewWorkspace = {
 
 type ConversationViewWorkspaceMutation<TWorkspace extends ConversationViewWorkspace> = {
   workspace: TWorkspace;
-  hasLatestConversationViewUpdate: boolean;
-  latestConversationView: ConversationView | null;
 };
 
 type ConversationViewStateSnapshot = {
   activeConversationRef: string | null;
-  latestConversationView: ConversationView | null;
 };
 
 type ConversationViewStateDependencies<
@@ -27,7 +24,6 @@ type ConversationViewStateDependencies<
     workspace: TWorkspace,
     extraState?: Partial<TState>,
   ) => Partial<TState> | TState;
-  isActiveWorkspaceRef: (state: TState, workspaceRef: string) => boolean;
   readWorkspaceState: (state: TState, workspaceRef: string) => TWorkspace;
   resolveWorkspaceKey: (
     requestedConversationRef: string | null | undefined,
@@ -115,25 +111,17 @@ function shouldClearPendingTurnForConversationView(
 function buildConversationViewWorkspaceMutation<TWorkspace extends ConversationViewWorkspace>({
   conversationView,
   currentWorkspace,
-  isActiveWorkspace,
-  latestConversationView,
 }: {
   conversationView: ConversationView | null;
   currentWorkspace: TWorkspace;
-  isActiveWorkspace: boolean;
-  latestConversationView: ConversationView | null;
 }): ConversationViewWorkspaceMutation<TWorkspace> | null {
   const hasWorkspaceUpdate = currentWorkspace.conversationView !== conversationView;
   const shouldClearPendingTurn = shouldClearPendingTurnForConversationView(
     currentWorkspace.pendingTurn,
     conversationView,
   );
-  const hasLatestConversationViewUpdate = (
-    isActiveWorkspace
-    && latestConversationView !== conversationView
-  );
 
-  if (!hasWorkspaceUpdate && !shouldClearPendingTurn && !hasLatestConversationViewUpdate) {
+  if (!hasWorkspaceUpdate && !shouldClearPendingTurn) {
     return null;
   }
 
@@ -148,10 +136,6 @@ function buildConversationViewWorkspaceMutation<TWorkspace extends ConversationV
         } : {}),
       }
       : currentWorkspace,
-    hasLatestConversationViewUpdate,
-    latestConversationView: hasLatestConversationViewUpdate
-      ? conversationView
-      : latestConversationView,
   };
 }
 
@@ -177,46 +161,22 @@ function buildSetConversationViewStateUpdate<
   const conversationViewMutation = buildConversationViewWorkspaceMutation({
     conversationView,
     currentWorkspace,
-    isActiveWorkspace: deps.isActiveWorkspaceRef(state, targetWorkspaceRef),
-    latestConversationView: state.latestConversationView,
   });
   if (!conversationViewMutation) {
     return null;
   }
-  const latestConversationViewUpdate = conversationViewMutation.hasLatestConversationViewUpdate
-    ? { latestConversationView: conversationViewMutation.latestConversationView } as Partial<TState>
-    : {};
   if (conversationViewMutation.workspace === currentWorkspace) {
-    return latestConversationViewUpdate;
+    return null;
   }
   return deps.buildWorkspaceUpdate(
     state,
     targetWorkspaceRef,
     conversationViewMutation.workspace,
-    latestConversationViewUpdate,
   );
-}
-
-function buildSetLatestConversationViewStateUpdate<
-  TState extends Pick<ConversationViewStateSnapshot, 'latestConversationView'>,
->({
-  conversationView,
-  state,
-}: {
-  conversationView: ConversationView | null;
-  state: TState;
-}): Partial<TState> | null {
-  if (state.latestConversationView === conversationView) {
-    return null;
-  }
-  return {
-    latestConversationView: conversationView,
-  } as Partial<TState>;
 }
 
 export const DesktopConversationViewWorkspaceRuntime = Object.freeze({
   buildConversationViewWorkspaceMutation,
-  buildSetLatestConversationViewStateUpdate,
   buildSetConversationViewStateUpdate,
   shouldClearPendingTurnForConversationView,
 });
