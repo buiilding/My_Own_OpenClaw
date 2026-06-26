@@ -410,9 +410,12 @@ active revision id. When a view exists, it builds base thread messages from
 `DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`
 and passes only renderer annotation records selected by the surface/interface
 selector boundary for feedback. The
-pending bridge is projected from `pendingTurn` directly, so no-view and
-view-time pending rendering do not write the renderer-composed row into raw
-workspace `messages`. Raw `ROWS`/display-row stream events remain Electron IPC
+pending bridge is projected from `pendingTurn` through
+`DesktopConversationDisplayProjection.buildPendingBridgeChatMessages(...)` for
+the no-view path and
+`DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`
+for the ConversationView path, so pending rendering does not write the
+renderer-composed row into raw workspace `messages`. Raw `ROWS`/display-row stream events remain Electron IPC
 compatibility plumbing only; the renderer chat projection hook does not
 subscribe to them or write those rows into `ChatWorkspaceState.messages`. The
 component consumes that view model and does not choose between raw messages,
@@ -458,8 +461,11 @@ So new-chat resets local store regardless, while active backend loop receives st
 
 Conversation-view display row to component-message projection is performed by
 `DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`.
-Feature components should pass the SDK view and the local pending bridge state
-to that app-runtime helper instead of rebuilding display-row merge rules.
+No-view pending user-row projection is performed by
+`DesktopConversationDisplayProjection.buildPendingBridgeChatMessages(...)`.
+Feature components should pass the SDK view, stored messages, and the local
+pending bridge state to those app-runtime helpers instead of rebuilding
+display-row merge rules.
 
 This path intentionally does not call `startNewChatSession`; it restores an existing conversation ref.
 

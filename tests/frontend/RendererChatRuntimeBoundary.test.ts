@@ -3738,6 +3738,10 @@ describe('renderer chat runtime boundary', () => {
     expect(threadPresentationRuntimeSource).not.toContain('modelFacingToolCall');
     expect(chatInterfacePresentationRuntimeSource).toContain('DesktopConversationDisplayProjection');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildConversationViewChatMessages');
+    expect(chatInterfacePresentationRuntimeSource).toContain('buildPendingBridgeChatMessages');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('DesktopPendingTurnBridgeRuntime');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('buildPendingTurnUserMessage');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('function buildNoViewPendingBridgeMessages');
     expect(chatInterfacePresentationRuntimeSource).toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');
     expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurn: effectiveSdkLiveTurn');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('currentTurnProjection = null');

@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display: move no-view pending bridge row projection into
+  `DesktopConversationDisplayProjection`, so
+  `DesktopChatInterfacePresentationRuntime` no longer rebuilds pending user
+  message merge rules beside the ConversationView display adapter. No migration
+  required.
 - frontend/trace: move response-overlay view-model trace signature
   construction into `DesktopRendererTraceRuntime`, so
   `useResponseOverlayViewModel` only requests runtime-built trace payloads,

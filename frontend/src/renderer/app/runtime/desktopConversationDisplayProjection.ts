@@ -38,6 +38,11 @@ type BuildConversationViewMessagesInput = {
   rendererAnnotations?: RendererMessageAnnotation[];
 };
 
+type BuildPendingBridgeMessagesInput = {
+  messages?: ChatMessage[] | null;
+  pendingTurn?: PendingTurnLike;
+};
+
 function normalizeTurnRef(turnRef: string | null | undefined): string | null {
   return typeof turnRef === 'string' && turnRef.trim()
     ? turnRef.trim()
@@ -128,6 +133,14 @@ function appendPendingBridgeUserMessages(
   );
 }
 
+function buildPendingBridgeChatMessages({
+  messages = [],
+  pendingTurn = null,
+}: BuildPendingBridgeMessagesInput = {}): ChatMessage[] {
+  const baseMessages = Array.isArray(messages) ? messages : [];
+  return appendPendingBridgeUserMessages(baseMessages, pendingTurn);
+}
+
 function hasRendererMessageAnnotations(message: ChatMessage): boolean {
   return Object.prototype.hasOwnProperty.call(message, 'feedback');
 }
@@ -173,5 +186,6 @@ function buildConversationViewChatMessages({
 
 export const DesktopConversationDisplayProjection = Object.freeze({
   buildConversationViewChatMessages,
+  buildPendingBridgeChatMessages,
   selectRendererMessageAnnotations,
 });

@@ -9,6 +9,7 @@ import type { ChatMessage } from '../../frontend/src/renderer/app/runtime/deskto
 
 const {
   buildConversationViewChatMessages,
+  buildPendingBridgeChatMessages,
   selectRendererMessageAnnotations,
 } = DesktopConversationDisplayProjection;
 
@@ -33,6 +34,53 @@ function conversationViewWithRows(displayRows: unknown[]) {
 }
 
 describe('desktopConversationDisplayProjection', () => {
+  test('owns no-view pending bridge user row projection', () => {
+    expect(buildPendingBridgeChatMessages({
+      messages: [message({
+        id: 'existing-assistant',
+        sender: 'assistant',
+        text: 'old response',
+      })],
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-pending',
+        userMessageId: 'pending-user',
+        text: 'pending prompt',
+        timestamp: '2026-06-26T00:00:00.000Z',
+      },
+    })).toEqual([
+      expect.objectContaining({
+        id: 'existing-assistant',
+      }),
+      expect.objectContaining({
+        id: 'pending-user',
+        sender: 'user',
+        text: 'pending prompt',
+        turnRef: 'turn-pending',
+      }),
+    ]);
+
+    expect(buildPendingBridgeChatMessages({
+      messages: [message({
+        id: 'existing-user',
+        sender: 'user',
+        text: 'existing prompt',
+        turnRef: 'turn-pending',
+      })],
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-pending',
+        userMessageId: 'pending-user',
+        text: 'pending prompt',
+      },
+    })).toEqual([
+      expect.objectContaining({
+        id: 'existing-user',
+        turnRef: 'turn-pending',
+      }),
+    ]);
+  });
+
   test('projects SDK display rows only through ConversationView messages', () => {
     expect(buildConversationViewChatMessages({
       conversationView: {
