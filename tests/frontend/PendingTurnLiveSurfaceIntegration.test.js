@@ -5,6 +5,7 @@
 import { waitFor } from '@testing-library/react';
 import { DesktopChatSendPreparationRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime';
 import {
+  applyPendingTurnBroadcastToChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
@@ -210,7 +211,7 @@ describe('pending-turn live surface integration', () => {
 
     const pendingTurn = state.pendingTurn;
     resetStore();
-    useChatStore.getState().applyPendingTurnBroadcast({
+    applyPendingTurnBroadcastToChatStore({
       kind: 'pending',
       pendingTurn,
     });

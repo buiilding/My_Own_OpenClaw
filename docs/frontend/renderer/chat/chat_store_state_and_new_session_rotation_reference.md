@@ -139,10 +139,12 @@ replay/store compatibility adapters and low-level artifact helpers.
   only identity, text, timestamp, and filename chips; visual attachment
   descriptors belong to SDK display rows. The pending user-row shape and
   workspace mutation projection are built by app-runtime helpers. The
-  store-level accept-pending, clear, and broadcast update
-  decisions also live in `desktopChatPendingTurnStateRuntime.ts`; `chatStore.ts`
-  only supplies workspace read/write dependencies and applies the returned
-  update.
+  store-level accept-pending and clear decisions also live in
+  `desktopChatPendingTurnStateRuntime.ts`; `chatStore.ts` only supplies
+  workspace read/write dependencies and applies the returned update.
+  Pending-turn IPC broadcasts use the module-level
+  `applyPendingTurnBroadcastToChatStore(...)` adapter instead of a Zustand
+  action, so React components do not select broadcast handling from store state.
 - Replay/edit/retry commands do not use the renderer pending-turn bridge.
   `desktopConversationReplayRuntime` passes only row ids/text, workspace path,
   model selection, and session identity to SDK command APIs; SDK runtime owns

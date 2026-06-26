@@ -278,7 +278,6 @@ interface ChatState {
       stoppedAt?: string | null;
     } | null,
   ) => void;
-  applyPendingTurnBroadcast: (action: DesktopPendingTurnBroadcastAction) => void;
   updateStreamTracking: (
     updater: (current: StreamTracking) => StreamTracking,
     conversationRef?: string | null,
@@ -494,15 +493,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }) ?? state;
     }),
 
-  applyPendingTurnBroadcast: (action) =>
-    set((state) => {
-      return buildPendingTurnBroadcastStateUpdate<ChatState, ChatWorkspaceState>({
-        action,
-        deps: pendingTurnStateRuntimeDependencies,
-        state,
-      }) ?? state;
-    }),
-
   updateStreamTracking: (updater, conversationRef) =>
     set((state) => {
       return buildUpdateStreamTrackingStateUpdate<ChatState, ChatWorkspaceState>({
@@ -522,3 +512,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
       });
     }),
 }));
+
+export function applyPendingTurnBroadcastToChatStore(
+  action: DesktopPendingTurnBroadcastAction,
+): void {
+  useChatStore.setState((state) => (
+    buildPendingTurnBroadcastStateUpdate<ChatState, ChatWorkspaceState>({
+      action,
+      deps: pendingTurnStateRuntimeDependencies,
+      state,
+    }) ?? state
+  ));
+}

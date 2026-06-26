@@ -3408,6 +3408,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('buildAcceptReplayPendingTurnStateUpdate');
     expect(chatStoreSource).toContain('buildClearPendingTurnStateUpdate');
     expect(chatStoreSource).toContain('buildPendingTurnBroadcastStateUpdate');
+    expect(chatStoreSource).toContain('applyPendingTurnBroadcastToChatStore');
+    expect(chatStoreSource).not.toContain('applyPendingTurnBroadcast:');
     expect(chatStoreSource).not.toContain('buildPendingTurnWorkspaceMutation');
     expect(chatStoreSource).not.toContain('buildPendingTurnClearWorkspaceMutation');
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBridgeRuntime');

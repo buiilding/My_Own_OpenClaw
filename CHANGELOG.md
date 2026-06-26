@@ -70,6 +70,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/store: remove turn-ref registry adapter actions from `chatStore`;
   stream ingress now records turn/conversation routing through the app-runtime
   registry owner directly. No migration required.
+- frontend/store: move pending-turn broadcast handling out of the Zustand
+  action surface; projection stream IPC replay now calls a module-level store
+  adapter. No migration required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own

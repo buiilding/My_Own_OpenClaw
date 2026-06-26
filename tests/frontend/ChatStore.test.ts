@@ -2,7 +2,10 @@
  * Covers chat store. behavior in the frontend test suite.
  */
 
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  applyPendingTurnBroadcastToChatStore,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   DesktopChatTurnConversationRefRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime';
@@ -366,7 +369,7 @@ describe('chatStore', () => {
   });
 
   test('applyPendingTurnBroadcast replays pending state into an empty renderer workspace', () => {
-    useChatStore.getState().applyPendingTurnBroadcast({
+    applyPendingTurnBroadcastToChatStore({
       kind: 'pending',
       pendingTurn: {
         conversationRef: 'conv-replay',
@@ -424,7 +427,7 @@ describe('chatStore', () => {
     const beforeState = useChatStore.getState();
     const beforeMessages = beforeState.getWorkspaceState().messages;
 
-    useChatStore.getState().applyPendingTurnBroadcast({
+    applyPendingTurnBroadcastToChatStore({
       kind: 'pending',
       pendingTurn: JSON.parse(JSON.stringify(pendingTurn)),
     });
