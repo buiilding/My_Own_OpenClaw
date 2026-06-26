@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 import pytest
 
 from backend.src.agent.execution.interaction_loop import InteractionLoop
@@ -200,7 +202,13 @@ def test_interaction_loop_skips_model_history_update_without_revision_context():
 
 
 @pytest.mark.asyncio
-async def test_interaction_loop_emits_sanitized_prompt_and_provider_trace_events():
+async def test_interaction_loop_emits_sanitized_prompt_and_provider_trace_events(
+    caplog,
+):
+    caplog.set_level(
+        logging.INFO,
+        logger="backend.src.agent.execution.interaction_loop",
+    )
     session = _FakeSession([])
 
     class _PromptCoordinator:
@@ -250,13 +258,32 @@ async def test_interaction_loop_emits_sanitized_prompt_and_provider_trace_events
             "plugin": 0,
             "backend_remote": 0,
         },
+        "builtinToolCount": 1,
+        "clientToolCount": 0,
+        "mcpToolCount": 0,
+        "pluginToolCount": 0,
+        "backendRemoteToolCount": 0,
         "finalPromptLayerCount": 0,
+        "finalSkillPromptLayerCount": 0,
     }
     assert trace_events[2].data == {
         "iteration": 1,
         "toolSchemaCount": 1,
         "hasToolSchemas": True,
         "promptMode": "initial",
+        "finalToolSourceCounts": {
+            "builtin": 1,
+            "client": 0,
+            "mcp": 0,
+            "plugin": 0,
+            "backend_remote": 0,
+        },
+        "builtinToolCount": 1,
+        "clientToolCount": 0,
+        "mcpToolCount": 0,
+        "pluginToolCount": 0,
+        "backendRemoteToolCount": 0,
+        "finalSkillPromptLayerCount": 0,
     }
     assert trace_events[4].data == {
         "iteration": 1,
@@ -271,11 +298,25 @@ async def test_interaction_loop_emits_sanitized_prompt_and_provider_trace_events
             "plugin": 0,
             "backend_remote": 0,
         },
+        "builtinToolCount": 1,
+        "clientToolCount": 0,
+        "mcpToolCount": 0,
+        "pluginToolCount": 0,
+        "backendRemoteToolCount": 0,
+        "finalPromptLayerCount": 0,
+        "finalSkillPromptLayerCount": 0,
         "responseLength": len("secret provider response"),
     }
     serialized = repr([event.to_dict() for event in trace_events])
     assert "secret prompt text" not in serialized
     assert "secret provider response" not in serialized
+    log_text = "\n".join(record.getMessage() for record in caplog.records)
+    assert "[Turn Tool Counts] stage=provider_request" in log_text
+    assert "model_visible_tools=1" in log_text
+    assert "mcp_tools=0" in log_text
+    assert "skill_layers=0" in log_text
+    assert "secret prompt text" not in log_text
+    assert "secret provider response" not in log_text
 
 
 @pytest.mark.asyncio

@@ -30,6 +30,16 @@ function resolveSdkCommandConversationRef(input = {}) {
   return normalizeOptionalString(input.conversationRef);
 }
 
+function resolveSdkCommandTurnRef(input = {}) {
+  if (!isPlainObject(input)) {
+    return null;
+  }
+  if (Object.prototype.hasOwnProperty.call(input, 'turn_ref')) {
+    throw new Error('Agent SDK conversation commands require turnRef; turn_ref is not supported.');
+  }
+  return normalizeOptionalString(input.turnRef);
+}
+
 function createDirectWakeUpAgentAdapter({
   agent,
   workspacePath = null,
@@ -309,10 +319,8 @@ function createDirectWakeUpAgentAdapter({
       }
     },
     stop: async (input = {}) => {
-      const stopConversationRef = resolveRuntimeConversationRef(input) || defaultConversationRef;
-      const stopTurnRef = input && typeof input === 'object' && typeof input.turn_ref === 'string'
-        ? input.turn_ref
-        : null;
+      const stopConversationRef = resolveSdkCommandConversationRef(input) || defaultConversationRef;
+      const stopTurnRef = resolveSdkCommandTurnRef(input);
       const handle = getConversationRuntimeHandle(stopConversationRef);
       handle.sendInFlight = false;
       handle.terminal = true;

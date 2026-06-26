@@ -195,7 +195,11 @@ Notes:
 - `content` is always present (`""` when provider omits text).
 - `tool_calls` is structured and validated before it leaves the client layer.
 - `get_completion()` remains backward-compatible and returns only `content`.
-- Runtime behavior: when tool schemas are present for a turn, backend uses non-stream `get_completion_response()` by default, but allows provider/model opt-in for safe stream tool turns. Current opt-in is `kimi-coding`, which streams `ThinkingEvent`/`ChunkEvent` while still finalizing structured `tool_calls` from the stream payload.
+- Runtime behavior: when tool schemas are present for a turn, backend uses non-stream `get_completion_response()` by default, but allows provider/model opt-in for safe stream tool turns. Anthropic, Gemini, Kimi Coding, and OpenAI Responses-native paths can stream `ThinkingEvent`/`ChunkEvent` while still finalizing structured `tool_calls` from the completed stream payload.
+- Tool-call streaming invariant: normal and thinking tokens may stream live during
+  tool-enabled turns, but partial tool-call deltas stay provider-internal until
+  stream completion. The agent loop executes only finalized normalized
+  `tool_calls`.
 - Safety behavior for streamed tool turns: if streamed tool-call arguments cannot be parsed into valid JSON object arguments, backend emits an error plus synthetic tool output (history + frontend event) and keeps the interaction loop running so the model can self-correct. Backend still aborts turn for non-recoverable/system errors.
 - Tool transparency behavior: ToolCall/ToolBundle frontend events include `metadata.model_facing_tool_call` (when available) with canonical `{id?, name, arguments}` so UI can render the exact model-facing tool call even if execution-time arguments were rewritten (for example coordinate resolution).
 - OpenAI Responses continuation behavior: when a turn ends in tool outputs and the provider returned a `response_id`, WindieOS now continues the loop with `previous_response_id` and only the trailing tool outputs as standard function-tool outputs.

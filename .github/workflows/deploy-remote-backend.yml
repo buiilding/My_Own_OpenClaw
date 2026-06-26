@@ -64,10 +64,31 @@ jobs:
           chmod 600 "$HOME/.ssh/known_hosts"
 
       - name: Deploy backend checkout and restart service
+        timeout-minutes: 10
         run: |
           bundle_path="$RUNNER_TEMP/windie-backend-${GITHUB_SHA}.bundle"
           remote_bundle="/tmp/windie-backend-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.bundle"
           deploy_remote="deploy-bundle"
+          ssh_opts=(
+            -i "$HOME/.ssh/windie_backend_deploy"
+            -p "$SSH_PORT"
+            -o BatchMode=yes
+            -o ConnectTimeout=10
+            -o IdentitiesOnly=yes
+            -o ServerAliveInterval=10
+            -o ServerAliveCountMax=3
+            -o StrictHostKeyChecking=yes
+          )
+          scp_opts=(
+            -i "$HOME/.ssh/windie_backend_deploy"
+            -P "$SSH_PORT"
+            -o BatchMode=yes
+            -o ConnectTimeout=10
+            -o IdentitiesOnly=yes
+            -o ServerAliveInterval=10
+            -o ServerAliveCountMax=3
+            -o StrictHostKeyChecking=yes
+          )
 
           # The backend host does not need GitHub credentials. Package the
           # already-checked-out commit and let the remote deploy script fetch
@@ -76,28 +97,16 @@ jobs:
           git bundle create "$bundle_path" "refs/heads/${DEPLOY_BRANCH}"
 
           cleanup_remote_bundle() {
-            ssh -i "$HOME/.ssh/windie_backend_deploy" \
-              -p "$SSH_PORT" \
-              -o IdentitiesOnly=yes \
-              -o StrictHostKeyChecking=yes \
-              "$SSH_USER@$SSH_HOST" \
+            ssh -n "${ssh_opts[@]}" "$SSH_USER@$SSH_HOST" \
               "cd '$DEPLOY_REPO_ROOT' 2>/dev/null && git remote remove '$deploy_remote' 2>/dev/null || true; rm -f '$remote_bundle'" \
               >/dev/null 2>&1 || true
           }
           trap cleanup_remote_bundle EXIT
 
-          scp -i "$HOME/.ssh/windie_backend_deploy" \
-            -P "$SSH_PORT" \
-            -o IdentitiesOnly=yes \
-            -o StrictHostKeyChecking=yes \
-            "$bundle_path" \
+          scp "${scp_opts[@]}" "$bundle_path" \
             "$SSH_USER@$SSH_HOST:$remote_bundle"
 
-          ssh -i "$HOME/.ssh/windie_backend_deploy" \
-            -p "$SSH_PORT" \
-            -o IdentitiesOnly=yes \
-            -o StrictHostKeyChecking=yes \
-            "$SSH_USER@$SSH_HOST" \
+          ssh "${ssh_opts[@]}" "$SSH_USER@$SSH_HOST" \
             "cd '$DEPLOY_REPO_ROOT' && git remote remove '$deploy_remote' 2>/dev/null || true; git remote add '$deploy_remote' '$remote_bundle'"
 
           deploy_args=(
@@ -118,9 +127,5 @@ jobs:
           fi
 
           printf -v quoted_args '%q ' "${deploy_args[@]}"
-          ssh -i "$HOME/.ssh/windie_backend_deploy" \
-            -p "$SSH_PORT" \
-            -o IdentitiesOnly=yes \
-            -o StrictHostKeyChecking=yes \
-            "$SSH_USER@$SSH_HOST" \
+          ssh "${ssh_opts[@]}" "$SSH_USER@$SSH_HOST" \
             "bash -s -- $quoted_args" < scripts/deploy/update-remote-backend.sh

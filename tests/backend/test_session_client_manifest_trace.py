@@ -1,5 +1,6 @@
 """Covers session client manifest trace behavior in the backend test suite."""
 
+import logging
 from types import SimpleNamespace
 
 import pytest
@@ -118,7 +119,8 @@ async def test_process_query_no_model_selected_uses_typed_thinking_event():
 
 
 @pytest.mark.asyncio
-async def test_process_query_traces_client_manifest_validation_and_application():
+async def test_process_query_traces_client_manifest_validation_and_application(caplog):
+    caplog.set_level(logging.INFO, logger="backend.src.agent.session.session")
     manifest = {
         "version": 1,
         "tools": [
@@ -221,6 +223,8 @@ async def test_process_query_traces_client_manifest_validation_and_application()
         "rawPromptLayerCount": 0,
         "acceptedPromptLayerCount": 0,
         "rejectedPromptLayerCount": 0,
+        "rawSkillPromptLayerCount": 0,
+        "acceptedSkillPromptLayerCount": 0,
         "sourceCounts": {
             "builtin": 0,
             "client": 1,
@@ -228,6 +232,10 @@ async def test_process_query_traces_client_manifest_validation_and_application()
             "plugin": 0,
             "backend_remote": 0,
         },
+        "mcpToolCount": 1,
+        "pluginToolCount": 0,
+        "clientToolCount": 1,
+        "backendRemoteToolCount": 0,
     }
     assert capability_apply_event.data == {
         "capabilityRevision": None,
@@ -255,6 +263,12 @@ async def test_process_query_traces_client_manifest_validation_and_application()
         "cua_driver__screenshot"
     ]
     assert session.cfg.agent_available_tools == ["cua_driver__screenshot"]
+    log_text = "\n".join(record.getMessage() for record in caplog.records)
+    assert "[Turn Tool Counts] stage=backend_received" in log_text
+    assert "raw_tools=2" in log_text
+    assert "accepted_tools=1" in log_text
+    assert "mcp_tools=1" in log_text
+    assert "accepted_skill_layers=0" in log_text
 
 
 @pytest.mark.asyncio
@@ -333,6 +347,8 @@ async def test_process_query_traces_prompt_layer_validation_and_application():
         "rawPromptLayerCount": 3,
         "acceptedPromptLayerCount": 1,
         "rejectedPromptLayerCount": 2,
+        "rawSkillPromptLayerCount": 3,
+        "acceptedSkillPromptLayerCount": 1,
         "sourceCounts": {
             "builtin": 0,
             "client": 0,
@@ -340,6 +356,10 @@ async def test_process_query_traces_prompt_layer_validation_and_application():
             "plugin": 0,
             "backend_remote": 0,
         },
+        "mcpToolCount": 0,
+        "pluginToolCount": 0,
+        "clientToolCount": 0,
+        "backendRemoteToolCount": 0,
     }
     assert capability_apply_event.data == {
         "capabilityRevision": None,

@@ -1121,12 +1121,27 @@ All notable changes to WindieOS will be documented in this file.
   pending-turn IPC no longer carry visual attachment descriptors, screenshots,
   preview bytes, or artifact refs; SDK display rows remain the visual
   attachment authority. No migration required.
+- backend/anthropic: stream Anthropic normal and thinking deltas during
+  tool-enabled turns while buffering partial tool-use deltas until the completed
+  stream yields finalized normalized `tool_calls`. No migration required.
+- backend/observability: emit sanitized per-turn `[Turn Tool Counts]` backend
+  logs and explicit trace fields for backend-received tools, final
+  model-visible tools, MCP/plugin/client/backend-remote source counts, and skill
+  prompt-layer counts, so production logs can confirm whether a turn carried 0,
+  14, or another tool count without logging schemas or prompt text. No migration
+  required.
+- frontend/main: translate stop-query transport refs to the SDK `agent.stop`
+  camelCase API at the Electron-main bridge and direct wake-up adapter, so the
+  Stop button again terminalizes the live SDK turn locally and forwards backend
+  cancellation. No migration required.
 - docs/agents: document that the backend is remote and GitHub automatically
   deploys remote `main` updates, so agents avoid local-backend deployment
   assumptions. No migration required.
 - ops/deploy: make the GitHub Actions remote-backend deploy upload a temporary
   git bundle and deploy from that bundle remote, so production no longer needs
-  GitHub credentials to fetch private repository commits. No migration required.
+  GitHub credentials to fetch private repository commits. The SSH deploy calls
+  are bounded so cleanup cannot leave the workflow hanging. No migration
+  required.
 - backend/tools: detect and repair model-visible screenshot image MIME before
   provider dispatch, so JPEG/PNG/WebP/GIF tool-result images are not mislabeled
   as PNG and provider image validation details can surface when safe. No

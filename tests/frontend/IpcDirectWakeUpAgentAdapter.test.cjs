@@ -439,6 +439,41 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     });
   });
 
+  test('maps SDK stop options into the conversation runtime stop turn', async () => {
+    const runtime = createRuntime();
+    const agent = createAgent(() => runtime);
+    const deps = createDeps();
+    const adapter = createDirectWakeUpAgentAdapter({
+      agent,
+      deps,
+    });
+
+    await expect(adapter.stop({
+      conversationRef: 'conv-agent-stop',
+      turnRef: 'turn-agent-stop',
+    })).resolves.toBe(true);
+
+    expect(runtime.stop).toHaveBeenCalledWith('turn-agent-stop');
+  });
+
+  test('rejects removed snake_case stop options in direct wake-up adapter', async () => {
+    const runtime = createRuntime();
+    const agent = createAgent(() => runtime);
+    const deps = createDeps();
+    const adapter = createDirectWakeUpAgentAdapter({
+      agent,
+      deps,
+    });
+
+    await expect(adapter.stop({
+      conversation_ref: 'conv-agent-stop',
+      turn_ref: 'turn-agent-stop',
+    })).rejects.toThrow(
+      'Agent SDK conversation commands require conversationRef; conversation_ref is not supported.',
+    );
+    expect(runtime.stop).not.toHaveBeenCalled();
+  });
+
   test('normalizes query agent definition into payload.agent_definition with backend payload fallback', () => {
     const backendPayloadAgentDefinition = {
       tools: {

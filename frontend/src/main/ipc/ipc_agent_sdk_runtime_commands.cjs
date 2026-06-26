@@ -87,8 +87,8 @@ function createAgentSdkRuntimeCommandsRuntime(deps = {}) {
       broadcast: true,
     });
     await agent.stop({
-      conversation_ref: stopConversationRef,
-      turn_ref: stopTurnRef,
+      conversationRef: stopConversationRef,
+      turnRef: stopTurnRef,
     });
     return true;
   }
