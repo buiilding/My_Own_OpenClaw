@@ -64,6 +64,10 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopConversationContinuityService` edit/retry command payloads so SDK
   replay commands own replacement turn identity end to end. No migration
   required.
+- frontend/pill: report chat-pill trace phase from
+  `ConversationView.liveTurn.phase` whenever an SDK view exists, avoiding
+  stale raw current-turn projection phase in view-backed diagnostics. No
+  migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.

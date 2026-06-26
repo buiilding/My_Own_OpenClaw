@@ -29,6 +29,7 @@ type ChatPillCurrentTurnProjection = {
 type ChatPillConversationView = {
   liveTurn?: {
     canStop?: boolean | null;
+    phase?: string | null;
     turnRef?: string | null;
   } | null;
   surfaces?: {
@@ -79,6 +80,10 @@ function findLatestChatTurnId(messages: TurnRefMessage[]): string | null {
 
 function resolveViewLiveTurnRef(conversationView: ChatPillConversationView): string | null {
   return normalizeOptionalTurnRef(conversationView?.liveTurn?.turnRef);
+}
+
+function resolveViewLiveTurnPhase(conversationView: ChatPillConversationView): string | null {
+  return normalizeOptionalString(conversationView?.liveTurn?.phase);
 }
 
 function resolveViewPillMode(conversationView: ChatPillConversationView): string | null {
@@ -158,10 +163,13 @@ function buildChatPillLifecycleTraceSnapshot({
   const currentTurnProjection = chatSurfaceState?.currentTurnProjection ?? null;
   const conversationView = chatSurfaceState?.conversationView ?? null;
   const viewTurnRef = resolveViewLiveTurnRef(conversationView);
+  const hasConversationView = Boolean(conversationView && typeof conversationView === 'object');
   return {
     conversationRef: normalizeOptionalString(sessionConversationRef),
     turnRef: viewTurnRef || normalizeOptionalTurnRef(currentTurnProjection?.turnRef),
-    phase: normalizeOptionalString(currentTurnProjection?.phase),
+    phase: hasConversationView
+      ? resolveViewLiveTurnPhase(conversationView)
+      : normalizeOptionalString(currentTurnProjection?.phase),
   };
 }
 
@@ -182,7 +190,10 @@ function buildChatPillStateTraceSnapshot({
 }) {
   const currentTurnProjection = chatSurfaceState?.currentTurnProjection ?? null;
   const conversationView = chatSurfaceState?.conversationView ?? null;
-  const currentTurnPhase = normalizeOptionalString(currentTurnProjection?.phase);
+  const hasConversationView = Boolean(conversationView && typeof conversationView === 'object');
+  const currentTurnPhase = hasConversationView
+    ? resolveViewLiveTurnPhase(conversationView)
+    : normalizeOptionalString(currentTurnProjection?.phase);
   const viewTurnRef = resolveViewLiveTurnRef(conversationView);
   const currentTurnRef = viewTurnRef || normalizeOptionalTurnRef(currentTurnProjection?.turnRef);
   const viewPillMode = resolveViewPillMode(conversationView);
