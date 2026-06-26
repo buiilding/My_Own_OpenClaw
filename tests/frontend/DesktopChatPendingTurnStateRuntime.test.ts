@@ -58,14 +58,18 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
     stateRuntimeDeps.recordTurnConversationRefs.mockClear();
   });
 
-  test('normalizes valid pending turns without retaining attachment filenames', () => {
+  test('normalizes valid pending turns without retaining visual attachment state', () => {
     expect(normalizePendingTurn({
       conversationRef: ' conv-1 ',
       turnRef: ' turn-1 ',
       userMessageId: ' user-row-1 ',
       text: '',
       timestamp: '2026-06-25T12:00:00.000Z',
-      attachmentFilenames: [' one.png ', '', null, 'two.txt'],
+      attachments: [{
+        id: 'attachment-1',
+        kind: 'image',
+        status: 'ready',
+      }],
     })).toEqual({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',

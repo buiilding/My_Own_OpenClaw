@@ -13,7 +13,6 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
       turnRef: ' turn-pending ',
       text: '',
       timestamp: '2026-06-25T12:00:00.000Z',
-      attachmentFilenames: [' one.png ', '', 42, 'two.txt'],
     })).toEqual({
       conversationRef: 'conv-pending',
       turnRef: 'turn-pending',
@@ -28,7 +27,6 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
       userMessageId: 'explicit-user-row',
       text: 'hello',
       timestamp: '2026-06-25T12:00:00.000Z',
-      attachmentFilenames: [],
     })).toEqual(expect.objectContaining({
       userMessageId: 'explicit-user-row',
     }));
@@ -56,7 +54,6 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
       userMessageId: 'user-pending',
       text: 'hello',
       timestamp: '2026-06-25T12:00:00.000Z',
-      attachmentFilenames: ['image.png'],
       attachments: [{
         id: 'image-1',
         kind: 'image',

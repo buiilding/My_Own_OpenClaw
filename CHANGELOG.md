@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: remove stale pending-turn `attachmentFilenames` fixtures so
+  chat-store and pending-bridge tests match the SDK-owned attachment metadata
+  boundary. No migration required.
 - frontend/send: remove the remaining renderer attachment filename projection
   helper from chat send payload normalization; SDK resource resolution now owns
   filename metadata for normal sends. No migration required.

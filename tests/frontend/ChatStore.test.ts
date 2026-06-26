@@ -356,7 +356,6 @@ describe('chatStore', () => {
       userMessageId: 'user-pending',
       text: 'start now',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: ['note.txt'],
     });
 
     const state = useChatStore.getState();
@@ -391,7 +390,6 @@ describe('chatStore', () => {
         userMessageId: 'user-replay',
         text: 'replay this',
         timestamp: '2026-06-16T00:00:00.000Z',
-        attachmentFilenames: null,
         attachments: [{
           id: 'turn-replay:attachment:000',
           kind: 'image',
@@ -426,7 +424,6 @@ describe('chatStore', () => {
       userMessageId: 'user-echo',
       text: 'keep this bubble stable',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: ['image.png'],
       attachments: [{
         id: 'turn-echo:attachment:000',
         kind: 'image' as const,
@@ -464,7 +461,6 @@ describe('chatStore', () => {
       userMessageId: 'user-sdk',
       text: 'handoff',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     });
 
     setSdkLiveTurnInChatStore({
@@ -498,7 +494,6 @@ describe('chatStore', () => {
       userMessageId: 'user-sdk-idle',
       text: 'handoff idle',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     });
 
     setSdkLiveTurnInChatStore({
@@ -535,7 +530,6 @@ describe('chatStore', () => {
       userMessageId: 'user-clear',
       text: 'clear me',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     });
 
     clearPendingTurnInChatStore({
@@ -560,7 +554,6 @@ describe('chatStore', () => {
       userMessageId: 'user-stop-pending',
       text: 'stop pending',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     });
     setThinkingStatusInChatStore('thinking', 'conv-stop-pending');
     setThinkingSourceEventTypeInChatStore('assistant', 'conv-stop-pending');
