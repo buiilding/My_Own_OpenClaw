@@ -7,7 +7,7 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 
 const {
-  buildCurrentTurnMessagesFromSdkLiveTurn,
+  buildLegacyNoPresentationCurrentTurnMessages,
   isResponseCloseable,
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
@@ -59,8 +59,8 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     expect(isResponseOverlaySourceTaggedMessage({ sourceEventType: '   ' })).toBe(false);
   });
 
-  test('buildCurrentTurnMessagesFromSdkLiveTurn creates overlay-ready active turn messages', () => {
-    const messages = buildCurrentTurnMessagesFromSdkLiveTurn({
+  test('buildLegacyNoPresentationCurrentTurnMessages creates overlay-ready active turn messages', () => {
+    const messages = buildLegacyNoPresentationCurrentTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'tool_call',
@@ -95,8 +95,32 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     ]));
   });
 
-  test('buildCurrentTurnMessagesFromSdkLiveTurn renders SDK tool-output text', () => {
-    const messages = buildCurrentTurnMessagesFromSdkLiveTurn({
+  test('buildLegacyNoPresentationCurrentTurnMessages ignores presentation-backed current turns', () => {
+    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      assistantText: 'stale raw fallback',
+      reasoningText: 'stale raw reasoning',
+      toolEvents: [{
+        id: 'tool-1',
+        kind: 'tool_call',
+        toolName: 'read_file',
+      }],
+      presentation: {
+        entries: [{
+          id: 'entry-1',
+          type: 'llm-text',
+          text: 'SDK presentation owns this',
+        }],
+      },
+    });
+
+    expect(messages).toEqual([]);
+  });
+
+  test('buildLegacyNoPresentationCurrentTurnMessages renders SDK tool-output text', () => {
+    const messages = buildLegacyNoPresentationCurrentTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'tool_output',

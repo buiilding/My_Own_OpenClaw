@@ -11,7 +11,7 @@ import { DesktopVisibleTurnLifecycleRuntime } from './desktopVisibleTurnLifecycl
 const AWAITING_VISIBLE_LIFECYCLE_STATUSES = new Set(['local_pending', 'awaiting']);
 const {
   buildConversationViewLiveTurnMessages,
-  buildCurrentTurnMessagesFromSdkLiveTurn,
+  buildLegacyNoPresentationCurrentTurnMessages,
   buildCurrentTurnMessagesFromPresentation,
   isVisibleResponseOverlayMessage,
 } = DesktopCurrentTurnMessageRuntime;
@@ -266,7 +266,7 @@ function resolveResponseOverlaySurfaceState({
 }
 
 function normalizeProjectedCurrentTurnEntries(sdkLiveTurn: unknown): ResponseOverlayEntryLike[] {
-  return buildCurrentTurnMessagesFromSdkLiveTurn(sdkLiveTurn)
+  return buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn)
     .filter(isVisibleResponseOverlayMessage);
 }
 

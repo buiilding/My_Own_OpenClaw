@@ -49,10 +49,10 @@ Current-turn entry construction:
   into overlay-ready current-turn messages and entries
 - SDK live-turn presentation rows are converted with
   `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromPresentation(...)`;
-  when SDK presentation exists but has no visible rows, the overlay falls back
-  to projection-built rows for visible assistant text/tool/error content.
-  Older projection snapshots are converted with
-  `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromSdkLiveTurn(...)`.
+  when SDK presentation exists but has no visible rows, the overlay does not
+  fall back to raw projection-built rows. Older no-presentation projection
+  snapshots are converted with
+  `DesktopCurrentTurnMessageRuntime.buildLegacyNoPresentationCurrentTurnMessages(...)`.
 - the response overlay filters those current-turn messages through
   `DesktopCurrentTurnMessageRuntime.isVisibleResponseOverlayMessage(...)`
   instead of carrying an inline assistant-message scanner after the latest user
@@ -65,9 +65,9 @@ Current-turn entry construction:
   - `search-source`
   - `tool-explanation`
 
-Reasoning copy for overlay window sync comes from SDK
-`currentTurn.reasoningText` only. Store `thinkingStatus` remains dashboard
-compaction/manual status text and is not a response-overlay live-turn input.
+Reasoning copy for overlay window sync comes from SDK presentation thinking
+entries. Store `thinkingStatus` remains dashboard compaction/manual status text
+and is not a response-overlay live-turn input.
 
 Selection logic:
 

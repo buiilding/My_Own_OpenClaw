@@ -10,7 +10,7 @@ import { DesktopPresentationSourceChannels } from './desktopPresentationSourceCh
 const {
   buildConversationViewLiveTurnMessages,
   buildCurrentTurnMessagesFromPresentation,
-  buildCurrentTurnMessagesFromSdkLiveTurn,
+  buildLegacyNoPresentationCurrentTurnMessages,
 } = DesktopCurrentTurnMessageRuntime;
 const {
   isSdkDisplayRowsSourceChannel,
@@ -198,7 +198,7 @@ function resolveCurrentTurnMessages({
   if (hasSdkLiveTurnPresentationObject(sdkLiveTurn)) {
     return [];
   }
-  const legacyNoPresentationMessages = buildCurrentTurnMessagesFromSdkLiveTurn(sdkLiveTurn);
+  const legacyNoPresentationMessages = buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn);
   if (legacyNoPresentationMessages.length > 0) {
     return legacyNoPresentationMessages;
   }

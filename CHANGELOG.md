@@ -13,8 +13,9 @@ All notable changes to WindieOS will be documented in this file.
   scanning raw `assistantText`, `reasoningText`, or `toolEvents`; current-turn
   IPC validation now accepts presentation-backed snapshots without those raw
   content fields, renderer source-map/runtime docs now name presentation entries
-  as the normal live content contract, and raw current-turn row synthesis
-  remains only for legacy no-presentation hosts. No migration required.
+  as the normal live content contract, and raw current-turn row synthesis is
+  isolated behind a legacy no-presentation helper that refuses
+  presentation-backed snapshots. No migration required.
 - sdk/frontend: add SDK-authored `toolCallDetails` and `toolOutputDetails`
   metadata to display rows, and make the renderer display-row adapter consume
   only those detail records instead of copying request/tool ids from generic row
@@ -317,8 +318,8 @@ All notable changes to WindieOS will be documented in this file.
   sanitized chat read model before deriving message counts and last-message
   identity. No migration required.
 - frontend/projection: rename the no-view current-turn message fallback helper
-  to `buildCurrentTurnMessagesFromSdkLiveTurn`, keeping raw projection naming
-  out of renderer presentation adapters. No migration required.
+  to `buildLegacyNoPresentationCurrentTurnMessages`, keeping raw projection
+  naming out of renderer presentation adapters. No migration required.
 - frontend/attachments: rename the app-runtime artifact image resolver to
   `DesktopAttachmentImageRuntime`, so chat attachment rendering no longer
   imports a screenshot-named resolver facade. No migration required.

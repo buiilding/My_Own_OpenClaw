@@ -141,8 +141,15 @@ function buildProjectedToolMessage({ baseId, turnRef, toolEvent }) {
   return buildProjectedToolCallMessage({ baseId, turnRef, toolEvent });
 }
 
-function buildCurrentTurnMessagesFromSdkLiveTurn(sdkLiveTurn) {
+function hasPresentationObject(sdkLiveTurn) {
+  return Boolean(asRecord(sdkLiveTurn?.presentation));
+}
+
+function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
   if (!sdkLiveTurn || typeof sdkLiveTurn !== 'object') {
+    return [];
+  }
+  if (hasPresentationObject(sdkLiveTurn)) {
     return [];
   }
   const {
@@ -452,7 +459,7 @@ function isResponseOverlaySourceTaggedMessage(message) {
 export const DesktopCurrentTurnMessageRuntime = Object.freeze({
   buildConversationViewLiveTurnMessages,
   buildCurrentTurnMessagesFromPresentation,
-  buildCurrentTurnMessagesFromSdkLiveTurn,
+  buildLegacyNoPresentationCurrentTurnMessages,
   isResponseCloseable,
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
