@@ -520,11 +520,8 @@ describe('desktopRendererTraceRuntime', () => {
   test('builds response overlay rendered-typing live trace payloads', () => {
     expect(buildRendererResponseOverlayTypingRenderedTracePayload({
       typingRendered: false,
-      currentTurnProjection: {
-        turnRef: ' turn-projection ',
-        conversationRef: ' conv-projection ',
-        phase: ' streaming ',
-      },
+      conversationRef: ' conv-projected ',
+      phase: ' streaming ',
       currentTurnId: ' turn-fallback ',
       overlayIntent: {
         mode: ' response ',
@@ -540,7 +537,7 @@ describe('desktopRendererTraceRuntime', () => {
       source: 'minimal-response-overlay',
       reason: 'awaiting-indicator-not-rendered',
       turnRef: 'turn-fallback',
-      conversationRef: 'conv-projection',
+      conversationRef: 'conv-projected',
       phase: 'streaming',
       overlayMode: 'response',
       guardRef: 'guard-intent',
@@ -557,11 +554,6 @@ describe('desktopRendererTraceRuntime', () => {
       conversationRef: ' conv-explicit ',
       turnRef: ' turn-explicit ',
       phase: ' awaiting ',
-      currentTurnProjection: {
-        turnRef: ' turn-projection ',
-        conversationRef: ' conv-projection ',
-        phase: ' streaming ',
-      },
       overlayLayoutMode: 'awaiting-typing',
     })).toMatchObject({
       turnRef: 'turn-explicit',
@@ -571,7 +563,7 @@ describe('desktopRendererTraceRuntime', () => {
     });
   });
 
-  test('prefers rendered-typing current turn id over stale raw current-turn projection', () => {
+  test('ignores stale raw current-turn projection in rendered-typing traces', () => {
     expect(buildRendererResponseOverlayTypingRenderedTracePayload({
       typingRendered: true,
       currentTurnProjection: {
@@ -585,9 +577,9 @@ describe('desktopRendererTraceRuntime', () => {
       isVisible: true,
       awaitingVisible: true,
       responseVisible: false,
-    })).toEqual(expect.objectContaining({
+    } as never)).toEqual(expect.objectContaining({
       turnRef: 'turn-rendered',
-      conversationRef: 'conv-stale',
+      conversationRef: null,
       phase: 'awaiting',
       guardRef: 'turn-rendered',
     }));
@@ -653,11 +645,9 @@ describe('desktopRendererTraceRuntime', () => {
     });
     logRendererResponseOverlayTypingRenderedTrace({
       typingRendered: true,
-      currentTurnProjection: {
-        turnRef: 'turn-rendered',
-        conversationRef: 'conv-rendered',
-        phase: 'awaiting',
-      },
+      currentTurnId: 'turn-rendered',
+      conversationRef: 'conv-rendered',
+      phase: 'awaiting',
       overlayLayoutMode: 'awaiting-typing',
       isVisible: true,
       awaitingVisible: true,

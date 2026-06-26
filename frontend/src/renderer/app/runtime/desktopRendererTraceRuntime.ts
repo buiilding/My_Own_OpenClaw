@@ -58,11 +58,6 @@ export type RendererResponseOverlayTypingRenderedTraceValues = {
   conversationRef?: unknown;
   turnRef?: unknown;
   phase?: unknown;
-  currentTurnProjection?: {
-    turnRef?: unknown;
-    conversationRef?: unknown;
-    phase?: unknown;
-  } | null;
   currentTurnId?: unknown;
   overlayIntent?: {
     mode?: unknown;
@@ -466,22 +461,18 @@ function buildRendererResponseOverlayTypingRenderedTracePayload(
   values: RendererResponseOverlayTypingRenderedTraceValues,
 ): Record<string, unknown> {
   const typingRendered = values.typingRendered === true;
-  const currentTurnProjection = values.currentTurnProjection;
   const overlayIntent = values.overlayIntent;
   const turnRef = (
     traceString(values.turnRef)
     || traceString(values.currentTurnId)
-    || traceString(currentTurnProjection?.turnRef)
     || null
   );
   const conversationRef = (
     traceString(values.conversationRef)
-    || traceString(currentTurnProjection?.conversationRef)
     || null
   );
   const phase = (
     traceString(values.phase)
-    || traceString(currentTurnProjection?.phase)
     || 'idle'
   );
   return {
@@ -499,7 +490,6 @@ function buildRendererResponseOverlayTypingRenderedTracePayload(
       traceString(overlayIntent?.staleGuardRef)
       || traceString(overlayIntent?.turnRef)
       || traceString(values.currentTurnId)
-      || traceString(currentTurnProjection?.turnRef)
       || null
     ),
     isVisible: values.isVisible === true,

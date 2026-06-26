@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/trace: remove raw `currentTurnProjection` fallback fields from
+  response overlay rendered-typing traces; callers pass projected turn identity
+  and phase directly. No migration required.
 - frontend/trace: prefer projected response overlay rendered-typing turn ids
   before raw `currentTurnProjection.turnRef` fallback identity. No migration
   required.
