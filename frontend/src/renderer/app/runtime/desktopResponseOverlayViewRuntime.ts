@@ -139,7 +139,6 @@ function resolveResponseOverlaySurfaceState({
     ),
     traceState: {
       conversationView,
-      currentTurnProjection,
       pendingTurn,
     },
     useLocalPendingTurn,

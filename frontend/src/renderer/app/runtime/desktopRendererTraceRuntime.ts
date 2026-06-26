@@ -209,11 +209,6 @@ export type RendererResponseSurfaceSnapshotTraceValues = {
 };
 
 export type RendererOverlayViewModelTraceValues = {
-  currentTurnProjection?: {
-    turnRef?: unknown;
-    conversationRef?: unknown;
-    phase?: unknown;
-  } | null;
   pendingTurn?: {
     turnRef?: unknown;
     conversationRef?: unknown;
@@ -814,7 +809,6 @@ function logRendererResponseSurfaceRenderTrace(
 function buildRendererOverlayViewModelTracePayload(
   values: RendererOverlayViewModelTraceValues,
 ): Record<string, unknown> {
-  const currentTurnProjection = values.currentTurnProjection;
   const pendingTurn = values.pendingTurn;
   const visibleTurnLifecycle = values.visibleTurnLifecycle;
   const overlayIntent = values.overlayIntent;
@@ -825,7 +819,6 @@ function buildRendererOverlayViewModelTracePayload(
   const viewIntent = values.viewIntent;
   const visibleLifecycleTurnRef = traceString(visibleTurnLifecycle?.turnRef);
   const visibleLifecycleConversationRef = traceString(visibleTurnLifecycle?.conversationRef);
-  const projectionTurnRef = traceString(currentTurnProjection?.turnRef);
   const pendingTurnRef = traceString(pendingTurn?.turnRef);
   const pendingConversationRef = traceString(pendingTurn?.conversationRef);
   const overlayIntentTurnRef = traceString(overlayIntent?.turnRef);
@@ -835,17 +828,15 @@ function buildRendererOverlayViewModelTracePayload(
       visibleLifecycleTurnRef
       || overlayIntentTurnRef
       || pendingTurnRef
-      || projectionTurnRef
       || null
     ),
     conversationRef: (
       visibleLifecycleConversationRef
       || traceString(overlayIntent?.conversationRef)
       || pendingConversationRef
-      || traceString(currentTurnProjection?.conversationRef)
       || null
     ),
-    phase: traceString(values.currentTurnPhase) || traceString(currentTurnProjection?.phase) || null,
+    phase: traceString(values.currentTurnPhase) || null,
     pendingTurnRef: pendingTurnRef || null,
     pendingUserMessageId: traceString(pendingTurn?.userMessageId) || null,
     visibleLifecycleStatus: traceString(visibleTurnLifecycle?.status) || null,
@@ -861,7 +852,6 @@ function buildRendererOverlayViewModelTracePayload(
       || overlayIntentTurnRef
       || visibleLifecycleTurnRef
       || pendingTurnRef
-      || projectionTurnRef
       || null
     ),
     awaitingVisible: viewIntent?.awaitingVisible === true,

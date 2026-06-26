@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/trace: remove raw `currentTurnProjection` fallback identity from
+  response overlay view-model traces; projected lifecycle, overlay intent,
+  phase, and pending bridge inputs now own the trace payload. No migration
+  required.
 - frontend/trace: remove raw `currentTurnProjection` fallback fields from
   response overlay rendered-typing traces; callers pass projected turn identity
   and phase directly. No migration required.

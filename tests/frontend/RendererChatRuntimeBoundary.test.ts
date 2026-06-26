@@ -3010,14 +3010,12 @@ describe('renderer chat runtime boundary', () => {
     expect(traceRuntimeSource).toContain('logRendererResponseSurfaceSizeTrace');
     expect(traceRuntimeSource).toContain('logRendererResponseOverlayLifecycleTrace');
     expect(traceRuntimeSource).toContain(
-      'phase: traceString(values.currentTurnPhase) || traceString(currentTurnProjection?.phase) || null',
+      'phase: traceString(values.currentTurnPhase) || null',
     );
     expect(
       traceRuntimeSource.match(/const currentTurnProjection = values\.currentTurnProjection;/g) || [],
-    ).toHaveLength(1);
-    expect(traceRuntimeSource.indexOf('|| pendingTurnRef')).toBeLessThan(
-      traceRuntimeSource.indexOf('|| projectionTurnRef'),
-    );
+    ).toHaveLength(0);
+    expect(traceRuntimeSource).not.toContain('projectionTurnRef');
     expect(layoutRuntimeSource).toContain('getRoundedFrameSize');
     expect(layoutRuntimeSource).toContain('getResponseOverlayAwaitingFrameHeight');
     expect(layoutRuntimeSource).toContain('getResponseOverlayFixedHeight');

@@ -672,11 +672,6 @@ describe('desktopRendererTraceRuntime', () => {
 
   test('builds response overlay view-model live trace payloads', () => {
     expect(buildRendererOverlayViewModelTracePayload({
-      currentTurnProjection: {
-        conversationRef: ' conv-projection ',
-        turnRef: ' turn-projection ',
-        phase: ' streaming ',
-      },
       pendingTurn: {
         conversationRef: ' conv-pending ',
         turnRef: ' turn-pending ',
@@ -744,7 +739,7 @@ describe('desktopRendererTraceRuntime', () => {
     });
   });
 
-  test('prefers pending bridge trace identity over stale raw current-turn projection', () => {
+  test('ignores stale raw current-turn projection in overlay view-model traces', () => {
     expect(buildRendererOverlayViewModelTracePayload({
       currentTurnProjection: {
         conversationRef: ' conv-stale ',
@@ -766,13 +761,37 @@ describe('desktopRendererTraceRuntime', () => {
       },
       useSdkLiveTurnPresentation: false,
       useLocalPendingTurn: true,
-    })).toEqual(expect.objectContaining({
+    } as never)).toEqual(expect.objectContaining({
       turnRef: 'turn-pending',
       conversationRef: 'conv-pending',
       guardRef: 'turn-pending',
       pendingTurnRef: 'turn-pending',
       phase: 'awaiting',
       useLocalPendingTurn: true,
+    }));
+  });
+
+  test('does not fall back to raw current-turn projection identity in overlay view-model traces', () => {
+    expect(buildRendererOverlayViewModelTracePayload({
+      currentTurnProjection: {
+        conversationRef: ' conv-stale ',
+        turnRef: ' turn-stale ',
+        phase: ' streaming ',
+      },
+      responseOverlayEntries: [],
+      viewIntent: {
+        awaitingVisible: false,
+        responseVisible: false,
+        visibleResponse: null,
+        latestResponseOverlayEntryId: null,
+      },
+      useSdkLiveTurnPresentation: false,
+      useLocalPendingTurn: false,
+    } as never)).toEqual(expect.objectContaining({
+      turnRef: null,
+      conversationRef: null,
+      phase: null,
+      guardRef: null,
     }));
   });
 

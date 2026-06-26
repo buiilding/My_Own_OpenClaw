@@ -164,7 +164,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
         text: 'from view',
       }),
     ]);
-    expect(state.traceState.currentTurnProjection).toBeNull();
+    expect(state.traceState).not.toHaveProperty('currentTurnProjection');
     expect(state.projectionInput.currentTurnProjection).toBeNull();
     expect(state.thinkingText).toBe('');
     expect(state.useLocalPendingTurn).toBe(false);
