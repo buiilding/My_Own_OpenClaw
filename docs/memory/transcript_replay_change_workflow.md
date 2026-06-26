@@ -126,7 +126,8 @@ flowchart LR
      display timeline, construct durable replacement rows, call
      `conversation.replaceRows`, or dispatch a separate normal send for replay
      execution. SDK commands own target-row resolution, child display revision
-     cuts, supersession, target-row resources, and replacement display rows.
+     cuts, supersession, target-row resources, replacement turn refs, and
+     replacement display rows.
    - React replay hooks should pass edit/retry intent through
      `desktopConversationReplayRuntime`. Hooks call the runtime's single
      replay-action entrypoint with row ids/text plus UI dependencies; active

@@ -37,12 +37,12 @@ function getActiveWorkspace() {
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
   DesktopConversationContinuityService: {
     editAndResend: jest.fn(async (input) => ({
-      turnRef: input.turnRef,
-      queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
+      turnRef: input.turnRef ?? 'sdk-replay-turn',
+      queryMessageId: `${input.turnRef ?? 'sdk-replay-turn'}-sdk-evt-000002-user_message`,
     })),
     retryTurn: jest.fn(async (input) => ({
-      turnRef: input.turnRef,
-      queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
+      turnRef: input.turnRef ?? 'sdk-replay-turn',
+      queryMessageId: `${input.turnRef ?? 'sdk-replay-turn'}-sdk-evt-000002-user_message`,
     })),
   },
 }));
@@ -88,12 +88,12 @@ describe('useConversationReplayActions', () => {
     });
     jest.spyOn(IpcBridge, 'send').mockImplementation(() => undefined);
     mockEditAndResend.mockImplementation(async (input) => ({
-      turnRef: input.turnRef,
-      queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
+      turnRef: input.turnRef ?? 'sdk-replay-turn',
+      queryMessageId: `${input.turnRef ?? 'sdk-replay-turn'}-sdk-evt-000002-user_message`,
     }));
     mockRetryTurn.mockImplementation(async (input) => ({
-      turnRef: input.turnRef,
-      queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
+      turnRef: input.turnRef ?? 'sdk-replay-turn',
+      queryMessageId: `${input.turnRef ?? 'sdk-replay-turn'}-sdk-evt-000002-user_message`,
     }));
     mockGetConversationWorkspaceBinding.mockReturnValue({ workspacePath: null });
     useChatStore.setState({ activeConversationRef: null });
@@ -117,12 +117,12 @@ describe('useConversationReplayActions', () => {
       conversationRef: 'conv-existing',
       userId: 'user-1',
       messageId: 'assistant-1',
-      turnRef: expect.any(String),
       model: {
         modelProvider: 'anthropic',
         modelId: 'claude-sonnet-4-5',
       },
     }));
+    expect(mockRetryTurn.mock.calls[0][0]).not.toHaveProperty('turnRef');
     expect(mockRetryTurn).toHaveBeenCalledTimes(1);
     expect(useChatStore.getState().getWorkspaceState('conv-existing').pendingTurn).toBeNull();
   });
@@ -139,12 +139,12 @@ describe('useConversationReplayActions', () => {
       userId: 'user-1',
       messageId: 'renderer-user-2',
       text: 'edited second question',
-      turnRef: expect.any(String),
       model: {
         modelProvider: 'anthropic',
         modelId: 'claude-sonnet-4-5',
       },
     }));
+    expect(mockEditAndResend.mock.calls[0][0]).not.toHaveProperty('turnRef');
     expect(mockRetryTurn).not.toHaveBeenCalled();
     expect(useChatStore.getState().getWorkspaceState('conv-existing').pendingTurn).toBeNull();
   });

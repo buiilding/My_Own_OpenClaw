@@ -18,12 +18,12 @@ import {
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
   DesktopConversationContinuityService: {
     editAndResend: jest.fn(async (input) => ({
-      turnRef: input.turnRef,
-      queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
+      turnRef: input.turnRef ?? 'sdk-replay-turn',
+      queryMessageId: `${input.turnRef ?? 'sdk-replay-turn'}-sdk-evt-000002-user_message`,
     })),
     retryTurn: jest.fn(async (input) => ({
-      turnRef: input.turnRef,
-      queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
+      turnRef: input.turnRef ?? 'sdk-replay-turn',
+      queryMessageId: `${input.turnRef ?? 'sdk-replay-turn'}-sdk-evt-000002-user_message`,
     })),
   },
 }));
@@ -128,8 +128,8 @@ describe('desktopConversationReplayRuntime', () => {
       conversationRef: 'conv-replay',
       messageId: 'view-user-2',
       text: 'edited prompt',
-      turnRef: 'turn-replay',
     }));
+    expect(DesktopConversationContinuityService.editAndResend.mock.calls[0][0]).not.toHaveProperty('turnRef');
     expect(chatStoreBundle.state.clearPendingTurn).not.toHaveBeenCalled();
     expect(chatStoreBundle.state.setMessages).not.toHaveBeenCalled();
   });
@@ -184,8 +184,8 @@ describe('desktopConversationReplayRuntime', () => {
     expect(DesktopConversationContinuityService.retryTurn).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-replay',
       messageId: 'assistant-2',
-      turnRef: 'turn-replay',
     }));
+    expect(DesktopConversationContinuityService.retryTurn.mock.calls[0][0]).not.toHaveProperty('turnRef');
     expect(chatStoreBundle.state.clearPendingTurn).not.toHaveBeenCalled();
     expect(chatStoreBundle.state.setMessages).not.toHaveBeenCalled();
   });

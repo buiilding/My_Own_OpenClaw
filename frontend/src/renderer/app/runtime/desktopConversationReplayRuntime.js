@@ -155,10 +155,8 @@ async function executeReplayIntent({
     userId: sessionInfo.userId || undefined,
     updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
   });
-  const replayTurnRef = crypto.randomUUID();
   logReplayTimeline(chatStore, 'replay_start', {
     conversationRef,
-    newTurnRef: replayTurnRef,
     targetUserMessageId: messageId,
   });
   try {
@@ -168,33 +166,31 @@ async function executeReplayIntent({
     try {
       logReplayTimeline(chatStore, 'sdk_replay_sent', {
         conversationRef,
-        newTurnRef: replayTurnRef,
         action,
         targetUserMessageId: messageId,
       });
+      let replayResult = null;
       if (action === 'edit_resend') {
-        await DesktopConversationContinuityService.editAndResend({
+        replayResult = await DesktopConversationContinuityService.editAndResend({
           userId: sessionInfo.userId,
           conversationRef,
           messageId,
           text: queryText,
-          turnRef: replayTurnRef,
           payload: sdkReplayPayload,
           model: deferredQueryModelSelection || undefined,
         });
       } else {
-        await DesktopConversationContinuityService.retryTurn({
+        replayResult = await DesktopConversationContinuityService.retryTurn({
           userId: sessionInfo.userId,
           conversationRef,
           messageId,
-          turnRef: replayTurnRef,
           payload: sdkReplayPayload,
           model: deferredQueryModelSelection || undefined,
         });
       }
       logReplayTimeline(chatStore, 'sdk_replay_done', {
         conversationRef,
-        newTurnRef: replayTurnRef,
+        newTurnRef: replayResult?.turnRef ?? null,
         action,
         replaySucceeded: true,
         targetUserMessageId: messageId,
@@ -202,7 +198,6 @@ async function executeReplayIntent({
     } catch (sdkReplayError) {
       logReplayTimeline(chatStore, 'sdk_replay_failed', {
         conversationRef,
-        newTurnRef: replayTurnRef,
         action,
         replaySucceeded: false,
         errorKind: traceErrorKind(sdkReplayError),
@@ -218,7 +213,6 @@ async function executeReplayIntent({
     console.error(`[ChatInterface] ${errorPrefix}:`, error);
     logReplayTimeline(chatStore, 'replay_failed_cleanup', {
       conversationRef,
-      newTurnRef: replayTurnRef,
       errorKind: traceErrorKind(error),
       targetUserMessageId: messageId,
     });

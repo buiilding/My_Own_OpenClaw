@@ -10,6 +10,9 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopChatSendPreparationRuntime`; renderer sends typed resources only and
   SDK turn processing assigns stable attachment ids before projection. No
   migration required.
+- frontend/replay: stop generating replacement turn refs in the renderer replay
+  runtime; edit/resend and retry commands now let SDK replay own replacement
+  turn identity. No migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.
