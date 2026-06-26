@@ -3,7 +3,6 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopChatRevisionActionRuntime';
 
 const {
-  buildForkConversationRef,
   buildRevisionCheckoutCommand,
   buildRevisionForkCommand,
   normalizeRevisionId,
@@ -42,24 +41,19 @@ describe('DesktopChatRevisionActionRuntime', () => {
     })).toBeNull();
   });
 
-  test('builds fork command input with deterministic fork ref', () => {
-    const now = () => 12345;
-
-    expect(buildForkConversationRef('conv one', 'rev/base', now)).toBe('conv-one-fork-rev-base-9ix');
+  test('builds fork command input without renderer-owned fork ref', () => {
     expect(buildRevisionForkCommand({
       activeConversationRef: ' conv one ',
       revision: {
         revisionId: ' rev/base ',
       },
       userId: '',
-      now,
     })).toEqual({
       actionId: 'fork:rev/base',
       input: {
         userId: 'default_user',
         conversationRef: 'conv one',
         sourceRevisionId: 'rev/base',
-        newConversationRef: 'conv-one-fork-rev-base-9ix',
       },
     });
   });

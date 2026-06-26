@@ -904,12 +904,10 @@ class SdkConversationRuntime {
         return checkpoint;
     }
     async fork(input) {
-        const newConversationRef = typeof input.newConversationRef === 'string'
+        const requestedConversationRef = typeof input.newConversationRef === 'string'
             ? input.newConversationRef.trim()
-            : '';
-        if (!newConversationRef) {
-            throw new Error('fork requires newConversationRef');
-        }
+            : null;
+        const newConversationRef = requestedConversationRef || (0, events_js_1.createRuntimeId)('conv');
         if (newConversationRef === this.options.conversationRef) {
             throw new Error('fork requires a distinct newConversationRef');
         }

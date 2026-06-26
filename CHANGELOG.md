@@ -25,6 +25,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: rename the SDK live-turn presentation-entry adapter
   context to `sdkLiveTurn`, leaving raw current-turn projection terminology
   only on the no-view fallback projector. No migration required.
+- sdk/revisions: let `conversation.fork` generate the forked conversation ref
+  when callers omit `newConversationRef`, so normal renderer revision UI passes
+  only fork intent and source revision identity. No migration required.
 - frontend/attachments: rename the app-runtime artifact image resolver to
   `DesktopAttachmentImageRuntime`, so chat attachment rendering no longer
   imports a screenshot-named resolver facade. No migration required.

@@ -112,13 +112,14 @@ describe('Agent SDK CJS conversation runtime', () => {
 
     const fork = await runtime.fork({
       sourceRevisionId: 'rev-fork-source',
-      newConversationRef: 'conv-sdk-cjs-fork-child',
     });
     const forkTimeline = await store.loadDisplayTimeline({
-      conversationRef: 'conv-sdk-cjs-fork-child',
+      conversationRef: fork.conversationRef,
       revisionId: fork.revisionId,
     });
 
+    expect(fork.conversationRef).toMatch(/^conv_/);
+    expect(fork.conversationRef).not.toBe('conv-sdk-cjs-fork');
     expect(fork.cutAfterRowId).toBe(sourceTimeline.rows[sourceTimeline.rows.length - 1].id);
     expect(forkTimeline.rows.map(row => row.content)).toEqual([
       'first question',

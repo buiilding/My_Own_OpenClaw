@@ -5983,17 +5983,18 @@ describe('Agent SDK conversation runtime core', () => {
 
     const fullFork = await runtime.fork({
       sourceRevisionId: 'rev-base',
-      newConversationRef: 'conv-forked-full',
     });
     const fullDisplay = await store.loadDisplayTimeline?.({
-      conversationRef: 'conv-forked-full',
+      conversationRef: fullFork.conversationRef,
       revisionId: fullFork.revisionId,
     });
     const fullModelHistory = await store.loadModelHistory?.({
-      conversationRef: 'conv-forked-full',
+      conversationRef: fullFork.conversationRef,
       revisionId: fullFork.revisionId,
     });
 
+    expect(fullFork.conversationRef).toMatch(/^conv_/);
+    expect(fullFork.conversationRef).not.toBe('conv-sdk-runtime');
     expect(fullFork.cutAfterRowId).toBe('display-user-2');
     expect(fullFork.displayRowCount).toBe(3);
     expect(fullFork.modelHistoryRowCount).toBe(3);

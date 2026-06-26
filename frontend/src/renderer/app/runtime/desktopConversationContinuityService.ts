@@ -142,6 +142,7 @@ export const DesktopConversationContinuityService = {
   },
 
   async forkConversation(input: ForkConversationCommandInput): Promise<ForkConversationResult> {
+    const newConversationRef = optionalString(input.newConversationRef);
     return invokeAgentSdkCommand<ForkConversationResult>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_FORK,
       {
@@ -149,7 +150,7 @@ export const DesktopConversationContinuityService = {
         conversationRef: input.conversationRef,
         sourceRevisionId: input.sourceRevisionId,
         cutAfterRowId: input.cutAfterRowId ?? null,
-        newConversationRef: input.newConversationRef,
+        ...(newConversationRef ? { newConversationRef } : {}),
       },
     );
   },

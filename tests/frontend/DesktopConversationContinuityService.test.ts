@@ -245,7 +245,6 @@ describe('DesktopConversationContinuityService', () => {
         userId: 'user-1',
         conversationRef: 'conv-display',
         sourceRevisionId: 'rev-base',
-        newConversationRef: 'conv-forked',
       })).resolves.toEqual(expect.objectContaining({
         conversationRef: 'conv-forked',
         revisionId: 'rev-forked',
@@ -257,7 +256,6 @@ describe('DesktopConversationContinuityService', () => {
           conversationRef: 'conv-display',
           sourceRevisionId: 'rev-base',
           cutAfterRowId: null,
-          newConversationRef: 'conv-forked',
         },
       });
     } finally {

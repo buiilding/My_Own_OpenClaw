@@ -5379,16 +5379,16 @@ describe('Agent SDK client behavior', () => {
         revisionId: editedTimeline.revisionId,
       }),
     }));
-    await expect(conversation.fork({
+    const forkResult = await conversation.fork({
       sourceRevisionId: editedTimeline.revisionId,
       cutAfterRowId: editedTimeline.rows[0]?.id as string,
-      newConversationRef: 'conv-runtime-fork',
-    })).resolves.toEqual(expect.objectContaining({
-      conversationRef: 'conv-runtime-fork',
+    });
+    expect(forkResult).toEqual(expect.objectContaining({
       sourceConversationRef: 'conv-runtime-public',
     }));
+    expect(forkResult.conversationRef).toMatch(/^conv_/);
     await agent.deleteConversation('conv-runtime-public');
-    await agent.deleteConversation('conv-runtime-fork');
+    await agent.deleteConversation(forkResult.conversationRef);
     await expect(agent.listConversations()).resolves.toEqual([]);
   });
 

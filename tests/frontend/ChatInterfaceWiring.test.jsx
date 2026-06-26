@@ -514,7 +514,7 @@ describe('ChatInterface wiring', () => {
     }));
     mockForkConversation.mockClear();
     mockForkConversation.mockImplementation(async (input) => ({
-      conversationRef: input.newConversationRef,
+      conversationRef: 'conv-forked',
       revisionId: 'rev-forked',
       sourceConversationRef: input.conversationRef,
       sourceRevisionId: input.sourceRevisionId,
@@ -522,12 +522,12 @@ describe('ChatInterface wiring', () => {
       displayRowCount: 1,
       modelHistoryRowCount: 1,
       view: {
-        conversationRef: input.newConversationRef,
+        conversationRef: 'conv-forked',
         revisionId: 'rev-forked',
         displayRows: [
           {
             id: 'row-forked',
-            conversationRef: input.newConversationRef,
+            conversationRef: 'conv-forked',
             revisionId: 'rev-forked',
             role: 'user',
             type: 'user_message',
@@ -551,7 +551,7 @@ describe('ChatInterface wiring', () => {
             mode: 'hidden',
             visible: false,
             guardRef: null,
-            ownerConversationRef: input.newConversationRef,
+            ownerConversationRef: 'conv-forked',
             turnRef: null,
           },
         },
@@ -727,19 +727,20 @@ describe('ChatInterface wiring', () => {
       }));
     });
     expect(mockForkConversation.mock.calls[0][0]).not.toHaveProperty('cutAfterRowId');
-    expect(mockLoadDisplayTimeline).not.toHaveBeenCalled();
     const forkInput = mockForkConversation.mock.calls[0][0];
+    expect(forkInput).not.toHaveProperty('newConversationRef');
+    expect(mockLoadDisplayTimeline).not.toHaveBeenCalled();
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(
-      forkInput.newConversationRef,
+      'conv-forked',
       'default_user',
     );
-    expect(mockSetChatActiveConversationRef).toHaveBeenCalledWith(forkInput.newConversationRef);
+    expect(mockSetChatActiveConversationRef).toHaveBeenCalledWith('conv-forked');
     expect(mockSetConversationView).toHaveBeenCalledWith(
       expect.objectContaining({
-        conversationRef: forkInput.newConversationRef,
+        conversationRef: 'conv-forked',
         revisionId: 'rev-forked',
       }),
-      forkInput.newConversationRef,
+      'conv-forked',
     );
   });
 

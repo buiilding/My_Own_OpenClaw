@@ -536,13 +536,16 @@ conversation.loadDisplayTimeline({ revisionId? })
 conversation.loadModelHistory({ revisionId? })
 conversation.listRevisions({ limit? })
 conversation.replaceRows({ rows, baseRevisionId, reason })
-conversation.fork({ sourceRevisionId, cutAfterRowId?, newConversationRef })
+conversation.fork({ sourceRevisionId, cutAfterRowId?, newConversationRef? })
 conversation.checkoutRevision({ revisionId })
 ```
 
 Electron main and renderer hosts expose those same revision primitives through
 SDK-shaped commands: `conversation.listRevisions`,
 `conversation.checkoutRevision`, and `conversation.fork`. Normal UI branch
+forks pass only source revision intent and let the SDK generate the new
+conversation ref; explicit `newConversationRef` remains available for callers
+that need a predetermined fork id.
 navigation calls that command/service boundary instead of reconstructing
 display prefixes or model-history rows in renderer code. The dashboard
 revision menu lists sanitized revision metadata, checks out selected revisions

@@ -3465,6 +3465,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('latestConversationView');
     expect(chatInterfaceSource).toContain('buildRevisionCheckoutCommand');
     expect(chatInterfaceSource).toContain('buildRevisionForkCommand');
+    expect(chatInterfaceSource).not.toContain('newConversationRef');
     expect(chatInterfaceSource).not.toContain('setMessages(projection.messages');
     expect(chatInterfaceSource).not.toContain('buildConversationViewStoreProjection');
     expect(chatInterfaceSource).not.toContain('buildConversationViewChatMessages');
@@ -3509,7 +3510,8 @@ describe('renderer chat runtime boundary', () => {
     expect(messageItemSource).toContain('canEdit={canEditMessage}');
     expect(chatRevisionActionRuntimeSource).toContain('buildRevisionCheckoutCommand');
     expect(chatRevisionActionRuntimeSource).toContain('buildRevisionForkCommand');
-    expect(chatRevisionActionRuntimeSource).toContain('buildForkConversationRef');
+    expect(chatRevisionActionRuntimeSource).not.toContain('buildForkConversationRef');
+    expect(chatRevisionActionRuntimeSource).not.toContain('newConversationRef');
     expect(chatRevisionActionRuntimeSource).not.toContain('features/chat');
     expect(chatInterfaceSource).not.toContain('buildChatMessagesFromSdkDisplayRows');
     expect(chatInterfaceSource).not.toContain('mergeRendererAnnotationsIntoSdkMessages');

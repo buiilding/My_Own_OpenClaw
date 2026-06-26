@@ -12,17 +12,6 @@ function normalizeConversationRef(conversationRef) {
     : null;
 }
 
-function sanitizeRefPart(value, fallback) {
-  const sanitized = String(value || fallback).replace(/[^a-zA-Z0-9_-]+/g, '-');
-  return sanitized || fallback;
-}
-
-function buildForkConversationRef(conversationRef, revisionId, now = Date.now) {
-  const source = sanitizeRefPart(conversationRef, 'conversation');
-  const revision = sanitizeRefPart(revisionId, 'revision');
-  return `${source}-fork-${revision}-${now().toString(36)}`;
-}
-
 function resolveUserId(userId) {
   return typeof userId === 'string' && userId.trim() ? userId.trim() : 'default_user';
 }
@@ -49,7 +38,6 @@ function buildRevisionCheckoutCommand({
 
 function buildRevisionForkCommand({
   activeConversationRef = null,
-  now = Date.now,
   revision = null,
   userId = null,
 } = {}) {
@@ -64,17 +52,11 @@ function buildRevisionForkCommand({
       userId: resolveUserId(userId),
       conversationRef: normalizedConversationRef,
       sourceRevisionId: normalizedRevisionId,
-      newConversationRef: buildForkConversationRef(
-        normalizedConversationRef,
-        normalizedRevisionId,
-        now,
-      ),
     },
   };
 }
 
 export const DesktopChatRevisionActionRuntime = Object.freeze({
-  buildForkConversationRef,
   buildRevisionCheckoutCommand,
   buildRevisionForkCommand,
   normalizeRevisionId,
