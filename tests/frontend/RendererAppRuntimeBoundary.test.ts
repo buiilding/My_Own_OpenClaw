@@ -1938,9 +1938,10 @@ describe('renderer app runtime boundary', () => {
       'state.latestCurrentTurnProjection || state.currentTurnProjection',
     );
     expect(responseOverlaySource).toContain('selectLiveTurnSurfaceState');
-    expect(selectorRuntimeSource).toContain('const hasSdkConversationView = hasConversationView(conversationView)');
-    expect(selectorRuntimeSource).toContain('sdkLiveTurn: hasSdkConversationView ? null : activeWorkspace.currentTurnProjection ?? null');
-    expect(selectorRuntimeSource).toContain('messages: hasSdkConversationView ? emptyChatMessages : activeWorkspace.messages');
+    expect(selectorRuntimeSource).toContain('sdkLiveTurn: activeWorkspace.sdkLiveTurn ?? null');
+    expect(selectorRuntimeSource).toContain('messages: activeWorkspace.messages');
+    expect(selectorRuntimeSource).not.toContain('hasSdkConversationView');
+    expect(selectorRuntimeSource).not.toContain('activeWorkspace.currentTurnProjection');
     expect(selectorRuntimeSource).not.toContain('surfaceState.currentTurnProjection');
     expect(selectorRuntimeSource).not.toContain('currentTurnProjection: resolvedConversationView');
     expect(normalizedChatInterfaceSource).toContain('useChatSurfaceController({\n    chatSurfaceState,');

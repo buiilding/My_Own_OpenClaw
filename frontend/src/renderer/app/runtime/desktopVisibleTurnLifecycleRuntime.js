@@ -117,15 +117,15 @@ function conversationViewMatchesPendingTurn(pendingTurn, conversationView) {
   );
 }
 
-function resolvePendingTurnForCurrentProjection({
+function resolvePendingTurnForSdkLiveTurn({
   pendingTurn = null,
-  currentTurnProjection = null,
+  sdkLiveTurn = null,
 } = {}) {
   const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
   if (!normalizedPendingTurn) {
     return null;
   }
-  return hasAuthoritativeSameTurnSdkReplacement(normalizedPendingTurn, currentTurnProjection)
+  return hasAuthoritativeSameTurnSdkReplacement(normalizedPendingTurn, sdkLiveTurn)
     ? null
     : pendingTurn;
 }
@@ -363,6 +363,6 @@ function applyVisibleTurnLifecycleToPresentationState(presentationState, visible
 
 export const DesktopVisibleTurnLifecycleRuntime = Object.freeze({
   applyVisibleTurnLifecycleToPresentationState,
-  resolvePendingTurnForCurrentProjection,
+  resolvePendingTurnForSdkLiveTurn,
   resolveVisibleTurnLifecycle,
 });

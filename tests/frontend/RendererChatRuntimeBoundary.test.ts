@@ -2125,8 +2125,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBroadcastAction');
     expect(chatStoreAdaptersSource).toContain('DesktopPendingTurnBroadcastAction');
     expect(chatStoreSource).not.toContain('resolvePendingTurnForCurrentProjection');
+    expect(chatStoreSource).not.toContain('resolvePendingTurnForSdkLiveTurn');
     expect(chatStoreSource).not.toContain('hasAuthoritativeSameTurnSdkReplacement');
-    expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForCurrentProjection');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForSdkLiveTurn');
+    expect(currentTurnWorkspaceRuntimeSource).not.toContain('resolvePendingTurnForCurrentProjection');
     expect(currentTurnWorkspaceRuntimeSource).toContain('buildCurrentTurnWorkspaceMutation');
     expect(chatStoreSource).not.toContain('buildPendingTurnBroadcastStateUpdate');
     expect(chatStoreAdaptersSource).toContain('buildPendingTurnBroadcastStateUpdate');
@@ -3676,6 +3678,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('registerTurnConversationRef:');
     expect(chatStoreSource).not.toContain('resolveConversationRefForTurn:');
     expect(chatStoreSource).not.toContain('resolvePendingTurnForCurrentProjection');
+    expect(chatStoreSource).not.toContain('resolvePendingTurnForSdkLiveTurn');
     expect(chatStoreSource).not.toContain('shouldUpdateLatestView');
     expect(chatStoreSource).not.toContain('Object.keys(latestUpdate)');
     expect(chatWorkspaceStateRuntimeSource).toContain('buildActiveConversationWorkspaceUpdate');
@@ -3747,7 +3750,8 @@ describe('renderer chat runtime boundary', () => {
     expect(turnConversationRefRuntimeSource).not.toContain('features/chat');
     expect(currentTurnWorkspaceRuntimeSource).toContain('buildCurrentTurnWorkspaceMutation');
     expect(currentTurnWorkspaceRuntimeSource).toContain('buildSetSdkLiveTurnStateUpdate');
-    expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForCurrentProjection');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForSdkLiveTurn');
+    expect(currentTurnWorkspaceRuntimeSource).not.toContain('resolvePendingTurnForCurrentProjection');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('features/chat');
     expect(chatStoreSource).not.toContain("sourceEventType: 'renderer-compose'");
     expect(pendingBridgeSource).toContain("sourceEventType: 'renderer-compose'");

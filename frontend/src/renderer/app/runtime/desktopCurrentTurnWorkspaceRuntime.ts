@@ -6,7 +6,7 @@ import {
 } from './desktopVisibleTurnLifecycleRuntime';
 
 const {
-  resolvePendingTurnForCurrentProjection,
+  resolvePendingTurnForSdkLiveTurn,
 } = DesktopVisibleTurnLifecycleRuntime;
 
 type CurrentTurnWorkspace = {
@@ -54,9 +54,9 @@ function buildCurrentTurnWorkspaceMutation<TWorkspace extends CurrentTurnWorkspa
         currentTurnProjection: null,
       };
   }
-  const nextPendingTurn = resolvePendingTurnForCurrentProjection({
+  const nextPendingTurn = resolvePendingTurnForSdkLiveTurn({
     pendingTurn: currentWorkspace.pendingTurn,
-    currentTurnProjection,
+    sdkLiveTurn: currentTurnProjection,
   });
   if (
     currentWorkspace.currentTurnProjection === currentTurnProjection

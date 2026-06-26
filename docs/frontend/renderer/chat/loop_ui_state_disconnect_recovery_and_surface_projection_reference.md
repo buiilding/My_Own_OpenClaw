@@ -45,7 +45,7 @@ Output statuses:
 - `terminal`: SDK completed or errored the same turn
 - `idle`: no visible active turn for the conversation
 
-`DesktopVisibleTurnLifecycleRuntime.resolvePendingTurnForCurrentProjection(...)`
+`DesktopVisibleTurnLifecycleRuntime.resolvePendingTurnForSdkLiveTurn(...)`
 owns pending-turn handoff for store updates, while
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` owns the
 surface local-pending status consumed by dashboard, pill, and overlay surfaces.
