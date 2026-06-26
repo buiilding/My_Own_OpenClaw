@@ -90,10 +90,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         sender: 'assistant',
         type: 'tool-call',
         correlationId: 'req-1',
-        modelFacingToolCall: expect.objectContaining({
-          id: 'call-1',
-          name: 'read_file',
-        }),
+        toolCallDisplayText: expect.stringContaining('"name": "read_file"'),
       }),
       expect.objectContaining({
         id: 'msg-tool-output',
@@ -857,7 +854,7 @@ describe('sdkDisplayChatMessageProjection', () => {
     expect(message.toolOutputDetails).not.toHaveProperty('attachments');
   });
 
-  test('keeps provider-facing and model metadata out of tool details', () => {
+  test('keeps provider-facing and model metadata out of SDK display chat props', () => {
     const [message] = buildChatMessagesFromSdkDisplayRows([
       {
         id: 'msg-tool-call-details',
@@ -889,15 +886,14 @@ describe('sdkDisplayChatMessageProjection', () => {
 
     expect(message).toEqual(expect.objectContaining({
       id: 'msg-tool-call-details',
-      modelFacingToolCall: expect.objectContaining({
-        id: 'call-1',
-      }),
+      toolCallDisplayText: expect.stringContaining('"name": "read_file"'),
       toolCallDetails: expect.objectContaining({
         toolName: 'read_file',
         requestId: 'req-1',
         toolCallId: 'call-1',
       }),
     }));
+    expect(message).not.toHaveProperty('modelFacingToolCall');
     expect(message.toolCallDetails).not.toHaveProperty('modelFacingToolCall');
     expect(message.toolCallDetails).not.toHaveProperty('modelId');
     expect(message.toolCallDetails).not.toHaveProperty('modelProvider');

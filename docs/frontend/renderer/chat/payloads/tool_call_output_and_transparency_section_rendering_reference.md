@@ -181,16 +181,18 @@ Stale searches for either removed helper should route here.
 Primary preview payload:
 
 1. `message.toolCallDisplayText` string
-2. object `message.modelFacingToolCall` serialized as pretty JSON
 
 Details panel payload:
 
 1. object `message.toolCallDetails`
 
-This separation keeps default view aligned with the SDK-projected
-model-facing call while preserving raw execution payload in details. Recovery
-preview and display-only execution state come from SDK current-turn fields such
-as `rawToolCallPreview`, `rawArgumentsPreview`, `parseError`,
+SDK display-row projection must set the preview text from display-row content
+and must not forward provider-facing `modelFacingToolCall` as a renderer chat
+message prop. Legacy/live message paths may still carry that field until their
+component contracts are migrated, but `ConversationView.displayRows` remains a
+display contract, not a provider-payload recovery channel. Recovery preview and
+display-only execution state come from SDK current-turn fields such as
+`rawToolCallPreview`, `rawArgumentsPreview`, `parseError`,
 `toolCallValidationFailed`, and `executionSkipped`, not from backend-shaped
 metadata keys in renderer message helpers.
 When the renderer includes the display-only marker in the pretty-printed

@@ -29,10 +29,8 @@ function recordPayloadFromRow(
   row: SdkDisplayRow,
   {
     includeAttachments = false,
-    includeModelFacingToolCall = false,
   }: {
     includeAttachments?: boolean;
-    includeModelFacingToolCall?: boolean;
   } = {},
 ): Record<string, unknown> {
   const metadata = row.metadata;
@@ -50,9 +48,6 @@ function recordPayloadFromRow(
     'sourceEventType',
     'success',
   ];
-  if (includeModelFacingToolCall) {
-    copyKeys.push('modelFacingToolCall');
-  }
   if (includeAttachments) {
     copyKeys.push('attachments');
   }
@@ -74,12 +69,6 @@ function displayTextFromStructuredRowContent(content: unknown): string {
     return content;
   }
   return JSON.stringify(content, null, 2) ?? '';
-}
-
-function recordFromPayloadValue(value: unknown): Record<string, unknown> | null {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : null;
 }
 
 function rowTimestamp(row: SdkDisplayRow): string {
@@ -167,14 +156,11 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
 
 function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
   const payload = recordPayloadFromRow(row);
-  const modelFacingPayload = recordPayloadFromRow(row, { includeModelFacingToolCall: true });
-  const toolCall = recordFromPayloadValue(recordField(modelFacingPayload, 'modelFacingToolCall'));
   const text = displayTextFromStructuredRowContent(row.content);
   const base = buildToolCallChatMessageState({
     id: row.id,
     text,
     toolCallDisplayText: text,
-    modelFacingToolCall: row.type === 'tool_bundle_call' ? null : toolCall,
     toolCallDetails: payload,
     correlationId: rowCorrelationId(row),
     sourceEventType: rowSourceEventType(row),
