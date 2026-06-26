@@ -56,6 +56,10 @@ export type ChatWorkspaceReadModelState = Omit<ChatWorkspaceState, 'currentTurnP
   sdkLiveTurn?: CurrentTurnProjection | null;
 };
 
+export type NoViewSdkLiveTurnStorage = {
+  currentTurnProjection: CurrentTurnProjection | null;
+};
+
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 const emptyChatMessages: ChatMessage[] = [];
 const workspaceReadModelCache = new WeakMap<ChatWorkspaceState, ChatWorkspaceReadModelState>();
@@ -191,6 +195,24 @@ export function selectActiveWorkspaceState(
   return readWorkspaceState(state, activeWorkspaceRef);
 }
 
+export function readNoViewSdkLiveTurnStorage(
+  workspace: NoViewSdkLiveTurnStorage,
+): CurrentTurnProjection | null {
+  return workspace.currentTurnProjection ?? null;
+}
+
+export function buildNoViewSdkLiveTurnStorageUpdate<
+  TWorkspace extends NoViewSdkLiveTurnStorage,
+>(
+  workspace: TWorkspace,
+  sdkLiveTurn: CurrentTurnProjection | null,
+): TWorkspace {
+  return {
+    ...workspace,
+    currentTurnProjection: sdkLiveTurn,
+  };
+}
+
 export function projectWorkspaceReadModelState(
   workspace: ChatWorkspaceState,
 ): ChatWorkspaceReadModelState {
@@ -206,7 +228,9 @@ export function projectWorkspaceReadModelState(
   const readModelWorkspace = {
     ...workspaceWithoutNoViewSdkLiveTurn,
     messages: hasConversationView ? emptyChatMessages : workspace.messages,
-    sdkLiveTurn: hasConversationView ? null : currentTurnProjection,
+    sdkLiveTurn: hasConversationView
+      ? null
+      : readNoViewSdkLiveTurnStorage({ currentTurnProjection }),
     rendererAnnotations: hasConversationView
       ? selectRendererMessageAnnotations(workspace.messages)
       : [],
@@ -223,6 +247,7 @@ export function selectActiveWorkspaceReadModelState(
 
 export const DesktopChatWorkspaceStateRuntime = Object.freeze({
   buildActiveConversationWorkspaceUpdate,
+  buildNoViewSdkLiveTurnStorageUpdate,
   buildWorkspaceUpdate,
   createInitialWorkspaceRecord,
   createInitialWorkspaceState,
@@ -233,6 +258,7 @@ export const DesktopChatWorkspaceStateRuntime = Object.freeze({
   resolveWorkspaceConversationRef,
   resolveWorkspaceKey,
   resolveWorkspaceMutationTarget,
+  readNoViewSdkLiveTurnStorage,
   projectWorkspaceReadModelState,
   selectActiveWorkspaceReadModelState,
   selectActiveWorkspaceState,

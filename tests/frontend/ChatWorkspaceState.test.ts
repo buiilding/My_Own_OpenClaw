@@ -5,12 +5,14 @@
 import type { StreamTracking } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   buildActiveConversationWorkspaceUpdate,
+  buildNoViewSdkLiveTurnStorageUpdate,
   buildWorkspaceUpdate,
   createInitialWorkspaceRecord,
   createInitialWorkspaceState,
   isActiveWorkspaceRef,
   normalizeConversationRef,
   projectWorkspaceReadModelState,
+  readNoViewSdkLiveTurnStorage,
   readWorkspaceState,
   resolveChatWorkspaceRef,
   resolveWorkspaceConversationRef,
@@ -201,6 +203,20 @@ describe('chatWorkspaceState', () => {
     expect(readModel.sdkLiveTurn).toBe(workspace.currentTurnProjection);
     expect(readModel.rendererAnnotations).toEqual([]);
     expect(selectActiveWorkspaceReadModelState(state)).toBe(readModel);
+  });
+
+  test('centralizes no-view SDK live-turn storage access', () => {
+    const sdkLiveTurn = { turnRef: 'turn-sdk' } as never;
+    const workspace = {
+      ...createInitialWorkspaceState(),
+      currentTurnProjection: sdkLiveTurn,
+    };
+
+    expect(readNoViewSdkLiveTurnStorage(workspace)).toBe(sdkLiveTurn);
+    expect(buildNoViewSdkLiveTurnStorageUpdate(workspace, null)).toEqual({
+      ...workspace,
+      currentTurnProjection: null,
+    });
   });
 
   test('projects ConversationView workspace read model without raw fallback authorities', () => {

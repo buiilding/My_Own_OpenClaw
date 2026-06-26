@@ -144,8 +144,9 @@ replay/store compatibility adapters and low-level artifact helpers.
   `setSdkLiveTurnInChatStore(...)` adapter instead of a Zustand action. It
   updates the target workspace and clears a matching `pendingTurn` only after
   the SDK live-turn projection for that conversation/turn arrives. Raw
-  `currentTurnProjection` workspace field updates, pending-turn replacement,
-  and no-op guards live in `desktopCurrentTurnWorkspaceRuntime.ts`; the store
+  no-view SDK live-turn storage is read and written through
+  `DesktopChatWorkspaceStateRuntime` helpers; pending-turn replacement and
+  no-op guards live in `desktopCurrentTurnWorkspaceRuntime.ts`. The store
   module delegates SDK live-turn intent plus workspace dependency adapters.
 - SDK `ConversationView` writes enter through the module-level
   `setConversationViewInChatStore(...)` adapter instead of a Zustand action.

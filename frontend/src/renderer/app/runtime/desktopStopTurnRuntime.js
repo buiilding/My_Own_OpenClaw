@@ -2,6 +2,15 @@
  * Provides stop-turn target and terminal SDK live-turn helpers for renderer app-runtime consumers.
  */
 
+import {
+  DesktopChatWorkspaceStateRuntime,
+} from './desktopChatWorkspaceStateRuntime';
+
+const {
+  buildNoViewSdkLiveTurnStorageUpdate,
+  readNoViewSdkLiveTurnStorage,
+} = DesktopChatWorkspaceStateRuntime;
+
 function normalizeRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
@@ -111,7 +120,7 @@ function buildStoppedTurnWorkspaceMutation({
   const hasWorkspaceConversationView = hasConversationView(currentWorkspace.conversationView);
   const workspaceSdkLiveTurn = hasWorkspaceConversationView
     ? null
-    : currentWorkspace.currentTurnProjection ?? null;
+    : readNoViewSdkLiveTurnStorage(currentWorkspace);
   const isWorkspaceSdkLiveTurnTarget = doesSdkLiveTurnMatch(workspaceSdkLiveTurn, target);
   const isPendingTurnTarget = doesPendingTurnMatch(currentWorkspace.pendingTurn, target);
   if (!isWorkspaceSdkLiveTurnTarget && !isPendingTurnTarget) {
@@ -127,13 +136,16 @@ function buildStoppedTurnWorkspaceMutation({
     ? null
     : currentWorkspace.pendingTurn;
   const nextStoppedAt = resolveStoppedAt(stoppedAt);
+  const nextWorkspace = buildNoViewSdkLiveTurnStorageUpdate(
+    currentWorkspace,
+    hasWorkspaceConversationView ? null : nextSdkLiveTurn,
+  );
   return {
-    ...currentWorkspace,
+    ...nextWorkspace,
     isSending: nextPendingTurn ? currentWorkspace.isSending : false,
     thinkingStatus: null,
     thinkingSourceEventType: null,
     pendingTurn: nextPendingTurn,
-    currentTurnProjection: hasWorkspaceConversationView ? null : nextSdkLiveTurn,
     streamTracking: {
       ...currentWorkspace.streamTracking,
       ...buildStopQueryTrackingPatch(nextStoppedAt),
