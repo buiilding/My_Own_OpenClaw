@@ -16,8 +16,10 @@ import { DesktopMessageListRuntime } from '../../../app/runtime/desktopMessageLi
 import { DesktopMessageTransparencyRuntime } from '../../../app/runtime/desktopMessageTransparencyRuntime';
 import { useMessageListAutoScroll } from '../hooks/useMessageListAutoScroll';
 import { DesktopDevUiRuntime } from '../../../app/runtime/desktopDevUiRuntime';
+import { DesktopPresentationSourceChannels } from '../../../app/runtime/desktopPresentationSourceChannels';
 
 const { isDevUiEnabled } = DesktopDevUiRuntime;
+const sdkDisplayRowsSourceChannel = DesktopPresentationSourceChannels.getSdkDisplayRowsSourceChannel();
 
 function MessageList({
   messages,
@@ -126,10 +128,13 @@ function MessageList({
     [messages],
   );
 
+  const messageActionFallback = useCallback((message, fallback) => (
+    message?.sourceChannel === sdkDisplayRowsSourceChannel ? false : fallback
+  ), []);
   const messageActionFlag = useCallback((message, key, fallback) => {
     const value = message?.actions?.[key];
-    return typeof value === 'boolean' ? value : fallback;
-  }, []);
+    return typeof value === 'boolean' ? value : messageActionFallback(message, fallback);
+  }, [messageActionFallback]);
   const messageActionTargetId = useCallback((message, key) => {
     const value = message?.actions?.[key];
     return typeof value === 'string' && value.trim() ? value.trim() : null;

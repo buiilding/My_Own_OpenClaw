@@ -53,6 +53,10 @@ All notable changes to WindieOS will be documented in this file.
 - docs/frontend: clarify that minimal-chat pending rows carry filename chips
   only while SDK turn resources and display-row `attachments[]` own visual
   attachment materialization. No migration required.
+- frontend/actions: require explicit SDK display-row `canEdit`/`canRetry`
+  booleans before showing edit/resend or Try again controls for SDK-projected
+  rows, preserving legacy defaults only for renderer-local fallback rows. No
+  migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.

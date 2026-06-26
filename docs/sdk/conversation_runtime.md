@@ -298,8 +298,9 @@ rows and `canRetry`/`retryTargetRowId` for terminal assistant rows. The renderer
 projects those row targets into chat messages so a replacement row can remain
 the visible edit surface while replay targets the SDK-provided original row
 identity; row-level SDK action metadata also gates whether the edit/resend or
-Try again controls are shown. Copy/feedback actions remain renderer-local
-affordances. Renderer
+Try again controls are shown, and missing row action booleans on SDK display
+rows mean the command is unavailable rather than defaulting to a renderer
+heuristic. Copy/feedback actions remain renderer-local affordances. Renderer
 replay execution calls the SDK edit/resend and retry commands directly; when a
 `ConversationView` exists, replay target preparation derives its row model from
 `ConversationView.displayRows` instead of raw `chatStore.messages`.

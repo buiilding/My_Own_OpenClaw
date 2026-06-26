@@ -308,6 +308,35 @@ describe('MessageList assistant actions', () => {
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
   });
 
+  test('requires explicit SDK retry availability for SDK display rows', () => {
+    jest.useFakeTimers();
+    render(
+      <MessageList
+        messages={[
+          {
+            id: 'assistant-sdk',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            sourceChannel: 'sdk:display-rows',
+            isComplete: true,
+          },
+        ]}
+        thinkingStatus={null}
+        enableAssistantActions
+        onAssistantTryAgain={jest.fn()}
+      />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(screen.getByRole('button', { name: 'Copy assistant message' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Like response' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
+  });
+
   test('submits user message edits and keeps the editor busy until replay dispatch resolves', async () => {
     let resolveEdit;
     const onUserEdit = jest.fn(() => new Promise((resolve) => {
@@ -397,6 +426,48 @@ describe('MessageList assistant actions', () => {
         thinkingStatus={null}
         enableUserActions
         onUserEdit={onUserEdit}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Copy user message' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit and resend' })).not.toBeInTheDocument();
+  });
+
+  test('requires explicit SDK edit availability for SDK display rows', () => {
+    const { rerender } = render(
+      <MessageList
+        messages={[
+          {
+            id: 'user-local',
+            text: 'old text',
+            sender: 'user',
+            type: 'user',
+            sourceChannel: 'renderer-local',
+          },
+        ]}
+        thinkingStatus={null}
+        enableUserActions
+        onUserEdit={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Copy user message' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit and resend' })).toBeInTheDocument();
+
+    rerender(
+      <MessageList
+        messages={[
+          {
+            id: 'user-sdk',
+            text: 'old text',
+            sender: 'user',
+            type: 'user',
+            sourceChannel: 'sdk:display-rows',
+          },
+        ]}
+        thinkingStatus={null}
+        enableUserActions
+        onUserEdit={jest.fn()}
       />,
     );
 
