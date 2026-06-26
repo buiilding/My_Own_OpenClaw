@@ -202,7 +202,7 @@ describe('pending-turn live surface integration', () => {
     expect(resolveLiveTurnPresentationInput({
       messages: state.messages,
       pendingTurn: state.pendingTurn,
-      currentTurnProjection: state.currentTurnProjection,
+      sdkLiveTurn: state.currentTurnProjection,
     })).toMatchObject({
       source: 'pending-turn',
       phase: 'awaiting-first-chunk',
@@ -223,7 +223,7 @@ describe('pending-turn live surface integration', () => {
     expect(resolveLiveTurnPresentationInput({
       messages: state.messages,
       pendingTurn: state.pendingTurn,
-      currentTurnProjection: state.currentTurnProjection,
+      sdkLiveTurn: state.currentTurnProjection,
     })).toMatchObject({
       source: 'pending-turn',
       phase: 'awaiting-first-chunk',
@@ -240,14 +240,14 @@ describe('pending-turn live surface integration', () => {
     expect(resolveLiveTurnPresentationInput({
       messages: state.messages,
       pendingTurn: state.pendingTurn,
-      currentTurnProjection: state.currentTurnProjection,
+      sdkLiveTurn: state.currentTurnProjection,
     })).toMatchObject({
       source: 'sdk-current-turn',
       phase: 'streaming',
     });
 
     const dashboardMessages = buildThreadPresentationMessages(state.messages, {
-      currentTurnProjection,
+      sdkLiveTurn: currentTurnProjection,
       activeConversationRef: 'conv_msg-1',
     }).filter((message) => message.sourceChannel === 'sdk:current-turn');
     const overlayMessages = buildCurrentTurnMessagesFromPresentation(currentTurnProjection);
