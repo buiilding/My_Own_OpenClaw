@@ -668,14 +668,11 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(shouldIgnore(createEvent({ turnRef: 'turn-new' }), null)).toBe(false);
   });
 
-  test('stale turn guard ignores same-turn packets during error pending handoff', () => {
+  test('stale turn guard ignores old active-turn packets during error pending handoff', () => {
     useChatStore.setState((state) => ({
       ...state,
-      messages: [
-        { id: 'assistant-old', sender: 'assistant', text: 'done', type: 'llm-text' as const },
-      ],
       isSending: true,
-      pendingTurn: pendingTurn('turn-old'),
+      pendingTurn: pendingTurn('turn-new'),
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: 'turn-old',
@@ -685,11 +682,8 @@ describe('DesktopChatStreamEventRuntime', () => {
         ...state.workspaces,
         __default__: {
           ...state.workspaces.__default__,
-          messages: [
-            { id: 'assistant-old', sender: 'assistant', text: 'done', type: 'llm-text' as const },
-          ],
           isSending: true,
-          pendingTurn: pendingTurn('turn-old'),
+          pendingTurn: pendingTurn('turn-new'),
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: 'turn-old',
@@ -702,12 +696,9 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(shouldIgnore(createEvent({ turnRef: 'turn-old' }), null)).toBe(true);
   });
 
-  test('stale turn guard keeps same-turn packets during error pending handoff when a new optimistic user row is present', () => {
+  test('stale turn guard keeps same-turn packets during error pending handoff when the pending bridge owns them', () => {
     useChatStore.setState((state) => ({
       ...state,
-      messages: [
-        { id: 'user-new', sender: 'user', text: 'next turn', type: 'user' as const },
-      ],
       isSending: true,
       pendingTurn: pendingTurn('turn-current'),
       streamTracking: {
@@ -719,9 +710,6 @@ describe('DesktopChatStreamEventRuntime', () => {
         ...state.workspaces,
         __default__: {
           ...state.workspaces.__default__,
-          messages: [
-            { id: 'user-new', sender: 'user', text: 'next turn', type: 'user' as const },
-          ],
           isSending: true,
           pendingTurn: pendingTurn('turn-current'),
           streamTracking: {

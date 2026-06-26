@@ -243,9 +243,9 @@ renderer and Electron-main Stop shortcut resolution.
 Renderer pending-turn state remains a short pre-view bridge immediately after
 send acceptance; raw current-turn snapshots and idle conversation refs must not
 enable Stop or become the main-process stop target, even before a view arrives.
-That bridge may carry turn identity, text, timestamps, and visible filename
-chips, but it must not carry visual attachment lifecycle descriptors,
-screenshots, preview bytes, or ready artifact refs. SDK display rows and
+That bridge may carry turn identity, text, and timestamps, but it must not
+carry filename metadata, visual attachment lifecycle descriptors, screenshots,
+preview bytes, or ready artifact refs. SDK display rows and
 `ConversationView` own user-included image, camera screenshot, and replay
 attachment presentation. Renderer display projection may synthesize only this
 explicit `pendingTurn` bridge beside SDK display rows; it must not scan prior

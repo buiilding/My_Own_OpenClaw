@@ -13,11 +13,9 @@ const {
 
 function createWorkspace({
   phase = 'complete',
-  lastMessage = null,
   pendingTurn = { turnRef: 'turn-new' },
 } = {}) {
   return {
-    messages: lastMessage ? [lastMessage] : [],
     pendingTurn,
     streamTracking: {
       phase,
@@ -71,46 +69,19 @@ describe('DesktopChatStreamTerminalHandoffRuntime', () => {
 
   test.each([
     {
-      caseName: 'complete phase ignores same-turn packets when completed assistant tail remains',
+      caseName: 'complete phase ignores same-turn packets when pending bridge targets a different turn',
       phase: 'complete',
       activeTurnRef: 'turn-current',
       eventTurnRef: 'turn-current',
-      lastMessage: {
-        id: 'assistant-old',
-        sender: 'assistant',
-        text: 'done',
-        type: 'llm-text',
-        isComplete: true,
-        turnRef: 'turn-current',
-      },
+      pendingTurn: { turnRef: 'turn-new' },
       expected: true,
     },
     {
-      caseName: 'complete phase keeps same-turn packets when optimistic user tail is present',
+      caseName: 'complete phase keeps same-turn packets when pending bridge owns the same turn',
       phase: 'complete',
       activeTurnRef: 'turn-current',
       eventTurnRef: 'turn-current',
-      lastMessage: {
-        id: 'user-new',
-        sender: 'user',
-        text: 'next turn',
-        turnRef: 'turn-current',
-      },
-      expected: false,
-    },
-    {
-      caseName: 'complete phase keeps same-turn packets when incomplete assistant placeholder is present',
-      phase: 'complete',
-      activeTurnRef: 'turn-current',
-      eventTurnRef: 'turn-current',
-      lastMessage: {
-        id: 'assistant-placeholder',
-        sender: 'assistant',
-        text: '',
-        type: 'llm-text',
-        isComplete: false,
-        turnRef: 'turn-current',
-      },
+      pendingTurn: { turnRef: 'turn-current' },
       expected: false,
     },
     {
@@ -118,7 +89,7 @@ describe('DesktopChatStreamTerminalHandoffRuntime', () => {
       phase: 'complete',
       activeTurnRef: 'turn-old',
       eventTurnRef: 'turn-new',
-      lastMessage: null,
+      pendingTurn: { turnRef: 'turn-new' },
       expected: false,
     },
     {
@@ -126,7 +97,7 @@ describe('DesktopChatStreamTerminalHandoffRuntime', () => {
       phase: 'complete',
       activeTurnRef: 'turn-old',
       eventTurnRef: 'turn-unrelated',
-      lastMessage: null,
+      pendingTurn: { turnRef: 'turn-new' },
       expected: true,
     },
     {
@@ -134,42 +105,23 @@ describe('DesktopChatStreamTerminalHandoffRuntime', () => {
       phase: 'idle',
       activeTurnRef: 'turn-current',
       eventTurnRef: 'turn-current',
-      lastMessage: {
-        id: 'assistant-old',
-        sender: 'assistant',
-        text: 'done',
-        type: 'llm-text',
-        isComplete: true,
-        turnRef: 'turn-current',
-      },
+      pendingTurn: { turnRef: 'turn-new' },
       expected: false,
     },
     {
-      caseName: 'error phase ignores same-turn packets when completed assistant tail remains',
+      caseName: 'error phase ignores same-turn packets when pending bridge targets a different turn',
       phase: 'error',
       activeTurnRef: 'turn-current',
       eventTurnRef: 'turn-current',
-      lastMessage: {
-        id: 'assistant-old',
-        sender: 'assistant',
-        text: 'done',
-        type: 'llm-text',
-        isComplete: true,
-        turnRef: 'turn-current',
-      },
+      pendingTurn: { turnRef: 'turn-new' },
       expected: true,
     },
     {
-      caseName: 'error phase keeps same-turn packets when optimistic user tail is present',
+      caseName: 'error phase keeps same-turn packets when pending bridge owns the same turn',
       phase: 'error',
       activeTurnRef: 'turn-current',
       eventTurnRef: 'turn-current',
-      lastMessage: {
-        id: 'user-new',
-        sender: 'user',
-        text: 'retry',
-        turnRef: 'turn-current',
-      },
+      pendingTurn: { turnRef: 'turn-current' },
       expected: false,
     },
     {
@@ -177,12 +129,12 @@ describe('DesktopChatStreamTerminalHandoffRuntime', () => {
       phase: 'complete',
       activeTurnRef: '',
       eventTurnRef: 'turn-new',
-      lastMessage: null,
+      pendingTurn: { turnRef: 'turn-new' },
       expected: false,
     },
-  ])('$caseName', ({ phase, activeTurnRef, eventTurnRef, lastMessage, expected }) => {
+  ])('$caseName', ({ phase, activeTurnRef, eventTurnRef, pendingTurn, expected }) => {
     expect(shouldIgnoreForTerminalPendingHandoff(
-      createWorkspace({ phase, lastMessage }),
+      createWorkspace({ phase, pendingTurn }),
       eventTurnRef,
       activeTurnRef,
     )).toBe(expected);

@@ -92,6 +92,9 @@ most handlers. The predicate delegates to `desktopChatStreamEventRuntime.ts`,
 `DesktopChatStreamTerminalHandoffRuntime` predicates:
 
 - guard condition: event has `turnRef` and workspace has active turn and those values differ
+- terminal handoff exception: only the explicit renderer `pendingTurn` bridge
+  can keep next-turn packets flowing after a terminal phase; raw message tails
+  are not scanned as a second pending authority
 - guarded handlers: all streamed assistant/tool/system/transparency/token/memory/error handlers
 - unguarded handler: `user_message` (used to seed/reset per-turn state)
 

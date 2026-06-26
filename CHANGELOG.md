@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stream: make terminal pending-turn handoff depend only on the
+  explicit pending bridge identity, removing raw workspace message-tail scans
+  from stale-turn filtering. No migration required.
 - frontend/pending-turn: remove attachment filename metadata from renderer
   pending-turn state and bridge rows; filename compatibility stays on the SDK
   send command while SDK display rows own visible attachment metadata. No

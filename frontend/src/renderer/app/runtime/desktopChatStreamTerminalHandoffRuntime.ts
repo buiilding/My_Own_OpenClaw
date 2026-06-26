@@ -4,18 +4,11 @@
 
 import type { StreamPhase } from './desktopChatStreamTrackingRuntime';
 
-type StreamGuardMessage = {
-  sender?: string | null;
-  isComplete?: boolean | null;
-  turnRef?: string | null;
-};
-
 type StreamGuardPendingTurn = {
   turnRef?: string | null;
 };
 
 export type StreamGuardWorkspace = {
-  messages: StreamGuardMessage[];
   pendingTurn?: StreamGuardPendingTurn | null;
   streamTracking: {
     phase: StreamPhase;
@@ -63,23 +56,6 @@ function hasTerminalPendingHandoff(workspace: StreamGuardWorkspace): boolean {
   );
 }
 
-function hasOptimisticPendingUserTurn(workspace: StreamGuardWorkspace): boolean {
-  const lastMessage = workspace.messages[workspace.messages.length - 1];
-  return lastMessage?.sender === 'user';
-}
-
-function hasIncompleteCurrentTurnAssistantPlaceholder(
-  workspace: StreamGuardWorkspace,
-  eventTurnRef: string,
-): boolean {
-  const lastMessage = workspace.messages[workspace.messages.length - 1];
-  return (
-    lastMessage?.sender === 'assistant'
-    && lastMessage?.isComplete === false
-    && normalizeTurnRef(lastMessage?.turnRef) === eventTurnRef
-  );
-}
-
 function shouldIgnoreForTerminalPendingHandoff(
   workspace: StreamGuardWorkspace,
   eventTurnRef: string,
@@ -98,10 +74,7 @@ function shouldIgnoreForTerminalPendingHandoff(
   if (!activeTurnRef || eventTurnRef !== activeTurnRef) {
     return false;
   }
-  if (hasIncompleteCurrentTurnAssistantPlaceholder(workspace, eventTurnRef)) {
-    return false;
-  }
-  return hasOptimisticPendingUserTurn(workspace) === false;
+  return eventTurnRef !== pendingTurnRef;
 }
 
 export const DesktopChatStreamTerminalHandoffRuntime = Object.freeze({

@@ -161,8 +161,8 @@ replay/store compatibility adapters and low-level artifact helpers.
   show awaiting state and stop can target the real outgoing `turnRef`; an
   echoed pending-turn broadcast for the same conversation/user/turn/text is a
   no-op so renderer IPC fan-out cannot repaint the existing user bubble.
-  Pending turns preserve only identity, text, timestamp, and transport filename
-  metadata; visible attachment descriptors belong to SDK display rows. When a
+  Pending turns preserve only identity, text, and timestamp; visible filename
+  and attachment descriptors belong to SDK display rows. When a
   `ConversationView` is already present, accept-pending preserves the raw
   workspace `messages` list and stores only `pendingTurn`, because presentation
   projects the short bridge from `pendingTurn` directly. The pending user-row
@@ -186,6 +186,9 @@ replay/store compatibility adapters and low-level artifact helpers.
   mutation live in
   `desktopChatPendingTurnStateRuntime.ts`, including the pending-turn broadcast
   clear path.
+- Terminal stream handoff during `idle`, `complete`, or `error` phases uses
+  the explicit `pendingTurn` bridge identity only; it does not scan raw
+  workspace message tails for optimistic user rows or assistant placeholders.
 - `acceptStoppedTurnInChatStore(...)` immediately clears local busy/thinking
   state, clears a matching pending turn, patches stream tracking to terminal
   `complete`, and terminalizes the matching SDK live turn while preserving any

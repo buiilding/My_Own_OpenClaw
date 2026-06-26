@@ -780,6 +780,9 @@ describe('renderer chat runtime boundary', () => {
     expect(trackingRuntimeSource).not.toContain('export function applyTrackingEvent');
     expect(terminalHandoffRuntimeSource).toContain('export const DesktopChatStreamTerminalHandoffRuntime = Object.freeze');
     expect(terminalHandoffRuntimeSource).toContain('pendingTurn');
+    expect(terminalHandoffRuntimeSource).not.toContain('messages:');
+    expect(terminalHandoffRuntimeSource).not.toContain('workspace.messages');
+    expect(terminalHandoffRuntimeSource).not.toContain('lastMessage');
     expect(terminalHandoffRuntimeSource).not.toContain('isSending');
     expect(terminalHandoffRuntimeSource).not.toContain('export function normalizeTurnRef');
     expect(terminalHandoffRuntimeSource).not.toContain('export function isAwaitingFirstChunkMismatch');
