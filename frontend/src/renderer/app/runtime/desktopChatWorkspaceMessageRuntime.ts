@@ -5,14 +5,6 @@
 import type {
   ChatMessage,
 } from './desktopChatMessageTypes';
-import {
-  DesktopChatStreamMessageUpdateRuntime,
-} from './desktopChatStreamMessageUpdateRuntime';
-
-const {
-  findLastAssistantLlmTextMessageId,
-  findLastMessageIdBySender,
-} = DesktopChatStreamMessageUpdateRuntime;
 
 type TurnConversationRefs = Record<string, string>;
 
@@ -40,6 +32,13 @@ type StreamMessageTarget =
       kind: 'last_assistant_llm_text';
       turnRef?: string | null;
     };
+
+type ChatStreamMessageTarget = {
+  id: string;
+  sender?: string | null;
+  type?: string | null;
+  turnRef?: string | null;
+};
 
 type MessageStateDependencies<
   TState extends MessageStateSnapshot,
@@ -143,6 +142,49 @@ function buildUpdateMessageStateUpdate<
   return deps.buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
     turnConversationRefs: nextTurnConversationRefs,
   } as Partial<TState>);
+}
+
+function findLastMessage(
+  messages: ChatStreamMessageTarget[],
+  predicate: (message: ChatStreamMessageTarget) => boolean,
+): ChatStreamMessageTarget | null {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (predicate(message)) {
+      return message;
+    }
+  }
+  return null;
+}
+
+function findLastMessageIdBySender(
+  messages: ChatStreamMessageTarget[],
+  sender: string,
+  turnRef?: string,
+): string | null {
+  const lastMessage = findLastMessage(
+    messages,
+    (message) => (
+      message.sender === sender
+      && (!turnRef || message.turnRef === turnRef)
+    ),
+  );
+  return lastMessage ? lastMessage.id : null;
+}
+
+function findLastAssistantLlmTextMessageId(
+  messages: ChatStreamMessageTarget[],
+  turnRef?: string,
+): string | null {
+  const lastMessage = findLastMessage(
+    messages,
+    (message) => (
+      message.sender === 'assistant'
+      && message.type === 'llm-text'
+      && (!turnRef || message.turnRef === turnRef)
+    ),
+  );
+  return lastMessage ? lastMessage.id : null;
 }
 
 function resolveStreamMessageTargetId(

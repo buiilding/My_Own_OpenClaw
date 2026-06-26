@@ -1391,6 +1391,8 @@ describe('renderer chat runtime boundary', () => {
       expect(source).not.toContain('export function findLastMessageIdBySender');
       expect(source).not.toContain('export function findLastAssistantLlmTextMessageId');
       expect(source).not.toContain('export function findFirstMessageIdBySender');
+      expect(source).not.toContain('function findLastMessageIdBySender');
+      expect(source).not.toContain('function findLastAssistantLlmTextMessageId');
       expect(source).not.toContain('function findFirstMessageIdBySender');
       expect(source).not.toContain('export function buildSystemPromptUpdate');
       expect(source).not.toContain('export function buildUserMessageFullUpdate');

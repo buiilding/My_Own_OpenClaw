@@ -8,27 +8,9 @@ const {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
   buildUserMessageFullUpdate,
-  findLastAssistantLlmTextMessageId,
-  findLastMessageIdBySender,
 } = DesktopChatStreamMessageUpdateRuntime;
 
 describe('desktopChatStreamMessageUpdateRuntime', () => {
-  const messages = [
-    { id: 'u1', sender: 'user', text: 'hello', turnRef: 'turn-1' },
-    { id: 'a1', sender: 'assistant', text: 'one', type: 'llm-text', isComplete: true, turnRef: 'turn-1' },
-    { id: 'u2', sender: 'user', text: 'again', turnRef: 'turn-2' },
-    { id: 'a2', sender: 'assistant', text: 'two', type: 'tool-output', turnRef: 'turn-2' },
-    { id: 'a3', sender: 'assistant', text: 'three', type: 'llm-text', isComplete: false, turnRef: 'turn-2' },
-  ] as any;
-
-  test('findLastMessageIdBySender selects expected ids', () => {
-    expect(findLastMessageIdBySender(messages, 'user')).toBe('u2');
-    expect(findLastMessageIdBySender(messages, 'assistant')).toBe('a3');
-    expect(findLastMessageIdBySender(messages, 'assistant', 'turn-1')).toBe('a1');
-    expect(findLastMessageIdBySender(messages, 'assistant', 'turn-3')).toBeNull();
-    expect(findLastAssistantLlmTextMessageId(messages, 'turn-2')).toBe('a3');
-  });
-
   test('payload update builders normalize missing or non-string content', () => {
     expect(
       buildSystemPromptUpdate({
