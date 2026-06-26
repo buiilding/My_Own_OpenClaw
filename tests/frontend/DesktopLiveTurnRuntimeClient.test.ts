@@ -32,7 +32,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({ ok: true, messageId: 'turn-accepted' });
   });
 
-  test('sendQuery routes query payloads through SDK-shaped command invoke', async () => {
+  test('sendQuery routes canonical query payload fields through SDK-shaped command invoke', async () => {
     const { DesktopLiveTurnRuntimeClient } = require(
       '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
     );
@@ -40,11 +40,6 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     await DesktopLiveTurnRuntimeClient.sendQuery({
       text: 'hello',
       conversationRef: 'conv-send',
-      screenshotRef: ' artifact-main ',
-      screenshotUrl: ' https://cdn.example/shot.png ',
-      screenshotRefs: [' artifact-1 ', '   ', '', 'artifact-2'],
-      captureMeta: { source: 'chat' },
-      attachmentContext: ' file context ',
       attachmentFilenames: [' notes.txt ', '   ', 'image.png'],
       workspacePath: ' /workspace/project-alpha ',
       resources: [{
@@ -62,11 +57,6 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', {
       text: 'hello',
       conversation_ref: 'conv-send',
-      screenshot_ref: 'artifact-main',
-      screenshot_url: 'https://cdn.example/shot.png',
-      screenshot_refs: ['artifact-1', 'artifact-2'],
-      capture_meta: { source: 'chat' },
-      attachment_context: 'file context',
       attachment_filenames: ['notes.txt', 'image.png'],
       workspace_path: '/workspace/project-alpha',
       resources: [{
@@ -82,6 +72,11 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       memory_retrieval_enabled: true,
     });
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('turn_ref');
+    expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('screenshot_ref');
+    expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('screenshot_url');
+    expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('screenshot_refs');
+    expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('capture_meta');
+    expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('attachment_context');
   });
 
   test('sendQuery throws a generic runtime fallback when command invoke fails without an error', async () => {

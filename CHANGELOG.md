@@ -17,6 +17,10 @@ All notable changes to WindieOS will be documented in this file.
   compatibility re-export; renderer display-row projection tests and docs now
   target `DesktopSdkDisplayChatMessageProjectionRuntime` directly. No
   migration required.
+- frontend/send: remove screenshot and attachment-context alias inputs from
+  `DesktopLiveTurnRuntimeClient.sendQuery`; normal renderer sends now pass
+  typed SDK resources plus filename chips and leave screenshot/context payload
+  assembly to SDK resource resolution. No migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.
