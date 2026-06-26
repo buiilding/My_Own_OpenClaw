@@ -228,21 +228,6 @@ describe('desktopConversationDisplayProjection', () => {
   });
 
   test('builds conversation-view messages without replacing SDK user rows with pending bridge rows', () => {
-    const optimisticUser = message({
-      id: 'renderer-user-edit',
-      sender: 'user',
-      text: 'edited prompt',
-      turnRef: 'turn-edit',
-      sourceEventType: 'renderer-compose',
-      sourceChannel: 'renderer-local',
-      attachments: [{
-        id: 'renderer-only-attachment',
-        kind: 'image',
-        source: 'user_included',
-        status: 'ready',
-      }],
-      isComplete: true,
-    });
     const conversationView = {
       conversationRef: 'conv-1',
       revisionId: 'rev-1',
@@ -262,7 +247,6 @@ describe('desktopConversationDisplayProjection', () => {
 
     expect(buildConversationViewChatMessages({
       conversationView,
-      currentMessages: [optimisticUser],
       pendingTurn: {
         turnRef: 'turn-edit',
         userMessageId: 'renderer-user-edit',
@@ -278,7 +262,6 @@ describe('desktopConversationDisplayProjection', () => {
     ]);
     expect(buildConversationViewChatMessages({
       conversationView,
-      currentMessages: [optimisticUser],
       pendingTurn: {
         turnRef: 'turn-edit',
         userMessageId: 'renderer-user-edit',
@@ -288,7 +271,6 @@ describe('desktopConversationDisplayProjection', () => {
     })[0]).not.toHaveProperty('attachments');
     expect(buildConversationViewChatMessages({
       conversationView,
-      currentMessages: [optimisticUser],
       preserveRendererAnnotations: false,
     })).toEqual([
       expect.objectContaining({
@@ -319,12 +301,6 @@ describe('desktopConversationDisplayProjection', () => {
 
     expect(buildConversationViewChatMessages({
       conversationView,
-      currentMessages: [message({
-        id: 'assistant-1',
-        sender: 'assistant',
-        text: 'stale renderer answer',
-        turnRef: 'turn-stale',
-      })],
       rendererAnnotations: [{
         id: 'assistant-1',
         feedback: 'like',

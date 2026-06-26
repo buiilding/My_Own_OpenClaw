@@ -54,7 +54,6 @@ type RendererMessageAnnotation = {
 
 type BuildConversationViewMessagesInput = {
   conversationView?: ConversationView | null;
-  currentMessages?: ChatMessage[];
   pendingTurn?: PendingTurnLike;
   preserveRendererAnnotations?: boolean;
   rendererAnnotations?: RendererMessageAnnotation[];
@@ -184,7 +183,6 @@ function selectRendererMessageAnnotations(messages: ChatMessage[] = []): Rendere
 
 function buildConversationViewChatMessages({
   conversationView = null,
-  currentMessages = [],
   pendingTurn = null,
   preserveRendererAnnotations = false,
   rendererAnnotations = [],
@@ -201,7 +199,7 @@ function buildConversationViewChatMessages({
   }
   return mergeRendererAnnotationsIntoSdkMessages(
     sdkMessages,
-    rendererAnnotations.length > 0 ? rendererAnnotations : currentMessages,
+    rendererAnnotations,
     { pendingTurn },
   );
 }

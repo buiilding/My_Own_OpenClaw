@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
   optimistic user rows forward beside SDK display rows; the display adapter now
   admits only the explicit `pendingTurn` bridge as the local pre-SDK-row
   fallback. No migration required.
+- frontend/projection: remove the raw `currentMessages` fallback from
+  `buildConversationViewChatMessages`; conversation-view projection now accepts
+  only renderer annotation records plus the explicit pending bridge. No
+  migration required.
 - frontend/send: split the send-history read model into
   `selectChatSendReadModel(...)` so `useChatMessageSender` no longer depends on
   the full `selectChatInterfaceState(...)` UI selector. No migration required.
