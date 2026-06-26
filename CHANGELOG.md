@@ -46,6 +46,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/replay: remove the internal `replayFallbackMessages` presentation
   field so chat selectors no longer construct a replay row model beside SDK
   command intent. No migration required.
+- frontend/surface: null raw current-turn projection inside chat surface
+  projection whenever SDK `ConversationView` exists, keeping live surface
+  state view-owned with only the pending bridge as a local fallback. No
+  migration required.
 - frontend/stop: remove legacy raw `ConversationView`, `pendingTurn`, and
   session-ref inputs from `useStopTurnHandler`; stop-target selection now stays
   in `DesktopChatInterfaceSelectorRuntime` and the hook consumes only the

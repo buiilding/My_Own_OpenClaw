@@ -57,19 +57,20 @@ function buildChatSurfaceControllerState({
 } = {}) {
   const hasConversationView = isObject(conversationView);
   const rendererFallbackMessages = hasConversationView ? [] : messages;
+  const effectiveCurrentTurnProjection = hasConversationView ? null : currentTurnProjection;
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
     activeConversationRef: resolveSurfaceConversationRef({
       conversationView,
-      currentTurnProjection,
+      currentTurnProjection: effectiveCurrentTurnProjection,
       sessionConversationRef,
     }),
     pendingTurn,
-    currentTurnProjection,
+    currentTurnProjection: effectiveCurrentTurnProjection,
     conversationView,
     messages: rendererFallbackMessages,
   });
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
-    currentTurnProjection,
+    currentTurnProjection: effectiveCurrentTurnProjection,
     conversationView,
     pendingTurn,
     messages: rendererFallbackMessages,

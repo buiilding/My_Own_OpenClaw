@@ -46,6 +46,8 @@ describe('DesktopChatSurfaceRuntime', () => {
       liveTurnPhase: 'streaming',
       liveTurnSource: 'conversation-view',
     });
+    expect(state.visibleTurnLifecycle.conversationRef).toBe('conv-1');
+    expect(state.visibleTurnLifecycle.turnRef).toBe('turn-1');
     expect(state.currentTurnPresentationState.activeResponse).toBeNull();
   });
 
