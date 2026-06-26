@@ -241,8 +241,8 @@ describe('desktopChatPillSessionRuntime', () => {
           },
         },
       },
-      liveTurnPhase: 'streaming',
-      liveTurnSource: 'conversation-view',
+      surfacePhase: 'streaming',
+      surfaceSource: 'conversation-view',
       sessionConversationRef: 'conv-1',
       stopAvailable: true,
     });

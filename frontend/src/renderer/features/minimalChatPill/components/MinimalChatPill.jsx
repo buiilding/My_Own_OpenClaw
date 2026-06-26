@@ -97,8 +97,8 @@ function MinimalChatPill() {
     includeQueryScreenshot,
     canStop: stopAvailable,
     isBusy: loopInteractionLocked,
-    liveTurnPhase,
-    liveTurnSource,
+    surfacePhase,
+    surfaceSource,
     speechModeEnabled,
     wakewordSttEnabled,
   } = chatSurface;
@@ -248,8 +248,8 @@ function MinimalChatPill() {
     const stateTraceSnapshot = buildChatPillStateTraceSnapshot({
       busy: loopInteractionLocked,
       chatSurfaceState,
-      liveTurnPhase,
-      liveTurnSource,
+      surfacePhase,
+      surfaceSource,
       sessionConversationRef: sessionInfo?.conversationRef || null,
       stopAvailable,
     });
@@ -260,10 +260,10 @@ function MinimalChatPill() {
     logRendererChatPillStateTrace(stateTraceSnapshot.trace);
   }, [
     chatSurfaceState,
-    liveTurnPhase,
-    liveTurnSource,
     loopInteractionLocked,
     sessionInfo?.conversationRef,
+    surfacePhase,
+    surfaceSource,
     stopAvailable,
   ]);
 

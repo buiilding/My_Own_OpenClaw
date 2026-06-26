@@ -133,6 +133,12 @@ describe('renderer chat runtime boundary', () => {
 
     expect(hookSource).toContain('DesktopChatSurfaceRuntime');
     expect(hookSource).toContain('buildChatSurfaceControllerStateFromSurfaceState');
+    expect(hookSource).toContain('liveTurnPhase: surfacePhase');
+    expect(hookSource).toContain('liveTurnSource: surfaceSource');
+    expect(hookSource).toContain('surfacePhase');
+    expect(hookSource).toContain('surfaceSource');
+    expect(hookSource).not.toContain('liveTurnPhase,');
+    expect(hookSource).not.toContain('liveTurnSource,');
     expect(hookSource).not.toContain('buildChatSurfaceControllerState({');
     expect(hookSource).not.toContain('currentTurnProjection = null');
     expect(hookSource).not.toContain('conversationView = null');
@@ -152,6 +158,18 @@ describe('renderer chat runtime boundary', () => {
     expect(surfaceRuntimeSource).toContain('conversationView?.surfaces');
     expect(surfaceRuntimeSource).toContain('conversationView?.liveTurn?.canStop');
     expect(surfaceRuntimeSource).not.toContain('features/chat');
+  });
+
+  test('minimal chat pill consumes neutral surface trace fields', async () => {
+    const minimalPillSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx'),
+      'utf8',
+    );
+
+    expect(minimalPillSource).toContain('surfacePhase');
+    expect(minimalPillSource).toContain('surfaceSource');
+    expect(minimalPillSource).not.toContain('liveTurnPhase');
+    expect(minimalPillSource).not.toContain('liveTurnSource');
   });
 
   test('chat runtime hooks read app config through renderer config runtime facade', async () => {

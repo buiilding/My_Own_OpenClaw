@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/surfaces: expose neutral `surfacePhase`/`surfaceSource` names from
+  the chat surface hook and pill trace helper while keeping runtime trace output
+  compatible with existing live-turn telemetry. No migration required.
 - frontend/overlay: move response overlay surface-state resolution into
   `DesktopResponseOverlayViewRuntime`; the overlay view-model hook now receives
   one resolved surface state instead of unpacking `ConversationView`,

@@ -52,8 +52,8 @@ export function useChatSurfaceController({
     canStop,
     currentTurnPresentationState,
     isBusy,
-    liveTurnPhase,
-    liveTurnSource,
+    liveTurnPhase: surfacePhase,
+    liveTurnSource: surfaceSource,
     visibleTurnLifecycle,
   } = surfaceState;
   const speechModeEnabled = config?.speech_mode_enabled === true;
@@ -105,8 +105,8 @@ export function useChatSurfaceController({
     includeQueryScreenshot,
     isBusy,
     canStop,
-    liveTurnPhase,
-    liveTurnSource,
+    surfacePhase,
+    surfaceSource,
     visibleTurnLifecycle,
     speechModeEnabled,
     toggleBooleanConfig,

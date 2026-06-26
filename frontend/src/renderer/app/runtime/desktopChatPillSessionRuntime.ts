@@ -158,16 +158,16 @@ function buildChatPillLifecycleTraceSnapshot({
 function buildChatPillStateTraceSnapshot({
   busy,
   chatSurfaceState = null,
-  liveTurnPhase = null,
-  liveTurnSource = null,
   sessionConversationRef = null,
+  surfacePhase = null,
+  surfaceSource = null,
   stopAvailable,
 }: {
   busy: boolean;
   chatSurfaceState?: ChatPillSurfaceState;
-  liveTurnPhase?: string | null;
-  liveTurnSource?: string | null;
   sessionConversationRef?: string | null;
+  surfacePhase?: string | null;
+  surfaceSource?: string | null;
   stopAvailable: boolean;
 }) {
   const currentTurnProjection = chatSurfaceState?.currentTurnProjection ?? null;
@@ -182,8 +182,8 @@ function buildChatPillStateTraceSnapshot({
       busy,
       currentTurnPhase,
       currentTurnRef,
-      liveTurnPhase: normalizeOptionalString(liveTurnPhase),
-      liveTurnSource: normalizeOptionalString(liveTurnSource),
+      liveTurnPhase: normalizeOptionalString(surfacePhase),
+      liveTurnSource: normalizeOptionalString(surfaceSource),
       viewCanStop,
       viewPillMode,
       viewTurnRef,
@@ -192,8 +192,8 @@ function buildChatPillStateTraceSnapshot({
       conversationRef: normalizeOptionalString(sessionConversationRef),
       turnRef: currentTurnRef,
       currentTurnPhase,
-      liveTurnPhase: normalizeOptionalString(liveTurnPhase),
-      liveTurnSource: normalizeOptionalString(liveTurnSource),
+      liveTurnPhase: normalizeOptionalString(surfacePhase),
+      liveTurnSource: normalizeOptionalString(surfaceSource),
       busy,
       stopAvailable,
       messageCount: Array.isArray(chatSurfaceState?.messages)

@@ -248,8 +248,8 @@ describe('useChatSurfaceController', () => {
     expect(result.current).toMatchObject({
       isBusy: true,
       canStop: false,
-      liveTurnPhase: 'awaiting-first-chunk',
-      liveTurnSource: 'current-turn',
+      surfacePhase: 'awaiting-first-chunk',
+      surfaceSource: 'current-turn',
     });
     expect(result.current.currentTurnPresentationState).toMatchObject({
       awaitingDotTargetMessageId: 'user-2',
@@ -311,7 +311,7 @@ describe('useChatSurfaceController', () => {
     expect(result.current).toMatchObject({
       isBusy: true,
       canStop: true,
-      liveTurnSource: 'pending-turn',
+      surfaceSource: 'pending-turn',
       visibleTurnLifecycle: expect.objectContaining({
         status: 'local_pending',
         source: 'local',
@@ -352,7 +352,7 @@ describe('useChatSurfaceController', () => {
     expect(result.current).toMatchObject({
       isBusy: false,
       canStop: false,
-      liveTurnSource: 'current-turn',
+      surfaceSource: 'current-turn',
       visibleTurnLifecycle: expect.objectContaining({
         status: 'terminal',
       }),
