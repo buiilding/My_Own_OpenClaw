@@ -206,10 +206,11 @@ UI adapters:
   `attachments[]`, compatibility screenshot refs/URLs, `executionTime`,
   `success`, and `executionSkipped`. SDK projection builds live tool-call
   preview text from recovery previews or normalized tool identity/arguments, so
-  renderer adapters should render live tool calls from entry `text` and typed
-  display fields instead of decoding `modelFacingToolCall`, backend-wire event
-  payloads, or whole-message screenshot aliases. Screenshot aliases remain
-  compatibility metadata for replay/provider boundaries.
+  renderer adapters should render live tool calls and tool outputs from entry
+  `text` and typed display fields instead of decoding `modelFacingToolCall`,
+  `toolOutputDetails`, backend-wire event payloads, or whole-message screenshot
+  aliases. Screenshot aliases remain compatibility metadata for replay/provider
+  boundaries.
 
 Runtime snapshots also expose `snapshot.view`, and callers may use
 `conversation.getView()` or `conversation.subscribeView(...)` for the Phase 0

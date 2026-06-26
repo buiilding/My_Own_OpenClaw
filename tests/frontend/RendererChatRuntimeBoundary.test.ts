@@ -3486,6 +3486,11 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('toolCallDetails');
     expect(source).toContain('toolOutputDetails');
     expect(source).toContain('buildCurrentTurnMessagesFromSdkLiveTurn');
+    expect(source).not.toContain('formatProjectedToolOutputText');
+    expect(source).not.toContain('stepResults');
+    expect(source).not.toContain('step_results');
+    expect(source).not.toContain('payload.output');
+    expect(source).not.toContain('payload.error');
     expect(source).not.toContain('buildCurrentTurnMessagesFromProjection');
     expect(source).not.toContain('toolEvent.payload');
     expect(source).not.toContain('modelFacingToolCall: toolCallState');

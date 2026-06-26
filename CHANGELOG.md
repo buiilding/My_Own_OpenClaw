@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: render legacy no-view tool outputs from SDK-provided
+  `toolEvent.text` instead of reconstructing display text from
+  `toolOutputDetails` result payloads. No migration required.
 - sdk/frontend: add SDK-authored `displayCorrelationId` on display-row
   metadata and make the renderer display-row adapter read only that field for
   component correlation identity, removing request/bundle/tool-call fallback

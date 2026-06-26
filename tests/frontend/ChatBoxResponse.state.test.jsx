@@ -301,7 +301,7 @@ describe('ChatBoxResponse state behavior', () => {
     expect(toolMessage.text).not.toContain('wrong.md');
   });
 
-  test('buildCurrentTurnMessagesFromSdkLiveTurn ignores raw payload details for tool output', () => {
+  test('buildCurrentTurnMessagesFromSdkLiveTurn renders SDK tool-output text', () => {
     const messages = buildCurrentTurnMessagesFromSdkLiveTurn({
       conversationRef: 'conv-test',
       turnRef: 'turn-live',
@@ -315,7 +315,7 @@ describe('ChatBoxResponse state behavior', () => {
         toolName: 'read_file',
         requestId: 'req-read',
         correlationId: 'corr-read',
-        text: '',
+        text: 'README contents',
         toolOutputDetails: {
           output: 'README contents',
           success: true,
@@ -553,7 +553,7 @@ describe('ChatBoxResponse state behavior', () => {
       },
       {
         id: 'tool-call-1',
-        text: '{\n  "name": "click"\n}',
+        text: 'Click the submit button',
         sender: 'assistant',
         type: 'tool-call',
         sourceEventType: 'tool-call',
@@ -581,7 +581,7 @@ describe('ChatBoxResponse state behavior', () => {
       { id: 'user-1', text: 'run command', sender: 'user' },
       {
         id: 'tool-call-1',
-        text: '{\n  "name": "open_app"\n}',
+        text: 'Open the Settings app',
         sender: 'assistant',
         type: 'tool-call',
         sourceEventType: 'tool-call',
@@ -608,7 +608,7 @@ describe('ChatBoxResponse state behavior', () => {
       { id: 'user-1', text: 'run command', sender: 'user' },
       {
         id: 'tool-call-1',
-        text: '{\n  "name": "run_shell_command"\n}',
+        text: 'Verify the currently focused workspace',
         sender: 'assistant',
         type: 'tool-call',
         sourceEventType: 'tool-call',

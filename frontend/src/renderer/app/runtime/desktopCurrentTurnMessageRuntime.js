@@ -114,38 +114,6 @@ function buildProjectedToolCallMessage({
   });
 }
 
-function formatProjectedToolOutputText(payload) {
-  const bundleSteps = [
-    payload.stepResults,
-    payload.step_results,
-    payload.results,
-  ].find(Array.isArray);
-  if (Array.isArray(bundleSteps) && bundleSteps.length > 0) {
-    return bundleSteps
-      .map((step, index) => {
-        const stepRecord = asObject(step) || {};
-        const outputRecord = asObject(stepRecord.output) || asObject(stepRecord.result) || {};
-        const outputText = readString(outputRecord.output)
-          || readString(outputRecord.content)
-          || readString(outputRecord.message)
-          || readString(stepRecord.output)
-          || readString(stepRecord.result)
-          || readString(stepRecord.error)
-          || JSON.stringify(stepRecord, null, 2);
-        const toolName = readString(stepRecord.toolName) || readString(stepRecord.tool_name) || readString(stepRecord.tool);
-        return `${toolName || 'step'} #${index + 1}\n${outputText}`;
-      })
-      .join('\n\n');
-  }
-  if (typeof payload.output === 'string' && payload.output.length > 0) {
-    return payload.output;
-  }
-  if (payload.error) {
-    return `Error: ${payload.error}`;
-  }
-  return 'No output';
-}
-
 function buildProjectedToolOutputMessage({
   baseId,
   turnRef,
@@ -153,6 +121,7 @@ function buildProjectedToolOutputMessage({
 }) {
   const toolOutputDetails = asObject(toolEvent.toolOutputDetails) || {};
   const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);
+  const toolName = readString(toolEvent.toolName);
   const requestId = readString(toolEvent.requestId);
   const correlationId = (
     readString(toolEvent.correlationId)
@@ -160,14 +129,16 @@ function buildProjectedToolOutputMessage({
     || undefined
   );
   const attachments = readSdkDisplayAttachments(toolEvent.attachments);
+  const outputText = normalizeText(toolEvent.text)
+    || (toolName ? `${toolName} completed` : 'Tool completed');
   return buildToolOutputChatMessageState({
     id: `${baseId}:tool:${toolEvent.id}`,
-    outputText: toolEvent.text || formatProjectedToolOutputText(toolOutputDetails),
+    outputText,
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
     attachments,
     toolMetadata: asObject(toolEvent.toolMetadata),
-    toolName: readString(toolEvent.toolName),
+    toolName,
     executionTime: typeof toolEvent.executionTime === 'number' ? toolEvent.executionTime : null,
     success: typeof toolEvent.success === 'boolean' ? toolEvent.success : null,
     correlationId,

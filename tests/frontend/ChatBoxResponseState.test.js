@@ -95,7 +95,7 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     ]));
   });
 
-  test('buildCurrentTurnMessagesFromSdkLiveTurn renders tool-bundle-output step content', () => {
+  test('buildCurrentTurnMessagesFromSdkLiveTurn renders SDK tool-output text', () => {
     const messages = buildCurrentTurnMessagesFromSdkLiveTurn({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
@@ -108,6 +108,7 @@ describe('desktopCurrentTurnMessageRuntime', () => {
         kind: 'tool_output',
         toolName: 'tool_bundle',
         status: 'success',
+        text: 'read_file #1\nREADME contents',
         toolOutputDetails: {
           bundleId: 'bundle-read',
           stepResults: [{
