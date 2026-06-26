@@ -63,6 +63,17 @@ function recordFromUnknown(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function isConversationView(value: unknown): boolean {
+  const view = recordFromUnknown(value);
+  return Boolean(
+    view.conversationRef
+      || view.displayRows
+      || view.liveTurn
+      || view.surfaces
+      || view.actions,
+  );
+}
+
 function buildResponseOverlayDismissalKey({
   conversationRef,
   turnRef,
@@ -86,7 +97,9 @@ function resolveResponseOverlaySurfaceState({
 } = {}) {
   const surfaceState = recordFromUnknown(chatSurfaceState);
   const messages = Array.isArray(surfaceState.messages) ? surfaceState.messages : [];
-  const conversationView = surfaceState.conversationView ?? null;
+  const conversationView = isConversationView(surfaceState.conversationView)
+    ? surfaceState.conversationView
+    : null;
   const currentTurnProjection = conversationView ? null : surfaceState.currentTurnProjection ?? null;
   const pendingTurn = surfaceState.pendingTurn ?? null;
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
@@ -156,7 +169,7 @@ function resolveResponseOverlayEntries({
   if (liveTurnPresentationInput.useLocalPendingTurn) {
     return [];
   }
-  if (liveTurnPresentationInput.source === 'conversation-view') {
+  if (isConversationView(conversationView)) {
     return buildConversationViewLiveTurnMessages(conversationView)
       .filter(isVisibleResponseOverlayMessage);
   }

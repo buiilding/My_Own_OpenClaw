@@ -60,6 +60,24 @@ describe('desktopResponseOverlayViewRuntime', () => {
     ]);
   });
 
+  test('does not require a source flag before ConversationView blocks raw overlay rows', () => {
+    expect(resolveResponseOverlayEntries({
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: {
+          turnRef: 'turn-view',
+          entries: [],
+        },
+      },
+      currentTurnProjection: {
+        conversationRef: 'conv-raw',
+        turnRef: 'turn-raw',
+        assistantText: 'stale raw projection',
+      },
+      liveTurnPresentationInput: {},
+    })).toEqual([]);
+  });
+
   test('falls back to raw current-turn projection only when sdk presentation has no visible rows', () => {
     expect(resolveResponseOverlayEntries({
       currentTurnProjection: {

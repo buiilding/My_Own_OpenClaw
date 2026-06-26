@@ -78,6 +78,10 @@ All notable changes to WindieOS will be documented in this file.
   live-surface and visible-lifecycle runtimes, preventing stale raw
   current-turn projections from resurfacing through direct runtime calls. No
   migration required.
+- frontend/overlay: make response overlay row projection treat
+  `ConversationView` itself as the SDK authority, preventing stale raw
+  current-turn overlay rows even when a caller omits the view source flag. No
+  migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.
