@@ -377,7 +377,6 @@ describe('chatStore', () => {
         turnRef: 'turn-pending',
         sourceEventType: 'renderer-compose',
         sourceChannel: 'renderer-local',
-        attachmentFilenames: ['note.txt'],
         attachments: null,
       }),
     ]);

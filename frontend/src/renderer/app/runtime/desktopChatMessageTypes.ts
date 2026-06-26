@@ -27,7 +27,6 @@ export interface ChatMessage {
   sourceEventType?: string | null;
   sourceChannel?: string | null;
   isComplete?: boolean;
-  attachmentFilenames?: string[] | null;
   attachments?: SdkDisplayAttachment[] | null;
   modelId?: string | null;
   modelProvider?: string | null;

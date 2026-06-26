@@ -57,7 +57,6 @@ function buildPendingTurnUserMessage(pendingTurn) {
     sourceChannel: 'renderer-local',
     isComplete: true,
     timestamp: pendingTurn.timestamp,
-    attachmentFilenames: pendingTurn.attachmentFilenames,
     attachments: null,
   };
 }

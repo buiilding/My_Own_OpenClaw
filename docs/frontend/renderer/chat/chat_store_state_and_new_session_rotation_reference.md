@@ -77,7 +77,8 @@ Message attachment fields used by current renderer message paths:
 - `attachments[]`: SDK typed display descriptors for visible image, screenshot
   request, pending, and failed attachment states.
 - `attachmentFilenames[]`: filename metadata for the short pending bridge and
-  diagnostics only; it is not a visible attachment fallback.
+  send transport only; it is not part of visible `ChatMessage` rows and is not
+  a display attachment fallback.
 
 Whole-message screenshot aliases such as `screenshot`, `screenshotRef`,
 `screenshotUrl`, and `screenshots[]` are not part of the renderer
@@ -159,8 +160,8 @@ replay/store compatibility adapters and low-level artifact helpers.
   show awaiting state and stop can target the real outgoing `turnRef`; an
   echoed pending-turn broadcast for the same conversation/user/turn/text is a
   no-op so renderer IPC fan-out cannot repaint the existing user bubble.
-  Pending turns preserve only identity, text, timestamp, and filename chips;
-  visual attachment descriptors belong to SDK display rows. When a
+  Pending turns preserve only identity, text, timestamp, and transport filename
+  metadata; visible attachment descriptors belong to SDK display rows. When a
   `ConversationView` is already present, accept-pending preserves the raw
   workspace `messages` list and stores only `pendingTurn`, because presentation
   projects the short bridge from `pendingTurn` directly. The pending user-row

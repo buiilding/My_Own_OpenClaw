@@ -74,7 +74,6 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
       sourceChannel: 'renderer-local',
       isComplete: true,
       timestamp: '2026-06-25T12:00:00.000Z',
-      attachmentFilenames: ['image.png'],
       attachments: null,
     });
   });

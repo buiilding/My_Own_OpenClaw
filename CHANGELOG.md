@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: remove `attachmentFilenames` from visible
+  `ChatMessage` rows and renderer-local pending user bubbles, leaving filename
+  metadata on pending/send transport only while SDK `attachments[]` owns visual
+  attachment state. No migration required.
 - frontend/state: remove the raw `currentTurnProjection` key from selected chat
   read models, exposing the no-view live fallback only as `sdkLiveTurn`. No
   migration required.

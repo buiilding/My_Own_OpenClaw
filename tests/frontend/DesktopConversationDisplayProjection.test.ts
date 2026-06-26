@@ -359,7 +359,6 @@ describe('desktopConversationDisplayProjection', () => {
       turnRef: 'turn-1',
       sourceEventType: 'renderer-compose',
       sourceChannel: 'renderer-local',
-      attachmentFilenames: ['clipboard-image.png'],
       attachments: [{
         id: 'turn-1:attachment:000',
         kind: 'image',

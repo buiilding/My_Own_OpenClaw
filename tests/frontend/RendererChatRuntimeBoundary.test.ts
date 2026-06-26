@@ -1312,6 +1312,7 @@ describe('renderer chat runtime boundary', () => {
     expect(attachmentRendererRegistrySource).not.toContain('screenshotRef: PropTypes');
     expect(attachmentRendererRegistrySource).not.toContain('screenshotUrl: PropTypes');
     expect(messageTypeSource).toContain('attachments?: SdkDisplayAttachment[] | null');
+    expect(messageTypeSource).not.toContain('attachmentFilenames?:');
     expect(messageTypeSource).not.toContain('screenshot?:');
     expect(messageTypeSource).not.toContain('screenshotRef?:');
     expect(messageTypeSource).not.toContain('screenshotUrl?:');
