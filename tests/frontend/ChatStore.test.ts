@@ -349,7 +349,7 @@ describe('chatStore', () => {
     ]);
   });
 
-  test('acceptPendingTurn adds the optimistic user row and marks the conversation busy', () => {
+  test('acceptPendingTurn adds the pending bridge user row and marks the conversation busy', () => {
     acceptPendingTurnInChatStore({
       conversationRef: 'conv-pending',
       turnRef: 'turn-pending',

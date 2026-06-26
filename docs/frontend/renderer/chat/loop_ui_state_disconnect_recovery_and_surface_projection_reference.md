@@ -213,7 +213,7 @@ status text remains on the chat-interface selector path.
 It suppresses raw workspace `messages[]` when a `ConversationView` exists, so
 shared live surfaces do not derive lifecycle or overlay state from stale
 renderer rows. The only exception is the accepted renderer `pendingTurn`
-bridge, which keeps its optimistic user row available until SDK view handoff.
+bridge, which keeps its pending user row available until SDK view handoff.
 `DesktopChatSurfaceRuntime.buildChatSurfaceControllerState(...)` also enforces
 the same empty renderer-message fallback internally, so callers that bypass the
 selector cannot reintroduce stale message-derived response state beside an SDK

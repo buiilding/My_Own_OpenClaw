@@ -43,7 +43,7 @@ type PendingTurnWorkspaceMutationInput<TWorkspace extends PendingTurnWorkspaceSt
 type PendingTurnWorkspaceMutation<TWorkspace extends PendingTurnWorkspaceState> = {
   messages: ChatMessage[];
   normalizedPendingTurn: DesktopPendingTurnState;
-  optimisticMessage: ChatMessage;
+  pendingMessage: ChatMessage;
   workspace: TWorkspace;
 };
 
@@ -198,15 +198,15 @@ function isEchoedPendingTurn<TWorkspace extends PendingTurnWorkspaceState>(
 
 function mergePendingTurnMessage(
   messages: ChatMessage[],
-  optimisticMessage: ChatMessage,
+  pendingMessage: ChatMessage,
 ): ChatMessage[] {
   const existingMessageIndex = messages.findIndex(
-    (message) => message?.id === optimisticMessage.id,
+    (message) => message?.id === pendingMessage.id,
   );
   return existingMessageIndex === -1
-    ? [...messages, optimisticMessage]
+    ? [...messages, pendingMessage]
     : messages.map((message, index) => (
-      index === existingMessageIndex ? { ...message, ...optimisticMessage } : message
+      index === existingMessageIndex ? { ...message, ...pendingMessage } : message
     ));
 }
 
@@ -223,11 +223,11 @@ function buildPendingTurnWorkspaceMutation<TWorkspace extends PendingTurnWorkspa
   if (skipEchoedPendingTurn && isEchoedPendingTurn(currentWorkspace, normalizedPendingTurn)) {
     return null;
   }
-  const optimisticMessage = buildPendingTurnUserMessage(normalizedPendingTurn) as ChatMessage | null;
-  if (!optimisticMessage) {
+  const pendingMessage = buildPendingTurnUserMessage(normalizedPendingTurn) as ChatMessage | null;
+  if (!pendingMessage) {
     return null;
   }
-  const nextMessages = mergePendingTurnMessage(currentWorkspace.messages, optimisticMessage);
+  const nextMessages = mergePendingTurnMessage(currentWorkspace.messages, pendingMessage);
   const nextWorkspace = {
     ...currentWorkspace,
     messages: nextMessages,
@@ -241,7 +241,7 @@ function buildPendingTurnWorkspaceMutation<TWorkspace extends PendingTurnWorkspa
   return {
     messages: nextMessages,
     normalizedPendingTurn,
-    optimisticMessage,
+    pendingMessage,
     workspace: nextWorkspace,
   };
 }
@@ -284,7 +284,7 @@ function buildAcceptPendingTurnStateUpdate<
     return null;
   }
   deps.recordTurnConversationRefs(
-    [pendingMutation.optimisticMessage],
+    [pendingMutation.pendingMessage],
     pendingMutation.normalizedPendingTurn.conversationRef,
   );
   const extraState = {

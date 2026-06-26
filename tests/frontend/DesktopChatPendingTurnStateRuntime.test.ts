@@ -129,7 +129,7 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
         conversationRef: 'conv-1',
         turnRef: 'turn-new',
       }),
-      optimisticMessage: expect.objectContaining({
+      pendingMessage: expect.objectContaining({
         id: 'user-row-new',
         sender: 'user',
         sourceEventType: 'renderer-compose',

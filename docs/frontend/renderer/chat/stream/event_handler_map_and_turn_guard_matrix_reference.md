@@ -97,7 +97,7 @@ Unguarded event:
 
 - `user_message`
 
-Reason: `user_message` establishes turn/workspace state and seeds optimistic UI rows before subsequent guarded events arrive.
+Reason: `user_message` establishes turn/workspace state and seeds pending bridge rows before subsequent guarded events arrive.
 
 ## Side-Effect Ownership After Dispatch
 
@@ -116,7 +116,7 @@ Reason: `user_message` establishes turn/workspace state and seeds optimistic UI 
   - keeps per-conversation/turn cursors so repeated projections do not duplicate text-delta or tool-event side effects
 - `desktopConversationDisplayProjection.ts`:
   - projects SDK display rows into chat messages for transcript display
-  - merges renderer-only annotations and pending optimistic user rows into SDK display messages without duplicating SDK-projected user turns
+  - merges renderer-only annotations and pending bridge user rows into SDK display messages without duplicating SDK-projected user turns
 - `DesktopCurrentTurnProjectionEffectsRuntime`:
   - SDK `currentTurn.reasoningText`: live thinking text and `llm-thought` stream tracking
   - SDK `currentTurn.assistantText`: clear the send latch and record `streaming-response` chunk tracking without creating raw assistant rows

@@ -21,6 +21,10 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopLiveTurnRuntimeClient.sendQuery`; normal renderer sends now pass
   typed SDK resources plus filename chips and leave screenshot/context payload
   assembly to SDK resource resolution. No migration required.
+- frontend/pending: rename the pending-turn runtime mutation result from
+  optimistic-message wording to pending-message wording so the renderer bridge
+  is described as a short pending send path, not a display authority. No
+  migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.

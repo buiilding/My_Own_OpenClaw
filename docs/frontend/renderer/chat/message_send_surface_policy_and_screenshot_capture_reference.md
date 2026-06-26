@@ -128,7 +128,7 @@ When attachment(s) exist:
      no longer awaits a main-process session snapshot before composing the local
      pending row.
 4. accept the pending turn locally and send `windie:pending-turn` so Electron
-   main can broadcast/replay the optimistic user row across renderer windows.
+   main can broadcast/replay the pending user row across renderer windows.
    The pending bridge carries identity, text, timestamp, and filename metadata
    only; SDK display projection owns visible image/screenshot attachment states
    and preview/ready artifact descriptors. Renderer `UserMessage` display
