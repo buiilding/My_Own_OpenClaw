@@ -44,9 +44,9 @@ type StreamTrackingLike = {
 
 type ProjectionWorkspace = {
   conversationView?: ConversationViewLike;
-  currentTurnProjection?: CurrentTurnLike;
   messages: ChatMessage[];
   pendingTurn?: PendingTurnLike;
+  sdkLiveTurn?: CurrentTurnLike;
   streamTracking: StreamTrackingLike;
   thinkingStatus?: string | null;
 };
@@ -115,10 +115,10 @@ function buildReplayProjectionTracePayload({
   const viewLiveTurn = hasConversationView ? workspace.conversationView.liveTurn ?? null : null;
   const currentTurnRef = hasConversationView
     ? normalizeTurnRef(viewLiveTurn?.turnRef)
-    : normalizeTurnRef(workspace.currentTurnProjection?.turnRef);
+    : normalizeTurnRef(workspace.sdkLiveTurn?.turnRef);
   const currentTurnPhase = hasConversationView
     ? viewLiveTurn?.phase ?? null
-    : workspace.currentTurnProjection?.phase ?? null;
+    : workspace.sdkLiveTurn?.phase ?? null;
   const streamActiveTurnRef = hasConversationView
     ? currentTurnRef
     : normalizeTurnRef(workspace.streamTracking?.activeTurnRef);

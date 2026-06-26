@@ -41,6 +41,9 @@ All notable changes to WindieOS will be documented in this file.
   boundary that maps raw current-turn storage into `sdkLiveTurn`; surface and
   send selectors now consume the sanitized read model directly. No migration
   required.
+- frontend/state: route conversation projection-stream workspace reads through
+  the same sanitized read model, so replay traces use `sdkLiveTurn` instead of
+  raw `currentTurnProjection`. No migration required.
 - frontend/attachments: rename the app-runtime artifact image resolver to
   `DesktopAttachmentImageRuntime`, so chat attachment rendering no longer
   imports a screenshot-named resolver facade. No migration required.

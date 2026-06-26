@@ -246,6 +246,10 @@ Selected surface state passes through the no-view live-turn fallback as
 response-overlay consumers receive SDK live-turn intent without reopening the
 raw workspace field. When `ConversationView` exists, `sdkLiveTurn` is `null`
 and the view plus pending bridge own visible lifecycle and stop authority.
+The conversation projection-stream hook applies the same rule when it needs
+workspace context for stale-turn checks and replay traces: it wraps raw store
+workspace reads with `projectWorkspaceReadModelState(...)`, so projection-stream
+diagnostics consume `sdkLiveTurn` rather than raw `currentTurnProjection`.
 
 When `ConversationView` exists, the shared interface projection returns the
 stable empty message list plus narrow `rendererAnnotations`; it does not pass

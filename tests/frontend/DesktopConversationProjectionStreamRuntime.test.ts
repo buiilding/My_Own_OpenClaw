@@ -21,7 +21,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       workspace: {
         messages: [{ id: 'm-1', sender: 'user', text: 'hello' }],
         pendingTurn: { turnRef: ' turn-new ' },
-        currentTurnProjection: {
+        sdkLiveTurn: {
           turnRef: 'turn-new',
           phase: 'streaming',
         },
@@ -64,7 +64,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
         },
         messages: [{ id: 'stale-message', sender: 'user', text: 'stale' }],
         pendingTurn: { turnRef: 'turn-new' },
-        currentTurnProjection: {
+        sdkLiveTurn: {
           turnRef: 'turn-stale',
           phase: 'streaming',
         },
@@ -95,7 +95,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       workspace: {
         messages: [],
         pendingTurn: { turnRef: 'turn-new' },
-        currentTurnProjection: {
+        sdkLiveTurn: {
           turnRef: 'turn-old',
           phase: 'completed',
         },
@@ -124,7 +124,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       getWorkspaceState: jest.fn(() => ({
         messages: [],
         pendingTurn: null,
-        currentTurnProjection: {
+        sdkLiveTurn: {
           turnRef: 'turn-1',
           phase: 'streaming',
         },

@@ -1064,6 +1064,10 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(projectionSource).toContain('desktopConversationProjectionStreamRuntime');
     expect(projectionSource).toContain('DesktopConversationProjectionStreamRuntime');
+    expect(projectionSource).toContain('projectWorkspaceReadModelState');
+    expect(projectionSource).toContain('getWorkspaceState(conversationRef)');
+    expect(projectionSource).toContain('getWorkspaceState: getChatWorkspaceReadModel');
+    expect(projectionSource).not.toContain('getWorkspaceState: useChatStore.getState().getWorkspaceState');
     expect(projectionSource).not.toContain('applyDisplayRowsProjectionEvent');
     expect(projectionSource).not.toContain('buildDisplayRowsProjection');
     expect(projectionSource).not.toContain('isSupersededTurn');
@@ -1135,6 +1139,8 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionStreamRuntimeSource).toContain('currentMatchesOldTurn');
     expect(projectionStreamRuntimeSource).toContain('const hasConversationView = isConversationView(workspace.conversationView)');
     expect(projectionStreamRuntimeSource).toContain('viewLiveTurn?.turnRef');
+    expect(projectionStreamRuntimeSource).toContain('workspace.sdkLiveTurn?.turnRef');
+    expect(projectionStreamRuntimeSource).not.toContain('workspace.currentTurnProjection');
     expect(projectionStreamRuntimeSource).toContain('workspace.conversationView.displayRows.length');
     expect(projectionStreamRuntimeSource).toContain('messageCount = hasConversationView');
     expect(projectionStreamRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
