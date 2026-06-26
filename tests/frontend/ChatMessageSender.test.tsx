@@ -76,6 +76,10 @@ const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.update
 const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo as jest.Mock;
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 
+function getActiveWorkspace() {
+  return useChatStore.getState().getWorkspaceState();
+}
+
 function createInitialStreamTracking() {
   return {
     activeTurnRef: null,
@@ -156,7 +160,7 @@ describe('useChatMessageSender', () => {
     attachmentFilenames: string[] | null = null,
     attachments: unknown[] | null = null,
   ) {
-    expect(useChatStore.getState().messages).toEqual([
+    expect(getActiveWorkspace().messages).toEqual([
       expect.objectContaining({
         id: 'msg-1-sdk-evt-000002-user_message',
         sender: 'user',
@@ -197,20 +201,14 @@ describe('useChatMessageSender', () => {
           isSending: false,
           thinkingStatus: null,
           thinkingSourceEventType: null,
+          compactionDebugInfo: null,
           tokenCounts: null,
           streamTracking,
           currentTurnProjection: null,
+          conversationView: null,
           pendingTurn: null,
         },
       },
-      messages: [],
-      isSending: false,
-      thinkingStatus: null,
-      thinkingSourceEventType: null,
-      tokenCounts: null,
-      streamTracking,
-      currentTurnProjection: null,
-      pendingTurn: null,
     });
 
     jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('msg-1');
@@ -326,7 +324,7 @@ describe('useChatMessageSender', () => {
     });
 
     expectOptimisticUserMessage('hello while prepping');
-    expect(useChatStore.getState().isSending).toBe(true);
+    expect(getActiveWorkspace().isSending).toBe(true);
     expect(mockSendQuery).not.toHaveBeenCalled();
 
     resolvePermission?.({ success: true });
@@ -450,18 +448,13 @@ describe('useChatMessageSender', () => {
   });
 
   test('uses non-first capture path when user message already exists', async () => {
-    useChatStore.setState({
-      messages: [
-        {
-          id: 'existing-user',
-          text: 'previous',
-          sender: 'user',
-        },
-      ],
-      isSending: false,
-      thinkingStatus: null,
-      tokenCounts: null,
-    });
+    useChatStore.getState().setMessages([
+      {
+        id: 'existing-user',
+        text: 'previous',
+        sender: 'user',
+      },
+    ]);
 
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'second');
@@ -516,7 +509,7 @@ describe('useChatMessageSender', () => {
       },
     } as any, 'conv-existing');
 
-    expect(useChatStore.getState().messages).toEqual([]);
+    expect(getActiveWorkspace().messages).toEqual([]);
 
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'second from resumed view');
@@ -578,7 +571,7 @@ describe('useChatMessageSender', () => {
       required: false,
     }]);
     expectOptimisticUserMessage('hello');
-    expect(useChatStore.getState().messages[0].attachments).toBeNull();
+    expect(getActiveWorkspace().messages[0].attachments).toBeNull();
     expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
   });
@@ -811,8 +804,8 @@ describe('useChatMessageSender', () => {
 
     expect(thrownError?.message).toBe('send failed');
 
-    expect(useChatStore.getState().isSending).toBe(false);
-    const messages = useChatStore.getState().messages;
+    expect(getActiveWorkspace().isSending).toBe(false);
+    const messages = getActiveWorkspace().messages;
     expect(messages.at(-1)).toEqual(
       expect.objectContaining({
         sender: 'assistant',

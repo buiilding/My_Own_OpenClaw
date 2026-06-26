@@ -67,7 +67,6 @@ type PendingTurnStateStoreDependencies<
     workspace: TWorkspace,
     extraState?: Partial<TState>,
   ) => Partial<TState> | TState;
-  getProjectedWorkspaceFields: (workspace: TWorkspace) => Partial<TState>;
   mergeTurnConversationRefs: (
     current: Record<string, string>,
     messages: ChatMessage[],
@@ -294,7 +293,6 @@ function buildAcceptPendingTurnStateUpdate<
   const extraState = {
     activeConversationRef: pendingMutation.normalizedPendingTurn.conversationRef,
     turnConversationRefs: nextTurnConversationRefs,
-    ...deps.getProjectedWorkspaceFields(pendingMutation.workspace),
   } as Partial<TState>;
   return deps.buildWorkspaceUpdate(state, workspaceRef, pendingMutation.workspace, extraState);
 }

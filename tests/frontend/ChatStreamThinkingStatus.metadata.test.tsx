@@ -4,7 +4,11 @@
 
 import { act } from '@testing-library/react';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
-import { registerBackendListener, resetChatStreamTestState } from './ChatStreamThinkingStatus.testUtils';
+import {
+  getActiveWorkspaceStateForTest,
+  registerBackendListener,
+  resetChatStreamTestState,
+} from './ChatStreamThinkingStatus.testUtils';
 import { DesktopCurrentTurnMessageRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 
 const {
@@ -19,12 +23,10 @@ describe('useChatStream message metadata handling', () => {
   test('system-prompt event updates last user message metadata', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
-      useChatStore.setState({
-        messages: [
-          { id: 'user-1', sender: 'user', text: 'ask' },
-          { id: 'assistant-1', sender: 'assistant', text: 'reply' },
-        ],
-      });
+      useChatStore.getState().setMessages([
+        { id: 'user-1', sender: 'user', text: 'ask' },
+        { id: 'assistant-1', sender: 'assistant', text: 'reply' },
+      ]);
       emitBackendEvent({
         type: 'system-prompt',
         payload: {
@@ -34,7 +36,7 @@ describe('useChatStream message metadata handling', () => {
       });
     });
 
-    const userMessage = useChatStore.getState().messages[0];
+    const userMessage = getActiveWorkspaceStateForTest().messages[0];
     expect(userMessage.systemPrompt).toEqual({
       content: 'prompt text',
       toolSchemas: [{ type: 'function', function: { name: 'tool-a', parameters: { type: 'object' } } }],
@@ -44,12 +46,10 @@ describe('useChatStream message metadata handling', () => {
   test('full-message events enrich existing user and assistant messages', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
-      useChatStore.setState({
-        messages: [
-          { id: 'user-1', sender: 'user', text: 'ask', turnRef: 'turn-1' },
-          { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text', turnRef: 'turn-1' },
-        ],
-      });
+      useChatStore.getState().setMessages([
+        { id: 'user-1', sender: 'user', text: 'ask', turnRef: 'turn-1' },
+        { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text', turnRef: 'turn-1' },
+      ]);
       emitBackendEvent({
         type: 'user-message-full',
         turn_ref: 'turn-1',
@@ -62,7 +62,7 @@ describe('useChatStream message metadata handling', () => {
       });
     });
 
-    const [userMessage, assistantMessage] = useChatStore.getState().messages;
+    const [userMessage, assistantMessage] = getActiveWorkspaceStateForTest().messages;
     expect(userMessage.fullUserMessage).toEqual({
       content: 'raw user',
       metadata: { a: 1 },
@@ -75,12 +75,10 @@ describe('useChatStream message metadata handling', () => {
   test('turn-scoped user-message-full does not update unrelated user messages', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
-      useChatStore.setState({
-        messages: [
-          { id: 'user-1', sender: 'user', text: 'ask for older turn', turnRef: 'turn-a' },
-          { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text', turnRef: 'turn-1' },
-        ],
-      });
+      useChatStore.getState().setMessages([
+        { id: 'user-1', sender: 'user', text: 'ask for older turn', turnRef: 'turn-a' },
+        { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text', turnRef: 'turn-1' },
+      ]);
       emitBackendEvent({
         type: 'user-message-full',
         turn_ref: 'turn-b',
@@ -88,20 +86,18 @@ describe('useChatStream message metadata handling', () => {
       });
     });
 
-    const userMessage = useChatStore.getState().messages[0];
+    const userMessage = getActiveWorkspaceStateForTest().messages[0];
     expect(userMessage.fullUserMessage).toBeUndefined();
   });
 
   test('turn-scoped tool-schemas metadata does not update unrelated user messages', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
-      useChatStore.setState({
-        messages: [
-          { id: 'user-1', sender: 'user', text: 'first user', turnRef: 'turn-a' },
-          { id: 'assistant-1', sender: 'assistant', text: 'assistant', type: 'llm-text', turnRef: 'turn-a' },
-          { id: 'user-2', sender: 'user', text: 'second user', turnRef: 'turn-c' },
-        ],
-      });
+      useChatStore.getState().setMessages([
+        { id: 'user-1', sender: 'user', text: 'first user', turnRef: 'turn-a' },
+        { id: 'assistant-1', sender: 'assistant', text: 'assistant', type: 'llm-text', turnRef: 'turn-a' },
+        { id: 'user-2', sender: 'user', text: 'second user', turnRef: 'turn-c' },
+      ]);
       emitBackendEvent({
         type: 'tool-schemas',
         turn_ref: 'turn-b',
@@ -111,20 +107,18 @@ describe('useChatStream message metadata handling', () => {
       });
     });
 
-    expect(useChatStore.getState().messages[0].toolSchemas).toBeUndefined();
-    expect(useChatStore.getState().messages[2].toolSchemas).toBeUndefined();
+    expect(getActiveWorkspaceStateForTest().messages[0].toolSchemas).toBeUndefined();
+    expect(getActiveWorkspaceStateForTest().messages[2].toolSchemas).toBeUndefined();
   });
 
   test('tool-schemas event updates the current turn user message and later user rows still inherit conversation transparency', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
-      useChatStore.setState({
-        messages: [
-          { id: 'user-1', sender: 'user', text: 'first user' },
-          { id: 'assistant-1', sender: 'assistant', text: 'assistant' },
-          { id: 'user-2', sender: 'user', text: 'second user' },
-        ],
-      });
+      useChatStore.getState().setMessages([
+        { id: 'user-1', sender: 'user', text: 'first user' },
+        { id: 'assistant-1', sender: 'assistant', text: 'assistant' },
+        { id: 'user-2', sender: 'user', text: 'second user' },
+      ]);
       emitBackendEvent({
         type: 'tool-schemas',
         payload: {
@@ -133,8 +127,8 @@ describe('useChatStream message metadata handling', () => {
       });
     });
 
-    expect(useChatStore.getState().messages[0].toolSchemas).toBeUndefined();
-    expect(useChatStore.getState().messages[2].toolSchemas).toEqual([
+    expect(getActiveWorkspaceStateForTest().messages[0].toolSchemas).toBeUndefined();
+    expect(getActiveWorkspaceStateForTest().messages[2].toolSchemas).toEqual([
       { type: 'function', function: { name: 'tool-x', parameters: { type: 'object' } } },
     ]);
   });
@@ -143,18 +137,16 @@ describe('useChatStream message metadata handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
-        messages: [
-          { id: 'user-1', sender: 'user', text: 'check', turnRef: 'turn-1' },
-          {
-            id: 'tool-output-1',
-            sender: 'assistant',
-            text: 'tool output',
-            type: 'tool-output',
-            turnRef: 'turn-1',
-          },
-        ],
-      });
+      useChatStore.getState().setMessages([
+        { id: 'user-1', sender: 'user', text: 'check', turnRef: 'turn-1' },
+        {
+          id: 'tool-output-1',
+          sender: 'assistant',
+          text: 'tool output',
+          type: 'tool-output',
+          turnRef: 'turn-1',
+        },
+      ]);
 
       emitBackendEvent({
         type: 'assistant-message-full',
@@ -163,7 +155,7 @@ describe('useChatStream message metadata handling', () => {
       });
     });
 
-    const toolOutput = useChatStore.getState().messages.find((message) => message.id === 'tool-output-1');
+    const toolOutput = getActiveWorkspaceStateForTest().messages.find((message) => message.id === 'tool-output-1');
     expect(toolOutput?.fullAssistantMessage).toBeUndefined();
   });
 
@@ -171,27 +163,25 @@ describe('useChatStream message metadata handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
-        messages: [
-          { id: 'user-1', sender: 'user', text: 'ask', turnRef: 'turn-new' },
-          { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text', turnRef: 'turn-new' },
-        ],
-        streamTracking: {
-          activeTurnRef: 'turn-new',
-          phase: 'streaming',
-          startedAt: '2026-03-05T00:00:00.000Z',
-          firstChunkAt: '2026-03-05T00:00:01.000Z',
-          completedAt: null,
-          lastEventAt: '2026-03-05T00:00:01.000Z',
-          lastEventType: 'streaming-response',
-          eventCount: 2,
-          chunkCount: 1,
-          toolCallCount: 0,
-          toolOutputCount: 0,
-          lastChunkSize: 5,
-          lastError: null,
-        },
-      });
+      useChatStore.getState().setMessages([
+        { id: 'user-1', sender: 'user', text: 'ask', turnRef: 'turn-new' },
+        { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text', turnRef: 'turn-new' },
+      ]);
+      useChatStore.getState().updateStreamTracking(() => ({
+        activeTurnRef: 'turn-new',
+        phase: 'streaming',
+        startedAt: '2026-03-05T00:00:00.000Z',
+        firstChunkAt: '2026-03-05T00:00:01.000Z',
+        completedAt: null,
+        lastEventAt: '2026-03-05T00:00:01.000Z',
+        lastEventType: 'streaming-response',
+        eventCount: 2,
+        chunkCount: 1,
+        toolCallCount: 0,
+        toolOutputCount: 0,
+        lastChunkSize: 5,
+        lastError: null,
+      }));
 
       emitBackendEvent({
         type: 'system-prompt',
@@ -220,7 +210,7 @@ describe('useChatStream message metadata handling', () => {
       });
     });
 
-    const [userMessage, assistantMessage] = useChatStore.getState().messages;
+    const [userMessage, assistantMessage] = getActiveWorkspaceStateForTest().messages;
     expect(userMessage.systemPrompt).toBeUndefined();
     expect(userMessage.fullUserMessage).toBeUndefined();
     expect(userMessage.toolSchemas).toBeUndefined();

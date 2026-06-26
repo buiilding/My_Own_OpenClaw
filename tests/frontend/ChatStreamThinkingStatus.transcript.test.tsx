@@ -5,6 +5,7 @@
 import { act } from '@testing-library/react';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
+  getActiveWorkspaceStateForTest,
   registerBackendAndProjectionListeners,
   registerBackendListener,
   renderBackendListenerWithSpy,
@@ -327,7 +328,7 @@ describe('useChatStream live SDK event ownership', () => {
     });
 
     expect(useChatStore.getState().activeConversationRef).toBe('conv-overlay');
-    expect(useChatStore.getState().messages.at(-1)).not.toEqual(
+    expect(getActiveWorkspaceStateForTest().messages.at(-1)).not.toEqual(
       expect.objectContaining({
         text: 'overlay prompt',
         sourceEventType: 'local-user-message',

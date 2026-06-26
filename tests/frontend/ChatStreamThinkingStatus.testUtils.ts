@@ -57,9 +57,30 @@ export function resetChatStreamTestState() {
   mockBackendSequence = 1;
   setMockAppConfigContextValue(mockUseAppConfigContext, mockConfig);
 
-  resetChatStoreForTests(createAssistantSeedMessage());
+  const initialMessage = createAssistantSeedMessage();
+  resetChatStoreForTests(initialMessage);
   useChatStore.setState({
     activeConversationRef: DEFAULT_TEST_CONVERSATION_REF,
+  });
+  useChatStore.getState().setMessages([initialMessage], DEFAULT_TEST_CONVERSATION_REF);
+}
+
+export function getActiveWorkspaceStateForTest() {
+  return useChatStore.getState().getWorkspaceState();
+}
+
+export function setActiveWorkspaceStateForTest(update: Record<string, unknown>) {
+  const store = useChatStore.getState();
+  const workspaceRef = store.activeConversationRef || '__default__';
+  const workspace = store.getWorkspaceState();
+  useChatStore.setState({
+    workspaces: {
+      ...store.workspaces,
+      [workspaceRef]: {
+        ...workspace,
+        ...update,
+      },
+    },
   });
 }
 

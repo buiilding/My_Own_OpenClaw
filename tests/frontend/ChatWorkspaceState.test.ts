@@ -8,7 +8,6 @@ import {
   buildWorkspaceUpdate,
   createInitialWorkspaceRecord,
   createInitialWorkspaceState,
-  getProjectedWorkspaceFields,
   isActiveWorkspaceRef,
   normalizeConversationRef,
   readWorkspaceState,
@@ -179,26 +178,6 @@ describe('chatWorkspaceState', () => {
     expect(resolved.streamTracking.phase).toBe('idle');
   });
 
-  test('projects workspace fields through the shared workspace helper', () => {
-    const workspace = {
-      ...createInitialWorkspaceState(),
-      messages: [{ id: 'm-1', text: 'hello', sender: 'user' as const }],
-      isSending: true,
-      thinkingStatus: 'thinking',
-      streamTracking: createStreamTracking({ phase: 'awaiting-first-chunk' }),
-    };
-
-    expect(getProjectedWorkspaceFields(workspace)).toEqual(expect.objectContaining({
-      messages: workspace.messages,
-      isSending: true,
-      thinkingStatus: 'thinking',
-      streamTracking: workspace.streamTracking,
-      currentTurnProjection: null,
-      conversationView: null,
-      pendingTurn: null,
-    }));
-  });
-
   test('builds workspace updates without projecting inactive workspace fields', () => {
     const workspace = {
       ...createInitialWorkspaceState(),
@@ -222,7 +201,7 @@ describe('chatWorkspaceState', () => {
     });
   });
 
-  test('builds workspace updates with active workspace projection', () => {
+  test('builds workspace updates without projecting active workspace fields', () => {
     const workspace = {
       ...createInitialWorkspaceState(),
       messages: [{ id: 'active-next', text: 'next', sender: 'assistant' as const }],
@@ -234,13 +213,11 @@ describe('chatWorkspaceState', () => {
       messages: [{ id: 'active-prev', text: 'prev', sender: 'assistant' as const }],
     };
 
-    expect(buildWorkspaceUpdate(state, 'active-thread', workspace)).toEqual(expect.objectContaining({
+    expect(buildWorkspaceUpdate(state, 'active-thread', workspace)).toEqual({
       workspaces: {
         'active-thread': workspace,
       },
-      messages: workspace.messages,
-      isSending: true,
-    }));
+    });
   });
 
   test('resolves workspace mutation targets from explicit and active refs', () => {
@@ -258,7 +235,6 @@ describe('chatWorkspaceState', () => {
         'active-thread': activeWorkspace,
         'other-thread': otherWorkspace,
       },
-      ...getProjectedWorkspaceFields(activeWorkspace),
     };
 
     expect(resolveWorkspaceMutationTarget(state, undefined)).toEqual({
@@ -297,12 +273,10 @@ describe('chatWorkspaceState', () => {
       messages: [{ id: 'active', text: 'active', sender: 'assistant' as const }],
     };
 
-    expect(buildActiveConversationWorkspaceUpdate(state, ' next-thread ')).toEqual(expect.objectContaining({
+    expect(buildActiveConversationWorkspaceUpdate(state, ' next-thread ')).toEqual({
       activeConversationRef: 'next-thread',
       workspaces: state.workspaces,
-      messages: nextWorkspace.messages,
-      conversationView: nextWorkspace.conversationView,
-    }));
+    });
   });
 
   test('keeps active conversation switch as no-op when workspace already exists', () => {

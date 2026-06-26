@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for chat store and session-rotation behavior: per-conversation workspace state, active-workspace projection, stream-tracking reset rules, new-chat lifecycle, and conversation-ref synchronization paths."
+summary: "Deep reference for chat store and session-rotation behavior: per-conversation workspace state, workspace-only chat reads, stream-tracking reset rules, new-chat lifecycle, and conversation-ref synchronization paths."
 read_when:
   - When changing `chatStore`, `startNewChatSession`, or conversation-resume/new-chat state transitions.
   - When debugging stale stream phases, unexpected `isSending` state, pending-turn stop behavior, or conversation-ref mismatch after new/continued sessions.
@@ -33,14 +33,17 @@ title: "Chat Store State and New Session Rotation Reference"
 
 ## Chat Store Contract
 
-Primary projected state slices (active workspace projection):
+Primary `ChatWorkspaceState` fields:
 
 - `messages`
 - `isSending`
 - `thinkingStatus`
+- `thinkingSourceEventType`
+- `compactionDebugInfo`
 - `tokenCounts`
 - `streamTracking`
 - `currentTurnProjection`
+- `conversationView`
 - `pendingTurn`
 
 Conversation workspace state:
@@ -53,7 +56,7 @@ The default workspace key is private to `chatWorkspaceState.ts`. Store
 initialization uses `createInitialWorkspaceRecord()` so `chatStore.ts` and
 feature callers do not import the raw sentinel string.
 
-All mutating actions accept optional `conversationRef` and write into that workspace. The workspace record is the read authority. The projected top-level fields above are compatibility mirrors for existing selectors/components and do not override `workspaces[...]` when reading active workspace state.
+All mutating actions accept optional `conversationRef` and write into that workspace. The workspace record is the read authority. `chatStore.ts` no longer mirrors workspace fields such as `messages`, `isSending`, `currentTurnProjection`, `conversationView`, or `pendingTurn` onto the store root; production callers use selectors or `getWorkspaceState(...)` instead.
 
 Message attachment fields used by current renderer message paths:
 
@@ -163,14 +166,16 @@ replay/store compatibility adapters and low-level artifact helpers.
   clear-message reset field list and workspace update assembly live in that app
   runtime; the store only passes clear intent plus workspace dependency
   adapters.
-- `setActiveConversationRef` switches the projected top-level compatibility
-  mirror to that workspace record through
+- `setActiveConversationRef` switches only the active workspace ref and ensures
+  the workspace record exists through
   `chatWorkspaceState.buildActiveConversationWorkspaceUpdate(...)`.
-- active-workspace projected field mirroring, generic workspace update assembly,
-  workspace-record reads, and workspace mutation target resolution live in
+- generic workspace update assembly, workspace-record reads, and workspace
+  mutation target resolution live in
   `chatWorkspaceState.ts`; `chatStore.ts` calls those helpers instead of
   defining the boilerplate. `readWorkspaceState(...)` never reconstructs an
-  active workspace from stale top-level mirror fields.
+  active workspace from stale top-level mirror fields, and
+  `buildWorkspaceUpdate(...)` never projects workspace fields back onto the
+  store root.
 - `registerTurnConversationRef` / `resolveConversationRefForTurn` bind
   app-runtime turn->conversation routing helpers for events that omit
   `conversation_ref`. The register action's map update/no-op decision lives in
@@ -192,7 +197,7 @@ and stop-target selection while keeping stable nested selector objects.
 `selectActiveWorkspaceState(...)` so the app-runtime helper does not import chat
 feature store internals.
 
-`selectChatInterfaceState` exposes active-workspace projection:
+`selectChatInterfaceState` exposes the active workspace selector model:
 
 - `thinkingStatus`, `tokenCounts`
 - `renderedMessages`, `canEditMessages`, `canRetryMessages`, and
@@ -209,15 +214,15 @@ feature store internals.
 `messages` only for the no-view first-message fallback without adding those raw
 fields back to the React chat-interface selector. Once `ConversationView`
 exists, the send read model returns an empty raw message list so send
-preparation cannot accidentally use `chatStore.messages` as competing history
-authority beside SDK display rows.
+preparation cannot accidentally use active workspace messages as competing
+history authority beside SDK display rows.
 
 Minimal chat pill and response overlay state now route through the live-turn
 presentation/view-model helpers instead of a separate chat-box selector. The
 dashboard selector remains scoped to fields rendered by the full interface, so
-raw `isSending` stays store/diagnostic state rather than dashboard surface
+raw workspace `isSending` stays store/diagnostic state rather than dashboard surface
 authority. Response overlay view-model tracing must not subscribe to raw
-`chatStore.streamTracking`; overlay diagnostics should use the selected
+workspace `streamTracking`; overlay diagnostics should use the selected
 `chatSurfaceState`/visible lifecycle instead of reopening store runtime state
 as a surface input.
 
@@ -262,15 +267,15 @@ current-turn bridge, stored messages, the local pending bridge, and
 and active revision id. When a view exists, it builds base thread messages from
 `ConversationView.displayRows` through
 `DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`
-and passes only renderer annotation records selected from `chatStore.messages`
-for feedback, transparency metadata, and token counts. The pending bridge is
-projected from `pendingTurn` directly, so a view-time render does not receive
-the full raw `chatStore.messages` transcript as a competing read model.
+and passes only renderer annotation records selected from active workspace
+messages for feedback, transparency metadata, and token counts. The pending
+bridge is projected from `pendingTurn` directly, so a view-time render does not receive
+the full raw active workspace message transcript as a competing read model.
 The component consumes that view model and does not choose between raw
 messages, current-turn rows, and `ConversationView` action metadata inline.
 When checkout/fork commands return a `ConversationView`, `ChatInterface` stores
 only that SDK view for the target conversation; it does not project
-`displayRows` back into `chatStore.messages`.
+`displayRows` back into active workspace messages.
 Replay actions do not consume selector row models. The hook passes only row
 ids/text plus UI dependencies to `DesktopConversationReplayRuntime`, which
 forwards intent to SDK command APIs. SDK runtime resolves display rows and
@@ -303,7 +308,7 @@ So new-chat resets local store regardless, while active backend loop receives st
 7. clear the no-view fallback state only when no cached `ConversationView`
    already exists for the target conversation
 8. load and store the SDK `ConversationView` without projecting
-   `displayRows` into `chatStore.messages`
+   `displayRows` into active workspace messages
 9. clear sending/thinking flags
 10. clear the opening marker, close dashboard overlays, and keep chat surface active
 

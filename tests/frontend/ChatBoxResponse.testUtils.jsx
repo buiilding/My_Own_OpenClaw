@@ -225,24 +225,20 @@ function buildCurrentTurnProjection(messages, phase = null) {
 
 export function setChatState(messages) {
   const currentTurnProjection = messages.length > 0 ? buildCurrentTurnProjection(messages) : null;
-  useChatStore.setState({
-    messages,
-    isSending: false,
-    thinkingStatus: null,
-    pendingTurn: null,
-    currentTurnProjection,
-    conversationView: null,
-  });
+  useChatStore.getState().setMessages(messages);
+  useChatStore.getState().setIsSending(false);
+  useChatStore.getState().setThinkingStatus(null);
+  useChatStore.getState().clearPendingTurn();
+  useChatStore.getState().setCurrentTurnProjection(currentTurnProjection);
+  useChatStore.getState().setConversationView(null);
 }
 
 export function emitOverlayPhase(phase) {
   act(() => {
-    const state = useChatStore.getState();
-    const currentTurnProjection = buildCurrentTurnProjection(state.messages || [], phase);
-    useChatStore.setState({
-      currentTurnProjection,
-      conversationView: null,
-    });
+    const workspace = useChatStore.getState().getWorkspaceState();
+    const currentTurnProjection = buildCurrentTurnProjection(workspace.messages || [], phase);
+    useChatStore.getState().setCurrentTurnProjection(currentTurnProjection);
+    useChatStore.getState().setConversationView(null);
   });
 }
 

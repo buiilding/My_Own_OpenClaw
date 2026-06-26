@@ -101,9 +101,11 @@ function resetStore() {
   resetChatStoreForTests();
   useChatStore.setState({
     activeConversationRef: null,
-    currentTurnProjection: null,
-    pendingTurn: null,
   });
+}
+
+function getActiveWorkspace() {
+  return useChatStore.getState().getWorkspaceState();
 }
 
 function currentTurnWithPresentation() {
@@ -158,10 +160,13 @@ describe('pending-turn live surface integration', () => {
       dependencies: {
         acceptPendingTurn: (pendingTurn) => useChatStore.getState().acceptPendingTurn(pendingTurn),
         getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
-        getSendReadModel: () => ({
-          conversationView: useChatStore.getState().conversationView,
-          messages: useChatStore.getState().messages,
-        }),
+        getSendReadModel: () => {
+          const workspace = getActiveWorkspace();
+          return {
+            conversationView: workspace.conversationView,
+            messages: workspace.messages,
+          };
+        },
         setChatActiveConversationRef: useChatStore.getState().setActiveConversationRef,
       },
       senderSurface: 'overlay-chatbox',
@@ -173,14 +178,14 @@ describe('pending-turn live surface integration', () => {
     });
 
     await waitFor(() => {
-      expect(useChatStore.getState().pendingTurn).toEqual(expect.objectContaining({
+      expect(getActiveWorkspace().pendingTurn).toEqual(expect.objectContaining({
         conversationRef: 'conv_msg-1',
         turnRef: 'msg-1',
         text: 'Live now',
       }));
     });
 
-    let state = useChatStore.getState();
+    let state = getActiveWorkspace();
     expect(state.messages).toEqual([
       expect.objectContaining({
         id: 'msg-1-sdk-evt-000002-user_message',
@@ -209,7 +214,7 @@ describe('pending-turn live surface integration', () => {
       kind: 'pending',
       pendingTurn,
     });
-    state = useChatStore.getState();
+    state = getActiveWorkspace();
     expect(resolveLiveTurnPresentationInput({
       messages: state.messages,
       pendingTurn: state.pendingTurn,
@@ -225,7 +230,7 @@ describe('pending-turn live surface integration', () => {
       currentTurnProjection,
       currentTurnProjection.conversationRef,
     );
-    state = useChatStore.getState();
+    state = getActiveWorkspace();
     expect(state.pendingTurn).toBeNull();
     expect(resolveLiveTurnPresentationInput({
       messages: state.messages,

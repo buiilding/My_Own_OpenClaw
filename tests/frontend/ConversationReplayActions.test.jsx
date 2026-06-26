@@ -25,6 +25,10 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
 
 let mockConversationRef = 'conv-existing';
 
+function getActiveWorkspace() {
+  return useChatStore.getState().getWorkspaceState();
+}
+
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
   DesktopConversationContinuityService: {
     editAndResend: jest.fn(async (input) => ({
@@ -225,7 +229,7 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-1');
     });
 
-    expect(useChatStore.getState().messages).toEqual([
+    expect(getActiveWorkspace().messages).toEqual([
       expect.objectContaining({
         sender: 'assistant',
         type: 'error',

@@ -27,7 +27,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     setMockActiveConversationRef('conv-1');
   });
 
-  test('preserves optimistic user row while sdk rows have not projected that user turn', () => {
+  test('does not preserve historical optimistic user row without pending bridge', () => {
     const optimisticUser = message({
       id: 'turn-1-sdk-evt-000002-user_message',
       sender: 'user',
@@ -63,7 +63,6 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     });
 
     expect(useChatStore.getState().getWorkspaceState('conv-1').messages).toEqual([
-      optimisticUser,
       expect.objectContaining({
         id: 'tool-row',
         sender: 'assistant',
@@ -72,6 +71,9 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
         sourceEventType: 'tool_call',
       }),
     ]);
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages).not.toContainEqual(
+      optimisticUser,
+    );
   });
 
   test('does not write display-row messages after ConversationView exists', () => {

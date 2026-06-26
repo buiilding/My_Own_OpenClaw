@@ -3348,6 +3348,11 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('buildWorkspaceUpdate');
     expect(chatStoreSource).toContain('resolveWorkspaceMutationTarget');
     expect(chatStoreSource).not.toContain('function getProjectedWorkspaceFields');
+    expect(chatStoreSource).not.toContain('messages: ChatMessage[];');
+    expect(chatStoreSource).not.toContain('isSending: boolean;');
+    expect(chatStoreSource).not.toContain('currentTurnProjection: CurrentTurnProjection | null;');
+    expect(chatStoreSource).not.toContain('conversationView: ConversationView | null;');
+    expect(chatStoreSource).not.toContain('pendingTurn: PendingTurn | null;');
     expect(chatStoreSource).not.toContain('function buildWorkspaceUpdate');
     expect(chatStoreSource).not.toContain('function resolveWorkspaceMutationTarget');
     expect(chatStoreSource).toContain('DesktopChatPendingTurnStateRuntime');
@@ -3401,7 +3406,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('shouldUpdateLatestView');
     expect(chatStoreSource).not.toContain('Object.keys(latestUpdate)');
     expect(chatWorkspaceStateSource).toContain('buildActiveConversationWorkspaceUpdate');
-    expect(chatWorkspaceStateSource).toContain('getProjectedWorkspaceFields');
+    expect(chatWorkspaceStateSource).not.toContain('getProjectedWorkspaceFields');
     expect(chatWorkspaceStateSource).toContain('buildWorkspaceUpdate');
     expect(chatWorkspaceStateSource).toContain('resolveWorkspaceMutationTarget');
     expect(chatWorkspaceStateSource).not.toContain('buildActiveWorkspaceSnapshot');

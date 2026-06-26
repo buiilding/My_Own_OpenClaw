@@ -18,7 +18,6 @@ import {
   buildWorkspaceUpdate,
   createInitialStreamTracking,
   createInitialWorkspaceRecord,
-  getProjectedWorkspaceFields,
   readWorkspaceState,
   resolveChatWorkspaceRef,
   resolveWorkspaceMutationTarget,
@@ -129,7 +128,6 @@ export type { ChatMessage, TokenCounts };
 
 const pendingTurnStateRuntimeDependencies = {
   buildWorkspaceUpdate,
-  getProjectedWorkspaceFields,
   mergeTurnConversationRefs,
   readWorkspaceState,
   resolveChatWorkspaceRef,
@@ -228,17 +226,6 @@ interface ChatState {
   turnConversationRefs: Record<string, string>;
   dismissedResponseOverlayEntries: Record<string, true>;
 
-  // State
-  messages: ChatMessage[];
-  isSending: boolean;
-  thinkingStatus: string | null;
-  thinkingSourceEventType: string | null;
-  compactionDebugInfo: ChatWorkspaceState['compactionDebugInfo'];
-  tokenCounts: TokenCounts | null;
-  streamTracking: StreamTracking;
-  currentTurnProjection: CurrentTurnProjection | null;
-  conversationView: ConversationView | null;
-  pendingTurn: PendingTurn | null;
   getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceState;
   setActiveConversationRef: (conversationRef: string | null) => void;
   registerTurnConversationRef: (turnRef: string, conversationRef: string | null | undefined) => void;
@@ -340,16 +327,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
   workspaces: createInitialWorkspaceRecord(),
   turnConversationRefs: {},
   dismissedResponseOverlayEntries: {},
-  messages: [],
-  isSending: false,
-  thinkingStatus: null,
-  thinkingSourceEventType: null,
-  compactionDebugInfo: null,
-  tokenCounts: null,
-  streamTracking: createInitialStreamTracking(),
-  currentTurnProjection: null,
-  conversationView: null,
-  pendingTurn: null,
   getWorkspaceState: (conversationRef) => {
     const state = get();
     const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);

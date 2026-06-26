@@ -46,15 +46,6 @@ const stateRuntimeDeps = {
     },
     ...extraState,
   }),
-  getProjectedWorkspaceFields: (nextWorkspace) => ({
-    currentTurnProjection: nextWorkspace.currentTurnProjection,
-    conversationView: nextWorkspace.conversationView,
-    isSending: nextWorkspace.isSending,
-    messages: nextWorkspace.messages,
-    pendingTurn: nextWorkspace.pendingTurn,
-    thinkingSourceEventType: nextWorkspace.thinkingSourceEventType,
-    thinkingStatus: nextWorkspace.thinkingStatus,
-  }),
   mergeTurnConversationRefs: (current, messages, conversationRef) => {
     return messages.reduce((next, message) => {
       if (message.turnRef && conversationRef) {
@@ -232,7 +223,7 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
     })).toBeNull();
   });
 
-  test('builds accept-pending store updates with active workspace projection', () => {
+  test('builds accept-pending store updates with workspace-only pending state', () => {
     const state = storeState();
 
     const update = buildAcceptPendingTurnStateUpdate({
@@ -250,17 +241,15 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
 
     expect(update).toEqual(expect.objectContaining({
       activeConversationRef: 'conv-state',
-      isSending: true,
-      pendingTurn: expect.objectContaining({
-        turnRef: 'turn-state',
-      }),
       turnConversationRefs: {
         'turn-state': 'conv-state',
       },
     }));
     expect(update?.workspaces['conv-state']).toEqual(expect.objectContaining({
+      isSending: true,
       pendingTurn: expect.objectContaining({
         userMessageId: 'user-state',
+        turnRef: 'turn-state',
       }),
     }));
   });
@@ -293,9 +282,7 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
       state,
     });
 
-    expect(update).toEqual(expect.objectContaining({
-      conversationView,
-    }));
+    expect(update).not.toHaveProperty('conversationView');
     expect(update?.workspaces['conv-state']).toEqual(expect.objectContaining({
       conversationView,
       currentTurnProjection: null,

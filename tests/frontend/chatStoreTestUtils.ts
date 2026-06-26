@@ -51,6 +51,7 @@ export function resetChatStoreForTests(
         isSending: false,
         thinkingStatus: null,
         thinkingSourceEventType: null,
+        compactionDebugInfo: null,
         tokenCounts: null,
         streamTracking,
         currentTurnProjection: null,
@@ -58,14 +59,5 @@ export function resetChatStoreForTests(
         pendingTurn: null,
       },
     },
-    messages,
-    isSending: false,
-    thinkingStatus: null,
-    thinkingSourceEventType: null,
-    tokenCounts: null,
-    streamTracking,
-    currentTurnProjection: null,
-    conversationView: null,
-    pendingTurn: null,
   });
 }

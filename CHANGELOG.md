@@ -6,12 +6,16 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: remove the remaining root `chatStore` projection mirrors for
+  messages, send/thinking state, stream tracking, current turn, conversation
+  view, and pending turn; production callers now read those fields through
+  selectors or `getWorkspaceState(...)`. No migration required.
 - frontend/store: remove renderer `latestConversationView` from `chatStore`;
   live surfaces now read the active workspace `conversationView` directly while
   Electron main keeps its separate IPC latest-view cache. No migration required.
 - frontend/store: make chat workspace records the only source for active
-  workspace reads; top-level chat-store fields remain compatibility mirrors and
-  no longer override `workspaces[...]`. No migration required.
+  workspace reads; deleted root chat-store mirrors can no longer override
+  `workspaces[...]`. No migration required.
 - frontend/store: narrow the chat workspace helper snapshot contract to
   `activeConversationRef` plus `workspaces`, so root chat-store projection
   fields are no longer typed as workspace read inputs. No migration required.

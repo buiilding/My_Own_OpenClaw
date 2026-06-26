@@ -21,6 +21,10 @@ const mockStop = jest.fn();
 const mockSend = jest.fn();
 const mockRunManualCompaction = jest.fn();
 
+function getActiveWorkspace() {
+  return useChatStore.getState().getWorkspaceState();
+}
+
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
   DesktopLiveTurnRuntimeClient: {
     stop: (...args) => mockStop(...args),
@@ -83,7 +87,7 @@ describe('pending stop live surface integration', () => {
       timestamp: '2026-06-16T00:00:00.000Z',
       attachmentFilenames: null,
     });
-    useChatStore.setState({ isSending: false });
+    useChatStore.getState().setIsSending(false, 'conv-pending-stop');
 
     render(
       <AppConfigContext.Provider value={{
@@ -106,13 +110,13 @@ describe('pending stop live surface integration', () => {
       conversationRef: 'conv-pending-stop',
       turnRef: 'turn-pending-stop',
     });
-    expect(useChatStore.getState()).toEqual(expect.objectContaining({
+    expect(getActiveWorkspace()).toEqual(expect.objectContaining({
       pendingTurn: null,
       isSending: false,
       thinkingStatus: null,
       thinkingSourceEventType: null,
     }));
-    expect(useChatStore.getState().streamTracking).toEqual(expect.objectContaining({
+    expect(getActiveWorkspace().streamTracking).toEqual(expect.objectContaining({
       phase: 'complete',
       lastEventType: 'stop-query',
     }));

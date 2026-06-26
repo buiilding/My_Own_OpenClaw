@@ -33,6 +33,10 @@ describe('ChatBoxResponse state behavior', () => {
     resetChatBoxResponseTestState();
   });
 
+  function getActiveWorkspace() {
+    return useChatStore.getState().getWorkspaceState();
+  }
+
   function sdkPresentationProjection({
     mode,
     entries = [],
@@ -153,8 +157,8 @@ describe('ChatBoxResponse state behavior', () => {
     await waitFor(() => {
       expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
     });
-    expect(useChatStore.getState().isSending).toBe(true);
-    expect(useChatStore.getState().currentTurnProjection).toBeNull();
+    expect(getActiveWorkspace().isSending).toBe(true);
+    expect(getActiveWorkspace().currentTurnProjection).toBeNull();
   });
 
   test('hides pending-turn awaiting indicator after pending stop is accepted', async () => {
@@ -179,8 +183,8 @@ describe('ChatBoxResponse state behavior', () => {
     await waitFor(() => {
       expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
     });
-    expect(useChatStore.getState().pendingTurn).toBeNull();
-    expect(useChatStore.getState().isSending).toBe(false);
+    expect(getActiveWorkspace().pendingTurn).toBeNull();
+    expect(getActiveWorkspace().isSending).toBe(false);
   });
 
   test('reports pending-turn typing size immediately', () => {

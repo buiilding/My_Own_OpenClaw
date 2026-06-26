@@ -123,35 +123,6 @@ export function readWorkspaceState(
   return state.workspaces?.[workspaceRef] ?? createInitialWorkspaceState();
 }
 
-export type ProjectedWorkspaceFields = Pick<
-ChatWorkspaceState,
-'messages'
-| 'isSending'
-| 'thinkingStatus'
-| 'thinkingSourceEventType'
-| 'compactionDebugInfo'
-| 'tokenCounts'
-| 'streamTracking'
-| 'currentTurnProjection'
-| 'conversationView'
-| 'pendingTurn'
->;
-
-export function getProjectedWorkspaceFields(workspace: ChatWorkspaceState): ProjectedWorkspaceFields {
-  return {
-    messages: workspace.messages,
-    isSending: workspace.isSending,
-    thinkingStatus: workspace.thinkingStatus,
-    thinkingSourceEventType: workspace.thinkingSourceEventType,
-    compactionDebugInfo: workspace.compactionDebugInfo,
-    tokenCounts: workspace.tokenCounts,
-    streamTracking: workspace.streamTracking,
-    currentTurnProjection: workspace.currentTurnProjection,
-    conversationView: workspace.conversationView,
-    pendingTurn: workspace.pendingTurn,
-  };
-}
-
 export function isActiveWorkspaceRef(
   state: ChatWorkspaceStoreSnapshot,
   workspaceRef: string,
@@ -171,7 +142,6 @@ export function buildWorkspaceUpdate<TState extends ChatWorkspaceStoreSnapshot>(
       [workspaceRef]: workspace,
     },
     ...extraState,
-    ...(isActiveWorkspaceRef(state, workspaceRef) ? getProjectedWorkspaceFields(workspace) : {}),
   } as Partial<TState>;
 }
 
@@ -218,7 +188,6 @@ export function buildActiveConversationWorkspaceUpdate<TState extends ChatWorksp
         ...state.workspaces,
         [nextWorkspaceRef]: nextWorkspace,
       },
-    ...getProjectedWorkspaceFields(nextWorkspace),
   } as unknown as Partial<TState>;
 }
 
