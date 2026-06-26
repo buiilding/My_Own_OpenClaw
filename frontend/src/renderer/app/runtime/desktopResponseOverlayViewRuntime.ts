@@ -38,6 +38,8 @@ type CurrentTurnPresentationStateLike = {
 
 type ResponseOverlayEntryLike = {
   id?: string | null;
+  text?: string | null;
+  type?: string | null;
 };
 
 export type ResponseOverlayDismissalInput = {
@@ -65,6 +67,21 @@ type ResponseOverlayWindowGuardSnapshotInput = {
   previousSnapshot?: Partial<ResponseOverlayWindowGuardSnapshot> | null;
 };
 
+type ResponseOverlayTraceSummaryInput = {
+  awaitingVisible?: boolean;
+  currentTurnPhase?: string | null;
+  isVisible?: boolean;
+  latestResponseOverlayEntryId?: string | null;
+  latestSourceTaggedResponseEntry?: ResponseOverlayEntryLike | null;
+  messageCount?: number | null;
+  overlayLayoutMode?: string | null;
+  responseOverlayEntryCount?: number | null;
+  responseOverlayEntries?: ResponseOverlayEntryLike[] | null;
+  responseVisible?: boolean;
+  thinkingText?: string | null;
+  turnId?: string | null;
+};
+
 function normalizeString(value: string | null | undefined): string | null {
   if (typeof value !== 'string') {
     return null;
@@ -79,6 +96,12 @@ function normalizeUnknownString(value: unknown): string | null {
 
 function normalizeReasoningText(reasoningText: unknown): string {
   return typeof reasoningText === 'string' ? reasoningText.trim() : '';
+}
+
+function normalizeCount(value: number | null | undefined): number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? Math.floor(value)
+    : 0;
 }
 
 function normalizeEntryThinkingText(entry: unknown): string {
@@ -166,6 +189,82 @@ function resolveDismissedResponseOverlayEntryId(
     return null;
   }
   return responseEntryId;
+}
+
+function buildResponseOverlayTraceSummary({
+  awaitingVisible = false,
+  currentTurnPhase = null,
+  isVisible = false,
+  latestResponseOverlayEntryId = null,
+  latestSourceTaggedResponseEntry = null,
+  messageCount = 0,
+  overlayLayoutMode = null,
+  responseOverlayEntryCount = null,
+  responseOverlayEntries = [],
+  responseVisible = false,
+  thinkingText = null,
+  turnId = null,
+}: ResponseOverlayTraceSummaryInput = {}) {
+  const activeResponseText = typeof latestSourceTaggedResponseEntry?.text === 'string'
+    ? latestSourceTaggedResponseEntry.text
+    : '';
+  const activeResponseTextLength = activeResponseText.length;
+  const responseEntryCount = typeof responseOverlayEntryCount === 'number'
+    ? normalizeCount(responseOverlayEntryCount)
+    : Array.isArray(responseOverlayEntries)
+    ? responseOverlayEntries.length
+    : 0;
+  const phase = normalizeString(currentTurnPhase) || 'idle';
+  const normalizedTurnId = normalizeString(turnId);
+  const visibleResponseId = normalizeString(latestResponseOverlayEntryId);
+  const normalizedLayoutMode = normalizeString(overlayLayoutMode) || 'hidden';
+  const normalizedMessageCount = normalizeCount(messageCount);
+  const thinkingTextLength = typeof thinkingText === 'string' ? thinkingText.length : 0;
+  const responseType = normalizeString(latestSourceTaggedResponseEntry?.type);
+
+  return {
+    signature: JSON.stringify({
+      isVisible: isVisible === true,
+      awaitingVisible: awaitingVisible === true,
+      responseVisible: responseVisible === true,
+      overlayLayoutMode: normalizedLayoutMode,
+      phase,
+      turnId: normalizedTurnId,
+      visibleResponseId,
+      activeResponseTextLength,
+    }),
+    stateTrace: {
+      turnRef: normalizedTurnId,
+      phase,
+      isVisible: isVisible === true,
+      awaitingVisible: awaitingVisible === true,
+      responseVisible: responseVisible === true,
+      responseLayoutMode: normalizedLayoutMode,
+      visibleResponseId,
+      responseEntryCount,
+      activeResponseTextLength,
+      thinkingText,
+      messageCount: normalizedMessageCount,
+    },
+    snapshotTrace: {
+      phase,
+      messageCount: normalizedMessageCount,
+      activeResponseTextLength,
+      responseType,
+      visibleResponseId,
+      responseOverlayEntryCount: responseEntryCount,
+      awaitingVisible: awaitingVisible === true,
+      responseVisible: responseVisible === true,
+      thinkingTextLength,
+    },
+    renderTrace: {
+      turnRef: normalizedTurnId,
+      phase,
+      responseLayoutMode: normalizedLayoutMode,
+      responseVisible: responseVisible === true,
+      awaitingVisible: awaitingVisible === true,
+    },
+  };
 }
 
 function createResponseOverlayWindowGuardSnapshot(): ResponseOverlayWindowGuardSnapshot {
@@ -484,6 +583,7 @@ function resolveResponseOverlayPresentationStateForSurfaceState({
 export const DesktopResponseOverlayViewRuntime = Object.freeze({
   buildDismissResponseOverlayEntryStateUpdate,
   buildResponseOverlayDismissalKey,
+  buildResponseOverlayTraceSummary,
   createResponseOverlayWindowGuardSnapshot,
   isResponseOverlayEntryDismissedInState,
   resolveDismissedResponseOverlayEntryId,

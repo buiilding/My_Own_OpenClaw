@@ -14,6 +14,7 @@ import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendere
 import { DesktopResponseOverlayLayoutRuntime } from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
 import { DesktopResponseOverlayInteractionRuntime } from '../../../app/runtime/desktopResponseOverlayInteractionRuntime';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
+import { DesktopResponseOverlayViewRuntime } from '../../../app/runtime/desktopResponseOverlayViewRuntime';
 
 const RESPONSE_FIXED_HEIGHT = DesktopResponseOverlayLayoutRuntime.getResponseOverlayFixedHeight();
 const TYPING_FRAME_HEIGHT = (
@@ -26,6 +27,9 @@ const {
   logRendererResponseSurfaceRenderTrace,
   logRendererResponseSurfaceSnapshotTrace,
 } = DesktopRendererTraceRuntime;
+const {
+  buildResponseOverlayTraceSummary,
+} = DesktopResponseOverlayViewRuntime;
 
 function MinimalResponseOverlay() {
   const chatSurfaceState = useChatStore(useShallow(selectLiveTurnSurfaceState));
@@ -55,6 +59,9 @@ function MinimalResponseOverlay() {
   } = useResponseOverlayViewModel({
     chatSurfaceState,
   });
+  const latestResponseText = latestSourceTaggedResponseEntry?.text;
+  const latestResponseType = latestSourceTaggedResponseEntry?.type;
+  const responseOverlayEntryCount = responseOverlayEntries.length;
   const {
     hasOverflowAbove,
     responsePillRef,
@@ -121,7 +128,7 @@ function MinimalResponseOverlay() {
       isVisible,
       awaitingVisible,
       responseVisible,
-      responseOverlayEntryCount: responseOverlayEntries.length,
+      responseOverlayEntryCount,
     });
   }, [
     currentTurnId,
@@ -129,68 +136,43 @@ function MinimalResponseOverlay() {
     isVisible,
     overlayIntent,
     overlayLayoutMode,
-    responseOverlayEntries.length,
+    responseOverlayEntryCount,
     awaitingVisible,
     responseVisible,
   ]);
 
   useEffect(() => {
-    const activeResponseTextLength = typeof latestSourceTaggedResponseEntry?.text === 'string'
-      ? latestSourceTaggedResponseEntry.text.length
-      : 0;
-    const nextSurfaceStateSignature = JSON.stringify({
+    const traceSummary = buildResponseOverlayTraceSummary({
+      awaitingVisible,
+      currentTurnPhase,
       isVisible,
-      awaitingVisible,
-      responseVisible,
-      overlayLayoutMode,
-      phase: currentTurnPhase || 'idle',
-      turnId: currentTurnId || null,
-      visibleResponseId: latestResponseOverlayEntryId || null,
-      activeResponseTextLength,
-    });
-    if (lastLoggedSurfaceStateRef.current !== nextSurfaceStateSignature) {
-      lastLoggedSurfaceStateRef.current = nextSurfaceStateSignature;
-      logRendererResponseOverlayStateTrace({
-        turnRef: currentTurnId || null,
-        phase: currentTurnPhase || 'idle',
-        isVisible,
-        awaitingVisible,
-        responseVisible,
-        responseLayoutMode: overlayLayoutMode,
-        visibleResponseId: latestResponseOverlayEntryId || null,
-        responseEntryCount: responseOverlayEntries.length,
-        activeResponseTextLength,
-        thinkingText,
-        messageCount: messages.length,
-      });
-    }
-    logRendererResponseSurfaceSnapshotTrace({
-      phase: currentTurnPhase || 'idle',
+      latestResponseOverlayEntryId,
+      latestSourceTaggedResponseEntry: {
+        text: latestResponseText,
+        type: latestResponseType,
+      },
       messageCount: messages.length,
-      activeResponseTextLength,
-      responseType: latestSourceTaggedResponseEntry?.type || null,
-      visibleResponseId: latestResponseOverlayEntryId,
-      responseOverlayEntryCount: responseOverlayEntries.length,
-      awaitingVisible,
+      overlayLayoutMode,
+      responseOverlayEntryCount,
       responseVisible,
-      thinkingTextLength: typeof thinkingText === 'string' ? thinkingText.length : 0,
+      thinkingText,
+      turnId: currentTurnId,
     });
-    logRendererResponseSurfaceRenderTrace({
-      turnRef: currentTurnId,
-      phase: currentTurnPhase || 'idle',
-      responseLayoutMode: overlayLayoutMode,
-      responseVisible,
-      awaitingVisible,
-    });
+    if (lastLoggedSurfaceStateRef.current !== traceSummary.signature) {
+      lastLoggedSurfaceStateRef.current = traceSummary.signature;
+      logRendererResponseOverlayStateTrace(traceSummary.stateTrace);
+    }
+    logRendererResponseSurfaceSnapshotTrace(traceSummary.snapshotTrace);
+    logRendererResponseSurfaceRenderTrace(traceSummary.renderTrace);
   }, [
     currentTurnId,
     currentTurnPhase,
     isVisible,
     latestResponseOverlayEntryId,
-    latestSourceTaggedResponseEntry?.text,
-    latestSourceTaggedResponseEntry?.type,
+    latestResponseText,
+    latestResponseType,
     messages.length,
-    responseOverlayEntries.length,
+    responseOverlayEntryCount,
     awaitingVisible,
     responseVisible,
     thinkingText,

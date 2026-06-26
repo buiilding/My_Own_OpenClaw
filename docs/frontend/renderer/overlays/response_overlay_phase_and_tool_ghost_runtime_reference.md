@@ -216,6 +216,11 @@ Contract ownership:
   `logRendererResponseSurfaceSnapshotTrace(...)`; `MinimalResponseOverlay`
   reports only phase, message-count, response-entry, visible-response, and
   text-length values.
+- `DesktopResponseOverlayViewRuntime` owns response overlay state/snapshot/render
+  trace summary and signature construction. `MinimalResponseOverlay` passes
+  value-level view model fields to `buildResponseOverlayTraceSummary(...)` and
+  logs the returned trace inputs instead of recomputing turn ids, text lengths,
+  or JSON state signatures inline.
 - `DesktopRendererTraceRuntime` also owns response overlay view-model
   live-surface trace payload, resolved-event, typing-event, intent-event, and
   reason mapping. `useResponseOverlayViewModel(...)` reports value-level SDK,

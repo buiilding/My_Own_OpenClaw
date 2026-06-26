@@ -8,6 +8,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
   const {
     buildDismissResponseOverlayEntryStateUpdate,
     buildResponseOverlayDismissalKey,
+    buildResponseOverlayTraceSummary,
     createResponseOverlayWindowGuardSnapshot,
     isResponseOverlayEntryDismissedInState,
     resolveDismissedResponseOverlayEntryId,
@@ -95,6 +96,71 @@ describe('desktopResponseOverlayViewRuntime', () => {
       update || {},
       null,
     )).toBeNull();
+  });
+
+  test('builds response overlay trace summaries from view model state', () => {
+    const traceSummary = buildResponseOverlayTraceSummary({
+      awaitingVisible: false,
+      currentTurnPhase: ' streaming ',
+      isVisible: true,
+      latestResponseOverlayEntryId: ' assistant-entry ',
+      latestSourceTaggedResponseEntry: {
+        id: 'assistant-entry',
+        type: 'llm-text',
+        text: 'final answer',
+      },
+      messageCount: 3,
+      overlayLayoutMode: ' response ',
+      responseOverlayEntries: [
+        { id: 'thinking', type: 'thinking', text: 'think' },
+        { id: 'assistant-entry', type: 'llm-text', text: 'final answer' },
+      ],
+      responseVisible: true,
+      thinkingText: 'think',
+      turnId: ' turn-overlay ',
+    });
+
+    expect(traceSummary.signature).toBe(JSON.stringify({
+      isVisible: true,
+      awaitingVisible: false,
+      responseVisible: true,
+      overlayLayoutMode: 'response',
+      phase: 'streaming',
+      turnId: 'turn-overlay',
+      visibleResponseId: 'assistant-entry',
+      activeResponseTextLength: 'final answer'.length,
+    }));
+    expect(traceSummary.stateTrace).toEqual({
+      turnRef: 'turn-overlay',
+      phase: 'streaming',
+      isVisible: true,
+      awaitingVisible: false,
+      responseVisible: true,
+      responseLayoutMode: 'response',
+      visibleResponseId: 'assistant-entry',
+      responseEntryCount: 2,
+      activeResponseTextLength: 'final answer'.length,
+      thinkingText: 'think',
+      messageCount: 3,
+    });
+    expect(traceSummary.snapshotTrace).toEqual({
+      phase: 'streaming',
+      messageCount: 3,
+      activeResponseTextLength: 'final answer'.length,
+      responseType: 'llm-text',
+      visibleResponseId: 'assistant-entry',
+      responseOverlayEntryCount: 2,
+      awaitingVisible: false,
+      responseVisible: true,
+      thinkingTextLength: 'think'.length,
+    });
+    expect(traceSummary.renderTrace).toEqual({
+      turnRef: 'turn-overlay',
+      phase: 'streaming',
+      responseLayoutMode: 'response',
+      responseVisible: true,
+      awaitingVisible: false,
+    });
   });
 
   test('keeps response overlay window guard identity in app runtime', () => {

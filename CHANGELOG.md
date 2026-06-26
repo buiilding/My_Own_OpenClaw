@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: move minimal response-overlay trace summary/signature
+  construction into `DesktopResponseOverlayViewRuntime`, leaving
+  `MinimalResponseOverlay` to log runtime-built state, snapshot, and render
+  trace inputs. No migration required.
 - frontend/chat: move response-overlay dismissal state update/read logic into
   `DesktopResponseOverlayViewRuntime`, leaving `chatStore.ts` as the Zustand
   binding for persisted UI dismissal state and the minimal response-overlay
