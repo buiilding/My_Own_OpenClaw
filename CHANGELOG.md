@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: stop replacing SDK-projected same-turn user rows with
+  renderer pending bridge rows; the pending bridge now only fills absent user
+  rows, so SDK `attachments[]` remain the sole visible attachment source once
+  a display row exists. No migration required.
 - frontend/send: split the send-history read model into
   `selectChatSendReadModel(...)` so `useChatMessageSender` no longer depends on
   the full `selectChatInterfaceState(...)` UI selector. No migration required.

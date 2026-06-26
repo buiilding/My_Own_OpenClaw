@@ -140,9 +140,11 @@ When attachment(s) exist:
    and let presentation merge the pending bridge beside SDK display rows until
    the next SDK view arrives. That merge is driven by the typed `pendingTurn`
    bridge itself, not by re-exposing raw renderer `messages` as a competing
-   view-time read model. Replay sends intentionally clear the old view when
-   publishing replacement rows so stale suffix rows do not remain visible while
-   SDK edit/retry commands complete.
+   view-time read model. The bridge only fills an absent user row; once the SDK
+   display row for that turn exists, the SDK row is authoritative and renderer
+   attachment state is not copied forward. Replay sends intentionally clear the
+   old view when publishing replacement rows so stale suffix rows do not remain
+   visible while SDK edit/retry commands complete.
 5. run send-surface window policy only (optional return-to-chatbox behavior).
 6. build typed SDK turn resources:
    - `clipboard_image` for pasted/selected images

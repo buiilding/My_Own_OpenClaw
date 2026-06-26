@@ -129,32 +129,6 @@ function pendingOptimisticUserMessages(
   return optimisticMessages;
 }
 
-function findPendingOptimisticUserMessage(
-  message: ChatMessage,
-  currentMessages: ChatMessage[],
-  pendingTurn: PendingTurnLike,
-): ChatMessage | null {
-  const pendingTurnRef = normalizeTurnRef(pendingTurn?.turnRef);
-  const messageTurnRef = normalizeTurnRef(message.turnRef);
-  if (
-    message.sender !== 'user'
-    || !pendingTurnRef
-    || !messageTurnRef
-    || messageTurnRef !== pendingTurnRef
-  ) {
-    return null;
-  }
-  return currentMessages.find((currentMessage) => (
-    isOptimisticUserMessage(currentMessage)
-    && normalizeTurnRef(currentMessage.turnRef) === pendingTurnRef
-    && (
-      currentMessage.id === message.id
-      || currentMessage.id === pendingTurn?.userMessageId
-      || currentMessage.text === pendingTurn?.text
-    )
-  )) ?? null;
-}
-
 function mergePendingOptimisticUserMessages(
   sdkMessages: ChatMessage[],
   optimisticMessages: ChatMessage[],
@@ -188,14 +162,6 @@ function mergeRendererAnnotationsIntoSdkMessages(
   const currentChatMessages = currentMessages.filter(isChatMessage);
   const currentById = new Map(currentMessages.map((message) => [message.id, message]));
   const mergedSdkMessages = sdkMessages.map((message) => {
-    const pendingOptimisticUser = findPendingOptimisticUserMessage(
-      message,
-      currentChatMessages,
-      options.pendingTurn,
-    );
-    if (pendingOptimisticUser) {
-      return pendingOptimisticUser;
-    }
     const current = currentById.get(message.id);
     return {
       ...message,

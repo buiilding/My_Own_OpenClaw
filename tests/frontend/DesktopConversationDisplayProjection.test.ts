@@ -191,7 +191,7 @@ describe('desktopConversationDisplayProjection', () => {
     )).toEqual([sdkUserSameTurn]);
   });
 
-  test('keeps the optimistic user bubble when SDK echoes the pending user turn', () => {
+  test('uses SDK user rows when SDK echoes the pending user turn', () => {
     const optimisticUser = message({
       id: 'renderer-user-edit',
       sender: 'user',
@@ -228,10 +228,10 @@ describe('desktopConversationDisplayProjection', () => {
           text: 'edited prompt',
         },
       },
-    )).toEqual([optimisticUser]);
+    )).toEqual([sdkUserSameTurn]);
   });
 
-  test('builds conversation-view messages and preserves pending annotations on request', () => {
+  test('builds conversation-view messages without replacing SDK user rows with pending bridge rows', () => {
     const optimisticUser = message({
       id: 'renderer-user-edit',
       sender: 'user',
@@ -239,6 +239,12 @@ describe('desktopConversationDisplayProjection', () => {
       turnRef: 'turn-edit',
       sourceEventType: 'renderer-compose',
       sourceChannel: 'renderer-local',
+      attachments: [{
+        id: 'renderer-only-attachment',
+        kind: 'image',
+        source: 'user_included',
+        status: 'ready',
+      }],
       isComplete: true,
     });
     const conversationView = {
@@ -267,7 +273,23 @@ describe('desktopConversationDisplayProjection', () => {
         text: 'edited prompt',
       },
       preserveRendererAnnotations: true,
-    })).toEqual([optimisticUser]);
+    })).toEqual([
+      expect.objectContaining({
+        id: 'sdk-user-edit',
+        sender: 'user',
+        sourceChannel: 'sdk:display-rows',
+      }),
+    ]);
+    expect(buildConversationViewChatMessages({
+      conversationView,
+      currentMessages: [optimisticUser],
+      pendingTurn: {
+        turnRef: 'turn-edit',
+        userMessageId: 'renderer-user-edit',
+        text: 'edited prompt',
+      },
+      preserveRendererAnnotations: true,
+    })[0]).not.toHaveProperty('attachments');
     expect(buildConversationViewChatMessages({
       conversationView,
       currentMessages: [optimisticUser],
