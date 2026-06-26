@@ -76,6 +76,7 @@ const {
   buildRevisionCheckoutCommand,
   buildRevisionForkCommand,
   buildRevisionMenuItems,
+  markActiveRevisionInList,
 } = DesktopChatRevisionActionRuntime;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
@@ -479,10 +480,10 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     try {
       const result = await DesktopConversationContinuityService.checkoutRevision(command.input);
       applyConversationView(result?.view, activeConversationRef);
-      setRevisionOptions((current) => current.map((revision) => ({
-        ...revision,
-        active: revision.revisionId === command.input.revisionId,
-      })));
+      setRevisionOptions((current) => markActiveRevisionInList(
+        current,
+        command.input.revisionId,
+      ));
       setRevisionMenuOpen(false);
     } catch (error) {
       console.warn('[ChatInterface] Failed to checkout conversation revision:', error);

@@ -104,9 +104,22 @@ function buildRevisionMenuItems({
   });
 }
 
+function markActiveRevisionInList(revisions = [], revisionId = null) {
+  const normalizedRevisionId = normalizeRevisionId(revisionId);
+  const revisionList = Array.isArray(revisions) ? revisions : [];
+  return revisionList.map((revision) => ({
+    ...revision,
+    active: Boolean(
+      normalizedRevisionId
+        && normalizeRevisionId(revision?.revisionId) === normalizedRevisionId,
+    ),
+  }));
+}
+
 export const DesktopChatRevisionActionRuntime = Object.freeze({
   buildRevisionMenuItems,
   buildRevisionCheckoutCommand,
   buildRevisionForkCommand,
+  markActiveRevisionInList,
   normalizeRevisionId,
 });

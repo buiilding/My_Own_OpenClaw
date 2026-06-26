@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/revisions: move active revision row marking after checkout into
+  `DesktopChatRevisionActionRuntime`, so `ChatInterface` no longer compares
+  SDK revision ids inline. No migration required.
 - frontend/send: move prepared-turn pending cleanup on send-dispatch failure
   into `DesktopChatSendPreparationRuntime`, so `useChatMessageSender` no
   longer reads prepared turn refs to clear renderer pending state. No migration

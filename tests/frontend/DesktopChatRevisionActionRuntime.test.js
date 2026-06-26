@@ -6,6 +6,7 @@ const {
   buildRevisionMenuItems,
   buildRevisionCheckoutCommand,
   buildRevisionForkCommand,
+  markActiveRevisionInList,
   normalizeRevisionId,
 } = DesktopChatRevisionActionRuntime;
 
@@ -128,6 +129,34 @@ describe('DesktopChatRevisionActionRuntime', () => {
         checkoutDisabled: true,
         forkDisabled: true,
         forkAriaLabel: 'Fork revision revision',
+      },
+    ]);
+  });
+
+  test('marks the active revision through the runtime helper', () => {
+    expect(markActiveRevisionInList([
+      {
+        revisionId: 'rev-old',
+        active: true,
+      },
+      {
+        revisionId: ' rev-new ',
+      },
+      {
+        operation: 'missing',
+      },
+    ], ' rev-new ')).toEqual([
+      {
+        revisionId: 'rev-old',
+        active: false,
+      },
+      {
+        revisionId: ' rev-new ',
+        active: true,
+      },
+      {
+        operation: 'missing',
+        active: false,
       },
     ]);
   });

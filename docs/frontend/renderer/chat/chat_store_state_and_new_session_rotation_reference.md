@@ -392,9 +392,9 @@ resources from its canonical `ConversationView`/display timeline state.
 
 `DesktopChatRevisionActionRuntime` owns checkout/fork command input shaping for
 the revision menu: revision id normalization, action ids, default user id, and
-temporary fork conversation refs required by the current SDK fork command
-contract. `ChatInterface` calls the SDK command facade with those prepared
-inputs instead of constructing revision command payloads inline.
+active row marking after checkout. `ChatInterface` calls the SDK command facade
+with those prepared inputs instead of constructing revision command payloads or
+comparing revision ids inline.
 
 `handleNewChat` passes `stopActiveQuery` only when stream phase is active. Stop callback does:
 

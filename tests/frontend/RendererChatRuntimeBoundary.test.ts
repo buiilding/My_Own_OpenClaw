@@ -3560,6 +3560,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('latestConversationView');
     expect(chatInterfaceSource).toContain('buildRevisionCheckoutCommand');
     expect(chatInterfaceSource).toContain('buildRevisionForkCommand');
+    expect(chatInterfaceSource).toContain('markActiveRevisionInList');
+    expect(chatInterfaceSource).not.toContain('revision.revisionId === command.input.revisionId');
     expect(chatInterfaceSource).not.toContain('newConversationRef');
     expect(chatInterfaceSource).not.toContain('setMessages(projection.messages');
     expect(chatInterfaceSource).not.toContain('buildConversationViewStoreProjection');
@@ -3634,6 +3636,7 @@ describe('renderer chat runtime boundary', () => {
     expect(messageItemSource).toContain('canTryAgain={canRetryMessage}');
     expect(messageItemSource).toContain('canEdit={canEditMessage}');
     expect(chatRevisionActionRuntimeSource).toContain('buildRevisionCheckoutCommand');
+    expect(chatRevisionActionRuntimeSource).toContain('markActiveRevisionInList');
     expect(chatRevisionActionRuntimeSource).toContain('buildRevisionForkCommand');
     expect(chatRevisionActionRuntimeSource).not.toContain('buildForkConversationRef');
     expect(chatRevisionActionRuntimeSource).not.toContain('newConversationRef');
