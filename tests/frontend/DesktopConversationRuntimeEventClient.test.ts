@@ -48,6 +48,20 @@ const currentTurn = {
   },
 };
 
+const presentationOnlyCurrentTurn = {
+  conversationRef: 'conv-2',
+  turnRef: 'turn-2',
+  phase: 'streaming',
+  presentation: {
+    entries: [
+      { id: 'entry-1', type: 'llm-text', text: 'Hello from presentation' },
+    ],
+    typingVisible: true,
+    overlayVisible: true,
+    hasVisibleContent: true,
+  },
+};
+
 describe('DesktopConversationRuntimeEventClient', () => {
   beforeEach(() => {
     mockOn.mockClear();
@@ -66,6 +80,9 @@ describe('DesktopConversationRuntimeEventClient', () => {
       conversationRef: ' override-conv ',
       currentTurn,
     });
+    mockChannelListeners.get('windie:current-turn')?.({
+      currentTurn: presentationOnlyCurrentTurn,
+    });
     mockChannelListeners.get('windie:current-turn')?.({ currentTurn: { phase: 'streaming' } });
 
     expect(mockOn).toHaveBeenCalledWith('windie:current-turn', expect.any(Function));
@@ -77,6 +94,10 @@ describe('DesktopConversationRuntimeEventClient', () => {
       {
         currentTurn,
         conversationRef: 'override-conv',
+      },
+      {
+        currentTurn: presentationOnlyCurrentTurn,
+        conversationRef: 'conv-2',
       },
       {
         currentTurn: null,

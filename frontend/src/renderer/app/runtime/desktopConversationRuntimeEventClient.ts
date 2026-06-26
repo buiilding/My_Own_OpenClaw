@@ -38,6 +38,19 @@ function normalizeOptionalString(value: unknown): string | null {
     : null;
 }
 
+function hasSdkPresentation(value: unknown): boolean {
+  const presentation = recordOrEmpty(value);
+  return Array.isArray(presentation.entries);
+}
+
+function hasLegacyCurrentTurnContent(value: unknown): boolean {
+  const projection = recordOrEmpty(value);
+  const assistantText = projection.assistantText;
+  const toolEvents = projection.toolEvents;
+  return typeof assistantText === 'string'
+    && Array.isArray(toolEvents);
+}
+
 function isCurrentTurnProjection(value: unknown): value is CurrentTurnProjection {
   if (!value || typeof value !== 'object') {
     return false;
@@ -45,8 +58,10 @@ function isCurrentTurnProjection(value: unknown): value is CurrentTurnProjection
   const projection = value as Partial<CurrentTurnProjection>;
   return typeof projection.conversationRef === 'string'
     && typeof projection.phase === 'string'
-    && typeof projection.assistantText === 'string'
-    && Array.isArray(projection.toolEvents);
+    && (
+      hasSdkPresentation(projection.presentation)
+      || hasLegacyCurrentTurnContent(projection)
+    );
 }
 
 function normalizeCurrentTurnProjectionEvent(

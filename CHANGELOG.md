@@ -10,9 +10,10 @@ All notable changes to WindieOS will be documented in this file.
   overlay, thread presentation, live-turn side-effect, and trace-counter
   adapters use SDK `presentation.entries`, `presentation.lastError`, and
   presentation lifecycle fields, including overlay thinking text, instead of
-  scanning raw `assistantText`, `reasoningText`, or `toolEvents`; raw
-  current-turn row synthesis remains only for legacy no-presentation hosts. No
-  migration required.
+  scanning raw `assistantText`, `reasoningText`, or `toolEvents`; current-turn
+  IPC validation now accepts presentation-backed snapshots without those raw
+  content fields, and raw current-turn row synthesis remains only for legacy
+  no-presentation hosts. No migration required.
 - sdk/frontend: add SDK-authored `toolCallDetails` and `toolOutputDetails`
   metadata to display rows, and make the renderer display-row adapter consume
   only those detail records instead of copying request/tool ids from generic row

@@ -293,6 +293,10 @@ Electron main also hydrates newly tracked renderer windows with the cached
 `ConversationView` on the `windie:current-turn` envelope, so renderer reloads
 enter the same view-owned path as live runtime updates instead of starting from
 a raw current-turn-only sync.
+Renderer current-turn IPC adapters should treat a valid `presentation.entries`
+array as the normal current-turn shape and must not require raw `assistantText`
+or `toolEvents` when presentation exists. The raw field requirement remains
+only for legacy no-presentation snapshots.
 For the Phase 3 transcript migration, Electron renderer projects dashboard
 messages from `snapshot.view.displayRows` when a current-turn payload includes
 the view, and dashboard busy state reads `snapshot.view.surfaces.dashboard.mode`.
