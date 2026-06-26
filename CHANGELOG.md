@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: move manual response-overlay close action value
+  construction into `DesktopResponseOverlayViewRuntime`, so
+  `useResponseOverlayViewModel` no longer unpacks dismissal target turn or
+  stale-guard fields before hiding the responsebox. No migration required.
 - frontend/pill: move minimal chat pill lifecycle and reset trace value
   construction into `DesktopChatPillSessionRuntime`, so `MinimalChatPill`
   no longer unpacks lifecycle snapshot turn fields for trace payloads. No

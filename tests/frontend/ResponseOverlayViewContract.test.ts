@@ -7,6 +7,7 @@ import { DesktopResponseOverlayViewRuntime } from '../../frontend/src/renderer/a
 describe('desktopResponseOverlayViewRuntime', () => {
   const {
     buildDismissResponseOverlayEntryStateUpdate,
+    buildDismissResponseOverlayAction,
     buildResponseOverlayEntrySignature,
     buildResponseOverlayDismissalKey,
     buildResponseOverlayTraceSummary,
@@ -102,6 +103,36 @@ describe('desktopResponseOverlayViewRuntime', () => {
       update || {},
       null,
     )).toBeNull();
+  });
+
+  test('builds close actions for response overlay dismissal and responsebox hide', () => {
+    expect(buildDismissResponseOverlayAction({
+      responseOverlayDismissalTarget: {
+        conversationRef: ' conv-overlay ',
+        turnRef: ' turn-overlay ',
+        guardRef: ' guard-overlay ',
+      },
+      responseEntryId: ' entry-overlay ',
+    })).toEqual({
+      dismissalTarget: {
+        conversationRef: ' conv-overlay ',
+        turnRef: ' turn-overlay ',
+        guardRef: ' guard-overlay ',
+        responseEntryId: 'entry-overlay',
+      },
+      responseboxDismissalValues: {
+        turnRef: 'turn-overlay',
+        guardRef: 'guard-overlay',
+      },
+    });
+
+    expect(buildDismissResponseOverlayAction({
+      responseOverlayDismissalTarget: {
+        conversationRef: 'conv-overlay',
+        turnRef: 'turn-overlay',
+      },
+      responseEntryId: '   ',
+    })).toBeNull();
   });
 
   test('builds response overlay trace summaries from view model state', () => {

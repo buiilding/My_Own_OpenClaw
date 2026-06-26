@@ -169,9 +169,11 @@ Contract ownership:
   owns the dismissal target projection from SDK overlay intent, current-turn
   refs, latest response entry id, and stale guard ref.
 - `DesktopResponseOverlayViewRuntime.buildResponseOverlayDismissalKey(...)`
-  owns normalized response-overlay dismissal key construction. `chatStore.ts`
-  persists dismissed keys, but it does not define the conversation/turn/entry
-  key contract.
+  owns normalized response-overlay dismissal key construction, and
+  `DesktopResponseOverlayViewRuntime.buildDismissResponseOverlayAction(...)`
+  builds the store dismissal target plus responsebox hide values for manual
+  close actions. `chatStore.ts` persists dismissed keys, but it does not define
+  the conversation/turn/entry key contract.
 - `DesktopResponseOverlayViewRuntime.resolveResponseOverlayEntries(...)` owns
   response-entry derivation across SDK `ConversationView.liveTurn`, SDK
   current-turn presentation rows, raw SDK live-turn fallback rows, and local
@@ -283,8 +285,8 @@ fields such as `compact_hover`, `turn_ref`, `stale_guard_ref`, and
 
 Manual response dismissal uses
 `DesktopResponseOverlayRuntimeClient.hideDismissedResponsebox(...)` so the view
-model passes only turn/guard refs while the runtime client owns the hidden
-`dismissed` size payload shape.
+model passes app-runtime-built responsebox dismissal values while the runtime
+client owns the hidden `dismissed` size payload shape.
 
 Response overlay hit-test browser subscriptions and pointer bounds checks use
 `DesktopResponseOverlayInteractionRuntime.subscribeToResponseboxHitTestEvents(...)`.

@@ -769,11 +769,14 @@ describe('renderer app runtime boundary', () => {
     expect(overlayViewModelSource).not.toContain('isResponseOverlaySourceTaggedMessage');
     expect(overlayViewModelSource).toContain('resolveLatestSourceTaggedResponseOverlayEntry');
     expect(overlayViewModelSource).toContain('buildResponseOverlayEntrySignature');
+    expect(overlayViewModelSource).toContain('buildDismissResponseOverlayAction');
     expect(overlayViewModelSource).toContain('resolveResponseOverlayCloseable');
     expect(overlayViewModelSource).not.toContain('function buildSdkCurrentTurnPresentationState');
     expect(overlayViewModelSource).not.toContain('function resolveSdkOverlayLifecycle');
     expect(overlayViewModelSource).not.toContain('resolveSdkOverlayIntent');
     expect(overlayViewModelSource).not.toContain('const guardRef = (');
+    expect(overlayViewModelSource).not.toContain('dismissalTarget.turnRef');
+    expect(overlayViewModelSource).not.toContain('dismissalTarget.guardRef');
     expect(overlayViewModelSource).not.toContain("message.type === 'tool-call'");
     expect(overlayViewModelSource).not.toContain("message.type === 'tool-output'");
     expect(overlayViewModelSource).not.toContain("message.type === 'search-source'");

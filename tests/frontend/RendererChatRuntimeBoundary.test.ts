@@ -3213,7 +3213,10 @@ describe('renderer chat runtime boundary', () => {
     expect(viewModelSource).not.toContain('currentTurnProjection = null');
     expect(viewModelSource).not.toContain('pendingTurn = null');
     expect(viewModelSource).not.toContain('effectiveCurrentTurnProjection');
+    expect(viewModelSource).toContain('buildDismissResponseOverlayAction');
     expect(viewModelSource).toContain('hideDismissedResponsebox');
+    expect(viewModelSource).not.toContain('dismissalTarget.turnRef');
+    expect(viewModelSource).not.toContain('dismissalTarget.guardRef');
     expect(viewModelSource).not.toContain('setResponseboxSizeValues');
     expect(viewModelSource).not.toContain('setResponseboxSize({');
     expect(clientSource).toContain('function normalizeResponseOverlayVisibilityPayload');

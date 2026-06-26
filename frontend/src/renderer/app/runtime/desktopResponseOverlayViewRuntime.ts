@@ -46,12 +46,18 @@ type ResponseOverlayEntryLike = {
 
 export type ResponseOverlayDismissalInput = {
   conversationRef?: string | null;
+  guardRef?: string | null;
   turnRef?: string | null;
   responseEntryId?: string | null;
 };
 
 type ResponseOverlayDismissalState = {
   dismissedResponseOverlayEntries?: Record<string, true> | null;
+};
+
+type DismissResponseOverlayActionInput = {
+  responseEntryId?: string | null;
+  responseOverlayDismissalTarget?: ResponseOverlayDismissalInput | null;
 };
 
 type ResponseOverlayWindowGuardSnapshot = {
@@ -204,6 +210,27 @@ function resolveDismissedResponseOverlayEntryId(
     return null;
   }
   return responseEntryId;
+}
+
+function buildDismissResponseOverlayAction({
+  responseEntryId = null,
+  responseOverlayDismissalTarget = null,
+}: DismissResponseOverlayActionInput = {}) {
+  const normalizedResponseEntryId = normalizeString(responseEntryId);
+  if (!responseOverlayDismissalTarget || !normalizedResponseEntryId) {
+    return null;
+  }
+  const dismissalTarget = {
+    ...responseOverlayDismissalTarget,
+    responseEntryId: normalizedResponseEntryId,
+  };
+  return {
+    dismissalTarget,
+    responseboxDismissalValues: {
+      turnRef: normalizeString(dismissalTarget.turnRef),
+      guardRef: normalizeString(dismissalTarget.guardRef),
+    },
+  };
 }
 
 function resolveLatestSourceTaggedResponseOverlayEntry({
@@ -686,6 +713,7 @@ function resolveResponseOverlayPresentationStateForSurfaceState({
 
 export const DesktopResponseOverlayViewRuntime = Object.freeze({
   buildDismissResponseOverlayEntryStateUpdate,
+  buildDismissResponseOverlayAction,
   buildResponseOverlayEntrySignature,
   buildResponseOverlayDismissalKey,
   buildResponseOverlayTraceSummary,

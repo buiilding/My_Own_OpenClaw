@@ -25,6 +25,7 @@ const {
   resolveCurrentTurnPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
 const {
+  buildDismissResponseOverlayAction,
   buildResponseOverlayEntrySignature,
   resolveDismissedResponseOverlayEntryId,
   resolveLatestSourceTaggedResponseOverlayEntry,
@@ -193,15 +194,17 @@ export function useResponseOverlayViewModel({
     ) {
       return;
     }
-    const dismissalTarget = {
-      ...responseOverlayDismissalTarget,
+    const dismissAction = buildDismissResponseOverlayAction({
+      responseOverlayDismissalTarget,
       responseEntryId: viewIntent.latestResponseOverlayEntryId,
-    };
-    dismissResponseOverlayEntry(dismissalTarget);
-    DesktopResponseOverlayRuntimeClient.hideDismissedResponsebox({
-      turnRef: dismissalTarget.turnRef,
-      guardRef: dismissalTarget.guardRef,
-    }).catch((error) => {
+    });
+    if (!dismissAction) {
+      return;
+    }
+    dismissResponseOverlayEntry(dismissAction.dismissalTarget);
+    DesktopResponseOverlayRuntimeClient.hideDismissedResponsebox(
+      dismissAction.responseboxDismissalValues,
+    ).catch((error) => {
       console.warn('[MinimalResponseOverlay] Failed to dismiss response overlay:', error);
     });
   }, [
