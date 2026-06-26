@@ -21,6 +21,7 @@ const {
   buildRendererReplayTracePayload,
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
+  buildRendererOverlayViewModelTraceSignature,
   buildRendererOverlayViewModelTracePayload,
   buildRendererResponseOverlayHitTestTracePayload,
   buildRendererResponseOverlayTypingRenderedTracePayload,
@@ -677,7 +678,7 @@ describe('desktopRendererTraceRuntime', () => {
   });
 
   test('builds response overlay view-model live trace payloads', () => {
-    expect(buildRendererOverlayViewModelTracePayload({
+    const tracePayload = buildRendererOverlayViewModelTracePayload({
       pendingTurn: {
         conversationRef: ' conv-pending ',
         turnRef: ' turn-pending ',
@@ -716,7 +717,9 @@ describe('desktopRendererTraceRuntime', () => {
       },
       useSdkLiveTurnPresentation: true,
       useLocalPendingTurn: false,
-    })).toEqual({
+    });
+
+    expect(tracePayload).toEqual({
       source: 'renderer-overlay-view-model',
       turnRef: 'turn-lifecycle',
       conversationRef: 'conv-lifecycle',
@@ -743,6 +746,7 @@ describe('desktopRendererTraceRuntime', () => {
       useSdkLiveTurnPresentation: true,
       useLocalPendingTurn: false,
     });
+    expect(buildRendererOverlayViewModelTraceSignature(tracePayload)).toBe(JSON.stringify(tracePayload));
   });
 
   test('ignores stale raw current-turn projection in overlay view-model traces', () => {

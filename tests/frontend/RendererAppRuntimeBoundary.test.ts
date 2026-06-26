@@ -449,6 +449,7 @@ describe('renderer app runtime boundary', () => {
     expect(traceRuntimeSource).toContain('buildRendererResponseSurfaceRenderTracePayload');
     expect(traceRuntimeSource).toContain('logRendererResponseSurfaceRenderTrace');
     expect(traceRuntimeSource).toContain('buildRendererOverlayViewModelTracePayload');
+    expect(traceRuntimeSource).toContain('buildRendererOverlayViewModelTraceSignature');
     expect(traceRuntimeSource).toContain('buildRendererOverlayTypingTraceEvent');
     expect(traceRuntimeSource).toContain('buildRendererOverlayIntentTraceEvent');
     expect(traceRuntimeSource).toContain('logRendererOverlayViewModelTrace');
@@ -478,9 +479,11 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlaySource).not.toContain('activeResponseTextLength');
     expect(responseOverlaySource).not.toContain('thinkingText.length');
     expect(responseOverlayViewModelSource).toContain('buildRendererOverlayViewModelTracePayload');
+    expect(responseOverlayViewModelSource).toContain('buildRendererOverlayViewModelTraceSignature');
     expect(responseOverlayViewModelSource).toContain('DesktopRendererTraceRuntime');
     expect(responseOverlayViewModelSource).toContain('logRendererOverlayViewModelTrace');
     expect(responseOverlayViewModelSource).toContain('logRendererOverlayViewModelResolvedTrace');
+    expect(responseOverlayViewModelSource).not.toContain('JSON.stringify(tracePayload)');
     expect(responseOverlaySource).not.toContain('turn_id');
     expect(responseOverlaySource).not.toContain('is_visible');
     expect(responseOverlaySource).not.toContain('show_awaiting_reply');

@@ -226,13 +226,14 @@ Contract ownership:
   `useResponseOverlayViewModel(...)` passes entry lists and visibility/busy
   booleans to the runtime instead of importing current-turn message classifiers.
 - `DesktopRendererTraceRuntime` also owns response overlay view-model
-  live-surface trace payload, resolved-event, typing-event, intent-event, and
-  reason mapping. `useResponseOverlayViewModel(...)` reports value-level SDK,
-  presentation, and view-intent inputs, then logs the app-runtime-built trace
-  records when the resolved payload, typing visibility, or overlay intent mode
-  changes. Trace identity follows the resolved visible lifecycle first, then
-  overlay intent/current-turn/pending fallback fields only when no visible
-  lifecycle identity exists.
+  live-surface trace payload, signature construction, resolved-event,
+  typing-event, intent-event, and reason mapping.
+  `useResponseOverlayViewModel(...)` reports value-level SDK, presentation, and
+  view-intent inputs, then logs the app-runtime-built trace records when the
+  resolved payload, typing visibility, or overlay intent mode changes. Trace
+  identity follows the resolved visible lifecycle first, then overlay
+  intent/current-turn/pending fallback fields only when no visible lifecycle
+  identity exists.
 - `useResponseOverlayScrollState(...)` owns fixed-height transcript scroll pinning and overflow affordance state.
 
 Rendering:

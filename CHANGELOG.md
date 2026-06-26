@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/trace: move response-overlay view-model trace signature
+  construction into `DesktopRendererTraceRuntime`, so
+  `useResponseOverlayViewModel` only requests runtime-built trace payloads,
+  signatures, and event labels. No migration required.
 - frontend/overlay: move response-overlay latest-entry selection, entry
   signature, and closeability decisions into `DesktopResponseOverlayViewRuntime`,
   so `useResponseOverlayViewModel` no longer imports current-turn message

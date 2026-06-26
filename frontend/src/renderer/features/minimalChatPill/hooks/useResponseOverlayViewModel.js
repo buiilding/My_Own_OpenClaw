@@ -15,6 +15,7 @@ import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendere
 const {
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
+  buildRendererOverlayViewModelTraceSignature,
   buildRendererOverlayViewModelTracePayload,
   logRendererOverlayViewModelTrace,
   logRendererOverlayViewModelResolvedTrace,
@@ -150,7 +151,7 @@ export function useResponseOverlayViewModel({
       useSdkLiveTurnPresentation,
       useLocalPendingTurn,
     });
-    const signature = JSON.stringify(tracePayload);
+    const signature = buildRendererOverlayViewModelTraceSignature(tracePayload);
     if (lastResolvedTraceSignatureRef.current !== signature) {
       lastResolvedTraceSignatureRef.current = signature;
       logRendererOverlayViewModelResolvedTrace(tracePayload);

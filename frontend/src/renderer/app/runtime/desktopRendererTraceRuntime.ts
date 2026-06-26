@@ -897,6 +897,12 @@ function buildRendererOverlayViewModelTracePayload(
   };
 }
 
+function buildRendererOverlayViewModelTraceSignature(
+  tracePayload: Record<string, unknown>,
+): string {
+  return JSON.stringify(tracePayload);
+}
+
 function buildRendererOverlayTypingTraceEvent(
   tracePayload: Record<string, unknown>,
 ): RendererOverlayViewModelTraceEvent {
@@ -988,6 +994,7 @@ export const DesktopRendererTraceRuntime = Object.freeze({
   buildRendererReplayTracePayload,
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
+  buildRendererOverlayViewModelTraceSignature,
   buildRendererOverlayViewModelTracePayload,
   buildRendererResponseOverlayHitTestTracePayload,
   buildRendererResponseOverlayStateTracePayload,
