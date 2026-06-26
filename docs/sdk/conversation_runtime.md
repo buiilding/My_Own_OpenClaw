@@ -956,9 +956,10 @@ must not erase prior resolved resources without an explicit removal operation.
 The Electron renderer does not publish a replay-specific pending turn, retained
 display prefix, or separate replacement query. It passes row intent, edited
 text when applicable, workspace context, model override, user id, conversation
-ref, and a fresh turn ref into the SDK command. If the SDK command cannot
-resolve the stored target row or fails, the renderer appends the send-failure
-row without rolling its own display replacement or resource restoration. Typed
+ref, and no renderer-owned replacement turn ref into the SDK command. The SDK
+command chooses the replacement turn ref. If the SDK command cannot resolve
+the stored target row or fails, the renderer appends the send-failure row
+without rolling its own display replacement or resource restoration. Typed
 visual `attachments[]`, screenshot descriptors, preview bytes, ready artifact
 refs, and replacement event ids remain SDK display-row state.
 

@@ -44,12 +44,12 @@ const {
   metadataListToDashboardConversations,
 } = DesktopDashboardConversationLoadRuntime;
 
-type EditAndResendCommandInput = EditAndResendInput & {
+type EditAndResendCommandInput = Omit<EditAndResendInput, 'turnRef'> & {
   userId: string;
   conversationRef: string;
 };
 
-type RetryTurnCommandInput = RetryTurnInput & {
+type RetryTurnCommandInput = Omit<RetryTurnInput, 'turnRef'> & {
   userId: string;
   conversationRef: string;
 };
@@ -95,7 +95,6 @@ export const DesktopConversationContinuityService = {
         conversationRef: input.conversationRef,
         messageId: input.messageId,
         text: input.text,
-        turnRef: input.turnRef,
         payload: input.payload,
         model: input.model,
       },
@@ -109,7 +108,6 @@ export const DesktopConversationContinuityService = {
         userId: input.userId,
         conversationRef: input.conversationRef,
         messageId: input.messageId,
-        turnRef: input.turnRef,
         payload: input.payload,
         model: input.model,
       },

@@ -60,6 +60,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/tests: update `ChatInterfaceWiring` to mock the split
   `chatStoreAdapters` boundary and assert replay commands do not carry
   renderer-owned replacement turn refs. No migration required.
+- frontend/replay: remove replacement `turnRef` from renderer
+  `DesktopConversationContinuityService` edit/retry command payloads so SDK
+  replay commands own replacement turn identity end to end. No migration
+  required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.

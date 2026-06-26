@@ -1907,6 +1907,9 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('screenshotRef');
     expect(replayRuntimeSource).not.toContain('attachmentFilenames');
     expect(replayRuntimeSource).not.toContain('features/chat');
+    expect(continuityServiceSource).not.toContain('turnRef: input.turnRef');
+    expect(continuityServiceSource).toContain("Omit<EditAndResendInput, 'turnRef'>");
+    expect(continuityServiceSource).toContain("Omit<RetryTurnInput, 'turnRef'>");
     await expect(fs.stat(
       path.join(chatRoot, 'utils/conversationReplayToolMessages.js'),
     )).rejects.toThrow();

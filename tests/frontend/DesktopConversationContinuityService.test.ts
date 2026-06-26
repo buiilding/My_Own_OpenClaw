@@ -40,7 +40,6 @@ describe('DesktopConversationContinuityService', () => {
         conversationRef: 'conv-display',
         messageId: 'row-user',
         text: 'edited text',
-        turnRef: 'turn-edit',
         payload: { screenshot_refs: ['artifact-one'] },
         model: {
           modelProvider: 'anthropic',
@@ -56,7 +55,6 @@ describe('DesktopConversationContinuityService', () => {
           conversationRef: 'conv-display',
           messageId: 'row-user',
           text: 'edited text',
-          turnRef: 'turn-edit',
           payload: { screenshot_refs: ['artifact-one'] },
           model: {
             modelProvider: 'anthropic',
@@ -92,7 +90,6 @@ describe('DesktopConversationContinuityService', () => {
         userId: 'user-1',
         conversationRef: 'conv-display',
         messageId: 'row-assistant',
-        turnRef: 'turn-retry',
         payload: { screenshot_ref: 'artifact-one' },
         model: {
           modelProvider: 'anthropic',
@@ -107,7 +104,6 @@ describe('DesktopConversationContinuityService', () => {
           userId: 'user-1',
           conversationRef: 'conv-display',
           messageId: 'row-assistant',
-          turnRef: 'turn-retry',
           payload: { screenshot_ref: 'artifact-one' },
           model: {
             modelProvider: 'anthropic',
