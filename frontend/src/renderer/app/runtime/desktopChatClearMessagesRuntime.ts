@@ -2,17 +2,23 @@
  * Owns chat workspace clear/reset state updates for renderer store bindings.
  */
 
+import type {
+  NoViewSdkLiveTurnStorage,
+} from './desktopChatWorkspaceStateRuntime';
+import {
+  DesktopChatWorkspaceStateRuntime,
+} from './desktopChatWorkspaceStateRuntime';
+
 type ClearMessagesStateSnapshot = {
   activeConversationRef: string | null;
 };
 
-type ClearMessagesWorkspace<TStreamTracking> = {
+type ClearMessagesWorkspace<TStreamTracking> = NoViewSdkLiveTurnStorage & {
   messages: unknown[];
   isSending: boolean;
   thinkingSourceEventType: string | null;
   compactionDebugInfo: unknown;
   streamTracking: TStreamTracking;
-  currentTurnProjection: unknown | null;
   conversationView: unknown | null;
   pendingTurn: unknown | null;
 };
@@ -35,6 +41,10 @@ type ClearMessagesStateDependencies<
   ) => string;
 };
 
+const {
+  buildNoViewSdkLiveTurnStorageUpdate,
+} = DesktopChatWorkspaceStateRuntime;
+
 function buildClearMessagesStateUpdate<
   TState extends ClearMessagesStateSnapshot,
   TStreamTracking,
@@ -51,13 +61,12 @@ function buildClearMessagesStateUpdate<
   const targetWorkspaceRef = deps.resolveWorkspaceKey(conversationRef, state.activeConversationRef);
   const currentWorkspace = deps.readWorkspaceState(state, targetWorkspaceRef);
   return deps.buildWorkspaceUpdate(state, targetWorkspaceRef, {
-    ...currentWorkspace,
+    ...buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace, null),
     messages: [],
     isSending: false,
     thinkingSourceEventType: null,
     compactionDebugInfo: null,
     streamTracking: deps.createInitialStreamTracking(),
-    currentTurnProjection: null,
     conversationView: null,
     pendingTurn: null,
   });

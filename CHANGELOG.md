@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/state: route pending-turn and clear-message live-turn resets through
+  the workspace-state SDK live-turn storage helper, keeping raw
+  `currentTurnProjection` writes private to the workspace-state runtime. No
+  migration required.
 - frontend/state: centralize private no-view SDK live-turn storage access in
   the workspace-state runtime, removing direct `currentTurnProjection` reads
   from stop and live-turn workspace mutation helpers. No migration required.

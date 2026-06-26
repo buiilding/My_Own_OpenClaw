@@ -5,6 +5,12 @@
 import type {
   ChatMessage,
 } from './desktopChatMessageTypes';
+import type {
+  NoViewSdkLiveTurnStorage,
+} from './desktopChatWorkspaceStateRuntime';
+import {
+  DesktopChatWorkspaceStateRuntime,
+} from './desktopChatWorkspaceStateRuntime';
 import {
   DesktopPendingTurnBridgeRuntime,
 } from './desktopPendingTurnBridgeRuntime';
@@ -23,12 +29,11 @@ export type DesktopPendingTurnState = {
   attachmentFilenames: string[] | null;
 };
 
-type PendingTurnWorkspaceState = {
+type PendingTurnWorkspaceState = NoViewSdkLiveTurnStorage & {
   messages: ChatMessage[];
   isSending: boolean;
   thinkingStatus: unknown;
   thinkingSourceEventType: string | null;
-  currentTurnProjection: unknown;
   conversationView: unknown;
   pendingTurn: DesktopPendingTurnState | null;
 };
@@ -105,6 +110,9 @@ type PendingTurnBroadcastStateUpdateInput<
   state: TState;
 };
 
+const {
+  buildNoViewSdkLiveTurnStorageUpdate,
+} = DesktopChatWorkspaceStateRuntime;
 const {
   buildPendingTurnUserMessage,
 } = DesktopPendingTurnBridgeRuntime;
@@ -237,12 +245,11 @@ function buildPendingTurnWorkspaceMutation<TWorkspace extends PendingTurnWorkspa
     ? currentWorkspace.messages
     : mergePendingTurnMessage(currentWorkspace.messages, pendingMessage);
   const nextWorkspace = {
-    ...currentWorkspace,
+    ...buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace, null),
     messages: nextMessages,
     isSending: true,
     thinkingStatus: null,
     thinkingSourceEventType: null,
-    currentTurnProjection: null,
     conversationView: preserveConversationView ? currentWorkspace.conversationView : null,
     pendingTurn: normalizedPendingTurn,
   } as TWorkspace;

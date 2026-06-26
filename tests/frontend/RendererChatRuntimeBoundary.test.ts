@@ -3761,10 +3761,16 @@ describe('renderer chat runtime boundary', () => {
     expect(pendingStateRuntimeSource).toContain('const shouldPreserveViewReadModel = preserveConversationView');
     expect(pendingStateRuntimeSource).toContain('&& hasConversationView(currentWorkspace.conversationView)');
     expect(pendingStateRuntimeSource).toContain('? currentWorkspace.messages');
+    expect(pendingStateRuntimeSource).toContain('buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace, null)');
+    expect(pendingStateRuntimeSource).not.toContain('currentTurnProjection: null');
+    expect(pendingStateRuntimeSource).not.toContain('currentTurnProjection: unknown');
     expect(pendingStateRuntimeSource).not.toContain('addSupersededTurnRef');
     expect(pendingStateRuntimeSource).not.toContain('removeSupersededTurnRef');
     expect(clearMessagesRuntimeSource).toContain('buildClearMessagesStateUpdate');
     expect(clearMessagesRuntimeSource).toContain('createInitialStreamTracking');
+    expect(clearMessagesRuntimeSource).toContain('buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace, null)');
+    expect(clearMessagesRuntimeSource).not.toContain('currentTurnProjection: null');
+    expect(clearMessagesRuntimeSource).not.toContain('currentTurnProjection: unknown');
     expect(clearMessagesRuntimeSource).not.toContain('features/chat');
     expect(trackingRuntimeSource).toContain('createInitialStreamTracking');
     expect(workspaceMessageRuntimeSource).toContain('buildAddMessageStateUpdate');
