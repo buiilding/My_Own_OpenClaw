@@ -195,12 +195,13 @@ UI adapters:
 - `presentation`: SDK-owned live-turn UI contract with ordered visible entries,
   `hasVisibleContent`, `typingVisible`, `overlayVisible`, `isBusy`, and
   `isTerminal`
-- Renderer surface, visible-lifecycle, response-overlay, and thread
-  presentation adapters treat the presence of `presentation` as the SDK-owned
-  visual contract: visible rows come from `presentation.entries`, terminal
-  error display from `presentation.lastError`, and busy/terminal lifecycle from
-  presentation fields plus phase. They must not scan raw `assistantText`,
-  `reasoningText`, or `toolEvents` to decide overlay/thread visibility when a
+- Renderer surface, visible-lifecycle, response-overlay, thread presentation,
+  and live-turn side-effect adapters treat the presence of `presentation` as
+  the SDK-owned visual contract: visible rows and derived stream/tool effects
+  come from `presentation.entries`, terminal error display from
+  `presentation.lastError`, and busy/terminal lifecycle from presentation
+  fields plus phase. They must not scan raw `assistantText`, `reasoningText`,
+  or `toolEvents` to decide overlay/thread visibility or side effects when a
   presentation object exists.
 - `presentation.entries[*].sourceChannel`: SDK presentation metadata uses
   `sdk:current-turn`; host IPC channel names are adapter details and must not

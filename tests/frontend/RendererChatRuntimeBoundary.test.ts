@@ -860,6 +860,10 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSideEffectsSource).toContain('DesktopChatStreamThinkingRuntime');
     expect(projectionSideEffectsSource).not.toContain('typingVisible');
     expect(projectionSideEffectsSource).not.toContain('overlayVisible');
+    expect(projectionSideEffectsSource).not.toContain('assistantText');
+    expect(projectionSideEffectsSource).not.toContain('reasoningText');
+    expect(projectionSideEffectsSource).not.toContain('toolEvents');
+    expect(projectionSideEffectsSource).not.toContain('toolEventIds');
     expect(projectionSideEffectsSource).not.toContain('import {\n  buildThinkingStatus');
     expect(projectionSideEffectsSource).not.toContain('export function createProjectionCursor');
     expect(projectionSideEffectsSource).not.toContain('export function buildProjectionCursorKey');
@@ -1791,7 +1795,8 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSource).not.toContain('DesktopSdkLiveTurnEffectsRuntime');
     expect(projectionSource).not.toContain('applySdkLiveTurnSideEffects');
     expect(projectionSideEffectsSource).toContain('export const DesktopSdkLiveTurnEffectsRuntime = Object.freeze');
-    expect(projectionSideEffectsSource).toContain("toolEvent.kind === 'tool_progress'");
+    expect(projectionSideEffectsSource).toContain("entry.type === 'tool-progress'");
+    expect(projectionSideEffectsSource).not.toContain("toolEvent.kind === 'tool_progress'");
     expect(projectionSideEffectsSource).toContain('web-search-progress');
   });
 
@@ -1831,8 +1836,10 @@ describe('renderer chat runtime boundary', () => {
     expect(streamEventRuntimeSource).toContain("'tool_output'");
     expect(streamEventRuntimeSource).toContain("'tool_bundle_call'");
     expect(streamEventRuntimeSource).toContain("'tool_bundle_output'");
-    expect(projectionSideEffectsSource).toContain("toolEvent.kind === 'tool_call'");
-    expect(projectionSideEffectsSource).toContain("toolEvent.kind === 'tool_output'");
+    expect(projectionSideEffectsSource).toContain("entry.type === 'tool-call'");
+    expect(projectionSideEffectsSource).toContain("entry.type === 'tool-output'");
+    expect(projectionSideEffectsSource).not.toContain("toolEvent.kind === 'tool_call'");
+    expect(projectionSideEffectsSource).not.toContain("toolEvent.kind === 'tool_output'");
   });
 
   test('conversation replay dispatches intent through SDK revision commands', async () => {
