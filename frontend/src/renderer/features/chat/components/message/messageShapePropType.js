@@ -17,6 +17,12 @@ const messageShapePropType = PropTypes.shape({
   actionExplanations: PropTypes.arrayOf(PropTypes.string),
   thinkingText: PropTypes.string,
   thinkingSourceEventType: PropTypes.string,
+  actions: PropTypes.shape({
+    canEdit: PropTypes.bool,
+    editTargetRowId: PropTypes.string,
+    canRetry: PropTypes.bool,
+    retryTargetRowId: PropTypes.string,
+  }),
   tokenCounts: PropTypes.shape({
     prompt_tokens: PropTypes.number,
     visible_output_tokens: PropTypes.number,

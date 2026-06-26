@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/actions: project SDK display-row action metadata onto chat messages
+  and use row-level edit/retry target ids for replay controls, so renderer role
+  heuristics no longer override SDK action availability. No migration required.
 - frontend/stream: resolve compaction thinking-source reads through
   `DesktopChatStreamEventRuntime` so `useChatStream` no longer dereferences
   workspace thinking fields directly. No migration required.

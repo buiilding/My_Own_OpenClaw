@@ -21,6 +21,10 @@ function recordField(record: Record<string, unknown> | null | undefined, key: st
   return record && typeof record === 'object' ? record[key] : undefined;
 }
 
+function optionalTrimmedString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
 function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
   const metadata = row.metadata;
   if (!metadata || typeof metadata !== 'object') {
@@ -77,10 +81,38 @@ function rowCorrelationId(row: SdkDisplayRow): string | null {
     ?? null;
 }
 
+function rowActions(row: SdkDisplayRow): ChatMessage['actions'] | undefined {
+  const actions = row.actions;
+  if (!actions || typeof actions !== 'object') {
+    return undefined;
+  }
+  const projectedActions: NonNullable<ChatMessage['actions']> = {};
+  if (typeof actions.canEdit === 'boolean') {
+    projectedActions.canEdit = actions.canEdit;
+  }
+  const editTargetRowId = optionalTrimmedString(actions.editTargetRowId);
+  if (editTargetRowId) {
+    projectedActions.editTargetRowId = editTargetRowId;
+  }
+  if (typeof actions.canRetry === 'boolean') {
+    projectedActions.canRetry = actions.canRetry;
+  }
+  const retryTargetRowId = optionalTrimmedString(actions.retryTargetRowId);
+  if (retryTargetRowId) {
+    projectedActions.retryTargetRowId = retryTargetRowId;
+  }
+  return Object.keys(projectedActions).length > 0 ? projectedActions : undefined;
+}
+
+function withRowActions(message: ChatMessage, row: SdkDisplayRow): ChatMessage {
+  const actions = rowActions(row);
+  return actions ? { ...message, actions } : message;
+}
+
 function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
   const payload = recordPayloadFromRow(row);
   const attachments = readSdkDisplayAttachments(recordField(payload, 'attachments'));
-  return {
+  return withRowActions({
     id: row.id,
     text: displayTextFromRowContent(row.content),
     sender: 'user',
@@ -90,7 +122,7 @@ function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
     timestamp: rowTimestamp(row),
     isComplete: true,
     ...(attachments.length > 0 ? { attachments } : {}),
-  };
+  }, row);
 }
 
 function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
@@ -109,10 +141,10 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
     thinkingText,
     thinkingSourceEventType: thinkingText ? 'reasoning_delta' : null,
   }) as ChatMessage;
-  return {
+  return withRowActions({
     ...base,
     timestamp: rowTimestamp(row),
-  };
+  }, row);
 }
 
 function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
@@ -133,10 +165,10 @@ function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
     turnRef: row.turnRef ?? null,
     isComplete: true,
   }) as ChatMessage;
-  return {
+  return withRowActions({
     ...base,
     timestamp: rowTimestamp(row),
-  };
+  }, row);
 }
 
 function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
@@ -156,16 +188,16 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
     preserveNullToolMetadata: false,
     preserveNullToolOutputDetails: false,
   }) as ChatMessage;
-  return {
+  return withRowActions({
     ...base,
     timestamp: rowTimestamp(row),
-  };
+  }, row);
 }
 
 function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
   const payload = recordPayloadFromRow(row);
   const sourceEventType = recordField(payload, 'sourceEventType');
-  return {
+  return withRowActions({
     id: row.id,
     text: displayTextFromRowContent(row.content),
     sender: 'assistant',
@@ -179,7 +211,7 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
     toolName: row.metadata?.toolName ?? undefined,
     toolMetadata: payload,
     correlationId: row.metadata?.requestId ?? row.metadata?.correlationId ?? undefined,
-  };
+  }, row);
 }
 
 function buildChatMessagesFromSdkDisplayRow(row: SdkDisplayRow): ChatMessage[] {

@@ -248,6 +248,66 @@ describe('MessageList assistant actions', () => {
     expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-1');
   });
 
+  test('uses SDK retry target id and hides only retry when row disallows it', () => {
+    jest.useFakeTimers();
+    const onAssistantTryAgain = jest.fn();
+    const { rerender } = render(
+      <MessageList
+        messages={[
+          {
+            id: 'assistant-visible',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            actions: {
+              canRetry: true,
+              retryTargetRowId: 'assistant-original',
+            },
+          },
+        ]}
+        thinkingStatus={null}
+        enableAssistantActions
+        onAssistantTryAgain={onAssistantTryAgain}
+      />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-original');
+
+    rerender(
+      <MessageList
+        messages={[
+          {
+            id: 'assistant-visible',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            actions: {
+              canRetry: false,
+            },
+          },
+        ]}
+        thinkingStatus={null}
+        enableAssistantActions
+        onAssistantTryAgain={onAssistantTryAgain}
+      />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(screen.getByRole('button', { name: 'Copy assistant message' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Like response' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
+  });
+
   test('submits user message edits and keeps the editor busy until replay dispatch resolves', async () => {
     let resolveEdit;
     const onUserEdit = jest.fn(() => new Promise((resolve) => {
@@ -284,6 +344,64 @@ describe('MessageList assistant actions', () => {
     await waitFor(() => {
       expect(screen.queryByRole('group', { name: 'Edit user message' })).not.toBeInTheDocument();
     });
+  });
+
+  test('uses SDK edit target id and hides only edit when row disallows it', async () => {
+    const onUserEdit = jest.fn();
+    const { rerender } = render(
+      <MessageList
+        messages={[
+          {
+            id: 'user-visible',
+            text: 'old text',
+            sender: 'user',
+            type: 'user',
+            actions: {
+              canEdit: true,
+              editTargetRowId: 'user-original',
+            },
+          },
+        ]}
+        thinkingStatus={null}
+        enableUserActions
+        onUserEdit={onUserEdit}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit and resend' }));
+    const editor = screen.getByRole('group', { name: 'Edit user message' });
+    fireEvent.change(within(editor).getByRole('textbox'), {
+      target: { value: 'new text' },
+    });
+    fireEvent.click(within(editor).getByRole('button', { name: 'Send' }));
+
+    expect(onUserEdit).toHaveBeenCalledWith('user-original', 'new text');
+
+    await waitFor(() => {
+      expect(screen.queryByRole('group', { name: 'Edit user message' })).not.toBeInTheDocument();
+    });
+
+    rerender(
+      <MessageList
+        messages={[
+          {
+            id: 'user-visible',
+            text: 'old text',
+            sender: 'user',
+            type: 'user',
+            actions: {
+              canEdit: false,
+            },
+          },
+        ]}
+        thinkingStatus={null}
+        enableUserActions
+        onUserEdit={onUserEdit}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Copy user message' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit and resend' })).not.toBeInTheDocument();
   });
 
   test('keeps user message editor open when replay dispatch reports failure', async () => {

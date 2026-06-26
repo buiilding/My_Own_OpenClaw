@@ -3378,12 +3378,24 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatRevisionActionRuntime.js'),
       'utf8',
     );
+    const messageListSource = await fs.readFile(
+      path.join(chatRoot, 'components/MessageList.jsx'),
+      'utf8',
+    );
+    const messageItemSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/MessageItem.jsx'),
+      'utf8',
+    );
     const sourceChannelPath = path.join(chatRoot, 'utils/message/sourceChannels.js');
 
     expect(source).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
     expect(source).not.toContain('recordPayloadFromRow');
     expect(source).not.toContain('buildToolOutputChatMessageState');
     expect(projectionRuntimeSource).toContain('sourceEventType');
+    expect(projectionRuntimeSource).toContain('rowActions');
+    expect(projectionRuntimeSource).toContain('withRowActions');
+    expect(projectionRuntimeSource).toContain('editTargetRowId');
+    expect(projectionRuntimeSource).toContain('retryTargetRowId');
     expect(projectionRuntimeSource).toContain('desktopChatMessageTypes');
     expect(projectionRuntimeSource).toContain('desktopPresentationSourceChannels');
     expect(projectionRuntimeSource).toContain('desktopSdkDisplayAttachmentProjection');
@@ -3444,6 +3456,16 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).toContain('canEditMessages');
     expect(chatInterfacePresentationRuntimeSource).toContain('canRetryMessages');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('features/chat');
+    expect(messageListSource).toContain("messageActionFlag(msg, 'canRetry'");
+    expect(messageListSource).toContain("messageActionFlag(msg, 'canEdit'");
+    expect(messageListSource).toContain("messageActionTargetId(msg, 'retryTargetRowId')");
+    expect(messageListSource).toContain("messageActionTargetId(msg, 'editTargetRowId')");
+    expect(messageListSource).toContain('assistantRetryTargetMessageId={retryTargetMessageId}');
+    expect(messageListSource).toContain('userEditTargetMessageId={editTargetMessageId}');
+    expect(messageItemSource).toContain('canRetryMessage');
+    expect(messageItemSource).toContain('canEditMessage');
+    expect(messageItemSource).toContain('canTryAgain={canRetryMessage}');
+    expect(messageItemSource).toContain('canEdit={canEditMessage}');
     expect(chatRevisionActionRuntimeSource).toContain('buildRevisionCheckoutCommand');
     expect(chatRevisionActionRuntimeSource).toContain('buildRevisionForkCommand');
     expect(chatRevisionActionRuntimeSource).toContain('buildForkConversationRef');

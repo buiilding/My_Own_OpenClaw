@@ -130,11 +130,17 @@ function MessageList({
     const value = message?.actions?.[key];
     return typeof value === 'boolean' ? value : fallback;
   }, []);
+  const messageActionTargetId = useCallback((message, key) => {
+    const value = message?.actions?.[key];
+    return typeof value === 'string' && value.trim() ? value.trim() : null;
+  }, []);
 
   const renderedMessages = useMemo(
     () => messages.flatMap((msg) => {
       const canRetryMessage = canRetryMessages && messageActionFlag(msg, 'canRetry', true);
       const canEditMessage = canEditMessages && messageActionFlag(msg, 'canEdit', true);
+      const retryTargetMessageId = messageActionTargetId(msg, 'retryTargetRowId') || msg.id;
+      const editTargetMessageId = messageActionTargetId(msg, 'editTargetRowId') || msg.id;
       const nodes = [
         (
           <MessageItem
@@ -149,13 +155,15 @@ function MessageList({
             disableAssistantActions={disableAssistantActions}
             canRetryMessage={canRetryMessage}
             canEditMessage={canEditMessage}
+            assistantRetryTargetMessageId={retryTargetMessageId}
             onAssistantFeedbackChange={onAssistantFeedbackChange}
             onAssistantTryAgain={onAssistantTryAgain}
             isUserEditing={editingUserMessageId === msg.id}
             userEditDraft={editingUserDraft}
             isUserEditSubmitting={submittingUserEdit}
             onUserEditDraftChange={setEditingUserDraft}
-            onStartUserEdit={canEditMessages ? handleStartUserEdit : null}
+            userEditTargetMessageId={editTargetMessageId}
+            onStartUserEdit={handleStartUserEdit}
             onCancelUserEdit={handleCancelUserEdit}
             onSubmitUserEdit={handleSubmitUserEdit}
           />
@@ -195,6 +203,7 @@ function MessageList({
       canEditMessages,
       disableAssistantActions,
       messageActionFlag,
+      messageActionTargetId,
       onAssistantFeedbackChange,
       onAssistantTryAgain,
       editingUserMessageId,

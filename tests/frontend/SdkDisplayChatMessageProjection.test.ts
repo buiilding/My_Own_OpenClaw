@@ -136,6 +136,52 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
+  test('projects SDK row action metadata and replay target ids', () => {
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'visible-user-row',
+        conversationRef: 'conv-sdk',
+        turnRef: 'turn-visible',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'edited prompt',
+        actions: {
+          canEdit: true,
+          editTargetRowId: ' original-user-row ',
+        },
+      },
+      {
+        id: 'visible-assistant-row',
+        conversationRef: 'conv-sdk',
+        turnRef: 'turn-visible',
+        index: 1,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'final answer',
+        actions: {
+          canRetry: true,
+          retryTargetRowId: ' original-assistant-row ',
+        },
+      },
+    ])).toEqual([
+      expect.objectContaining({
+        id: 'visible-user-row',
+        actions: {
+          canEdit: true,
+          editTargetRowId: 'original-user-row',
+        },
+      }),
+      expect.objectContaining({
+        id: 'visible-assistant-row',
+        actions: {
+          canRetry: true,
+          retryTargetRowId: 'original-assistant-row',
+        },
+      }),
+    ]);
+  });
+
   test('does not synthesize missing model-facing tool calls from row metadata', () => {
     const [message] = buildChatMessagesFromSdkDisplayRows([
       {
