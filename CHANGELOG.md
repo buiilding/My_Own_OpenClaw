@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/presentation: centralize SDK live-turn row selection in
+  `DesktopCurrentTurnMessageRuntime.buildSdkLiveTurnMessages`, so thread and
+  response-overlay presentation no longer choose between `ConversationView`,
+  presentation entries, and legacy no-presentation fallback rows themselves. No
+  migration required.
 - frontend/state: rename no-view SDK live-turn write facades to
   `setNoViewSdkLiveTurnInChatStore` and
   `buildSetNoViewSdkLiveTurnStateUpdate`, making raw live-turn writes explicit

@@ -8,9 +8,7 @@ import {
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
 
 const {
-  buildConversationViewLiveTurnMessages,
-  buildCurrentTurnMessagesFromPresentation,
-  buildLegacyNoPresentationCurrentTurnMessages,
+  buildSdkLiveTurnMessages,
 } = DesktopCurrentTurnMessageRuntime;
 const {
   isSdkDisplayRowsSourceChannel,
@@ -43,11 +41,6 @@ function normalizeRef(value) {
 
 function isConversationView(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
-function hasSdkLiveTurnPresentationObject(sdkLiveTurn) {
-  const presentation = sdkLiveTurn?.presentation;
-  return Boolean(presentation && typeof presentation === 'object' && !Array.isArray(presentation));
 }
 
 function isRendererPendingBridgeMessage(message) {
@@ -184,25 +177,10 @@ function resolveCurrentTurnMessages({
   sdkLiveTurn = null,
   conversationView = null,
 }) {
-  const conversationViewMessages = buildConversationViewLiveTurnMessages(conversationView);
-  if (conversationViewMessages.length > 0) {
-    return conversationViewMessages;
-  }
-  if (conversationView && typeof conversationView === 'object') {
-    return [];
-  }
-  const presentationMessages = buildCurrentTurnMessagesFromPresentation(sdkLiveTurn);
-  if (presentationMessages.length > 0) {
-    return presentationMessages;
-  }
-  if (hasSdkLiveTurnPresentationObject(sdkLiveTurn)) {
-    return [];
-  }
-  const legacyNoPresentationMessages = buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn);
-  if (legacyNoPresentationMessages.length > 0) {
-    return legacyNoPresentationMessages;
-  }
-  return [];
+  return buildSdkLiveTurnMessages({
+    conversationView,
+    sdkLiveTurn,
+  });
 }
 
 function selectVisibleCurrentTurnMessages({

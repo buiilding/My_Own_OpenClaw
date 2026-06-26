@@ -382,6 +382,17 @@ function buildCurrentTurnMessagesFromPresentation(sdkLiveTurn = null) {
     .filter(Boolean);
 }
 
+function buildNoViewSdkLiveTurnMessages(sdkLiveTurn = null) {
+  const presentationMessages = buildCurrentTurnMessagesFromPresentation(sdkLiveTurn);
+  if (presentationMessages.length > 0) {
+    return presentationMessages;
+  }
+  if (hasPresentationObject(sdkLiveTurn)) {
+    return [];
+  }
+  return buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn);
+}
+
 function buildConversationViewLiveTurnMessages(conversationView = null) {
   const entries = Array.isArray(conversationView?.liveTurn?.entries)
     ? conversationView.liveTurn.entries
@@ -399,6 +410,20 @@ function buildConversationViewLiveTurnMessages(conversationView = null) {
       sourceChannel: sdkConversationViewSourceChannel,
     }, liveTurnContext))
     .filter(Boolean);
+}
+
+function buildSdkLiveTurnMessages({
+  conversationView = null,
+  sdkLiveTurn = null,
+} = {}) {
+  const conversationViewMessages = buildConversationViewLiveTurnMessages(conversationView);
+  if (conversationViewMessages.length > 0) {
+    return conversationViewMessages;
+  }
+  if (conversationView && typeof conversationView === 'object') {
+    return [];
+  }
+  return buildNoViewSdkLiveTurnMessages(sdkLiveTurn);
 }
 
 function isResponseCloseable(response) {
@@ -460,6 +485,8 @@ export const DesktopCurrentTurnMessageRuntime = Object.freeze({
   buildConversationViewLiveTurnMessages,
   buildCurrentTurnMessagesFromPresentation,
   buildLegacyNoPresentationCurrentTurnMessages,
+  buildNoViewSdkLiveTurnMessages,
+  buildSdkLiveTurnMessages,
   isResponseCloseable,
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,

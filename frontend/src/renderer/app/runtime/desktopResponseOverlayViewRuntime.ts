@@ -10,9 +10,7 @@ import { DesktopVisibleTurnLifecycleRuntime } from './desktopVisibleTurnLifecycl
 
 const AWAITING_VISIBLE_LIFECYCLE_STATUSES = new Set(['local_pending', 'awaiting']);
 const {
-  buildConversationViewLiveTurnMessages,
-  buildLegacyNoPresentationCurrentTurnMessages,
-  buildCurrentTurnMessagesFromPresentation,
+  buildSdkLiveTurnMessages,
   isResponseCloseable,
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
@@ -464,11 +462,6 @@ function resolveResponseOverlaySurfaceState({
   };
 }
 
-function normalizeProjectedCurrentTurnEntries(sdkLiveTurn: unknown): ResponseOverlayEntryLike[] {
-  return buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn)
-    .filter(isVisibleResponseOverlayMessage);
-}
-
 function hasSdkLiveTurnPresentationObject(sdkLiveTurn: unknown): boolean {
   const projection = recordFromUnknown(sdkLiveTurn);
   const presentation = projection.presentation;
@@ -495,15 +488,10 @@ function resolveResponseOverlayEntries({
   if (liveTurnPresentationInput.useLocalPendingTurn) {
     return [];
   }
-  if (isConversationView(conversationView)) {
-    return buildConversationViewLiveTurnMessages(conversationView)
-      .filter(isVisibleResponseOverlayMessage);
-  }
-  if (hasSdkLiveTurnPresentationObject(sdkLiveTurn)) {
-    return buildCurrentTurnMessagesFromPresentation(sdkLiveTurn)
-      .filter(isVisibleResponseOverlayMessage);
-  }
-  return normalizeProjectedCurrentTurnEntries(sdkLiveTurn);
+  return buildSdkLiveTurnMessages({
+    conversationView: isConversationView(conversationView) ? conversationView : null,
+    sdkLiveTurn,
+  }).filter(isVisibleResponseOverlayMessage);
 }
 
 function resolveResponseOverlayViewContract({

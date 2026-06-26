@@ -47,12 +47,10 @@ Current-turn entry construction:
 
 - when SDK `currentTurn` is present, `MinimalResponseOverlay` converts that projection
   into overlay-ready current-turn messages and entries
-- SDK live-turn presentation rows are converted with
-  `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromPresentation(...)`;
-  when SDK presentation exists but has no visible rows, the overlay does not
-  fall back to raw projection-built rows. Older no-presentation projection
-  snapshots are converted with
-  `DesktopCurrentTurnMessageRuntime.buildLegacyNoPresentationCurrentTurnMessages(...)`.
+- SDK live-turn rows are converted through
+  `DesktopCurrentTurnMessageRuntime.buildSdkLiveTurnMessages(...)`, so the
+  response overlay does not independently choose between `ConversationView`,
+  presentation entries, and older no-presentation projection snapshots.
 - the response overlay filters those current-turn messages through
   `DesktopCurrentTurnMessageRuntime.isVisibleResponseOverlayMessage(...)`
   instead of carrying an inline assistant-message scanner after the latest user

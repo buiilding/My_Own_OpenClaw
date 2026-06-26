@@ -155,8 +155,8 @@ surface hooks and app runtime projection. `useChatSurfaceController(...)` and
 directly for message/response data, then apply
 `DesktopVisibleTurnLifecycleRuntime` for busy, awaiting, Stop, and typing
 state.
-`useResponseOverlayViewModel(...)` reads SDK presentation entries through
-`DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromPresentation(...)`
+`useResponseOverlayViewModel(...)` reads SDK live-turn rows through
+`DesktopCurrentTurnMessageRuntime.buildSdkLiveTurnMessages(...)`
 and uses `DesktopCurrentTurnPresentationRuntime` only for response-overlay
 dismissal target projection. SDK overlay intent comes from the live-turn
 presentation input before the visible lifecycle adapter stamps busy and typing
