@@ -3417,6 +3417,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('function getProjectedWorkspaceFields');
     expect(chatStoreSource).not.toContain('messages: ChatMessage[];');
     expect(chatStoreSource).not.toContain('isSending: boolean;');
+    expect(chatStoreSource).not.toContain('export interface StreamTracking');
     expect(chatStoreSource).not.toContain('currentTurnProjection: CurrentTurnProjection | null;');
     expect(chatStoreSource).not.toContain('conversationView: ConversationView | null;');
     expect(chatStoreSource).not.toContain('pendingTurn: PendingTurn | null;');
@@ -3446,6 +3447,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('existingMessageIndex');
     expect(chatStoreSource).not.toContain('currentWorkspace.messages.findIndex');
     expect(chatStoreSource).toContain('DesktopChatStreamTrackingRuntime');
+    expect(chatStoreSource).toContain('StreamTracking');
     expect(chatStoreSource).toContain('buildUpdateStreamTrackingStateUpdate');
     expect(chatStoreSource).toContain('updateStreamTrackingInChatStore');
     expect(chatStoreSource).not.toContain('updateStreamTracking:');

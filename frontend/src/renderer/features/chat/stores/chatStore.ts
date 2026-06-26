@@ -49,6 +49,9 @@ import {
 import {
   DesktopChatStreamTrackingRuntime,
 } from '../../../app/runtime/desktopChatStreamTrackingRuntime';
+import type {
+  StreamTracking,
+} from '../../../app/runtime/desktopChatStreamTrackingRuntime';
 import {
   DesktopChatWorkspaceFieldRuntime,
 } from '../../../app/runtime/desktopChatWorkspaceFieldRuntime';
@@ -126,6 +129,10 @@ const {
   buildSetConversationViewStateUpdate,
 } = DesktopConversationViewWorkspaceRuntime;
 export type { ChatMessage, TokenCounts };
+export type {
+  StreamPhase,
+  StreamTracking,
+} from '../../../app/runtime/desktopChatStreamTrackingRuntime';
 
 const pendingTurnStateRuntimeDependencies = {
   buildWorkspaceUpdate,
@@ -177,31 +184,6 @@ const workspaceMessageStateRuntimeDependencies = {
   recordTurnConversationRefs: recordRendererTurnConversationRefs,
   resolveWorkspaceMutationTarget,
 };
-
-export type StreamPhase =
-  | 'idle'
-  | 'awaiting-first-chunk'
-  | 'streaming'
-  | 'tool-call'
-  | 'tool-output'
-  | 'complete'
-  | 'error';
-
-export interface StreamTracking {
-  activeTurnRef: string | null;
-  phase: StreamPhase;
-  startedAt: string | null;
-  firstChunkAt: string | null;
-  completedAt: string | null;
-  lastEventAt: string | null;
-  lastEventType: string | null;
-  eventCount: number;
-  chunkCount: number;
-  toolCallCount: number;
-  toolOutputCount: number;
-  lastChunkSize: number;
-  lastError: string | null;
-}
 
 interface ResponseOverlayDismissalInput {
   conversationRef?: string | null;

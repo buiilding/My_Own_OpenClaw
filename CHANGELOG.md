@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: remove the store-owned stream-tracking type definition;
+  `chatStore` now imports/re-exports the app-runtime stream tracking contract.
+  No migration required.
 - frontend/store: remove the duplicate store-owned pending-turn type; chat
   workspace state now uses the app-runtime `DesktopPendingTurnState` contract.
   No migration required.
