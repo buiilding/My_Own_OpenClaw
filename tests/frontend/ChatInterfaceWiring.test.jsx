@@ -2093,8 +2093,18 @@ describe('ChatInterface wiring', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
     ];
+    mockChatState.pendingTurn = {
+      conversationRef: 'conv-test',
+      turnRef: 'turn-1',
+      userMessageId: 'user-1',
+      text: 'hello',
+      timestamp: '2026-06-26T00:00:00.000Z',
+    };
     mockChatState.streamTracking.phase = 'awaiting-first-chunk';
-    setMockCurrentTurnProjection('awaiting-first-chunk');
+    setMockCurrentTurnProjection('awaiting-first-chunk', {
+      conversationRef: 'conv-test',
+      turnRef: 'turn-1',
+    });
     const { rerender } = render(<ChatInterface />);
 
     let lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
@@ -2102,8 +2112,11 @@ describe('ChatInterface wiring', () => {
 
     mockChatState.streamTracking.phase = 'streaming';
     setMockCurrentTurnProjection('streaming', {
+      conversationRef: 'conv-test',
+      turnRef: 'turn-1',
       assistantText: 'first chunk',
     });
+    mockChatState.pendingTurn = null;
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
       { id: 'assistant-1', sender: 'assistant', text: 'first chunk', type: 'llm-text' },

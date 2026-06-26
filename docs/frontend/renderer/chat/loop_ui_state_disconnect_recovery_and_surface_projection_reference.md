@@ -33,7 +33,7 @@ fallback. It combines:
 - renderer `pendingTurn`
 - SDK live-turn fallback (`sdkLiveTurn`)
 - active conversation ref
-- message rows used only for awaiting-anchor lookup
+- awaiting anchors from SDK projection or renderer `pendingTurn.userMessageId`
 
 Output statuses:
 
@@ -256,7 +256,7 @@ longer imports the overlay lifecycle adapter.
 - disables assistant feedback/retry actions from visible lifecycle busy/Stop
   state instead of raw `isSending`
 - uses visible lifecycle awaiting anchor for `awaitingDotTargetMessageId`
-  instead of component-local reply scanning
+  instead of component-local reply scanning or raw message fallback
 - passes the visible lifecycle awaiting anchor directly to `MessageList`; live
   progress row shape remains rendering data and does not suppress lifecycle
   typing state

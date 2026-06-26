@@ -2237,6 +2237,18 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('visible turn lifecycle awaiting anchors do not scan raw messages', async () => {
+    const source = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime.js'),
+      'utf8',
+    );
+
+    expect(source).toContain('presentationAnchor?.kind ===');
+    expect(source).toContain('pendingTurn?.userMessageId');
+    expect(source).not.toContain('messages.length - 1');
+    expect(source).not.toContain("message?.sender === 'user'");
+  });
+
   test('renderer trace runtime routes live-surface IPC through app runtime client', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts'),

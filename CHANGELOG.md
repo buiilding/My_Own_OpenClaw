@@ -446,6 +446,9 @@ All notable changes to WindieOS will be documented in this file.
   stream handling now imports the exact store adapters it still needs, while
   send and replay remain off renderer row mutation helpers. No migration
   required.
+- frontend/lifecycle: stop deriving awaiting-dot anchors by scanning raw
+  renderer messages; visible turn lifecycle now uses only SDK awaiting anchors
+  or the accepted pending-turn bridge. No migration required.
 - frontend/store: remove turn-ref registry adapter actions from `chatStore`;
   stream ingress now records turn/conversation routing through the app-runtime
   registry owner directly. No migration required.

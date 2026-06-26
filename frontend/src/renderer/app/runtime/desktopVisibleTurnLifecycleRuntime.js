@@ -130,7 +130,7 @@ function resolvePendingTurnForSdkLiveTurn({
     : pendingTurn;
 }
 
-function findAwaitingAnchor(messages, pendingTurn, sdkLiveTurn) {
+function findAwaitingAnchor(pendingTurn, sdkLiveTurn) {
   const presentationAnchor = sdkLiveTurn?.presentation?.awaitingAnchor;
   if (
     presentationAnchor?.kind === 'user-message'
@@ -150,18 +150,6 @@ function findAwaitingAnchor(messages, pendingTurn, sdkLiveTurn) {
     };
   }
 
-  if (!Array.isArray(messages)) {
-    return null;
-  }
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index];
-    if (message?.sender === 'user' && normalizeString(message.id)) {
-      return {
-        kind: 'user-message',
-        rowId: message.id.trim(),
-      };
-    }
-  }
   return null;
 }
 
@@ -236,7 +224,6 @@ function resolveVisibleTurnLifecycle({
   conversationView = null,
   pendingTurn = null,
   sdkLiveTurn = null,
-  messages = [],
 } = {}) {
   const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
   const normalizedActiveConversationRef = normalizeConversationRef(activeConversationRef);
@@ -258,7 +245,7 @@ function resolveVisibleTurnLifecycle({
       source: 'local',
       conversationRef: normalizedPendingTurn.conversationRef,
       turnRef: normalizedPendingTurn.turnRef,
-      awaitingAnchor: findAwaitingAnchor(messages, normalizedPendingTurn, null),
+      awaitingAnchor: findAwaitingAnchor(normalizedPendingTurn, null),
       entries: [],
       terminalReason: null,
       isBusy: true,
@@ -311,7 +298,7 @@ function resolveVisibleTurnLifecycle({
       conversationRef: sdkLiveTurnConversationRef,
       turnRef: sdkLiveTurnRef,
       awaitingAnchor: sdkStatus === 'awaiting'
-        ? findAwaitingAnchor(messages, normalizedPendingTurn, sdkLiveTurn)
+        ? findAwaitingAnchor(normalizedPendingTurn, sdkLiveTurn)
         : null,
       entries,
       terminalReason: resolveTerminalReason(sdkLiveTurn),
