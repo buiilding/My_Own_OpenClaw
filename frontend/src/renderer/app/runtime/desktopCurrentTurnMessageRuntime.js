@@ -44,6 +44,13 @@ function normalizeOptionalText(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function resolveNoViewSdkLiveTurnThinkingText(sdkLiveTurn = null) {
+  if (hasPresentationObject(sdkLiveTurn)) {
+    return '';
+  }
+  return normalizeOptionalText(asRecord(sdkLiveTurn)?.reasoningText) || '';
+}
+
 function normalizeEntryType(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : 'llm-text';
 }
@@ -491,4 +498,5 @@ export const DesktopCurrentTurnMessageRuntime = Object.freeze({
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
   isVisibleResponseOverlayMessage,
+  resolveNoViewSdkLiveTurnThinkingText,
 });

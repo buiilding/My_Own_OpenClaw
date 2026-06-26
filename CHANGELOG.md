@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: move no-view SDK live-turn thinking fallback resolution into
+  `DesktopCurrentTurnMessageRuntime.resolveNoViewSdkLiveTurnThinkingText`, so
+  response-overlay state no longer reads raw `reasoningText` or presentation
+  object shape directly. No migration required.
 - frontend/presentation: centralize SDK live-turn row selection in
   `DesktopCurrentTurnMessageRuntime.buildSdkLiveTurnMessages`, so thread and
   response-overlay presentation no longer choose between `ConversationView`,

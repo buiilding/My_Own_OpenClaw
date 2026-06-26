@@ -15,6 +15,7 @@ const {
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
   isVisibleResponseOverlayMessage,
+  resolveNoViewSdkLiveTurnThinkingText,
 } = DesktopCurrentTurnMessageRuntime;
 const {
   resolveResponseOverlayDismissalTarget,
@@ -95,10 +96,6 @@ function normalizeUnknownString(value: unknown): string | null {
   return typeof value === 'string' ? normalizeString(value) : null;
 }
 
-function normalizeReasoningText(reasoningText: unknown): string {
-  return typeof reasoningText === 'string' ? reasoningText.trim() : '';
-}
-
 function normalizeCount(value: number | null | undefined): number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0
     ? Math.floor(value)
@@ -107,12 +104,12 @@ function normalizeCount(value: number | null | undefined): number {
 
 function normalizeEntryThinkingText(entry: unknown): string {
   const message = recordFromUnknown(entry);
-  const thinkingText = normalizeReasoningText(message.thinkingText);
+  const thinkingText = normalizeUnknownString(message.thinkingText) || '';
   if (thinkingText) {
     return thinkingText;
   }
   return message.type === 'thinking'
-    ? normalizeReasoningText(message.text)
+    ? normalizeUnknownString(message.text) || ''
     : '';
 }
 
@@ -392,12 +389,7 @@ function resolveResponseOverlayThinkingText({
   if (thinkingText) {
     return thinkingText;
   }
-  if (hasSdkLiveTurnPresentationObject(sdkLiveTurn)) {
-    return '';
-  }
-  return normalizeReasoningText(
-    recordFromUnknown(sdkLiveTurn).reasoningText,
-  );
+  return resolveNoViewSdkLiveTurnThinkingText(sdkLiveTurn);
 }
 
 function resolveResponseOverlaySurfaceState({
@@ -460,16 +452,6 @@ function resolveResponseOverlaySurfaceState({
     useSdkLiveTurnPresentation,
     visibleTurnLifecycle,
   };
-}
-
-function hasSdkLiveTurnPresentationObject(sdkLiveTurn: unknown): boolean {
-  const projection = recordFromUnknown(sdkLiveTurn);
-  const presentation = projection.presentation;
-  return Boolean(
-    presentation
-      && typeof presentation === 'object'
-      && !Array.isArray(presentation),
-  );
 }
 
 function resolveResponseOverlayEntries({

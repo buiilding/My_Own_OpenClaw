@@ -64,8 +64,10 @@ Current-turn entry construction:
   - `tool-explanation`
 
 Reasoning copy for overlay window sync comes from SDK presentation thinking
-entries. Store `thinkingStatus` remains dashboard compaction/manual status text
-and is not a response-overlay live-turn input.
+entries, with the legacy no-view reasoning fallback resolved inside
+`DesktopCurrentTurnMessageRuntime.resolveNoViewSdkLiveTurnThinkingText(...)`.
+Store `thinkingStatus` remains dashboard compaction/manual status text and is
+not a response-overlay live-turn input.
 
 Selection logic:
 

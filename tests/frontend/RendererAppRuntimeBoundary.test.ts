@@ -2017,10 +2017,13 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceRuntimeSource).toContain('resolveConversationViewOverlayIntent');
     expect(liveSurfaceRuntimeSource).toContain("source: 'conversation-view'");
     expect(responseViewRuntimeSource).toContain('buildSdkLiveTurnMessages');
+    expect(responseViewRuntimeSource).toContain('resolveNoViewSdkLiveTurnThinkingText');
     expect(responseViewRuntimeSource).toContain('isConversationView(conversationView)');
     expect(responseViewRuntimeSource).not.toContain('buildConversationViewLiveTurnMessages');
     expect(responseViewRuntimeSource).not.toContain('buildCurrentTurnMessagesFromPresentation');
     expect(responseViewRuntimeSource).not.toContain('buildLegacyNoPresentationCurrentTurnMessages');
+    expect(responseViewRuntimeSource).not.toContain('recordFromUnknown(sdkLiveTurn).reasoningText');
+    expect(responseViewRuntimeSource).not.toContain('hasSdkLiveTurnPresentationObject');
     expect(responseViewRuntimeSource).toContain('const messages = conversationView');
     expect(responseViewRuntimeSource).toContain('const sdkLiveTurn = conversationView ? null : surfaceState.sdkLiveTurn ?? null;');
     expect(responseOverlayViewModelSource).toContain('resolveResponseOverlaySurfaceState');
