@@ -3399,6 +3399,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateSource).not.toContain('buildActiveWorkspaceSnapshot');
     expect(chatWorkspaceStateSource).not.toContain('doesWorkspaceMatch');
     expect(chatWorkspaceStateSource).not.toContain('activeWorkspaceSnapshot');
+    expect(chatWorkspaceStateSource).not.toContain('messages?: ChatMessage[];');
+    expect(chatWorkspaceStateSource).not.toContain('currentTurnProjection?: CurrentTurnProjection | null;');
+    expect(chatWorkspaceStateSource).not.toContain('conversationView?: ConversationView | null;');
+    expect(chatWorkspaceStateSource).not.toContain('pendingTurn?: PendingTurn | null;');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildConversationViewWorkspaceMutation');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildSetConversationViewStateUpdate');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildSetLatestConversationViewStateUpdate');

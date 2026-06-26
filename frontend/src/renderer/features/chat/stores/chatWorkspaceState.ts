@@ -45,17 +45,6 @@ export interface ChatWorkspaceState {
 interface ChatWorkspaceStoreSnapshot {
   activeConversationRef: string | null;
   workspaces?: Record<string, ChatWorkspaceState>;
-  latestConversationView?: ConversationView | null;
-  messages?: ChatMessage[];
-  isSending?: boolean;
-  thinkingStatus?: string | null;
-  thinkingSourceEventType?: string | null;
-  compactionDebugInfo?: ChatWorkspaceState['compactionDebugInfo'];
-  tokenCounts?: TokenCounts | null;
-  streamTracking?: StreamTracking;
-  currentTurnProjection?: CurrentTurnProjection | null;
-  conversationView?: ConversationView | null;
-  pendingTurn?: PendingTurn | null;
 }
 
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
