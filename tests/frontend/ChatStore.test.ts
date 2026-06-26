@@ -3,6 +3,9 @@
  */
 
 import {
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
   acceptPendingTurnInChatStore,
   acceptStoppedTurnInChatStore,
   addMessageToChatStore,
@@ -17,8 +20,7 @@ import {
   setTokenCountsInChatStore,
   updateMessageInChatStore,
   updateStreamTrackingInChatStore,
-  useChatStore,
-} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import {
   DesktopChatTurnConversationRefRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime';

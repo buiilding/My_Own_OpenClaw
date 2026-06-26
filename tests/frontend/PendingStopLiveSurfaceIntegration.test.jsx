@@ -3,16 +3,22 @@
  */
 
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { AppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';
 import {
-  acceptPendingTurnInChatStore,
   selectLiveTurnSurfaceState,
-  setIsSendingInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  acceptPendingTurnInChatStore,
+  setIsSendingInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { useChatSurfaceController } from '../../frontend/src/renderer/features/chat/hooks/useChatSurfaceController';
 import { useStopTurnHandler } from '../../frontend/src/renderer/features/chat/hooks/useStopTurnHandler';
 import {

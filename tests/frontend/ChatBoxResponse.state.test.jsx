@@ -25,7 +25,12 @@ import {
   acceptPendingTurnInChatStore,
   acceptStoppedTurnInChatStore,
   clearPendingTurnInChatStore,
-} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+  setConversationViewInChatStore,
+  setCurrentTurnProjectionInChatStore,
+  setIsSendingInChatStore,
+  setMessagesInChatStore,
+  setThinkingStatusInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { DesktopCurrentTurnMessageRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 
 const {
@@ -343,11 +348,12 @@ describe('ChatBoxResponse state behavior', () => {
 
   test('logs when the awaiting typing indicator is actually rendered and removed', async () => {
     window.history.pushState({}, '', '/?dev_ui=1&view=minimal-response-overlay');
-    useChatStore.setState({
-      messages: [{ id: 'user-sdk-transition', text: 'run command', sender: 'user' }],
-      isSending: true,
-      thinkingStatus: null,
-      currentTurnProjection: sdkPresentationProjection({ mode: 'awaiting' }),
+    act(() => {
+      setMessagesInChatStore([{ id: 'user-sdk-transition', text: 'run command', sender: 'user' }]);
+      setIsSendingInChatStore(true);
+      setThinkingStatusInChatStore(null);
+      setCurrentTurnProjectionInChatStore(sdkPresentationProjection({ mode: 'awaiting' }));
+      setConversationViewInChatStore(null);
     });
 
     render(<ChatBoxResponse />);
@@ -376,20 +382,18 @@ describe('ChatBoxResponse state behavior', () => {
       phase: 'streaming',
     });
     act(() => {
-      useChatStore.setState({
-        messages: [
-          { id: 'user-sdk-transition', text: 'run command', sender: 'user' },
-          {
-            id: 'assistant-sdk-transition',
-            text: 'first response',
-            sender: 'assistant',
-            type: 'llm-text',
-            turnRef: 'turn-sdk-transition',
-          },
-        ],
-        isSending: false,
-        currentTurnProjection: responseProjection,
-      });
+      setMessagesInChatStore([
+        { id: 'user-sdk-transition', text: 'run command', sender: 'user' },
+        {
+          id: 'assistant-sdk-transition',
+          text: 'first response',
+          sender: 'assistant',
+          type: 'llm-text',
+          turnRef: 'turn-sdk-transition',
+        },
+      ]);
+      setIsSendingInChatStore(false);
+      setCurrentTurnProjectionInChatStore(responseProjection);
     });
 
     await waitFor(() => {

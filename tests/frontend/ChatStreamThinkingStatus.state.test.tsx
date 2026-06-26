@@ -4,12 +4,14 @@
 
 import { act } from '@testing-library/react';
 import {
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
   setCurrentTurnProjectionInChatStore,
   setThinkingSourceEventTypeInChatStore,
   setThinkingStatusInChatStore,
   updateStreamTrackingInChatStore,
-  useChatStore,
-} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import {
   getActiveWorkspaceStateForTest,
   registerBackendAndProjectionListeners,

@@ -3,10 +3,12 @@
  */
 
 import {
-  addMessageToChatStore,
-  updateMessageInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  addMessageToChatStore,
+  updateMessageInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import {
   DesktopChatTurnConversationRefRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime';

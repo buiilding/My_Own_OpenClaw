@@ -6,10 +6,12 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { useShallow } from 'zustand/react/shallow';
 import {
   selectLiveTurnSurfaceState,
-  setThinkingSourceEventTypeInChatStore,
-  setThinkingStatusInChatStore,
   useChatStore,
 } from '../../chat/stores/chatStore';
+import {
+  setThinkingSourceEventTypeInChatStore,
+  setThinkingStatusInChatStore,
+} from '../../chat/stores/chatStoreAdapters';
 import { useChatMessageSender } from '../../chat/hooks/useChatMessageSender';
 import { useChatComposerDraft } from '../../chat/hooks/useChatComposerDraft';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';

@@ -9,15 +9,17 @@ import MessageInput from './MessageInput';
 import ChatInterfaceHeaderControls from './ChatInterfaceHeaderControls';
 import ChatFindBar from './ChatFindBar';
 import {
-  clearMessagesInChatStore,
   selectChatInterfaceState,
+  useChatStore,
+} from '../stores/chatStore';
+import {
+  clearMessagesInChatStore,
   setConversationViewInChatStore,
   setThinkingSourceEventTypeInChatStore,
   setThinkingStatusInChatStore,
   setTokenCountsInChatStore,
   updateMessageInChatStore,
-  useChatStore,
-} from '../stores/chatStore';
+} from '../stores/chatStoreAdapters';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import {
   useChatInterfaceAudioChunkStream,

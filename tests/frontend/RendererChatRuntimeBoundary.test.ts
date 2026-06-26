@@ -2080,6 +2080,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'stores/chatStore.ts'),
       'utf8',
     );
+    const chatStoreAdaptersSource = await fs.readFile(
+      path.join(chatRoot, 'stores/chatStoreAdapters.ts'),
+      'utf8',
+    );
     const visibleLifecycleSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime.js'),
       'utf8',
@@ -2100,12 +2104,14 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('resolveBroadcastAction(payload');
     expect(clientSource).not.toContain("attachments?: ChatMessage['attachments']");
     expect(eventClientSource).toContain('DesktopPendingTurnRuntimeClient.resolveBroadcastAction(payload)');
-    expect(chatStoreSource).toContain('DesktopPendingTurnBroadcastAction');
+    expect(chatStoreSource).not.toContain('DesktopPendingTurnBroadcastAction');
+    expect(chatStoreAdaptersSource).toContain('DesktopPendingTurnBroadcastAction');
     expect(chatStoreSource).not.toContain('resolvePendingTurnForCurrentProjection');
     expect(chatStoreSource).not.toContain('hasAuthoritativeSameTurnSdkReplacement');
     expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForCurrentProjection');
     expect(currentTurnWorkspaceRuntimeSource).toContain('buildCurrentTurnWorkspaceMutation');
-    expect(chatStoreSource).toContain('buildPendingTurnBroadcastStateUpdate');
+    expect(chatStoreSource).not.toContain('buildPendingTurnBroadcastStateUpdate');
+    expect(chatStoreAdaptersSource).toContain('buildPendingTurnBroadcastStateUpdate');
     expect(chatStoreSource).not.toContain("action.kind === 'clear'");
     expect(chatStoreSource).not.toContain("source.type === 'clear'");
     expect(chatStoreSource).not.toContain('source.pendingTurn');
@@ -2131,6 +2137,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'stores/chatStore.ts'),
       'utf8',
     );
+    const chatStoreAdaptersSource = await fs.readFile(
+      path.join(chatRoot, 'stores/chatStoreAdapters.ts'),
+      'utf8',
+    );
     const chatInterfaceSelectorRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatInterfaceSelectorRuntime.ts'),
       'utf8',
@@ -2142,8 +2152,10 @@ describe('renderer chat runtime boundary', () => {
 
     expect(stopHandlerSource).toContain('desktopStopTurnRuntime');
     expect(stopHandlerSource).toContain('DesktopStopTurnRuntime');
-    expect(chatStoreSource).toContain('desktopStopTurnRuntime');
-    expect(chatStoreSource).toContain('DesktopStopTurnRuntime');
+    expect(chatStoreSource).not.toContain('desktopStopTurnRuntime');
+    expect(chatStoreSource).not.toContain('DesktopStopTurnRuntime');
+    expect(chatStoreAdaptersSource).toContain('desktopStopTurnRuntime');
+    expect(chatStoreAdaptersSource).toContain('DesktopStopTurnRuntime');
     expect(chatStoreSource).not.toContain('resolveStopTurnTarget');
     expect(chatInterfaceSelectorRuntimeSource).toContain('resolveStopTurnTarget');
     expect(chatInterfaceSelectorRuntimeSource).toContain('selectStableStopTurnTarget');
@@ -3314,6 +3326,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'stores/chatStore.ts'),
       'utf8',
     );
+    const chatStoreAdaptersSource = await fs.readFile(
+      path.join(chatRoot, 'stores/chatStoreAdapters.ts'),
+      'utf8',
+    );
     const chatWorkspaceStateRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceStateRuntime.ts'),
       'utf8',
@@ -3487,8 +3503,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('selectActiveWorkspaceReadModelState');
     expect(chatStoreSource).not.toContain('selectActiveWorkspaceState(state)');
     expect(chatStoreSource).toContain('buildActiveConversationWorkspaceUpdate');
-    expect(chatStoreSource).toContain('buildWorkspaceUpdate');
-    expect(chatStoreSource).toContain('resolveWorkspaceMutationTarget');
+    expect(chatStoreSource).not.toContain('buildWorkspaceUpdate');
+    expect(chatStoreSource).not.toContain('resolveWorkspaceMutationTarget');
     expect(chatStoreSource).not.toContain('function getProjectedWorkspaceFields');
     expect(chatStoreSource).not.toContain('messages: ChatMessage[];');
     expect(chatStoreSource).not.toContain('isSending: boolean;');
@@ -3497,42 +3513,42 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('conversationView: ConversationView | null;');
     expect(chatStoreSource).not.toContain('pendingTurn: PendingTurn | null;');
     expect(chatStoreSource).not.toContain('export interface PendingTurn');
-    expect(chatStoreSource).toContain('DesktopPendingTurnState');
+    expect(chatStoreSource).not.toContain('DesktopPendingTurnState');
     expect(chatStoreSource).not.toContain('turnConversationRefs:');
     expect(chatStoreSource).not.toContain('function buildWorkspaceUpdate');
     expect(chatStoreSource).not.toContain('function resolveWorkspaceMutationTarget');
-    expect(chatStoreSource).toContain('DesktopChatPendingTurnStateRuntime');
-    expect(chatStoreSource).toContain('DesktopChatClearMessagesRuntime');
-    expect(chatStoreSource).toContain('buildClearMessagesStateUpdate');
-    expect(chatStoreSource).toContain('clearMessagesInChatStore');
+    expect(chatStoreSource).not.toContain('DesktopChatPendingTurnStateRuntime');
+    expect(chatStoreSource).not.toContain('DesktopChatClearMessagesRuntime');
+    expect(chatStoreSource).not.toContain('buildClearMessagesStateUpdate');
+    expect(chatStoreSource).not.toContain('clearMessagesInChatStore');
     expect(chatStoreSource).not.toContain('clearMessages:');
-    expect(chatStoreSource).toContain('DesktopChatWorkspaceMessageRuntime');
-    expect(chatStoreSource).toContain('buildAddMessageStateUpdate');
-    expect(chatStoreSource).toContain('buildUpdateMessageStateUpdate');
-    expect(chatStoreSource).toContain('buildUpdateStreamTargetMessageStateUpdate');
-    expect(chatStoreSource).toContain('buildSetMessagesStateUpdate');
-    expect(chatStoreSource).toContain('addMessageToChatStore');
-    expect(chatStoreSource).toContain('updateMessageInChatStore');
-    expect(chatStoreSource).toContain('updateStreamTargetMessageInChatStore');
-    expect(chatStoreSource).toContain('setMessagesInChatStore');
+    expect(chatStoreSource).not.toContain('DesktopChatWorkspaceMessageRuntime');
+    expect(chatStoreSource).not.toContain('buildAddMessageStateUpdate');
+    expect(chatStoreSource).not.toContain('buildUpdateMessageStateUpdate');
+    expect(chatStoreSource).not.toContain('buildUpdateStreamTargetMessageStateUpdate');
+    expect(chatStoreSource).not.toContain('buildSetMessagesStateUpdate');
+    expect(chatStoreSource).not.toContain('addMessageToChatStore');
+    expect(chatStoreSource).not.toContain('updateMessageInChatStore');
+    expect(chatStoreSource).not.toContain('updateStreamTargetMessageInChatStore');
+    expect(chatStoreSource).not.toContain('setMessagesInChatStore');
     expect(chatStoreSource).not.toContain('addMessage:');
     expect(chatStoreSource).not.toContain('updateMessage:');
     expect(chatStoreSource).not.toContain('updateStreamTargetMessage:');
     expect(chatStoreSource).not.toContain('setMessages:');
     expect(chatStoreSource).not.toContain('existingMessageIndex');
     expect(chatStoreSource).not.toContain('currentWorkspace.messages.findIndex');
-    expect(chatStoreSource).toContain('DesktopChatStreamTrackingRuntime');
+    expect(chatStoreSource).not.toContain('DesktopChatStreamTrackingRuntime');
     expect(chatStoreSource).toContain('StreamTracking');
-    expect(chatStoreSource).toContain('buildUpdateStreamTrackingStateUpdate');
-    expect(chatStoreSource).toContain('updateStreamTrackingInChatStore');
+    expect(chatStoreSource).not.toContain('buildUpdateStreamTrackingStateUpdate');
+    expect(chatStoreSource).not.toContain('updateStreamTrackingInChatStore');
     expect(chatStoreSource).not.toContain('updateStreamTracking:');
-    expect(chatStoreSource).toContain('DesktopChatWorkspaceFieldRuntime');
-    expect(chatStoreSource).toContain('buildSetWorkspaceFieldStateUpdate');
-    expect(chatStoreSource).toContain('setIsSendingInChatStore');
-    expect(chatStoreSource).toContain('setThinkingStatusInChatStore');
-    expect(chatStoreSource).toContain('setThinkingSourceEventTypeInChatStore');
-    expect(chatStoreSource).toContain('setCompactionDebugInfoInChatStore');
-    expect(chatStoreSource).toContain('setTokenCountsInChatStore');
+    expect(chatStoreSource).not.toContain('DesktopChatWorkspaceFieldRuntime');
+    expect(chatStoreSource).not.toContain('buildSetWorkspaceFieldStateUpdate');
+    expect(chatStoreSource).not.toContain('setIsSendingInChatStore');
+    expect(chatStoreSource).not.toContain('setThinkingStatusInChatStore');
+    expect(chatStoreSource).not.toContain('setThinkingSourceEventTypeInChatStore');
+    expect(chatStoreSource).not.toContain('setCompactionDebugInfoInChatStore');
+    expect(chatStoreSource).not.toContain('setTokenCountsInChatStore');
     expect(chatStoreSource).not.toContain('setIsSending:');
     expect(chatStoreSource).not.toContain('setThinkingStatus:');
     expect(chatStoreSource).not.toContain('setThinkingSourceEventType:');
@@ -3540,39 +3556,68 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('setTokenCounts:');
     expect(chatStoreSource).toContain('DesktopResponseOverlayViewRuntime');
     expect(chatStoreSource).not.toContain('export function buildResponseOverlayDismissalKey');
-    expect(chatStoreSource).toContain('DesktopCurrentTurnWorkspaceRuntime');
-    expect(chatStoreSource).toContain('buildSetCurrentTurnProjectionStateUpdate');
-    expect(chatStoreSource).toContain('setCurrentTurnProjectionInChatStore');
+    expect(chatStoreSource).not.toContain('DesktopCurrentTurnWorkspaceRuntime');
+    expect(chatStoreSource).not.toContain('buildSetCurrentTurnProjectionStateUpdate');
+    expect(chatStoreSource).not.toContain('setCurrentTurnProjectionInChatStore');
     expect(chatStoreSource).not.toContain('setCurrentTurnProjection:');
     expect(chatStoreSource).not.toContain('buildCurrentTurnWorkspaceMutation');
-    expect(chatStoreSource).toContain('DesktopConversationViewWorkspaceRuntime');
-    expect(chatStoreSource).toContain('buildSetConversationViewStateUpdate');
-    expect(chatStoreSource).toContain('setConversationViewInChatStore');
+    expect(chatStoreSource).not.toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(chatStoreSource).not.toContain('buildSetConversationViewStateUpdate');
+    expect(chatStoreSource).not.toContain('setConversationViewInChatStore');
     expect(chatStoreSource).not.toContain('setConversationView:');
     expect(chatStoreSource).not.toContain('buildSetLatestConversationViewStateUpdate');
     expect(chatStoreSource).not.toContain('setLatestConversationView');
     expect(chatStoreSource).not.toContain('latestConversationView');
     expect(chatStoreSource).not.toContain('buildConversationViewWorkspaceMutation');
-    expect(chatStoreSource).toContain('buildAcceptStoppedTurnStateUpdate');
-    expect(chatStoreSource).toContain('acceptStoppedTurnInChatStore');
+    expect(chatStoreSource).not.toContain('buildAcceptStoppedTurnStateUpdate');
+    expect(chatStoreSource).not.toContain('acceptStoppedTurnInChatStore');
     expect(chatStoreSource).not.toContain('acceptStoppedTurn:');
     expect(chatStoreSource).not.toContain('buildStoppedTurnWorkspaceMutation');
     expect(chatStoreSource).not.toContain('normalizeConversationRef(input?.conversationRef)');
     expect(chatStoreSource).not.toContain('normalizeTurnRef(input?.turnRef)');
     expect(chatStoreSource).not.toContain('DesktopChatCurrentTurnStateRuntime');
     expect(chatStoreSource).not.toContain('doesCurrentTurnProjectionMatch');
-    expect(chatStoreSource).toContain('buildAcceptPendingTurnStateUpdate');
-    expect(chatStoreSource).toContain('acceptPendingTurnInChatStore');
+    expect(chatStoreSource).not.toContain('buildAcceptPendingTurnStateUpdate');
+    expect(chatStoreSource).not.toContain('acceptPendingTurnInChatStore');
     expect(chatStoreSource).not.toContain('acceptPendingTurn:');
     expect(chatStoreSource).not.toContain('buildAcceptReplayPendingTurnStateUpdate');
-    expect(chatStoreSource).toContain('buildClearPendingTurnStateUpdate');
-    expect(chatStoreSource).toContain('clearPendingTurnInChatStore');
+    expect(chatStoreSource).not.toContain('buildClearPendingTurnStateUpdate');
+    expect(chatStoreSource).not.toContain('clearPendingTurnInChatStore');
     expect(chatStoreSource).not.toContain('clearPendingTurn:');
-    expect(chatStoreSource).toContain('buildPendingTurnBroadcastStateUpdate');
-    expect(chatStoreSource).toContain('applyPendingTurnBroadcastToChatStore');
+    expect(chatStoreSource).not.toContain('buildPendingTurnBroadcastStateUpdate');
+    expect(chatStoreSource).not.toContain('applyPendingTurnBroadcastToChatStore');
     expect(chatStoreSource).not.toContain('applyPendingTurnBroadcast:');
     expect(chatStoreSource).not.toContain('buildPendingTurnWorkspaceMutation');
     expect(chatStoreSource).not.toContain('buildPendingTurnClearWorkspaceMutation');
+    expect(chatStoreAdaptersSource).toContain('Chat store adapter functions');
+    expect(chatStoreAdaptersSource).toContain('useChatStore');
+    expect(chatStoreAdaptersSource).toContain('buildWorkspaceUpdate');
+    expect(chatStoreAdaptersSource).toContain('resolveWorkspaceMutationTarget');
+    expect(chatStoreAdaptersSource).toContain('DesktopChatPendingTurnStateRuntime');
+    expect(chatStoreAdaptersSource).toContain('DesktopChatClearMessagesRuntime');
+    expect(chatStoreAdaptersSource).toContain('DesktopChatWorkspaceMessageRuntime');
+    expect(chatStoreAdaptersSource).toContain('DesktopChatStreamTrackingRuntime');
+    expect(chatStoreAdaptersSource).toContain('DesktopChatWorkspaceFieldRuntime');
+    expect(chatStoreAdaptersSource).toContain('DesktopCurrentTurnWorkspaceRuntime');
+    expect(chatStoreAdaptersSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(chatStoreAdaptersSource).toContain('buildAcceptStoppedTurnStateUpdate');
+    expect(chatStoreAdaptersSource).toContain('addMessageToChatStore');
+    expect(chatStoreAdaptersSource).toContain('updateMessageInChatStore');
+    expect(chatStoreAdaptersSource).toContain('updateStreamTargetMessageInChatStore');
+    expect(chatStoreAdaptersSource).toContain('setMessagesInChatStore');
+    expect(chatStoreAdaptersSource).toContain('clearMessagesInChatStore');
+    expect(chatStoreAdaptersSource).toContain('acceptPendingTurnInChatStore');
+    expect(chatStoreAdaptersSource).toContain('clearPendingTurnInChatStore');
+    expect(chatStoreAdaptersSource).toContain('acceptStoppedTurnInChatStore');
+    expect(chatStoreAdaptersSource).toContain('setCurrentTurnProjectionInChatStore');
+    expect(chatStoreAdaptersSource).toContain('setConversationViewInChatStore');
+    expect(chatStoreAdaptersSource).toContain('updateStreamTrackingInChatStore');
+    expect(chatStoreAdaptersSource).toContain('setIsSendingInChatStore');
+    expect(chatStoreAdaptersSource).toContain('setThinkingStatusInChatStore');
+    expect(chatStoreAdaptersSource).toContain('setThinkingSourceEventTypeInChatStore');
+    expect(chatStoreAdaptersSource).toContain('setCompactionDebugInfoInChatStore');
+    expect(chatStoreAdaptersSource).toContain('setTokenCountsInChatStore');
+    expect(chatStoreAdaptersSource).toContain('applyPendingTurnBroadcastToChatStore');
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBridgeRuntime');
     expect(chatStoreSource).not.toContain('buildPendingTurnUserMessage');
     expect(chatStoreSource).not.toContain('function normalizePendingTurn');

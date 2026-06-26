@@ -5,10 +5,12 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import type { ConversationEvent } from '../../../app/runtime/desktopConversationRuntimeContracts';
 import {
-  setCompactionDebugInfoInChatStore,
   useChatStore,
-  updateStreamTrackingInChatStore,
 } from '../stores/chatStore';
+import {
+  setCompactionDebugInfoInChatStore,
+  updateStreamTrackingInChatStore,
+} from '../stores/chatStoreAdapters';
 import { DesktopRendererConfigRuntimeClient } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopModelThinkingRuntime } from '../../../app/runtime/desktopModelThinkingRuntime';
 import { type TranscriptModelContext } from '../../../app/runtime/desktopChatStreamModelContextRuntime';

@@ -5,11 +5,13 @@
 
 import { useCallback, useMemo } from 'react';
 import {
-  acceptPendingTurnInChatStore,
-  clearPendingTurnInChatStore,
   selectChatSendReadModel,
   useChatStore,
 } from '../stores/chatStore';
+import {
+  acceptPendingTurnInChatStore,
+  clearPendingTurnInChatStore,
+} from '../stores/chatStoreAdapters';
 import { DesktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { DesktopRendererConfigRuntimeClient } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import {

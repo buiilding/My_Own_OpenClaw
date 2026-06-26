@@ -9,9 +9,11 @@ import {
   setMockActiveConversationRef,
 } from './ChatStreamThinkingStatus.testUtils';
 import {
-  acceptPendingTurnInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  acceptPendingTurnInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 
 describe('useConversationRuntimeProjectionStream display row merging', () => {

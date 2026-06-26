@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
+  `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
+  selectors, and response-overlay dismissal state. No migration required.
 - frontend/actions: project SDK display-row action metadata onto chat messages
   and use row-level edit/retry target ids for replay controls, so renderer role
   heuristics no longer override SDK action availability. No migration required.

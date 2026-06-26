@@ -4,14 +4,16 @@
 
 import { useEffect, useRef } from 'react';
 import {
+  useChatStore,
+} from '../stores/chatStore';
+import {
   applyPendingTurnBroadcastToChatStore,
   setCurrentTurnProjectionInChatStore,
   setIsSendingInChatStore,
   setThinkingSourceEventTypeInChatStore,
   setThinkingStatusInChatStore,
   updateStreamTrackingInChatStore,
-  useChatStore,
-} from '../stores/chatStore';
+} from '../stores/chatStoreAdapters';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import {
   DesktopConversationProjectionStreamRuntime,

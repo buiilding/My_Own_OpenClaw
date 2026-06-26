@@ -4,10 +4,12 @@
 
 import { act } from '@testing-library/react';
 import {
-  setMessagesInChatStore,
-  updateStreamTrackingInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  setMessagesInChatStore,
+  updateStreamTrackingInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import {
   getActiveWorkspaceStateForTest,
   registerBackendListener,

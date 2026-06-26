@@ -5,11 +5,13 @@
 import { waitFor } from '@testing-library/react';
 import { DesktopChatSendPreparationRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime';
 import {
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
   acceptPendingTurnInChatStore,
   applyPendingTurnBroadcastToChatStore,
   setCurrentTurnProjectionInChatStore,
-  useChatStore,
-} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import {
   DesktopLiveTurnSurfaceRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime';

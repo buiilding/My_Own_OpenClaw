@@ -41,14 +41,16 @@ jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => {
 
 import MinimalResponseOverlay from '../../frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay';
 import {
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
   clearPendingTurnInChatStore,
   setConversationViewInChatStore,
   setCurrentTurnProjectionInChatStore,
   setIsSendingInChatStore,
   setMessagesInChatStore,
   setThinkingStatusInChatStore,
-  useChatStore,
-} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 const WORKSPACE_MIRROR_FIELDS = [

@@ -5,11 +5,13 @@
 import { act } from '@testing-library/react';
 import {
   selectChatInterfaceState,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
   setConversationViewInChatStore,
   setCurrentTurnProjectionInChatStore,
   setMessagesInChatStore,
-  useChatStore,
-} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import {
   getActiveWorkspaceStateForTest,
   registerBackendAndProjectionListeners,

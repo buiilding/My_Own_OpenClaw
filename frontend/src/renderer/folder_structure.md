@@ -166,7 +166,8 @@ frontend/src/renderer/
 |   |   |-- session/                     # Conversation session helpers
 |   |   |
 |   |   |-- stores/                      # State management
-|   |   |   `-- chatStore.ts             # chatStore (Zustand) - Messages, isSending, thinkingStatus, tokenCounts
+|   |   |   |-- chatStore.ts             # chatStore (Zustand) - active workspace state, selectors, overlay dismissal
+|   |   |   `-- chatStoreAdapters.ts     # Runtime workspace mutation adapters that apply app-runtime state updates
 |   |   |
 |   |-- dashboard/                        # Dashboard feature module
 |   |   |-- hooks/                       # Dashboard business logic hooks
@@ -315,11 +316,11 @@ frontend/src/renderer/
        |-> Tracks tool-call/tool-output phases
        `-> Tracks complete/error phases
            v
-3. CHAT STORE
-   `-> features/chat/stores/chatStore.ts
-       |-> setCurrentTurnProjectionInChatStore() - Store SDK live turn state
-       |-> setThinkingStatus() - Update thinking display from projection
-       `-> setTokenCounts() - Update token statistics from conversation events
+3. CHAT STORE ADAPTERS
+   `-> features/chat/stores/chatStoreAdapters.ts
+       |-> setCurrentTurnProjectionInChatStore() - Apply SDK live turn runtime update
+       |-> setThinkingStatusInChatStore() - Apply thinking display update from projection
+       `-> setTokenCountsInChatStore() - Apply token statistics update from conversation events
            v
 4. UI UPDATE
    `-> features/chat/components/MessageList.jsx
@@ -451,7 +452,7 @@ frontend/src/renderer/
            v
 3. UI UPDATE
    `-> features/chat/hooks/useConversationRuntimeProjectionStream.ts
-       `-> setCurrentTurnProjectionInChatStore()
+       `-> chatStoreAdapters.setCurrentTurnProjectionInChatStore()
            `-> app/runtime/desktopCurrentTurnMessageRuntime.js renders projected bundle/tool output
 ```
 

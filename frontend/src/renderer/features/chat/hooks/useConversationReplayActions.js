@@ -4,9 +4,11 @@
 
 import { useCallback } from 'react';
 import {
-  addMessageToChatStore,
   useChatStore,
 } from '../stores/chatStore';
+import {
+  addMessageToChatStore,
+} from '../stores/chatStoreAdapters';
 import {
   DesktopRendererConfigRuntimeClient,
 } from '../../../app/runtime/desktopRendererConfigRuntimeClient';

@@ -8,7 +8,7 @@ import {
   setThinkingSourceEventTypeInChatStore,
   setThinkingStatusInChatStore,
   updateStreamTargetMessageInChatStore,
-} from '../stores/chatStore';
+} from '../stores/chatStoreAdapters';
 
 export function useChatCommonActions() {
   return {

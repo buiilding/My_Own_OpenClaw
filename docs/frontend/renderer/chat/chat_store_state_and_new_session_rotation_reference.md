@@ -11,6 +11,7 @@ title: "Chat Store State and New Session Rotation Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
+- `frontend/src/renderer/features/chat/stores/chatStoreAdapters.ts`
 - `frontend/src/renderer/app/runtime/desktopChatInterfaceSelectorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime.js`
@@ -66,6 +67,10 @@ initialization uses `createInitialWorkspaceRecord()` so `chatStore.ts` and
 feature callers do not import the raw sentinel string.
 
 All mutating actions accept optional `conversationRef` and write into that workspace. The workspace record is the read authority. `chatStore.ts` no longer mirrors workspace fields such as `messages`, `isSending`, `currentTurnProjection`, `conversationView`, or `pendingTurn` onto the store root; production callers use selectors or `getWorkspaceState(...)` instead.
+`chatStore.ts` is the Zustand state/selector module. Workspace mutation
+adapter functions live in `chatStoreAdapters.ts`, which imports the runtime
+mutation helpers and applies their returned state updates through
+`useChatStore.setState(...)`.
 
 Message attachment fields used by current renderer message paths:
 
@@ -86,7 +91,7 @@ replay/store compatibility adapters and low-level artifact helpers.
 
 ## Action Semantics and No-Op Guards
 
-`chatStore` action behavior:
+`chatStoreAdapters` action behavior:
 
 - Message writes enter through the module-level
   `addMessageToChatStore(...)`, `updateMessageInChatStore(...)`,
@@ -110,8 +115,8 @@ replay/store compatibility adapters and low-level artifact helpers.
   merge rules live in `desktopChatTurnConversationRefRuntime.ts`; message array
   replacement, duplicate id replacement, missing-id no-op handling, and
   workspace update assembly live in `desktopChatWorkspaceMessageRuntime.ts`.
-  The store only passes message intent plus workspace and registry dependency
-  adapters.
+  The adapter module only passes message intent plus workspace and registry
+  dependency adapters.
 - Scalar workspace-field writes enter through the module-level
   `setIsSendingInChatStore(...)`, `setThinkingStatusInChatStore(...)`,
   `setThinkingSourceEventTypeInChatStore(...)`,
@@ -120,14 +125,14 @@ replay/store compatibility adapters and low-level artifact helpers.
   adapters apply simple workspace field updates through
   `DesktopChatWorkspaceFieldRuntime.buildSetWorkspaceFieldStateUpdate(...)`.
   Workspace resolution, equality no-op handling, and workspace update assembly
-  live in that app runtime; the store module only passes field intent plus
+  live in that app runtime; the adapter module only passes field intent plus
   workspace dependency adapters.
 - Stream-tracking updates enter through the module-level
   `updateStreamTrackingInChatStore(...)` adapter instead of a Zustand action.
   The adapter applies updater output through
   `DesktopChatStreamTrackingRuntime.buildUpdateStreamTrackingStateUpdate(...)`.
   Workspace resolution, stream-tracking reference no-op handling, and workspace
-  update assembly live in that app runtime; the store module only passes
+  update assembly live in that app runtime; the adapter module only passes
   updater intent plus workspace dependency adapters.
 - SDK current-turn projection updates enter through the module-level
   `setCurrentTurnProjectionInChatStore(...)` adapter instead of a Zustand
@@ -140,7 +145,7 @@ replay/store compatibility adapters and low-level artifact helpers.
 - SDK `ConversationView` writes enter through the module-level
   `setConversationViewInChatStore(...)` adapter instead of a Zustand action.
   The conversation-view workspace state update lives in
-  `desktopConversationViewWorkspaceRuntime.ts`; the store module delegates
+  `desktopConversationViewWorkspaceRuntime.ts`; the adapter module delegates
   conversation-view intent plus workspace dependency adapters. A same-turn
   authoritative SDK `ConversationView.liveTurn` also clears the renderer-local
   pending bridge there, so `chatStore.ts` does not keep a competing pending
@@ -154,9 +159,9 @@ replay/store compatibility adapters and low-level artifact helpers.
   visual attachment descriptors belong to SDK display rows. The pending
   user-row shape and workspace mutation projection are built by app-runtime
   helpers. The accept-pending and clear decisions also live in
-  `desktopChatPendingTurnStateRuntime.ts`; `chatStore.ts` only supplies
-  workspace read/write dependencies through module-level adapters and applies
-  the returned update. Pending-turn IPC broadcasts use
+  `desktopChatPendingTurnStateRuntime.ts`; `chatStoreAdapters.ts` supplies
+  workspace read/write dependencies and applies the returned update through the
+  store. Pending-turn IPC broadcasts use
   `applyPendingTurnBroadcastToChatStore(...)` instead of a Zustand action, so
   React components do not select broadcast handling from store state.
 - Replay/edit/retry commands do not use the renderer pending-turn bridge.
@@ -188,8 +193,8 @@ replay/store compatibility adapters and low-level artifact helpers.
   state, and resets `streamTracking` to initial idle shape through
   `DesktopChatClearMessagesRuntime.buildClearMessagesStateUpdate(...)`. The
   clear-message reset field list and workspace update assembly live in that app
-  runtime; the store module only passes clear intent plus workspace dependency
-  adapters.
+  runtime; the adapter module only passes clear intent plus workspace
+  dependency adapters.
 - `setActiveConversationRef` switches only the active workspace ref and ensures
   the workspace record exists through
   `DesktopChatWorkspaceStateRuntime.buildActiveConversationWorkspaceUpdate(...)`.

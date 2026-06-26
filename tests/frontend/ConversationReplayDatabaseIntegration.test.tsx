@@ -2,18 +2,26 @@
  * Covers conversation replay database integration. behavior in the frontend test suite.
  */
 
-import { act, renderHook } from '@testing-library/react';
+import {
+  act,
+  renderHook,
+} from '@testing-library/react';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import {
+  mkdtempSync,
+  rmSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { useConversationReplayActions } from '../../frontend/src/renderer/features/chat/hooks/useConversationReplayActions';
 import {
-  clearMessagesInChatStore,
-  setMessagesInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  clearMessagesInChatStore,
+  setMessagesInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import {
   createConversationEvent,
   LocalRuntimeConversationStore,

@@ -5,8 +5,10 @@
 import { useCallback } from 'react';
 import {
   type ChatMessage,
-  setTokenCountsInChatStore,
 } from '../../stores/chatStore';
+import {
+  setTokenCountsInChatStore,
+} from '../../stores/chatStoreAdapters';
 import { DesktopChatStreamEventPayloadRuntime } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';

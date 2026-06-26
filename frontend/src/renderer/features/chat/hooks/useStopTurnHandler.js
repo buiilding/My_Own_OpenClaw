@@ -4,9 +4,11 @@
 
 import { useCallback, useMemo } from 'react';
 import {
-  acceptStoppedTurnInChatStore,
   useChatStore,
 } from '../stores/chatStore';
+import {
+  acceptStoppedTurnInChatStore,
+} from '../stores/chatStoreAdapters';
 import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 import {
