@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/dev: make `<windie> start dev` preflight missing source-mode Node
+  installs by running `npm install` in `frontend` and `packages/windie-sdk-js`
+  only when their owned runtime dependencies are absent, so fresh worktrees can
+  launch Electron without manually installing the SDK `ws` package. No
+  migration required.
 - frontend/overlay: move manual response-overlay close action value
   construction into `DesktopResponseOverlayViewRuntime`, so
   `useResponseOverlayViewModel` no longer unpacks dismissal target turn or

@@ -29,6 +29,7 @@ Use [Install Decision Matrix](install_decision_matrix.md) first when you are not
 ```bash
 pip install -r backend/requirements.txt
 (cd frontend && npm install)
+(cd packages/windie-sdk-js && npm install)
 ```
 
 Windows PowerShell may resolve `npm` to `npm.ps1`, which can fail under the
@@ -45,6 +46,11 @@ npm.cmd install
 <windie> start backend
 <windie> start dev
 ```
+
+`<windie> start dev` checks source-mode Node installs before launching. When a
+new worktree is missing `frontend/node_modules` or the SDK-owned
+`packages/windie-sdk-js/node_modules/ws` websocket dependency, the command runs
+`npm install` in the owning package and then continues startup.
 
 Windows PowerShell equivalents:
 

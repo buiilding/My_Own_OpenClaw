@@ -19,6 +19,7 @@ const cliPath = path.join(repoRoot, 'scripts/windie-cli.cjs');
 const {
   buildLayerLogTailArgs,
   buildFrontendLogTailArgs,
+  collectMissingStartNodeInstallTargets,
   getSpawnPlan,
   normalizeWindieLogTarget,
   resolveFrontendLogFile,
@@ -248,6 +249,46 @@ describe('windie CLI', () => {
     expect(devPlan.concurrent[1].env.WINDIE_ENABLE_SCRIPTED_PROVIDER).toBe('1');
     expect(customerPlan.concurrent[0].env).toBeUndefined();
     expect(customerPlan.concurrent[1].env).toBeUndefined();
+  });
+
+  test('preflights dev node installs across frontend and SDK package boundaries', () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-cli-node-preflight-'));
+    const frontendDir = path.join(tempRoot, 'frontend');
+    const sdkJsDir = path.join(tempRoot, 'packages', 'windie-sdk-js');
+    fs.mkdirSync(frontendDir, { recursive: true });
+    fs.mkdirSync(sdkJsDir, { recursive: true });
+
+    expect(collectMissingStartNodeInstallTargets('dev', {
+      frontendDir,
+      sdkJsDir,
+      frontendNodeModulesDir: path.join(frontendDir, 'node_modules'),
+      sdkWsModuleDir: path.join(sdkJsDir, 'node_modules', 'ws'),
+    }).map((target) => target.label)).toEqual(['frontend', 'SDK websocket']);
+
+    fs.mkdirSync(path.join(frontendDir, 'node_modules'), { recursive: true });
+    fs.mkdirSync(path.join(sdkJsDir, 'node_modules', 'ws'), { recursive: true });
+
+    expect(collectMissingStartNodeInstallTargets('dev', {
+      frontendDir,
+      sdkJsDir,
+      frontendNodeModulesDir: path.join(frontendDir, 'node_modules'),
+      sdkWsModuleDir: path.join(sdkJsDir, 'node_modules', 'ws'),
+    })).toEqual([]);
+  });
+
+  test('does not require SDK websocket install for frontend-only start', () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-cli-node-preflight-'));
+    const frontendDir = path.join(tempRoot, 'frontend');
+    const sdkJsDir = path.join(tempRoot, 'packages', 'windie-sdk-js');
+    fs.mkdirSync(path.join(frontendDir, 'node_modules'), { recursive: true });
+    fs.mkdirSync(sdkJsDir, { recursive: true });
+
+    expect(collectMissingStartNodeInstallTargets('frontend', {
+      frontendDir,
+      sdkJsDir,
+      frontendNodeModulesDir: path.join(frontendDir, 'node_modules'),
+      sdkWsModuleDir: path.join(sdkJsDir, 'node_modules', 'ws'),
+    })).toEqual([]);
   });
 
   test('routes customer Electron launches through the frontend Python environment', () => {
