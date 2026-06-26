@@ -566,7 +566,7 @@ App
 ### Chat Store (Zustand)
 - `messages: ChatMessage[]` - Conversation messages
 - `isSending: boolean` - Compatibility send flag; visible lifecycle comes from pending turns plus SDK current-turn projection
-- `thinkingStatus: string | null` - Dashboard/manual status compatibility text; response overlay reasoning follows SDK `currentTurn.reasoningText`
+- `thinkingStatus: string | null` - Dashboard/manual status compatibility text; response overlay reasoning follows SDK presentation thinking entries
 - `tokenCounts: TokenCounts | null` - Token usage statistics
 
 ### App Config Context

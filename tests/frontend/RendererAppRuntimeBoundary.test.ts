@@ -80,7 +80,7 @@ describe('renderer app runtime boundary', () => {
 
     expect(sourceMap).toContain('desktopRendererConfigStorageRuntime');
     expect(sourceMap).toContain('visible lifecycle comes from pending turns plus SDK current-turn projection');
-    expect(sourceMap).toContain('response overlay reasoning follows SDK `currentTurn.reasoningText`');
+    expect(sourceMap).toContain('response overlay reasoning follows SDK presentation thinking entries');
     expect(sourceMap).not.toContain('Load config from localStorage');
     expect(sourceMap).not.toContain('localStorage.setItem()');
     expect(sourceMap).not.toContain('Whether a message is being sent');

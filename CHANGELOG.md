@@ -12,8 +12,9 @@ All notable changes to WindieOS will be documented in this file.
   presentation lifecycle fields, including overlay thinking text, instead of
   scanning raw `assistantText`, `reasoningText`, or `toolEvents`; current-turn
   IPC validation now accepts presentation-backed snapshots without those raw
-  content fields, and raw current-turn row synthesis remains only for legacy
-  no-presentation hosts. No migration required.
+  content fields, renderer source-map/runtime docs now name presentation entries
+  as the normal live content contract, and raw current-turn row synthesis
+  remains only for legacy no-presentation hosts. No migration required.
 - sdk/frontend: add SDK-authored `toolCallDetails` and `toolOutputDetails`
   metadata to display rows, and make the renderer display-row adapter consume
   only those detail records instead of copying request/tool ids from generic row

@@ -547,9 +547,11 @@ rows from `snapshot.currentTurn`. `snapshot.currentTurn` remains the SDK-owned
 phase/status/overlay projection for busy state, stop eligibility, active turn
 identity, and overlay-specific progressive state.
 Desktop may render a temporary, textless thinking disclosure from
-`snapshot.currentTurn.reasoningText` while a turn is active, but that disclosure
-is not a transcript assistant row and must disappear once the SDK display row
-contains assistant-visible text for the same turn.
+`snapshot.currentTurn.presentation.entries` while a turn is active, but that
+disclosure is not a transcript assistant row and must disappear once the SDK
+display row contains assistant-visible text for the same turn. Raw
+`snapshot.currentTurn.reasoningText` is legacy no-presentation fallback context
+only.
 
 Terminal `turn_error` and `runtime_error` events are authoritative for their
 turn. If assistant text or deltas were already projected for the same
@@ -816,16 +818,19 @@ reconstruct backend `error` or `token-count` events from `payload.sourceEvent`.
 advance the response phase. Completion and error phase ownership stays with
 `snapshot.currentTurn`.
 
-Desktop reasoning projection consumes SDK `currentTurn.reasoningText` from the
-conversation runtime snapshot. Renderer UI/debug state may keep the source label
-`llm-thought` for continuity, but the handler should not reconstruct backend
-`llm-thought` events from `payload.sourceEvent` or consume normalized
-`reasoning_delta` as a separate live-state path.
+Desktop reasoning projection consumes SDK thinking presentation entries from
+the conversation runtime snapshot. Renderer UI/debug state may keep the source
+label `llm-thought` for continuity, but the handler should not reconstruct
+backend `llm-thought` events from `payload.sourceEvent`, consume normalized
+`reasoning_delta` as a separate live-state path, or require raw
+`currentTurn.reasoningText` when presentation exists.
 
-Desktop assistant live text consumes SDK `currentTurn.assistantText` from the
-conversation runtime snapshot. Backend-wire `streaming-response` and normalized
-SDK `assistant_delta` events may still exist in the event log, but they should
-not be renderer live-row or active-turn state fallbacks.
+Desktop assistant live text consumes SDK `llm-text` presentation entries from
+the conversation runtime snapshot. Backend-wire `streaming-response`,
+normalized SDK `assistant_delta` events, and raw `currentTurn.assistantText`
+may still exist in the event log/snapshot for compatibility, but they should
+not be renderer live-row or active-turn state fallbacks when presentation
+exists.
 
 Desktop completion projection consumes SDK `turn_completed` identity directly.
 The SDK event carries `conversationRef`, `turnRef`, and `payload.userId` for
@@ -842,11 +847,13 @@ The current-turn projection filters benign settings-update failures and
 recoverable streamed tool-call parse failures so those non-turn errors do not
 become response-overlay errors.
 
-Desktop live tool projection consumes SDK `snapshot.currentTurn.toolEvents`.
-Renderer UI/debug state may keep source labels such as `tool-call`,
-`tool-output`, and `web-search-progress`, but active tool rows and phase
-tracking should come from the SDK current-turn projection instead of a separate
-normalized-event live-state path.
+Desktop live tool projection consumes SDK tool presentation entries from
+`snapshot.currentTurn.presentation.entries`. Renderer UI/debug state may keep
+source labels such as `tool-call`, `tool-output`, and `web-search-progress`,
+but active tool rows and phase tracking should come from the SDK current-turn
+presentation instead of a separate normalized-event live-state path. Raw
+`snapshot.currentTurn.toolEvents` is legacy no-presentation fallback context
+only.
 When provider-native web search progress has to be rehydrated as a synthetic
 `web_search` tool pair, the SDK projection uses provider-neutral display text.
 Backend web-search docs remain the source of truth for whether OpenAI native,
@@ -861,8 +868,9 @@ Desktop tool-call transcript persistence may consume SDK `tool_call` directly.
 The SDK payload exposes normalized fields such as `toolName`, `args`,
 request/correlation ids, and `userId`, and SDK projection owns any backend
 detail recovery before emitting renderer-visible rows. Renderer active
-tool-call display should come from `snapshot.currentTurn.toolEvents`, and
-should not reconstruct backend `tool-call` events from `payload.sourceEvent`.
+tool-call display should come from SDK presentation entries or SDK-authored
+display rows, and should not reconstruct backend `tool-call` events from
+`payload.sourceEvent`.
 
 Desktop tool-output transcript persistence may consume SDK `tool_output`
 directly. The SDK payload exposes normalized identity, request/correlation id,
@@ -872,16 +880,16 @@ owns backend detail recovery and malformed-payload fallback before emitting
 renderer-visible rows.
 For `tool_output` and `tool_progress`, normalized `correlationId` prefers
 backend `payload.correlation_id` and falls back to `payload.request_id`.
-Renderer active tool-output display should come from
-`snapshot.currentTurn.toolEvents`, and should not reconstruct backend
-`tool-output` events from `payload.sourceEvent`.
+Renderer active tool-output display should come from SDK presentation entries
+or SDK-authored display rows, and should not reconstruct backend `tool-output`
+events from `payload.sourceEvent`.
 
 Desktop tool-bundle transcript persistence may consume SDK `tool_bundle_call`
 directly. The SDK payload exposes normalized bundle identity, correlation id,
 tool list, and user id. SDK projection owns backend detail recovery before
 emitting renderer-visible rows. Renderer active bundle display should come
-from `snapshot.currentTurn.toolEvents`, and should not reconstruct backend
-`tool-bundle` events from `payload.sourceEvent`.
+from SDK presentation entries or SDK-authored display rows, and should not
+reconstruct backend `tool-bundle` events from `payload.sourceEvent`.
 
 ## Continuity Service Rule
 
@@ -1146,8 +1154,8 @@ Current-turn live presentation entries mirror the same SDK-shaped identity
 fields (`toolName`, `requestId`, `correlationId`, and `bundleId`) so renderer
 UI code can render live tool rows without re-reading backend-wire aliases from
 `structuredPayload`.
-The underlying `currentTurn.toolEvents` projection exposes those identity fields
-for hosts that still render directly from tool events.
+The underlying legacy `currentTurn.toolEvents` projection exposes those identity
+fields for hosts that still render directly from tool events.
 Claimed SDK-shaped events execute the local runtime, send the result back
 through the transport, and append the corresponding normalized output event
 through the same store/projection path. When backend metadata marks the tool
