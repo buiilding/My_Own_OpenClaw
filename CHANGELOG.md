@@ -32,6 +32,12 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/replay: remove the unused renderer replay-trace `supersededTurnRef`
   field now that replay supersession is SDK-owned and renderer replay traces
   only report intent and view/pending bridge state. No migration required.
+- frontend/pill: prefer `ConversationView.liveTurn.turnRef` for chat-pill
+  lifecycle/state trace identity when an SDK view exists, leaving raw
+  current-turn refs as a no-view fallback only. No migration required.
+- frontend/tests: update the chat-pill overlay stop harness to exercise
+  `chatStoreAdapters` state mutations directly, keeping SDK-view stops
+  command-focused and pending-bridge stops state-focused. No migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.

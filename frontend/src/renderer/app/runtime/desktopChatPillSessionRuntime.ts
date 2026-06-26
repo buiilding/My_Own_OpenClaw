@@ -77,6 +77,14 @@ function findLatestChatTurnId(messages: TurnRefMessage[]): string | null {
   return null;
 }
 
+function resolveViewLiveTurnRef(conversationView: ChatPillConversationView): string | null {
+  return normalizeOptionalTurnRef(conversationView?.liveTurn?.turnRef);
+}
+
+function resolveViewPillMode(conversationView: ChatPillConversationView): string | null {
+  return normalizeOptionalString(conversationView?.surfaces?.pill?.mode);
+}
+
 function resolveChatPillSendLifecycle({
   senderSurface = 'overlay-chatbox',
   returnToChatboxPolicy,
@@ -148,9 +156,11 @@ function buildChatPillLifecycleTraceSnapshot({
   sessionConversationRef?: string | null;
 }) {
   const currentTurnProjection = chatSurfaceState?.currentTurnProjection ?? null;
+  const conversationView = chatSurfaceState?.conversationView ?? null;
+  const viewTurnRef = resolveViewLiveTurnRef(conversationView);
   return {
     conversationRef: normalizeOptionalString(sessionConversationRef),
-    turnRef: normalizeOptionalTurnRef(currentTurnProjection?.turnRef),
+    turnRef: viewTurnRef || normalizeOptionalTurnRef(currentTurnProjection?.turnRef),
     phase: normalizeOptionalString(currentTurnProjection?.phase),
   };
 }
@@ -173,9 +183,9 @@ function buildChatPillStateTraceSnapshot({
   const currentTurnProjection = chatSurfaceState?.currentTurnProjection ?? null;
   const conversationView = chatSurfaceState?.conversationView ?? null;
   const currentTurnPhase = normalizeOptionalString(currentTurnProjection?.phase);
-  const currentTurnRef = normalizeOptionalTurnRef(currentTurnProjection?.turnRef);
-  const viewTurnRef = normalizeOptionalTurnRef(conversationView?.liveTurn?.turnRef);
-  const viewPillMode = normalizeOptionalString(conversationView?.surfaces?.pill?.mode);
+  const viewTurnRef = resolveViewLiveTurnRef(conversationView);
+  const currentTurnRef = viewTurnRef || normalizeOptionalTurnRef(currentTurnProjection?.turnRef);
+  const viewPillMode = resolveViewPillMode(conversationView);
   const viewCanStop = conversationView?.liveTurn?.canStop === true;
   return {
     signature: JSON.stringify({
