@@ -100,8 +100,9 @@ null }` fallback so feature hooks do not duplicate session snapshot constants.
 
 Transcript conversation pagination helper:
 
-- dashboard open uses `DesktopConversationLibraryClient.loadDisplayRows(...)`
-  to invoke the SDK-shaped `conversation.loadDisplay` command for display rows.
+- dashboard open uses `DesktopConversationLibraryClient.loadConversationView(...)`
+  to invoke the SDK-shaped `conversation.loadDisplay` command and then renders
+  the returned `ConversationView.displayRows`.
 - manual compaction and continuity rehydrate use SDK store load helpers such as
   `conversation.loadRehydrate`; renderer feature code should stay on these
   app-runtime and store facades instead of direct conversation IPC fetches.

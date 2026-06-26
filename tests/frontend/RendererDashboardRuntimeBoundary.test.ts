@@ -37,6 +37,7 @@ describe('renderer dashboard runtime boundary', () => {
       'LIST_CHAT_CONVERSATIONS',
       'SEARCH_CHAT_CONVERSATIONS',
       'GET_CHAT_EVENTS',
+      'DesktopConversationLibraryClient.loadDisplayRows',
     ];
     const offenders: string[] = [];
     const combinedDocs: string[] = [];
@@ -54,6 +55,7 @@ describe('renderer dashboard runtime boundary', () => {
     const combinedSource = combinedDocs.join('\n');
     expect(offenders).toEqual([]);
     expect(combinedSource).toContain('DesktopConversationLibraryClient');
+    expect(combinedSource).toContain('DesktopConversationLibraryClient.loadConversationView');
     expect(combinedSource).toContain('conversations.search');
     expect(combinedSource).toContain('conversation.loadDisplay');
   });

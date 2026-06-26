@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: update dashboard resume references to name
+  `DesktopConversationLibraryClient.loadConversationView(...)` as the normal
+  renderer read path, with a boundary test preventing the old dashboard
+  `loadDisplayRows` facade from returning in docs. No migration required.
 - frontend/actions: move per-row retry/edit action flag and target resolution
   into `DesktopMessageActionRuntime`, so `MessageList` renders SDK-projected
   action props without parsing row availability inline. No migration required.
