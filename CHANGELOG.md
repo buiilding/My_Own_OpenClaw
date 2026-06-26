@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/actions: require explicit row `actions.canEdit`/`actions.canRetry`
+  before showing edit/resend or Try again controls, leaving copy and feedback
+  as renderer-local affordances while SDK display rows own replay availability.
+  No migration required.
 - frontend/live-turn: sanitize SDK live-entry tool detail payloads so
   attachment descriptors, raw payloads, screenshot aliases, model-selection
   metadata, and provider-facing tool-call data stay on explicit typed channels

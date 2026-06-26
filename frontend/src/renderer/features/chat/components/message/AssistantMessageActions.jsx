@@ -16,7 +16,7 @@ function AssistantMessageActions({
   feedback = null,
   disabled = false,
   visible = true,
-  canTryAgain = true,
+  canTryAgain = false,
   retryTargetMessageId = null,
   onFeedbackChange,
   onTryAgain,

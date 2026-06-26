@@ -9,7 +9,7 @@ import { useCopyMessageAction } from '../../hooks/useCopyMessageAction';
 function UserMessageActions({
   messageId,
   messageText = '',
-  canEdit = true,
+  canEdit = false,
   editTargetMessageId = null,
   onEdit = null,
 }) {

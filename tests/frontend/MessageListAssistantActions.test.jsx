@@ -37,7 +37,7 @@ describe('MessageList assistant actions', () => {
     jest.useRealTimers();
   });
 
-  test('reveals copy/like/dislike/try-again actions 2 seconds after an assistant llm message completes', () => {
+  test('reveals local copy/feedback actions 2 seconds after an assistant llm message completes', () => {
     jest.useFakeTimers();
 
     const { container } = render(
@@ -67,7 +67,7 @@ describe('MessageList assistant actions', () => {
     expect(screen.getByRole('button', { name: 'Copy assistant message' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Like response' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Dislike response' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
     expect(screen.getByRole('group', { name: 'Assistant message actions' })).toHaveClass('assistant-message-actions-enter');
     expect(screen.queryByTestId('assistant-message-actions-placeholder')).not.toBeInTheDocument();
   });
@@ -190,7 +190,14 @@ describe('MessageList assistant actions', () => {
     const { rerender } = render(
       <MessageList
         messages={[
-          { id: 'assistant-1', text: 'final answer', sender: 'assistant', type: 'llm-text', isComplete: true },
+          {
+            id: 'assistant-1',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            actions: { canRetry: true },
+          },
         ]}
         thinkingStatus={null}
         enableAssistantActions
@@ -206,7 +213,14 @@ describe('MessageList assistant actions', () => {
     rerender(
       <MessageList
         messages={[
-          { id: 'assistant-1', text: 'final answer', sender: 'assistant', type: 'llm-text', isComplete: true },
+          {
+            id: 'assistant-1',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            actions: { canRetry: true },
+          },
         ]}
         thinkingStatus={null}
         enableAssistantActions
@@ -232,7 +246,14 @@ describe('MessageList assistant actions', () => {
     render(
       <MessageList
         messages={[
-          { id: 'assistant-1', text: 'final answer', sender: 'assistant', type: 'llm-text', isComplete: true },
+          {
+            id: 'assistant-1',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            actions: { canRetry: true },
+          },
         ]}
         thinkingStatus={null}
         enableAssistantActions
@@ -346,7 +367,7 @@ describe('MessageList assistant actions', () => {
     render(
       <MessageList
         messages={[
-          { id: 'user-1', text: 'old text', sender: 'user', type: 'user' },
+          { id: 'user-1', text: 'old text', sender: 'user', type: 'user', actions: { canEdit: true } },
         ]}
         thinkingStatus={null}
         enableUserActions
@@ -433,7 +454,7 @@ describe('MessageList assistant actions', () => {
     expect(screen.queryByRole('button', { name: 'Edit and resend' })).not.toBeInTheDocument();
   });
 
-  test('requires explicit SDK edit availability for SDK display rows', () => {
+  test('requires explicit row edit availability before showing edit controls', () => {
     const { rerender } = render(
       <MessageList
         messages={[
@@ -452,7 +473,7 @@ describe('MessageList assistant actions', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Copy user message' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Edit and resend' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit and resend' })).not.toBeInTheDocument();
 
     rerender(
       <MessageList
@@ -481,7 +502,7 @@ describe('MessageList assistant actions', () => {
     render(
       <MessageList
         messages={[
-          { id: 'user-1', text: 'old text', sender: 'user', type: 'user' },
+          { id: 'user-1', text: 'old text', sender: 'user', type: 'user', actions: { canEdit: true } },
         ]}
         thinkingStatus={null}
         enableUserActions
@@ -557,7 +578,7 @@ describe('MessageList assistant actions', () => {
     render(
       <MessageList
         messages={[
-          { id: 'user-1', text: 'old text', sender: 'user', type: 'user' },
+          { id: 'user-1', text: 'old text', sender: 'user', type: 'user', actions: { canEdit: true } },
         ]}
         thinkingStatus={null}
         enableUserActions
@@ -584,7 +605,7 @@ describe('MessageList assistant actions', () => {
     render(
       <MessageList
         messages={[
-          { id: 'user-1', text: 'old text', sender: 'user', type: 'user' },
+          { id: 'user-1', text: 'old text', sender: 'user', type: 'user', actions: { canEdit: true } },
         ]}
         thinkingStatus={null}
         enableUserActions

@@ -16,10 +16,8 @@ import { DesktopMessageListRuntime } from '../../../app/runtime/desktopMessageLi
 import { DesktopMessageTransparencyRuntime } from '../../../app/runtime/desktopMessageTransparencyRuntime';
 import { useMessageListAutoScroll } from '../hooks/useMessageListAutoScroll';
 import { DesktopDevUiRuntime } from '../../../app/runtime/desktopDevUiRuntime';
-import { DesktopPresentationSourceChannels } from '../../../app/runtime/desktopPresentationSourceChannels';
 
 const { isDevUiEnabled } = DesktopDevUiRuntime;
-const sdkDisplayRowsSourceChannel = DesktopPresentationSourceChannels.getSdkDisplayRowsSourceChannel();
 
 function MessageList({
   messages,
@@ -126,13 +124,10 @@ function MessageList({
     [messages],
   );
 
-  const messageActionFallback = useCallback((message, fallback) => (
-    message?.sourceChannel === sdkDisplayRowsSourceChannel ? false : fallback
-  ), []);
-  const messageActionFlag = useCallback((message, key, fallback) => {
+  const messageActionFlag = useCallback((message, key) => {
     const value = message?.actions?.[key];
-    return typeof value === 'boolean' ? value : messageActionFallback(message, fallback);
-  }, [messageActionFallback]);
+    return value === true;
+  }, []);
   const messageActionTargetId = useCallback((message, key) => {
     const value = message?.actions?.[key];
     return typeof value === 'string' && value.trim() ? value.trim() : null;
@@ -140,8 +135,8 @@ function MessageList({
 
   const renderedMessages = useMemo(
     () => messages.flatMap((msg) => {
-      const canRetryMessage = messageActionFlag(msg, 'canRetry', true);
-      const canEditMessage = messageActionFlag(msg, 'canEdit', true);
+      const canRetryMessage = messageActionFlag(msg, 'canRetry');
+      const canEditMessage = messageActionFlag(msg, 'canEdit');
       const retryTargetMessageId = messageActionTargetId(msg, 'retryTargetRowId') || msg.id;
       const editTargetMessageId = messageActionTargetId(msg, 'editTargetRowId') || msg.id;
       const nodes = [

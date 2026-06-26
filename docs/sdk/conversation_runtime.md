@@ -299,6 +299,10 @@ edit surface while replay targets the SDK-provided original row identity;
 row-level SDK action metadata gates whether the edit/resend or Try again
 controls are shown, and missing row action booleans on SDK display rows mean
 the command is unavailable rather than defaulting to a renderer heuristic.
+Renderer message-list controls apply the same rule for all rows: copy and
+feedback remain renderer-local affordances, but edit/resend and Try again are
+shown only when row `actions.canEdit` or `actions.canRetry` is explicitly
+`true`.
 Renderer display-row adapters do not JSON-stringify malformed content for row
 types whose SDK contract owns string content, such as user, assistant,
 tool-output, and progress rows. Producers must normalize those rows before they

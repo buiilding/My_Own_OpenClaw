@@ -3598,6 +3598,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).not.toContain('features/chat');
     expect(messageListSource).toContain("messageActionFlag(msg, 'canRetry'");
     expect(messageListSource).toContain("messageActionFlag(msg, 'canEdit'");
+    expect(messageListSource).not.toContain("messageActionFlag(msg, 'canRetry', true)");
+    expect(messageListSource).not.toContain("messageActionFlag(msg, 'canEdit', true)");
+    expect(messageListSource).not.toContain('messageActionFallback');
+    expect(messageListSource).toContain('return value === true;');
     expect(messageListSource).toContain("messageActionTargetId(msg, 'retryTargetRowId')");
     expect(messageListSource).toContain("messageActionTargetId(msg, 'editTargetRowId')");
     expect(messageListSource).toContain('assistantRetryTargetMessageId={retryTargetMessageId}');
