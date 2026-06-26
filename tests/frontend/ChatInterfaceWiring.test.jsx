@@ -204,43 +204,14 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
   ),
   selectChatInterfaceState: (state) => {
     const {
-      DesktopChatInterfacePresentationRuntime,
+      DesktopChatInterfaceSelectorRuntime,
     } = jest.requireActual(
-      '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime',
+      '../../frontend/src/renderer/app/runtime/desktopChatInterfaceSelectorRuntime',
     );
-    const {
-      DesktopStopTurnRuntime,
-    } = jest.requireActual(
-      '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime',
-    );
-    const chatSurfaceState = {
-      messages: state.conversationView ? [] : state.messages,
-      currentTurnProjection: state.conversationView ? null : state.currentTurnProjection,
-      conversationView: state.conversationView,
-      pendingTurn: state.pendingTurn,
-    };
-    const presentationState = DesktopChatInterfacePresentationRuntime.buildChatInterfacePresentationState({
+    return DesktopChatInterfaceSelectorRuntime.buildChatInterfaceSelectorState({
       activeConversationRef: state.activeConversationRef,
-      conversationView: state.conversationView,
-      currentTurnProjection: chatSurfaceState.currentTurnProjection,
-      messages: state.messages,
-      pendingTurn: state.pendingTurn,
+      activeWorkspace: state,
     });
-    return {
-      thinkingStatus: state.thinkingStatus,
-      thinkingSourceEventType: state.thinkingSourceEventType,
-      compactionDebugInfo: state.compactionDebugInfo,
-      renderedMessages: presentationState.renderedMessages,
-      canEditMessages: presentationState.canEditMessages,
-      canRetryMessages: presentationState.canRetryMessages,
-      activeRevisionId: presentationState.activeRevisionId,
-      stopTurnTarget: DesktopStopTurnRuntime.resolveStopTurnTarget({
-        conversationRef: state.activeConversationRef,
-        conversationView: state.conversationView,
-        pendingTurn: state.pendingTurn,
-      }),
-      chatSurfaceState,
-    };
   },
 }));
 
