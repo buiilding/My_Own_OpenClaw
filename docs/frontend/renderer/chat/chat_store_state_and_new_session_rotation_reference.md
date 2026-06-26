@@ -263,7 +263,8 @@ current-turn row construction on typed SDK presentation fields.
 - response-overlay dismissal state is persisted by the store, but normalized
   conversation/turn/entry dismissal-key construction plus state update/read
   helpers live in `DesktopResponseOverlayViewRuntime`; the store only binds
-  those helpers to Zustand.
+  those helpers to Zustand, and response-overlay view models ask the runtime
+  for the dismissed response id instead of reading dismissal keys directly.
 
 No-op guards reduce unnecessary re-renders on high-frequency stream paths.
 

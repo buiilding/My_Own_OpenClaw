@@ -897,6 +897,7 @@ describe('renderer app runtime boundary', () => {
     expect(responseViewRuntimeSource).toContain('buildResponseOverlayDismissalKey');
     expect(responseViewRuntimeSource).toContain('buildDismissResponseOverlayEntryStateUpdate');
     expect(responseViewRuntimeSource).toContain('isResponseOverlayEntryDismissedInState');
+    expect(responseViewRuntimeSource).toContain('resolveDismissedResponseOverlayEntryId');
     expect(responseViewRuntimeSource).toContain('resolveResponseOverlayEntries');
     expect(responseViewRuntimeSource).toContain('resolveResponseOverlayPresentationState');
     expect(responseViewRuntimeSource).not.toContain('export function resolveResponseOverlayViewContract');
@@ -921,7 +922,8 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlayComponentSource).not.toContain('showAwaitingReply');
     expect(responseOverlayViewModelSource).not.toContain('showResponse');
     expect(responseOverlayViewModelSource).not.toContain('showAwaitingReply');
-    expect(responseOverlayViewModelSource).toContain('buildResponseOverlayDismissalKey');
+    expect(responseOverlayViewModelSource).not.toContain('buildResponseOverlayDismissalKey');
+    expect(responseOverlayViewModelSource).toContain('resolveDismissedResponseOverlayEntryId');
     expect(responseOverlayViewModelSource).toContain('resolveResponseOverlaySurfaceState');
     expect(responseOverlayViewModelSource).not.toContain('resolveResponseOverlayEntries');
     expect(responseOverlayViewModelSource).toContain('resolveResponseOverlayPresentationStateForSurfaceState');

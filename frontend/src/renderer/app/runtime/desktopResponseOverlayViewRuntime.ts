@@ -153,6 +153,21 @@ function isResponseOverlayEntryDismissedInState(
   );
 }
 
+function resolveDismissedResponseOverlayEntryId(
+  state: ResponseOverlayDismissalState,
+  input: ResponseOverlayDismissalInput | null | undefined,
+): string | null {
+  const responseEntryId = normalizeString(input?.responseEntryId);
+  if (!responseEntryId || !isResponseOverlayEntryDismissedInState(state, {
+    conversationRef: input?.conversationRef,
+    turnRef: input?.turnRef,
+    responseEntryId,
+  })) {
+    return null;
+  }
+  return responseEntryId;
+}
+
 function createResponseOverlayWindowGuardSnapshot(): ResponseOverlayWindowGuardSnapshot {
   return {
     conversationRef: null,
@@ -471,6 +486,7 @@ export const DesktopResponseOverlayViewRuntime = Object.freeze({
   buildResponseOverlayDismissalKey,
   createResponseOverlayWindowGuardSnapshot,
   isResponseOverlayEntryDismissedInState,
+  resolveDismissedResponseOverlayEntryId,
   resolveResponseOverlayEntries,
   resolveResponseOverlayPresentationState,
   resolveResponseOverlayPresentationStateForSurfaceState,

@@ -10,6 +10,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
     buildResponseOverlayDismissalKey,
     createResponseOverlayWindowGuardSnapshot,
     isResponseOverlayEntryDismissedInState,
+    resolveDismissedResponseOverlayEntryId,
     resolveResponseOverlayEntries,
     resolveResponseOverlayPresentationState,
     resolveResponseOverlayPresentationStateForSurfaceState,
@@ -79,6 +80,21 @@ describe('desktopResponseOverlayViewRuntime', () => {
       initialState,
       dismissalTarget,
     )).toBe(false);
+    expect(resolveDismissedResponseOverlayEntryId(
+      update || {},
+      dismissalTarget,
+    )).toBe('assistant-entry');
+    expect(resolveDismissedResponseOverlayEntryId(
+      update || {},
+      {
+        ...dismissalTarget,
+        responseEntryId: 'missing-entry',
+      },
+    )).toBeNull();
+    expect(resolveDismissedResponseOverlayEntryId(
+      update || {},
+      null,
+    )).toBeNull();
   });
 
   test('keeps response overlay window guard identity in app runtime', () => {

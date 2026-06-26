@@ -32,7 +32,7 @@ const {
   isResponseOverlaySourceTaggedMessage,
 } = DesktopCurrentTurnMessageRuntime;
 const {
-  buildResponseOverlayDismissalKey,
+  resolveDismissedResponseOverlayEntryId,
   resolveResponseOverlayPresentationStateForSurfaceState,
   resolveResponseOverlaySurfaceState,
 } = DesktopResponseOverlayViewRuntime;
@@ -69,11 +69,9 @@ export function useResponseOverlayViewModel({
   const lastOverlayIntentModeRef = useRef(null);
 
   const dismissedResponseId = useMemo(() => {
-    const dismissalKey = buildResponseOverlayDismissalKey(responseOverlayDismissalTarget || {});
-    if (!dismissalKey || !dismissedResponseOverlayEntries[dismissalKey]) {
-      return null;
-    }
-    return responseOverlayDismissalTarget.responseEntryId;
+    return resolveDismissedResponseOverlayEntryId({
+      dismissedResponseOverlayEntries,
+    }, responseOverlayDismissalTarget);
   }, [
     dismissedResponseOverlayEntries,
     responseOverlayDismissalTarget,
