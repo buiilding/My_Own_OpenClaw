@@ -7,7 +7,7 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 
 const {
-  buildCurrentTurnMessagesFromProjection,
+  buildCurrentTurnMessagesFromSdkLiveTurn,
   isResponseCloseable,
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
@@ -59,8 +59,8 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     expect(isResponseOverlaySourceTaggedMessage({ sourceEventType: '   ' })).toBe(false);
   });
 
-  test('buildCurrentTurnMessagesFromProjection creates overlay-ready active turn messages', () => {
-    const messages = buildCurrentTurnMessagesFromProjection({
+  test('buildCurrentTurnMessagesFromSdkLiveTurn creates overlay-ready active turn messages', () => {
+    const messages = buildCurrentTurnMessagesFromSdkLiveTurn({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'tool_call',
@@ -95,8 +95,8 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     ]));
   });
 
-  test('buildCurrentTurnMessagesFromProjection renders tool-bundle-output step content', () => {
-    const messages = buildCurrentTurnMessagesFromProjection({
+  test('buildCurrentTurnMessagesFromSdkLiveTurn renders tool-bundle-output step content', () => {
+    const messages = buildCurrentTurnMessagesFromSdkLiveTurn({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'tool_output',

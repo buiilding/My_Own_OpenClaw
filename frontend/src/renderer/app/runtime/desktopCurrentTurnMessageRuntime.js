@@ -227,8 +227,8 @@ function buildProjectedToolMessage({ baseId, turnRef, toolEvent }) {
   return buildProjectedToolCallMessage({ baseId, turnRef, toolEvent });
 }
 
-function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
-  if (!currentTurnProjection || typeof currentTurnProjection !== 'object') {
+function buildCurrentTurnMessagesFromSdkLiveTurn(sdkLiveTurn) {
+  if (!sdkLiveTurn || typeof sdkLiveTurn !== 'object') {
     return [];
   }
   const {
@@ -239,7 +239,7 @@ function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
     reasoningText,
     toolEvents,
     lastError,
-  } = currentTurnProjection;
+  } = sdkLiveTurn;
   const hasText = typeof assistantText === 'string' && assistantText.trim();
   const hasReasoning = typeof reasoningText === 'string' && reasoningText.trim();
   const hasError = typeof lastError === 'string' && lastError.trim();
@@ -569,7 +569,7 @@ function isResponseOverlaySourceTaggedMessage(message) {
 export const DesktopCurrentTurnMessageRuntime = Object.freeze({
   buildConversationViewLiveTurnMessages,
   buildCurrentTurnMessagesFromPresentation,
-  buildCurrentTurnMessagesFromProjection,
+  buildCurrentTurnMessagesFromSdkLiveTurn,
   isResponseCloseable,
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,

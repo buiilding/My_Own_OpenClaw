@@ -52,7 +52,7 @@ Current-turn entry construction:
   when SDK presentation exists but has no visible rows, the overlay falls back
   to projection-built rows for visible assistant text/tool/error content.
   Older projection snapshots are converted with
-  `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromProjection(...)`.
+  `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromSdkLiveTurn(...)`.
 - the response overlay filters those current-turn messages through
   `DesktopCurrentTurnMessageRuntime.isVisibleResponseOverlayMessage(...)`
   instead of carrying an inline assistant-message scanner after the latest user
@@ -174,7 +174,7 @@ Contract ownership:
   key contract.
 - `DesktopResponseOverlayViewRuntime.resolveResponseOverlayEntries(...)` owns
   response-entry derivation across SDK `ConversationView.liveTurn`, SDK
-  current-turn presentation rows, raw projection fallback rows, and local
+  current-turn presentation rows, raw SDK live-turn fallback rows, and local
   pending suppression.
 - `DesktopResponseOverlayViewRuntime.resolveResponseOverlayPresentationState(...)`
   owns response-overlay presentation-state source selection across SDK

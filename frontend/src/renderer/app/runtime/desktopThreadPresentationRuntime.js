@@ -10,7 +10,7 @@ import { DesktopPresentationSourceChannels } from './desktopPresentationSourceCh
 const {
   buildConversationViewLiveTurnMessages,
   buildCurrentTurnMessagesFromPresentation,
-  buildCurrentTurnMessagesFromProjection,
+  buildCurrentTurnMessagesFromSdkLiveTurn,
 } = DesktopCurrentTurnMessageRuntime;
 const { isSdkLiveTurnSourceChannel } = DesktopPresentationSourceChannels;
 
@@ -169,9 +169,9 @@ function resolveCurrentTurnMessages({
   if (presentationMessages.length > 0) {
     return presentationMessages;
   }
-  const projectionFallbackMessages = buildCurrentTurnMessagesFromProjection(sdkLiveTurn);
-  if (projectionFallbackMessages.length > 0) {
-    return projectionFallbackMessages;
+  const sdkLiveTurnFallbackMessages = buildCurrentTurnMessagesFromSdkLiveTurn(sdkLiveTurn);
+  if (sdkLiveTurnFallbackMessages.length > 0) {
+    return sdkLiveTurnFallbackMessages;
   }
   return [];
 }

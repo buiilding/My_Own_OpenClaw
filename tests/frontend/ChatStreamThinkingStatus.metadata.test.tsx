@@ -18,7 +18,7 @@ import {
 import { DesktopCurrentTurnMessageRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 
 const {
-  buildCurrentTurnMessagesFromProjection,
+  buildCurrentTurnMessagesFromSdkLiveTurn,
 } = DesktopCurrentTurnMessageRuntime;
 
 describe('useChatStream message metadata handling', () => {
@@ -224,7 +224,7 @@ describe('useChatStream message metadata handling', () => {
   });
 
   test('projected tool-call message stores raw arguments preview metadata for recoverable parse failures', () => {
-    const messages = buildCurrentTurnMessagesFromProjection({
+    const messages = buildCurrentTurnMessagesFromSdkLiveTurn({
       conversationRef: 'conv-test',
       turnRef: 'turn-test',
       phase: 'tool_call',
@@ -270,7 +270,7 @@ describe('useChatStream message metadata handling', () => {
   });
 
   test('projected tool-call message keeps preserved model-facing payload visible for pre-dispatch validation failures', () => {
-    const messages = buildCurrentTurnMessagesFromProjection({
+    const messages = buildCurrentTurnMessagesFromSdkLiveTurn({
       conversationRef: 'conv-test',
       turnRef: 'turn-test',
       phase: 'tool_call',
@@ -333,7 +333,7 @@ describe('useChatStream message metadata handling', () => {
   });
 
   test('projected tool-call message marks execution skipped for direct-tool validation failures', () => {
-    const messages = buildCurrentTurnMessagesFromProjection({
+    const messages = buildCurrentTurnMessagesFromSdkLiveTurn({
       conversationRef: 'conv-test',
       turnRef: 'turn-test',
       phase: 'tool_call',

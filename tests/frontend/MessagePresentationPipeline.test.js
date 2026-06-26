@@ -168,7 +168,7 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
-  test('buildThreadPresentationMessages derives current-turn rows from projection fallback', () => {
+  test('buildThreadPresentationMessages derives current-turn rows from SDK live-turn fallback', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
     ];
@@ -200,7 +200,7 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
-  test('buildThreadPresentationMessages prefers SDK presentation entries over projection fallback rows', () => {
+  test('buildThreadPresentationMessages prefers SDK presentation entries over SDK live-turn fallback rows', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
     ];

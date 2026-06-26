@@ -637,6 +637,8 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnMessageSource).toContain('isVisibleResponseOverlayMessage');
     expect(currentTurnMessageSource).toContain('isResponseOverlayProgressMessage');
     expect(currentTurnMessageSource).toContain('isResponseOverlaySourceTaggedMessage');
+    expect(currentTurnMessageSource).toContain('buildCurrentTurnMessagesFromSdkLiveTurn');
+    expect(currentTurnMessageSource).not.toContain('buildCurrentTurnMessagesFromProjection');
     expect(currentTurnMessageSource).not.toContain('export function buildCurrentTurnMessagesFromProjection');
     expect(currentTurnMessageSource).not.toContain('export function buildCurrentTurnMessagesFromPresentation');
     expect(currentTurnMessageSource).not.toContain('export function isResponseCloseable');
@@ -661,7 +663,8 @@ describe('renderer app runtime boundary', () => {
     expect(threadPresentationSource).toContain('desktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopThreadPresentationRuntime');
-    expect(threadPresentationSource).toContain('projectionFallbackMessages');
+    expect(threadPresentationSource).toContain('sdkLiveTurnFallbackMessages');
+    expect(threadPresentationSource).not.toContain('projectionFallbackMessages');
     expect(threadPresentationSource).not.toContain('currentTurnMessages');
     expect(threadPresentationSource).not.toContain('legacyProjectionMessages');
     expect(threadPresentationSource).toContain('sdkLiveTurn = null');
@@ -911,6 +914,7 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlayViewModelSource).not.toContain('const liveTurnPresentationInput');
     expect(responseOverlayViewModelSource).not.toContain('liveTurnPresentationInput.source');
     expect(responseOverlayViewModelSource).not.toContain('buildCurrentTurnMessagesFromProjection');
+    expect(responseOverlayViewModelSource).not.toContain('buildCurrentTurnMessagesFromSdkLiveTurn');
     expect(responseOverlayViewModelSource).not.toContain('buildCurrentTurnMessagesFromPresentation');
     expect(responseOverlayViewModelSource).not.toContain('buildConversationViewLiveTurnMessages');
     expect(chatPillFlowSource).toContain('desktopResponseOverlayViewRuntime');

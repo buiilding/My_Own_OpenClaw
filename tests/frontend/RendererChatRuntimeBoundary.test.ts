@@ -3347,6 +3347,8 @@ describe('renderer chat runtime boundary', () => {
 
     expect(source).toContain('toolCallDetails');
     expect(source).toContain('toolOutputDetails');
+    expect(source).toContain('buildCurrentTurnMessagesFromSdkLiveTurn');
+    expect(source).not.toContain('buildCurrentTurnMessagesFromProjection');
     expect(source).not.toContain('entry.structuredPayload');
     expect(source).not.toContain('entry.payload');
   });
@@ -3359,6 +3361,8 @@ describe('renderer chat runtime boundary', () => {
 
     expect(source).toContain('toolCallDetails');
     expect(source).toContain('toolOutputDetails');
+    expect(source).toContain('buildCurrentTurnMessagesFromSdkLiveTurn');
+    expect(source).not.toContain('buildCurrentTurnMessagesFromProjection');
     expect(source).not.toContain('toolEvent.payload');
     expect(source).not.toContain('structuredPayload');
   });
