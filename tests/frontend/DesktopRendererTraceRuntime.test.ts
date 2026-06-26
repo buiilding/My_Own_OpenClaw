@@ -307,9 +307,6 @@ describe('desktopRendererTraceRuntime', () => {
       currentTurn: {
         turnRef: ' turn-1 ',
         phase: ' streaming ',
-        assistantText: 'answer',
-        reasoningText: 'step',
-        toolEvents: [{ id: 'tool-1' }, { id: 'tool-2' }],
         presentation: {
           overlayIntent: {
             mode: ' response ',
@@ -317,7 +314,12 @@ describe('desktopRendererTraceRuntime', () => {
             turnRef: ' turn-intent ',
           },
           hasVisibleContent: true,
-          entries: [{ id: 'entry-1' }],
+          entries: [
+            { id: 'entry-1', type: 'llm-text', text: 'answer' },
+            { id: 'entry-2', type: 'thinking', text: 'step' },
+            { id: 'tool-1', type: 'tool-call', text: 'Using tool' },
+            { id: 'tool-2', type: 'tool-output', text: 'Tool done' },
+          ],
         },
       },
       skipDerivedSideEffects: true,
@@ -329,7 +331,7 @@ describe('desktopRendererTraceRuntime', () => {
       overlayMode: 'response',
       guardRef: 'guard-1',
       hasVisibleContent: true,
-      entryCount: 1,
+      entryCount: 4,
       assistantLength: 6,
       reasoningLength: 4,
       toolEventCount: 2,
@@ -345,9 +347,9 @@ describe('desktopRendererTraceRuntime', () => {
       currentTurn: {
         turnRef: 'turn-1',
         phase: 'awaiting',
-        assistantText: '',
-        reasoningText: '',
-        toolEvents: [],
+        presentation: {
+          entries: [],
+        },
       },
       skipDerivedSideEffects: false,
     });

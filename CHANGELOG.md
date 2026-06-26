@@ -7,12 +7,12 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - frontend/live-turn: make renderer surface, visible-lifecycle, response
-  overlay, thread presentation, and live-turn side-effect adapters use SDK
-  `presentation.entries`, `presentation.lastError`, and presentation lifecycle
-  fields, including overlay thinking text, instead of scanning raw
-  `assistantText`, `reasoningText`, or `toolEvents`; raw current-turn row
-  synthesis remains only for legacy no-presentation hosts. No migration
-  required.
+  overlay, thread presentation, live-turn side-effect, and trace-counter
+  adapters use SDK `presentation.entries`, `presentation.lastError`, and
+  presentation lifecycle fields, including overlay thinking text, instead of
+  scanning raw `assistantText`, `reasoningText`, or `toolEvents`; raw
+  current-turn row synthesis remains only for legacy no-presentation hosts. No
+  migration required.
 - sdk/frontend: add SDK-authored `toolCallDetails` and `toolOutputDetails`
   metadata to display rows, and make the renderer display-row adapter consume
   only those detail records instead of copying request/tool ids from generic row

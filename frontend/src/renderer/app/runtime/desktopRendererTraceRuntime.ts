@@ -155,9 +155,6 @@ export type RendererCurrentTurnAppliedTraceValues = {
   currentTurn?: {
     turnRef?: unknown;
     phase?: unknown;
-    assistantText?: unknown;
-    reasoningText?: unknown;
-    toolEvents?: readonly unknown[];
     presentation?: {
       overlayIntent?: {
         mode?: unknown;
@@ -765,6 +762,26 @@ function buildRendererCurrentTurnAppliedTracePayload(
   const currentTurn = values.currentTurn;
   const presentation = currentTurn?.presentation;
   const overlayIntent = presentation?.overlayIntent;
+  const entries = Array.isArray(presentation?.entries) ? presentation.entries : [];
+  const entryRecords = entries
+    .filter((entry): entry is Record<string, unknown> => Boolean(
+      entry && typeof entry === 'object' && !Array.isArray(entry),
+    ));
+  const assistantLength = entryRecords
+    .filter((entry) => entry.type === 'llm-text')
+    .reduce((total, entry) => (
+      total + (typeof entry.text === 'string' ? entry.text.length : 0)
+    ), 0);
+  const reasoningLength = entryRecords
+    .filter((entry) => entry.type === 'thinking')
+    .reduce((total, entry) => (
+      total + (typeof entry.text === 'string' ? entry.text.length : 0)
+    ), 0);
+  const toolEventCount = entryRecords.filter((entry) => (
+    entry.type === 'tool-call'
+    || entry.type === 'tool-output'
+    || entry.type === 'tool-progress'
+  )).length;
   return {
     source: traceString(values.source) || 'sdk:current-turn',
     turnRef: traceString(currentTurn?.turnRef) || null,
@@ -778,14 +795,10 @@ function buildRendererCurrentTurnAppliedTracePayload(
       || null
     ),
     hasVisibleContent: presentation?.hasVisibleContent === true,
-    entryCount: Array.isArray(presentation?.entries) ? presentation.entries.length : 0,
-    assistantLength: typeof currentTurn?.assistantText === 'string'
-      ? currentTurn.assistantText.length
-      : 0,
-    reasoningLength: typeof currentTurn?.reasoningText === 'string'
-      ? currentTurn.reasoningText.length
-      : 0,
-    toolEventCount: Array.isArray(currentTurn?.toolEvents) ? currentTurn.toolEvents.length : 0,
+    entryCount: entries.length,
+    assistantLength,
+    reasoningLength,
+    toolEventCount,
     staleSideEffectsSkipped: values.skipDerivedSideEffects === true,
   };
 }
