@@ -1059,6 +1059,7 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).not.toContain('currentMessages');
     expect(displayProjectionSource).not.toContain('export function mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).not.toContain('export {\n  buildChatMessagesFromSdkDisplayRows');
+    expect(displayProjectionSource).not.toContain('buildDisplayProjectionTraceSummary,\n  buildChatMessagesFromSdkDisplayRows');
     expect(displayProjectionSource).not.toContain('features/chat');
     expect(projectionStreamRuntimeSource).toContain('DesktopConversationProjectionStreamRuntime');
     expect(projectionStreamRuntimeSource).toContain('applyCurrentTurnProjectionEvent');

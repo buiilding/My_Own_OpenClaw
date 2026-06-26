@@ -9,7 +9,6 @@ import type { ChatMessage } from '../../frontend/src/renderer/app/runtime/deskto
 
 const {
   buildConversationViewChatMessages,
-  buildChatMessagesFromSdkDisplayRows,
   buildDisplayProjectionTraceSummary,
   mergeRendererAnnotationsIntoSdkMessages,
   selectRendererMessageAnnotations,
@@ -25,16 +24,25 @@ function message(overrides: Partial<ChatMessage>): ChatMessage {
 }
 
 describe('desktopConversationDisplayProjection', () => {
-  test('projects SDK display rows through the renderer app-runtime facade', () => {
-    expect(buildChatMessagesFromSdkDisplayRows([{
-      id: 'row-user',
-      conversationRef: 'conv-1',
-      turnRef: 'turn-1',
-      index: 0,
-      role: 'user',
-      type: 'user_message',
-      content: 'inspect recent commits',
-    }])).toEqual([
+  test('projects SDK display rows only through ConversationView messages', () => {
+    expect(buildConversationViewChatMessages({
+      conversationView: {
+        conversationRef: 'conv-1',
+        revisionId: 'rev-1',
+        displayRows: [{
+          id: 'row-user',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'inspect recent commits',
+        }],
+        liveTurn: null,
+        surfaces: {},
+        actions: {},
+      },
+    })).toEqual([
       expect.objectContaining({
         id: 'row-user',
         sender: 'user',

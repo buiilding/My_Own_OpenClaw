@@ -21,6 +21,9 @@ All notable changes to WindieOS will be documented in this file.
   renderer pending-turn IPC client; pending turns keep identity/text/filename
   metadata while SDK display rows own visible attachments. No migration
   required.
+- frontend/projection: stop exposing the low-level SDK display-row converter
+  through the renderer display projection facade; app-runtime callers now enter
+  through `ConversationView` message projection. No migration required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own
