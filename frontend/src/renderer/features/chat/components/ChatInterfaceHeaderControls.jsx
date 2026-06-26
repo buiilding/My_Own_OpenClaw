@@ -18,19 +18,6 @@ function renderModelLabel(label, supportsThinking) {
   );
 }
 
-function shortRevisionId(revisionId) {
-  return typeof revisionId === 'string' && revisionId.length > 10
-    ? `${revisionId.slice(0, 10)}...`
-    : revisionId || 'revision';
-}
-
-function revisionOperationLabel(operation) {
-  if (operation === 'user_edit' || operation === 'edit') {
-    return 'edit';
-  }
-  return operation || 'revision';
-}
-
 function ChatInterfaceHeaderControls({
   vmModeEnabled,
   providerMenuRef,
@@ -52,11 +39,9 @@ function ChatInterfaceHeaderControls({
   reasoningModeOptions,
   revisionMenuRef = null,
   revisionMenuOpen = false,
-  revisionOptions = [],
+  revisionMenuItems = [],
   revisionLoading = false,
   revisionError = null,
-  revisionActionId = null,
-  activeRevisionId = null,
   activeConversationRef = null,
   setRevisionMenuOpen = () => {},
   speechModeEnabled,
@@ -234,40 +219,36 @@ function ChatInterfaceHeaderControls({
                 {!revisionLoading && revisionError ? (
                   <div className="chat-revision-menu-state is-error">{revisionError}</div>
                 ) : null}
-                {!revisionLoading && !revisionError && revisionOptions.length === 0 ? (
+                {!revisionLoading && !revisionError && revisionMenuItems.length === 0 ? (
                   <div className="chat-revision-menu-state">No revisions</div>
                 ) : null}
-                {!revisionLoading && !revisionError ? revisionOptions.map((revision) => {
-                  const revisionId = revision?.revisionId || '';
-                  const isActive = revisionId && revisionId === activeRevisionId;
-                  const checkoutActionId = `checkout:${revisionId}`;
-                  const forkActionId = `fork:${revisionId}`;
+                {!revisionLoading && !revisionError ? revisionMenuItems.map((item) => {
                   return (
                     <div
-                      key={revisionId}
-                      className={`chat-revision-menu-row${isActive ? ' is-active' : ''}`}
+                      key={item.key}
+                      className={`chat-revision-menu-row${item.isActive ? ' is-active' : ''}`}
                     >
                       <button
                         type="button"
                         className="chat-revision-menu-item"
                         role="menuitem"
-                        disabled={!revisionId || revisionActionId === checkoutActionId}
-                        onClick={() => handleRevisionCheckout(revisionId)}
+                        disabled={item.checkoutDisabled}
+                        onClick={() => handleRevisionCheckout(item.revisionId)}
                       >
                         <span className="chat-revision-menu-id">
-                          {shortRevisionId(revisionId)}
+                          {item.shortId}
                         </span>
                         <span className="chat-revision-menu-meta">
-                          {isActive ? 'active' : revisionOperationLabel(revision?.operation)}
+                          {item.metaLabel}
                         </span>
                       </button>
                       <button
                         type="button"
                         className="chat-revision-fork-btn"
-                        aria-label={`Fork revision ${shortRevisionId(revisionId)}`}
+                        aria-label={item.forkAriaLabel}
                         title="Fork revision"
-                        disabled={!revisionId || revisionActionId === forkActionId}
-                        onClick={() => handleRevisionFork(revision)}
+                        disabled={item.forkDisabled}
+                        onClick={() => handleRevisionFork(item.revision)}
                       >
                         <GitFork size={15} />
                       </button>

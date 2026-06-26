@@ -75,6 +75,7 @@ const {
 const {
   buildRevisionCheckoutCommand,
   buildRevisionForkCommand,
+  buildRevisionMenuItems,
 } = DesktopChatRevisionActionRuntime;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
@@ -303,6 +304,15 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const threadFindState = useMemo(() => buildThreadFindState(renderedMessages, normalizedFindQuery), [
     normalizedFindQuery,
     renderedMessages,
+  ]);
+  const revisionMenuItems = useMemo(() => buildRevisionMenuItems({
+    activeRevisionId,
+    revisionActionId,
+    revisions: revisionOptions,
+  }), [
+    activeRevisionId,
+    revisionActionId,
+    revisionOptions,
   ]);
   const totalFindMatches = threadFindState.totalMatches;
   const resolvedActiveFindMatchIndex = normalizedFindQuery && totalFindMatches > 0
@@ -627,11 +637,9 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
         reasoningModeOptions={reasoningModeOptions}
         revisionMenuRef={revisionMenuRef}
         revisionMenuOpen={revisionMenuOpen}
-        revisionOptions={revisionOptions}
+        revisionMenuItems={revisionMenuItems}
         revisionLoading={revisionLoading}
         revisionError={revisionError}
-        revisionActionId={revisionActionId}
-        activeRevisionId={activeRevisionId}
         activeConversationRef={activeConversationRef}
         setRevisionMenuOpen={setRevisionMenuOpen}
         speechModeEnabled={speechModeEnabled}

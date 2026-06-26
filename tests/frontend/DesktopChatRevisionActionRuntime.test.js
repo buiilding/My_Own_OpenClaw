@@ -3,6 +3,7 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopChatRevisionActionRuntime';
 
 const {
+  buildRevisionMenuItems,
   buildRevisionCheckoutCommand,
   buildRevisionForkCommand,
   normalizeRevisionId,
@@ -67,5 +68,67 @@ describe('DesktopChatRevisionActionRuntime', () => {
       activeConversationRef: '',
       revision: { revisionId: 'rev-1' },
     })).toBeNull();
+  });
+
+  test('builds revision menu item action state for rendering', () => {
+    expect(buildRevisionMenuItems({
+      activeRevisionId: ' rev-active ',
+      revisionActionId: 'fork:rev-active',
+      revisions: [
+        {
+          revisionId: 'rev-active',
+          operation: 'user_edit',
+        },
+        {
+          revisionId: 'revision-1234567890abcdef',
+          operation: 'retry',
+        },
+        {
+          operation: 'missing',
+        },
+      ],
+    })).toEqual([
+      {
+        key: 'rev-active',
+        revision: {
+          revisionId: 'rev-active',
+          operation: 'user_edit',
+        },
+        revisionId: 'rev-active',
+        shortId: 'rev-active',
+        metaLabel: 'active',
+        isActive: true,
+        checkoutDisabled: false,
+        forkDisabled: true,
+        forkAriaLabel: 'Fork revision rev-active',
+      },
+      {
+        key: 'revision-1234567890abcdef',
+        revision: {
+          revisionId: 'revision-1234567890abcdef',
+          operation: 'retry',
+        },
+        revisionId: 'revision-1234567890abcdef',
+        shortId: 'revision-1...',
+        metaLabel: 'retry',
+        isActive: false,
+        checkoutDisabled: false,
+        forkDisabled: false,
+        forkAriaLabel: 'Fork revision revision-1...',
+      },
+      {
+        key: 'revision:2',
+        revision: {
+          operation: 'missing',
+        },
+        revisionId: null,
+        shortId: 'revision',
+        metaLabel: 'missing',
+        isActive: false,
+        checkoutDisabled: true,
+        forkDisabled: true,
+        forkAriaLabel: 'Fork revision revision',
+      },
+    ]);
   });
 });

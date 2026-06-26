@@ -580,7 +580,11 @@ calling the SDK fork command with the selected `sourceRevisionId`. When
 `cutAfterRowId` is omitted, the SDK resolves the selected revision's last
 display row and returns the forked SDK view to the newly active conversation,
 so renderer code does not load display timelines just to reconstruct a branch
-prefix. Renderer app-runtime facades should not expose direct display timeline
+prefix. Renderer revision controls receive app-runtime-prepared menu items:
+the adapter owns revision id normalization, active-row metadata,
+checkout/fork action ids, and disabled state, while React renders the item and
+sends only the selected checkout/fork intent to SDK commands. Renderer
+app-runtime facades should not expose direct display timeline
 load/replace helpers to React; low-level timeline mutation remains SDK/main
 command-handler and diagnostics ownership. Diagnostics can inspect a
 selected branch view with

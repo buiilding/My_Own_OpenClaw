@@ -299,6 +299,9 @@ a partial view shape.
 - `renderedMessages` and `activeRevisionId` from
   `DesktopChatInterfacePresentationRuntime`; edit/retry availability remains
   on each projected SDK row's `actions`
+- revision menu rows from `DesktopChatRevisionActionRuntime`; React receives
+  prepared checkout/fork action ids, active state, labels, and disabled state
+  instead of deriving revision action availability in the header component
 - `stopTurnTarget` from `DesktopStopTurnRuntime.resolveStopTurnTarget(...)`,
   selected from SDK `ConversationView` first and the renderer pending bridge
   second

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/revisions: move dashboard revision-menu item state into
+  `DesktopChatRevisionActionRuntime`, so React renders prepared checkout/fork
+  labels and disabled state instead of deriving revision action ids in the
+  header component. No migration required.
 - docs/frontend: update the minimal chat pill pending-bridge description to
   match the enforced identity/text/timestamp-only contract; attachment filenames
   stay in SDK resource materialization, not renderer pending rows. No migration

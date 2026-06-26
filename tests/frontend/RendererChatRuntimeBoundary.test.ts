@@ -3555,9 +3555,21 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSource).not.toContain('buildConversationViewChatMessages');
     expect(chatInterfaceSource).not.toContain('buildThreadPresentationMessages');
     expect(chatInterfaceSource).not.toContain('function normalizeRevisionId');
+    expect(chatInterfaceSource).toContain('buildRevisionMenuItems');
     expect(chatInterfaceSource).not.toContain('function buildForkConversationRef');
     expect(chatInterfaceSource).not.toContain('conversationView?.actions?.canEdit');
     expect(chatInterfaceSource).not.toContain('conversationView?.actions?.canRetry');
+    const headerControlsSource = await fs.readFile(
+      path.join(chatRoot, 'components/ChatInterfaceHeaderControls.jsx'),
+      'utf8',
+    );
+    expect(headerControlsSource).toContain('revisionMenuItems');
+    expect(headerControlsSource).not.toContain('shortRevisionId');
+    expect(headerControlsSource).not.toContain('revisionOperationLabel');
+    expect(headerControlsSource).not.toContain('checkoutActionId');
+    expect(headerControlsSource).not.toContain('forkActionId');
+    expect(headerControlsSource).not.toContain('revisionActionId');
+    expect(headerControlsSource).not.toContain('activeRevisionId');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildThreadPresentationMessages');
     expect(chatInterfacePresentationRuntimeSource).toContain('DesktopConversationDisplayProjection');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildConversationViewChatMessages');
