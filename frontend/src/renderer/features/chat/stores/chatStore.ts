@@ -242,7 +242,6 @@ interface ChatState {
   currentTurnProjection: CurrentTurnProjection | null;
   conversationView: ConversationView | null;
   pendingTurn: PendingTurn | null;
-  supersededTurnRefs: Record<string, true>;
   latestConversationView: ConversationView | null;
   getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceState;
   setActiveConversationRef: (conversationRef: string | null) => void;
@@ -359,7 +358,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
   currentTurnProjection: null,
   conversationView: null,
   pendingTurn: null,
-  supersededTurnRefs: {},
   latestConversationView: null,
   getWorkspaceState: (conversationRef) => {
     const state = get();

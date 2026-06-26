@@ -40,7 +40,6 @@ export interface ChatWorkspaceState {
   currentTurnProjection: CurrentTurnProjection | null;
   conversationView: ConversationView | null;
   pendingTurn: PendingTurn | null;
-  supersededTurnRefs: Record<string, true>;
 }
 
 interface ChatWorkspaceStoreSnapshot {
@@ -57,7 +56,6 @@ interface ChatWorkspaceStoreSnapshot {
   currentTurnProjection?: CurrentTurnProjection | null;
   conversationView?: ConversationView | null;
   pendingTurn?: PendingTurn | null;
-  supersededTurnRefs?: Record<string, true>;
 }
 
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
@@ -120,7 +118,6 @@ export function createInitialWorkspaceState(): ChatWorkspaceState {
     currentTurnProjection: null,
     conversationView: null,
     pendingTurn: null,
-    supersededTurnRefs: {},
   };
 }
 
@@ -142,7 +139,6 @@ function buildActiveWorkspaceSnapshot(state: ChatWorkspaceStoreSnapshot): ChatWo
     currentTurnProjection: state.currentTurnProjection ?? null,
     conversationView: state.conversationView ?? null,
     pendingTurn: state.pendingTurn ?? null,
-    supersededTurnRefs: state.supersededTurnRefs ?? {},
   };
 }
 
@@ -161,7 +157,6 @@ function doesWorkspaceMatch(
     && workspace.currentTurnProjection === activeWorkspace.currentTurnProjection
     && workspace.conversationView === activeWorkspace.conversationView
     && workspace.pendingTurn === activeWorkspace.pendingTurn
-    && workspace.supersededTurnRefs === activeWorkspace.supersededTurnRefs
   );
 }
 
@@ -203,7 +198,6 @@ ChatWorkspaceState,
 | 'currentTurnProjection'
 | 'conversationView'
 | 'pendingTurn'
-| 'supersededTurnRefs'
 >;
 
 export function getProjectedWorkspaceFields(workspace: ChatWorkspaceState): ProjectedWorkspaceFields {
@@ -218,7 +212,6 @@ export function getProjectedWorkspaceFields(workspace: ChatWorkspaceState): Proj
     currentTurnProjection: workspace.currentTurnProjection,
     conversationView: workspace.conversationView,
     pendingTurn: workspace.pendingTurn,
-    supersededTurnRefs: workspace.supersededTurnRefs,
   };
 }
 

@@ -52,8 +52,7 @@ tool arguments, and tool output. Useful milestones include `replay_start`,
 `display_timeline_loaded`, `replace_rows_start`, `replace_rows_done`,
 `pending_published`, `stop_old_sent`, `stop_old_done`, `stop_old_failed`,
 `send_new_sent`, `send_new_done`, `send_new_failed`,
-`sdk_current_turn_applied`, `sdk_current_turn_superseded_ignored`,
-`sdk_current_turn_stale_side_effects_skipped`, and
+`sdk_current_turn_applied`, `sdk_current_turn_stale_side_effects_skipped`, and
 `sdk_display_rows_projected`.
 
 Keep this playbook sanitized. Do not add prompt text, raw user/assistant

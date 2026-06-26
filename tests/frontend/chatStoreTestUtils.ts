@@ -56,7 +56,6 @@ export function resetChatStoreForTests(
         currentTurnProjection: null,
         conversationView: null,
         pendingTurn: null,
-        supersededTurnRefs: {},
       },
     },
     messages,
@@ -68,7 +67,6 @@ export function resetChatStoreForTests(
     currentTurnProjection: null,
     conversationView: null,
     pendingTurn: null,
-    supersededTurnRefs: {},
     latestConversationView: null,
   });
 }

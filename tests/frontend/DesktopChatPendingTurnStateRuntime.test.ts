@@ -25,7 +25,6 @@ function workspace(overrides = {}) {
     currentTurnProjection: { turnRef: 'turn-old' },
     conversationView: { conversationRef: 'conv-1' },
     pendingTurn: null,
-    supersededTurnRefs: {},
     ...overrides,
   };
 }
@@ -53,7 +52,6 @@ const stateRuntimeDeps = {
     isSending: nextWorkspace.isSending,
     messages: nextWorkspace.messages,
     pendingTurn: nextWorkspace.pendingTurn,
-    supersededTurnRefs: nextWorkspace.supersededTurnRefs,
     thinkingSourceEventType: nextWorkspace.thinkingSourceEventType,
     thinkingStatus: nextWorkspace.thinkingStatus,
   }),
@@ -131,9 +129,7 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
 
   test('builds pending-turn workspace mutations with the renderer bridge row', () => {
     const mutation = buildPendingTurnWorkspaceMutation({
-      currentWorkspace: workspace({
-        supersededTurnRefs: { 'turn-old': true },
-      }),
+      currentWorkspace: workspace(),
       pendingTurn: {
         conversationRef: 'conv-1',
         turnRef: 'turn-new',
@@ -165,7 +161,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
       pendingTurn: expect.objectContaining({
         turnRef: 'turn-new',
       }),
-      supersededTurnRefs: { 'turn-old': true },
     }));
     expect(mutation?.messages).toHaveLength(1);
   });

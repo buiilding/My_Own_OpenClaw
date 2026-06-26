@@ -7,52 +7,13 @@ const {
   applyDisplayRowsProjectionEvent,
   buildDisplayRowsProjection,
   buildReplayProjectionTracePayload,
-  isSupersededTurn,
   normalizeTurnRef,
-  withoutSupersededRows,
 } = DesktopConversationProjectionStreamRuntime;
 
 describe('DesktopConversationProjectionStreamRuntime', () => {
-  test('normalizes and detects superseded turns', () => {
-    const workspace = {
-      supersededTurnRefs: {
-        'turn-old': true as const,
-      },
-    };
-
+  test('normalizes turn refs', () => {
     expect(normalizeTurnRef(' turn-old ')).toBe('turn-old');
     expect(normalizeTurnRef('   ')).toBeNull();
-    expect(isSupersededTurn(workspace, ' turn-old ')).toBe(true);
-    expect(isSupersededTurn(workspace, 'turn-new')).toBe(false);
-  });
-
-  test('filters superseded display rows', () => {
-    const rows = [
-      {
-        id: 'old-user',
-        conversationRef: 'conv-1',
-        turnRef: 'turn-old',
-        index: 0,
-        role: 'user' as const,
-        type: 'user_message' as const,
-        content: 'old prompt',
-      },
-      {
-        id: 'new-user',
-        conversationRef: 'conv-1',
-        turnRef: 'turn-new',
-        index: 1,
-        role: 'user' as const,
-        type: 'user_message' as const,
-        content: 'new prompt',
-      },
-    ];
-
-    expect(withoutSupersededRows(rows, {
-      supersededTurnRefs: {
-        'turn-old': true,
-      },
-    })).toEqual([rows[1]]);
   });
 
   test('builds display-row projection while preserving pending optimistic user rows', () => {
@@ -256,40 +217,6 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
     }));
   });
 
-  test('ignores superseded current-turn projection events before store writes', () => {
-    const deps = {
-      getWorkspaceState: jest.fn(() => ({
-        supersededTurnRefs: {
-          'turn-old': true,
-        },
-      })),
-      setCurrentTurnProjection: jest.fn(),
-      setIsSending: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
-      updateStreamTracking: jest.fn(),
-    };
-
-    applyCurrentTurnProjectionEvent({
-      conversationRef: 'conv-1',
-      currentTurn: {
-        conversationRef: 'conv-1',
-        turnRef: 'turn-old',
-        phase: 'streaming',
-        assistantText: 'late old response',
-        reasoningText: null,
-        toolEvents: [],
-        lastError: null,
-      },
-      deps,
-      projectionCursors: new Map(),
-    });
-
-    expect(deps.setCurrentTurnProjection).not.toHaveBeenCalled();
-    expect(deps.setIsSending).not.toHaveBeenCalled();
-    expect(deps.updateStreamTracking).not.toHaveBeenCalled();
-  });
-
   test('applies accepted current-turn projection events through runtime side effects', () => {
     const deps = {
       getWorkspaceState: jest.fn(() => ({
@@ -303,7 +230,6 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
           activeTurnRef: 'turn-1',
           phase: 'streaming',
         },
-        supersededTurnRefs: {},
       })),
       setCurrentTurnProjection: jest.fn(),
       setIsSending: jest.fn(),

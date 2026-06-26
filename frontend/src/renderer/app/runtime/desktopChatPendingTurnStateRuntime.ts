@@ -31,7 +31,6 @@ type PendingTurnWorkspaceState = {
   currentTurnProjection: unknown;
   conversationView: unknown;
   pendingTurn: DesktopPendingTurnState | null;
-  supersededTurnRefs: Record<string, true>;
 };
 
 type PendingTurnWorkspaceMutationInput<TWorkspace extends PendingTurnWorkspaceState> = {
@@ -241,7 +240,6 @@ function buildPendingTurnWorkspaceMutation<TWorkspace extends PendingTurnWorkspa
     currentTurnProjection: null,
     conversationView: preserveConversationView ? currentWorkspace.conversationView : null,
     pendingTurn: normalizedPendingTurn,
-    supersededTurnRefs: currentWorkspace.supersededTurnRefs,
   } as TWorkspace;
   return {
     messages: nextMessages,

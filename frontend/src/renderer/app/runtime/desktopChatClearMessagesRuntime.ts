@@ -15,7 +15,6 @@ type ClearMessagesWorkspace<TStreamTracking> = {
   currentTurnProjection: unknown | null;
   conversationView: unknown | null;
   pendingTurn: unknown | null;
-  supersededTurnRefs: Record<string, true>;
 };
 
 type ClearMessagesStateDependencies<
@@ -61,7 +60,6 @@ function buildClearMessagesStateUpdate<
     currentTurnProjection: null,
     conversationView: null,
     pendingTurn: null,
-    supersededTurnRefs: {},
   });
 }
 

@@ -40,6 +40,9 @@ All notable changes to WindieOS will be documented in this file.
   pending-state helper so replay replacement rows and supersession cannot be
   rebuilt by renderer state; normal sends keep the pending bridge. No migration
   required.
+- frontend/projection: remove the renderer superseded-turn ledger from chat
+  store and projection streams; SDK conversation projections now remain the
+  only owner of supersession filtering. No migration required.
 - frontend/stop: remove legacy raw `ConversationView`, `pendingTurn`, and
   session-ref inputs from `useStopTurnHandler`; stop-target selection now stays
   in `DesktopChatInterfaceSelectorRuntime` and the hook consumes only the

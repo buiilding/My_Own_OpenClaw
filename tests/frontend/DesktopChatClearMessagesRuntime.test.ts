@@ -26,7 +26,6 @@ describe('DesktopChatClearMessagesRuntime', () => {
           currentTurnProjection: { turnRef: 'turn-1' },
           conversationView: { conversationRef: 'conv-1' },
           pendingTurn: { turnRef: 'turn-1' },
-          supersededTurnRefs: { 'turn-old': true },
         },
       },
     };
@@ -66,7 +65,6 @@ describe('DesktopChatClearMessagesRuntime', () => {
         currentTurnProjection: null,
         conversationView: null,
         pendingTurn: null,
-        supersededTurnRefs: {},
       }),
     );
     expect(nextState).toEqual(expect.objectContaining({
@@ -80,7 +78,6 @@ describe('DesktopChatClearMessagesRuntime', () => {
           currentTurnProjection: null,
           conversationView: null,
           pendingTurn: null,
-          supersededTurnRefs: {},
         }),
       },
     }));

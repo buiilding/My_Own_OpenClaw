@@ -1062,7 +1062,8 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionStreamRuntimeSource).toContain('if (!shouldApplyMessages)');
     expect(projectionStreamRuntimeSource).toContain('sdkMessages: []');
     expect(projectionStreamRuntimeSource).toContain('mergedMessages: []');
-    expect(projectionStreamRuntimeSource).toContain('withoutSupersededRows');
+    expect(projectionStreamRuntimeSource).not.toContain('withoutSupersededRows');
+    expect(projectionStreamRuntimeSource).not.toContain('supersededTurnRefs');
     expect(projectionStreamRuntimeSource).toContain('buildReplayProjectionTracePayload');
     expect(projectionStreamRuntimeSource).toContain('currentMatchesOldTurn');
     expect(projectionStreamRuntimeSource).toContain('const hasConversationView = isConversationView(workspace.conversationView)');

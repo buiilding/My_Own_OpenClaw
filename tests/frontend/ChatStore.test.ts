@@ -549,47 +549,6 @@ describe('chatStore', () => {
     }));
   });
 
-  test('acceptStoppedTurn ignores stale superseded turns while a replacement is pending', () => {
-    useChatStore.getState().acceptPendingTurn({
-      conversationRef: 'conv-stale-stop',
-      turnRef: 'turn-new',
-      userMessageId: 'user-new',
-      text: 'edited question',
-      timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
-    });
-    useChatStore.setState((state) => ({
-      supersededTurnRefs: {
-        ...state.supersededTurnRefs,
-        'turn-old': true,
-      },
-      workspaces: {
-        ...state.workspaces,
-        'conv-stale-stop': {
-          ...state.getWorkspaceState('conv-stale-stop'),
-          supersededTurnRefs: {
-            ...state.getWorkspaceState('conv-stale-stop').supersededTurnRefs,
-            'turn-old': true,
-          },
-        },
-      },
-    }));
-    const beforeState = useChatStore.getState();
-
-    useChatStore.getState().acceptStoppedTurn({
-      conversationRef: 'conv-stale-stop',
-      turnRef: 'turn-old',
-      stoppedAt: '2026-06-16T00:00:01.000Z',
-    });
-
-    const state = useChatStore.getState();
-    expect(state).toBe(beforeState);
-    expect(state.pendingTurn).toEqual(expect.objectContaining({
-      turnRef: 'turn-new',
-    }));
-    expect(state.isSending).toBe(true);
-  });
-
   test('acceptStoppedTurn terminalizes SDK current-turn and preserves visible partial content', () => {
     const currentTurnProjection = {
       conversationRef: 'conv-stop-sdk',

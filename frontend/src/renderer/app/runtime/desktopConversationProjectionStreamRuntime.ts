@@ -54,7 +54,6 @@ type ProjectionWorkspace = {
   messages: ChatMessage[];
   pendingTurn?: PendingTurnLike;
   streamTracking: StreamTrackingLike;
-  supersededTurnRefs?: Record<string, true>;
   thinkingStatus?: string | null;
 };
 
@@ -127,30 +126,6 @@ function normalizeTurnRef(turnRef: string | null | undefined): string | null {
   return typeof turnRef === 'string' && turnRef.trim()
     ? turnRef.trim()
     : null;
-}
-
-function isSupersededTurn(
-  workspace: ProjectionWorkspace,
-  turnRef: string | null | undefined,
-): boolean {
-  const normalizedTurnRef = normalizeTurnRef(turnRef);
-  return Boolean(normalizedTurnRef && workspace.supersededTurnRefs?.[normalizedTurnRef]);
-}
-
-function rowTurnRef(row: unknown): string | null {
-  return row && typeof row === 'object' && !Array.isArray(row)
-    ? normalizeTurnRef((row as { turnRef?: string | null }).turnRef)
-    : null;
-}
-
-function withoutSupersededRows<TRow>(
-  rows: TRow[],
-  workspace: ProjectionWorkspace,
-): TRow[] {
-  if (!workspace.supersededTurnRefs || Object.keys(workspace.supersededTurnRefs).length === 0) {
-    return rows;
-  }
-  return rows.filter((row) => !isSupersededTurn(workspace, rowTurnRef(row)));
 }
 
 function isConversationView(value: ConversationViewLike): value is NonNullable<ConversationViewLike> {
@@ -233,15 +208,6 @@ function applyCurrentTurnProjectionEvent({
   }
 
   const preProjectionWorkspace = deps.getWorkspaceState(conversationRef);
-  if (isSupersededTurn(preProjectionWorkspace, currentTurn.turnRef)) {
-    logReplayProjectionTrace('sdk_current_turn_superseded_ignored', conversationRef, preProjectionWorkspace, {
-      oldTurnRef: currentTurn.turnRef ?? null,
-      currentTurnRef: currentTurn.turnRef ?? null,
-      currentTurnPhase: currentTurn.phase ?? null,
-    });
-    return;
-  }
-
   // Check stale-turn status before current-turn storage can resolve pendingTurn.
   deps.setCurrentTurnProjection(currentTurn, conversationRef);
 
@@ -301,33 +267,32 @@ function buildDisplayRowsProjection({
   traceSummary: Record<string, unknown>;
 } {
   const shouldApplyMessages = !workspace.conversationView;
-  const filteredRows = withoutSupersededRows(rows, workspace);
   if (!shouldApplyMessages) {
     return {
-      filteredRows,
+      filteredRows: rows,
       mergedMessages: [],
       shouldApplyMessages,
       sdkMessages: [],
       traceSummary: buildDisplayProjectionTraceSummary({
-        rows: filteredRows,
+        rows,
       }),
     };
   }
 
   const currentMessages = Array.isArray(workspace.messages) ? workspace.messages : [];
-  const sdkMessages = buildChatMessagesFromSdkDisplayRows(filteredRows);
+  const sdkMessages = buildChatMessagesFromSdkDisplayRows(rows);
   const mergedMessages = mergeRendererAnnotationsIntoSdkMessages(
     sdkMessages,
     currentMessages,
     { pendingTurn: workspace.pendingTurn },
   );
   return {
-    filteredRows,
+    filteredRows: rows,
     mergedMessages,
     shouldApplyMessages,
     sdkMessages,
     traceSummary: buildDisplayProjectionTraceSummary({
-      rows: filteredRows,
+      rows,
       sdkMessages,
       currentMessages,
       mergedMessages,
@@ -374,7 +339,5 @@ export const DesktopConversationProjectionStreamRuntime = Object.freeze({
   applyDisplayRowsProjectionEvent,
   buildDisplayRowsProjection,
   buildReplayProjectionTracePayload,
-  isSupersededTurn,
   normalizeTurnRef,
-  withoutSupersededRows,
 });
