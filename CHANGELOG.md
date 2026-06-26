@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display: make the `ConversationView` pending-send bridge independent
+  from renderer feedback annotation merging, so SDK display rows stay the base
+  read model while the short pending bridge remains explicit. No migration
+  required.
 - frontend/compaction: route compacted replay persistence from stream hooks
   through `DesktopChatStreamCompactionRuntime`, so React handlers no longer
   call the continuity service directly. No migration required.

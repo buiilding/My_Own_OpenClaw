@@ -26,10 +26,6 @@ type PendingTurnLike = {
   text?: string | null;
 } | null | undefined;
 
-type MergeRendererAnnotationsOptions = {
-  pendingTurn?: PendingTurnLike;
-};
-
 type RendererMessageAnnotation = {
   feedback?: ChatMessage['feedback'];
   id: string;
@@ -106,13 +102,12 @@ function mergePendingBridgeUserMessages(
 function mergeRendererAnnotationsIntoSdkMessages(
   sdkMessages: ChatMessage[],
   rendererAnnotations: Array<ChatMessage | RendererMessageAnnotation>,
-  options: MergeRendererAnnotationsOptions = {},
 ): ChatMessage[] {
-  if (rendererAnnotations.length === 0 && !options.pendingTurn) {
+  if (rendererAnnotations.length === 0) {
     return sdkMessages;
   }
   const annotationsById = new Map(rendererAnnotations.map((message) => [message.id, message]));
-  const mergedSdkMessages = sdkMessages.map((message) => {
+  return sdkMessages.map((message) => {
     const annotation = annotationsById.get(message.id);
     return {
       ...message,
@@ -121,9 +116,15 @@ function mergeRendererAnnotationsIntoSdkMessages(
         : {}),
     };
   });
+}
+
+function appendPendingBridgeUserMessages(
+  sdkMessages: ChatMessage[],
+  pendingTurn: PendingTurnLike,
+): ChatMessage[] {
   return mergePendingBridgeUserMessages(
-    mergedSdkMessages,
-    pendingBridgeUserMessages(mergedSdkMessages, options.pendingTurn),
+    sdkMessages,
+    pendingBridgeUserMessages(sdkMessages, pendingTurn),
   );
 }
 
@@ -158,13 +159,15 @@ function buildConversationViewChatMessages({
     ? conversationView.displayRows
     : [];
   const sdkMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
-  if (!preserveRendererAnnotations) {
-    return sdkMessages;
-  }
-  return mergeRendererAnnotationsIntoSdkMessages(
-    sdkMessages,
-    rendererAnnotations,
-    { pendingTurn },
+  const annotatedSdkMessages = preserveRendererAnnotations
+    ? mergeRendererAnnotationsIntoSdkMessages(
+      sdkMessages,
+      rendererAnnotations,
+    )
+    : sdkMessages;
+  return appendPendingBridgeUserMessages(
+    annotatedSdkMessages,
+    pendingTurn,
   );
 }
 

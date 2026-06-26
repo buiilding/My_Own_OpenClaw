@@ -1115,6 +1115,7 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).not.toContain('onDisplayRows');
     expect(displayProjectionSource).toContain('export const DesktopConversationDisplayProjection = Object.freeze');
     expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
+    expect(displayProjectionSource).toContain('appendPendingBridgeUserMessages');
     expect(displayProjectionSource).toContain('pendingBridgeUserMessages');
     expect(displayProjectionSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
     expect(displayProjectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');

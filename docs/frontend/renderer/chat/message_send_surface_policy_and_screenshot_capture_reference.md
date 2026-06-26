@@ -35,11 +35,11 @@ playback cleanup, app config, and sender options. It delegates preparation and
 final live-turn dispatch to `DesktopChatSendPreparationRuntime`, which returns a
 `PreparedDesktopChatTurn` before calling the backend-facing live-turn runtime.
 The hook reads send-history inputs through
-`selectChatSendReadModel(useChatStore.getState())` instead of the full
-`selectChatInterfaceState(...)` UI selector or raw top-level
+`getChatSendReadModelFromChatStore()` in `chatStoreAdapters.ts` instead of the
+full `selectChatInterfaceState(...)` UI selector or raw top-level
 `chatStore.messages` / `chatStore.conversationView`, so send preparation sees
-only a boolean first-user-message predicate without making React chat surfaces
-carry send-only raw state.
+only a boolean first-user-message predicate and React chat hooks do not call
+`useChatStore.getState()` directly for send-only raw state.
 `DesktopChatSendPreparationRuntime.prepareDesktopChatSend(...)` accepts that
 state through one `getSendReadModel` dependency rather than split
 message/view callbacks.

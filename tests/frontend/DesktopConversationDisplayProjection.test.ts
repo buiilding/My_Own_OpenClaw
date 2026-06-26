@@ -267,6 +267,40 @@ describe('desktopConversationDisplayProjection', () => {
     ]);
   });
 
+  test('keeps the pending bridge independent from renderer annotation merging', () => {
+    expect(buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'tool-row',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_call',
+        content: '',
+      }]),
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        userMessageId: 'turn-1-sdk-evt-000002-user_message',
+        text: 'inspect recent commits',
+        timestamp: '2026-06-25T12:00:00.000Z',
+      },
+      preserveRendererAnnotations: false,
+    })).toEqual([
+      expect.objectContaining({
+        id: 'turn-1-sdk-evt-000002-user_message',
+        sender: 'user',
+        text: 'inspect recent commits',
+        turnRef: 'turn-1',
+      }),
+      expect.objectContaining({
+        id: 'tool-row',
+        sender: 'assistant',
+        turnRef: 'turn-1',
+      }),
+    ]);
+  });
+
   test('does not synthesize a pending bridge from partial pending state', () => {
     expect(buildConversationViewChatMessages({
       conversationView: conversationViewWithRows([{
