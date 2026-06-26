@@ -51,7 +51,7 @@ interface ChatWorkspaceStoreSnapshot {
   workspaces?: Record<string, ChatWorkspaceState>;
 }
 
-export type ChatWorkspaceReadModelState = ChatWorkspaceState & {
+export type ChatWorkspaceReadModelState = Omit<ChatWorkspaceState, 'currentTurnProjection'> & {
   rendererAnnotations?: unknown[];
   sdkLiveTurn?: CurrentTurnProjection | null;
 };
@@ -199,11 +199,14 @@ export function projectWorkspaceReadModelState(
     return cachedReadModel;
   }
   const hasConversationView = Boolean(workspace.conversationView);
+  const {
+    currentTurnProjection,
+    ...workspaceWithoutNoViewSdkLiveTurn
+  } = workspace;
   const readModelWorkspace = {
-    ...workspace,
+    ...workspaceWithoutNoViewSdkLiveTurn,
     messages: hasConversationView ? emptyChatMessages : workspace.messages,
-    currentTurnProjection: null,
-    sdkLiveTurn: hasConversationView ? null : workspace.currentTurnProjection,
+    sdkLiveTurn: hasConversationView ? null : currentTurnProjection,
     rendererAnnotations: hasConversationView
       ? selectRendererMessageAnnotations(workspace.messages)
       : [],

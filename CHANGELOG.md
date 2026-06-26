@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/state: remove the raw `currentTurnProjection` key from selected chat
+  read models, exposing the no-view live fallback only as `sdkLiveTurn`. No
+  migration required.
 - frontend/state: make workspace message mutations no-op under
   `ConversationView` except for narrow renderer annotation updates, keeping raw
   messages from reclaiming SDK display-row authority. No migration required.

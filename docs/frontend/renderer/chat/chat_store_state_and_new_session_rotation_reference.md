@@ -241,8 +241,8 @@ the normal read entrypoint for chat UI selectors. It always returns a cached
 selector read model rather than the raw workspace object. While no SDK
 `ConversationView` exists, raw stored messages remain available and the
 temporary live fallback is exposed as `sdkLiveTurn`; raw
-`currentTurnProjection` is set to `null` before selector consumers see the
-model. Once `ConversationView` exists, raw `messages` are replaced by the
+`currentTurnProjection` is omitted before selector consumers see the model.
+Once `ConversationView` exists, raw `messages` are replaced by the
 stable empty list and `sdkLiveTurn` is also `null`. The short `pendingTurn`
 bridge remains available, and renderer-only feedback/transparency/token
 metadata is carried separately as `rendererAnnotations` for display-row

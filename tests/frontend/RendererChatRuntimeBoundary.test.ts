@@ -3718,6 +3718,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateRuntimeSource).toContain('projectWorkspaceReadModelState');
     expect(chatWorkspaceStateRuntimeSource).toContain('selectActiveWorkspaceReadModelState');
     expect(chatWorkspaceStateRuntimeSource).toContain('selectRendererMessageAnnotations(workspace.messages)');
+    expect(chatWorkspaceStateRuntimeSource).toContain("Omit<ChatWorkspaceState, 'currentTurnProjection'>");
+    expect(chatWorkspaceStateRuntimeSource).toContain('workspaceWithoutNoViewSdkLiveTurn');
     expect(chatWorkspaceStateRuntimeSource).toContain('currentTurnProjection: null');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('buildActiveWorkspaceSnapshot');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('doesWorkspaceMatch');
