@@ -36,7 +36,7 @@ const {
 type StreamEventIdentity = ReturnType<typeof resolveConversationStreamEventIdentity>;
 
 type ShouldIgnoreForStaleTurn = (
-  event: { turnRef?: string | null },
+  eventIdentity: StreamEventIdentity,
   conversationRef?: string | null,
 ) => boolean;
 
@@ -77,7 +77,7 @@ export function useChatStreamMetadataHandlers({
     }
     const eventIdentity = resolveConversationStreamEventIdentity(event);
     const conversationRef = eventIdentity.conversationRef;
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
+    if (shouldIgnoreForStaleTurn(eventIdentity, conversationRef)) {
       return;
     }
     const payload = resolveConversationStreamEventPayload(event);
@@ -93,7 +93,7 @@ export function useChatStreamMetadataHandlers({
     }
     const eventIdentity = resolveConversationStreamEventIdentity(event);
     const conversationRef = eventIdentity.conversationRef;
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
+    if (shouldIgnoreForStaleTurn(eventIdentity, conversationRef)) {
       return;
     }
     const payload = resolveConversationStreamEventPayload(event);
@@ -109,7 +109,7 @@ export function useChatStreamMetadataHandlers({
     }
     const eventIdentity = resolveConversationStreamEventIdentity(event);
     const conversationRef = eventIdentity.conversationRef;
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
+    if (shouldIgnoreForStaleTurn(eventIdentity, conversationRef)) {
       return;
     }
     const payload = resolveConversationStreamEventPayload(event);
@@ -125,7 +125,7 @@ export function useChatStreamMetadataHandlers({
     }
     const eventIdentity = resolveConversationStreamEventIdentity(event);
     const conversationRef = eventIdentity.conversationRef;
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
+    if (shouldIgnoreForStaleTurn(eventIdentity, conversationRef)) {
       return;
     }
     const payload = resolveConversationStreamEventPayload(event);

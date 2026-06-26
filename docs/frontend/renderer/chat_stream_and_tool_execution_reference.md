@@ -174,6 +174,10 @@ turn ref object instead of unpacking SDK event identity fields independently.
 Low-level conversation-ref and turn-ref helpers stay internal to
 `DesktopChatStreamEventRuntime`; renderer consumers should not import or
 destructure them from the facade.
+Stale-turn gating uses
+`DesktopChatStreamEventRuntime.shouldIgnoreConversationEventIdentityForStaleTurn(...)`
+with the runtime-built event identity object; hooks should not pass raw event
+turn-ref shapes into stale-turn checks.
 Chat-stream message target construction also stays in
 `DesktopChatStreamMessageUpdateRuntime`. Hooks pass the runtime-built event
 identity object into that facade instead of assembling `last_by_sender` or

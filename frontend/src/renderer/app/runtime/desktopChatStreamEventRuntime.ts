@@ -44,10 +44,6 @@ type TurnRefEvent = {
   turn_ref?: string | null;
 };
 
-type ConversationTurnRefEvent = {
-  turnRef?: string | null;
-};
-
 type ConversationStreamEventIdentityEvent = {
   conversationRef?: string | null;
   turnRef?: string | null;
@@ -267,13 +263,15 @@ function shouldIgnoreForStaleTurn(
   return isStaleTurnForActiveStream(eventTurnRef, normalizedActiveTurnRef);
 }
 
-function shouldIgnoreConversationEventForStaleTurn(
-  event: ConversationTurnRefEvent,
+function shouldIgnoreConversationEventIdentityForStaleTurn(
+  eventIdentity: {
+    turnRef?: string | null;
+  } | null | undefined,
   conversationRef?: string | null,
   deps?: ShouldIgnoreForStaleTurnDeps,
 ): boolean {
   return shouldIgnoreForStaleTurn({
-    turn_ref: event.turnRef ?? undefined,
+    turn_ref: eventIdentity?.turnRef ?? undefined,
   }, conversationRef, deps);
 }
 
@@ -361,7 +359,7 @@ export const DesktopChatStreamEventRuntime = Object.freeze({
   isTurnCompletedConversationStreamEvent,
   isTurnErrorConversationStreamEvent,
   isUsageUpdatedConversationStreamEvent,
-  shouldIgnoreConversationEventForStaleTurn,
+  shouldIgnoreConversationEventIdentityForStaleTurn,
   resolveTurnCompletedStreamEventState,
   shouldRecordTerminalCompletionTracking,
   recordTrackingEvent,

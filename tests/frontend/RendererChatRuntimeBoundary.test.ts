@@ -725,6 +725,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('isUserMessageMetadataConversationStreamEvent');
     expect(source).toContain('isUsageUpdatedConversationStreamEvent');
     expect(source).toContain('resolveConversationStreamEventIdentity');
+    expect(source).toContain('shouldIgnoreConversationEventIdentityForStaleTurn');
+    expect(source).not.toContain('shouldIgnoreConversationEventForStaleTurn');
     expect(source).not.toContain('resolveConversationStreamEventConversationRef');
     expect(source).not.toContain('event.conversationRef');
     expect(source).not.toContain('event.turnRef');
@@ -767,6 +769,8 @@ describe('renderer chat runtime boundary', () => {
     expect(runtimeSource).toContain('isUsageUpdatedConversationStreamEvent');
     expect(runtimeSource).toContain('resolveConversationStreamEventConversationRef');
     expect(runtimeSource).toContain('resolveConversationStreamEventTurnRef');
+    expect(runtimeSource).toContain('shouldIgnoreConversationEventIdentityForStaleTurn');
+    expect(runtimeSource).not.toContain('shouldIgnoreConversationEventForStaleTurn');
     expect(runtimeSource).not.toContain('\n  resolveConversationStreamEventConversationRef,');
     expect(runtimeSource).not.toContain('\n  resolveConversationStreamEventTurnRef,');
     expect(runtimeSource).not.toContain('resolveConversationStreamEventTurnRefForUpdate');

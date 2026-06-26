@@ -64,7 +64,7 @@ const {
   recordTrackingEvent: recordTrackingEventRuntime,
   resolveConversationStreamEventIdentity,
   resolveWorkspaceThinkingSourceEventType,
-  shouldIgnoreConversationEventForStaleTurn,
+  shouldIgnoreConversationEventIdentityForStaleTurn,
 } = DesktopChatStreamEventRuntime;
 const {
   registerRendererTurnConversationRef,
@@ -100,10 +100,10 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   // Active-turn gating is shared across most handlers so late events from older turns
   // never mutate the current workspace stream state.
-  const shouldIgnoreSdkEventForStaleTurn = useCallback((
-    event: { turnRef?: string | null },
+  const shouldIgnoreSdkEventIdentityForStaleTurn = useCallback((
+    eventIdentity: ReturnType<typeof resolveConversationStreamEventIdentity>,
     conversationRef?: string | null,
-  ): boolean => shouldIgnoreConversationEventForStaleTurn(event, conversationRef, {
+  ): boolean => shouldIgnoreConversationEventIdentityForStaleTurn(eventIdentity, conversationRef, {
     getWorkspaceState: getWorkspaceStateFromChatStore,
   }), []);
 
@@ -134,7 +134,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleAssistantMessageFull,
     handleToolSchemas,
   } = useChatStreamMetadataHandlers({
-    shouldIgnoreForStaleTurn: shouldIgnoreSdkEventForStaleTurn,
+    shouldIgnoreForStaleTurn: shouldIgnoreSdkEventIdentityForStaleTurn,
     updateLastMessageBySender,
     updateLastAssistantLlmTextMessage,
     recordTrackingEvent,
@@ -173,15 +173,16 @@ export function useChatStream(enableTranscript: boolean = true) {
     if (!isSupportedConversationStreamEvent(event)) {
       return false;
     }
-    if (shouldIgnoreSdkEventForStaleTurn(event, conversationRef)) {
-      return true;
-    }
-    const eventConversationRef = resolveConversationStreamEventIdentity(
+    const eventIdentity = resolveConversationStreamEventIdentity(
       event,
       conversationRef,
-    ).conversationRef;
+    );
+    if (shouldIgnoreSdkEventIdentityForStaleTurn(eventIdentity, eventIdentity.conversationRef)) {
+      return true;
+    }
+    const resolvedEventConversationRef = eventIdentity.conversationRef;
     if (isLocalUserMessageConversationStreamEvent(event)) {
-      handleLocalUserMessage(event, eventConversationRef);
+      handleLocalUserMessage(event, resolvedEventConversationRef);
       return true;
     }
     if (isToolDisplayOnlyConversationStreamEvent(event)) {
@@ -217,14 +218,14 @@ export function useChatStream(enableTranscript: boolean = true) {
       return true;
     }
     if (isTurnErrorConversationStreamEvent(event)) {
-      handleError(event, eventConversationRef);
+      handleError(event, resolvedEventConversationRef);
       return true;
     }
     if (isUsageUpdatedConversationStreamEvent(event)) {
-      handleTokenCount(event, eventConversationRef);
+      handleTokenCount(event, resolvedEventConversationRef);
       return true;
     }
-    processStreamingComplete(event, eventConversationRef);
+    processStreamingComplete(event, resolvedEventConversationRef);
     return true;
   }, [
     handleAssistantMessageFull,
@@ -238,7 +239,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleToolSchemas,
     handleUserMessageFull,
     processStreamingComplete,
-    shouldIgnoreSdkEventForStaleTurn,
+    shouldIgnoreSdkEventIdentityForStaleTurn,
   ]);
 
   useEffect(() => {

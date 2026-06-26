@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stream: route stale-turn gating through
+  `DesktopChatStreamEventRuntime` event identity objects instead of raw event
+  turn-ref shapes in chat stream hooks. No migration required.
 - frontend/stream: move chat-stream message update target construction into
   `DesktopChatStreamMessageUpdateRuntime`, so hooks pass runtime event identity
   instead of shaping turn-ref store targets. No migration required.

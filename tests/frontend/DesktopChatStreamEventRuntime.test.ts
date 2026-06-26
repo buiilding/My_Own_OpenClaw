@@ -27,7 +27,7 @@ const {
   resolveConversationStreamEventIdentity,
   resolveTurnCompletedStreamEventState,
   resolveWorkspaceThinkingSourceEventType,
-  shouldIgnoreConversationEventForStaleTurn,
+  shouldIgnoreConversationEventIdentityForStaleTurn,
   shouldRecordTerminalCompletionTracking,
 } = DesktopChatStreamEventRuntime;
 const {
@@ -59,7 +59,11 @@ function getWorkspaceState(conversationRef?: string | null) {
 }
 
 function shouldIgnore(event: ReturnType<typeof createEvent>, conversationRef?: string | null): boolean {
-  return shouldIgnoreConversationEventForStaleTurn(event, conversationRef, { getWorkspaceState });
+  return shouldIgnoreConversationEventIdentityForStaleTurn(
+    resolveConversationStreamEventIdentity(event, conversationRef),
+    conversationRef,
+    { getWorkspaceState },
+  );
 }
 
 describe('DesktopChatStreamEventRuntime', () => {
