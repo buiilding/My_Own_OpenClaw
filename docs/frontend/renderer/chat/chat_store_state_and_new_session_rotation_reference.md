@@ -74,6 +74,9 @@ mutation helpers and applies their returned state updates through
 projected read-model, or send read-model snapshots use named
 `chatStoreAdapters.ts` getters instead of calling `useChatStore.getState()`
 directly.
+Stream compaction handlers persist SDK replay replacement snapshots through
+`DesktopChatStreamCompactionRuntime`; React handlers should not call the
+conversation continuity service directly.
 
 Message attachment fields used by current renderer message paths:
 

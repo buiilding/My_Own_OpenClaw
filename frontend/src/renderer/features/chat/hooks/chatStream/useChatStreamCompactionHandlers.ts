@@ -12,11 +12,13 @@ import { DesktopChatStreamEventPayloadRuntime } from '../../../../app/runtime/de
 import {
   DesktopChatStreamThinkingRuntime,
 } from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
+import {
+  DesktopChatStreamCompactionRuntime,
+} from '../../../../app/runtime/desktopChatStreamCompactionRuntime';
 import type {
   StreamTrackingEventType,
   StreamTrackingOptions,
 } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
-import { DesktopConversationContinuityService } from '../../../../app/runtime/desktopConversationContinuityService';
 import { DesktopRendererHooksRuntimeClient } from '../../../../app/runtime/desktopRendererHooksRuntimeClient';
 
 const {
@@ -24,6 +26,9 @@ const {
   getCompactionStartedThinkingStatus,
   resolveCompactionFailedThinkingStatus,
 } = DesktopChatStreamThinkingRuntime;
+const {
+  persistCompactedReplaySnapshot,
+} = DesktopChatStreamCompactionRuntime;
 const {
   useLatestRef,
 } = DesktopRendererHooksRuntimeClient;
@@ -75,13 +80,6 @@ type PersistCompactedReplaySnapshot = (
   snapshot: CompactedReplaySnapshot,
   userId: string,
 ) => Promise<void>;
-
-async function persistCompactedReplaySnapshot(
-  snapshot: CompactedReplaySnapshot,
-  userId: string,
-): Promise<void> {
-  await DesktopConversationContinuityService.replaceCompactedReplay(snapshot, userId);
-}
 
 export function useChatStreamCompactionHandlers({
   setThinkingStatus,

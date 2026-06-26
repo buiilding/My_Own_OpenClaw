@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/compaction: route compacted replay persistence from stream hooks
+  through `DesktopChatStreamCompactionRuntime`, so React handlers no longer
+  call the continuity service directly. No migration required.
 - frontend/chat: route hook-level active-conversation, workspace, projected
   read-model, and send read-model reads through `chatStoreAdapters`, keeping
   direct Zustand `getState()` access out of stream and send hooks. No migration
