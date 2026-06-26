@@ -11,6 +11,7 @@ const {
 
 type CurrentTurnWorkspace = {
   currentTurnProjection: CurrentTurnProjection | null;
+  conversationView?: unknown | null;
   pendingTurn: unknown | null;
 };
 
@@ -34,6 +35,10 @@ type CurrentTurnStateDependencies<
   ) => string;
 };
 
+function hasConversationView(value: unknown): boolean {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
 function buildCurrentTurnWorkspaceMutation<TWorkspace extends CurrentTurnWorkspace>({
   currentTurnProjection,
   currentWorkspace,
@@ -41,6 +46,14 @@ function buildCurrentTurnWorkspaceMutation<TWorkspace extends CurrentTurnWorkspa
   currentTurnProjection: CurrentTurnProjection | null;
   currentWorkspace: TWorkspace;
 }): TWorkspace | null {
+  if (hasConversationView(currentWorkspace.conversationView)) {
+    return currentWorkspace.currentTurnProjection === null
+      ? null
+      : {
+        ...currentWorkspace,
+        currentTurnProjection: null,
+      };
+  }
   const nextPendingTurn = resolvePendingTurnForCurrentProjection({
     pendingTurn: currentWorkspace.pendingTurn,
     currentTurnProjection,

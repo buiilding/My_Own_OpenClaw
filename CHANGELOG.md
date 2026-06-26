@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/state: stop storing raw current-turn projections in workspaces once
+  an SDK `ConversationView` exists, leaving the view and pending bridge as the
+  only live-turn authorities. No migration required.
 - frontend/trace: stop routing response overlay rendered-typing diagnostics
   through raw `currentTurnProjection` conversation refs; callers must pass the
   projected conversation identity explicitly. No migration required.

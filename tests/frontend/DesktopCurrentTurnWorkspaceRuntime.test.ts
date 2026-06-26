@@ -90,6 +90,88 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
     });
   });
 
+  test('does not store raw current-turn projection when conversation view exists', () => {
+    const staleProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-stale',
+      phase: 'streaming',
+      assistantText: 'stale',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    };
+    const currentTurnProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-2',
+      phase: 'streaming',
+      assistantText: 'view owns this',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    };
+    const pendingTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-2',
+      userMessageId: 'user-2',
+    };
+
+    expect(buildCurrentTurnWorkspaceMutation({
+      currentWorkspace: {
+        conversationView: {
+          conversationRef: 'conv-1',
+          displayRows: [],
+          liveTurn: {
+            turnRef: 'turn-2',
+            phase: 'streaming',
+          },
+        },
+        currentTurnProjection: staleProjection,
+        pendingTurn,
+        messages: [],
+      },
+      currentTurnProjection,
+    })).toEqual({
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [],
+        liveTurn: {
+          turnRef: 'turn-2',
+          phase: 'streaming',
+        },
+      },
+      currentTurnProjection: null,
+      pendingTurn,
+      messages: [],
+    });
+  });
+
+  test('returns null when conversation view already owns live-turn state', () => {
+    expect(buildCurrentTurnWorkspaceMutation({
+      currentWorkspace: {
+        conversationView: {
+          conversationRef: 'conv-1',
+          displayRows: [],
+        },
+        currentTurnProjection: null,
+        pendingTurn: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          userMessageId: 'user-1',
+        },
+        messages: [],
+      },
+      currentTurnProjection: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        phase: 'streaming',
+        assistantText: 'ignored',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      },
+    })).toBeNull();
+  });
+
   test('buildSetCurrentTurnProjectionStateUpdate resolves workspace and applies mutation', () => {
     const state = {
       activeConversationRef: 'conv-1',
