@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: remove stale `screenshotRef`/`screenshotUrl`
+  PropTypes from the attachment renderer; visual artifacts stay resolved by the
+  SDK attachment descriptor and app-runtime artifact helper. No migration
+  required.
 - frontend/surfaces: move chat surface-state unpacking into
   `DesktopChatSurfaceRuntime` so `useChatSurfaceController` no longer names raw
   `ConversationView`, pending-turn, or current-turn projection fields. No

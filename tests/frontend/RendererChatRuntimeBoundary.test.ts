@@ -1233,6 +1233,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/MessageContent.jsx'),
       'utf8',
     );
+    const attachmentRendererRegistrySource = await fs.readFile(
+      path.join(chatRoot, 'components/message/content/AttachmentRendererRegistry.jsx'),
+      'utf8',
+    );
     const messageTypeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatMessageTypes.ts'),
       'utf8',
@@ -1243,6 +1247,8 @@ describe('renderer chat runtime boundary', () => {
     expect(messageContentSource).not.toContain('screenshotUrl: PropTypes');
     expect(messageContentSource).not.toContain('screenshotContentType: PropTypes');
     expect(messageContentSource).not.toContain('screenshot: PropTypes');
+    expect(attachmentRendererRegistrySource).not.toContain('screenshotRef: PropTypes');
+    expect(attachmentRendererRegistrySource).not.toContain('screenshotUrl: PropTypes');
     expect(messageTypeSource).toContain('attachments?: SdkDisplayAttachment[] | null');
     expect(messageTypeSource).not.toContain('screenshot?:');
     expect(messageTypeSource).not.toContain('screenshotRef?:');

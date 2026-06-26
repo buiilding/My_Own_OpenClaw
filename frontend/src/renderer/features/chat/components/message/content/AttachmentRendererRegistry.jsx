@@ -102,8 +102,6 @@ const attachmentShape = PropTypes.shape({
   filename: PropTypes.string,
   contentType: PropTypes.string,
   previewSrc: PropTypes.string,
-  screenshotRef: PropTypes.string,
-  screenshotUrl: PropTypes.string,
   errorCode: PropTypes.string,
 });
 
