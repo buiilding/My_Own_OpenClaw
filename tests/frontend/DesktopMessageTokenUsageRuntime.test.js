@@ -68,7 +68,18 @@ describe('desktopMessageTokenUsageRuntime', () => {
     expect(tag).toBe('tokens~ txt:1 img(est):0 total:1');
   });
 
-  test('estimates tool-call tokens from model-facing tool-call payload', () => {
+  test('estimates tool-call tokens from SDK display text', () => {
+    const tag = resolveMessageTokenUsageTag({
+      sender: 'assistant',
+      type: 'tool-call',
+      text: '{}',
+      toolCallDisplayText: '{ "name": "browser", "arguments": { "action": "navigate" } }',
+    });
+
+    expect(tag).toMatch(/^tokens~ \d+$/);
+  });
+
+  test('does not estimate tool-call tokens from provider-facing payload fallback', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'assistant',
       type: 'tool-call',
@@ -80,7 +91,7 @@ describe('desktopMessageTokenUsageRuntime', () => {
       },
     });
 
-    expect(tag).toMatch(/^tokens~ \d+$/);
+    expect(tag).toBeNull();
   });
 
   test('ignores raw tool-call text when canonical display fields are absent', () => {

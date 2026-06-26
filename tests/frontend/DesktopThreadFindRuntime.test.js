@@ -21,10 +21,7 @@ describe('desktopThreadFindRuntime', () => {
         id: 'tool-call-1',
         sender: 'assistant',
         type: 'tool-call',
-        modelFacingToolCall: {
-          name: 'search_alpha',
-          arguments: { query: 'alpha' },
-        },
+        toolCallDisplayText: '{ "name": "search_alpha", "arguments": { "query": "alpha" } }',
       },
       {
         id: 'tool-output-1',
@@ -46,6 +43,23 @@ describe('desktopThreadFindRuntime', () => {
       'tool-call-1': [1, 2],
       'tool-output-1': [3],
     });
+  });
+
+  test('does not index provider-facing tool-call payload fallback', () => {
+    const state = buildThreadFindState([
+      {
+        id: 'tool-call-1',
+        sender: 'assistant',
+        type: 'tool-call',
+        modelFacingToolCall: {
+          name: 'search_alpha',
+          arguments: { query: 'alpha' },
+        },
+      },
+    ], 'alpha');
+
+    expect(state.totalMatches).toBe(0);
+    expect(state.messageMatchIndexesById).toEqual({});
   });
 
   test('returns empty state for blank queries or invalid messages', () => {

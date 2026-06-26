@@ -14,15 +14,6 @@ function resolveToolCallSearchText(message) {
   if (typeof message?.toolCallDisplayText === 'string' && message.toolCallDisplayText.trim()) {
     return message.toolCallDisplayText;
   }
-
-  if (
-    message?.modelFacingToolCall
-    && typeof message.modelFacingToolCall === 'object'
-    && !Array.isArray(message.modelFacingToolCall)
-  ) {
-    return JSON.stringify(message.modelFacingToolCall, null, 2);
-  }
-
   return '';
 }
 

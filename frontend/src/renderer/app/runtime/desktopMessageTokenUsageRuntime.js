@@ -36,17 +36,6 @@ function resolveUserImageAttachmentCount(message) {
   return countDisplayImageAttachments(message?.attachments);
 }
 
-function stringifyModelFacingToolCall(modelFacingToolCall) {
-  if (!modelFacingToolCall || typeof modelFacingToolCall !== 'object' || Array.isArray(modelFacingToolCall)) {
-    return '';
-  }
-  try {
-    return JSON.stringify(modelFacingToolCall, null, 2);
-  } catch {
-    return '';
-  }
-}
-
 function resolveUserText(message) {
   const fullUserMessageContent = normalizeText(message?.fullUserMessage?.content);
   if (fullUserMessageContent) {
@@ -60,10 +49,6 @@ function resolveToolMessageText(message) {
     const displayText = normalizeText(message?.toolCallDisplayText);
     if (displayText) {
       return displayText;
-    }
-    const modelFacingCall = stringifyModelFacingToolCall(message?.modelFacingToolCall);
-    if (modelFacingCall) {
-      return modelFacingCall;
     }
     return '';
   }

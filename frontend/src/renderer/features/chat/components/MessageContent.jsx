@@ -124,7 +124,6 @@ MessageContent.propTypes = {
       source: PropTypes.oneOf(['user_included', 'camera_button', 'tool_result', 'replay']).isRequired,
       status: PropTypes.oneOf(['materializing', 'pending_capture', 'ready', 'failed']).isRequired,
     })),
-    modelFacingToolCall: PropTypes.object,
     toolCallDisplayText: PropTypes.string,
     modelFacingToolOutput: PropTypes.string,
     toolCallDetails: PropTypes.object,

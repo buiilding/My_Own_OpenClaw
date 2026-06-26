@@ -1243,6 +1243,8 @@ describe('renderer chat runtime boundary', () => {
     expect(markdownMessageRuntimeSource).not.toContain('export function buildMarkdownRenderModel');
     expect(threadFindRuntimeSource).toContain('DesktopMarkdownMessageRuntime');
     expect(threadFindRuntimeSource).toContain('DesktopThreadFindRuntime');
+    expect(threadFindRuntimeSource).toContain('message?.toolCallDisplayText');
+    expect(threadFindRuntimeSource).not.toContain('modelFacingToolCall');
     expect(threadFindRuntimeSource).not.toContain('export function buildThreadFindState');
     expect(markdownMessageSource).toContain('DesktopMarkdownMessageRuntime');
     expect(threadFindRuntimeSource).not.toContain('import { buildMarkdownRenderModel }');
@@ -1274,6 +1276,10 @@ describe('renderer chat runtime boundary', () => {
     );
     const tokenUsageRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js'),
+      'utf8',
+    );
+    const toolCallMessageSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/content/ToolCallMessage.jsx'),
       'utf8',
     );
 
@@ -1322,6 +1328,10 @@ describe('renderer chat runtime boundary', () => {
     expect(messageContentSource).not.toContain('screenshotUrl: PropTypes');
     expect(messageContentSource).not.toContain('screenshotContentType: PropTypes');
     expect(messageContentSource).not.toContain('screenshot: PropTypes');
+    expect(messageContentSource).not.toContain('modelFacingToolCall: PropTypes');
+    expect(toolCallMessageSource).toContain('message.toolCallDisplayText');
+    expect(toolCallMessageSource).not.toContain('message.modelFacingToolCall');
+    expect(toolCallMessageSource).not.toContain('modelFacingToolCall: PropTypes');
     expect(attachmentRendererRegistrySource).not.toContain('screenshotRef: PropTypes');
     expect(attachmentRendererRegistrySource).not.toContain('screenshotUrl: PropTypes');
     expect(messageTypeSource).toContain('attachments?: SdkDisplayAttachment[] | null');
@@ -1341,6 +1351,7 @@ describe('renderer chat runtime boundary', () => {
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshotRef');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshotUrl');
     expect(tokenUsageRuntimeSource).not.toContain('screenshot: message?.screenshot');
+    expect(tokenUsageRuntimeSource).not.toContain('modelFacingToolCall');
     expect(tokenUsageRuntimeSource).toContain('DesktopMessageTokenUsageRuntime');
     expect(tokenUsageRuntimeSource).not.toContain('export function resolveMessageTokenUsageTag');
     expect(tokenUsageRuntimeSource).not.toContain('features/chat');
