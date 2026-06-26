@@ -102,12 +102,17 @@ export function useResponseOverlayViewModel({
 
   const viewIntent = useMemo(() => resolveChatPillViewIntent({
     currentTurnPresentationState: resolvedCurrentTurnPresentationState,
-    responseOverlayEntries,
     dismissedResponseId,
+    overlayIntent: resolvedCurrentTurnPresentationState.overlayIntent ?? null,
+    pendingTurn,
+    responseOverlayEntries,
+    visibleTurnLifecycle,
   }), [
     dismissedResponseId,
+    pendingTurn,
     responseOverlayEntries,
     resolvedCurrentTurnPresentationState,
+    visibleTurnLifecycle,
   ]);
 
   const latestSourceTaggedResponseEntry = useMemo(() => {
@@ -225,12 +230,5 @@ export function useResponseOverlayViewModel({
     thinkingText,
     handleCloseResponse,
     ...viewIntent,
-    turnId: (
-      viewIntent.turnId
-      || resolvedCurrentTurnPresentationState.overlayIntent?.turnRef
-      || visibleTurnLifecycle?.turnRef
-      || pendingTurn?.turnRef
-      || null
-    ),
   };
 }

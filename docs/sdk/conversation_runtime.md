@@ -240,6 +240,10 @@ busy/Stop contract: `snapshot.view.surfaces.pill.mode` drives the pill loop
 lock, `snapshot.view.surfaces.dashboard.mode` drives the dashboard composer
 loop lock, and `snapshot.view.liveTurn.canStop` drives Stop availability in
 renderer and Electron-main Stop shortcut resolution.
+The pill response-overlay `turnId` is also resolved inside the app runtime from
+SDK response rows, SDK overlay intent, visible lifecycle, or the pending bridge;
+React hooks pass those inputs through instead of composing renderer-owned
+turn-ref fallbacks.
 Renderer pending-turn state remains a short pre-view bridge immediately after
 send acceptance; raw current-turn snapshots and idle conversation refs must not
 enable Stop or become the main-process stop target, even before a view arrives.

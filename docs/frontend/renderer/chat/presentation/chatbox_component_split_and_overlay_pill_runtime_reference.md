@@ -114,6 +114,10 @@ compaction behind its loop lock.
 - `DesktopChatPillSessionRuntime` owns the current-turn and `ConversationView`
   snapshot projection passed into those trace calls, so the component does not
   branch over SDK surface fields just to log pill lifecycle/state diagnostics.
+- The same runtime owns response-overlay `turnId` precedence for the pill:
+  visible SDK response rows win, then SDK overlay intent/visible lifecycle, then
+  the short pending-send bridge. `useResponseOverlayViewModel(...)` passes those
+  inputs through and does not compose turn-ref fallbacks in React.
 
 ### Screenshot Preview Lane and Visual Anchor
 

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pill: move response-overlay turn-id fallback precedence into
+  `DesktopChatPillSessionRuntime`, so the minimal-pill hook passes SDK surface
+  identity and pending-bridge inputs through instead of composing renderer-local
+  turn-ref fallback chains. No migration required.
 - frontend/actions: require explicit row `actions.canEdit`/`actions.canRetry`
   before showing edit/resend or Try again controls, leaving copy and feedback
   as renderer-local affordances while SDK display rows own replay availability.

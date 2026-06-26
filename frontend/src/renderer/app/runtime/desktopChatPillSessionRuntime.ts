@@ -21,6 +21,10 @@ type TurnRefMessage = {
   turnRef?: string | null;
 };
 
+type TurnRefSource = {
+  turnRef?: string | null;
+} | null | undefined;
+
 type ChatPillCurrentTurnProjection = {
   phase?: string | null;
   turnRef?: string | null;
@@ -110,10 +114,38 @@ function resolveChatPillSendLifecycle({
   };
 }
 
+function resolveChatPillTurnId({
+  currentTurnPresentationState,
+  overlayIntent = null,
+  pendingTurn = null,
+  visibleTurnLifecycle = null,
+}: {
+  currentTurnPresentationState: {
+    activeResponse?: TurnRefMessage | null;
+    visibleResponse?: TurnRefMessage | null;
+    visibleTurnLifecycle?: TurnRefSource;
+  };
+  overlayIntent?: TurnRefSource;
+  pendingTurn?: TurnRefSource;
+  visibleTurnLifecycle?: TurnRefSource;
+}) {
+  return (
+    normalizeOptionalTurnRef(currentTurnPresentationState.visibleResponse?.turnRef)
+    || normalizeOptionalTurnRef(currentTurnPresentationState.activeResponse?.turnRef)
+    || normalizeOptionalTurnRef(currentTurnPresentationState.visibleTurnLifecycle?.turnRef)
+    || normalizeOptionalTurnRef(overlayIntent?.turnRef)
+    || normalizeOptionalTurnRef(visibleTurnLifecycle?.turnRef)
+    || normalizeOptionalTurnRef(pendingTurn?.turnRef)
+  );
+}
+
 function resolveChatPillViewIntent({
   currentTurnPresentationState,
+  overlayIntent = null,
+  pendingTurn = null,
   responseOverlayEntries,
   dismissedResponseId = null,
+  visibleTurnLifecycle = null,
 }: {
   currentTurnPresentationState: {
     activeResponse?: TurnRefMessage | null;
@@ -123,8 +155,11 @@ function resolveChatPillViewIntent({
       turnRef?: string | null;
     } | null;
   };
+  overlayIntent?: TurnRefSource;
+  pendingTurn?: TurnRefSource;
   responseOverlayEntries: Array<{ id?: string | null }>;
   dismissedResponseId?: string | null;
+  visibleTurnLifecycle?: TurnRefSource;
 }) {
   const viewContract = resolveResponseOverlayViewContract({
     currentTurnPresentationState,
@@ -134,11 +169,12 @@ function resolveChatPillViewIntent({
 
   return {
     ...viewContract,
-    turnId: (
-      normalizeOptionalTurnRef(currentTurnPresentationState.visibleResponse?.turnRef)
-      || normalizeOptionalTurnRef(currentTurnPresentationState.activeResponse?.turnRef)
-      || normalizeOptionalTurnRef(currentTurnPresentationState.visibleTurnLifecycle?.turnRef)
-    ),
+    turnId: resolveChatPillTurnId({
+      currentTurnPresentationState,
+      overlayIntent,
+      pendingTurn,
+      visibleTurnLifecycle,
+    }),
   };
 }
 
@@ -221,5 +257,6 @@ export const DesktopChatPillSessionRuntime = Object.freeze({
   buildChatPillLifecycleTraceSnapshot,
   buildChatPillStateTraceSnapshot,
   resolveChatPillSendLifecycle,
+  resolveChatPillTurnId,
   resolveChatPillViewIntent,
 });

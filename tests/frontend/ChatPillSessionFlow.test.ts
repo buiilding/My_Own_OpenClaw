@@ -164,6 +164,69 @@ describe('desktopChatPillSessionRuntime', () => {
     });
   });
 
+  test('falls back through runtime-owned surface turn identities', () => {
+    expect(resolveChatPillViewIntent({
+      currentTurnPresentationState: {
+        activeResponse: null,
+        visibleResponse: null,
+        visibleTurnLifecycle: {
+          status: 'idle',
+          turnRef: null,
+        },
+      },
+      overlayIntent: {
+        turnRef: 'turn-overlay',
+      },
+      pendingTurn: {
+        turnRef: 'turn-pending',
+      },
+      responseOverlayEntries: [],
+      visibleTurnLifecycle: {
+        turnRef: 'turn-lifecycle',
+      },
+    })).toMatchObject({
+      turnId: 'turn-overlay',
+    });
+
+    expect(resolveChatPillViewIntent({
+      currentTurnPresentationState: {
+        activeResponse: null,
+        visibleResponse: null,
+      },
+      overlayIntent: {
+        turnRef: '   ',
+      },
+      pendingTurn: {
+        turnRef: 'turn-pending',
+      },
+      responseOverlayEntries: [],
+      visibleTurnLifecycle: {
+        turnRef: 'turn-lifecycle',
+      },
+    })).toMatchObject({
+      turnId: 'turn-lifecycle',
+    });
+
+    expect(resolveChatPillViewIntent({
+      currentTurnPresentationState: {
+        activeResponse: null,
+        visibleResponse: null,
+      },
+      overlayIntent: {
+        turnRef: null,
+      },
+      pendingTurn: {
+        turnRef: 'turn-pending',
+      },
+      responseOverlayEntries: [],
+      visibleTurnLifecycle: {
+        turnRef: '',
+      },
+    })).toMatchObject({
+      turnId: 'turn-pending',
+    });
+  });
+
   test('returns null turn id without response or lifecycle turn identity', () => {
     const viewIntent = resolveChatPillViewIntent({
       currentTurnPresentationState: {

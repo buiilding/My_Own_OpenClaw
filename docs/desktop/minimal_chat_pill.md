@@ -101,6 +101,10 @@ The chat pill is the small always-available desktop command surface. It is rende
   and chat state, not from a renderer-invoked phase override. Hidden or idle SDK
   startup projections must not clear the pending-turn presentation; active SDK
   awaiting/response or terminal send failure supersedes it.
+- Pill response-overlay turn identity is resolved by
+  `DesktopChatPillSessionRuntime` from SDK response entries, SDK overlay intent,
+  visible lifecycle, or the pending bridge. React hooks pass those surface
+  inputs through instead of rebuilding their own turn-ref fallback chains.
 - `prime-response-overlay-awaiting` / `renderer-send-preflight` are removed from
   the current send preflight path. The first native response window show for
   typing still comes from the renderer's measured `set-responsebox-size` report,
