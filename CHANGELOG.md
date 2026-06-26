@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-stream: remove the unused first-message stream updater helper
+  so chat stream hooks keep only active row-targeting adapters. No migration
+  required.
+- frontend/chat-stream: route stream metadata row targeting through the
+  chat-store app-runtime mutation helper so React stream hooks pass target
+  intent instead of reading workspace message arrays. No migration required.
 - frontend/projection: stop replacing SDK-projected same-turn user rows with
   renderer pending bridge rows; the pending bridge now only fills absent user
   rows, so SDK `attachments[]` remain the sole visible attachment source once

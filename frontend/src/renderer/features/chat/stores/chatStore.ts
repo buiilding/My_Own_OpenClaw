@@ -107,6 +107,7 @@ const {
 const {
   buildAddMessageStateUpdate,
   buildSetMessagesStateUpdate,
+  buildUpdateStreamTargetMessageStateUpdate,
   buildUpdateMessageStateUpdate,
 } = DesktopChatWorkspaceMessageRuntime;
 const {
@@ -255,6 +256,18 @@ interface ChatState {
   addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
   updateMessage: (
     id: string,
+    updates: Partial<ChatMessage>,
+    conversationRef?: string | null,
+  ) => void;
+  updateStreamTargetMessage: (
+    target: {
+      kind: 'last_by_sender';
+      sender: ChatMessage['sender'];
+      turnRef?: string | null;
+    } | {
+      kind: 'last_assistant_llm_text';
+      turnRef?: string | null;
+    },
     updates: Partial<ChatMessage>,
     conversationRef?: string | null,
   ) => void;
@@ -414,6 +427,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
         deps: workspaceMessageStateRuntimeDependencies,
         id,
         state,
+        updates,
+      }) ?? state;
+    }),
+
+  updateStreamTargetMessage: (target, updates, conversationRef) =>
+    set((state) => {
+      return buildUpdateStreamTargetMessageStateUpdate<ChatState, ChatWorkspaceState>({
+        conversationRef,
+        deps: workspaceMessageStateRuntimeDependencies,
+        state,
+        target,
         updates,
       }) ?? state;
     }),

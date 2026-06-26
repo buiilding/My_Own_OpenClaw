@@ -82,6 +82,12 @@ replay/store compatibility adapters and low-level artifact helpers.
 - `updateMessage` updates by id through
   `DesktopChatWorkspaceMessageRuntime.buildUpdateMessageStateUpdate(...)` and
   returns original state when id missing.
+- `updateStreamTargetMessage` applies stream metadata updates to named
+  app-runtime targets such as the last sender row or last assistant LLM-text
+  row. Target lookup lives in
+  `DesktopChatWorkspaceMessageRuntime.buildUpdateStreamTargetMessageStateUpdate(...)`
+  so chat-stream hooks pass target intent instead of reading workspace
+  `messages` to choose row ids.
 - `setMessages` no-op when array reference unchanged; when hydrating a concrete
   conversation workspace, it indexes message `turnRef` values into
   `turnConversationRefs` so later turn-scoped stream events can route even when

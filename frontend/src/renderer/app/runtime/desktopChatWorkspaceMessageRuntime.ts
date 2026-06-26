@@ -5,6 +5,14 @@
 import type {
   ChatMessage,
 } from './desktopChatMessageTypes';
+import {
+  DesktopChatStreamMessageUpdateRuntime,
+} from './desktopChatStreamMessageUpdateRuntime';
+
+const {
+  findLastAssistantLlmTextMessageId,
+  findLastMessageIdBySender,
+} = DesktopChatStreamMessageUpdateRuntime;
 
 type TurnConversationRefs = Record<string, string>;
 
@@ -21,6 +29,17 @@ type WorkspaceMutationTarget<TWorkspace extends MessageWorkspace> = {
 type MessageStateSnapshot = {
   turnConversationRefs: TurnConversationRefs;
 };
+
+type StreamMessageTarget =
+  | {
+      kind: 'last_by_sender';
+      sender: ChatMessage['sender'];
+      turnRef?: string | null;
+    }
+  | {
+      kind: 'last_assistant_llm_text';
+      turnRef?: string | null;
+    };
 
 type MessageStateDependencies<
   TState extends MessageStateSnapshot,
@@ -126,6 +145,58 @@ function buildUpdateMessageStateUpdate<
   } as Partial<TState>);
 }
 
+function resolveStreamMessageTargetId(
+  messages: ChatMessage[],
+  target: StreamMessageTarget,
+): string | null {
+  if (target.kind === 'last_by_sender') {
+    return findLastMessageIdBySender(
+      messages,
+      target.sender,
+      target.turnRef ?? undefined,
+    );
+  }
+  if (target.kind === 'last_assistant_llm_text') {
+    return findLastAssistantLlmTextMessageId(
+      messages,
+      target.turnRef ?? undefined,
+    );
+  }
+  return null;
+}
+
+function buildUpdateStreamTargetMessageStateUpdate<
+  TState extends MessageStateSnapshot,
+  TWorkspace extends MessageWorkspace,
+>({
+  conversationRef = null,
+  deps,
+  state,
+  target,
+  updates,
+}: {
+  conversationRef?: string | null;
+  deps: MessageStateDependencies<TState, TWorkspace>;
+  state: TState;
+  target: StreamMessageTarget;
+  updates: Partial<ChatMessage>;
+}): Partial<TState> | TState | null {
+  const {
+    workspace: currentWorkspace,
+  } = deps.resolveWorkspaceMutationTarget(state, conversationRef);
+  const targetMessageId = resolveStreamMessageTargetId(currentWorkspace.messages, target);
+  if (!targetMessageId) {
+    return null;
+  }
+  return buildUpdateMessageStateUpdate({
+    conversationRef,
+    deps,
+    id: targetMessageId,
+    state,
+    updates,
+  });
+}
+
 function buildSetMessagesStateUpdate<
   TState extends MessageStateSnapshot,
   TWorkspace extends MessageWorkspace,
@@ -168,5 +239,6 @@ function buildSetMessagesStateUpdate<
 export const DesktopChatWorkspaceMessageRuntime = Object.freeze({
   buildAddMessageStateUpdate,
   buildSetMessagesStateUpdate,
+  buildUpdateStreamTargetMessageStateUpdate,
   buildUpdateMessageStateUpdate,
 });

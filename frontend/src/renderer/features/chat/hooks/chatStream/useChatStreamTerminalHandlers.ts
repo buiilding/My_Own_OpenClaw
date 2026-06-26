@@ -3,16 +3,12 @@
  */
 
 import { useCallback } from 'react';
-import { useChatStore } from '../../stores/chatStore';
+import { type ChatMessage, useChatStore } from '../../stores/chatStore';
 import { DesktopChatStreamEventPayloadRuntime } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
-import { DesktopChatStreamMessageUpdateRuntime } from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
 
-const {
-  findLastAssistantLlmTextMessageId,
-} = DesktopChatStreamMessageUpdateRuntime;
 const {
   buildTokenCountsFromPayload,
   resolveConversationStreamEventPayload,
@@ -26,35 +22,41 @@ const {
   resolveConversationStreamEventTurnRefForUpdate,
 } = DesktopChatStreamEventRuntime;
 
+type UpdateStreamTargetMessage = (
+  target: {
+    kind: 'last_assistant_llm_text';
+    turnRef?: string | null;
+  },
+  updates: Partial<ChatMessage>,
+  conversationRef?: string | null,
+) => void;
+
 type UseChatStreamTerminalHandlersDeps = {
   recordTrackingEvent: TrackEventFn<'token-count' | 'error'>;
+  updateStreamTargetMessage: UpdateStreamTargetMessage;
 };
 
 export function useChatStreamTerminalHandlers({
   recordTrackingEvent,
+  updateStreamTargetMessage,
 }: UseChatStreamTerminalHandlersDeps) {
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
-  const updateMessage = useChatStore((state) => state.updateMessage);
 
   const handleTokenCount = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
     const eventConversationRef = conversationRef ?? resolveConversationStreamEventConversationRef(event);
     const turnRef = resolveConversationStreamEventTurnRef(event);
     const tokenCounts = buildTokenCountsFromPayload(resolveConversationStreamEventPayload(event));
-    const workspace = useChatStore.getState().getWorkspaceState(eventConversationRef);
     setTokenCounts(tokenCounts, eventConversationRef);
-    const assistantMessageId = findLastAssistantLlmTextMessageId(
-      workspace.messages,
-      resolveConversationStreamEventTurnRefForUpdate(event),
-    );
-    if (assistantMessageId) {
-      updateMessage(assistantMessageId, {
-        tokenCounts,
-      }, eventConversationRef);
-    }
+    updateStreamTargetMessage({
+      kind: 'last_assistant_llm_text',
+      turnRef: resolveConversationStreamEventTurnRefForUpdate(event),
+    }, {
+      tokenCounts,
+    }, eventConversationRef);
     recordTrackingEvent('token-count', turnRef, undefined, eventConversationRef);
   }, [
     setTokenCounts,
-    updateMessage,
+    updateStreamTargetMessage,
     recordTrackingEvent,
   ]);
 

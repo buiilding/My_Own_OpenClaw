@@ -1391,6 +1391,7 @@ describe('renderer chat runtime boundary', () => {
       expect(source).not.toContain('export function findLastMessageIdBySender');
       expect(source).not.toContain('export function findLastAssistantLlmTextMessageId');
       expect(source).not.toContain('export function findFirstMessageIdBySender');
+      expect(source).not.toContain('function findFirstMessageIdBySender');
       expect(source).not.toContain('export function buildSystemPromptUpdate');
       expect(source).not.toContain('export function buildUserMessageFullUpdate');
       expect(source).not.toContain('export function buildAssistantMessageFullUpdate');
@@ -1592,12 +1593,23 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/chatStream/useChatStreamTerminalHandlers.ts'),
       'utf8',
     );
+    const streamUpdaterSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/chatStream/useStreamMessageUpdaters.ts'),
+      'utf8',
+    );
 
     expect(source).not.toContain("recordTrackingEvent('streaming-complete'");
     expect(source).not.toContain('setIsSending(');
     expect(source).not.toContain('setThinkingStatus(');
     expect(source).not.toContain('setThinkingSourceEventType(');
     expect(source).not.toContain('rawEvent');
+    expect(source).not.toContain('getWorkspaceState');
+    expect(source).not.toContain('findLastAssistantLlmTextMessageId');
+    expect(source).toContain('updateStreamTargetMessage');
+    expect(streamUpdaterSource).not.toContain('useChatStore');
+    expect(streamUpdaterSource).not.toContain('getWorkspaceState');
+    expect(streamUpdaterSource).not.toContain('findLastMessageIdBySender');
+    expect(streamUpdaterSource).toContain('updateStreamTargetMessage');
     expect(source).toContain("recordTrackingEvent('token-count'");
     expect(source).not.toContain("recordTrackingEvent('memory-store'");
   });
@@ -3331,6 +3343,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('DesktopChatWorkspaceMessageRuntime');
     expect(chatStoreSource).toContain('buildAddMessageStateUpdate');
     expect(chatStoreSource).toContain('buildUpdateMessageStateUpdate');
+    expect(chatStoreSource).toContain('buildUpdateStreamTargetMessageStateUpdate');
     expect(chatStoreSource).toContain('buildSetMessagesStateUpdate');
     expect(chatStoreSource).not.toContain('existingMessageIndex');
     expect(chatStoreSource).not.toContain('currentWorkspace.messages.findIndex');
@@ -3399,6 +3412,7 @@ describe('renderer chat runtime boundary', () => {
     expect(clearMessagesRuntimeSource).not.toContain('features/chat');
     expect(workspaceMessageRuntimeSource).toContain('buildAddMessageStateUpdate');
     expect(workspaceMessageRuntimeSource).toContain('buildUpdateMessageStateUpdate');
+    expect(workspaceMessageRuntimeSource).toContain('buildUpdateStreamTargetMessageStateUpdate');
     expect(workspaceMessageRuntimeSource).toContain('buildSetMessagesStateUpdate');
     expect(workspaceMessageRuntimeSource).toContain('existingMessageIndex');
     expect(workspaceMessageRuntimeSource).not.toContain('features/chat');

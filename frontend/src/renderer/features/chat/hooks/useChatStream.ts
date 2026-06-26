@@ -56,7 +56,7 @@ const {
 
 export function useChatStream(enableTranscript: boolean = true) {
   const {
-    updateMessage,
+    updateStreamTargetMessage,
     setIsSending,
     setThinkingStatus,
     setThinkingSourceEventType,
@@ -103,7 +103,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   const {
     updateLastMessageBySender,
     updateLastAssistantLlmTextMessage,
-  } = useStreamMessageUpdaters(updateMessage);
+  } = useStreamMessageUpdaters(updateStreamTargetMessage);
 
   const {
     handleContextCompactionStarted,
@@ -151,6 +151,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleTokenCount,
   } = useChatStreamTerminalHandlers({
     recordTrackingEvent,
+    updateStreamTargetMessage,
   });
 
   const dispatchConversationEvent = useCallback((

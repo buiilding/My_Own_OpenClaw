@@ -84,14 +84,6 @@ function findLastAssistantLlmTextMessageId(
   return lastMessage ? lastMessage.id : null;
 }
 
-function findFirstMessageIdBySender(
-  messages: ChatStreamMessageTarget[],
-  sender: string,
-): string | null {
-  const firstMessage = messages.find((message) => message.sender === sender);
-  return firstMessage ? firstMessage.id : null;
-}
-
 function buildSystemPromptUpdate(payload: SystemPromptPayload | null | undefined) {
   return {
     content: normalizeIncomingText(payload?.content),
@@ -119,7 +111,6 @@ export const DesktopChatStreamMessageUpdateRuntime = Object.freeze({
   buildToolSchemasUpdate,
   findLastMessageIdBySender,
   findLastAssistantLlmTextMessageId,
-  findFirstMessageIdBySender,
   buildSystemPromptUpdate,
   buildUserMessageFullUpdate,
   buildAssistantMessageFullUpdate,

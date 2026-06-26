@@ -7,6 +7,7 @@ import { DesktopChatWorkspaceMessageRuntime } from '../../frontend/src/renderer/
 const {
   buildAddMessageStateUpdate,
   buildSetMessagesStateUpdate,
+  buildUpdateStreamTargetMessageStateUpdate,
   buildUpdateMessageStateUpdate,
 } = DesktopChatWorkspaceMessageRuntime;
 
@@ -179,6 +180,77 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
         workspaces: {
           'conv-1': workspace,
         },
+      },
+      updates: { text: 'new' },
+    })).toBeNull();
+    expect(deps.buildWorkspaceUpdate).not.toHaveBeenCalled();
+  });
+
+  test('buildUpdateStreamTargetMessageStateUpdate updates the selected stream target', () => {
+    const workspace = {
+      messages: [
+        { id: 'user-1', sender: 'user' as const, text: 'first', turnRef: 'turn-1' },
+        { id: 'assistant-1', sender: 'assistant' as const, type: 'llm-text', text: 'one', turnRef: 'turn-1' },
+        { id: 'assistant-tool', sender: 'assistant' as const, type: 'tool-output', text: 'tool', turnRef: 'turn-2' },
+        { id: 'assistant-2', sender: 'assistant' as const, type: 'llm-text', text: 'two', turnRef: 'turn-2' },
+      ],
+    };
+    const state = {
+      turnConversationRefs: {},
+      workspaces: {
+        'conv-1': workspace,
+      },
+    };
+    const deps = createDeps(workspace);
+
+    const nextState = buildUpdateStreamTargetMessageStateUpdate({
+      deps,
+      state,
+      target: {
+        kind: 'last_assistant_llm_text',
+        turnRef: 'turn-2',
+      },
+      updates: {
+        tokenCounts: {
+          usage_source: 'provider',
+          total_tokens: 42,
+        },
+      },
+    });
+
+    expect(nextState.workspaces['conv-1'].messages).toEqual([
+      workspace.messages[0],
+      workspace.messages[1],
+      workspace.messages[2],
+      expect.objectContaining({
+        id: 'assistant-2',
+        tokenCounts: {
+          usage_source: 'provider',
+          total_tokens: 42,
+        },
+      }),
+    ]);
+  });
+
+  test('buildUpdateStreamTargetMessageStateUpdate no-ops when no stream target matches', () => {
+    const workspace = {
+      messages: [
+        { id: 'assistant-tool', sender: 'assistant' as const, type: 'tool-output', text: 'tool', turnRef: 'turn-2' },
+      ],
+    };
+    const deps = createDeps(workspace);
+
+    expect(buildUpdateStreamTargetMessageStateUpdate({
+      deps,
+      state: {
+        turnConversationRefs: {},
+        workspaces: {
+          'conv-1': workspace,
+        },
+      },
+      target: {
+        kind: 'last_by_sender',
+        sender: 'user',
       },
       updates: { text: 'new' },
     })).toBeNull();

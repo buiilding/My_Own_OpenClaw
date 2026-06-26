@@ -9,7 +9,6 @@ const {
   buildSystemPromptUpdate,
   buildUserMessageFullUpdate,
   findLastAssistantLlmTextMessageId,
-  findFirstMessageIdBySender,
   findLastMessageIdBySender,
 } = DesktopChatStreamMessageUpdateRuntime;
 
@@ -22,15 +21,12 @@ describe('desktopChatStreamMessageUpdateRuntime', () => {
     { id: 'a3', sender: 'assistant', text: 'three', type: 'llm-text', isComplete: false, turnRef: 'turn-2' },
   ] as any;
 
-  test('findLastMessageIdBySender and findFirstMessageIdBySender select expected ids', () => {
-    expect(findFirstMessageIdBySender(messages, 'user')).toBe('u1');
+  test('findLastMessageIdBySender selects expected ids', () => {
     expect(findLastMessageIdBySender(messages, 'user')).toBe('u2');
-    expect(findFirstMessageIdBySender(messages, 'assistant')).toBe('a1');
     expect(findLastMessageIdBySender(messages, 'assistant')).toBe('a3');
     expect(findLastMessageIdBySender(messages, 'assistant', 'turn-1')).toBe('a1');
     expect(findLastMessageIdBySender(messages, 'assistant', 'turn-3')).toBeNull();
     expect(findLastAssistantLlmTextMessageId(messages, 'turn-2')).toBe('a3');
-    expect(findFirstMessageIdBySender([], 'assistant')).toBeNull();
   });
 
   test('payload update builders normalize missing or non-string content', () => {
