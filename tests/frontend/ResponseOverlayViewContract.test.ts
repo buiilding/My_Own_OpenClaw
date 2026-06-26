@@ -165,6 +165,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
       }),
     ]);
     expect(state.traceState).not.toHaveProperty('currentTurnProjection');
+    expect(state.traceState).not.toHaveProperty('conversationView');
     expect(state.projectionInput.currentTurnProjection).toBeNull();
     expect(state.thinkingText).toBe('');
     expect(state.useLocalPendingTurn).toBe(false);

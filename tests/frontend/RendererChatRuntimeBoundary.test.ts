@@ -2943,6 +2943,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts'),
       'utf8',
     );
+    const responseViewRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResponseOverlayViewRuntime.ts'),
+      'utf8',
+    );
     const layoutRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js'),
       'utf8',
@@ -2992,6 +2996,7 @@ describe('renderer chat runtime boundary', () => {
     expect(viewModelSource).not.toContain('resolveVisibleTurnLifecycle');
     expect(viewModelSource).not.toContain('resolveLiveTurnPresentationInput');
     expect(viewModelSource).not.toContain('conversationView = null');
+    expect(responseViewRuntimeSource).not.toContain('traceState: {\n      conversationView,');
     expect(viewModelSource).not.toContain('currentTurnProjection = null');
     expect(viewModelSource).not.toContain('pendingTurn = null');
     expect(viewModelSource).not.toContain('effectiveCurrentTurnProjection');

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/trace: stop carrying `ConversationView` through response overlay
+  view-model trace state; overlay traces now receive only projected lifecycle,
+  overlay intent, phase, and pending bridge inputs. No migration required.
 - frontend/trace: remove raw `currentTurnProjection` fallback identity from
   response overlay view-model traces; projected lifecycle, overlay intent,
   phase, and pending bridge inputs now own the trace payload. No migration

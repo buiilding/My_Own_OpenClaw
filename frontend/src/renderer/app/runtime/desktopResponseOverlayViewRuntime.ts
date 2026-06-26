@@ -138,7 +138,6 @@ function resolveResponseOverlaySurfaceState({
       recordFromUnknown(currentTurnProjection).reasoningText,
     ),
     traceState: {
-      conversationView,
       pendingTurn,
     },
     useLocalPendingTurn,
