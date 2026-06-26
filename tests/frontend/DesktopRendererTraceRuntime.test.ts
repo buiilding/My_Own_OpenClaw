@@ -732,6 +732,38 @@ describe('desktopRendererTraceRuntime', () => {
     });
   });
 
+  test('prefers pending bridge trace identity over stale raw current-turn projection', () => {
+    expect(buildRendererOverlayViewModelTracePayload({
+      currentTurnProjection: {
+        conversationRef: ' conv-stale ',
+        turnRef: ' turn-stale ',
+        phase: ' streaming ',
+      },
+      pendingTurn: {
+        conversationRef: ' conv-pending ',
+        turnRef: ' turn-pending ',
+        userMessageId: ' user-pending ',
+      },
+      currentTurnPhase: 'awaiting',
+      responseOverlayEntries: [],
+      viewIntent: {
+        awaitingVisible: true,
+        responseVisible: false,
+        visibleResponse: null,
+        latestResponseOverlayEntryId: null,
+      },
+      useSdkLiveTurnPresentation: false,
+      useLocalPendingTurn: true,
+    })).toEqual(expect.objectContaining({
+      turnRef: 'turn-pending',
+      conversationRef: 'conv-pending',
+      guardRef: 'turn-pending',
+      pendingTurnRef: 'turn-pending',
+      phase: 'awaiting',
+      useLocalPendingTurn: true,
+    }));
+  });
+
   test('resolves response overlay view-model trace event labels and reasons', () => {
     expect(buildRendererOverlayTypingTraceEvent({
       awaitingVisible: true,

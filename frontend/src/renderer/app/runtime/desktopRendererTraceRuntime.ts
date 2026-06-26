@@ -836,25 +836,27 @@ function buildRendererOverlayViewModelTracePayload(
   const visibleLifecycleTurnRef = traceString(visibleTurnLifecycle?.turnRef);
   const visibleLifecycleConversationRef = traceString(visibleTurnLifecycle?.conversationRef);
   const projectionTurnRef = traceString(currentTurnProjection?.turnRef);
+  const pendingTurnRef = traceString(pendingTurn?.turnRef);
+  const pendingConversationRef = traceString(pendingTurn?.conversationRef);
   const overlayIntentTurnRef = traceString(overlayIntent?.turnRef);
   return {
     source: 'renderer-overlay-view-model',
     turnRef: (
       visibleLifecycleTurnRef
       || overlayIntentTurnRef
+      || pendingTurnRef
       || projectionTurnRef
-      || traceString(pendingTurn?.turnRef)
       || null
     ),
     conversationRef: (
       visibleLifecycleConversationRef
       || traceString(overlayIntent?.conversationRef)
+      || pendingConversationRef
       || traceString(currentTurnProjection?.conversationRef)
-      || traceString(pendingTurn?.conversationRef)
       || null
     ),
     phase: traceString(values.currentTurnPhase) || traceString(currentTurnProjection?.phase) || null,
-    pendingTurnRef: traceString(pendingTurn?.turnRef) || null,
+    pendingTurnRef: pendingTurnRef || null,
     pendingUserMessageId: traceString(pendingTurn?.userMessageId) || null,
     visibleLifecycleStatus: traceString(visibleTurnLifecycle?.status) || null,
     visibleLifecycleSource: traceString(visibleTurnLifecycle?.source) || null,
@@ -868,6 +870,7 @@ function buildRendererOverlayViewModelTracePayload(
       traceString(overlayIntent?.staleGuardRef)
       || overlayIntentTurnRef
       || visibleLifecycleTurnRef
+      || pendingTurnRef
       || projectionTurnRef
       || null
     ),
