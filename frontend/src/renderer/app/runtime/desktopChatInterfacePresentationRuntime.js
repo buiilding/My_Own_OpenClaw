@@ -29,6 +29,7 @@ function buildChatInterfacePresentationState({
   rendererAnnotations = [],
 } = {}) {
   const hasConversationView = isConversationView(conversationView);
+  const effectiveCurrentTurnProjection = hasConversationView ? null : currentTurnProjection;
   const baseMessages = hasConversationView
     ? buildConversationViewChatMessages({
       conversationView,
@@ -40,7 +41,7 @@ function buildChatInterfacePresentationState({
   return {
     renderedMessages: buildThreadPresentationMessages(baseMessages, {
       conversationView,
-      currentTurnProjection,
+      currentTurnProjection: effectiveCurrentTurnProjection,
       activeConversationRef,
     }),
     canEditMessages: hasConversationView

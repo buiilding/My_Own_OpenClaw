@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: make the ChatInterface presentation adapter drop raw
+  current-turn projection input whenever `ConversationView` exists, even when
+  the view has no live rows. No migration required.
 - frontend/tests: lock the send-preparation and pending-turn bridge boundary so
   renderer code cannot reintroduce display attachment lifecycle projection
   beside SDK-owned `attachments[]`. No migration required.

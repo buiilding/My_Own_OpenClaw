@@ -257,6 +257,54 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     ]));
   });
 
+  test('does not fall back to raw current-turn rows when ConversationView live rows are empty', () => {
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [{
+          id: 'user-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-view',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'view prompt',
+        }],
+        liveTurn: {
+          turnRef: 'turn-view',
+          entries: [],
+        },
+        actions: {
+          canEdit: true,
+          canRetry: true,
+        },
+      },
+      currentTurnProjection: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-stale',
+        phase: 'streaming',
+        assistantText: 'stale raw answer',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      },
+      messages: [],
+    });
+
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'user-row',
+        text: 'view prompt',
+      }),
+    ]);
+    expect(state.renderedMessages).toEqual(expect.not.arrayContaining([
+      expect.objectContaining({
+        text: 'stale raw answer',
+      }),
+    ]));
+  });
+
   test('resolves a conversation view store target ref', () => {
     expect(resolveConversationViewStoreRef({
       activeConversationRef: 'conv-1',

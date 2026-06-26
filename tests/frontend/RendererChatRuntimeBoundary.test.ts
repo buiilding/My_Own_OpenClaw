@@ -3334,6 +3334,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).toContain('buildThreadPresentationMessages');
     expect(chatInterfacePresentationRuntimeSource).toContain('DesktopConversationDisplayProjection');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildConversationViewChatMessages');
+    expect(chatInterfacePresentationRuntimeSource).toContain('const effectiveCurrentTurnProjection = hasConversationView ? null : currentTurnProjection');
+    expect(chatInterfacePresentationRuntimeSource).toContain('currentTurnProjection: effectiveCurrentTurnProjection');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('selectRendererMessageAnnotations');
     expect(chatInterfacePresentationRuntimeSource).toContain('rendererAnnotations = []');
     expect(chatInterfacePresentationRuntimeSource).toContain('rendererAnnotations,');
