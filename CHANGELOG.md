@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: update the minimal chat pill pending-bridge description to
+  match the enforced identity/text/timestamp-only contract; attachment filenames
+  stay in SDK resource materialization, not renderer pending rows. No migration
+  required.
 - frontend/pill: move response-overlay turn-id fallback precedence into
   `DesktopChatPillSessionRuntime`, so the minimal-pill hook passes SDK surface
   identity and pending-bridge inputs through instead of composing renderer-local

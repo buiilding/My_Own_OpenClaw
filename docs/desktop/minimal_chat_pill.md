@@ -92,11 +92,11 @@ The chat pill is the small always-available desktop command surface. It is rende
   is explicitly cleared after send failure.
 - User-provided image attachments that already exist in the composer are passed
   as SDK turn resources while the pending bridge carries only identity, text,
-  timestamp, and filename chips. The dashboard should render visual attachments
-  from SDK `attachments[]` display rows once resource materialization projects
-  them, not from renderer-owned inline screenshot descriptors on the pending
-  row. Auto-capture screenshots follow the same SDK resource path and render
-  after SDK materialization emits artifact-backed screenshot metadata.
+  and timestamp. The dashboard should render visual attachments from SDK
+  `attachments[]` display rows once resource materialization projects them, not
+  from renderer-owned inline screenshot descriptors or filename metadata on the
+  pending row. Auto-capture screenshots follow the same SDK resource path and
+  render after SDK materialization emits artifact-backed screenshot metadata.
 - The response overlay renderer resolves local pre-SDK waiting from pending-turn
   and chat state, not from a renderer-invoked phase override. Hidden or idle SDK
   startup projections must not clear the pending-turn presentation; active SDK
