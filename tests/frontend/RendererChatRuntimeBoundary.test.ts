@@ -3017,6 +3017,7 @@ describe('renderer chat runtime boundary', () => {
     expect(viewModelSource).not.toContain('conversationView = null');
     expect(responseViewRuntimeSource).not.toContain('traceState');
     expect(responseViewRuntimeSource).not.toContain('projectionInput');
+    expect(responseViewRuntimeSource).not.toContain('conversationView ? null : surfaceState.sdkLiveTurn');
     expect(viewModelSource).not.toContain('currentTurnProjection');
     expect(viewModelSource).not.toContain('currentTurnProjection = null');
     expect(viewModelSource).not.toContain('pendingTurn = null');

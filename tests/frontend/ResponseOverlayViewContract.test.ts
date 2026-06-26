@@ -149,13 +149,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
             },
           },
         },
-        sdkLiveTurn: {
-          conversationRef: 'conv-raw',
-          turnRef: 'turn-raw',
-          phase: 'streaming',
-          assistantText: 'from raw projection',
-          reasoningText: 'raw thinking',
-        },
+        sdkLiveTurn: null,
       },
     });
 

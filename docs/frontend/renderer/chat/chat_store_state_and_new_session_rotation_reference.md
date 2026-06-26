@@ -237,14 +237,14 @@ bridge remains available, and renderer-only feedback/transparency/token
 metadata is carried separately as `rendererAnnotations` for display-row
 annotation merge.
 
-Surface, interface presentation, and send-read-model selector adapters consume
-that read model as their input contract. They should not rederive renderer
-annotations from raw messages or independently choose between `messages`,
-`currentTurnProjection`, and `ConversationView`; that choice belongs to the
-workspace read-model runtime. Selected surface state passes through the no-view
-live-turn fallback as `sdkLiveTurn`, not `currentTurnProjection`, so dashboard,
-pill, and response-overlay consumers receive SDK live-turn intent without
-reopening the raw workspace field. When `ConversationView` exists,
+Surface, response-overlay, interface presentation, and send-read-model selector
+adapters consume that read model as their input contract. They should not
+rederive renderer annotations from raw messages or independently choose between
+`messages`, `currentTurnProjection`, and `ConversationView`; that choice belongs
+to the workspace read-model runtime. Selected surface state passes through the
+no-view live-turn fallback as `sdkLiveTurn`, not `currentTurnProjection`, so
+dashboard, pill, and response-overlay consumers receive SDK live-turn intent
+without reopening the raw workspace field. When `ConversationView` exists,
 `sdkLiveTurn` is `null` and raw messages have already been replaced by the
 stable empty list before those adapters run; the view plus pending bridge own
 visible lifecycle and stop authority.

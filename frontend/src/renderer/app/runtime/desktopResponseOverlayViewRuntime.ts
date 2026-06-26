@@ -101,7 +101,7 @@ function resolveResponseOverlaySurfaceState({
   const conversationView = isConversationView(surfaceState.conversationView)
     ? surfaceState.conversationView
     : null;
-  const sdkLiveTurn = conversationView ? null : surfaceState.sdkLiveTurn ?? null;
+  const sdkLiveTurn = surfaceState.sdkLiveTurn ?? null;
   const pendingTurn = surfaceState.pendingTurn ?? null;
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
     conversationView,
