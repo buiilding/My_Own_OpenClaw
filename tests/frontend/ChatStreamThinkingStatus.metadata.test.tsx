@@ -235,6 +235,7 @@ describe('useChatStream message metadata handling', () => {
         id: 'tool-bad',
         kind: 'tool_call',
         toolName: 'run_shell_command',
+        text: '{"id":"tool_bad","name":"run_shell_command","arguments":"{\\"command\\":\\"cat > index.html << \\\\\\"EOF\\\\\\"\\"}...[truncated]"}',
         toolArguments: {},
         toolMetadata: {},
         toolDisplayMetadata: {},
@@ -255,7 +256,7 @@ describe('useChatStream message metadata handling', () => {
     const toolCallMessage = messages.at(-1);
     expect(toolCallMessage).toEqual(expect.objectContaining({
       type: 'tool-call',
-      toolCallDisplayText: expect.stringContaining('"name":"run_shell_command"'),
+      toolCallDisplayText: '{"id":"tool_bad","name":"run_shell_command","arguments":"{\\"command\\":\\"cat > index.html << \\\\\\"EOF\\\\\\"\\"}...[truncated]"}',
     }));
     expect(toolCallMessage).not.toHaveProperty('modelFacingToolCall');
     expect(toolCallMessage?.text).toBe(
@@ -275,6 +276,14 @@ describe('useChatStream message metadata handling', () => {
         id: 'tool-raw-2',
         kind: 'tool_call',
         toolName: 'run_shell_command',
+        text: JSON.stringify({
+          name: 'run_shell_command',
+          arguments: {
+            explanation: 'Create a temporary test file to test the replace tool',
+            command: "echo 'Original text to replace' > /tmp/test_replace.txt",
+          },
+          execution_skipped: true,
+        }, null, 2),
         modelFacingToolCall: {
           id: 'tool_raw_2',
           name: 'run_shell_command',
@@ -331,6 +340,15 @@ describe('useChatStream message metadata handling', () => {
         id: 'tool-validation',
         kind: 'tool_call',
         toolName: 'mouse_control',
+        text: JSON.stringify({
+          name: 'mouse_control',
+          arguments: {
+            action: 'click',
+            x: 100,
+            y: 200,
+          },
+          execution_skipped: true,
+        }, null, 2),
         toolArguments: {
           action: 'click',
           x: 100,

@@ -8,9 +8,7 @@ import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttach
 import { DesktopSdkToolDetailProjection } from './desktopSdkToolDetailProjection';
 
 const {
-  buildToolBundleMessageState,
   buildToolCallChatMessageState,
-  buildToolCallMessageState,
   buildToolOutputChatMessageState,
 } = DesktopChatMessageRuntimeClient;
 const {
@@ -38,10 +36,6 @@ function readString(value) {
   return typeof value === 'string' ? value : null;
 }
 
-function readArray(value) {
-  return Array.isArray(value) ? value : null;
-}
-
 function normalizeText(value) {
   return typeof value === 'string' && value.trim() ? value : '';
 }
@@ -61,53 +55,16 @@ function buildProjectedToolCallMessage({
 }) {
   const toolCallDetails = asObject(toolEvent.toolCallDetails);
   const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);
-  const metadata = asObject(toolEvent.toolDisplayMetadata) || asObject(toolEvent.toolMetadata);
-  const args = asObject(toolEvent.toolArguments);
   const toolName = readString(toolEvent.toolName) || '';
-  const requestId = readString(toolEvent.requestId);
   const correlationId = readString(toolEvent.correlationId);
-
-  if (toolName === 'tool_bundle' || readArray(toolEvent.toolCalls) || readArray(toolCallDetails?.tools)) {
-    const bundlePayload = {
-      ...(toolCallDetails || {}),
-      toolCalls: readArray(toolEvent.toolCalls),
-      tools: readArray(toolCallDetails?.tools),
-    };
-    const bundleState = buildToolBundleMessageState(bundlePayload);
-    return buildToolCallChatMessageState({
-      id: `${baseId}:tool:${toolEvent.id}`,
-      text: bundleState.text,
-      toolCallDisplayText: bundleState.toolCallDisplayText,
-      toolCallDetails: sanitizeSdkToolDetailRecord(bundleState.toolCallDetails),
-      correlationId: bundleState.correlationId ?? null,
-      sourceEventType: toolEvent.kind,
-      sourceChannel: sdkCurrentTurnSourceChannel,
-      turnRef: turnRef || undefined,
-    });
-  }
-
-  const toolCallState = buildToolCallMessageState({
-    rawContent: readString(toolEvent.text),
-    rawToolCall: null,
-    fallbackToolName: toolName || null,
-    fallbackToolCallId: requestId,
-    fallbackArguments: args,
-    metadata,
-    toolCallValidationFailed: toolEvent.toolCallValidationFailed === true,
-    rawToolCallPreview: readString(toolEvent.rawToolCallPreview),
-    rawArgumentsPreview: readString(toolEvent.rawArgumentsPreview),
-    parseError: readString(toolEvent.parseError),
-    executionSkipped: toolEvent.executionSkipped === true,
-    toolCallDetails: displayToolCallDetails,
-    correlationId,
-  });
+  const text = normalizeText(toolEvent.text) || (toolName ? `Using ${toolName}` : 'Using tool');
 
   return buildToolCallChatMessageState({
     id: `${baseId}:tool:${toolEvent.id}`,
-    text: toolCallState.text,
-    toolCallDisplayText: toolCallState.toolCallDisplayText,
-    toolCallDetails: toolCallState.toolCallDetails ?? null,
-    correlationId: toolCallState.correlationId ?? null,
+    text,
+    toolCallDisplayText: text,
+    toolCallDetails: displayToolCallDetails,
+    correlationId: correlationId ?? null,
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
     turnRef: turnRef || undefined,
@@ -332,46 +289,14 @@ function buildToolCallMessage(entry, liveTurnContext) {
   const text = normalizeText(entry.text);
   const toolDetails = asRecord(entry.toolCallDetails);
   const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);
-  if (toolName === 'tool_bundle' || Array.isArray(entry.toolCalls) || Array.isArray(toolDetails?.tools)) {
-    const bundlePayload = {
-      ...(toolDetails || {}),
-      toolCalls: Array.isArray(entry.toolCalls) ? entry.toolCalls : null,
-      tools: Array.isArray(toolDetails?.tools) ? toolDetails.tools : null,
-    };
-    const bundleState = buildToolBundleMessageState(bundlePayload);
-    return buildToolCallChatMessageState({
-      ...buildBaseMessageFields(entry, liveTurnContext),
-      text: bundleState.text || text,
-      toolCallDisplayText: bundleState.toolCallDisplayText || text,
-      toolCallDetails: sanitizeSdkToolDetailRecord(bundleState.toolCallDetails) ?? displayToolDetails,
-      correlationId: bundleState.correlationId ?? null,
-    });
-  }
-
-  const args = asRecord(entry.toolArguments) || null;
-  const metadata = asRecord(entry.toolDisplayMetadata) || asRecord(entry.toolMetadata);
-  const toolCallState = buildToolCallMessageState({
-    rawContent: text || null,
-    rawToolCall: null,
-    fallbackToolName: toolName,
-    fallbackToolCallId: normalizeOptionalText(entry.requestId),
-    fallbackArguments: args,
-    metadata,
-    toolCallValidationFailed: entry.toolCallValidationFailed === true,
-    rawToolCallPreview: normalizeOptionalText(entry.rawToolCallPreview),
-    rawArgumentsPreview: normalizeOptionalText(entry.rawArgumentsPreview),
-    parseError: normalizeOptionalText(entry.parseError),
-    executionSkipped: entry.executionSkipped === true,
-    toolCallDetails: displayToolDetails,
-    correlationId: normalizeOptionalText(entry.correlationId),
-  });
+  const displayText = text || (toolName ? `Using ${toolName}` : 'Using tool');
 
   return buildToolCallChatMessageState({
     ...buildBaseMessageFields(entry, liveTurnContext),
-    text: toolCallState.text || text,
-    toolCallDisplayText: toolCallState.toolCallDisplayText || text,
-    toolCallDetails: toolCallState.toolCallDetails ?? displayToolDetails,
-    correlationId: toolCallState.correlationId ?? null,
+    text: displayText,
+    toolCallDisplayText: displayText,
+    toolCallDetails: displayToolDetails,
+    correlationId: normalizeOptionalText(entry.correlationId),
   });
 }
 

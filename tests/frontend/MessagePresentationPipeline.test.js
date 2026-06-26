@@ -383,7 +383,7 @@ describe('desktopThreadPresentationRuntime', () => {
         entries: [{
           id: 'conv-1:turn-1:tool:tool-1',
           type: 'tool-call',
-          text: '',
+          text: 'Using read_file for README.md',
           sourceEventType: 'tool_call',
           sourceChannel: 'sdk:current-turn',
           turnRef: 'turn-1',
@@ -440,8 +440,8 @@ describe('desktopThreadPresentationRuntime', () => {
     expect(rendered[1]).toEqual(expect.objectContaining({
       sender: 'assistant',
       type: 'tool-call',
-      text: expect.stringContaining('"name": "read_file"'),
-      toolCallDisplayText: expect.stringContaining('"path": "README.md"'),
+      text: 'Using read_file for README.md',
+      toolCallDisplayText: 'Using read_file for README.md',
       correlationId: 'corr-read',
       toolCallDetails: {
         displaySource: 'sdk-entry-details',
@@ -548,7 +548,7 @@ describe('desktopThreadPresentationRuntime', () => {
         entries: [{
           id: 'conv-1:turn-1:tool:tool-1',
           type: 'tool-call',
-          text: '',
+          text: 'Using read_file for README.md',
           sourceEventType: 'tool_call',
           sourceChannel: 'sdk:current-turn',
           turnRef: 'turn-1',
@@ -584,8 +584,8 @@ describe('desktopThreadPresentationRuntime', () => {
     expect(rendered[1]).toEqual(expect.objectContaining({
       sender: 'assistant',
       type: 'tool-call',
-      text: expect.stringContaining('"name": "read_file"'),
-      toolCallDisplayText: expect.stringContaining('"path": "README.md"'),
+      text: 'Using read_file for README.md',
+      toolCallDisplayText: 'Using read_file for README.md',
       correlationId: 'corr-read',
     }));
     expect(rendered[1]).not.toHaveProperty('modelFacingToolCall');
@@ -606,6 +606,7 @@ describe('desktopThreadPresentationRuntime', () => {
         entries: [{
           id: 'view-entry-tool-row',
           type: 'tool-call',
+          text: 'Using read_file',
           sourceEventType: 'tool_call',
           sourceChannel: 'sdk:current-turn',
           turnRef: 'turn-1',
@@ -623,7 +624,7 @@ describe('desktopThreadPresentationRuntime', () => {
     expect(rendered[1]).toEqual(expect.objectContaining({
       sender: 'assistant',
       type: 'tool-call',
-      toolCallDisplayText: expect.stringContaining('"name": "read_file"'),
+      toolCallDisplayText: 'Using read_file',
     }));
     expect(rendered[1]).not.toHaveProperty('modelFacingToolCall');
     expect(rendered[1].text).not.toContain('view-entry-tool-row');
@@ -714,6 +715,7 @@ describe('desktopThreadPresentationRuntime', () => {
         entries: [{
           id: 'conv-1:turn-1:tool:tool-1',
           type: 'tool-call',
+          text: 'Using read_file for README.md',
           sourceEventType: 'tool_call',
           sourceChannel: 'sdk:current-turn',
           turnRef: 'turn-1',
@@ -734,7 +736,7 @@ describe('desktopThreadPresentationRuntime', () => {
       expect.objectContaining({
         id: 'conv-1:turn-1:tool:tool-1',
         type: 'tool-call',
-        toolCallDisplayText: expect.stringContaining('"name": "read_file"'),
+        toolCallDisplayText: 'Using read_file for README.md',
       }),
     ]);
   });

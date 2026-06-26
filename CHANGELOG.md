@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: render live tool-call rows from SDK-provided entry text
+  instead of rebuilding display JSON from tool arguments and recovery metadata
+  in the current-turn adapter. No migration required.
 - frontend/live-turn: render legacy no-view tool outputs from SDK-provided
   `toolEvent.text` instead of reconstructing display text from
   `toolOutputDetails` result payloads. No migration required.

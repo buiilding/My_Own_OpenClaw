@@ -266,6 +266,7 @@ describe('ChatBoxResponse state behavior', () => {
         toolName: 'read_file',
         requestId: 'req-read',
         correlationId: 'corr-read',
+        text: 'Using read_file for README.md',
         modelFacingToolCall: {
           id: 'call-read',
           name: 'read_file',
@@ -293,10 +294,10 @@ describe('ChatBoxResponse state behavior', () => {
     const toolMessage = messages.find(message => message.type === 'tool-call');
     expect(toolMessage).toEqual(expect.objectContaining({
       correlationId: 'corr-read',
-      toolCallDisplayText: expect.stringContaining('"path": "README.md"'),
+      text: 'Using read_file for README.md',
+      toolCallDisplayText: 'Using read_file for README.md',
     }));
     expect(toolMessage).not.toHaveProperty('modelFacingToolCall');
-    expect(toolMessage.text).toContain('"name": "read_file"');
     expect(toolMessage.text).not.toContain('wrong_backend_tool');
     expect(toolMessage.text).not.toContain('wrong.md');
   });

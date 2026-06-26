@@ -3469,6 +3469,13 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('|| entry.id');
     expect(source).not.toContain('entry.structuredPayload');
     expect(source).not.toContain('entry.payload');
+    expect(source).not.toContain('buildToolCallMessageState');
+    expect(source).not.toContain('buildToolBundleMessageState');
+    expect(source).not.toContain('entry.toolArguments');
+    expect(source).not.toContain('rawToolCallPreview');
+    expect(source).not.toContain('rawArgumentsPreview');
+    expect(source).not.toContain('parseError');
+    expect(source).not.toContain('toolCallValidationFailed');
     expect(source).not.toContain('modelFacingToolCall: toolCallState');
     expect(source).not.toContain('modelFacingToolCall');
     expect(source).not.toContain('screenshotRef');
@@ -3492,6 +3499,13 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('payload.output');
     expect(source).not.toContain('payload.error');
     expect(source).not.toContain('buildCurrentTurnMessagesFromProjection');
+    expect(source).not.toContain('buildToolCallMessageState');
+    expect(source).not.toContain('buildToolBundleMessageState');
+    expect(source).not.toContain('toolEvent.toolArguments');
+    expect(source).not.toContain('rawToolCallPreview');
+    expect(source).not.toContain('rawArgumentsPreview');
+    expect(source).not.toContain('parseError');
+    expect(source).not.toContain('toolCallValidationFailed');
     expect(source).not.toContain('toolEvent.payload');
     expect(source).not.toContain('modelFacingToolCall: toolCallState');
     expect(source).not.toContain('modelFacingToolCall');
