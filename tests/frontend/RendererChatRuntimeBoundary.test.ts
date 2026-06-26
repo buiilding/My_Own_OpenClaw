@@ -3513,8 +3513,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).toContain('buildThreadPresentationMessages');
     expect(chatInterfacePresentationRuntimeSource).toContain('DesktopConversationDisplayProjection');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildConversationViewChatMessages');
-    expect(chatInterfacePresentationRuntimeSource).not.toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');
-    expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurn,');
+    expect(chatInterfacePresentationRuntimeSource).toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');
+    expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurn: effectiveSdkLiveTurn');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('currentTurnProjection = null');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('selectRendererMessageAnnotations');
     expect(chatInterfacePresentationRuntimeSource).toContain('rendererAnnotations = []');

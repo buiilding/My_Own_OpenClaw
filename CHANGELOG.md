@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: make the interface presentation adapter blank the no-view
+  `sdkLiveTurn` fallback before invoking thread presentation whenever
+  `ConversationView` exists, keeping SDK view live rows as the only normal live
+  display authority. No migration required.
 - frontend/overlay: make response-overlay surface state blank raw messages and
   the no-view SDK live-turn fallback under `ConversationView`, preserving the
   pending bridge without reopening renderer chat state. No migration required.

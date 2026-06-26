@@ -253,6 +253,9 @@ calls cannot combine `ConversationView` with raw messages or the no-view
 `sdkLiveTurn` fallback. Response-overlay surface state applies the same guard
 before resolving overlay entries and dismissal targets. The view plus pending
 bridge own visible lifecycle and stop authority.
+The interface presentation adapter also blanks the no-view `sdkLiveTurn`
+fallback before invoking the thread presenter when a `ConversationView` exists,
+so stale raw current-turn rows cannot re-enter through the presentation layer.
 The conversation projection-stream hook applies the same rule when it needs
 workspace context for stale-turn checks and replay traces: it wraps raw store
 workspace reads with `projectWorkspaceReadModelState(...)`, so projection-stream

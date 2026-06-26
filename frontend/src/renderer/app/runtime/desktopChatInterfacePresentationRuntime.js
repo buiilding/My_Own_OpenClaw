@@ -37,10 +37,11 @@ function buildChatInterfacePresentationState({
       rendererAnnotations,
     })
     : messages;
+  const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
   return {
     renderedMessages: buildThreadPresentationMessages(baseMessages, {
       conversationView,
-      sdkLiveTurn,
+      sdkLiveTurn: effectiveSdkLiveTurn,
       activeConversationRef,
     }),
     canEditMessages: hasConversationView
