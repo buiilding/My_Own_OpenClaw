@@ -365,7 +365,6 @@ describe('desktopConversationDisplayProjection', () => {
         },
       }],
       sdkMessages: [sdkTextOnlyUser],
-      currentMessages: firstMerge,
       mergedMessages: secondMerge,
     })).toEqual(expect.objectContaining({
       sdkUserImageCount: 0,
@@ -408,7 +407,6 @@ describe('desktopConversationDisplayProjection', () => {
         },
       }],
       sdkMessages: [sdkUser],
-      currentMessages: [],
       mergedMessages: [sdkUser],
     })).toEqual(expect.objectContaining({
       sdkUserImageCount: 1,
@@ -460,7 +458,6 @@ describe('desktopConversationDisplayProjection', () => {
         },
       }],
       sdkMessages: [sdkUser],
-      currentMessages: [optimisticUser],
       mergedMessages: [sdkUser],
     })).toEqual(expect.objectContaining({
       sdkUserImageCount: 1,
@@ -486,7 +483,6 @@ describe('desktopConversationDisplayProjection', () => {
         turnRef: 'turn-1',
         screenshotRef: 'artifact-1',
       })],
-      currentMessages: [],
       mergedMessages: [],
     })).toEqual(expect.objectContaining({
       sdkUserImageCount: 0,

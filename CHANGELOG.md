@@ -13,6 +13,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/store: delete the unused turn-routing state-update helper now that
   no renderer path stores `turnConversationRefs` in Zustand. No migration
   required.
+- frontend/projection: remove the remaining `currentMessages` trace/input
+  vocabulary from the ConversationView display projection adapter; renderer
+  carry-forward data is now named and passed as annotations only. No migration
+  required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own

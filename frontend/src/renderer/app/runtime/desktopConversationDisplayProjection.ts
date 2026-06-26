@@ -23,7 +23,6 @@ const {
 } = DesktopPendingTurnBridgeRuntime;
 
 type DisplayProjectionTraceInput = {
-  currentMessages?: ChatMessage[];
   mergedMessages?: ChatMessage[];
   rows?: unknown[];
   sdkMessages?: ChatMessage[];
@@ -128,23 +127,23 @@ function mergePendingBridgeUserMessages(
 
 function mergeRendererAnnotationsIntoSdkMessages(
   sdkMessages: ChatMessage[],
-  currentMessages: Array<ChatMessage | RendererMessageAnnotation>,
+  rendererAnnotations: Array<ChatMessage | RendererMessageAnnotation>,
   options: MergeRendererAnnotationsOptions = {},
 ): ChatMessage[] {
-  if (currentMessages.length === 0 && !options.pendingTurn) {
+  if (rendererAnnotations.length === 0 && !options.pendingTurn) {
     return sdkMessages;
   }
-  const currentById = new Map(currentMessages.map((message) => [message.id, message]));
+  const annotationsById = new Map(rendererAnnotations.map((message) => [message.id, message]));
   const mergedSdkMessages = sdkMessages.map((message) => {
-    const current = currentById.get(message.id);
+    const annotation = annotationsById.get(message.id);
     return {
       ...message,
-      ...(current?.systemPrompt ? { systemPrompt: current.systemPrompt } : {}),
-      ...(current?.toolSchemas ? { toolSchemas: current.toolSchemas } : {}),
-      ...(current?.fullUserMessage ? { fullUserMessage: current.fullUserMessage } : {}),
-      ...(current?.fullAssistantMessage ? { fullAssistantMessage: current.fullAssistantMessage } : {}),
-      ...(current?.feedback ? { feedback: current.feedback } : {}),
-      ...(current?.tokenCounts ? { tokenCounts: current.tokenCounts } : {}),
+      ...(annotation?.systemPrompt ? { systemPrompt: annotation.systemPrompt } : {}),
+      ...(annotation?.toolSchemas ? { toolSchemas: annotation.toolSchemas } : {}),
+      ...(annotation?.fullUserMessage ? { fullUserMessage: annotation.fullUserMessage } : {}),
+      ...(annotation?.fullAssistantMessage ? { fullAssistantMessage: annotation.fullAssistantMessage } : {}),
+      ...(annotation?.feedback ? { feedback: annotation.feedback } : {}),
+      ...(annotation?.tokenCounts ? { tokenCounts: annotation.tokenCounts } : {}),
     };
   });
   return mergePendingBridgeUserMessages(
@@ -319,7 +318,6 @@ function summarizeSdkUserRows(rows: unknown[]): {
 }
 
 function buildDisplayProjectionTraceSummary({
-  currentMessages = [],
   mergedMessages = [],
   rows = [],
   sdkMessages = [],
@@ -331,7 +329,6 @@ function buildDisplayProjectionTraceSummary({
   return {
     rowCount: rows.length,
     sdkMessageCount: sdkMessages.length,
-    currentMessageCount: currentMessages.length,
     mergedMessageCount: mergedMessages.length,
     ...sdkRowSummary,
     ...sdkAttachmentSummary,
