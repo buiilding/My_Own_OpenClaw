@@ -293,8 +293,6 @@ describe('chatSelectors', () => {
       compactionDebugInfo: null,
       tokenCounts: { total_tokens: 42 },
       activeRevisionId: null,
-      canEditMessages: true,
-      canRetryMessages: true,
       renderedMessages: messages,
       stopTurnTarget: {
         source: 'idle',
@@ -680,8 +678,6 @@ describe('chatSelectors', () => {
       compactionDebugInfo: null,
       tokenCounts: null,
       activeRevisionId: null,
-      canEditMessages: true,
-      canRetryMessages: true,
       renderedMessages: [],
       stopTurnTarget: {
         source: 'idle',

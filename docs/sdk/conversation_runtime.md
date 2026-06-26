@@ -289,18 +289,17 @@ dashboard chats use the same SDK view authority as active chat surfaces.
 The renderer dashboard conversation library facade exposes only
 `loadConversationView` for this path; raw display-row and legacy display-message
 load helpers remain outside normal React dashboard resume ownership.
-For the first Phase 4 action migration, renderer chat surfaces read
-`snapshot.view.actions.canEdit` and `snapshot.view.actions.canRetry` when a
-view exists before rendering edit/resend or Try again commands. Message row type
-still provides row-level capability gating, and `snapshot.view.displayRows[]`
-now carries row `actions` metadata with `canEdit`/`editTargetRowId` for user
-rows and `canRetry`/`retryTargetRowId` for terminal assistant rows. The renderer
-projects those row targets into chat messages so a replacement row can remain
-the visible edit surface while replay targets the SDK-provided original row
-identity; row-level SDK action metadata also gates whether the edit/resend or
-Try again controls are shown, and missing row action booleans on SDK display
-rows mean the command is unavailable rather than defaulting to a renderer
-heuristic. Copy/feedback actions remain renderer-local affordances. Renderer
+For the Phase 4 action migration, renderer chat surfaces no longer turn
+`snapshot.view.actions.canEdit` or `snapshot.view.actions.canRetry` into a
+global message-list gate. `snapshot.view.displayRows[]` carries row `actions`
+metadata with `canEdit`/`editTargetRowId` for user rows and
+`canRetry`/`retryTargetRowId` for terminal assistant rows. The renderer projects
+those row targets into chat messages so a replacement row can remain the visible
+edit surface while replay targets the SDK-provided original row identity;
+row-level SDK action metadata gates whether the edit/resend or Try again
+controls are shown, and missing row action booleans on SDK display rows mean
+the command is unavailable rather than defaulting to a renderer heuristic.
+Copy/feedback actions remain renderer-local affordances. Renderer
 replay execution calls the SDK edit/resend and retry commands directly; when a
 `ConversationView` exists, replay target preparation derives its row model from
 `ConversationView.displayRows` instead of raw `chatStore.messages`.

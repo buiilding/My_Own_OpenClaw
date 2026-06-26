@@ -2309,13 +2309,13 @@ describe('ChatInterface wiring', () => {
     const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
     expect(lastMessageListProps.enableAssistantActions).toBe(true);
     expect(lastMessageListProps.disableAssistantActions).toBe(false);
-    expect(lastMessageListProps.canRetryMessages).toBe(true);
-    expect(lastMessageListProps.canEditMessages).toBe(true);
+    expect(lastMessageListProps).not.toHaveProperty('canRetryMessages');
+    expect(lastMessageListProps).not.toHaveProperty('canEditMessages');
     expect(typeof lastMessageListProps.onAssistantFeedbackChange).toBe('function');
     expect(typeof lastMessageListProps.onAssistantTryAgain).toBe('function');
   });
 
-  test('ConversationView action metadata gates edit and retry commands', () => {
+  test('ConversationView action metadata is not passed as global edit and retry gates', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
       { id: 'assistant-1', sender: 'assistant', text: 'world', type: 'llm-text', isComplete: true },
@@ -2356,8 +2356,8 @@ describe('ChatInterface wiring', () => {
     const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
     expect(lastMessageListProps.enableAssistantActions).toBe(true);
     expect(lastMessageListProps.enableUserActions).toBe(true);
-    expect(lastMessageListProps.canRetryMessages).toBe(false);
-    expect(lastMessageListProps.canEditMessages).toBe(false);
+    expect(lastMessageListProps).not.toHaveProperty('canRetryMessages');
+    expect(lastMessageListProps).not.toHaveProperty('canEditMessages');
   });
 
   test('keeps assistant actions enabled when only raw isSending is stale', () => {

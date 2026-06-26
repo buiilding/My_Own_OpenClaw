@@ -286,9 +286,9 @@ through raw workspace mutation/adapters and for no-view fallback rendering.
 `selectChatInterfaceState` exposes the active workspace selector model:
 
 - `thinkingStatus`, `tokenCounts`
-- `renderedMessages`, `canEditMessages`, `canRetryMessages`, and
-  `activeRevisionId` from
-  `DesktopChatInterfacePresentationRuntime`
+- `renderedMessages` and `activeRevisionId` from
+  `DesktopChatInterfacePresentationRuntime`; edit/retry availability remains
+  on each projected SDK row's `actions`
 - `stopTurnTarget` from `DesktopStopTurnRuntime.resolveStopTurnTarget(...)`,
   selected from SDK `ConversationView` first and the renderer pending bridge
   second

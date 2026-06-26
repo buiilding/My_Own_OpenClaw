@@ -8,7 +8,7 @@ const {
 } = DesktopChatInterfacePresentationRuntime;
 
 describe('DesktopChatInterfacePresentationRuntime', () => {
-  test('uses ConversationView action metadata when a view exists', () => {
+  test('does not project ConversationView action metadata as a global message gate', () => {
     const state = buildChatInterfacePresentationState({
       activeConversationRef: 'conv-1',
       conversationView: {
@@ -26,8 +26,8 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
       messages: [],
     });
 
-    expect(state.canEditMessages).toBe(false);
-    expect(state.canRetryMessages).toBe(true);
+    expect(state).not.toHaveProperty('canEditMessages');
+    expect(state).not.toHaveProperty('canRetryMessages');
     expect(state.activeRevisionId).toBe('rev-1');
   });
 
@@ -177,7 +177,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     ]);
   });
 
-  test('keeps legacy actions available only before ConversationView exists', () => {
+  test('does not expose legacy global action gates before ConversationView exists', () => {
     const messages = [{
       id: 'legacy-row',
       sender: 'user',
@@ -189,8 +189,8 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
       messages,
     });
 
-    expect(state.canEditMessages).toBe(true);
-    expect(state.canRetryMessages).toBe(true);
+    expect(state).not.toHaveProperty('canEditMessages');
+    expect(state).not.toHaveProperty('canRetryMessages');
     expect(state.activeRevisionId).toBeNull();
     expect(state).not.toHaveProperty('replayFallbackMessages');
   });

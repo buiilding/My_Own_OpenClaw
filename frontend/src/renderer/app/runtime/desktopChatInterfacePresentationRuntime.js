@@ -44,12 +44,6 @@ function buildChatInterfacePresentationState({
       sdkLiveTurn: effectiveSdkLiveTurn,
       activeConversationRef,
     }),
-    canEditMessages: hasConversationView
-      ? conversationView?.actions?.canEdit === true
-      : true,
-    canRetryMessages: hasConversationView
-      ? conversationView?.actions?.canRetry === true
-      : true,
     activeRevisionId: hasConversationView
       ? conversationView?.revisionId || null
       : null,

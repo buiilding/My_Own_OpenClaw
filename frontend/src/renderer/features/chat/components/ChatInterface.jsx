@@ -93,8 +93,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     compactionDebugInfo,
     chatSurfaceState,
     activeRevisionId,
-    canEditMessages,
-    canRetryMessages,
     renderedMessages,
     stopTurnTarget,
   } = useChatStore(
@@ -698,8 +696,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
             enableAgentLoopAutoScroll={composerBusy}
             enableAssistantActions
             enableUserActions
-            canRetryMessages={canRetryMessages}
-            canEditMessages={canEditMessages}
             disableAssistantActions={composerBusy || canStop}
             onAssistantFeedbackChange={handleAssistantFeedbackChange}
             onAssistantTryAgain={handleTryAgainFromAssistant}

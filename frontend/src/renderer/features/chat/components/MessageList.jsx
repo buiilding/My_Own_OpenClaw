@@ -34,8 +34,6 @@ function MessageList({
   enableAgentLoopAutoScroll = false,
   enableAssistantActions = false,
   enableUserActions = false,
-  canRetryMessages = true,
-  canEditMessages = true,
   disableAssistantActions = false,
   onAssistantFeedbackChange,
   onAssistantTryAgain,
@@ -58,13 +56,13 @@ function MessageList({
   });
 
   const handleStartUserEdit = useCallback((messageId, messageText, editTargetMessageId = null) => {
-    if (!canEditMessages || submittingUserEdit) {
+    if (submittingUserEdit) {
       return;
     }
     setEditingUserMessageId(messageId);
     setEditingUserReplayTargetMessageId(editTargetMessageId || messageId);
     setEditingUserDraft(messageText || '');
-  }, [canEditMessages, submittingUserEdit]);
+  }, [submittingUserEdit]);
 
   const handleCancelUserEdit = useCallback(() => {
     if (submittingUserEdit) {
@@ -142,8 +140,8 @@ function MessageList({
 
   const renderedMessages = useMemo(
     () => messages.flatMap((msg) => {
-      const canRetryMessage = canRetryMessages && messageActionFlag(msg, 'canRetry', true);
-      const canEditMessage = canEditMessages && messageActionFlag(msg, 'canEdit', true);
+      const canRetryMessage = messageActionFlag(msg, 'canRetry', true);
+      const canEditMessage = messageActionFlag(msg, 'canEdit', true);
       const retryTargetMessageId = messageActionTargetId(msg, 'retryTargetRowId') || msg.id;
       const editTargetMessageId = messageActionTargetId(msg, 'editTargetRowId') || msg.id;
       const nodes = [
@@ -204,8 +202,6 @@ function MessageList({
       awaitingDotTargetMessageId,
       enableAssistantActions,
       enableUserActions,
-      canRetryMessages,
-      canEditMessages,
       disableAssistantActions,
       messageActionFlag,
       messageActionTargetId,
@@ -330,8 +326,6 @@ MessageList.propTypes = {
   enableAgentLoopAutoScroll: PropTypes.bool,
   enableAssistantActions: PropTypes.bool,
   enableUserActions: PropTypes.bool,
-  canRetryMessages: PropTypes.bool,
-  canEditMessages: PropTypes.bool,
   disableAssistantActions: PropTypes.bool,
   onAssistantFeedbackChange: PropTypes.func,
   onAssistantTryAgain: PropTypes.func,

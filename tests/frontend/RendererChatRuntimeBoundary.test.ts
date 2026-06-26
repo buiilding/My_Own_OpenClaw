@@ -3552,8 +3552,14 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).not.toContain('currentMessages: messages');
     expect(chatInterfacePresentationRuntimeSource).toContain('resolveConversationViewStoreRef');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('buildConversationViewStoreProjection');
-    expect(chatInterfacePresentationRuntimeSource).toContain('canEditMessages');
-    expect(chatInterfacePresentationRuntimeSource).toContain('canRetryMessages');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('canEditMessages');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('canRetryMessages');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('conversationView?.actions?.canEdit');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('conversationView?.actions?.canRetry');
+    expect(chatInterfaceSource).not.toContain('canEditMessages');
+    expect(chatInterfaceSource).not.toContain('canRetryMessages');
+    expect(messageListSource).not.toContain('canEditMessages');
+    expect(messageListSource).not.toContain('canRetryMessages');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('features/chat');
     expect(messageListSource).toContain("messageActionFlag(msg, 'canRetry'");
     expect(messageListSource).toContain("messageActionFlag(msg, 'canEdit'");
