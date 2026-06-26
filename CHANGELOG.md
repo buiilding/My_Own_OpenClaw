@@ -14,7 +14,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/chat: move chat-provider trace snapshot construction into
   `DesktopChatProviderTraceRuntime`, so `ChatProvider.jsx` only wires the store
   read model into trace transport while the runtime owns ConversationView-first
-  trace summary selection. No migration required.
+  trace summary selection; the provider now uses chat-store adapter getters
+  instead of reading Zustand workspace state directly. No migration required.
 - frontend/dashboard: route dashboard conversation-open workspace reads through
   `getWorkspaceStateFromChatStore` instead of passing the raw Zustand
   `getWorkspaceState` method from `DashboardShell`. No migration required.

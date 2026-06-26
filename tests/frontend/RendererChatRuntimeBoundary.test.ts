@@ -2350,7 +2350,11 @@ describe('renderer chat runtime boundary', () => {
     expect(chatProviderSource).toContain('DesktopRendererTraceRuntime');
     expect(chatProviderSource).toContain('DesktopChatProviderTraceRuntime');
     expect(chatProviderSource).toContain('buildChatProviderTraceWorkspaceSnapshot');
-    expect(chatProviderSource).toContain('projectWorkspaceReadModelState(store.getWorkspaceState(conversationRef))');
+    expect(chatProviderSource).toContain('getActiveConversationRefFromChatStore');
+    expect(chatProviderSource).toContain('getProjectedWorkspaceReadModelFromChatStore');
+    expect(chatProviderSource).not.toContain('useChatStore');
+    expect(chatProviderSource).not.toContain('store.getWorkspaceState(conversationRef)');
+    expect(chatProviderSource).not.toContain('projectWorkspaceReadModelState');
     expect(chatProviderSource).not.toContain('conversationView?.displayRows');
     expect(chatProviderSource).not.toContain('workspace.messages');
     expect(chatProviderSource).not.toContain('resolveLatestConversationViewRow');

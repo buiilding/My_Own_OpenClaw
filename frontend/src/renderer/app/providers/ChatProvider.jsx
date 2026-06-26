@@ -7,10 +7,10 @@ import { useChatStream } from '../../features/chat/hooks/useChatStream';
 import { useConversationRuntimeProjectionStream } from '../../features/chat/hooks/useConversationRuntimeProjectionStream';
 import { useChatSessionBootstrap } from '../../features/chat/hooks/useChatSessionBootstrap';
 import { useConversationSessionProjection } from '../../features/chat/session/useConversationSessionProjection';
-import { useChatStore } from '../../features/chat/stores/chatStore';
 import {
-  projectWorkspaceReadModelState,
-} from '../runtime/desktopChatWorkspaceStateRuntime';
+  getActiveConversationRefFromChatStore,
+  getProjectedWorkspaceReadModelFromChatStore,
+} from '../../features/chat/stores/chatStoreAdapters';
 import {
   DesktopChatProviderTraceRuntime,
 } from '../runtime/desktopChatProviderTraceRuntime';
@@ -25,11 +25,9 @@ const {
 } = DesktopRendererTraceRuntime;
 
 function resolveChatTraceWorkspaceSnapshot(conversationRef) {
-  const store = useChatStore.getState();
-  const workspace = projectWorkspaceReadModelState(store.getWorkspaceState(conversationRef));
   return buildChatProviderTraceWorkspaceSnapshot({
-    activeConversationRef: store.activeConversationRef,
-    workspace,
+    activeConversationRef: getActiveConversationRefFromChatStore(),
+    workspace: getProjectedWorkspaceReadModelFromChatStore(conversationRef),
   });
 }
 
