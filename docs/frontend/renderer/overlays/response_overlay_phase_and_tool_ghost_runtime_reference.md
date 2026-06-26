@@ -182,6 +182,10 @@ Contract ownership:
   intent, and visible lifecycle stamping. `useResponseOverlayViewModel(...)`
   owns the renderer-side composition boundary for rendered markdown payloads,
   closeability, and stale-response suppression during local-pending/awaiting.
+- `DesktopResponseOverlayViewRuntime.resolveResponseOverlayWindowGuardSnapshot(...)`
+  and `resolveResponseOverlayWindowSizeIdentity(...)` own response-window
+  conversation, turn, and stale-guard fallback resolution from SDK overlay
+  intent plus the last valid guard snapshot.
 - `useResponseOverlayWindowSync(...)` owns response-window sizing policy and
   visibility re-report behavior, delegating responsebox size payload assembly,
   IPC, and visibility payload normalization/boolean subscription projection to
@@ -276,7 +280,8 @@ Response overlay size re-report and resize scheduling use
 `DesktopResponseOverlayInteractionRuntime.scheduleResponseOverlayFrame(...)`
 and `DesktopResponseOverlayInteractionRuntime.startResponseOverlaySizeUpdateSync(...)`.
 `useResponseOverlayWindowSync(...)` remains the owner for hidden/shown sizing
-policy, turn guard metadata, and responsebox size IPC values.
+policy and responsebox size IPC calls; `DesktopResponseOverlayViewRuntime`
+owns turn guard metadata fallback resolution before those calls.
 
 Layout-specific sizing:
 

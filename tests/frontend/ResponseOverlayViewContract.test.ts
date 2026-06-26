@@ -7,11 +7,14 @@ import { DesktopResponseOverlayViewRuntime } from '../../frontend/src/renderer/a
 describe('desktopResponseOverlayViewRuntime', () => {
   const {
     buildResponseOverlayDismissalKey,
+    createResponseOverlayWindowGuardSnapshot,
     resolveResponseOverlayEntries,
     resolveResponseOverlayPresentationState,
     resolveResponseOverlayPresentationStateForSurfaceState,
     resolveResponseOverlaySurfaceState,
     resolveResponseOverlayViewContract,
+    resolveResponseOverlayWindowGuardSnapshot,
+    resolveResponseOverlayWindowSizeIdentity,
   } = DesktopResponseOverlayViewRuntime;
 
   test('builds normalized response overlay dismissal keys', () => {
@@ -30,6 +33,95 @@ describe('desktopResponseOverlayViewRuntime', () => {
       turnRef: 'turn-overlay',
       responseEntryId: '   ',
     })).toBeNull();
+  });
+
+  test('keeps response overlay window guard identity in app runtime', () => {
+    const initialSnapshot = createResponseOverlayWindowGuardSnapshot();
+    expect(initialSnapshot).toEqual({
+      conversationRef: null,
+      turnRef: null,
+      staleGuardRef: null,
+    });
+
+    const activeSnapshot = resolveResponseOverlayWindowGuardSnapshot({
+      overlayIntent: {
+        conversationRef: ' conv-active ',
+        turnRef: ' turn-active ',
+      },
+      previousSnapshot: initialSnapshot,
+    });
+    expect(activeSnapshot).toEqual({
+      conversationRef: 'conv-active',
+      turnRef: 'turn-active',
+      staleGuardRef: 'turn-active',
+    });
+
+    expect(resolveResponseOverlayWindowGuardSnapshot({
+      overlayIntent: null,
+      previousSnapshot: activeSnapshot,
+    })).toEqual({
+      conversationRef: null,
+      turnRef: 'turn-active',
+      staleGuardRef: 'turn-active',
+    });
+
+    expect(resolveResponseOverlayWindowGuardSnapshot({
+      overlayIntent: {
+        conversationRef: ' conv-guard ',
+        staleGuardRef: ' guard-only ',
+      },
+      previousSnapshot: activeSnapshot,
+    })).toEqual({
+      conversationRef: 'conv-guard',
+      turnRef: null,
+      staleGuardRef: 'guard-only',
+    });
+  });
+
+  test('resolves response overlay native size identity from SDK intent before guard fallback', () => {
+    expect(resolveResponseOverlayWindowSizeIdentity({
+      overlayIntent: {
+        conversationRef: ' conv-current ',
+        turnRef: ' turn-current ',
+        staleGuardRef: ' guard-current ',
+      },
+      guardSnapshot: {
+        turnRef: 'turn-previous',
+        staleGuardRef: 'guard-previous',
+      },
+    })).toEqual({
+      conversationRef: 'conv-current',
+      turnRef: 'turn-current',
+      staleGuardRef: 'guard-current',
+    });
+
+    expect(resolveResponseOverlayWindowSizeIdentity({
+      overlayIntent: null,
+      guardSnapshot: {
+        conversationRef: 'conv-previous',
+        turnRef: 'turn-previous',
+        staleGuardRef: 'guard-previous',
+      },
+    })).toEqual({
+      conversationRef: null,
+      turnRef: 'turn-previous',
+      staleGuardRef: 'guard-previous',
+    });
+
+    expect(resolveResponseOverlayWindowSizeIdentity({
+      overlayIntent: {
+        conversationRef: ' conv-current ',
+        turnRef: ' turn-current ',
+      },
+      guardSnapshot: {
+        turnRef: 'turn-previous',
+        staleGuardRef: 'guard-previous',
+      },
+    })).toEqual({
+      conversationRef: 'conv-current',
+      turnRef: 'turn-current',
+      staleGuardRef: 'turn-current',
+    });
   });
 
   test('selects conversation view live-turn entries before raw projection rows', () => {

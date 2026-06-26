@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: move response-overlay window conversation, turn, and
+  stale-guard fallback resolution into `DesktopResponseOverlayViewRuntime`, so
+  the window-sync hook only wires sizing effects and native responsebox calls.
+  No migration required.
 - frontend/revisions: move dashboard revision-menu item state into
   `DesktopChatRevisionActionRuntime`, so React renders prepared checkout/fork
   labels and disabled state instead of deriving revision action ids in the

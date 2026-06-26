@@ -46,12 +46,31 @@ type ResponseOverlayDismissalInput = {
   responseEntryId?: string | null;
 };
 
+type ResponseOverlayWindowGuardSnapshot = {
+  conversationRef: string | null;
+  turnRef: string | null;
+  staleGuardRef: string | null;
+};
+
+type ResponseOverlayWindowGuardSnapshotInput = {
+  overlayIntent?: {
+    conversationRef?: unknown;
+    turnRef?: unknown;
+    staleGuardRef?: unknown;
+  } | null;
+  previousSnapshot?: Partial<ResponseOverlayWindowGuardSnapshot> | null;
+};
+
 function normalizeString(value: string | null | undefined): string | null {
   if (typeof value !== 'string') {
     return null;
   }
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : null;
+}
+
+function normalizeUnknownString(value: unknown): string | null {
+  return typeof value === 'string' ? normalizeString(value) : null;
 }
 
 function normalizeReasoningText(reasoningText: unknown): string {
@@ -88,6 +107,67 @@ function buildResponseOverlayDismissalKey({
     normalizeString(turnRef) || '',
     normalizedResponseEntryId,
   ].join('\u0001');
+}
+
+function createResponseOverlayWindowGuardSnapshot(): ResponseOverlayWindowGuardSnapshot {
+  return {
+    conversationRef: null,
+    turnRef: null,
+    staleGuardRef: null,
+  };
+}
+
+function resolveResponseOverlayWindowGuardSnapshot({
+  overlayIntent = null,
+  previousSnapshot = null,
+}: ResponseOverlayWindowGuardSnapshotInput = {}): ResponseOverlayWindowGuardSnapshot {
+  const currentConversationRef = normalizeUnknownString(overlayIntent?.conversationRef);
+  const currentTurnRef = normalizeUnknownString(overlayIntent?.turnRef);
+  const currentStaleGuardRef = (
+    normalizeUnknownString(overlayIntent?.staleGuardRef)
+    || currentTurnRef
+  );
+  const previousTurnRef = normalizeString(previousSnapshot?.turnRef);
+  const previousStaleGuardRef = normalizeString(previousSnapshot?.staleGuardRef);
+
+  if (currentTurnRef || currentStaleGuardRef) {
+    return {
+      conversationRef: currentConversationRef,
+      turnRef: currentTurnRef,
+      staleGuardRef: currentStaleGuardRef,
+    };
+  }
+
+  return {
+    conversationRef: currentConversationRef,
+    turnRef: previousTurnRef,
+    staleGuardRef: previousStaleGuardRef,
+  };
+}
+
+function resolveResponseOverlayWindowSizeIdentity({
+  overlayIntent = null,
+  guardSnapshot = null,
+}: {
+  overlayIntent?: ResponseOverlayWindowGuardSnapshotInput['overlayIntent'];
+  guardSnapshot?: Partial<ResponseOverlayWindowGuardSnapshot> | null;
+} = {}): ResponseOverlayWindowGuardSnapshot {
+  const intentConversationRef = normalizeUnknownString(overlayIntent?.conversationRef);
+  const intentTurnRef = normalizeUnknownString(overlayIntent?.turnRef);
+  const guardTurnRef = normalizeString(guardSnapshot?.turnRef);
+  const turnRef = intentTurnRef || guardTurnRef;
+  const staleGuardRef = (
+    normalizeUnknownString(overlayIntent?.staleGuardRef)
+    || intentTurnRef
+    || normalizeString(guardSnapshot?.staleGuardRef)
+    || guardTurnRef
+  );
+
+  return {
+    conversationRef: intentConversationRef,
+    turnRef,
+    staleGuardRef,
+  };
 }
 
 function resolveResponseOverlaySurfaceState({
@@ -314,9 +394,12 @@ function resolveResponseOverlayPresentationStateForSurfaceState({
 
 export const DesktopResponseOverlayViewRuntime = Object.freeze({
   buildResponseOverlayDismissalKey,
+  createResponseOverlayWindowGuardSnapshot,
   resolveResponseOverlayEntries,
   resolveResponseOverlayPresentationState,
   resolveResponseOverlayPresentationStateForSurfaceState,
   resolveResponseOverlaySurfaceState,
   resolveResponseOverlayViewContract,
+  resolveResponseOverlayWindowGuardSnapshot,
+  resolveResponseOverlayWindowSizeIdentity,
 });
