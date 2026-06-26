@@ -37,12 +37,6 @@ describe('toolCallMessageState', () => {
         arguments: { url: 'https://example.com' },
         metadata: { source: 'backend' },
       }, null, 2),
-      modelFacingToolCall: {
-        id: 'call-1',
-        name: 'browser.open',
-        arguments: { url: 'https://example.com' },
-        metadata: { source: 'backend' },
-      },
       toolCallDetails: {
         tool_name: 'browser.open',
       },
@@ -67,15 +61,8 @@ describe('toolCallMessageState', () => {
 
     expect(messageState.text).toBe('shell("pwd")');
     expect(messageState.toolCallDisplayText).toBe('shell("pwd")');
-    expect(messageState.modelFacingToolCall).toEqual({
-      id: 'call-2',
-      name: 'shell',
-      metadata: {
-        source: 'backend-recovery',
-      },
-      parse_error: 'bad json',
-      raw_tool_call_preview: 'shell("pwd")',
-    });
+    expect(messageState).not.toHaveProperty('modelFacingToolCall');
+    expect(messageState.correlationId).toBe('call-2');
   });
 
   test('normalizes bundle payloads with consistent tool display structure', () => {
@@ -105,7 +92,6 @@ describe('toolCallMessageState', () => {
           arguments: { url: 'https://example.com' },
         }],
       }, null, 2),
-      modelFacingToolCall: null,
       toolCalls: [
         {
           id: 'call-3',

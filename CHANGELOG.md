@@ -92,6 +92,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/live-turn: stop re-emitting SDK `modelFacingToolCall` as a renderer
   `ChatMessage` prop; live tool rows keep provider payloads only long enough to
   build SDK display text and sanitized detail metadata. No migration required.
+- frontend/tools: stop returning model-facing tool-call objects from renderer
+  transcript helper state; tool rows expose display text, sanitized details,
+  and correlation ids only. No migration required.
 - frontend/live-turn: stop using SDK live-entry row ids as fallback
   model-facing tool-call ids; live tool identity now comes only from SDK tool
   fields such as `requestId` or `modelFacingToolCall`. No migration required.

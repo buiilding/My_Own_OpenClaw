@@ -147,7 +147,7 @@ export function buildToolCallMessageState({
   toolCallDetails = null,
   correlationId = null,
 }) {
-  const modelFacingToolCall = buildNormalizedToolCall({
+  const normalizedToolCall = buildNormalizedToolCall({
     rawToolCall,
     fallbackToolName,
     fallbackToolCallId,
@@ -161,13 +161,13 @@ export function buildToolCallMessageState({
   });
   const text = resolveToolCallText(
     rawContent,
-    modelFacingToolCall,
+    normalizedToolCall,
     rawToolCallPreview,
     toolCallValidationFailed,
   );
   const resolvedCorrelationId = (
     normalizeOptionalString(correlationId)
-    || normalizeOptionalString(modelFacingToolCall?.id)
+    || normalizeOptionalString(normalizedToolCall?.id)
     || normalizeOptionalString(fallbackToolCallId)
     || null
   );
@@ -175,7 +175,6 @@ export function buildToolCallMessageState({
   return {
     text,
     toolCallDisplayText: text,
-    modelFacingToolCall,
     toolCallDetails: cloneObject(toolCallDetails),
     correlationId: resolvedCorrelationId,
   };
@@ -205,7 +204,6 @@ export function buildToolBundleMessageState(payload) {
   return {
     text,
     toolCallDisplayText: text,
-    modelFacingToolCall: null,
     toolCalls: normalizedTools,
     toolCallDetails: cloneObject(payload),
     correlationId: bundleId,

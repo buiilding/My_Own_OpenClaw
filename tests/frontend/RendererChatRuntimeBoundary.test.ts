@@ -1282,6 +1282,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/message/content/ToolCallMessage.jsx'),
       'utf8',
     );
+    const toolCallMessageStateSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/infrastructure/transcript/toolCallMessageState.js'),
+      'utf8',
+    );
 
     expect(sourceBadgeSource).toContain('DesktopMessageSourceTagRuntime.resolveMessageSourceBadgePresentation');
     expect(sourceBadgeSource).toContain('desktopMessageSourceTagRuntime');
@@ -1332,6 +1336,8 @@ describe('renderer chat runtime boundary', () => {
     expect(toolCallMessageSource).toContain('message.toolCallDisplayText');
     expect(toolCallMessageSource).not.toContain('message.modelFacingToolCall');
     expect(toolCallMessageSource).not.toContain('modelFacingToolCall: PropTypes');
+    expect(toolCallMessageStateSource).toContain('toolCallDisplayText: text');
+    expect(toolCallMessageStateSource).not.toContain('modelFacingToolCall');
     expect(attachmentRendererRegistrySource).not.toContain('screenshotRef: PropTypes');
     expect(attachmentRendererRegistrySource).not.toContain('screenshotUrl: PropTypes');
     expect(messageTypeSource).toContain('attachments?: SdkDisplayAttachment[] | null');
