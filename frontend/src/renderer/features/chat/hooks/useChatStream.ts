@@ -9,12 +9,15 @@ import {
 } from '../stores/chatStore';
 import {
   setCompactionDebugInfoInChatStore,
+  setIsSendingInChatStore,
+  setThinkingSourceEventTypeInChatStore,
+  setThinkingStatusInChatStore,
   updateStreamTrackingInChatStore,
+  updateStreamTargetMessageInChatStore,
 } from '../stores/chatStoreAdapters';
 import { DesktopRendererConfigRuntimeClient } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopModelThinkingRuntime } from '../../../app/runtime/desktopModelThinkingRuntime';
 import { type TranscriptModelContext } from '../../../app/runtime/desktopChatStreamModelContextRuntime';
-import { useChatCommonActions } from './useChatCommonActions';
 import { useStreamMessageUpdaters } from './chatStream/useStreamMessageUpdaters';
 import { DesktopRendererHooksRuntimeClient } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
 import { useChatStreamTerminalHandlers } from './chatStream/useChatStreamTerminalHandlers';
@@ -66,12 +69,6 @@ const {
 } = DesktopChatTurnConversationRefRuntime;
 
 export function useChatStream(enableTranscript: boolean = true) {
-  const {
-    updateStreamTargetMessage,
-    setIsSending,
-    setThinkingStatus,
-    setThinkingSourceEventType,
-  } = useChatCommonActions();
   const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const { config, availableModels } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const modelCapabilities = useMemo(() => DesktopModelThinkingRuntime.resolveThinkingCapabilities(
@@ -111,15 +108,15 @@ export function useChatStream(enableTranscript: boolean = true) {
   const {
     updateLastMessageBySender,
     updateLastAssistantLlmTextMessage,
-  } = useStreamMessageUpdaters(updateStreamTargetMessage);
+  } = useStreamMessageUpdaters(updateStreamTargetMessageInChatStore);
 
   const {
     handleContextCompactionStarted,
     handleContextCompactionCompleted,
     handleContextCompactionFailed,
   } = useChatStreamCompactionHandlers({
-    setThinkingStatus,
-    setThinkingSourceEventType,
+    setThinkingStatus: setThinkingStatusInChatStore,
+    setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,
     getThinkingSourceEventType: (conversationRef?: string | null) => (
       resolveWorkspaceThinkingSourceEventType(conversationRef, {
         getWorkspaceState: useChatStore.getState().getWorkspaceState,
@@ -144,16 +141,16 @@ export function useChatStream(enableTranscript: boolean = true) {
   const handleLocalUserMessage = useChatStreamLocalUserHandler({
     modelContextRef,
     recordTrackingEvent,
-    setIsSending,
-    setThinkingSourceEventType,
-    setThinkingStatus,
+    setIsSending: setIsSendingInChatStore,
+    setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,
+    setThinkingStatus: setThinkingStatusInChatStore,
   });
 
   const processStreamingComplete = useChatStreamCompletionHandler({
     recordTrackingEvent,
-    setIsSending,
-    setThinkingSourceEventType,
-    setThinkingStatus,
+    setIsSending: setIsSendingInChatStore,
+    setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,
+    setThinkingStatus: setThinkingStatusInChatStore,
   });
 
   const {
@@ -161,7 +158,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleTokenCount,
   } = useChatStreamTerminalHandlers({
     recordTrackingEvent,
-    updateStreamTargetMessage,
+    updateStreamTargetMessage: updateStreamTargetMessageInChatStore,
   });
 
   const dispatchConversationEvent = useCallback((

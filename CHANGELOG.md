@@ -442,6 +442,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/hooks: stop exposing the unused `updateMessage` selector from
   `useChatCommonActions`; feedback still updates messages through the direct
   store action. No migration required.
+- frontend/hooks: delete the obsolete `useChatCommonActions` store-action bag;
+  stream handling now imports the exact store adapters it still needs, while
+  send and replay remain off renderer row mutation helpers. No migration
+  required.
 - frontend/store: remove turn-ref registry adapter actions from `chatStore`;
   stream ingress now records turn/conversation routing through the app-runtime
   registry owner directly. No migration required.

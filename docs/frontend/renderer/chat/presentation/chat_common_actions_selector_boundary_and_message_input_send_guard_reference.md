@@ -1,16 +1,15 @@
 ---
-summary: "Deep reference for renderer chat shared action selectors and message-input send guards: store selector boundary, composer submit normalization, whitespace/loop-lock normalization, and clipboard-image payload shaping."
+summary: "Deep reference for renderer chat stream store-adapter boundaries and message-input send guards: composer submit normalization, whitespace/loop-lock normalization, and clipboard-image payload shaping."
 read_when:
-  - When changing `useChatCommonActions` or re-wiring chat hooks that mutate `chatStore` state.
+  - When re-wiring chat hooks that mutate `chatStore` state.
   - When debugging dropped message sends, duplicate submit attempts, or microphone/transcription behavior around manual send.
-title: "Chat Common Actions Selector Boundary and Message-Input Send Guard Reference"
+title: "Chat Stream Store Adapter Boundary and Message-Input Send Guard Reference"
 ---
 
-# Chat Common Actions Selector Boundary and Message-Input Send Guard Reference
+# Chat Stream Store Adapter Boundary and Message-Input Send Guard Reference
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/hooks/useChatCommonActions.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
@@ -20,31 +19,39 @@ title: "Chat Common Actions Selector Boundary and Message-Input Send Guard Refer
 - `tests/frontend/DesktopMessageInputRuntime.test.js`
 - `tests/frontend/ChatStore.test.ts`
 
-## Selector Boundary Contract (`useChatCommonActions`)
+## Stream Store Adapter Boundary
 
-`useChatCommonActions()` returns the store actions shared by send and stream
-hooks:
+`useChatStream.ts` imports only the store adapters needed to process legacy
+stream events:
 
-- `addMessage`
-- `updateStreamTargetMessage`
-- `setIsSending`
-- `setThinkingStatus`
-- `setThinkingSourceEventType`
+- `updateStreamTargetMessageInChatStore`
+- `setIsSendingInChatStore`
+- `setThinkingStatusInChatStore`
+- `setThinkingSourceEventTypeInChatStore`
+- `setCompactionDebugInfoInChatStore`
+- `updateStreamTrackingInChatStore`
 
-This hook is an adapter-only boundary over `useChatStore`; no extra logic, transforms, or side effects are introduced.
+There is no shared `useChatCommonActions` hook. Sender and replay hooks do not
+consume generic chat-store action bags, because those paths now hand durable
+send/replay behavior to SDK-owned commands and projections.
 
 ## Ownership Contract Across Hooks
 
-`useChatMessageSender` and `useChatStream` both consume
-`useChatCommonActions` for their overlapping write operations. Narrow
-runtime-owned helpers such as turn-ref registry writes are imported from their
-app-runtime owners instead of being re-exposed as store actions.
+`useChatMessageSender` prepares typed outgoing input, manages the small
+pending-send bridge, and calls SDK-backed IPC/runtime clients. It must not
+append renderer-owned failure, pending, or replay rows to `chatStore`.
+
+`useChatStream` remains the compatibility event handler for stream events that
+still update workspace fields or raw legacy messages. It imports the specific
+store adapters it needs instead of hiding those writes behind a shared
+frontend action selector.
 
 Expected outcome:
 
-- all user-send and stream updates mutate `chatStore` through the same setter functions
-- future shared store action changes can be updated once in
-  `useChatCommonActions` and fan out to both hooks
+- send/replay hooks do not regain generic `addMessage` access
+- stream writes are explicit at the stream boundary
+- future stream-store adapter changes are reviewed where legacy stream events
+  are handled
 
 ## Input Normalization Contract (`DesktopMessageInputRuntime`)
 
@@ -104,7 +111,7 @@ This limits unnecessary updates when stream/send logic repeats identical flags.
 
 ## Drift Hotspots
 
-1. Adding logic to `useChatCommonActions` can silently fork mutation paths between sender and stream hooks.
+1. Reintroducing a shared `useChatCommonActions` hook can silently give send or replay paths access to renderer-owned row mutation again.
 2. Bypassing `DesktopMessageInputRuntime.buildOutgoingMessage(...)` in new input surfaces can reintroduce whitespace sends, duplicate send attempts, or clipboard payload shape drift.
 3. Reintroducing a separate voice auto-send path would bypass the current composer-first dictation contract and can create inconsistent trim/block behavior.
 

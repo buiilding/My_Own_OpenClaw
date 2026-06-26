@@ -293,4 +293,4 @@ Fatal failure:
 - [Frontend Renderer Chat Docs Hub](README.md)
 - [Chat Attachment Change Workflow](chat_attachment_change_workflow.md)
 - [Chat Store State and New Session Rotation Reference](chat_store_state_and_new_session_rotation_reference.md)
-- [Chat Common Actions Selector Boundary and Message-Input Send Guard Reference](presentation/chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)
+- [Chat Stream Store Adapter Boundary and Message-Input Send Guard Reference](presentation/chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)

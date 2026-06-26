@@ -2343,6 +2343,7 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('getMessages');
     expect(sendPreparationSource).not.toContain('desktopChatSendStateRuntime');
     expect(sendPreparationSource).not.toContain('displayRows');
+    await expect(fs.stat(path.join(chatRoot, 'hooks/useChatCommonActions.ts'))).rejects.toThrow();
     expect(sendPreparationSource).toContain('sendReadModel.hasPriorUserMessages === true');
     expect(sendPreparationSource).toContain('export const DesktopChatSendPreparationRuntime = Object.freeze');
     expect(sendPreparationSource).not.toContain('export async function prepareDesktopChatSend');
