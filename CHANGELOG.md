@@ -50,6 +50,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/trace: report replay projection active-turn identity from
   `ConversationView.liveTurn.turnRef` whenever an SDK view exists, leaving raw
   stream tracking as a no-view diagnostic fallback. No migration required.
+- docs/frontend: clarify that minimal-chat pending rows carry filename chips
+  only while SDK turn resources and display-row `attachments[]` own visual
+  attachment materialization. No migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.
