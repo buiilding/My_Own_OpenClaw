@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
   ChatInterface projection when `ConversationView` exists; the selector now
   carries only narrow renderer annotations beside SDK display rows. No
   migration required.
+- frontend/selectors: remove the redundant ChatInterface render-message
+  fallback branch now that the shared interface projection owns
+  `ConversationView` message suppression. No migration required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own
