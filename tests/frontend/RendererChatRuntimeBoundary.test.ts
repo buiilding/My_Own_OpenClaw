@@ -3459,7 +3459,7 @@ describe('renderer chat runtime boundary', () => {
     expect(turnConversationRefRuntimeSource).toContain('registerTurnConversationRef');
     expect(turnConversationRefRuntimeSource).toContain('registerRendererTurnConversationRef');
     expect(turnConversationRefRuntimeSource).toContain('resolveRendererConversationRefForTurn');
-    expect(turnConversationRefRuntimeSource).toContain('buildRegisterTurnConversationRefStateUpdate');
+    expect(turnConversationRefRuntimeSource).not.toContain('buildRegisterTurnConversationRefStateUpdate');
     expect(turnConversationRefRuntimeSource).toContain('resolveConversationRefForTurn');
     expect(turnConversationRefRuntimeSource).not.toContain('features/chat');
     expect(currentTurnWorkspaceRuntimeSource).toContain('buildCurrentTurnWorkspaceMutation');

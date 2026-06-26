@@ -10,6 +10,9 @@ All notable changes to WindieOS will be documented in this file.
   `chatStore` and into the renderer app-runtime registry; the store keeps
   adapter methods for existing call sites but no longer owns the runtime
   routing ledger. No migration required.
+- frontend/store: delete the unused turn-routing state-update helper now that
+  no renderer path stores `turnConversationRefs` in Zustand. No migration
+  required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own
