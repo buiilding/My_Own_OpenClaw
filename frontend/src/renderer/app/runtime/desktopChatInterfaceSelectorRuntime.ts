@@ -193,9 +193,10 @@ function buildChatSendReadModelSelectorState({
   activeWorkspace: DesktopChatWorkspaceProjection;
 }): ChatSendReadModel {
   const conversationView = activeWorkspace.conversationView ?? null;
+  const messages = conversationView ? [] : activeWorkspace.messages;
   return selectStableChatSendReadModel({
     conversationView,
-    messages: activeWorkspace.messages,
+    messages,
   });
 }
 

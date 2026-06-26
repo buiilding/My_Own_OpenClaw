@@ -455,6 +455,23 @@ describe('chatSelectors', () => {
     });
   });
 
+  test('send read model helper rejects raw messages under direct ConversationView input', () => {
+    const conversationView = {
+      conversationRef: 'conv-direct',
+      displayRows: [{ id: 'row-user', role: 'user' }],
+    };
+
+    expect(buildChatSendReadModelSelectorState({
+      activeWorkspace: createWorkspace({
+        messages: [{ id: 'stale-user', text: 'stale raw', sender: 'user' }],
+        conversationView,
+      }),
+    })).toEqual({
+      conversationView,
+      messages: [],
+    });
+  });
+
   test('keeps raw send history only for the no-view fallback path', () => {
     const messages = [{ id: 'user-1', text: 'question', sender: 'user' }];
     expect(selectChatSendReadModel({

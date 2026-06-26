@@ -1873,6 +1873,10 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopChatSurfaceSelectorRuntime.ts'),
       'utf8',
     );
+    const chatInterfaceSelectorRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopChatInterfaceSelectorRuntime.ts'),
+      'utf8',
+    );
     const chatStoreSource = await fs.readFile(
       path.join(rendererRoot, 'features/chat/stores/chatStore.ts'),
       'utf8',
@@ -1943,7 +1947,10 @@ describe('renderer app runtime boundary', () => {
     );
     expect(responseOverlaySource).toContain('selectLiveTurnSurfaceState');
     expect(selectorRuntimeSource).toContain('sdkLiveTurn: activeWorkspace.sdkLiveTurn ?? null');
-    expect(selectorRuntimeSource).toContain('messages: activeWorkspace.messages');
+    expect(chatInterfaceSelectorRuntimeSource).toContain(
+      'const messages = conversationView ? [] : activeWorkspace.messages;',
+    );
+    expect(chatInterfaceSelectorRuntimeSource).toContain('messages,');
     expect(selectorRuntimeSource).not.toContain('hasSdkConversationView');
     expect(selectorRuntimeSource).not.toContain('activeWorkspace.currentTurnProjection');
     expect(selectorRuntimeSource).not.toContain('surfaceState.currentTurnProjection');

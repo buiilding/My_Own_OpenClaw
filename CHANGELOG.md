@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: enforce empty raw send-history messages inside the send read
+  selector whenever `ConversationView` exists, so direct selector callers cannot
+  reintroduce renderer messages as a competing send authority. No migration
+  required.
 - frontend/surfaces: rename selected surface current-turn fallback to
   `sdkLiveTurn` through the live-surface presentation boundary, keeping raw
   `currentTurnProjection` confined to workspace storage and lower app-runtime

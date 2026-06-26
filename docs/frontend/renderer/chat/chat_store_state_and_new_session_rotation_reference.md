@@ -277,8 +277,8 @@ through raw workspace mutation/adapters and for no-view fallback rendering.
 `messages` only for the no-view first-message fallback without adding those raw
 fields back to the React chat-interface selector. Once `ConversationView`
 exists, the send read model returns an empty raw message list so send
-preparation cannot accidentally use active workspace messages as competing
-history authority beside SDK display rows.
+preparation and direct selector callers cannot accidentally use active
+workspace messages as competing history authority beside SDK display rows.
 
 Minimal chat pill and response overlay state now route through the live-turn
 presentation/view-model helpers instead of a separate chat-box selector. The

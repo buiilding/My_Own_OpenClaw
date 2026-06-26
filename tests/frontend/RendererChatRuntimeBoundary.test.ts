@@ -2308,7 +2308,8 @@ describe('renderer chat runtime boundary', () => {
     expect(senderHookSource).not.toContain('selectChatInterfaceState');
     expect(senderHookSource).not.toContain('getState().conversationView');
     expect(senderHookSource).not.toContain('getState().messages');
-    expect(selectorRuntimeSource).toContain('messages: activeWorkspace.messages');
+    expect(selectorRuntimeSource).toContain('const messages = conversationView ? [] : activeWorkspace.messages;');
+    expect(selectorRuntimeSource).toContain('messages,');
     expect(selectorRuntimeSource).not.toContain('hasConversationView(conversationView) ? emptyChatMessages : activeWorkspace.messages');
     expect(selectorRuntimeSource).not.toContain('messages: conversationView ? activeWorkspace.messages : emptyChatMessages');
     expect(sendPreparationSource).toContain('desktopChatSendPayloadRuntime');
