@@ -398,6 +398,23 @@ describe('desktopThreadPresentationRuntime', () => {
           toolArguments: { path: 'README.md' },
           toolCallDetails: {
             displaySource: 'sdk-entry-details',
+            attachments: [{
+              id: 'detail-attachment',
+              kind: 'image',
+              source: 'tool_result',
+              status: 'ready',
+              screenshotRef: 'detail-artifact',
+            }],
+            modelFacingToolCall: {
+              id: 'detail-call',
+              name: 'wrong_detail_tool',
+            },
+            modelId: 'detail-model',
+            modelProvider: 'detail-provider',
+            screenshotRef: 'detail-screenshot',
+            structuredPayload: {
+              tool_name: 'wrong_detail_tool',
+            },
           },
           payload: {
             toolName: 'read_file',
@@ -437,6 +454,85 @@ describe('desktopThreadPresentationRuntime', () => {
     expect(rendered[1].text).not.toContain('wrong_backend_tool');
     expect(rendered[1].text).not.toContain('wrong.md');
     expect(rendered[1].correlationId).not.toBe('wrong-correlation');
+    expect(rendered[1].toolCallDetails).not.toHaveProperty('attachments');
+    expect(rendered[1].toolCallDetails).not.toHaveProperty('modelFacingToolCall');
+    expect(rendered[1].toolCallDetails).not.toHaveProperty('modelId');
+    expect(rendered[1].toolCallDetails).not.toHaveProperty('modelProvider');
+    expect(rendered[1].toolCallDetails).not.toHaveProperty('screenshotRef');
+    expect(rendered[1].toolCallDetails).not.toHaveProperty('structuredPayload');
+  });
+
+  test('buildThreadPresentationMessages keeps live attachments out of tool details', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Capture screen', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_output',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:tool:tool-output-1',
+          type: 'tool-output',
+          text: 'captured screen',
+          sourceEventType: 'tool_output',
+          sourceChannel: 'sdk:current-turn',
+          turnRef: 'turn-1',
+          toolName: 'screenshot',
+          correlationId: 'corr-shot',
+          attachments: [{
+            id: 'live-shot:attachment:000',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            screenshotRef: 'artifact-live-shot',
+            screenshotUrl: '/api/artifacts/artifact-live-shot',
+          }],
+          toolOutputDetails: {
+            toolName: 'screenshot',
+            requestId: 'req-shot',
+            attachments: [{
+              id: 'detail-shot:attachment:000',
+              kind: 'image',
+              source: 'tool_result',
+              status: 'ready',
+              screenshotRef: 'detail-shot',
+            }],
+            modelId: 'detail-model',
+            modelProvider: 'detail-provider',
+            raw: { output: 'raw output' },
+            screenshotRef: 'legacy-shot',
+            structuredPayload: { output: 'legacy output' },
+          },
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered[1]).toEqual(expect.objectContaining({
+      sender: 'assistant',
+      type: 'tool-output',
+      attachments: [
+        expect.objectContaining({
+          id: 'live-shot:attachment:000',
+          screenshotRef: 'artifact-live-shot',
+        }),
+      ],
+      toolOutputDetails: {
+        toolName: 'screenshot',
+        requestId: 'req-shot',
+      },
+    }));
+    expect(rendered[1].toolOutputDetails).not.toHaveProperty('attachments');
+    expect(rendered[1].toolOutputDetails).not.toHaveProperty('modelId');
+    expect(rendered[1].toolOutputDetails).not.toHaveProperty('modelProvider');
+    expect(rendered[1].toolOutputDetails).not.toHaveProperty('raw');
+    expect(rendered[1].toolOutputDetails).not.toHaveProperty('screenshotRef');
+    expect(rendered[1].toolOutputDetails).not.toHaveProperty('structuredPayload');
   });
 
   test('buildThreadPresentationMessages ignores raw payload details for live tool rows', () => {

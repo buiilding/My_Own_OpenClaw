@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: sanitize SDK live-entry tool detail payloads so
+  attachment descriptors, raw payloads, screenshot aliases, model-selection
+  metadata, and provider-facing tool-call data stay on explicit typed channels
+  instead of leaking into generic renderer detail panels. No migration required.
 - frontend/display: narrow SDK display-row tool details so attachment
   lifecycle descriptors, model-selection metadata, and provider-facing tool
   calls no longer ride through generic renderer detail payloads. Typed
