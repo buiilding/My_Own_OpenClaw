@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/dashboard: move dashboard-open raw workspace reset decisions into
+  `DesktopDashboardConversationLoadRuntime`, so the dashboard hook no longer
+  inspects cached `ConversationView` state before loading SDK view rows. No
+  migration required.
 - frontend/overlay: move response-overlay window conversation, turn, and
   stale-guard fallback resolution into `DesktopResponseOverlayViewRuntime`, so
   the window-sync hook only wires sizing effects and native responsebox calls.

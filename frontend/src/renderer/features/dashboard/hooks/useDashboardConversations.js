@@ -15,11 +15,9 @@ import { DesktopDashboardConversationDialogRuntime } from '../../../app/runtime/
 import {
   DesktopDashboardConversationLoadRuntime,
 } from '../../../app/runtime/desktopDashboardConversationLoadRuntime';
-import {
-  DesktopConversationViewWorkspaceRuntime,
-} from '../../../app/runtime/desktopConversationViewWorkspaceRuntime';
 
 const {
+  applyDashboardConversationOpenWorkspaceReset,
   clearAllTitleVisibilityPollTimers,
   clearConversationSearchDebounce,
   clearRecentConversationsRefreshTimer,
@@ -59,9 +57,6 @@ const {
   buildConversationGroups,
   buildWorkspaceConversationGroups,
 } = DesktopDashboardConversationGroupRuntime;
-const {
-  hasWorkspaceConversationView,
-} = DesktopConversationViewWorkspaceRuntime;
 
 export function useDashboardConversations({
   resolvedUserId,
@@ -263,10 +258,6 @@ export function useDashboardConversations({
     setOpeningConversationRef(conversationRef);
 
     try {
-      const cachedWorkspace = typeof getChatWorkspaceState === 'function'
-        ? getChatWorkspaceState(conversationRef)
-        : null;
-      const hasCachedConversationView = hasWorkspaceConversationView(cachedWorkspace);
       const workspaceBinding = DesktopWorkspaceRuntimeClient.resolveConversationWorkspaceBinding({
         conversation,
         memories: [],
@@ -278,12 +269,14 @@ export function useDashboardConversations({
         updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
         setChatConversationRef: setChatActiveConversationRef,
       });
-      if (!hasCachedConversationView) {
-        clearChatMessages(conversationRef);
-        setChatIsSending(false, conversationRef);
-        setChatThinkingStatus(null, conversationRef);
-        setChatTokenCounts(null, conversationRef);
-      }
+      applyDashboardConversationOpenWorkspaceReset({
+        conversationRef,
+        getWorkspaceState: getChatWorkspaceState,
+        clearMessages: clearChatMessages,
+        setIsSending: setChatIsSending,
+        setThinkingStatus: setChatThinkingStatus,
+        setTokenCounts: setChatTokenCounts,
+      });
 
       const conversationView = await DesktopConversationLibraryClient.loadConversationView(
         resolvedUserId,

@@ -212,6 +212,12 @@ replay/store compatibility adapters and low-level artifact helpers.
 - `setActiveConversationRef` switches only the active workspace ref and ensures
   the workspace record exists through
   `DesktopChatWorkspaceStateRuntime.buildActiveConversationWorkspaceUpdate(...)`.
+- Dashboard conversation open uses
+  `DesktopDashboardConversationLoadRuntime.applyDashboardConversationOpenWorkspaceReset(...)`
+  to decide whether raw no-view workspace cleanup is needed before the SDK
+  `ConversationView` load resolves. The dashboard hook passes callback
+  dependencies only; it does not inspect workspace `messages` or
+  `conversationView` to decide whether to clear renderer-owned chat state.
 - generic workspace update assembly, workspace-record reads, and workspace
   mutation target resolution live in
   `desktopChatWorkspaceStateRuntime.ts`; `chatStore.ts` calls those helpers

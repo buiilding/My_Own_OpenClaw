@@ -1107,6 +1107,7 @@ describe('renderer app runtime boundary', () => {
     expect(runtimeSource).toContain('metadataListToDashboardConversations');
     expect(runtimeSource).toContain('metadataToDashboardConversation');
     expect(runtimeSource).toContain('DesktopDashboardConversationLoadRuntime');
+    expect(runtimeSource).toContain('applyDashboardConversationOpenWorkspaceReset');
     expect(runtimeSource).toContain('shouldRetryRecentConversationsLoad');
     expect(runtimeSource).toContain('resolveRecentConversationEventAction');
     expect(runtimeSource).toContain('shouldContinueTitleVisibilityPoll');
@@ -1152,6 +1153,7 @@ describe('renderer app runtime boundary', () => {
     expect(dashboardHookSource).toContain('desktopDashboardConversationLoadRuntime');
     expect(dashboardHookSource).toContain('DesktopDashboardConversationLoadRuntime');
     expect(dashboardHookSource).toContain('metadataListToDashboardConversations');
+    expect(dashboardHookSource).toContain('applyDashboardConversationOpenWorkspaceReset');
     expect(dashboardHookSource).toContain('resolveRecentConversationEventAction');
     expect(dashboardHookSource).toContain('shouldContinueTitleVisibilityPoll');
     expect(dashboardHookSource).toContain('scheduleRecentConversationsRetryTimer');

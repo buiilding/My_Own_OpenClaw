@@ -2,6 +2,10 @@
  * Provides dashboard conversation load rules for the renderer app runtime.
  */
 
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
+
 const MAX_RECENT_CHAT_RETRY_ATTEMPTS = 8;
 const RECENT_CHAT_RETRY_BASE_DELAY_MS = 250;
 const RECENT_CHAT_RETRY_MAX_DELAY_MS = 2000;
@@ -68,6 +72,53 @@ function normalizeRecentConversations(conversations) {
 
 function getDashboardConversationRef(conversation) {
   return normalizeOptionalString(conversation?.conversation_id);
+}
+
+function applyDashboardConversationOpenWorkspaceReset({
+  conversationRef,
+  getWorkspaceState,
+  clearMessages,
+  setIsSending,
+  setThinkingStatus,
+  setTokenCounts,
+} = {}) {
+  const targetRef = normalizeOptionalString(conversationRef);
+  if (!targetRef) {
+    return {
+      didReset: false,
+      hasConversationView: false,
+    };
+  }
+  const workspace = typeof getWorkspaceState === 'function'
+    ? getWorkspaceState(targetRef)
+    : null;
+  const hasConversationView = (
+    DesktopConversationViewWorkspaceRuntime.hasWorkspaceConversationView(workspace)
+  );
+  if (hasConversationView) {
+    return {
+      didReset: false,
+      hasConversationView: true,
+    };
+  }
+
+  if (typeof clearMessages === 'function') {
+    clearMessages(targetRef);
+  }
+  if (typeof setIsSending === 'function') {
+    setIsSending(false, targetRef);
+  }
+  if (typeof setThinkingStatus === 'function') {
+    setThinkingStatus(null, targetRef);
+  }
+  if (typeof setTokenCounts === 'function') {
+    setTokenCounts(null, targetRef);
+  }
+
+  return {
+    didReset: true,
+    hasConversationView: false,
+  };
 }
 
 function getDashboardConversationTitle(conversation) {
@@ -373,6 +424,7 @@ function clearRecentConversationsRefreshTimer(timerId, { timerApi } = {}) {
 }
 
 export const DesktopDashboardConversationLoadRuntime = Object.freeze({
+  applyDashboardConversationOpenWorkspaceReset,
   clearAllTitleVisibilityPollTimers,
   clearConversationSearchDebounce,
   clearRecentConversationsRefreshTimer,

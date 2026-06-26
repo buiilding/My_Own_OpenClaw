@@ -1179,9 +1179,10 @@ describe('renderer chat runtime boundary', () => {
     expect(dashboardHookSource).not.toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(dashboardHookSource).not.toContain('setChatMessages');
     expect(dashboardHookSource).not.toContain('hasCachedMessages');
-    expect(dashboardHookSource).toContain('hasCachedConversationView');
-    expect(dashboardHookSource).toContain('DesktopConversationViewWorkspaceRuntime');
-    expect(dashboardHookSource).toContain('hasWorkspaceConversationView(cachedWorkspace)');
+    expect(dashboardHookSource).not.toContain('hasCachedConversationView');
+    expect(dashboardHookSource).not.toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(dashboardHookSource).not.toContain('hasWorkspaceConversationView');
+    expect(dashboardHookSource).toContain('applyDashboardConversationOpenWorkspaceReset');
     expect(dashboardHookSource).not.toContain('cachedWorkspace?.conversationView');
     expect(dashboardHookSource).toContain('DesktopConversationLibraryClient.loadConversationView');
     expect(dashboardHookSource).not.toContain('DesktopConversationLibraryClient.loadDisplayRows');
