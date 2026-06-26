@@ -256,4 +256,33 @@ describe('desktopConversationReplayRuntime', () => {
 
     expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
   });
+
+  test('does not create a conversation when replay has no active scope', async () => {
+    const chatStoreBundle = createChatStore();
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    chatStoreBundle.state.activeConversationRef = null;
+    DesktopTranscriptSessionRuntimeClient.getActiveConversationRef.mockReturnValue(null);
+
+    await expect(executeReplayAction(replayArgs({
+      action: 'retry',
+      assistantMessageId: 'assistant-1',
+      chatStoreBundle,
+      sessionInfo: {
+        conversationRef: null,
+        userId: 'user-1',
+      },
+    }))).resolves.toBe(false);
+
+    expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
+    expect(DesktopConversationContinuityService.editAndResend).not.toHaveBeenCalled();
+    expect(DesktopTranscriptSessionRuntimeClient.updateTranscriptSession).not.toHaveBeenCalled();
+    expect(DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding).not.toHaveBeenCalled();
+    expect(DesktopRendererTraceRuntime.logRendererReplayTrace).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'replay_failed_cleanup',
+      conversationRef: null,
+      errorKind: 'MissingConversationRef',
+      targetUserMessageId: 'assistant-1',
+    }));
+    errorSpy.mockRestore();
+  });
 });

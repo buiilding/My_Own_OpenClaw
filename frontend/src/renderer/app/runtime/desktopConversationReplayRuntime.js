@@ -19,8 +19,6 @@ import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
 
 const {
   applyRendererConversationSelection,
-  createConversationRef,
-  initializeLocalConversationSession,
   resolveRendererConversationSessionSnapshot,
 } = DesktopConversationSessionRuntime;
 const {
@@ -62,26 +60,11 @@ function prepareReplayRetryIntent({ assistantMessageId }) {
   };
 }
 
-function ensureConversationRef(sessionConversationRef, storeConversationRef) {
-  let conversationRef = resolveRendererConversationSessionSnapshot({
+function resolveExistingConversationRef(sessionConversationRef, storeConversationRef) {
+  return resolveRendererConversationSessionSnapshot({
     transcriptConversationRef: DesktopTranscriptSessionRuntimeClient.getActiveConversationRef() || sessionConversationRef,
     storeConversationRef,
   }).conversationRef;
-  if (!conversationRef) {
-    conversationRef = initializeLocalConversationSession({
-      createConversationRef,
-      selectConversationRef: (nextConversationRef) => {
-        applyRendererConversationSelection({
-          conversationRef: nextConversationRef,
-          updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
-        });
-      },
-      onConversationCreated: (nextConversationRef) => {
-        DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding(nextConversationRef, null);
-      },
-    });
-  }
-  return conversationRef;
 }
 
 function traceErrorKind(error) {
@@ -140,10 +123,20 @@ async function executeReplayIntent({
     messageId,
     queryText,
   } = intent;
-  const conversationRef = ensureConversationRef(
+  const conversationRef = resolveExistingConversationRef(
     sessionInfo.conversationRef,
     activeConversationRef,
   );
+  if (!conversationRef) {
+    console.error(`[ChatInterface] ${errorPrefix}: missing active conversation`);
+    logRendererReplayTrace({
+      action: 'replay_failed_cleanup',
+      conversationRef: null,
+      errorKind: 'MissingConversationRef',
+      targetUserMessageId: messageId,
+    });
+    return false;
+  }
   const workspaceBinding = DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding(conversationRef);
   applyRendererConversationSelection({
     conversationRef,

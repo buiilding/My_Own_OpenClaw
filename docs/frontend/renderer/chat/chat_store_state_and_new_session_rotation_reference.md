@@ -198,7 +198,9 @@ current-turn row construction on typed SDK presentation fields.
   `useConversationReplayActions(...)` passes replay intent plus renderer config
   into `executeReplayActionFromChatStore(...)`; the chat-store adapter supplies
   the store bridge and the replay runtime derives the deferred SDK model
-  selection before dispatching SDK commands.
+  selection before dispatching SDK commands. Replay requires an existing
+  conversation ref from the transcript session or chat-store active workspace;
+  it must not create a fresh conversation for a row id the SDK cannot resolve.
 - `clearPendingTurnInChatStore(...)` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn.
   Pending-turn clear matching, broadcast action branching, and workspace

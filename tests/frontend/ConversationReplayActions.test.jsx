@@ -181,20 +181,19 @@ describe('useConversationReplayActions', () => {
     }));
   });
 
-  test('creates and selects a fresh local conversation when no active session exists', async () => {
+  test('does not create a conversation when no replay scope exists', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     mockConversationRef = null;
-    jest.spyOn(globalThis.crypto, 'randomUUID')
-      .mockReturnValueOnce('replay-ref')
-      .mockReturnValueOnce('turn-ref');
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
       await result.current.handleTryAgainFromAssistant('assistant-new');
     });
 
-    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', undefined);
-    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', 'user-1');
-    expect(mockRetryTurn.mock.calls[0][0].conversationRef).toBe('conv_replay-ref');
+    expect(mockRetryTurn).not.toHaveBeenCalled();
+    expect(mockEditAndResend).not.toHaveBeenCalled();
+    expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 
   test('reuses projected chat-store conversation ref when transcript session is empty', async () => {

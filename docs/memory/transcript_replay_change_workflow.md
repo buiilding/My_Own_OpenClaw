@@ -132,8 +132,11 @@ flowchart LR
      `desktopConversationReplayRuntime`. Hooks call the runtime's single
      replay-action entrypoint with row ids/text plus UI dependencies; active
      conversation state is resolved by the runtime from the store dependency
-     instead of selected in React, and replay failures are trace/status outcomes
-     rather than renderer-published chat rows. That public facade exports only
+     instead of selected in React. If neither transcript session nor chat-store
+     active workspace has a conversation ref, replay returns a traced failure
+     instead of creating a fresh conversation whose SDK display rows cannot own
+     the target id. Replay failures are trace/status outcomes rather than
+     renderer-published chat rows. That public facade exports only
      `executeReplayAction`, and hooks do not call replay preparation helpers,
      inspect `ConversationView`/message arrays, or call replay SDK commands
      directly.

@@ -16,6 +16,10 @@ All notable changes to WindieOS will be documented in this file.
   as the normal live content contract, and raw current-turn row synthesis is
   isolated behind a legacy no-presentation helper that refuses
   presentation-backed snapshots. No migration required.
+- frontend/replay: stop creating a new renderer conversation when edit/retry is
+  invoked without an active conversation scope; replay now traces a missing
+  conversation and leaves SDK target-row resolution to existing conversation
+  views. No migration required.
 - sdk/frontend: add SDK-authored `toolCallDetails` and `toolOutputDetails`
   metadata to display rows, and make the renderer display-row adapter consume
   only those detail records instead of copying request/tool ids from generic row

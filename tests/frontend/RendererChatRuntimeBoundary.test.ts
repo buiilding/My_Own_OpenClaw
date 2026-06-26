@@ -1943,6 +1943,8 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('buildPendingTurn');
     expect(replayRuntimeSource).not.toContain('function buildReplayPendingTurn');
     expect(replayRuntimeSource).not.toContain('DesktopPendingTurnBridgeRuntime');
+    expect(replayRuntimeSource).not.toContain('initializeLocalConversationSession');
+    expect(replayRuntimeSource).not.toContain('createConversationRef');
     expect(replayRuntimeSource).not.toContain('resolveReplayReadModel');
     expect(replayRuntimeSource).not.toContain('buildConversationViewChatMessages');
     expect(replayRuntimeSource).not.toContain('buildReplayPendingPublication');
@@ -1951,6 +1953,7 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.editAndResend');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.retryTurn');
     expect(replayRuntimeSource).not.toContain('const replayTurnRef = crypto.randomUUID');
+    expect(replayRuntimeSource).toContain('MissingConversationRef');
     expect(replayRuntimeSource).not.toContain('turnRef: replayTurnRef');
     expect(replayRuntimeSource).not.toContain('DesktopPendingTurnRuntimeClient');
     expect(replayRuntimeSource).not.toContain('buildReplayContextMessages');
