@@ -3021,6 +3021,7 @@ describe('renderer chat runtime boundary', () => {
     expect(
       traceRuntimeSource.match(/const currentTurnProjection = values\.currentTurnProjection;/g) || [],
     ).toHaveLength(0);
+    expect(traceRuntimeSource).not.toContain('values.currentTurnProjection');
     expect(traceRuntimeSource).not.toContain('projectionTurnRef');
     expect(layoutRuntimeSource).toContain('getRoundedFrameSize');
     expect(layoutRuntimeSource).toContain('getResponseOverlayAwaitingFrameHeight');

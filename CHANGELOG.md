@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/trace: stop routing response overlay rendered-typing diagnostics
+  through raw `currentTurnProjection` conversation refs; callers must pass the
+  projected conversation identity explicitly. No migration required.
 - frontend/trace: remove the response overlay `traceState` wrapper now that
   overlay view-model traces receive the pending bridge directly. No migration
   required.

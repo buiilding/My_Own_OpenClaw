@@ -503,9 +503,7 @@ function logRendererResponseOverlayTypingRenderedTrace(
   logRendererLiveSurfaceTrace(
     typingRendered ? 'typing.rendered.show' : 'typing.rendered.hide',
     buildRendererResponseOverlayTypingRenderedTracePayload(values),
-    traceString(values.conversationRef)
-      || traceString(values.currentTurnProjection?.conversationRef)
-      || null,
+    traceString(values.conversationRef) || null,
   );
 }
 
