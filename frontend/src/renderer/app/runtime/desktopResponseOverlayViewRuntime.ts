@@ -97,11 +97,13 @@ function resolveResponseOverlaySurfaceState({
   chatSurfaceState?: unknown;
 } = {}) {
   const surfaceState = recordFromUnknown(chatSurfaceState);
-  const messages = Array.isArray(surfaceState.messages) ? surfaceState.messages : [];
   const conversationView = isConversationView(surfaceState.conversationView)
     ? surfaceState.conversationView
     : null;
-  const sdkLiveTurn = surfaceState.sdkLiveTurn ?? null;
+  const messages = conversationView
+    ? []
+    : Array.isArray(surfaceState.messages) ? surfaceState.messages : [];
+  const sdkLiveTurn = conversationView ? null : surfaceState.sdkLiveTurn ?? null;
   const pendingTurn = surfaceState.pendingTurn ?? null;
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
     conversationView,

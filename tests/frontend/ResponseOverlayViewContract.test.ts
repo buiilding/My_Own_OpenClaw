@@ -174,6 +174,49 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(state.useLocalPendingTurn).toBe(false);
   });
 
+  test('response overlay surface state blanks raw fallback under direct ConversationView input', () => {
+    const state = resolveResponseOverlaySurfaceState({
+      chatSurfaceState: {
+        messages: [{
+          id: 'stale-user',
+          sender: 'user',
+          text: 'stale raw user',
+        }],
+        pendingTurn: {
+          conversationRef: 'conv-view',
+          turnRef: 'turn-pending',
+        },
+        conversationView: {
+          conversationRef: 'conv-view',
+          liveTurn: null,
+          surfaces: {
+            responseOverlay: {
+              mode: 'hidden',
+              visible: false,
+            },
+          },
+        },
+        sdkLiveTurn: {
+          conversationRef: 'conv-view',
+          turnRef: 'turn-sdk',
+          phase: 'streaming',
+          assistantText: 'stale SDK fallback',
+        },
+      },
+    });
+
+    expect(state.messages).toEqual([]);
+    expect(state.sdkLiveTurn).toBeNull();
+    expect(state.useLocalPendingTurn).toBe(true);
+    expect(state.responseOverlayEntries).toEqual([]);
+    expect(state.responseOverlayMessages).toEqual([]);
+    expect(state.visibleTurnLifecycle).toEqual(expect.objectContaining({
+      source: 'local',
+      status: 'local_pending',
+      awaitingAnchor: null,
+    }));
+  });
+
   test('projects local pending bridge surface state before SDK view exists', () => {
     const state = resolveResponseOverlaySurfaceState({
       chatSurfaceState: {

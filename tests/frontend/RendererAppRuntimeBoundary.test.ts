@@ -1969,7 +1969,8 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceRuntimeSource).toContain("source: 'conversation-view'");
     expect(responseViewRuntimeSource).toContain('buildConversationViewLiveTurnMessages');
     expect(responseViewRuntimeSource).toContain('isConversationView(conversationView)');
-    expect(responseViewRuntimeSource).not.toContain('conversationView ? null : surfaceState.sdkLiveTurn');
+    expect(responseViewRuntimeSource).toContain('const messages = conversationView');
+    expect(responseViewRuntimeSource).toContain('const sdkLiveTurn = conversationView ? null : surfaceState.sdkLiveTurn ?? null;');
     expect(responseOverlayViewModelSource).toContain('resolveResponseOverlaySurfaceState');
     expect(responseOverlayViewModelSource).not.toContain('resolveResponseOverlayEntries');
     expect(responseOverlayViewModelSource).not.toContain('buildConversationViewLiveTurnMessages');
