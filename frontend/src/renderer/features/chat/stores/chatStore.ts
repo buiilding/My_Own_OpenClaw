@@ -21,7 +21,7 @@ import {
   resolveChatWorkspaceRef,
   resolveWorkspaceMutationTarget,
   resolveWorkspaceKey,
-  selectActiveWorkspaceState,
+  selectActiveWorkspaceReadModelState,
 } from '../../../app/runtime/desktopChatWorkspaceStateRuntime';
 import type { ChatWorkspaceState } from '../../../app/runtime/desktopChatWorkspaceStateRuntime';
 import {
@@ -209,26 +209,26 @@ interface ChatState {
 export function selectChatInterfaceState(state: ChatState) {
   return buildChatInterfaceSelectorState({
     activeConversationRef: state.activeConversationRef,
-    activeWorkspace: selectActiveWorkspaceState(state),
+    activeWorkspace: selectActiveWorkspaceReadModelState(state),
   });
 }
 
 export function selectChatSendReadModel(state: ChatState) {
   return buildChatSendReadModelSelectorState({
-    activeWorkspace: selectActiveWorkspaceState(state),
+    activeWorkspace: selectActiveWorkspaceReadModelState(state),
   });
 }
 
 export function selectChatInterfaceSurfaceState(state: ChatState) {
   return buildChatInterfaceSurfaceSelectorState({
-    activeWorkspace: selectActiveWorkspaceState(state),
+    activeWorkspace: selectActiveWorkspaceReadModelState(state),
   });
 }
 
 export function selectLiveTurnSurfaceState(state: ChatState) {
   return buildLiveTurnSurfaceSelectorState({
     activeConversationRef: state.activeConversationRef,
-    activeWorkspace: selectActiveWorkspaceState(state),
+    activeWorkspace: selectActiveWorkspaceReadModelState(state),
   });
 }
 

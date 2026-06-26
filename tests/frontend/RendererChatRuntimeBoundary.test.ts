@@ -3390,6 +3390,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).toContain('rendererAnnotations,');
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('selectRendererMessageAnnotations(interfaceState.messages');
     expect(chatSurfaceSelectorRuntimeSource).toContain('selectRendererMessageAnnotations(activeWorkspace.messages)');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('activeWorkspace.rendererAnnotations');
     expect(chatSurfaceSelectorRuntimeSource).toContain('messages: surfaceState.messages');
     expect(chatSurfaceSelectorRuntimeSource).toContain('rendererAnnotations: hasConversationView');
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('conversationView\n    ? emptyChatMessages\n    : interfaceState.messages');
@@ -3417,6 +3418,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('createInitialWorkspaceRecord');
     expect(chatStoreSource).toContain('desktopChatWorkspaceStateRuntime');
     expect(chatStoreSource).not.toContain('./chatWorkspaceState');
+    expect(chatStoreSource).toContain('selectActiveWorkspaceReadModelState');
+    expect(chatStoreSource).not.toContain('selectActiveWorkspaceState(state)');
     expect(chatStoreSource).toContain('buildActiveConversationWorkspaceUpdate');
     expect(chatStoreSource).toContain('buildWorkspaceUpdate');
     expect(chatStoreSource).toContain('resolveWorkspaceMutationTarget');
@@ -3526,6 +3529,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateRuntimeSource).not.toContain('getProjectedWorkspaceFields');
     expect(chatWorkspaceStateRuntimeSource).toContain('buildWorkspaceUpdate');
     expect(chatWorkspaceStateRuntimeSource).toContain('resolveWorkspaceMutationTarget');
+    expect(chatWorkspaceStateRuntimeSource).toContain('projectWorkspaceReadModelState');
+    expect(chatWorkspaceStateRuntimeSource).toContain('selectActiveWorkspaceReadModelState');
+    expect(chatWorkspaceStateRuntimeSource).toContain('selectRendererMessageAnnotations(workspace.messages)');
+    expect(chatWorkspaceStateRuntimeSource).toContain('currentTurnProjection: null');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('buildActiveWorkspaceSnapshot');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('doesWorkspaceMatch');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('activeWorkspaceSnapshot');

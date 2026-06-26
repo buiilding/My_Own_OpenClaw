@@ -218,14 +218,23 @@ the full chat interface and live minimal surfaces. It applies
 `DesktopChatSurfaceSelectorRuntime`, `DesktopChatInterfacePresentationRuntime`,
 and stop-target selection while keeping stable nested selector objects.
 `chatStore.ts` only binds those projection methods to
-`selectActiveWorkspaceState(...)` so the app-runtime helper does not import chat
-feature store internals.
+`selectActiveWorkspaceReadModelState(...)` so the app-runtime helper does not
+import chat feature store internals.
+
+`DesktopChatWorkspaceStateRuntime.selectActiveWorkspaceReadModelState(...)` is
+the normal read entrypoint for chat UI selectors. It returns the raw workspace
+object while no SDK `ConversationView` exists. Once `ConversationView` exists,
+it returns a cached read model with raw `messages` replaced by the stable empty
+list and raw `currentTurnProjection` set to `null`. The short `pendingTurn`
+bridge remains available, and renderer-only feedback/transparency/token
+metadata is carried separately as `rendererAnnotations` for display-row
+annotation merge.
 
 When `ConversationView` exists, the shared interface projection returns the
 stable empty message list plus narrow `rendererAnnotations`; it does not pass
 the full raw workspace transcript into
 `DesktopChatInterfacePresentationRuntime`. Raw messages remain available only
-for no-view fallback rendering and the send read model described below.
+through raw workspace mutation/adapters and for no-view fallback rendering.
 
 `selectChatInterfaceState` exposes the active workspace selector model:
 

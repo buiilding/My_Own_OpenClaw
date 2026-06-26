@@ -10,11 +10,13 @@ import {
   createInitialWorkspaceState,
   isActiveWorkspaceRef,
   normalizeConversationRef,
+  projectWorkspaceReadModelState,
   readWorkspaceState,
   resolveChatWorkspaceRef,
   resolveWorkspaceConversationRef,
   resolveWorkspaceMutationTarget,
   resolveWorkspaceKey,
+  selectActiveWorkspaceReadModelState,
   selectActiveWorkspaceState,
 } from '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceStateRuntime';
 
@@ -176,6 +178,74 @@ describe('chatWorkspaceState', () => {
     expect(resolved.isSending).toBe(false);
     expect(resolved.thinkingStatus).toBeNull();
     expect(resolved.streamTracking.phase).toBe('idle');
+  });
+
+  test('keeps no-view workspace read model as the raw workspace object', () => {
+    const workspace = {
+      ...createInitialWorkspaceState(),
+      messages: [{ id: 'workspace', text: 'workspace', sender: 'assistant' as const }],
+      currentTurnProjection: { turnRef: 'turn-raw' } as never,
+    };
+    const state = {
+      activeConversationRef: 'thread-1',
+      workspaces: {
+        'thread-1': workspace,
+      },
+    };
+
+    expect(projectWorkspaceReadModelState(workspace)).toBe(workspace);
+    expect(selectActiveWorkspaceReadModelState(state)).toBe(workspace);
+  });
+
+  test('projects ConversationView workspace read model without raw fallback authorities', () => {
+    const conversationView = {
+      conversationRef: 'thread-1',
+      displayRows: [{ id: 'sdk-row', role: 'user' }],
+      liveTurn: null,
+      surfaces: {
+        pill: { mode: 'idle' },
+      },
+    };
+    const pendingTurn = {
+      conversationRef: 'thread-1',
+      turnRef: 'turn-pending',
+      userMessageId: 'pending-user',
+    };
+    const workspace = {
+      ...createInitialWorkspaceState(),
+      messages: [{
+        id: 'sdk-row',
+        text: 'raw fallback',
+        sender: 'user' as const,
+        fullUserMessage: 'full prompt',
+        feedback: { rating: 'positive' },
+      }],
+      currentTurnProjection: { turnRef: 'turn-raw' } as never,
+      conversationView,
+      pendingTurn: pendingTurn as never,
+    };
+    const state = {
+      activeConversationRef: 'thread-1',
+      workspaces: {
+        'thread-1': workspace,
+      },
+    };
+
+    const readModel = projectWorkspaceReadModelState(workspace);
+    const selectedReadModel = selectActiveWorkspaceReadModelState(state);
+
+    expect(readModel).not.toBe(workspace);
+    expect(readModel.messages).toEqual([]);
+    expect(readModel.currentTurnProjection).toBeNull();
+    expect(readModel.conversationView).toBe(conversationView);
+    expect(readModel.pendingTurn).toBe(pendingTurn);
+    expect(readModel.rendererAnnotations).toEqual([{
+      id: 'sdk-row',
+      fullUserMessage: 'full prompt',
+      feedback: { rating: 'positive' },
+    }]);
+    expect(selectedReadModel).toBe(readModel);
+    expect(projectWorkspaceReadModelState(workspace)).toBe(readModel);
   });
 
   test('builds workspace updates without projecting inactive workspace fields', () => {

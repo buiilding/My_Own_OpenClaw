@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: route normal chat UI selectors through
+  `DesktopChatWorkspaceStateRuntime.selectActiveWorkspaceReadModelState(...)`
+  so SDK `ConversationView` suppresses raw message/current-turn fallback while
+  preserving the pending bridge and renderer annotations. No migration
+  required.
 - frontend/store: move chat workspace record helpers from the feature store
   folder into `DesktopChatWorkspaceStateRuntime`, leaving `chatStore` as the
   Zustand adapter over runtime-owned workspace mechanics. No migration required.

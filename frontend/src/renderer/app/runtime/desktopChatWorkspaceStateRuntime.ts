@@ -22,10 +22,16 @@ import type {
   ChatMessage,
   TokenCounts,
 } from './desktopChatMessageTypes';
+import {
+  DesktopConversationDisplayProjection,
+} from './desktopConversationDisplayProjection';
 
 const {
   createInitialStreamTracking,
 } = DesktopChatStreamTrackingRuntime;
+const {
+  selectRendererMessageAnnotations,
+} = DesktopConversationDisplayProjection;
 
 export interface ChatWorkspaceState {
   messages: ChatMessage[];
@@ -45,7 +51,13 @@ interface ChatWorkspaceStoreSnapshot {
   workspaces?: Record<string, ChatWorkspaceState>;
 }
 
+export type ChatWorkspaceReadModelState = ChatWorkspaceState & {
+  rendererAnnotations?: unknown[];
+};
+
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
+const emptyChatMessages: ChatMessage[] = [];
+const workspaceReadModelCache = new WeakMap<ChatWorkspaceState, ChatWorkspaceReadModelState>();
 
 export function normalizeConversationRef(value: string | null | undefined): string | null {
   if (typeof value !== 'string') {
@@ -178,6 +190,32 @@ export function selectActiveWorkspaceState(
   return readWorkspaceState(state, activeWorkspaceRef);
 }
 
+export function projectWorkspaceReadModelState(
+  workspace: ChatWorkspaceState,
+): ChatWorkspaceReadModelState {
+  if (!workspace.conversationView) {
+    return workspace;
+  }
+  const cachedReadModel = workspaceReadModelCache.get(workspace);
+  if (cachedReadModel) {
+    return cachedReadModel;
+  }
+  const readModelWorkspace = {
+    ...workspace,
+    messages: emptyChatMessages,
+    currentTurnProjection: null,
+    rendererAnnotations: selectRendererMessageAnnotations(workspace.messages),
+  };
+  workspaceReadModelCache.set(workspace, readModelWorkspace);
+  return readModelWorkspace;
+}
+
+export function selectActiveWorkspaceReadModelState(
+  state: ChatWorkspaceStoreSnapshot,
+): ChatWorkspaceReadModelState {
+  return projectWorkspaceReadModelState(selectActiveWorkspaceState(state));
+}
+
 export const DesktopChatWorkspaceStateRuntime = Object.freeze({
   buildActiveConversationWorkspaceUpdate,
   buildWorkspaceUpdate,
@@ -190,5 +228,7 @@ export const DesktopChatWorkspaceStateRuntime = Object.freeze({
   resolveWorkspaceConversationRef,
   resolveWorkspaceKey,
   resolveWorkspaceMutationTarget,
+  projectWorkspaceReadModelState,
+  selectActiveWorkspaceReadModelState,
   selectActiveWorkspaceState,
 });

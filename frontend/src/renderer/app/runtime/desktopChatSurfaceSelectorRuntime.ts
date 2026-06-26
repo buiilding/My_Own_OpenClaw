@@ -16,6 +16,7 @@ type DesktopChatWorkspaceProjection = {
   currentTurnProjection?: unknown | null;
   conversationView?: unknown | null;
   pendingTurn?: unknown | null;
+  rendererAnnotations?: unknown[];
 };
 
 const emptyChatMessages: ChatMessage[] = [];
@@ -53,10 +54,13 @@ function projectDesktopChatInterfaceState(
     activeWorkspace,
   });
   const hasConversationView = Boolean(surfaceState.conversationView);
+  const projectedRendererAnnotations = Array.isArray(activeWorkspace.rendererAnnotations)
+    ? activeWorkspace.rendererAnnotations
+    : selectRendererMessageAnnotations(activeWorkspace.messages);
   return {
     messages: surfaceState.messages,
     rendererAnnotations: hasConversationView
-      ? selectRendererMessageAnnotations(activeWorkspace.messages)
+      ? projectedRendererAnnotations
       : emptyRendererAnnotations,
     thinkingStatus: activeWorkspace.thinkingStatus,
     thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null,
