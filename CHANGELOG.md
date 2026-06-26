@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: move chat workspace record helpers from the feature store
+  folder into `DesktopChatWorkspaceStateRuntime`, leaving `chatStore` as the
+  Zustand adapter over runtime-owned workspace mechanics. No migration required.
 - frontend/store: make chat workspace state import message/token types directly
   from `desktopChatMessageTypes` instead of treating `chatStore` as the type
   owner. No migration required.
@@ -396,8 +399,8 @@ All notable changes to WindieOS will be documented in this file.
   chat authorities. No migration required.
 - frontend/chat-store: move active-workspace projection, generic workspace
   update assembly, and workspace mutation target resolution into
-  `chatWorkspaceState.ts` so `chatStore.ts` applies mutations without owning
-  projected-field mirroring boilerplate. No migration required.
+  `DesktopChatWorkspaceStateRuntime` so `chatStore.ts` applies mutations
+  without owning projected-field mirroring boilerplate. No migration required.
 - frontend/overlay: move response-overlay dismissal-key construction into the
   app-runtime view helper so `chatStore.ts` persists dismissal state without
   owning the conversation/turn/entry key contract. No migration required.

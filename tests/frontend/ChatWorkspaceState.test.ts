@@ -16,7 +16,7 @@ import {
   resolveWorkspaceMutationTarget,
   resolveWorkspaceKey,
   selectActiveWorkspaceState,
-} from '../../frontend/src/renderer/features/chat/stores/chatWorkspaceState';
+} from '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceStateRuntime';
 
 function createStreamTracking(overrides: Partial<StreamTracking> = {}): StreamTracking {
   return {

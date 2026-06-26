@@ -15,6 +15,7 @@ title: "Chat Store State and New Session Rotation Reference"
 - `frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatRevisionActionRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopChatWorkspaceStateRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnWorkspaceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationViewWorkspaceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopPendingTurnBridgeRuntime.js`
@@ -59,7 +60,8 @@ Turn-scoped event routing state:
   mutations may record turn refs through injected app-runtime dependencies, and
   stream ingress calls the app-runtime registry directly.
 
-The default workspace key is private to `chatWorkspaceState.ts`. Store
+The default workspace key is private to
+`desktopChatWorkspaceStateRuntime.ts`. Store
 initialization uses `createInitialWorkspaceRecord()` so `chatStore.ts` and
 feature callers do not import the raw sentinel string.
 
@@ -190,12 +192,12 @@ replay/store compatibility adapters and low-level artifact helpers.
   adapters.
 - `setActiveConversationRef` switches only the active workspace ref and ensures
   the workspace record exists through
-  `chatWorkspaceState.buildActiveConversationWorkspaceUpdate(...)`.
+  `DesktopChatWorkspaceStateRuntime.buildActiveConversationWorkspaceUpdate(...)`.
 - generic workspace update assembly, workspace-record reads, and workspace
   mutation target resolution live in
-  `chatWorkspaceState.ts`; `chatStore.ts` calls those helpers instead of
-  defining the boilerplate. `readWorkspaceState(...)` never reconstructs an
-  active workspace from stale top-level mirror fields, and
+  `desktopChatWorkspaceStateRuntime.ts`; `chatStore.ts` calls those helpers
+  instead of defining the boilerplate. `readWorkspaceState(...)` never
+  reconstructs an active workspace from stale top-level mirror fields, and
   `buildWorkspaceUpdate(...)` never projects workspace fields back onto the
   store root.
 - Turn-ref registration and lookup for events that omit `conversation_ref` live

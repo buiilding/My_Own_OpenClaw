@@ -22,8 +22,8 @@ import {
   resolveWorkspaceMutationTarget,
   resolveWorkspaceKey,
   selectActiveWorkspaceState,
-} from './chatWorkspaceState';
-import type { ChatWorkspaceState } from './chatWorkspaceState';
+} from '../../../app/runtime/desktopChatWorkspaceStateRuntime';
+import type { ChatWorkspaceState } from '../../../app/runtime/desktopChatWorkspaceStateRuntime';
 import {
   DesktopStopTurnRuntime,
 } from '../../../app/runtime/desktopStopTurnRuntime';

@@ -5,23 +5,23 @@
 import type {
   ConversationView,
   CurrentTurnProjection,
-} from '../../../app/runtime/desktopConversationRuntimeContracts';
+} from './desktopConversationRuntimeContracts';
 import type {
   CompactionDebugInfo,
-} from '../../../app/runtime/desktopChatStreamEventPayloadRuntime';
+} from './desktopChatStreamEventPayloadRuntime';
 import type {
   DesktopPendingTurnState,
-} from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
+} from './desktopChatPendingTurnStateRuntime';
 import type {
   StreamTracking,
-} from '../../../app/runtime/desktopChatStreamTrackingRuntime';
+} from './desktopChatStreamTrackingRuntime';
 import {
   DesktopChatStreamTrackingRuntime,
-} from '../../../app/runtime/desktopChatStreamTrackingRuntime';
+} from './desktopChatStreamTrackingRuntime';
 import type {
   ChatMessage,
   TokenCounts,
-} from '../../../app/runtime/desktopChatMessageTypes';
+} from './desktopChatMessageTypes';
 
 const {
   createInitialStreamTracking,
@@ -177,3 +177,18 @@ export function selectActiveWorkspaceState(
   const activeWorkspaceRef = resolveChatWorkspaceRef(state.activeConversationRef);
   return readWorkspaceState(state, activeWorkspaceRef);
 }
+
+export const DesktopChatWorkspaceStateRuntime = Object.freeze({
+  buildActiveConversationWorkspaceUpdate,
+  buildWorkspaceUpdate,
+  createInitialWorkspaceRecord,
+  createInitialWorkspaceState,
+  isActiveWorkspaceRef,
+  normalizeConversationRef,
+  readWorkspaceState,
+  resolveChatWorkspaceRef,
+  resolveWorkspaceConversationRef,
+  resolveWorkspaceKey,
+  resolveWorkspaceMutationTarget,
+  selectActiveWorkspaceState,
+});

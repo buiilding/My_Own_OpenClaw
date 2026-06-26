@@ -3278,8 +3278,8 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'stores/chatStore.ts'),
       'utf8',
     );
-    const chatWorkspaceStateSource = await fs.readFile(
-      path.join(chatRoot, 'stores/chatWorkspaceState.ts'),
+    const chatWorkspaceStateRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceStateRuntime.ts'),
       'utf8',
     );
     const pendingBridgeSource = await fs.readFile(
@@ -3415,6 +3415,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('desktopChatMessageTypes');
     expect(chatStoreSource).toContain('export type { ChatMessage, TokenCounts }');
     expect(chatStoreSource).toContain('createInitialWorkspaceRecord');
+    expect(chatStoreSource).toContain('desktopChatWorkspaceStateRuntime');
+    expect(chatStoreSource).not.toContain('./chatWorkspaceState');
     expect(chatStoreSource).toContain('buildActiveConversationWorkspaceUpdate');
     expect(chatStoreSource).toContain('buildWorkspaceUpdate');
     expect(chatStoreSource).toContain('resolveWorkspaceMutationTarget');
@@ -3519,23 +3521,24 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('resolvePendingTurnForCurrentProjection');
     expect(chatStoreSource).not.toContain('shouldUpdateLatestView');
     expect(chatStoreSource).not.toContain('Object.keys(latestUpdate)');
-    expect(chatWorkspaceStateSource).toContain('buildActiveConversationWorkspaceUpdate');
-    expect(chatWorkspaceStateSource).not.toContain('getProjectedWorkspaceFields');
-    expect(chatWorkspaceStateSource).toContain('buildWorkspaceUpdate');
-    expect(chatWorkspaceStateSource).toContain('resolveWorkspaceMutationTarget');
-    expect(chatWorkspaceStateSource).not.toContain('buildActiveWorkspaceSnapshot');
-    expect(chatWorkspaceStateSource).not.toContain('doesWorkspaceMatch');
-    expect(chatWorkspaceStateSource).not.toContain('activeWorkspaceSnapshot');
-    expect(chatWorkspaceStateSource).not.toContain('messages?: ChatMessage[];');
-    expect(chatWorkspaceStateSource).not.toContain('currentTurnProjection?: CurrentTurnProjection | null;');
-    expect(chatWorkspaceStateSource).not.toContain('conversationView?: ConversationView | null;');
-    expect(chatWorkspaceStateSource).not.toContain('pendingTurn?: PendingTurn | null;');
-    expect(chatWorkspaceStateSource).not.toContain("from './chatStore'");
-    expect(chatWorkspaceStateSource).toContain('desktopChatMessageTypes');
-    expect(chatWorkspaceStateSource).not.toContain('export function createInitialStreamTracking');
-    expect(chatWorkspaceStateSource).toContain('CompactionDebugInfo');
-    expect(chatWorkspaceStateSource).not.toContain('replacementHistoryPreview: Array');
-    expect(chatWorkspaceStateSource).toContain('DesktopChatStreamTrackingRuntime');
+    expect(chatWorkspaceStateRuntimeSource).toContain('buildActiveConversationWorkspaceUpdate');
+    expect(chatWorkspaceStateRuntimeSource).toContain('DesktopChatWorkspaceStateRuntime');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('getProjectedWorkspaceFields');
+    expect(chatWorkspaceStateRuntimeSource).toContain('buildWorkspaceUpdate');
+    expect(chatWorkspaceStateRuntimeSource).toContain('resolveWorkspaceMutationTarget');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('buildActiveWorkspaceSnapshot');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('doesWorkspaceMatch');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('activeWorkspaceSnapshot');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('messages?: ChatMessage[];');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('currentTurnProjection?: CurrentTurnProjection | null;');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('conversationView?: ConversationView | null;');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('pendingTurn?: PendingTurn | null;');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain("from './chatStore'");
+    expect(chatWorkspaceStateRuntimeSource).toContain('desktopChatMessageTypes');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('export function createInitialStreamTracking');
+    expect(chatWorkspaceStateRuntimeSource).toContain('CompactionDebugInfo');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('replacementHistoryPreview: Array');
+    expect(chatWorkspaceStateRuntimeSource).toContain('DesktopChatStreamTrackingRuntime');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildConversationViewWorkspaceMutation');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildSetConversationViewStateUpdate');
     expect(conversationViewWorkspaceRuntimeSource).toContain('hasWorkspaceConversationView');
