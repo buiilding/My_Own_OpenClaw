@@ -853,7 +853,7 @@ function buildRendererOverlayViewModelTracePayload(
       || traceString(pendingTurn?.conversationRef)
       || null
     ),
-    phase: traceString(currentTurnProjection?.phase) || traceString(values.currentTurnPhase) || null,
+    phase: traceString(values.currentTurnPhase) || traceString(currentTurnProjection?.phase) || null,
     pendingTurnRef: traceString(pendingTurn?.turnRef) || null,
     pendingUserMessageId: traceString(pendingTurn?.userMessageId) || null,
     visibleLifecycleStatus: traceString(visibleTurnLifecycle?.status) || null,

@@ -707,7 +707,7 @@ describe('desktopRendererTraceRuntime', () => {
       source: 'renderer-overlay-view-model',
       turnRef: 'turn-lifecycle',
       conversationRef: 'conv-lifecycle',
-      phase: 'streaming',
+      phase: 'awaiting-first-chunk',
       pendingTurnRef: 'turn-pending',
       pendingUserMessageId: 'user-pending',
       visibleLifecycleStatus: 'awaiting',

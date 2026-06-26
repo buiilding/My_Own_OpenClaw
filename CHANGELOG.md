@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/trace: prefer projected response overlay current-turn phase before
+  raw `currentTurnProjection.phase` in overlay view-model traces. No migration
+  required.
 - frontend/attachments: stop assigning visual display attachment ids in
   `DesktopChatSendPreparationRuntime`; renderer sends typed resources only and
   SDK turn processing assigns stable attachment ids before projection. No
