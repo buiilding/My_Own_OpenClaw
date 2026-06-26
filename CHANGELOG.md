@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stream: route chat stream dispatcher, ingress, compaction, and
+  local-user handlers through the runtime-built conversation stream event
+  identity object instead of resolving conversation and turn refs independently.
+  No migration required.
 - frontend/stream: move conversation-stream event identity tuple resolution
   into `DesktopChatStreamEventRuntime`, so metadata and terminal stream hooks
   consume one runtime-built conversation/turn/update target object instead of

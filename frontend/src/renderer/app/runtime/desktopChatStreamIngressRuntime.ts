@@ -22,8 +22,7 @@ type HandleConversationEventIngressDeps = {
 };
 
 const {
-  resolveConversationStreamEventConversationRef,
-  resolveConversationStreamEventTurnRef,
+  resolveConversationStreamEventIdentity,
 } = DesktopChatStreamEventRuntime;
 const {
   resolveConversationStreamEventUserId,
@@ -73,7 +72,8 @@ function handleConversationEventIngress(
   if (!event || typeof event !== 'object') {
     return false;
   }
-  const conversationRef = resolveConversationStreamEventConversationRef(event);
+  const eventIdentity = resolveConversationStreamEventIdentity(event);
+  const conversationRef = eventIdentity.conversationRef;
   if (!conversationRef) {
     return false;
   }
@@ -87,7 +87,7 @@ function handleConversationEventIngress(
       setChatConversationRef: deps.setActiveConversationRef,
     });
   });
-  const turnRef = resolveConversationStreamEventTurnRef(event);
+  const turnRef = eventIdentity.turnRef;
   if (turnRef) {
     runBestEffort(() => {
       deps.registerTurnConversationRef(turnRef, conversationRef);

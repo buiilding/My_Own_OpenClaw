@@ -13,7 +13,7 @@ import { type TranscriptModelContext } from '../../../../app/runtime/desktopChat
 const { getGenericThinkingStatus } = DesktopChatStreamThinkingRuntime;
 const {
   isLocalUserMessageConversationStreamEvent,
-  resolveConversationStreamEventTurnRef,
+  resolveConversationStreamEventIdentity,
 } = DesktopChatStreamEventRuntime;
 const {
   resolveConversationStreamEventPayload,
@@ -53,10 +53,11 @@ export function useChatStreamLocalUserHandler({
       setThinkingSourceEventType(null, conversationRef);
     }
 
-    recordTrackingEvent('local-user-message', resolveConversationStreamEventTurnRef(event), {
+    const eventIdentity = resolveConversationStreamEventIdentity(event, conversationRef);
+    recordTrackingEvent('local-user-message', eventIdentity.turnRef, {
       phase: 'awaiting-first-chunk',
       resetForTurn: true,
-    }, conversationRef);
+    }, eventIdentity.conversationRef);
   }, [
     modelContextRef,
     recordTrackingEvent,

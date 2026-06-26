@@ -62,7 +62,7 @@ const {
   isUserMessageMetadataConversationStreamEvent,
   isUsageUpdatedConversationStreamEvent,
   recordTrackingEvent: recordTrackingEventRuntime,
-  resolveConversationStreamEventConversationRef,
+  resolveConversationStreamEventIdentity,
   resolveWorkspaceThinkingSourceEventType,
   shouldIgnoreConversationEventForStaleTurn,
 } = DesktopChatStreamEventRuntime;
@@ -176,7 +176,10 @@ export function useChatStream(enableTranscript: boolean = true) {
     if (shouldIgnoreSdkEventForStaleTurn(event, conversationRef)) {
       return true;
     }
-    const eventConversationRef = resolveConversationStreamEventConversationRef(event) ?? conversationRef;
+    const eventConversationRef = resolveConversationStreamEventIdentity(
+      event,
+      conversationRef,
+    ).conversationRef;
     if (isLocalUserMessageConversationStreamEvent(event)) {
       handleLocalUserMessage(event, eventConversationRef);
       return true;

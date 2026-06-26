@@ -455,9 +455,6 @@ describe('renderer chat runtime boundary', () => {
     ];
     const helperNeedles = [
       'resolveConversationStreamEventIdentity',
-      'resolveConversationStreamEventConversationRef',
-      'resolveConversationStreamEventTurnRef',
-      'resolveConversationStreamEventTurnRefForUpdate',
       'resolveTurnCompletedStreamEventState',
     ];
     const runtimeSource = await fs.readFile(
@@ -474,6 +471,9 @@ describe('renderer chat runtime boundary', () => {
       expect(
         helperNeedles.some((needle) => source.includes(needle)),
       ).toBe(true);
+      expect(source).not.toContain('resolveConversationStreamEventConversationRef');
+      expect(source).not.toContain('resolveConversationStreamEventTurnRef');
+      expect(source).not.toContain('resolveConversationStreamEventTurnRefForUpdate');
     }
 
     expect(runtimeSource).toContain('export const DesktopChatStreamEventRuntime = Object.freeze');
@@ -723,7 +723,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('isTurnErrorConversationStreamEvent');
     expect(source).toContain('isUserMessageMetadataConversationStreamEvent');
     expect(source).toContain('isUsageUpdatedConversationStreamEvent');
-    expect(source).toContain('resolveConversationStreamEventConversationRef');
+    expect(source).toContain('resolveConversationStreamEventIdentity');
+    expect(source).not.toContain('resolveConversationStreamEventConversationRef');
     expect(source).not.toContain('event.conversationRef');
     expect(source).not.toContain('event.turnRef');
     expect(source).not.toContain('event.type ===');
@@ -916,8 +917,9 @@ describe('renderer chat runtime boundary', () => {
     expect(streamSource).not.toContain('ON_CHANNELS.WINDIE_CONVERSATION_EVENT');
     expect(streamSource).not.toContain('ON_CHANNELS.FROM_BACKEND');
     expect(streamSource).not.toContain('handleBackendStreamIngress');
-    expect(ingressSource).toContain('resolveConversationStreamEventConversationRef');
-    expect(ingressSource).toContain('resolveConversationStreamEventTurnRef');
+    expect(ingressSource).toContain('resolveConversationStreamEventIdentity');
+    expect(ingressSource).not.toContain('resolveConversationStreamEventConversationRef');
+    expect(ingressSource).not.toContain('resolveConversationStreamEventTurnRef');
     expect(ingressSource).toContain('DesktopChatStreamEventPayloadRuntime');
     expect(ingressSource).toContain('resolveConversationStreamEventUserId');
     expect(ingressSource).toContain('export const DesktopChatStreamIngressRuntime = Object.freeze');
