@@ -3841,7 +3841,11 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('setCompactionDebugInfo:');
     expect(chatStoreSource).not.toContain('setTokenCounts:');
     expect(chatStoreSource).toContain('DesktopResponseOverlayViewRuntime');
-    expect(chatStoreSource).not.toContain('export function buildResponseOverlayDismissalKey');
+    expect(chatStoreSource).toContain('buildDismissResponseOverlayEntryStateUpdate');
+    expect(chatStoreSource).toContain('isResponseOverlayEntryDismissedInState');
+    expect(chatStoreSource).not.toContain('buildResponseOverlayDismissalKey');
+    expect(chatStoreSource).not.toContain('const dismissalKey =');
+    expect(chatStoreSource).not.toContain('[dismissalKey]');
     expect(chatStoreSource).not.toContain('DesktopCurrentTurnWorkspaceRuntime');
     expect(chatStoreSource).not.toContain('buildSetSdkLiveTurnStateUpdate');
     expect(chatStoreSource).not.toContain('setSdkLiveTurnInChatStore');

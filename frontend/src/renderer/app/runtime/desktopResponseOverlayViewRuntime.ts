@@ -40,10 +40,14 @@ type ResponseOverlayEntryLike = {
   id?: string | null;
 };
 
-type ResponseOverlayDismissalInput = {
+export type ResponseOverlayDismissalInput = {
   conversationRef?: string | null;
   turnRef?: string | null;
   responseEntryId?: string | null;
+};
+
+type ResponseOverlayDismissalState = {
+  dismissedResponseOverlayEntries?: Record<string, true> | null;
 };
 
 type ResponseOverlayWindowGuardSnapshot = {
@@ -118,6 +122,35 @@ function buildResponseOverlayDismissalKey({
     normalizeString(turnRef) || '',
     normalizedResponseEntryId,
   ].join('\u0001');
+}
+
+function buildDismissResponseOverlayEntryStateUpdate(
+  state: ResponseOverlayDismissalState,
+  input: ResponseOverlayDismissalInput,
+): { dismissedResponseOverlayEntries: Record<string, true> } | null {
+  const dismissalKey = buildResponseOverlayDismissalKey(input);
+  const dismissedResponseOverlayEntries = state.dismissedResponseOverlayEntries || {};
+  if (!dismissalKey || dismissedResponseOverlayEntries[dismissalKey]) {
+    return null;
+  }
+  return {
+    dismissedResponseOverlayEntries: {
+      ...dismissedResponseOverlayEntries,
+      [dismissalKey]: true,
+    },
+  };
+}
+
+function isResponseOverlayEntryDismissedInState(
+  state: ResponseOverlayDismissalState,
+  input: ResponseOverlayDismissalInput,
+): boolean {
+  const dismissalKey = buildResponseOverlayDismissalKey(input);
+  return Boolean(
+    dismissalKey
+      && state.dismissedResponseOverlayEntries
+      && state.dismissedResponseOverlayEntries[dismissalKey],
+  );
 }
 
 function createResponseOverlayWindowGuardSnapshot(): ResponseOverlayWindowGuardSnapshot {
@@ -434,8 +467,10 @@ function resolveResponseOverlayPresentationStateForSurfaceState({
 }
 
 export const DesktopResponseOverlayViewRuntime = Object.freeze({
+  buildDismissResponseOverlayEntryStateUpdate,
   buildResponseOverlayDismissalKey,
   createResponseOverlayWindowGuardSnapshot,
+  isResponseOverlayEntryDismissedInState,
   resolveResponseOverlayEntries,
   resolveResponseOverlayPresentationState,
   resolveResponseOverlayPresentationStateForSurfaceState,

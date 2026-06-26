@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: move response-overlay dismissal state update/read logic into
+  `DesktopResponseOverlayViewRuntime`, leaving `chatStore.ts` as the Zustand
+  binding for persisted UI dismissal state. No migration required.
 - frontend/live-turn: make renderer surface, visible-lifecycle, response
   overlay, thread presentation, live-turn side-effect, and trace-counter
   adapters use SDK `presentation.entries`, `presentation.lastError`, and

@@ -6,8 +6,10 @@ import { DesktopResponseOverlayViewRuntime } from '../../frontend/src/renderer/a
 
 describe('desktopResponseOverlayViewRuntime', () => {
   const {
+    buildDismissResponseOverlayEntryStateUpdate,
     buildResponseOverlayDismissalKey,
     createResponseOverlayWindowGuardSnapshot,
+    isResponseOverlayEntryDismissedInState,
     resolveResponseOverlayEntries,
     resolveResponseOverlayPresentationState,
     resolveResponseOverlayPresentationStateForSurfaceState,
@@ -33,6 +35,50 @@ describe('desktopResponseOverlayViewRuntime', () => {
       turnRef: 'turn-overlay',
       responseEntryId: '   ',
     })).toBeNull();
+  });
+
+  test('owns response overlay dismissal state updates and reads', () => {
+    const dismissalTarget = {
+      conversationRef: ' conv-overlay ',
+      turnRef: ' turn-overlay ',
+      responseEntryId: ' assistant-entry ',
+    };
+    const initialState = {
+      dismissedResponseOverlayEntries: {
+        existing: true as const,
+      },
+    };
+
+    const update = buildDismissResponseOverlayEntryStateUpdate(
+      initialState,
+      dismissalTarget,
+    );
+
+    expect(update).toEqual({
+      dismissedResponseOverlayEntries: {
+        existing: true,
+        ['conv-overlay\u0001turn-overlay\u0001assistant-entry']: true,
+      },
+    });
+    expect(isResponseOverlayEntryDismissedInState(
+      update || {},
+      dismissalTarget,
+    )).toBe(true);
+    expect(buildDismissResponseOverlayEntryStateUpdate(
+      update || {},
+      dismissalTarget,
+    )).toBeNull();
+    expect(buildDismissResponseOverlayEntryStateUpdate(
+      initialState,
+      {
+        ...dismissalTarget,
+        responseEntryId: '   ',
+      },
+    )).toBeNull();
+    expect(isResponseOverlayEntryDismissedInState(
+      initialState,
+      dismissalTarget,
+    )).toBe(false);
   });
 
   test('keeps response overlay window guard identity in app runtime', () => {

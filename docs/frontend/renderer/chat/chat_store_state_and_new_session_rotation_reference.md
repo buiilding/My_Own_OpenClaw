@@ -261,8 +261,9 @@ current-turn row construction on typed SDK presentation fields.
   registry dependencies into message mutation helpers that need to index
   hydrated message rows.
 - response-overlay dismissal state is persisted by the store, but normalized
-  conversation/turn/entry dismissal-key construction lives in
-  `DesktopResponseOverlayViewRuntime.buildResponseOverlayDismissalKey(...)`.
+  conversation/turn/entry dismissal-key construction plus state update/read
+  helpers live in `DesktopResponseOverlayViewRuntime`; the store only binds
+  those helpers to Zustand.
 
 No-op guards reduce unnecessary re-renders on high-frequency stream paths.
 

@@ -18,6 +18,9 @@ import {
 import {
   DesktopResponseOverlayViewRuntime,
 } from '../../../app/runtime/desktopResponseOverlayViewRuntime';
+import type {
+  ResponseOverlayDismissalInput,
+} from '../../../app/runtime/desktopResponseOverlayViewRuntime';
 
 const {
   buildChatInterfaceSelectorState,
@@ -26,18 +29,13 @@ const {
   buildLiveTurnSurfaceSelectorState,
 } = DesktopChatInterfaceSelectorRuntime;
 const {
-  buildResponseOverlayDismissalKey,
+  buildDismissResponseOverlayEntryStateUpdate,
+  isResponseOverlayEntryDismissedInState,
 } = DesktopResponseOverlayViewRuntime;
 export type {
   StreamPhase,
   StreamTracking,
 } from '../../../app/runtime/desktopChatStreamTrackingRuntime';
-
-interface ResponseOverlayDismissalInput {
-  conversationRef?: string | null;
-  turnRef?: string | null;
-  responseEntryId?: string | null;
-}
 
 /**
  * Chat store state
@@ -99,22 +97,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set((state) => buildActiveConversationWorkspaceUpdate(state, conversationRef)),
 
   dismissResponseOverlayEntry: (input) =>
-    set((state) => {
-      const dismissalKey = buildResponseOverlayDismissalKey(input);
-      if (!dismissalKey || state.dismissedResponseOverlayEntries[dismissalKey]) {
-        return state;
-      }
-      return {
-        dismissedResponseOverlayEntries: {
-          ...state.dismissedResponseOverlayEntries,
-          [dismissalKey]: true,
-        },
-      };
-    }),
+    set((state) => buildDismissResponseOverlayEntryStateUpdate(state, input) || state),
 
-  isResponseOverlayEntryDismissed: (input) => {
-    const dismissalKey = buildResponseOverlayDismissalKey(input);
-    return Boolean(dismissalKey && get().dismissedResponseOverlayEntries[dismissalKey]);
-  },
+  isResponseOverlayEntryDismissed: (input) =>
+    isResponseOverlayEntryDismissedInState(get(), input),
 
 }));
