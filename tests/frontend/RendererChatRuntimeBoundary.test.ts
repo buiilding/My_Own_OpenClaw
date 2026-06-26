@@ -1861,6 +1861,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts'),
       'utf8',
     );
+    const transcriptRuntimeDocSource = await fs.readFile(
+      path.resolve(__dirname, '../../docs/frontend/renderer/transcript_session_and_rehydrate_reference.md'),
+      'utf8',
+    );
 
     expect(source).not.toContain('DesktopConversationStoreAdapter');
     expect(source).not.toContain('desktopConversationReplayRuntime');
@@ -1967,6 +1971,9 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('screenshotRef');
     expect(replayRuntimeSource).not.toContain('attachmentFilenames');
     expect(replayRuntimeSource).not.toContain('features/chat');
+    expect(transcriptRuntimeDocSource).toContain('SDK replay commands own target-row selection');
+    expect(transcriptRuntimeDocSource).not.toContain('DesktopConversationReplayRuntime owns replay row selection');
+    expect(transcriptRuntimeDocSource).not.toContain('prepared\n  desktop-turn shaping');
     expect(continuityServiceSource).not.toContain('turnRef: input.turnRef');
     expect(continuityServiceSource).toContain("Omit<EditAndResendInput, 'turnRef'>");
     expect(continuityServiceSource).toContain("Omit<RetryTurnInput, 'turnRef'>");

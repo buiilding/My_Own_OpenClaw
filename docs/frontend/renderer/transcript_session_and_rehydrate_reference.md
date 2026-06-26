@@ -80,10 +80,10 @@ Responsibility split:
 - `DesktopTranscriptSessionRuntime` owns session-state bootstrap, storage persistence, browser/main-process sync, and session resolution helpers.
 - `DesktopTranscriptSessionRuntimeClient` is the renderer facade for active conversation/user identity.
 - `DesktopConversationContinuityService` owns replay, rewrite, and rehydrate orchestration through SDK store commands.
-- `DesktopConversationReplayRuntime` owns replay row selection, replay context
-  filtering, tool-message pairing, replay preparation payload, and prepared
-  desktop-turn shaping for screenshot refs, display URLs, multi-image refs, and
-  attachment filenames.
+- `DesktopConversationReplayRuntime` owns renderer replay intent dispatch,
+  active conversation selection, workspace IPC context, and trace logging.
+  SDK replay commands own target-row selection, supersession, tool-message context,
+  resource preservation, and replacement row construction.
 - `DesktopConversationLibraryClient` owns list/load/delete/search through the SDK store path.
 
 Renderer consumers subscribe through
