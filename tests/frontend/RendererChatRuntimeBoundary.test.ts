@@ -3012,6 +3012,9 @@ describe('renderer chat runtime boundary', () => {
     expect(traceRuntimeSource).toContain(
       'phase: traceString(values.currentTurnPhase) || traceString(currentTurnProjection?.phase) || null',
     );
+    expect(traceRuntimeSource.indexOf('|| traceString(values.currentTurnId)')).toBeLessThan(
+      traceRuntimeSource.indexOf('|| traceString(currentTurnProjection?.turnRef)'),
+    );
     expect(traceRuntimeSource.indexOf('|| pendingTurnRef')).toBeLessThan(
       traceRuntimeSource.indexOf('|| projectionTurnRef'),
     );

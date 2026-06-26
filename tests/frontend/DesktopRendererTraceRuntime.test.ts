@@ -539,7 +539,7 @@ describe('desktopRendererTraceRuntime', () => {
     })).toEqual({
       source: 'minimal-response-overlay',
       reason: 'awaiting-indicator-not-rendered',
-      turnRef: 'turn-projection',
+      turnRef: 'turn-fallback',
       conversationRef: 'conv-projection',
       phase: 'streaming',
       overlayMode: 'response',
@@ -569,6 +569,28 @@ describe('desktopRendererTraceRuntime', () => {
       phase: 'awaiting',
       layoutMode: 'awaiting-typing',
     });
+  });
+
+  test('prefers rendered-typing current turn id over stale raw current-turn projection', () => {
+    expect(buildRendererResponseOverlayTypingRenderedTracePayload({
+      typingRendered: true,
+      currentTurnProjection: {
+        turnRef: ' turn-stale ',
+        conversationRef: ' conv-stale ',
+        phase: ' streaming ',
+      },
+      currentTurnId: ' turn-rendered ',
+      phase: ' awaiting ',
+      overlayLayoutMode: 'awaiting-typing',
+      isVisible: true,
+      awaitingVisible: true,
+      responseVisible: false,
+    })).toEqual(expect.objectContaining({
+      turnRef: 'turn-rendered',
+      conversationRef: 'conv-stale',
+      phase: 'awaiting',
+      guardRef: 'turn-rendered',
+    }));
   });
 
   test('builds response surface snapshot trace payloads', () => {

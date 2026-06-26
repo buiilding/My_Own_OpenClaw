@@ -470,8 +470,8 @@ function buildRendererResponseOverlayTypingRenderedTracePayload(
   const overlayIntent = values.overlayIntent;
   const turnRef = (
     traceString(values.turnRef)
-    || traceString(currentTurnProjection?.turnRef)
     || traceString(values.currentTurnId)
+    || traceString(currentTurnProjection?.turnRef)
     || null
   );
   const conversationRef = (
@@ -498,8 +498,8 @@ function buildRendererResponseOverlayTypingRenderedTracePayload(
     guardRef: (
       traceString(overlayIntent?.staleGuardRef)
       || traceString(overlayIntent?.turnRef)
-      || traceString(currentTurnProjection?.turnRef)
       || traceString(values.currentTurnId)
+      || traceString(currentTurnProjection?.turnRef)
       || null
     ),
     isVisible: values.isVisible === true,

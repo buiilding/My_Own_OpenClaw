@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/trace: prefer projected response overlay rendered-typing turn ids
+  before raw `currentTurnProjection.turnRef` fallback identity. No migration
+  required.
 - frontend/trace: prefer response overlay pending-bridge identity before raw
   current-turn projection identity in overlay view-model traces. No migration
   required.
