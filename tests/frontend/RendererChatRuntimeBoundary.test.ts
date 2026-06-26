@@ -1138,6 +1138,8 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('currentTurnProjection?.turnRef');
     expect(replayRuntimeSource).not.toContain('pendingTurn?.turnRef');
     expect(replayRuntimeSource).not.toContain('streamTracking?.activeTurnRef');
+    expect(replayRuntimeSource).not.toContain('replayResult?.turnRef');
+    expect(replayRuntimeSource).not.toContain('let replayResult');
   });
 
   test('dashboard conversation resume projects display rows through app runtime client', async () => {

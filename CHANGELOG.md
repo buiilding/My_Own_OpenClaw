@@ -82,6 +82,10 @@ All notable changes to WindieOS will be documented in this file.
   `ConversationView` itself as the SDK authority, preventing stale raw
   current-turn overlay rows even when a caller omits the view source flag. No
   migration required.
+- frontend/replay: stop reading SDK replay result turn refs in the renderer
+  replay runtime; edit/retry traces now stay at command intent and workspace
+  snapshot level while SDK owns replacement turn identity. No migration
+  required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.

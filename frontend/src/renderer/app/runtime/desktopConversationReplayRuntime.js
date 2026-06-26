@@ -90,7 +90,7 @@ function traceErrorKind(error) {
   return error instanceof Error ? 'Error' : typeof error;
 }
 
-function replayTraceSnapshot(chatStore, conversationRef, newTurnRef = null, oldTurnRef = null) {
+function replayTraceSnapshot(chatStore, conversationRef) {
   const state = chatStore.getState();
   const workspace = typeof state.getWorkspaceState === 'function'
     ? state.getWorkspaceState(conversationRef)
@@ -99,10 +99,6 @@ function replayTraceSnapshot(chatStore, conversationRef, newTurnRef = null, oldT
     action: 'replay_trace_snapshot',
     conversationRef,
     workspace,
-    values: {
-      newTurnRef,
-      oldTurnRef,
-    },
   });
   return Object.fromEntries(
     Object.entries(tracePayload).filter(
@@ -113,16 +109,12 @@ function replayTraceSnapshot(chatStore, conversationRef, newTurnRef = null, oldT
 
 function logReplayTimeline(chatStore, action, {
   conversationRef,
-  newTurnRef = null,
-  oldTurnRef = null,
   ...values
 }) {
   logRendererReplayTrace({
     action,
     conversationRef,
-    oldTurnRef,
-    newTurnRef,
-    ...replayTraceSnapshot(chatStore, conversationRef, newTurnRef, oldTurnRef),
+    ...replayTraceSnapshot(chatStore, conversationRef),
     ...values,
   });
 }
@@ -169,9 +161,8 @@ async function executeReplayIntent({
         action,
         targetUserMessageId: messageId,
       });
-      let replayResult = null;
       if (action === 'edit_resend') {
-        replayResult = await DesktopConversationContinuityService.editAndResend({
+        await DesktopConversationContinuityService.editAndResend({
           userId: sessionInfo.userId,
           conversationRef,
           messageId,
@@ -180,7 +171,7 @@ async function executeReplayIntent({
           model: deferredQueryModelSelection || undefined,
         });
       } else {
-        replayResult = await DesktopConversationContinuityService.retryTurn({
+        await DesktopConversationContinuityService.retryTurn({
           userId: sessionInfo.userId,
           conversationRef,
           messageId,
@@ -190,7 +181,6 @@ async function executeReplayIntent({
       }
       logReplayTimeline(chatStore, 'sdk_replay_done', {
         conversationRef,
-        newTurnRef: replayResult?.turnRef ?? null,
         action,
         replaySucceeded: true,
         targetUserMessageId: messageId,
