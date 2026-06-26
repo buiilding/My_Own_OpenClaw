@@ -158,10 +158,6 @@ function buildAcceptStoppedTurnStateUpdate({
   return deps.buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
 }
 
-function isStopTurnTargetFromConversationView(stopTarget) {
-  return stopTarget?.source === 'conversation-view';
-}
-
 function isStopTurnTargetFromPendingTurn(stopTarget) {
   return stopTarget?.source === 'pending-turn';
 }
@@ -239,7 +235,6 @@ export const DesktopStopTurnRuntime = Object.freeze({
   buildStopQueryTrackingPatch,
   buildStoppedTurnWorkspaceMutation,
   buildStoppedCurrentTurnProjection,
-  isStopTurnTargetFromConversationView,
   isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
 });

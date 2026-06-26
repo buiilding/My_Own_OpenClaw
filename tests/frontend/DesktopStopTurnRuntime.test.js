@@ -10,7 +10,6 @@ const {
   buildAcceptStoppedTurnStateUpdate,
   buildStoppedTurnWorkspaceMutation,
   buildStoppedCurrentTurnProjection,
-  isStopTurnTargetFromConversationView,
   isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
 } = DesktopStopTurnRuntime;
@@ -221,8 +220,8 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
-  test('classifies stop target sources behind runtime predicates', () => {
-    const currentTurnTarget = resolveStopTurnTarget({
+  test('classifies only pending bridge targets behind runtime predicates', () => {
+    const rawCurrentTurnTarget = resolveStopTurnTarget({
       currentTurnProjection: {
         conversationRef: 'conv-sdk',
         turnRef: 'turn-sdk',
@@ -239,17 +238,14 @@ describe('desktopStopTurnRuntime', () => {
       conversationRef: 'conv-idle',
     });
 
-    expect(isStopTurnTargetFromConversationView(currentTurnTarget)).toBe(false);
-    expect(isStopTurnTargetFromPendingTurn(currentTurnTarget)).toBe(false);
-    expect(isStopTurnTargetFromConversationView(pendingTarget)).toBe(false);
+    expect(isStopTurnTargetFromPendingTurn(rawCurrentTurnTarget)).toBe(false);
     expect(isStopTurnTargetFromPendingTurn(pendingTarget)).toBe(true);
-    expect(isStopTurnTargetFromConversationView(idleTarget)).toBe(false);
     expect(isStopTurnTargetFromPendingTurn(idleTarget)).toBe(false);
 
     const viewTarget = resolveStopTurnTarget({
       conversationView: conversationView(),
     });
-    expect(isStopTurnTargetFromConversationView(viewTarget)).toBe(true);
+    expect(viewTarget.source).toBe('conversation-view');
     expect(isStopTurnTargetFromPendingTurn(viewTarget)).toBe(false);
   });
 

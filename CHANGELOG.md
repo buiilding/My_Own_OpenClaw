@@ -25,6 +25,10 @@ All notable changes to WindieOS will be documented in this file.
   optimistic-message wording to pending-message wording so the renderer bridge
   is described as a short pending send path, not a display authority. No
   migration required.
+- frontend/stop: remove the unused conversation-view stop-target predicate from
+  `DesktopStopTurnRuntime`; production stop handling only needs the pending
+  bridge predicate while conversation-view targets stay plain SDK view targets.
+  No migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.

@@ -2185,6 +2185,7 @@ describe('renderer chat runtime boundary', () => {
     expect(stopRuntimeSource).not.toContain('export function buildStopQueryTrackingPatch');
     expect(stopRuntimeSource).not.toContain('export function buildStoppedCurrentTurnProjection');
     expect(stopRuntimeSource).not.toContain('export function isStopTurnTargetFromCurrentTurn');
+    expect(stopRuntimeSource).not.toContain('isStopTurnTargetFromConversationView');
     expect(stopRuntimeSource).not.toContain('export function isStopTurnTargetFromPendingTurn');
     expect(stopRuntimeSource).not.toContain('export function resolveStopTurnTarget');
     expect(stopRuntimeSource).not.toContain('features/chat');
