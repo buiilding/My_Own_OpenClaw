@@ -14,6 +14,7 @@ import {
 
 const {
   getRendererTurnConversationRefsSnapshot,
+  resolveRendererConversationRefForTurn,
 } = DesktopChatTurnConversationRefRuntime;
 
 describe('chatStore turn conversation refs', () => {
@@ -31,8 +32,8 @@ describe('chatStore turn conversation refs', () => {
       turnRef: ' turn-1 ',
     }, 'conv-a');
 
-    expect(useChatStore.getState().resolveConversationRefForTurn('turn-1')).toBe('conv-a');
-    expect(useChatStore.getState().resolveConversationRefForTurn(' turn-1 ')).toBe('conv-a');
+    expect(resolveRendererConversationRefForTurn('turn-1')).toBe('conv-a');
+    expect(resolveRendererConversationRefForTurn(' turn-1 ')).toBe('conv-a');
     expect(Object.keys(getRendererTurnConversationRefsSnapshot())).toEqual(['turn-1']);
   });
 
@@ -46,12 +47,12 @@ describe('chatStore turn conversation refs', () => {
     }, 'conv-a');
     useChatStore.getState().updateMessage('message-1', { turnRef: '   ' }, 'conv-a');
 
-    expect(useChatStore.getState().resolveConversationRefForTurn('')).toBeNull();
+    expect(resolveRendererConversationRefForTurn('')).toBeNull();
     expect(getRendererTurnConversationRefsSnapshot()).toEqual({});
 
     useChatStore.getState().updateMessage('message-1', { turnRef: ' turn-2 ' }, 'conv-a');
 
-    expect(useChatStore.getState().resolveConversationRefForTurn('turn-2')).toBe('conv-a');
+    expect(resolveRendererConversationRefForTurn('turn-2')).toBe('conv-a');
     expect(Object.keys(getRendererTurnConversationRefsSnapshot())).toEqual(['turn-2']);
   });
 });

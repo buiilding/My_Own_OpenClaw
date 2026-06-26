@@ -55,9 +55,9 @@ Turn-scoped event routing state:
 
 - `desktopChatTurnConversationRefRuntime.ts` owns the renderer
   `turnRef -> conversationRef` registry.
-- `chatStore.ts` exposes `registerTurnConversationRef` and
-  `resolveConversationRefForTurn` adapter methods for existing call sites, but
-  it does not persist the routing map in Zustand state.
+- `chatStore.ts` does not expose turn-ref registry actions. Store message
+  mutations may record turn refs through injected app-runtime dependencies, and
+  stream ingress calls the app-runtime registry directly.
 
 The default workspace key is private to `chatWorkspaceState.ts`. Store
 initialization uses `createInitialWorkspaceRecord()` so `chatStore.ts` and
@@ -184,12 +184,11 @@ replay/store compatibility adapters and low-level artifact helpers.
   active workspace from stale top-level mirror fields, and
   `buildWorkspaceUpdate(...)` never projects workspace fields back onto the
   store root.
-- `registerTurnConversationRef` / `resolveConversationRefForTurn` bind
-  app-runtime turn->conversation routing helpers for events that omit
-  `conversation_ref`. The renderer map lives in
-  `desktopChatTurnConversationRefRuntime.ts`; the store only records or resolves
-  turn/conversation intent through that app-runtime adapter and must not add a
-  second Zustand-owned copy.
+- Turn-ref registration and lookup for events that omit `conversation_ref` live
+  in `desktopChatTurnConversationRefRuntime.ts`. The store must not expose
+  registry adapter methods or add a second Zustand-owned copy; it only injects
+  registry dependencies into message mutation helpers that need to index
+  hydrated message rows.
 - response-overlay dismissal state is persisted by the store, but normalized
   conversation/turn/entry dismissal-key construction lives in
   `DesktopResponseOverlayViewRuntime.buildResponseOverlayDismissalKey(...)`.

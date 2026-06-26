@@ -4,9 +4,16 @@
 
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
+  DesktopChatTurnConversationRefRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime';
+import {
   createAssistantSeedMessage,
   resetChatStoreForTests,
 } from './chatStoreTestUtils';
+
+const {
+  resolveRendererConversationRefForTurn,
+} = DesktopChatTurnConversationRefRuntime;
 
 function getActiveWorkspace() {
   return useChatStore.getState().getWorkspaceState();
@@ -123,8 +130,8 @@ describe('chatStore', () => {
       },
     ], 'conv-other');
 
-    expect(useChatStore.getState().resolveConversationRefForTurn('turn-elsewhere')).toBe('conv-other');
-    expect(useChatStore.getState().resolveConversationRefForTurn(' turn-elsewhere ')).toBe('conv-other');
+    expect(resolveRendererConversationRefForTurn('turn-elsewhere')).toBe('conv-other');
+    expect(resolveRendererConversationRefForTurn(' turn-elsewhere ')).toBe('conv-other');
     expect(getActiveWorkspace().messages).toEqual([
       expect.objectContaining({
         id: 'init-message',

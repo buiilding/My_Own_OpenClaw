@@ -26,6 +26,9 @@ import {
   DesktopChatStreamEventRuntime,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
 import {
+  DesktopChatTurnConversationRefRuntime,
+} from '../../../app/runtime/desktopChatTurnConversationRefRuntime';
+import {
   type StreamTrackingEventType,
   type StreamTrackingOptions,
 } from '../../../app/runtime/desktopChatStreamTrackingRuntime';
@@ -53,6 +56,9 @@ const {
   resolveConversationStreamEventConversationRef,
   shouldIgnoreConversationEventForStaleTurn,
 } = DesktopChatStreamEventRuntime;
+const {
+  registerRendererTurnConversationRef,
+} = DesktopChatTurnConversationRefRuntime;
 
 export function useChatStream(enableTranscript: boolean = true) {
   const {
@@ -64,7 +70,6 @@ export function useChatStream(enableTranscript: boolean = true) {
   const setCompactionDebugInfo = useChatStore((state) => state.setCompactionDebugInfo);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
-  const registerTurnConversationRef = useChatStore((state) => state.registerTurnConversationRef);
   const { config, availableModels } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const modelCapabilities = useMemo(() => DesktopModelThinkingRuntime.resolveThinkingCapabilities(
     config?.selected_model_id || null,
@@ -234,7 +239,7 @@ export function useChatStream(enableTranscript: boolean = true) {
       handleConversationEventIngress(data as ConversationEvent, {
         getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
         setActiveConversationRef,
-        registerTurnConversationRef,
+        registerTurnConversationRef: registerRendererTurnConversationRef,
         enableTranscript,
         dispatchConversationEvent,
       });
@@ -246,7 +251,6 @@ export function useChatStream(enableTranscript: boolean = true) {
   }, [
     enableTranscript,
     dispatchConversationEvent,
-    registerTurnConversationRef,
     setActiveConversationRef,
   ]);
 }

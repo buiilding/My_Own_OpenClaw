@@ -67,6 +67,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/hooks: stop exposing the unused `updateMessage` selector from
   `useChatCommonActions`; feedback still updates messages through the direct
   store action. No migration required.
+- frontend/store: remove turn-ref registry adapter actions from `chatStore`;
+  stream ingress now records turn/conversation routing through the app-runtime
+  registry owner directly. No migration required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own

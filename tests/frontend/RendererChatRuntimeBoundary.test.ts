@@ -3420,8 +3420,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('function removeSupersededTurnRef');
     expect(chatStoreSource).not.toContain('function normalizeTurnRef');
     expect(chatStoreSource).not.toContain('function mergeTurnConversationRefs');
-    expect(chatStoreSource).toContain('registerRendererTurnConversationRef');
-    expect(chatStoreSource).toContain('resolveRendererConversationRefForTurn');
+    expect(chatStoreSource).not.toContain('registerRendererTurnConversationRef');
+    expect(chatStoreSource).not.toContain('resolveRendererConversationRefForTurn');
+    expect(chatStoreSource).not.toContain('registerTurnConversationRef:');
+    expect(chatStoreSource).not.toContain('resolveConversationRefForTurn:');
     expect(chatStoreSource).not.toContain('resolvePendingTurnForCurrentProjection');
     expect(chatStoreSource).not.toContain('shouldUpdateLatestView');
     expect(chatStoreSource).not.toContain('Object.keys(latestUpdate)');

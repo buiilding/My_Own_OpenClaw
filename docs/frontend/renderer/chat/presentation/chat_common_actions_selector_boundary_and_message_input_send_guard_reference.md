@@ -22,23 +22,29 @@ title: "Chat Common Actions Selector Boundary and Message-Input Send Guard Refer
 
 ## Selector Boundary Contract (`useChatCommonActions`)
 
-`useChatCommonActions()` returns exactly four store actions:
+`useChatCommonActions()` returns the store actions shared by send and stream
+hooks:
 
 - `addMessage`
-- `updateMessage`
+- `updateStreamTargetMessage`
 - `setIsSending`
 - `setThinkingStatus`
+- `setThinkingSourceEventType`
 
 This hook is an adapter-only boundary over `useChatStore`; no extra logic, transforms, or side effects are introduced.
 
 ## Ownership Contract Across Hooks
 
-`useChatMessageSender` and `useChatStream` both consume `useChatCommonActions` so write-operations to chat state stay on one shared action surface.
+`useChatMessageSender` and `useChatStream` both consume
+`useChatCommonActions` for their overlapping write operations. Narrow
+runtime-owned helpers such as turn-ref registry writes are imported from their
+app-runtime owners instead of being re-exposed as store actions.
 
 Expected outcome:
 
 - all user-send and stream updates mutate `chatStore` through the same setter functions
-- future store action changes can be updated once in `useChatCommonActions` and fan out to both hooks
+- future shared store action changes can be updated once in
+  `useChatCommonActions` and fan out to both hooks
 
 ## Input Normalization Contract (`DesktopMessageInputRuntime`)
 

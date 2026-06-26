@@ -115,8 +115,6 @@ const {
 } = DesktopChatWorkspaceFieldRuntime;
 const {
   recordRendererTurnConversationRefs,
-  registerRendererTurnConversationRef,
-  resolveRendererConversationRefForTurn,
 } = DesktopChatTurnConversationRefRuntime;
 const {
   buildSetCurrentTurnProjectionStateUpdate,
@@ -227,8 +225,6 @@ interface ChatState {
 
   getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceState;
   setActiveConversationRef: (conversationRef: string | null) => void;
-  registerTurnConversationRef: (turnRef: string, conversationRef: string | null | undefined) => void;
-  resolveConversationRefForTurn: (turnRef: string | null | undefined) => string | null;
   dismissResponseOverlayEntry: (input: ResponseOverlayDismissalInput) => void;
   isResponseOverlayEntryDismissed: (input: ResponseOverlayDismissalInput) => boolean;
 
@@ -333,14 +329,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setActiveConversationRef: (conversationRef) =>
     set((state) => buildActiveConversationWorkspaceUpdate(state, conversationRef)),
-
-  registerTurnConversationRef: (turnRef, conversationRef) => {
-    registerRendererTurnConversationRef(turnRef, conversationRef);
-  },
-
-  resolveConversationRefForTurn: (turnRef) => {
-    return resolveRendererConversationRefForTurn(turnRef);
-  },
 
   dismissResponseOverlayEntry: (input) =>
     set((state) => {
