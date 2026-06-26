@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: expose the response overlay surface presentation input under
+  a neutral hook-local name while keeping the app-runtime live-turn parameter
+  contract unchanged. No migration required.
 - frontend/surfaces: expose neutral `surfacePhase`/`surfaceSource` names from
   the chat surface hook and pill trace helper while keeping runtime trace output
   compatible with existing live-turn telemetry. No migration required.

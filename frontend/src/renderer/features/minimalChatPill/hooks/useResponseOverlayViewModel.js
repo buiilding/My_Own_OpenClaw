@@ -50,7 +50,7 @@ export function useResponseOverlayViewModel({
   );
   const {
     currentTurnPhase,
-    liveTurnPresentationInput,
+    liveTurnPresentationInput: surfacePresentationInput,
     projectionInput,
     responseOverlayEntries,
     responseOverlayMessages,
@@ -73,14 +73,14 @@ export function useResponseOverlayViewModel({
   const responseOverlayDismissalTarget = useMemo(() => {
     return resolveResponseOverlayDismissalTarget({
       ...projectionInput,
-      overlayIntent: liveTurnPresentationInput.overlayIntent,
+      overlayIntent: surfacePresentationInput.overlayIntent,
       responseOverlayEntries,
       useSdkLiveTurnPresentation,
     });
   }, [
-    liveTurnPresentationInput.overlayIntent,
     projectionInput,
     responseOverlayEntries,
+    surfacePresentationInput.overlayIntent,
     useSdkLiveTurnPresentation,
   ]);
 
@@ -108,17 +108,17 @@ export function useResponseOverlayViewModel({
       currentTurnPresentationState,
       ...projectionInput,
       dismissedResponseId,
-      liveTurnPresentationInput,
+      liveTurnPresentationInput: surfacePresentationInput,
       responseOverlayEntries,
       visibleTurnLifecycle,
     }),
     [
       currentTurnPresentationState,
       dismissedResponseId,
-      liveTurnPresentationInput,
       projectionInput,
-      visibleTurnLifecycle,
       responseOverlayEntries,
+      surfacePresentationInput,
+      visibleTurnLifecycle,
     ],
   );
 

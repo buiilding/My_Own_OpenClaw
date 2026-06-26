@@ -695,6 +695,9 @@ describe('renderer app runtime boundary', () => {
     expect(overlayViewModelSource).toContain('resolveResponseOverlayDismissalTarget');
     expect(overlayViewModelSource).toContain('resolveResponseOverlayPresentationState');
     expect(overlayViewModelSource).not.toContain('resolveSdkResponseOverlayPresentationState');
+    expect(overlayViewModelSource).toContain('liveTurnPresentationInput: surfacePresentationInput');
+    expect(overlayViewModelSource).toContain('surfacePresentationInput');
+    expect(overlayViewModelSource).not.toContain('const liveTurnPresentationInput');
     expect(overlayViewModelSource).not.toContain('liveTurnPresentationInput.source');
     expect(overlayViewModelSource).not.toContain('resolveSdkCurrentTurnPresentationState');
     expect(overlayViewModelSource).toContain('desktopCurrentTurnMessageRuntime');
@@ -881,10 +884,13 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlayViewModelSource).not.toContain('showResponse');
     expect(responseOverlayViewModelSource).not.toContain('showAwaitingReply');
     expect(responseOverlayViewModelSource).toContain('buildResponseOverlayDismissalKey');
-    expect(responseOverlayViewModelSource).toContain('resolveResponseOverlayEntries');
+    expect(responseOverlayViewModelSource).toContain('resolveResponseOverlaySurfaceState');
+    expect(responseOverlayViewModelSource).not.toContain('resolveResponseOverlayEntries');
     expect(responseOverlayViewModelSource).toContain('resolveResponseOverlayPresentationState');
     expect(responseOverlayViewModelSource).not.toContain('resolveSdkResponseOverlayPresentationState');
     expect(responseOverlayViewModelSource).not.toContain('applyVisibleTurnLifecycleToPresentationState');
+    expect(responseOverlayViewModelSource).toContain('liveTurnPresentationInput: surfacePresentationInput');
+    expect(responseOverlayViewModelSource).not.toContain('const liveTurnPresentationInput');
     expect(responseOverlayViewModelSource).not.toContain('liveTurnPresentationInput.source');
     expect(responseOverlayViewModelSource).not.toContain('buildCurrentTurnMessagesFromProjection');
     expect(responseOverlayViewModelSource).not.toContain('buildCurrentTurnMessagesFromPresentation');
@@ -1916,7 +1922,8 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceRuntimeSource).toContain("source: 'conversation-view'");
     expect(responseViewRuntimeSource).toContain('buildConversationViewLiveTurnMessages');
     expect(responseViewRuntimeSource).toContain("liveTurnPresentationInput.source === 'conversation-view'");
-    expect(responseOverlayViewModelSource).toContain('resolveResponseOverlayEntries');
+    expect(responseOverlayViewModelSource).toContain('resolveResponseOverlaySurfaceState');
+    expect(responseOverlayViewModelSource).not.toContain('resolveResponseOverlayEntries');
     expect(responseOverlayViewModelSource).not.toContain('buildConversationViewLiveTurnMessages');
     expect(responseOverlayViewModelSource).not.toContain('currentTurnMessages');
     expect(normalizedResponseOverlaySource).not.toContain('thinkingStatus');

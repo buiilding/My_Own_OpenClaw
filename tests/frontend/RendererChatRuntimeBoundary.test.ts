@@ -2930,6 +2930,9 @@ describe('renderer chat runtime boundary', () => {
     expect(syncSource).not.toContain('setResponseboxSize({');
     expect(overlaySource).not.toContain('currentTurnProjection');
     expect(viewModelSource).toContain('resolveResponseOverlaySurfaceState');
+    expect(viewModelSource).toContain('liveTurnPresentationInput: surfacePresentationInput');
+    expect(viewModelSource).toContain('surfacePresentationInput');
+    expect(viewModelSource).not.toContain('const liveTurnPresentationInput');
     expect(viewModelSource).not.toContain('DesktopLiveTurnSurfaceRuntime');
     expect(viewModelSource).not.toContain('DesktopVisibleTurnLifecycleRuntime');
     expect(viewModelSource).not.toContain('resolveVisibleTurnLifecycle');
