@@ -72,18 +72,6 @@ function normalizeTurnRef(turnRef: string | null | undefined): string | null {
     : null;
 }
 
-function isOptimisticUserMessage(message: ChatMessage): boolean {
-  return message.sender === 'user'
-    && normalizeTurnRef(message.turnRef) !== null
-    && message.sourceEventType === 'renderer-compose'
-    && message.sourceChannel === 'renderer-local';
-}
-
-function isChatMessage(value: ChatMessage | RendererMessageAnnotation): value is ChatMessage {
-  return typeof (value as ChatMessage).sender === 'string'
-    && typeof (value as ChatMessage).text === 'string';
-}
-
 function sdkUserTurnRefs(messages: ChatMessage[]): Set<string> {
   const turnRefs = new Set<string>();
   for (const message of messages) {
@@ -98,20 +86,12 @@ function sdkUserTurnRefs(messages: ChatMessage[]): Set<string> {
   return turnRefs;
 }
 
-function pendingOptimisticUserMessages(
+function pendingBridgeUserMessages(
   sdkMessages: ChatMessage[],
-  currentMessages: ChatMessage[],
   pendingTurn: PendingTurnLike,
 ): ChatMessage[] {
   const sdkMessageIds = new Set(sdkMessages.map((message) => message.id));
   const projectedUserTurns = sdkUserTurnRefs(sdkMessages);
-  const optimisticMessages = currentMessages.filter((message) => {
-    const turnRef = normalizeTurnRef(message.turnRef);
-    return isOptimisticUserMessage(message)
-      && turnRef !== null
-      && !sdkMessageIds.has(message.id)
-      && !projectedUserTurns.has(turnRef);
-  });
   const pendingMessage = buildPendingTurnUserMessage(pendingTurn) as ChatMessage | null;
   const pendingTurnRef = normalizeTurnRef(pendingMessage?.turnRef);
   if (
@@ -119,33 +99,29 @@ function pendingOptimisticUserMessages(
     && pendingTurnRef
     && !sdkMessageIds.has(pendingMessage.id)
     && !projectedUserTurns.has(pendingTurnRef)
-    && !optimisticMessages.some((message) => (
-      message.id === pendingMessage.id
-      || normalizeTurnRef(message.turnRef) === pendingTurnRef
-    ))
   ) {
-    return [...optimisticMessages, pendingMessage];
+    return [pendingMessage];
   }
-  return optimisticMessages;
+  return [];
 }
 
-function mergePendingOptimisticUserMessages(
+function mergePendingBridgeUserMessages(
   sdkMessages: ChatMessage[],
-  optimisticMessages: ChatMessage[],
+  pendingMessages: ChatMessage[],
 ): ChatMessage[] {
-  if (optimisticMessages.length === 0) {
+  if (pendingMessages.length === 0) {
     return sdkMessages;
   }
   const merged = [...sdkMessages];
-  for (const optimisticMessage of optimisticMessages) {
-    const turnRef = normalizeTurnRef(optimisticMessage.turnRef);
+  for (const pendingMessage of pendingMessages) {
+    const turnRef = normalizeTurnRef(pendingMessage.turnRef);
     const sameTurnIndex = turnRef
       ? merged.findIndex((message) => normalizeTurnRef(message.turnRef) === turnRef)
       : -1;
     if (sameTurnIndex >= 0) {
-      merged.splice(sameTurnIndex, 0, optimisticMessage);
+      merged.splice(sameTurnIndex, 0, pendingMessage);
     } else {
-      merged.push(optimisticMessage);
+      merged.push(pendingMessage);
     }
   }
   return merged;
@@ -159,7 +135,6 @@ function mergeRendererAnnotationsIntoSdkMessages(
   if (currentMessages.length === 0 && !options.pendingTurn) {
     return sdkMessages;
   }
-  const currentChatMessages = currentMessages.filter(isChatMessage);
   const currentById = new Map(currentMessages.map((message) => [message.id, message]));
   const mergedSdkMessages = sdkMessages.map((message) => {
     const current = currentById.get(message.id);
@@ -173,9 +148,9 @@ function mergeRendererAnnotationsIntoSdkMessages(
       ...(current?.tokenCounts ? { tokenCounts: current.tokenCounts } : {}),
     };
   });
-  return mergePendingOptimisticUserMessages(
+  return mergePendingBridgeUserMessages(
     mergedSdkMessages,
-    pendingOptimisticUserMessages(mergedSdkMessages, currentChatMessages, options.pendingTurn),
+    pendingBridgeUserMessages(mergedSdkMessages, options.pendingTurn),
   );
 }
 
@@ -360,7 +335,6 @@ function buildDisplayProjectionTraceSummary({
     sdkMessageCount: sdkMessages.length,
     currentMessageCount: currentMessages.length,
     mergedMessageCount: mergedMessages.length,
-    currentOptimisticUserCount: currentMessages.filter(isOptimisticUserMessage).length,
     ...sdkRowSummary,
     ...sdkAttachmentSummary,
     sdkProjectedUserImageCount: sdkMessageSummary.userImageCount,

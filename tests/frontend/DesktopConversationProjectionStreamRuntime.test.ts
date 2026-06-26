@@ -16,7 +16,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
     expect(normalizeTurnRef('   ')).toBeNull();
   });
 
-  test('builds display-row projection while preserving pending optimistic user rows', () => {
+  test('builds display-row projection with only the explicit pending bridge row', () => {
     const optimisticUser = {
       id: 'turn-1-sdk-evt-000002-user_message',
       sender: 'user' as const,
@@ -50,6 +50,8 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       workspace: {
         messages: [optimisticUser],
         pendingTurn: {
+          userMessageId: 'turn-1-sdk-evt-000002-user_message',
+          text: 'inspect recent commits',
           turnRef: 'turn-1',
         },
       },
@@ -64,7 +66,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       }),
     ]);
     expect(projection.mergedMessages).toEqual([
-      optimisticUser,
+      expect.objectContaining(optimisticUser),
       expect.objectContaining({
         id: 'tool-row',
         sender: 'assistant',

@@ -128,8 +128,32 @@ describe('desktopConversationDisplayProjection', () => {
     expect(annotations[0]).not.toHaveProperty('sourceEventType');
   });
 
-  test('preserves optimistic user rows until SDK display rows project that turn', () => {
-    const optimisticUser = message({
+  test('ignores renderer optimistic user rows once SDK display rows own the projection', () => {
+    const sdkToolCall = message({
+      id: 'tool-row',
+      sender: 'assistant',
+      type: 'tool-call',
+      text: '',
+      turnRef: 'turn-1',
+      sourceEventType: 'tool_call',
+    });
+
+    expect(mergeRendererAnnotationsIntoSdkMessages(
+      [sdkToolCall],
+      [message({
+        id: 'turn-1-sdk-evt-000002-user_message',
+        sender: 'user',
+        text: 'inspect recent commits',
+        turnRef: 'turn-1',
+        sourceEventType: 'renderer-compose',
+        sourceChannel: 'renderer-local',
+        isComplete: true,
+      })],
+    )).toEqual([sdkToolCall]);
+  });
+
+  test('keeps only the explicit pending bridge until SDK projects the pending turn', () => {
+    const pendingUser = message({
       id: 'turn-1-sdk-evt-000002-user_message',
       sender: 'user',
       text: 'inspect recent commits',
@@ -149,46 +173,18 @@ describe('desktopConversationDisplayProjection', () => {
 
     expect(mergeRendererAnnotationsIntoSdkMessages(
       [sdkToolCall],
-      [optimisticUser],
+      [],
+      {
+        pendingTurn: {
+          turnRef: 'turn-1',
+          userMessageId: 'turn-1-sdk-evt-000002-user_message',
+          text: 'inspect recent commits',
+        },
+      },
     )).toEqual([
-      optimisticUser,
+      expect.objectContaining(pendingUser),
       sdkToolCall,
     ]);
-  });
-
-  test('does not duplicate optimistic user rows when SDK projected the same id or turn', () => {
-    const optimisticUser = message({
-      id: 'turn-1-sdk-evt-000002-user_message',
-      sender: 'user',
-      text: 'inspect recent commits',
-      turnRef: 'turn-1',
-      sourceEventType: 'renderer-compose',
-      sourceChannel: 'renderer-local',
-      isComplete: true,
-    });
-    const sdkUserSameId = message({
-      id: 'turn-1-sdk-evt-000002-user_message',
-      sender: 'user',
-      text: 'inspect recent commits',
-      turnRef: 'turn-1',
-      isComplete: true,
-    });
-    const sdkUserSameTurn = message({
-      id: 'sdk-user-1',
-      sender: 'user',
-      text: 'inspect recent commits',
-      turnRef: 'turn-1',
-      isComplete: true,
-    });
-
-    expect(mergeRendererAnnotationsIntoSdkMessages(
-      [sdkUserSameId],
-      [optimisticUser],
-    )).toEqual([sdkUserSameId]);
-    expect(mergeRendererAnnotationsIntoSdkMessages(
-      [sdkUserSameTurn],
-      [optimisticUser],
-    )).toEqual([sdkUserSameTurn]);
   });
 
   test('uses SDK user rows when SDK echoes the pending user turn', () => {
@@ -396,7 +392,6 @@ describe('desktopConversationDisplayProjection', () => {
       currentMessages: firstMerge,
       mergedMessages: secondMerge,
     })).toEqual(expect.objectContaining({
-      currentOptimisticUserCount: 0,
       sdkUserImageCount: 0,
       sdkProjectedUserImageCount: 0,
       mergedUserImageCount: 0,
@@ -492,7 +487,6 @@ describe('desktopConversationDisplayProjection', () => {
       currentMessages: [optimisticUser],
       mergedMessages: [sdkUser],
     })).toEqual(expect.objectContaining({
-      currentOptimisticUserCount: 1,
       sdkUserImageCount: 1,
       sdkProjectedUserImageCount: 1,
       mergedUserImageCount: 1,

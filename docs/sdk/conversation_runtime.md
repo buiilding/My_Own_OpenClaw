@@ -247,7 +247,9 @@ That bridge may carry turn identity, text, timestamps, and visible filename
 chips, but it must not carry visual attachment lifecycle descriptors,
 screenshots, preview bytes, or ready artifact refs. SDK display rows and
 `ConversationView` own user-included image, camera screenshot, and replay
-attachment presentation.
+attachment presentation. Renderer display projection may synthesize only this
+explicit `pendingTurn` bridge beside SDK display rows; it must not scan prior
+`renderer-compose` chat messages and carry them forward as visible user rows.
 Raw current-turn snapshots remain live context for migrated display/surface
 handoff and diagnostics, while normal Stop authority is only the view or the
 local pending bridge. Minimal live surfaces receive a null raw current-turn

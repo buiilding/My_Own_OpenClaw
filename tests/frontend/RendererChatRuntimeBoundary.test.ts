@@ -1048,8 +1048,11 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).not.toContain('export function normalizeDisplayRowsProjectionEvent');
     expect(displayProjectionSource).toContain('export const DesktopConversationDisplayProjection = Object.freeze');
     expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
-    expect(displayProjectionSource).toContain('renderer-compose');
+    expect(displayProjectionSource).toContain('pendingBridgeUserMessages');
     expect(displayProjectionSource).toContain('sdkDisplayChatMessageProjection');
+    expect(displayProjectionSource).not.toContain('isOptimisticUserMessage');
+    expect(displayProjectionSource).not.toContain('pendingOptimisticUserMessages');
+    expect(displayProjectionSource).not.toContain('renderer-compose');
     expect(displayProjectionSource).not.toContain('findPendingOptimisticUserMessage');
     expect(displayProjectionSource).not.toContain('currentMessage.id === pendingTurn?.userMessageId');
     expect(displayProjectionSource).not.toContain('export function mergeRendererAnnotationsIntoSdkMessages');
@@ -1115,9 +1118,8 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).not.toContain('export function mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).not.toContain('export {\n  buildChatMessagesFromSdkDisplayRows');
-    expect(displayProjectionSource).toContain("message.sender === 'user'");
-    expect(displayProjectionSource).toContain("sourceEventType === 'renderer-compose'");
-    expect(displayProjectionSource).toContain("sourceChannel === 'renderer-local'");
+    expect(displayProjectionSource).not.toContain("sourceEventType === 'renderer-compose'");
+    expect(displayProjectionSource).not.toContain("sourceChannel === 'renderer-local'");
   });
 
   test('chat markdown display reads renderer markdown helpers through app runtime client', async () => {
