@@ -2028,6 +2028,7 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('function resolveDesktopPendingTurnBroadcastAction');
     expect(clientSource).not.toContain('export function resolveDesktopPendingTurnBroadcastAction');
     expect(clientSource).toContain('resolveBroadcastAction(payload');
+    expect(clientSource).not.toContain("attachments?: ChatMessage['attachments']");
     expect(eventClientSource).toContain('DesktopPendingTurnRuntimeClient.resolveBroadcastAction(payload)');
     expect(chatStoreSource).toContain('DesktopPendingTurnBroadcastAction');
     expect(chatStoreSource).not.toContain('resolvePendingTurnForCurrentProjection');

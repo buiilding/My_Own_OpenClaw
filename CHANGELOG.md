@@ -17,6 +17,10 @@ All notable changes to WindieOS will be documented in this file.
   vocabulary from the ConversationView display projection adapter; renderer
   carry-forward data is now named and passed as annotations only. No migration
   required.
+- frontend/pending-turn: remove the stale `attachments` type surface from the
+  renderer pending-turn IPC client; pending turns keep identity/text/filename
+  metadata while SDK display rows own visible attachments. No migration
+  required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own
