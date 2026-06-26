@@ -7,6 +7,7 @@ import {
   applyPendingTurnBroadcastToChatStore,
   getProjectedWorkspaceReadModelFromChatStore,
   setIsSendingInChatStore,
+  setConversationViewInChatStore,
   setNoViewSdkLiveTurnInChatStore,
   setThinkingSourceEventTypeInChatStore,
   setThinkingStatusInChatStore,
@@ -35,7 +36,10 @@ export function useConversationRuntimeProjectionStream(): void {
 
   useEffect(() => {
     const removeListener = DesktopConversationRuntimeEventClient.onCurrentTurnProjection((event) => {
-      const { currentTurn, conversationRef } = event;
+      const { currentTurn, conversationRef, view } = event;
+      if (view && conversationRef) {
+        setConversationViewInChatStore(view, conversationRef);
+      }
       if (!currentTurn || !conversationRef) {
         return;
       }

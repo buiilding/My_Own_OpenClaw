@@ -28,6 +28,87 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     expect(handlers[DESKTOP_RUNTIME_ON_CHANNELS.ROWS]).toBeUndefined();
   });
 
+  test('applies ConversationView carried by current-turn projection events', () => {
+    acceptPendingTurnInChatStore({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-retry',
+      userMessageId: 'turn-retry-sdk-evt-000002-user_message',
+      text: 'retry the answer',
+      timestamp: '2026-06-23T00:00:00.000Z',
+    });
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
+    const conversationView = {
+      conversationRef: 'conv-1',
+      revisionId: 'rev-retry',
+      displayRows: [{
+        id: 'turn-retry-sdk-evt-000002-user_message',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-retry',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'retry the answer',
+      }],
+      liveTurn: {
+        turnRef: 'turn-retry',
+        phase: 'streaming',
+        entries: [{
+          id: 'entry-assistant',
+          type: 'llm-text',
+          text: 'retry response',
+        }],
+        isBusy: true,
+        isTerminal: false,
+        canStop: true,
+        lastError: null,
+      },
+      surfaces: {
+        pill: { mode: 'busy' },
+        dashboard: { mode: 'busy' },
+        responseOverlay: {
+          mode: 'response',
+          visible: true,
+          guardRef: 'turn-retry',
+          ownerConversationRef: 'conv-1',
+          turnRef: 'turn-retry',
+        },
+      },
+      actions: {
+        canEdit: true,
+        canRetry: false,
+        canFork: true,
+      },
+    };
+
+    act(() => {
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-1',
+        currentTurn: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-retry',
+          phase: 'streaming',
+          assistantText: 'retry response',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+          presentation: {
+            entries: [{
+              id: 'entry-assistant',
+              type: 'llm-text',
+              text: 'retry response',
+            }],
+          },
+        },
+        view: conversationView,
+      });
+    });
+
+    const workspace = useChatStore.getState().getWorkspaceState('conv-1');
+    expect(workspace.conversationView).toBe(conversationView);
+    expect(workspace.pendingTurn).toBeNull();
+    expect(workspace.sdkLiveTurn).toBeNull();
+  });
+
   test('applies SDK current-turn projection atomically with pending-turn replacement', () => {
     acceptPendingTurnInChatStore({
       conversationRef: 'conv-1',
@@ -61,6 +142,13 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
             reasoningText: null,
             toolEvents: [],
             lastError: null,
+            presentation: {
+              entries: [{
+                id: 'entry-assistant',
+                type: 'llm-text',
+                text: 'streaming answer',
+              }],
+            },
           },
         });
       });

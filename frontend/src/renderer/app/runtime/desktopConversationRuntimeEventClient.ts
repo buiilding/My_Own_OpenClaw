@@ -5,6 +5,7 @@
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../infrastructure/ipc/channels';
 import type {
+  ConversationView,
   CurrentTurnProjection,
 } from './desktopConversationRuntimeContracts';
 import {
@@ -17,6 +18,7 @@ export type DesktopRuntimeEventListener = (payload: unknown) => void;
 export type DesktopCurrentTurnProjectionEvent = {
   currentTurn: CurrentTurnProjection | null;
   conversationRef: string | null;
+  view: ConversationView | null;
 };
 
 function subscribe(channel: string | undefined, listener: DesktopRuntimeEventListener): (() => void) | undefined {
@@ -64,6 +66,17 @@ function isCurrentTurnProjection(value: unknown): value is CurrentTurnProjection
     );
 }
 
+function isConversationView(value: unknown): value is ConversationView {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  const view = value as Partial<ConversationView>;
+  return typeof view.conversationRef === 'string'
+    && Array.isArray(view.displayRows)
+    && Boolean(view.liveTurn && typeof view.liveTurn === 'object')
+    && Boolean(view.surfaces && typeof view.surfaces === 'object');
+}
+
 function normalizeCurrentTurnProjectionEvent(
   payload: unknown,
 ): DesktopCurrentTurnProjectionEvent {
@@ -71,15 +84,18 @@ function normalizeCurrentTurnProjectionEvent(
   const currentTurn = isCurrentTurnProjection(payload)
     ? payload
     : source.currentTurn;
+  const view = isConversationView(source.view) ? source.view : null;
   if (!isCurrentTurnProjection(currentTurn)) {
     return {
       currentTurn: null,
       conversationRef: null,
+      view,
     };
   }
   return {
     currentTurn,
     conversationRef: normalizeOptionalString(source.conversationRef) ?? currentTurn.conversationRef,
+    view,
   };
 }
 

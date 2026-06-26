@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/conversation-view: apply SDK `ConversationView` payloads carried on
+  live current-turn IPC events before no-view current-turn side effects, so
+  dashboard retry/resend renders the replacement user row, typing state, and
+  assistant response through the first-class view path without re-subscribing to
+  raw display-row stream fallback. No migration required.
 - frontend/selectors: keep dashboard chat surface and pending-turn presentation
   projections referentially stable across repeated selector snapshots, so
   opening the dashboard after sending from the minimal pill no longer trips
