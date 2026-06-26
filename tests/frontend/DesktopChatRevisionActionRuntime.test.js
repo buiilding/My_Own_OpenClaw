@@ -1,16 +1,34 @@
 import {
   DesktopChatRevisionActionRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopChatRevisionActionRuntime';
+import {
+  DesktopConversationContinuityService,
+} from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
+  DesktopConversationContinuityService: {
+    listRevisions: jest.fn(),
+    checkoutRevision: jest.fn(),
+    forkConversation: jest.fn(),
+  },
+}));
 
 const {
   buildRevisionMenuItems,
   buildRevisionCheckoutCommand,
   buildRevisionForkCommand,
+  executeRevisionCheckoutCommand,
+  executeRevisionForkCommand,
+  loadRevisionOptions,
   markActiveRevisionInList,
   normalizeRevisionId,
 } = DesktopChatRevisionActionRuntime;
 
 describe('DesktopChatRevisionActionRuntime', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   test('normalizes revision ids', () => {
     expect(normalizeRevisionId(' rev-1 ')).toBe('rev-1');
     expect(normalizeRevisionId('   ')).toBeNull();
@@ -159,5 +177,83 @@ describe('DesktopChatRevisionActionRuntime', () => {
         active: false,
       },
     ]);
+  });
+
+  test('loads revision options through continuity service', async () => {
+    DesktopConversationContinuityService.listRevisions.mockResolvedValue([
+      { revisionId: 'rev-1' },
+    ]);
+
+    await expect(loadRevisionOptions({
+      activeConversationRef: ' conv-1 ',
+      userId: '',
+      limit: 10,
+    })).resolves.toEqual([
+      { revisionId: 'rev-1' },
+    ]);
+
+    expect(DesktopConversationContinuityService.listRevisions).toHaveBeenCalledWith(
+      'default_user',
+      'conv-1',
+      10,
+    );
+  });
+
+  test('executes revision checkout commands through continuity service', async () => {
+    DesktopConversationContinuityService.checkoutRevision.mockResolvedValue({
+      view: { conversationRef: 'conv-1' },
+    });
+
+    await expect(executeRevisionCheckoutCommand({
+      actionId: 'checkout:rev-1',
+      input: {
+        userId: 'user-1',
+        conversationRef: 'conv-1',
+        revisionId: ' rev-1 ',
+      },
+    })).resolves.toEqual({
+      actionId: 'checkout:rev-1',
+      revisionId: 'rev-1',
+      result: {
+        view: { conversationRef: 'conv-1' },
+      },
+      view: { conversationRef: 'conv-1' },
+    });
+
+    expect(DesktopConversationContinuityService.checkoutRevision).toHaveBeenCalledWith({
+      userId: 'user-1',
+      conversationRef: 'conv-1',
+      revisionId: ' rev-1 ',
+    });
+  });
+
+  test('executes revision fork commands through continuity service', async () => {
+    DesktopConversationContinuityService.forkConversation.mockResolvedValue({
+      conversationRef: ' conv-fork ',
+      view: { conversationRef: 'conv-fork' },
+    });
+
+    await expect(executeRevisionForkCommand({
+      actionId: 'fork:rev-1',
+      input: {
+        userId: 'user-1',
+        conversationRef: 'conv-1',
+        sourceRevisionId: 'rev-1',
+      },
+    })).resolves.toEqual({
+      actionId: 'fork:rev-1',
+      conversationRef: 'conv-fork',
+      result: {
+        conversationRef: ' conv-fork ',
+        view: { conversationRef: 'conv-fork' },
+      },
+      view: { conversationRef: 'conv-fork' },
+    });
+
+    expect(DesktopConversationContinuityService.forkConversation).toHaveBeenCalledWith({
+      userId: 'user-1',
+      conversationRef: 'conv-1',
+      sourceRevisionId: 'rev-1',
+    });
   });
 });

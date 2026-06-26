@@ -2,6 +2,8 @@
  * Builds SDK conversation revision command inputs for ChatInterface.
  */
 
+import { DesktopConversationContinuityService } from './desktopConversationContinuityService';
+
 function normalizeRevisionId(revisionId) {
   return typeof revisionId === 'string' && revisionId.trim() ? revisionId.trim() : null;
 }
@@ -116,10 +118,56 @@ function markActiveRevisionInList(revisions = [], revisionId = null) {
   }));
 }
 
+async function loadRevisionOptions({
+  activeConversationRef = null,
+  limit = 50,
+  userId = null,
+} = {}) {
+  const conversationRef = normalizeConversationRef(activeConversationRef);
+  if (!conversationRef) {
+    return [];
+  }
+  const revisions = await DesktopConversationContinuityService.listRevisions(
+    resolveUserId(userId),
+    conversationRef,
+    limit,
+  );
+  return Array.isArray(revisions) ? revisions : [];
+}
+
+async function executeRevisionCheckoutCommand(command = null) {
+  if (!command?.input) {
+    return null;
+  }
+  const result = await DesktopConversationContinuityService.checkoutRevision(command.input);
+  return {
+    actionId: command.actionId ?? null,
+    revisionId: normalizeRevisionId(command.input.revisionId),
+    result,
+    view: result?.view ?? null,
+  };
+}
+
+async function executeRevisionForkCommand(command = null) {
+  if (!command?.input) {
+    return null;
+  }
+  const result = await DesktopConversationContinuityService.forkConversation(command.input);
+  return {
+    actionId: command.actionId ?? null,
+    conversationRef: normalizeConversationRef(result?.conversationRef),
+    result,
+    view: result?.view ?? null,
+  };
+}
+
 export const DesktopChatRevisionActionRuntime = Object.freeze({
   buildRevisionMenuItems,
   buildRevisionCheckoutCommand,
   buildRevisionForkCommand,
+  executeRevisionCheckoutCommand,
+  executeRevisionForkCommand,
+  loadRevisionOptions,
   markActiveRevisionInList,
   normalizeRevisionId,
 });

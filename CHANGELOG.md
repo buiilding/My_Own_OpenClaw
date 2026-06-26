@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/revisions: route revision list, checkout, and fork execution through
+  `DesktopChatRevisionActionRuntime`, so `ChatInterface` no longer calls SDK
+  continuity revision commands directly. No migration required.
 - frontend/replay: move replay chat-store plumbing into
   `executeReplayActionFromChatStore` and model-selection normalization into
   `DesktopConversationReplayRuntime`, so `useConversationReplayActions` passes

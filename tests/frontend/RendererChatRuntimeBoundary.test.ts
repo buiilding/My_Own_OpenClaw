@@ -3564,6 +3564,7 @@ describe('renderer chat runtime boundary', () => {
     expect(displayAttachmentProjectionSource).not.toContain('countLegacyScreenshotAttachments');
     expect(chatInterfaceSource).toContain('DesktopChatInterfacePresentationRuntime');
     expect(chatInterfaceSource).toContain('DesktopChatRevisionActionRuntime');
+    expect(chatInterfaceSource).not.toContain('DesktopConversationContinuityService');
     expect(chatInterfaceSource).not.toContain('buildChatInterfacePresentationState');
     expect(chatInterfaceSource).toContain('resolveConversationViewStoreRef');
     expect(chatStoreSource).not.toContain('buildChatInterfacePresentationState');
@@ -3651,6 +3652,9 @@ describe('renderer chat runtime boundary', () => {
     expect(messageItemSource).toContain('canTryAgain={canRetryMessage}');
     expect(messageItemSource).toContain('canEdit={canEditMessage}');
     expect(chatRevisionActionRuntimeSource).toContain('buildRevisionCheckoutCommand');
+    expect(chatRevisionActionRuntimeSource).toContain('DesktopConversationContinuityService.listRevisions');
+    expect(chatRevisionActionRuntimeSource).toContain('DesktopConversationContinuityService.checkoutRevision');
+    expect(chatRevisionActionRuntimeSource).toContain('DesktopConversationContinuityService.forkConversation');
     expect(chatRevisionActionRuntimeSource).toContain('markActiveRevisionInList');
     expect(chatRevisionActionRuntimeSource).toContain('buildRevisionForkCommand');
     expect(chatRevisionActionRuntimeSource).not.toContain('buildForkConversationRef');

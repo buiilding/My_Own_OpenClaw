@@ -710,7 +710,8 @@ describe('ChatInterface wiring', () => {
     await waitFor(() => {
       expect(mockListRevisions).toHaveBeenCalledWith('default_user', 'conv_existing', 50);
     });
-    fireEvent.click(screen.getByText('rev-base'));
+    const revisionItem = await screen.findByText('rev-base');
+    fireEvent.click(revisionItem);
 
     await waitFor(() => {
       expect(mockCheckoutRevision).toHaveBeenCalledWith({
@@ -737,7 +738,8 @@ describe('ChatInterface wiring', () => {
     await waitFor(() => {
       expect(mockListRevisions).toHaveBeenCalled();
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Fork revision rev-base' }));
+    const forkButton = await screen.findByRole('button', { name: 'Fork revision rev-base' });
+    fireEvent.click(forkButton);
 
     await waitFor(() => {
       expect(mockForkConversation).toHaveBeenCalledWith(expect.objectContaining({

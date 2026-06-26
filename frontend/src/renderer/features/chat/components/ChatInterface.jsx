@@ -45,7 +45,6 @@ import { DesktopStartupRuntimeClient } from '../../../app/runtime/desktopStartup
 import { DesktopChatInterfaceBindingsRuntime } from '../../../app/runtime/desktopChatInterfaceBindingsRuntime';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import { DesktopThreadFindRuntime } from '../../../app/runtime/desktopThreadFindRuntime';
-import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
 import {
   DesktopChatInterfacePresentationRuntime,
 } from '../../../app/runtime/desktopChatInterfacePresentationRuntime';
@@ -76,6 +75,9 @@ const {
   buildRevisionCheckoutCommand,
   buildRevisionForkCommand,
   buildRevisionMenuItems,
+  executeRevisionCheckoutCommand,
+  executeRevisionForkCommand,
+  loadRevisionOptions,
   markActiveRevisionInList,
 } = DesktopChatRevisionActionRuntime;
 
@@ -440,15 +442,15 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     let cancelled = false;
     setRevisionLoading(true);
     setRevisionError(null);
-    DesktopConversationContinuityService.listRevisions(
-      sessionInfo.userId || 'default_user',
+    loadRevisionOptions({
       activeConversationRef,
-      50,
-    ).then((revisions) => {
+      userId: sessionInfo.userId,
+      limit: 50,
+    }).then((revisions) => {
       if (cancelled) {
         return;
       }
-      setRevisionOptions(Array.isArray(revisions) ? revisions : []);
+      setRevisionOptions(revisions);
     }).catch((error) => {
       if (cancelled) {
         return;
@@ -478,11 +480,11 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     setRevisionActionId(command.actionId);
     setRevisionError(null);
     try {
-      const result = await DesktopConversationContinuityService.checkoutRevision(command.input);
+      const result = await executeRevisionCheckoutCommand(command);
       applyConversationView(result?.view, activeConversationRef);
       setRevisionOptions((current) => markActiveRevisionInList(
         current,
-        command.input.revisionId,
+        result?.revisionId,
       ));
       setRevisionMenuOpen(false);
     } catch (error) {
@@ -509,7 +511,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     setRevisionActionId(command.actionId);
     setRevisionError(null);
     try {
-      const result = await DesktopConversationContinuityService.forkConversation(command.input);
+      const result = await executeRevisionForkCommand(command);
       const nextConversationRef = result?.conversationRef;
       if (nextConversationRef) {
         DesktopTranscriptSessionRuntimeClient.updateTranscriptSession(

@@ -189,6 +189,10 @@ replay/store compatibility adapters and low-level artifact helpers.
   mutation live in
   `desktopChatPendingTurnStateRuntime.ts`, including the pending-turn broadcast
   clear path.
+- Revision menu loading, checkout, and fork execution route through
+  `DesktopChatRevisionActionRuntime`; `ChatInterface` owns menu state and
+  applying returned SDK views, but it does not call continuity-service revision
+  commands directly.
 - Terminal stream handoff during `idle`, `complete`, or `error` phases uses
   the explicit `pendingTurn` bridge identity only; it does not scan raw
   workspace message tails for optimistic user rows or assistant placeholders.
