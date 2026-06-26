@@ -189,12 +189,12 @@ Renderer transcript rows remain visible projections and do not execute tools.
 `DashboardShell` conversation-open path:
 
 1. list conversations from the SDK conversation library (`recordKind: "chat_event"`)
-2. load selected conversation SDK events via the chat-event store adapter (cursor-paginated local RPC)
-3. project SDK display messages for the renderer
+2. load the selected SDK `ConversationView` through `DesktopConversationLibraryClient.loadConversationView(...)`
+3. set the view on the chat store with `setChatConversationView(conversationView, conversationRef)`
 4. ask the renderer app-runtime continuity service to rehydrate the backend inference session through `DesktopConversationContinuityService.rehydrateFromStore(...)`
    - rehydrate payload shaping is centralized in SDK projection helpers so dashboard-open rehydrate and edit/retry replay agree on `tool_name`, `tool_call_id`, screenshots, and structured tool payloads
 5. set active transcript conversation/session info
-6. replace renderer chat store with projected SDK display messages
+6. leave normal chat rendering on `ConversationView.displayRows`; only the short pending-send bridge remains renderer-local
 
 Search modal uses the same open path after SDK `conversations.search` results.
 

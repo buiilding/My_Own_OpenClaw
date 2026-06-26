@@ -10,6 +10,9 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopConversationLibraryClient.loadConversationView(...)` as the normal
   renderer read path, with a boundary test preventing the old dashboard
   `loadDisplayRows` facade from returning in docs. No migration required.
+- docs/frontend: update dashboard open-flow docs to describe setting the SDK
+  `ConversationView` on the chat store instead of loading event logs and
+  replacing renderer message lists. No migration required.
 - docs/frontend: update transcript replay ownership docs so renderer replay
   dispatch owns only intent/context/trace while SDK replay commands own target
   selection, resource preservation, supersession, and replacement rows. No

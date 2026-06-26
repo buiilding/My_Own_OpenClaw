@@ -38,6 +38,10 @@ describe('renderer dashboard runtime boundary', () => {
       'SEARCH_CHAT_CONVERSATIONS',
       'GET_CHAT_EVENTS',
       'DesktopConversationLibraryClient.loadDisplayRows',
+      'load the canonical SDK conversation event log',
+      'project SDK display messages for the renderer',
+      'replace renderer chat store with projected SDK display messages',
+      'replace chat store message list',
     ];
     const offenders: string[] = [];
     const combinedDocs: string[] = [];
@@ -56,6 +60,8 @@ describe('renderer dashboard runtime boundary', () => {
     expect(offenders).toEqual([]);
     expect(combinedSource).toContain('DesktopConversationLibraryClient');
     expect(combinedSource).toContain('DesktopConversationLibraryClient.loadConversationView');
+    expect(combinedSource).toContain('setChatConversationView(conversationView, conversationRef)');
+    expect(combinedSource).toContain('ConversationView.displayRows');
     expect(combinedSource).toContain('conversations.search');
     expect(combinedSource).toContain('conversation.loadDisplay');
   });

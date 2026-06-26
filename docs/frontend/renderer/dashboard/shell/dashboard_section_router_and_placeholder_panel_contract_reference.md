@@ -125,11 +125,11 @@ Search modal behavior:
 Conversation-open lifecycle (`useDashboardConversations`):
 
 1. resolve `conversation_ref` from selected row.
-2. load the canonical SDK conversation event log from `conversation_events`.
-3. project SDK display messages for the renderer.
+2. load the canonical SDK `ConversationView` through `DesktopConversationLibraryClient.loadConversationView(...)`.
+3. set the view on the chat store with `setChatConversationView(conversationView, conversationRef)`.
 4. mark backend inference state unknown so the continuity runtime can lazily rehydrate from the SDK snapshot.
 5. sync transcript runtime: `setActiveConversationRef(conversationRef)` and `updateTranscriptSession(conversationRef, resolvedUserId)`.
-6. replace chat store message list and clear sending/thinking flags.
+6. leave normal rendering on `ConversationView.displayRows`; sending/thinking state is cleared through the dashboard-open workspace reset plan.
 
 Failure behavior:
 
