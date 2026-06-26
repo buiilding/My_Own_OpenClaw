@@ -161,7 +161,6 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         userMessageId: 'pending-user',
         text: 'pending prompt',
         timestamp: '2026-06-25T12:00:00.000Z',
-        attachmentFilenames: null,
       },
     });
 
@@ -173,6 +172,73 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
       expect.objectContaining({
         id: 'pending-user',
         text: 'pending prompt',
+      }),
+    ]);
+  });
+
+  test('projects no-view pending bridge without mutating raw messages', () => {
+    const messages = [{
+      id: 'old-user-row',
+      sender: 'user',
+      text: 'old prompt',
+      turnRef: 'turn-old',
+    }];
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: null,
+      messages,
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-pending',
+        userMessageId: 'pending-user',
+        text: 'pending prompt',
+        timestamp: '2026-06-25T12:00:00.000Z',
+      },
+    });
+
+    expect(messages).toEqual([
+      expect.objectContaining({
+        id: 'old-user-row',
+      }),
+    ]);
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'old-user-row',
+        text: 'old prompt',
+      }),
+      expect.objectContaining({
+        id: 'pending-user',
+        text: 'pending prompt',
+        sourceEventType: 'renderer-compose',
+        sourceChannel: 'renderer-local',
+        attachments: null,
+      }),
+    ]);
+  });
+
+  test('does not project no-view pending bridge when a user row already owns the turn', () => {
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: null,
+      messages: [{
+        id: 'sdk-user-row',
+        sender: 'user',
+        text: 'sdk prompt',
+        turnRef: 'turn-pending',
+      }],
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-pending',
+        userMessageId: 'pending-user',
+        text: 'pending prompt',
+        timestamp: '2026-06-25T12:00:00.000Z',
+      },
+    });
+
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'sdk-user-row',
+        text: 'sdk prompt',
       }),
     ]);
   });

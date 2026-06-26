@@ -72,36 +72,4 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
       attachments: null,
     });
   });
-
-  test('merges a pending row by id without appending duplicates', () => {
-    const messages = [
-      {
-        id: 'user-pending',
-        sender: 'user',
-        text: 'old text',
-        turnRef: 'turn-pending',
-      },
-      {
-        id: 'assistant-old',
-        sender: 'assistant',
-        text: 'old answer',
-      },
-    ];
-
-    expect(DesktopPendingTurnBridgeRuntime.mergePendingTurnUserMessage(messages, {
-      conversationRef: 'conv-pending',
-      turnRef: 'turn-pending',
-      userMessageId: 'user-pending',
-      text: 'new text',
-      timestamp: '2026-06-25T12:01:00.000Z',
-    })).toEqual([
-      expect.objectContaining({
-        id: 'user-pending',
-        text: 'new text',
-        sourceEventType: 'renderer-compose',
-        attachments: null,
-      }),
-      messages[1],
-    ]);
-  });
 });

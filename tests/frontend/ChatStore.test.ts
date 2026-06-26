@@ -349,7 +349,7 @@ describe('chatStore', () => {
     ]);
   });
 
-  test('acceptPendingTurn adds the pending bridge user row and marks the conversation busy', () => {
+  test('acceptPendingTurn stores bridge state without mutating raw messages', () => {
     acceptPendingTurnInChatStore({
       conversationRef: 'conv-pending',
       turnRef: 'turn-pending',
@@ -368,20 +368,10 @@ describe('chatStore', () => {
       userMessageId: 'user-pending',
       text: 'start now',
     }));
-    expect(activeWorkspace.messages).toEqual([
-      expect.objectContaining({
-        id: 'user-pending',
-        sender: 'user',
-        text: 'start now',
-        turnRef: 'turn-pending',
-        sourceEventType: 'renderer-compose',
-        sourceChannel: 'renderer-local',
-        attachments: null,
-      }),
-    ]);
+    expect(activeWorkspace.messages).toEqual([]);
   });
 
-  test('applyPendingTurnBroadcast replays pending state into an empty renderer workspace', () => {
+  test('applyPendingTurnBroadcast replays pending state without raw message rows', () => {
     applyPendingTurnBroadcastToChatStore({
       kind: 'pending',
       pendingTurn: {
@@ -406,15 +396,7 @@ describe('chatStore', () => {
     expect(state.activeConversationRef).toBe('conv-replay');
     expect(activeWorkspace.isSending).toBe(true);
     expect(activeWorkspace.pendingTurn?.turnRef).toBe('turn-replay');
-    expect(activeWorkspace.messages).toEqual([
-      expect.objectContaining({
-        id: 'user-replay',
-        sender: 'user',
-        text: 'replay this',
-        turnRef: 'turn-replay',
-        attachments: null,
-      }),
-    ]);
+    expect(activeWorkspace.messages).toEqual([]);
   });
 
   test('applyPendingTurnBroadcast is a no-op for an echoed pending turn with ignored attachments', () => {
@@ -446,12 +428,7 @@ describe('chatStore', () => {
     const afterState = useChatStore.getState();
     expect(afterState).toBe(beforeState);
     expect(afterState.getWorkspaceState().messages).toBe(beforeMessages);
-    expect(afterState.getWorkspaceState().messages).toEqual([
-      expect.objectContaining({
-        id: 'user-echo',
-        attachments: null,
-      }),
-    ]);
+    expect(afterState.getWorkspaceState().messages).toEqual([]);
   });
 
   test('setCurrentTurnProjection replaces matching pending turn without clearing busy state first', () => {

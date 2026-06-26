@@ -188,24 +188,6 @@ function isEchoedPendingTurn<TWorkspace extends PendingTurnWorkspaceState>(
   );
 }
 
-function hasConversationView(value: unknown): boolean {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
-function mergePendingTurnMessage(
-  messages: ChatMessage[],
-  pendingMessage: ChatMessage,
-): ChatMessage[] {
-  const existingMessageIndex = messages.findIndex(
-    (message) => message?.id === pendingMessage.id,
-  );
-  return existingMessageIndex === -1
-    ? [...messages, pendingMessage]
-    : messages.map((message, index) => (
-      index === existingMessageIndex ? { ...message, ...pendingMessage } : message
-    ));
-}
-
 function buildPendingTurnWorkspaceMutation<TWorkspace extends PendingTurnWorkspaceState>({
   currentWorkspace,
   pendingTurn,
@@ -223,11 +205,7 @@ function buildPendingTurnWorkspaceMutation<TWorkspace extends PendingTurnWorkspa
   if (!pendingMessage) {
     return null;
   }
-  const shouldPreserveViewReadModel = preserveConversationView
-    && hasConversationView(currentWorkspace.conversationView);
-  const nextMessages = shouldPreserveViewReadModel
-    ? currentWorkspace.messages
-    : mergePendingTurnMessage(currentWorkspace.messages, pendingMessage);
+  const nextMessages = currentWorkspace.messages;
   const nextWorkspace = {
     ...buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace, null),
     messages: nextMessages,

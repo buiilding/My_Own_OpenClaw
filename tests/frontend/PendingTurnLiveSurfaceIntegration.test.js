@@ -19,6 +19,9 @@ import {
   DesktopThreadPresentationRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopThreadPresentationRuntime';
 import {
+  DesktopChatInterfacePresentationRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime';
+import {
   DesktopCurrentTurnMessageRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 import {
@@ -26,6 +29,7 @@ import {
 } from './chatStoreTestUtils';
 
 const { buildThreadPresentationMessages } = DesktopThreadPresentationRuntime;
+const { buildChatInterfacePresentationState } = DesktopChatInterfacePresentationRuntime;
 const {
   prepareDesktopChatSend,
 } = DesktopChatSendPreparationRuntime;
@@ -191,7 +195,13 @@ describe('pending-turn live surface integration', () => {
     });
 
     let state = getActiveWorkspace();
-    expect(state.messages).toEqual([
+    expect(state.messages).toEqual([]);
+    expect(buildChatInterfacePresentationState({
+      activeConversationRef: 'conv_msg-1',
+      messages: state.messages,
+      pendingTurn: state.pendingTurn,
+      sdkLiveTurn: state.sdkLiveTurn,
+    }).renderedMessages).toEqual([
       expect.objectContaining({
         id: 'msg-1-sdk-evt-000002-user_message',
         sender: 'user',

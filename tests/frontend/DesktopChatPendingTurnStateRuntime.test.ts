@@ -114,7 +114,7 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
     })).toBe(false);
   });
 
-  test('builds pending-turn workspace mutations with the renderer bridge row', () => {
+  test('builds pending-turn workspace mutations without appending the renderer bridge row', () => {
     const mutation = buildPendingTurnWorkspaceMutation({
       currentWorkspace: workspace(),
       pendingTurn: {
@@ -148,7 +148,7 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
         turnRef: 'turn-new',
       }),
     }));
-    expect(mutation?.messages).toHaveLength(1);
+    expect(mutation?.messages).toEqual([]);
   });
 
   test('returns null for echoed pending turns when asked to skip them', () => {

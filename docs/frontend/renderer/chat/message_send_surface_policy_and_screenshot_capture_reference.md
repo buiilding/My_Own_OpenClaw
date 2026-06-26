@@ -133,17 +133,17 @@ When attachment(s) exist:
    preview/ready artifact descriptors. Renderer `UserMessage` display consumes
    typed SDK `attachments[]` only and does not render filename metadata as a
    separate attachment fallback. `DesktopPendingTurnBridgeRuntime` owns
-   pending-turn payload construction so normal sends and replay sends use the
-   same bridge identity contract.
+   pending-turn payload construction for normal sends.
    Normal sends preserve any existing `ConversationView` in chat-store state
-   and let presentation merge the pending bridge beside SDK display rows until
-   the next SDK view arrives. That merge is driven by the typed `pendingTurn`
-   bridge itself, not by re-exposing raw renderer `messages` as a competing
-   view-time read model. The bridge only fills an absent user row; once the SDK
-   display row for that turn exists, the SDK row is authoritative and renderer
-   attachment state is not copied forward. Replay sends intentionally clear the
-   old view when publishing replacement rows so stale suffix rows do not remain
-   visible while SDK edit/retry commands complete.
+   and store only `pendingTurn` for the short pre-SDK handoff. Presentation
+   projects that bridge beside no-view history or SDK display rows until the
+   next SDK view arrives; accepting the pending turn does not append a
+   renderer-composed row into raw workspace `messages`. The bridge only fills
+   an absent user row; once the SDK display row for that turn exists, the SDK
+   row is authoritative and renderer attachment state is not copied forward.
+   Replay sends intentionally clear the old view when publishing replacement
+   rows so stale suffix rows do not remain visible while SDK edit/retry commands
+   complete.
 5. run send-surface window policy only (optional return-to-chatbox behavior).
 6. build typed SDK turn resources:
    - `clipboard_image` for pasted/selected images
@@ -178,7 +178,8 @@ transcript metadata rather than composer resources.
 first-user-message predicate used by the send read-model selector. When a SDK
 `ConversationView.displayRows` snapshot exists, the predicate reads user rows
 from that view instead of treating `chatStore.messages` as competing durable
-history; `chatStore.messages` remains the no-view/pending bridge fallback.
+history; `chatStore.messages` remains only the no-view historical fallback, and
+pending-send identity travels separately as `pendingTurn`.
 `DesktopChatSendPreparationRuntime` receives only the resolved boolean, not the
 view rows or raw messages.
 

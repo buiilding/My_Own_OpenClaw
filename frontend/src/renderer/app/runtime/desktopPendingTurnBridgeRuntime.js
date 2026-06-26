@@ -50,27 +50,7 @@ function buildPendingTurnUserMessage(pendingTurn) {
   };
 }
 
-function mergePendingTurnUserMessage(messages, pendingTurn) {
-  const currentMessages = Array.isArray(messages) ? messages : [];
-  const pendingUserMessage = buildPendingTurnUserMessage(pendingTurn);
-  if (!pendingUserMessage?.id) {
-    return currentMessages;
-  }
-  const existingMessageIndex = currentMessages.findIndex(
-    (message) => message?.id === pendingUserMessage.id,
-  );
-  if (existingMessageIndex < 0) {
-    return [...currentMessages, pendingUserMessage];
-  }
-  return currentMessages.map((message, index) => (
-    index === existingMessageIndex
-      ? { ...message, ...pendingUserMessage }
-      : message
-  ));
-}
-
 export const DesktopPendingTurnBridgeRuntime = Object.freeze({
   buildPendingTurn,
   buildPendingTurnUserMessage,
-  mergePendingTurnUserMessage,
 });

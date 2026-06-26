@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pending-turn: project pending-send user rows from `pendingTurn` in
+  chat presentation instead of appending renderer-composed rows into raw
+  workspace `messages`, keeping the pending bridge out of durable chat state.
+  No migration required.
 - frontend/chat: remove the renderer-wide edit/retry message gates from
   ChatInterface presentation state; SDK display-row `actions` now solely own
   replay command availability and targets. No migration required.

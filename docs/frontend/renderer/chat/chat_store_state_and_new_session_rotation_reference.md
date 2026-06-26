@@ -159,11 +159,11 @@ replay/store compatibility adapters and low-level artifact helpers.
   echoed pending-turn broadcast for the same conversation/user/turn/text is a
   no-op so renderer IPC fan-out cannot repaint the existing user bubble.
   Pending turns preserve only identity, text, and timestamp; visible filename
-  and attachment descriptors belong to SDK display rows. When a
-  `ConversationView` is already present, accept-pending preserves the raw
-  workspace `messages` list and stores only `pendingTurn`, because presentation
-  projects the short bridge from `pendingTurn` directly. The pending user-row
-  shape and SDK live-turn workspace mutation are built by app-runtime helpers.
+  and attachment descriptors belong to SDK display rows. Accept-pending
+  preserves the raw workspace `messages` list and stores only `pendingTurn`,
+  because presentation projects the short bridge from `pendingTurn` directly
+  for both no-view and `ConversationView` rendering. The pending user-row shape
+  and SDK live-turn workspace mutation are built by app-runtime helpers.
   The accept-pending and clear decisions also live in
   `desktopChatPendingTurnStateRuntime.ts`; `chatStoreAdapters.ts` supplies
   workspace read/write dependencies and applies the returned update through the
@@ -281,7 +281,8 @@ When `ConversationView` exists, the shared interface projection returns the
 stable empty message list plus narrow `rendererAnnotations`; it does not pass
 the full raw workspace transcript into
 `DesktopChatInterfacePresentationRuntime`. Raw messages remain available only
-through raw workspace mutation/adapters and for no-view fallback rendering.
+through raw workspace mutation/adapters and for no-view historical fallback
+rendering; the pending-send bridge is carried separately as `pendingTurn`.
 
 `selectChatInterfaceState` exposes the active workspace selector model:
 
@@ -356,9 +357,9 @@ active revision id. When a view exists, it builds base thread messages from
 `DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`
 and passes only renderer annotation records selected by the surface/interface
 selector boundary for feedback, transparency metadata, and token counts. The
-pending bridge is projected from `pendingTurn` directly, so a view-time render
-does not receive the full raw active workspace message transcript as a
-competing read model. Raw `ROWS`/display-row stream events remain Electron IPC
+pending bridge is projected from `pendingTurn` directly, so no-view and
+view-time pending rendering do not write the renderer-composed row into raw
+workspace `messages`. Raw `ROWS`/display-row stream events remain Electron IPC
 compatibility plumbing only; the renderer chat projection hook does not
 subscribe to them or write those rows into `ChatWorkspaceState.messages`. The
 component consumes that view model and does not choose between raw messages,
