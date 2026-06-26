@@ -9,6 +9,9 @@ import {
 import {
   DesktopConversationProjectionStreamRuntime,
 } from './desktopConversationProjectionStreamRuntime';
+import {
+  projectWorkspaceReadModelState,
+} from './desktopChatWorkspaceStateRuntime';
 import { DesktopRendererTraceRuntime } from './desktopRendererTraceRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
@@ -92,9 +95,10 @@ function traceErrorKind(error) {
 
 function replayTraceSnapshot(chatStore, conversationRef) {
   const state = chatStore.getState();
-  const workspace = typeof state.getWorkspaceState === 'function'
+  const rawWorkspace = typeof state.getWorkspaceState === 'function'
     ? state.getWorkspaceState(conversationRef)
     : state;
+  const workspace = projectWorkspaceReadModelState(rawWorkspace);
   const tracePayload = buildReplayProjectionTracePayload({
     action: 'replay_trace_snapshot',
     conversationRef,

@@ -1145,6 +1145,7 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionStreamRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
     expect(projectionStreamRuntimeSource).not.toContain('features/chat');
     expect(replayRuntimeSource).toContain('buildReplayProjectionTracePayload');
+    expect(replayRuntimeSource).toContain('projectWorkspaceReadModelState');
     expect(replayRuntimeSource).toContain('Object.entries(tracePayload).filter');
     expect(replayRuntimeSource).toContain("key !== 'action' && key !== 'conversationRef'");
     expect(replayRuntimeSource).not.toContain('currentTurnProjection?.turnRef');

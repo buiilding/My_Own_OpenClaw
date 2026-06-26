@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: route replay trace snapshots through
+  `projectWorkspaceReadModelState`, so replay diagnostics do not reopen raw
+  messages or no-view live-turn fallback when `ConversationView` exists. No
+  migration required.
 - frontend/surfaces: make the chat surface controller blank raw messages and
   the no-view SDK live-turn fallback under `ConversationView`, preserving only
   the pending bridge as renderer-local surface authority. No migration required.

@@ -46,6 +46,16 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient
   },
 }));
 
+jest.mock('../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime', () => ({
+  DesktopRendererTraceRuntime: {
+    logRendererReplayTrace: jest.fn(),
+  },
+}));
+
+const {
+  DesktopRendererTraceRuntime,
+} = require('../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime');
+
 const {
   executeReplayAction,
 } = DesktopConversationReplayRuntime;
@@ -159,6 +169,55 @@ describe('desktopConversationReplayRuntime', () => {
       conversationRef: 'conv-store-active',
       messageId: 'assistant-1',
       userId: 'user-1',
+    }));
+  });
+
+  test('replay traces consume sanitized ConversationView read model', async () => {
+    const chatStoreBundle = createChatStore();
+    chatStoreBundle.state.getWorkspaceState.mockReturnValue({
+      messages: [
+        { id: 'stale-user', sender: 'user', text: 'raw prompt' },
+        { id: 'stale-assistant', sender: 'assistant', text: 'raw answer' },
+      ],
+      pendingTurn: {
+        conversationRef: 'conv-replay',
+        turnRef: 'turn-pending',
+      },
+      currentTurnProjection: {
+        conversationRef: 'conv-replay',
+        turnRef: 'turn-raw',
+        phase: 'streaming',
+      },
+      conversationView: {
+        conversationRef: 'conv-replay',
+        displayRows: [
+          { id: 'view-user', role: 'user' },
+          { id: 'view-assistant', role: 'assistant' },
+        ],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'complete',
+        },
+      },
+    });
+
+    await expect(executeReplayAction(replayArgs({
+      action: 'retry',
+      assistantMessageId: 'view-assistant',
+      chatStoreBundle,
+    }))).resolves.toBe(true);
+
+    expect(DesktopRendererTraceRuntime.logRendererReplayTrace).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'replay_start',
+      conversationRef: 'conv-replay',
+      currentTurnRef: 'turn-view',
+      currentTurnPhase: 'complete',
+      messageCount: 0,
+      displayRowCount: 2,
+    }));
+    expect(DesktopRendererTraceRuntime.logRendererReplayTrace).not.toHaveBeenCalledWith(expect.objectContaining({
+      currentTurnRef: 'turn-raw',
+      messageCount: 2,
     }));
   });
 

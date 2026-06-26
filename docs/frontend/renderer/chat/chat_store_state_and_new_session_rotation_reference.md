@@ -256,6 +256,10 @@ The conversation projection-stream hook applies the same rule when it needs
 workspace context for stale-turn checks and replay traces: it wraps raw store
 workspace reads with `projectWorkspaceReadModelState(...)`, so projection-stream
 diagnostics consume `sdkLiveTurn` rather than raw `currentTurnProjection`.
+Replay action diagnostics also route workspace snapshots through that read-model
+runtime before calling `buildReplayProjectionTracePayload(...)`, so SDK replay
+commands and their traces do not restore raw message/current-turn authority when
+`ConversationView` exists.
 
 When `ConversationView` exists, the shared interface projection returns the
 stable empty message list plus narrow `rendererAnnotations`; it does not pass
