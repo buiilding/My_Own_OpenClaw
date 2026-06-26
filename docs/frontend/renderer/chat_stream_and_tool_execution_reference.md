@@ -208,6 +208,10 @@ The utility does not create transcript rows or interpret backend-wire events.
 Transcript display still comes from SDK display rows, and conversation-event
 handlers still own metadata, compaction, terminal materialization, and tool-row
 persistence.
+Live-turn tool-call presentation consumes SDK-provided tool identity fields
+only. Renderer UI row ids are display identities and must not be promoted into
+model-facing tool-call ids when a live entry omits `requestId` or
+`modelFacingToolCall.id`.
 Turn-completion handlers call
 `DesktopChatStreamEventRuntime.resolveTurnCompletedStreamEventState(...)` for
 resolved conversation identity, turn identity, and terminal tracking decisions;

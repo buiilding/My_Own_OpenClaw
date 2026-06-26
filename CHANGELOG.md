@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: stop using SDK live-entry row ids as fallback
+  model-facing tool-call ids; live tool identity now comes only from SDK tool
+  fields such as `requestId` or `modelFacingToolCall`. No migration required.
 - frontend/pending-turn: require normalized pending bridge payloads before
   projecting renderer-local pending user rows, so partial pending objects no
   longer recover chat display state under `ConversationView`. No migration

@@ -395,8 +395,7 @@ function buildToolCallMessage(entry, liveTurnContext) {
   const toolCallState = buildToolCallMessageState({
     rawToolCall: asRecord(entry.modelFacingToolCall),
     fallbackToolName: toolName,
-    fallbackToolCallId: normalizeOptionalText(entry.requestId)
-      || entry.id,
+    fallbackToolCallId: normalizeOptionalText(entry.requestId),
     fallbackArguments: args,
     metadata,
     toolCallValidationFailed: entry.toolCallValidationFailed === true,

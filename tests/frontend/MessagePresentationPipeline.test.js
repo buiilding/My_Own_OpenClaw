@@ -504,6 +504,44 @@ describe('desktopThreadPresentationRuntime', () => {
     expect(rendered[1]).not.toHaveProperty('toolCallDetails');
   });
 
+  test('buildThreadPresentationMessages does not use live entry ids as model tool-call ids', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: 'view-entry-tool-row',
+          type: 'tool-call',
+          sourceEventType: 'tool_call',
+          sourceChannel: 'sdk:current-turn',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+          toolArguments: { path: 'README.md' },
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered[1]).toEqual(expect.objectContaining({
+      sender: 'assistant',
+      type: 'tool-call',
+      modelFacingToolCall: expect.objectContaining({
+        name: 'read_file',
+        arguments: { path: 'README.md' },
+      }),
+    }));
+    expect(rendered[1].modelFacingToolCall).not.toHaveProperty('id');
+    expect(rendered[1].text).not.toContain('view-entry-tool-row');
+  });
+
   test('buildThreadPresentationMessages ignores current-turn entries for another conversation', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
