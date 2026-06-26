@@ -1,5 +1,5 @@
 ﻿/**
- * Derives renderer chat UI side effects from SDK current-turn projections.
+ * Derives renderer chat UI side effects from SDK live-turn snapshots.
  */
 
 import type { CurrentTurnToolEvent } from './desktopConversationRuntimeContracts';
@@ -25,7 +25,7 @@ type WorkspaceState = {
   thinkingStatus?: string | null;
 };
 
-export type CurrentTurnProjectionEffectsInput = {
+export type SdkLiveTurnEffectsInput = {
   assistantText?: string | null;
   conversationRef?: string | null;
   lastError?: string | null;
@@ -37,7 +37,7 @@ export type CurrentTurnProjectionEffectsInput = {
   userMessageRowId?: string | null;
 };
 
-type CurrentTurnProjectionSideEffectDeps = {
+type SdkLiveTurnSideEffectDeps = {
   getWorkspaceState: (conversationRef?: string | null) => WorkspaceState;
   setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
   setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
@@ -46,11 +46,11 @@ type CurrentTurnProjectionSideEffectDeps = {
   recordTrackingEvent: DesktopChatStreamRecordTrackingEvent;
 };
 
-type ApplyCurrentTurnProjectionSideEffectsInput = {
+type ApplySdkLiveTurnSideEffectsInput = {
   conversationRef: string;
-  currentTurn: CurrentTurnProjectionEffectsInput;
+  currentTurn: SdkLiveTurnEffectsInput;
   cursor: ProjectionCursor;
-  deps: CurrentTurnProjectionSideEffectDeps;
+  deps: SdkLiveTurnSideEffectDeps;
 };
 
 function createProjectionCursor(): ProjectionCursor {
@@ -86,7 +86,7 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function resolveSdkPresentationHasVisibleContent(currentTurn: CurrentTurnProjectionEffectsInput): boolean {
+function resolveSdkPresentationHasVisibleContent(currentTurn: SdkLiveTurnEffectsInput): boolean {
   const presentation = asRecord((currentTurn as { presentation?: unknown }).presentation);
   if (Array.isArray(presentation?.entries) && presentation.entries.length > 0) {
     return true;
@@ -99,16 +99,16 @@ function isExecutionSkippedToolEvent(toolEvent: CurrentTurnToolEvent): boolean {
   return toolEvent.executionSkipped === true;
 }
 
-function shouldAcceptCurrentTurnBeforeLocalSend(currentTurn: CurrentTurnProjectionEffectsInput): boolean {
+function shouldAcceptCurrentTurnBeforeLocalSend(currentTurn: SdkLiveTurnEffectsInput): boolean {
   return currentTurn.phase === 'awaiting';
 }
 
-function applyCurrentTurnProjectionSideEffects({
+function applySdkLiveTurnSideEffects({
   conversationRef,
   currentTurn,
   cursor,
   deps,
-}: ApplyCurrentTurnProjectionSideEffectsInput): ProjectionCursor {
+}: ApplySdkLiveTurnSideEffectsInput): ProjectionCursor {
   const assistantText = typeof currentTurn.assistantText === 'string'
     ? currentTurn.assistantText
     : '';
@@ -256,9 +256,9 @@ function applyCurrentTurnProjectionSideEffects({
   };
 }
 
-export const DesktopCurrentTurnProjectionEffectsRuntime = Object.freeze({
+export const DesktopSdkLiveTurnEffectsRuntime = Object.freeze({
   createProjectionCursor,
   buildProjectionCursorKey,
   shouldAcceptCurrentTurnBeforeLocalSend,
-  applyCurrentTurnProjectionSideEffects,
+  applySdkLiveTurnSideEffects,
 });

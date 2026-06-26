@@ -8,10 +8,10 @@ import type {
   StreamPhase,
 } from './desktopChatStreamTrackingRuntime';
 import {
-  DesktopCurrentTurnProjectionEffectsRuntime,
-  type CurrentTurnProjectionEffectsInput,
+  DesktopSdkLiveTurnEffectsRuntime,
+  type SdkLiveTurnEffectsInput,
   type ProjectionCursor,
-} from './desktopCurrentTurnProjectionEffectsRuntime';
+} from './desktopSdkLiveTurnEffectsRuntime';
 import {
   DesktopPresentationSourceChannels,
 } from './desktopPresentationSourceChannels';
@@ -54,7 +54,7 @@ type ProjectionWorkspace = {
 type CurrentTurnProjectionStreamDeps = {
   getWorkspaceState: (conversationRef?: string | null) => ProjectionWorkspace;
   setSdkLiveTurn: (
-    currentTurn: CurrentTurnProjectionEffectsInput,
+    currentTurn: SdkLiveTurnEffectsInput,
     conversationRef?: string | null,
   ) => void;
   setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
@@ -65,7 +65,7 @@ type CurrentTurnProjectionStreamDeps = {
 
 type ApplyCurrentTurnProjectionEventInput = {
   conversationRef: string;
-  currentTurn: CurrentTurnProjectionEffectsInput;
+  currentTurn: SdkLiveTurnEffectsInput;
   deps: CurrentTurnProjectionStreamDeps;
   projectionCursors: Map<string, ProjectionCursor>;
 };
@@ -82,11 +82,11 @@ const {
   shouldIgnoreConversationEventForStaleTurn,
 } = DesktopChatStreamEventRuntime;
 const {
-  applyCurrentTurnProjectionSideEffects,
+  applySdkLiveTurnSideEffects,
   buildProjectionCursorKey,
   createProjectionCursor,
   shouldAcceptCurrentTurnBeforeLocalSend,
-} = DesktopCurrentTurnProjectionEffectsRuntime;
+} = DesktopSdkLiveTurnEffectsRuntime;
 const {
   logRendererCurrentTurnAppliedTrace,
   logRendererReplayTrace,
@@ -211,7 +211,7 @@ function applyCurrentTurnProjectionEvent({
 
   const cursorKey = buildProjectionCursorKey(conversationRef, currentTurn.turnRef ?? null);
   const previousCursor = projectionCursors.get(cursorKey) ?? createProjectionCursor();
-  projectionCursors.set(cursorKey, applyCurrentTurnProjectionSideEffects({
+  projectionCursors.set(cursorKey, applySdkLiveTurnSideEffects({
     conversationRef,
     currentTurn,
     cursor: previousCursor,

@@ -1,18 +1,18 @@
 /**
- * Covers SDK current-turn projection side effects for chat UI state.
+ * Covers SDK live-turn side effects for chat UI state.
  */
 
-import type { CurrentTurnProjectionEffectsInput } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
-import { DesktopCurrentTurnProjectionEffectsRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
+import type { SdkLiveTurnEffectsInput } from '../../frontend/src/renderer/app/runtime/desktopSdkLiveTurnEffectsRuntime';
+import { DesktopSdkLiveTurnEffectsRuntime } from '../../frontend/src/renderer/app/runtime/desktopSdkLiveTurnEffectsRuntime';
 
 const {
-  applyCurrentTurnProjectionSideEffects,
+  applySdkLiveTurnSideEffects,
   createProjectionCursor,
-} = DesktopCurrentTurnProjectionEffectsRuntime;
+} = DesktopSdkLiveTurnEffectsRuntime;
 
 function projection(
-  overrides: Partial<CurrentTurnProjectionEffectsInput> = {},
-): CurrentTurnProjectionEffectsInput {
+  overrides: Partial<SdkLiveTurnEffectsInput> = {},
+): SdkLiveTurnEffectsInput {
   return {
     conversationRef: 'conv-1',
     turnRef: 'turn-1',
@@ -55,11 +55,11 @@ function createDeps() {
   };
 }
 
-describe('current turn projection side effects', () => {
+describe('SDK live-turn side effects', () => {
   test('keeps awaiting phase authoritative when SDK typing presentation is false', () => {
     const deps = createDeps();
 
-    applyCurrentTurnProjectionSideEffects({
+    applySdkLiveTurnSideEffects({
       conversationRef: 'conv-1',
       currentTurn: projection({
         presentation: {
@@ -91,7 +91,7 @@ describe('current turn projection side effects', () => {
 
   test('does not clear sending for presentation flags without visible content', () => {
     const deps = createDeps();
-    const awaitingCursor = applyCurrentTurnProjectionSideEffects({
+    const awaitingCursor = applySdkLiveTurnSideEffects({
       conversationRef: 'conv-1',
       currentTurn: projection(),
       cursor: createProjectionCursor(),
@@ -99,7 +99,7 @@ describe('current turn projection side effects', () => {
     });
     deps.setIsSending.mockClear();
 
-    applyCurrentTurnProjectionSideEffects({
+    applySdkLiveTurnSideEffects({
       conversationRef: 'conv-1',
       currentTurn: projection({
         phase: 'streaming',
@@ -131,7 +131,7 @@ describe('current turn projection side effects', () => {
 
   test('clears sending when SDK presentation contains visible entries', () => {
     const deps = createDeps();
-    const awaitingCursor = applyCurrentTurnProjectionSideEffects({
+    const awaitingCursor = applySdkLiveTurnSideEffects({
       conversationRef: 'conv-1',
       currentTurn: projection(),
       cursor: createProjectionCursor(),
@@ -139,7 +139,7 @@ describe('current turn projection side effects', () => {
     });
     deps.setIsSending.mockClear();
 
-    applyCurrentTurnProjectionSideEffects({
+    applySdkLiveTurnSideEffects({
       conversationRef: 'conv-1',
       currentTurn: projection({
         phase: 'streaming',
@@ -175,7 +175,7 @@ describe('current turn projection side effects', () => {
   test('records accepted and streaming deltas without duplicating already-seen text', () => {
     const deps = createDeps();
 
-    const awaitingCursor = applyCurrentTurnProjectionSideEffects({
+    const awaitingCursor = applySdkLiveTurnSideEffects({
       conversationRef: 'conv-1',
       currentTurn: projection(),
       cursor: createProjectionCursor(),
@@ -192,7 +192,7 @@ describe('current turn projection side effects', () => {
     );
 
     deps.recordTrackingEvent.mockClear();
-    const streamingCursor = applyCurrentTurnProjectionSideEffects({
+    const streamingCursor = applySdkLiveTurnSideEffects({
       conversationRef: 'conv-1',
       currentTurn: projection({
         phase: 'streaming',
@@ -229,7 +229,7 @@ describe('current turn projection side effects', () => {
     );
 
     deps.recordTrackingEvent.mockClear();
-    applyCurrentTurnProjectionSideEffects({
+    applySdkLiveTurnSideEffects({
       conversationRef: 'conv-1',
       currentTurn: projection({
         phase: 'streaming',
@@ -268,7 +268,7 @@ describe('current turn projection side effects', () => {
 
   test('deduplicates tool events and preserves execution-skipped typing state', () => {
     const deps = createDeps();
-    const cursor = applyCurrentTurnProjectionSideEffects({
+    const cursor = applySdkLiveTurnSideEffects({
       conversationRef: 'conv-1',
       currentTurn: projection({
         phase: 'tool_call',
@@ -295,7 +295,7 @@ describe('current turn projection side effects', () => {
     expect(deps.setThinkingStatus).not.toHaveBeenCalledWith(null, 'conv-1');
 
     deps.recordTrackingEvent.mockClear();
-    applyCurrentTurnProjectionSideEffects({
+    applySdkLiveTurnSideEffects({
       conversationRef: 'conv-1',
       currentTurn: projection({
         phase: 'tool_call',

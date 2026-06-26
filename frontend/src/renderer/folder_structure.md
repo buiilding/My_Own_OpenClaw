@@ -45,7 +45,7 @@ frontend/src/renderer/
 |   |   |-- desktopChatSurfaceSelectorRuntime.ts # Renderer chat interface and minimal live-surface selector projection facade
 |   |   |-- desktopCurrentTurnPresentationRuntime.js # Renderer current-turn reply, SDK presentation, response dismissal target, and chatbox surface projection facade
 |   |   |-- desktopCurrentTurnMessageRuntime.js # Renderer SDK current-turn projection and presentation entries to chat-message facade
-|   |   |-- desktopCurrentTurnProjectionEffectsRuntime.ts # Renderer SDK current-turn projection side-effect facade
+|   |   |-- desktopSdkLiveTurnEffectsRuntime.ts # Renderer SDK live-turn side-effect facade
 |   |   |-- desktopLiveTurnSurfaceRuntime.js # Renderer SDK current-turn surface/overlay preflight state facade
 |   |   |-- desktopRendererTraceRuntime.ts # Renderer stream/chat-pill/overlay live-surface diagnostic trace facade
 |   |   |-- desktopManualCompactionRuntime.js # Renderer manual compaction command orchestration facade

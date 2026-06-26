@@ -956,8 +956,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ### 2026-06-21 Renderer Current-Turn Applied Trace Boundary
 
-- Finding: `useConversationRuntimeProjectionStream.ts` delegated current-turn
-  store side effects to `desktopCurrentTurnProjectionEffectsRuntime`, but still
+- Finding: `useConversationRuntimeProjectionStream.ts` delegated SDK live-turn
+  store side effects to `desktopSdkLiveTurnEffectsRuntime`, but still
   called `logRendererLiveSurfaceTrace(...)` directly for
   `renderer.current_turn.applied` and assembled overlay mode, guard ref,
   visibility, text-length, tool-count, and stale-skip trace fields locally.
@@ -7524,7 +7524,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Finding: `useChatStreamToolHandlers` was a no-op renderer adapter that only acknowledged SDK tool events after tool display moved to SDK current-turn projections.
 - Decision: delete the empty hook/test and keep SDK tool-event acknowledgement directly in `useChatStream`, so the renderer has no separate tool display handler abstraction.
 - Change: chat stream dispatch now returns handled for tool call/output/bundle events with an inline SDK-projection ownership note.
-- Change: renderer chat runtime boundary tests now assert the old no-op hook remains deleted and that current-turn projection side effects still own tool rows.
+- Change: renderer chat runtime boundary tests now assert the old no-op hook remains deleted and that SDK live-turn side effects still own tool rows.
 
 ### 2026-06-16 SDK Private Transport Naming Slice
 
@@ -8219,7 +8219,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   payloads as renderer-to-backend/backend-to-renderer messages, and the
   response-overlay reference still described renderer backend-wire stream
   handlers even though the generic boundary is a client/backend transcription
-  gateway plus SDK conversation-event/current-turn projection side effects.
+  gateway plus SDK conversation-event/SDK live-turn side effects.
 - Change: renamed the transcription route message headings to
   client-to-backend/backend-to-client transcription messages, reworded overlay
   transcript/history side-effect ownership through SDK conversation events, and
@@ -9470,7 +9470,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - The renderer chat-stream thinking runtime now keeps generic thinking and
   compaction lifecycle labels private to
   `desktopChatStreamThinkingRuntime.ts`; stream hooks, manual compaction, and
-  current-turn projection side effects use semantic label helpers, failed-status
+  SDK live-turn side effects use semantic label helpers, failed-status
   fallback resolution, and the generic-status predicate. Boundary coverage
   prevents the raw thinking/compaction status constants from becoming public
   exports again. Thinking placeholder text, compaction lifecycle labels,

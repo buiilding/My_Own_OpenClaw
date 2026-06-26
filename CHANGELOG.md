@@ -22,6 +22,10 @@ All notable changes to WindieOS will be documented in this file.
   content in the renderer adapter; producers must normalize user, assistant,
   tool-output, and progress row text before `ConversationView` reaches React. No
   migration required.
+- frontend/live-turn: rename the renderer current-turn side-effect facade to
+  `DesktopSdkLiveTurnEffectsRuntime`, keeping live turn side effects framed as
+  SDK view plumbing instead of a renderer-owned projection authority. No
+  migration required.
 - frontend/state: rename private no-view live-turn workspace storage from
   `currentTurnProjection` to `sdkLiveTurn`, removing the raw current-turn name
   from production renderer workspace state. No migration required.
@@ -1743,7 +1747,7 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopChatboxInteractionRuntime`, leaving `MinimalChatPill` with only
   value-level callbacks and anchor policy. No migration required.
 - frontend/renderer: remove the dead `typingVisible` cursor field from
-  `DesktopCurrentTurnProjectionEffectsRuntime`; SDK current-turn side effects
+  `DesktopSdkLiveTurnEffectsRuntime`; SDK current-turn side effects
   now track only text lengths, phase, errors, and seen tool-event ids while
   continuing to ignore SDK presentation visibility flags as send-latch
   authority. No migration required.
@@ -1814,7 +1818,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: route chat stream completion tracking decisions through
   `DesktopChatStreamEventRuntime.shouldRecordTerminalCompletionTracking(...)`,
   so stale raw `isSending=true` no longer records duplicate terminal tracking
-  without a matching pending turn; SDK current-turn projection side effects now
+  without a matching pending turn; SDK live-turn side effects now
   run stale-turn checks against the pre-storage workspace snapshot so
   projection storage cannot clear `pendingTurn` before handoff. No migration
   required.
@@ -2358,7 +2362,7 @@ All notable changes to WindieOS will be documented in this file.
   instead of standalone helper exports, keeping SDK event payload handling
   behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose SDK current-turn projection cursors, acceptance,
-  and side-effect application through `DesktopCurrentTurnProjectionEffectsRuntime`
+  and side-effect application through `DesktopSdkLiveTurnEffectsRuntime`
   instead of standalone helper exports, keeping live-turn UI side effects
   behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose stream event identity, classification, stale-turn
@@ -5019,7 +5023,7 @@ All notable changes to WindieOS will be documented in this file.
   attachment filename deduping, and first-user-message predicates into
   renderer app-runtime facades consumed by send preparation. No migration
   required.
-- renderer/current-turn-effects: move SDK current-turn projection side effects,
+- renderer/current-turn-effects: move SDK live-turn side effects,
   stream thinking/compaction status helpers, and manual compaction command
   orchestration into renderer app-runtime facades consumed by chat stream and
   surface hooks. No migration required.
@@ -6768,7 +6772,7 @@ All notable changes to WindieOS will be documented in this file.
   remains the product identity owner.
 - frontend/chat: route dashboard, pill, Esc, and global stop through a shared
   live-turn target that clears pending turns with their real turn refs.
-- frontend/chat: extract SDK current-turn projection side effects from the
+- frontend/chat: extract SDK live-turn side effects from the
   projection subscription hook into a focused renderer adapter.
 - frontend/docs: document the current-turn projection side-effect utility as
   the owner of renderer send-latch, thinking, and stream-tracking updates.

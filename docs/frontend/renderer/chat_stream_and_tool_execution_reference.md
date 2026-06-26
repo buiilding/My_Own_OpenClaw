@@ -3,7 +3,7 @@ summary: "Renderer chat runtime deep reference: provider coordination, message-s
 read_when:
   - When changing renderer chat hooks, stream event handling, or projected tool display callbacks.
   - When debugging stale-turn tool cancellation, transcript writes, or streaming state drift.
-  - When debugging current-turn projection side effects such as send-latch cleanup, thinking text, streamTracking updates, or duplicate tool-event tracking.
+  - When debugging SDK live-turn side effects such as send-latch cleanup, thinking text, streamTracking updates, or duplicate tool-event tracking.
   - When resolving stale references to removed `chatStreamTransparency.ts`, `ChatStreamTransparency.test.ts`, or `ChatStreamThinkingStatusUtils.test.ts` helper/test paths.
   - When stale code, tests, or docs mention exported `mergeRendererAnnotations` or direct renderer annotation-merge helpers; the merge now routes through `desktopConversationDisplayProjection.ts`.
 title: "Chat Stream and Tool Execution Reference"
@@ -26,7 +26,7 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationProjectionStreamRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopModelThinkingRuntime.ts`
-- `frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopSdkLiveTurnEffectsRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompletionHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamLocalUserHandler.ts`
@@ -174,7 +174,7 @@ tests should exercise the `ConversationView` projection facade or the public
 hook listener.
 
 The hook delegates current-turn UI side effects to
-`DesktopCurrentTurnProjectionEffectsRuntime`. That runtime reducer owns cursor-based delta
+`DesktopSdkLiveTurnEffectsRuntime`. That runtime reducer owns cursor-based delta
 tracking for `assistantText`, `reasoningText`, `phase`, `lastError`, and seen
 tool-event ids; it does not store SDK presentation visibility fields in the
 cursor. It is the renderer-side owner for:
@@ -421,11 +421,11 @@ Handler composition boundary:
   instead of reading `event.payload` directly.
 - SDK `user_message` handling for backend `local-user-message` is delegated to
   `useChatStreamLocalUserHandler`
-- SDK current-turn `reasoningText`, `assistantText`, and terminal `phase` active-turn side effects are delegated through `useConversationRuntimeProjectionStream` to `DesktopConversationProjectionStreamRuntime`, which applies `DesktopCurrentTurnProjectionEffectsRuntime`.
+- SDK current-turn `reasoningText`, `assistantText`, and terminal `phase` active-turn side effects are delegated through `useConversationRuntimeProjectionStream` to `DesktopConversationProjectionStreamRuntime`, which applies `DesktopSdkLiveTurnEffectsRuntime`.
 - SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`
   transparency projection is delegated to `useChatStreamMetadataHandlers`.
 - SDK `turn_error` transcript/error materialization plus SDK `usage_updated` terminal behavior is delegated to `useChatStreamTerminalHandlers`
-- SDK current-turn `toolEvents` active-turn display and phase tracking is delegated through `useConversationRuntimeProjectionStream` to `DesktopConversationProjectionStreamRuntime`, which applies `DesktopCurrentTurnProjectionEffectsRuntime`.
+- SDK current-turn `toolEvents` active-turn display and phase tracking is delegated through `useConversationRuntimeProjectionStream` to `DesktopConversationProjectionStreamRuntime`, which applies `DesktopSdkLiveTurnEffectsRuntime`.
 - SDK `tool_call`/`tool_output`/`tool_bundle_call` transcript persistence is delegated to `useChatStreamToolHandlers`; local tool execution remains owned by SDK/main local-runtime execution and the local-runtime Python implementation.
 - SDK `compaction_started`/`compaction_applied`/`compaction_skipped`/`compaction_failed`
   display and replay persistence is delegated to `useChatStreamCompactionHandlers`.
