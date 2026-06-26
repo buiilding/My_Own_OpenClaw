@@ -2221,6 +2221,9 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('screenshotRef');
     expect(sendPreparationSource).not.toContain('screenshotRefs');
     expect(sendPreparationSource).not.toContain('screenshotUrl');
+    expect(sendPreparationSource).not.toContain('readSdkDisplayAttachments');
+    expect(sendPreparationSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(sendPreparationSource).not.toContain('attachments:');
     expect(sendPreparationSource).not.toContain('{ attachmentFilenames, attachment_filenames');
     expect(sendPreparationSource).not.toContain('chatMessageSenderPayloads');
     expect(sendPreparationSource).not.toContain('chatMessageSenderUtils');
@@ -3522,6 +3525,11 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain("sourceEventType: 'renderer-compose'");
     expect(pendingBridgeSource).toContain("sourceEventType: 'renderer-compose'");
     expect(pendingBridgeSource).toContain('attachments: null');
+    expect(pendingBridgeSource).not.toContain('readSdkDisplayAttachments');
+    expect(pendingBridgeSource).not.toContain('screenshotRef');
+    expect(pendingBridgeSource).not.toContain('screenshot_refs');
+    expect(pendingBridgeSource).not.toContain('kind:');
+    expect(pendingBridgeSource).not.toContain('status:');
     expect(chatStoreSource).not.toContain('export interface ChatMessage');
     expect(chatStoreSource).not.toContain('SdkCurrentTurnProjection');
     expect(chatStoreSource).not.toContain('DEFAULT_CHAT_WORKSPACE_REF');

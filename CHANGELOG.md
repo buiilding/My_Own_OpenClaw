@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tests: lock the send-preparation and pending-turn bridge boundary so
+  renderer code cannot reintroduce display attachment lifecycle projection
+  beside SDK-owned `attachments[]`. No migration required.
 - frontend/store: move turn-ref conversation routing out of Zustand
   `chatStore` and into the renderer app-runtime registry; the store keeps
   adapter methods for existing call sites but no longer owns the runtime
