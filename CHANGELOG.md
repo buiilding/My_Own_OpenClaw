@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pending: keep view-time pending sends in the `pendingTurn` bridge
+  without appending a renderer-compose row to raw workspace `messages`, so
+  `ConversationView` remains the chat read model during pending-send handoff.
+  No migration required.
 - frontend/stop: make stopped-turn workspace mutation ignore and clear the
   no-view SDK live-turn fallback once `ConversationView` exists, leaving only a
   matching renderer pending bridge for local stop cleanup. No migration

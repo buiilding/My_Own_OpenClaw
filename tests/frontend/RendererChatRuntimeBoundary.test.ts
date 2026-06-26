@@ -3750,6 +3750,9 @@ describe('renderer chat runtime boundary', () => {
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnWorkspaceMutation');
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnClearWorkspaceMutation');
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnUserMessage');
+    expect(pendingStateRuntimeSource).toContain('const shouldPreserveViewReadModel = preserveConversationView');
+    expect(pendingStateRuntimeSource).toContain('&& hasConversationView(currentWorkspace.conversationView)');
+    expect(pendingStateRuntimeSource).toContain('? currentWorkspace.messages');
     expect(pendingStateRuntimeSource).not.toContain('addSupersededTurnRef');
     expect(pendingStateRuntimeSource).not.toContain('removeSupersededTurnRef');
     expect(clearMessagesRuntimeSource).toContain('buildClearMessagesStateUpdate');

@@ -257,10 +257,16 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
       revisionId: 'rev-current',
       displayRows: [],
     };
+    const rawMessages = [{
+      id: 'stale-row',
+      sender: 'user',
+      text: 'stale raw prompt',
+    }];
     const state = storeState({
       activeConversationRef: 'conv-state',
       workspaces: {
         'conv-state': workspace({
+          messages: rawMessages,
           conversationView,
         }),
       },
@@ -281,12 +287,19 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
 
     expect(update).not.toHaveProperty('conversationView');
     expect(update?.workspaces['conv-state']).toEqual(expect.objectContaining({
+      messages: rawMessages,
       conversationView,
       currentTurnProjection: null,
       pendingTurn: expect.objectContaining({
         turnRef: 'turn-state',
       }),
     }));
+    expect(update?.workspaces['conv-state'].messages).toEqual(expect.not.arrayContaining([
+      expect.objectContaining({
+        id: 'user-state',
+        sourceEventType: 'renderer-compose',
+      }),
+    ]));
   });
 
   test('builds pending broadcast clear store updates without store branching', () => {

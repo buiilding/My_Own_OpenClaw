@@ -155,9 +155,12 @@ replay/store compatibility adapters and low-level artifact helpers.
   echoed pending-turn broadcast for the same conversation/user/turn/text is a
   no-op so renderer IPC fan-out cannot repaint the existing user bubble.
   Pending turns preserve only identity, text, timestamp, and filename chips;
-  visual attachment descriptors belong to SDK display rows. The pending
-  user-row shape and SDK live-turn workspace mutation are built by app-runtime
-  helpers. The accept-pending and clear decisions also live in
+  visual attachment descriptors belong to SDK display rows. When a
+  `ConversationView` is already present, accept-pending preserves the raw
+  workspace `messages` list and stores only `pendingTurn`, because presentation
+  projects the short bridge from `pendingTurn` directly. The pending user-row
+  shape and SDK live-turn workspace mutation are built by app-runtime helpers.
+  The accept-pending and clear decisions also live in
   `desktopChatPendingTurnStateRuntime.ts`; `chatStoreAdapters.ts` supplies
   workspace read/write dependencies and applies the returned update through the
   store. Pending-turn IPC broadcasts use
