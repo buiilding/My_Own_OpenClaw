@@ -95,10 +95,6 @@ describe('desktopChatPillSessionRuntime', () => {
 
   test('prefers visible response turn id and response layout when a reply exists', () => {
     const viewIntent = resolveChatPillViewIntent({
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-user' },
-        { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant', type: 'llm-text' },
-      ],
       currentTurnPresentationState: {
         visibleResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
         activeResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
@@ -117,11 +113,6 @@ describe('desktopChatPillSessionRuntime', () => {
 
   test('prefers visible response turn id over a different active response turn id', () => {
     const viewIntent = resolveChatPillViewIntent({
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-user' },
-        { id: 'assistant-active', sender: 'assistant', text: 'old reply', turnRef: 'turn-active', type: 'llm-text' },
-        { id: 'assistant-visible', sender: 'assistant', text: 'visible reply', turnRef: 'turn-visible', type: 'llm-text' },
-      ],
       currentTurnPresentationState: {
         visibleResponse: { id: 'assistant-visible', sender: 'assistant', text: 'visible reply', turnRef: 'turn-visible' },
         activeResponse: { id: 'assistant-active', sender: 'assistant', text: 'old reply', turnRef: 'turn-active' },
@@ -138,10 +129,6 @@ describe('desktopChatPillSessionRuntime', () => {
 
   test('falls back to active response turn id before message history', () => {
     const viewIntent = resolveChatPillViewIntent({
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-user' },
-        { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-history', type: 'llm-text' },
-      ],
       currentTurnPresentationState: {
         visibleResponse: null,
         activeResponse: { id: 'assistant-active', sender: 'assistant', text: 'reply', turnRef: 'turn-active' },
@@ -155,23 +142,21 @@ describe('desktopChatPillSessionRuntime', () => {
     });
   });
 
-  test('falls back to the latest chat turn id while awaiting', () => {
+  test('falls back to visible lifecycle turn id while awaiting', () => {
     const viewIntent = resolveChatPillViewIntent({
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-user' },
-      ],
       currentTurnPresentationState: {
         activeResponse: null,
         visibleResponse: null,
         visibleTurnLifecycle: {
           status: 'awaiting',
+          turnRef: 'turn-awaiting',
         },
       },
       responseOverlayEntries: [],
     });
 
     expect(viewIntent).toMatchObject({
-      turnId: 'turn-user',
+      turnId: 'turn-awaiting',
       responseVisible: false,
       awaitingVisible: true,
       overlayLayoutMode: 'awaiting-typing',
@@ -179,25 +164,21 @@ describe('desktopChatPillSessionRuntime', () => {
     });
   });
 
-  test('skips blank turn refs when falling back to the latest chat turn id', () => {
+  test('returns null turn id without response or lifecycle turn identity', () => {
     const viewIntent = resolveChatPillViewIntent({
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'first', turnRef: 'turn-user' },
-        { id: 'assistant-blank', sender: 'assistant', text: 'blank', turnRef: '   ', type: 'llm-text' },
-        { id: 'assistant-missing', sender: 'assistant', text: 'missing', type: 'llm-text' },
-      ],
       currentTurnPresentationState: {
         activeResponse: null,
         visibleResponse: null,
         visibleTurnLifecycle: {
           status: 'idle',
+          turnRef: '   ',
         },
       },
       responseOverlayEntries: [],
     });
 
     expect(viewIntent).toMatchObject({
-      turnId: 'turn-user',
+      turnId: null,
       responseVisible: false,
       overlayLayoutMode: 'hidden',
       isVisible: false,
@@ -340,10 +321,6 @@ describe('desktopChatPillSessionRuntime', () => {
 
   test('propagates dismissed response state through the view contract', () => {
     const viewIntent = resolveChatPillViewIntent({
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-user' },
-        { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant', type: 'llm-text' },
-      ],
       currentTurnPresentationState: {
         visibleResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
         activeResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
@@ -364,10 +341,6 @@ describe('desktopChatPillSessionRuntime', () => {
 
   test('prefers awaiting layout over a stale prior response during new-turn handoff', () => {
     const viewIntent = resolveChatPillViewIntent({
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-user' },
-        { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant', type: 'llm-text' },
-      ],
       currentTurnPresentationState: {
         activeResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
         visibleResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },

@@ -923,6 +923,8 @@ describe('renderer app runtime boundary', () => {
     expect(chatPillFlowSource).toContain('export const DesktopChatPillSessionRuntime = Object.freeze');
     expect(chatPillFlowSource).not.toContain('export function resolveChatPillSendLifecycle');
     expect(chatPillFlowSource).not.toContain('export function resolveChatPillViewIntent');
+    expect(chatPillFlowSource).not.toContain('findLatestChatTurnId');
+    expect(chatPillFlowSource).not.toContain('messages.length - 1');
     expect(chatPillFlowSource).not.toContain('features/chat');
     expect(messageSendRuntimeSource).toContain('export const DesktopMessageSendUiRuntime = Object.freeze');
     expect(messageSendRuntimeSource).not.toContain('export function resolveMessageSendUiBehavior');

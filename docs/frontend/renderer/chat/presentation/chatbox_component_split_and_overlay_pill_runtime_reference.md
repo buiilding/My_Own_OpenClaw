@@ -168,7 +168,9 @@ Main-process chat window height now tracks the compact-vs-preview visual-anchor 
 
 - response overlay entries are built from SDK `currentTurnProjection`
 - candidate response types are restricted to `llm-text` and `error`
-- latest assistant response is selected from the projected current-turn messages
+- response-overlay turn identity is selected from the projected visible/active
+  response, then the visible lifecycle turn; it does not fall back to raw chat
+  message rows
   through `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
 - dismissed response ids are tracked in `closedResponseId`
 

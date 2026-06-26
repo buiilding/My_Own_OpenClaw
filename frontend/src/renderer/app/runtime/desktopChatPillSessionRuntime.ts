@@ -68,16 +68,6 @@ function normalizeOptionalString(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
-function findLatestChatTurnId(messages: TurnRefMessage[]): string | null {
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const turnRef = normalizeOptionalTurnRef(messages[index]?.turnRef);
-    if (turnRef) {
-      return turnRef;
-    }
-  }
-  return null;
-}
-
 function resolveViewLiveTurnRef(conversationView: ChatPillConversationView): string | null {
   return normalizeOptionalTurnRef(conversationView?.liveTurn?.turnRef);
 }
@@ -121,17 +111,16 @@ function resolveChatPillSendLifecycle({
 }
 
 function resolveChatPillViewIntent({
-  messages,
   currentTurnPresentationState,
   responseOverlayEntries,
   dismissedResponseId = null,
 }: {
-  messages: TurnRefMessage[];
   currentTurnPresentationState: {
     activeResponse?: TurnRefMessage | null;
     visibleResponse?: TurnRefMessage | null;
     visibleTurnLifecycle?: {
       status?: string | null;
+      turnRef?: string | null;
     } | null;
   };
   responseOverlayEntries: Array<{ id?: string | null }>;
@@ -148,7 +137,7 @@ function resolveChatPillViewIntent({
     turnId: (
       normalizeOptionalTurnRef(currentTurnPresentationState.visibleResponse?.turnRef)
       || normalizeOptionalTurnRef(currentTurnPresentationState.activeResponse?.turnRef)
-      || findLatestChatTurnId(messages)
+      || normalizeOptionalTurnRef(currentTurnPresentationState.visibleTurnLifecycle?.turnRef)
     ),
   };
 }

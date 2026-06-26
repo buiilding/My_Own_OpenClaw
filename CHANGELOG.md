@@ -449,6 +449,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/lifecycle: stop deriving awaiting-dot anchors by scanning raw
   renderer messages; visible turn lifecycle now uses only SDK awaiting anchors
   or the accepted pending-turn bridge. No migration required.
+- frontend/pill: stop deriving response-overlay turn identity from latest raw
+  chat messages; chat-pill view intent now reads visible/active response turns
+  or visible lifecycle turn identity only. No migration required.
 - frontend/store: remove turn-ref registry adapter actions from `chatStore`;
   stream ingress now records turn/conversation routing through the app-runtime
   registry owner directly. No migration required.

@@ -101,12 +101,10 @@ export function useResponseOverlayViewModel({
   );
 
   const viewIntent = useMemo(() => resolveChatPillViewIntent({
-    messages: responseOverlayMessages,
     currentTurnPresentationState: resolvedCurrentTurnPresentationState,
     responseOverlayEntries,
     dismissedResponseId,
   }), [
-    responseOverlayMessages,
     dismissedResponseId,
     responseOverlayEntries,
     resolvedCurrentTurnPresentationState,
