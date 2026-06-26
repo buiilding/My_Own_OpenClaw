@@ -884,6 +884,7 @@ describe('renderer app runtime boundary', () => {
     expect(responseViewRuntimeSource).toContain('resolveResponseOverlayEntries');
     expect(responseViewRuntimeSource).toContain('resolveResponseOverlayPresentationState');
     expect(responseViewRuntimeSource).not.toContain('export function resolveResponseOverlayViewContract');
+    expect(responseViewRuntimeSource).not.toContain('view.actions');
     expect(responseViewRuntimeSource).toContain('desktopResponseOverlayLayoutRuntime');
     expect(responseViewRuntimeSource).toContain('desktopCurrentTurnMessageRuntime');
     expect(responseViewRuntimeSource).toContain('desktopCurrentTurnPresentationRuntime');

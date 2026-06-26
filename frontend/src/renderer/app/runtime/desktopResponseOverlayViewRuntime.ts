@@ -70,8 +70,7 @@ function isConversationView(value: unknown): boolean {
     view.conversationRef
       || view.displayRows
       || view.liveTurn
-      || view.surfaces
-      || view.actions,
+      || view.surfaces,
   );
 }
 

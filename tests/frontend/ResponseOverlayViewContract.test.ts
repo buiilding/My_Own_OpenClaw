@@ -79,6 +79,28 @@ describe('desktopResponseOverlayViewRuntime', () => {
     })).toEqual([]);
   });
 
+  test('does not treat action-only metadata as ConversationView overlay authority', () => {
+    expect(resolveResponseOverlayEntries({
+      conversationView: {
+        actions: {
+          canEdit: true,
+          canRetry: true,
+        },
+      },
+      sdkLiveTurn: {
+        conversationRef: 'conv-raw',
+        turnRef: 'turn-raw',
+        phase: 'streaming',
+        assistantText: 'raw fallback remains visible',
+      },
+      liveTurnPresentationInput: {},
+    })).toEqual([
+      expect.objectContaining({
+        text: 'raw fallback remains visible',
+      }),
+    ]);
+  });
+
   test('falls back to raw current-turn projection only when sdk presentation has no visible rows', () => {
     expect(resolveResponseOverlayEntries({
       sdkLiveTurn: {

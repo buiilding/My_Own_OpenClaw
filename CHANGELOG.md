@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/send: narrow the chat send read model to `hasPriorUserMessages`, so
   send preparation no longer receives SDK display rows or raw messages just to
   decide first-message screenshot capture. No migration required.
+- frontend/overlay: stop classifying action-only metadata as a
+  `ConversationView` in response-overlay view resolution; overlay authority now
+  requires view identity, rows, live turn, or surfaces. No migration required.
 - frontend/state: rename private no-view live-turn workspace storage from
   `currentTurnProjection` to `sdkLiveTurn`, removing the raw current-turn name
   from production renderer workspace state. No migration required.
