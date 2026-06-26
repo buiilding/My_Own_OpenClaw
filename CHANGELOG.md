@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/dashboard: move cached `ConversationView` detection behind
+  `DesktopConversationViewWorkspaceRuntime` so dashboard resume no longer
+  inspects the SDK view shape directly. No migration required.
 - frontend/attachments: remove stale `screenshotRef`/`screenshotUrl`
   PropTypes from the attachment renderer; visual artifacts stay resolved by the
   SDK attachment descriptor and app-runtime artifact helper. No migration

@@ -35,6 +35,16 @@ function normalizeString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function hasWorkspaceConversationView(workspace: unknown): boolean {
+  return Boolean(
+    workspace
+      && typeof workspace === 'object'
+      && !Array.isArray(workspace)
+      && (workspace as ConversationViewWorkspace).conversationView
+      && typeof (workspace as ConversationViewWorkspace).conversationView === 'object',
+  );
+}
+
 function normalizePendingTurn(value: unknown): {
   conversationRef: string;
   turnRef: string;
@@ -178,5 +188,6 @@ function buildSetConversationViewStateUpdate<
 export const DesktopConversationViewWorkspaceRuntime = Object.freeze({
   buildConversationViewWorkspaceMutation,
   buildSetConversationViewStateUpdate,
+  hasWorkspaceConversationView,
   shouldClearPendingTurnForConversationView,
 });

@@ -15,6 +15,9 @@ import { DesktopDashboardConversationDialogRuntime } from '../../../app/runtime/
 import {
   DesktopDashboardConversationLoadRuntime,
 } from '../../../app/runtime/desktopDashboardConversationLoadRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from '../../../app/runtime/desktopConversationViewWorkspaceRuntime';
 
 const {
   clearAllTitleVisibilityPollTimers,
@@ -56,6 +59,9 @@ const {
   buildConversationGroups,
   buildWorkspaceConversationGroups,
 } = DesktopDashboardConversationGroupRuntime;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 export function useDashboardConversations({
   resolvedUserId,
@@ -260,10 +266,7 @@ export function useDashboardConversations({
       const cachedWorkspace = typeof getChatWorkspaceState === 'function'
         ? getChatWorkspaceState(conversationRef)
         : null;
-      const hasCachedConversationView = Boolean(
-        cachedWorkspace?.conversationView
-          && typeof cachedWorkspace.conversationView === 'object',
-      );
+      const hasCachedConversationView = hasWorkspaceConversationView(cachedWorkspace);
       const workspaceBinding = DesktopWorkspaceRuntimeClient.resolveConversationWorkspaceBinding({
         conversation,
         memories: [],

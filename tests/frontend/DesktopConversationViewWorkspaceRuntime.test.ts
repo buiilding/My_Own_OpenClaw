@@ -4,6 +4,7 @@ import type { ConversationView } from '../../frontend/src/renderer/app/runtime/d
 const {
   buildConversationViewWorkspaceMutation,
   buildSetConversationViewStateUpdate,
+  hasWorkspaceConversationView,
 } = DesktopConversationViewWorkspaceRuntime;
 
 function buildConversationView(conversationRef: string): ConversationView {
@@ -52,6 +53,16 @@ function buildLiveConversationView({
 }
 
 describe('DesktopConversationViewWorkspaceRuntime', () => {
+  test('detects cached conversation views without exposing shape checks to feature code', () => {
+    expect(hasWorkspaceConversationView({
+      conversationView: buildConversationView('conv-1'),
+    })).toBe(true);
+    expect(hasWorkspaceConversationView({
+      conversationView: null,
+    })).toBe(false);
+    expect(hasWorkspaceConversationView(null)).toBe(false);
+  });
+
   test('returns null when workspace view is already current', () => {
     const conversationView = buildConversationView('conv-1');
     const workspace = {

@@ -1119,6 +1119,9 @@ describe('renderer chat runtime boundary', () => {
     expect(dashboardHookSource).not.toContain('setChatMessages');
     expect(dashboardHookSource).not.toContain('hasCachedMessages');
     expect(dashboardHookSource).toContain('hasCachedConversationView');
+    expect(dashboardHookSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(dashboardHookSource).toContain('hasWorkspaceConversationView(cachedWorkspace)');
+    expect(dashboardHookSource).not.toContain('cachedWorkspace?.conversationView');
     expect(dashboardHookSource).toContain('DesktopConversationLibraryClient.loadConversationView');
     expect(dashboardHookSource).not.toContain('DesktopConversationLibraryClient.loadDisplayRows');
     expect(dashboardHookSource).toContain('setChatConversationView?.(conversationView, conversationRef)');
@@ -3494,6 +3497,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateSource).not.toContain('pendingTurn?: PendingTurn | null;');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildConversationViewWorkspaceMutation');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildSetConversationViewStateUpdate');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('hasWorkspaceConversationView');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('buildSetLatestConversationViewStateUpdate');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('hasLatestConversationViewUpdate');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('latestConversationView');
