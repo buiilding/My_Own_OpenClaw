@@ -1060,6 +1060,7 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).not.toContain('export function mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).not.toContain('export {\n  buildChatMessagesFromSdkDisplayRows');
     expect(displayProjectionSource).not.toContain('buildDisplayProjectionTraceSummary,\n  buildChatMessagesFromSdkDisplayRows');
+    expect(displayProjectionSource).not.toContain('buildDisplayProjectionTraceSummary,\n  mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).not.toContain('features/chat');
     expect(projectionStreamRuntimeSource).toContain('DesktopConversationProjectionStreamRuntime');
     expect(projectionStreamRuntimeSource).toContain('applyCurrentTurnProjectionEvent');
@@ -1120,6 +1121,7 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).toContain('export const DesktopConversationDisplayProjection = Object.freeze');
     expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).not.toContain('export function mergeRendererAnnotationsIntoSdkMessages');
+    expect(displayProjectionSource).not.toContain('buildDisplayProjectionTraceSummary,\n  mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).not.toContain('export {\n  buildChatMessagesFromSdkDisplayRows');
     expect(displayProjectionSource).not.toContain("sourceEventType === 'renderer-compose'");
     expect(displayProjectionSource).not.toContain("sourceChannel === 'renderer-local'");

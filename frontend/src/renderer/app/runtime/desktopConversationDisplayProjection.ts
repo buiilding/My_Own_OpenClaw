@@ -344,6 +344,5 @@ function buildDisplayProjectionTraceSummary({
 export const DesktopConversationDisplayProjection = Object.freeze({
   buildConversationViewChatMessages,
   buildDisplayProjectionTraceSummary,
-  mergeRendererAnnotationsIntoSdkMessages,
   selectRendererMessageAnnotations,
 });

@@ -24,6 +24,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: stop exposing the low-level SDK display-row converter
   through the renderer display projection facade; app-runtime callers now enter
   through `ConversationView` message projection. No migration required.
+- frontend/projection: stop exposing the renderer annotation merge helper from
+  the display projection facade; callers now exercise annotation carry-forward
+  only through `ConversationView` projection. No migration required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own

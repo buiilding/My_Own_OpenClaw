@@ -10,7 +10,6 @@ import type { ChatMessage } from '../../frontend/src/renderer/app/runtime/deskto
 const {
   buildConversationViewChatMessages,
   buildDisplayProjectionTraceSummary,
-  mergeRendererAnnotationsIntoSdkMessages,
   selectRendererMessageAnnotations,
 } = DesktopConversationDisplayProjection;
 
@@ -20,6 +19,17 @@ function message(overrides: Partial<ChatMessage>): ChatMessage {
     sender: overrides.sender ?? 'assistant',
     text: overrides.text ?? '',
     ...overrides,
+  };
+}
+
+function conversationViewWithRows(displayRows: unknown[]) {
+  return {
+    conversationRef: 'conv-1',
+    revisionId: 'rev-1',
+    displayRows,
+    liveTurn: null,
+    surfaces: {},
+    actions: {},
   };
 }
 
@@ -52,12 +62,6 @@ describe('desktopConversationDisplayProjection', () => {
   });
 
   test('merges renderer-only annotations back into matching SDK messages', () => {
-    const sdkAssistant = message({
-      id: 'assistant-1',
-      sender: 'assistant',
-      text: 'Visible answer',
-      turnRef: 'turn-1',
-    });
     const currentAssistant = message({
       id: 'assistant-1',
       sender: 'assistant',
@@ -84,10 +88,19 @@ describe('desktopConversationDisplayProjection', () => {
       },
     });
 
-    expect(mergeRendererAnnotationsIntoSdkMessages(
-      [sdkAssistant],
-      [currentAssistant],
-    )).toEqual([
+    expect(buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'assistant-1',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'Visible answer',
+      }]),
+      preserveRendererAnnotations: true,
+      rendererAnnotations: selectRendererMessageAnnotations([currentAssistant]),
+    })).toEqual([
       expect.objectContaining({
         id: 'assistant-1',
         text: 'Visible answer',
@@ -137,18 +150,18 @@ describe('desktopConversationDisplayProjection', () => {
   });
 
   test('ignores renderer optimistic user rows once SDK display rows own the projection', () => {
-    const sdkToolCall = message({
-      id: 'tool-row',
-      sender: 'assistant',
-      type: 'tool-call',
-      text: '',
-      turnRef: 'turn-1',
-      sourceEventType: 'tool_call',
-    });
-
-    expect(mergeRendererAnnotationsIntoSdkMessages(
-      [sdkToolCall],
-      [message({
+    expect(buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'tool-row',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_call',
+        content: '',
+      }]),
+      preserveRendererAnnotations: true,
+      rendererAnnotations: selectRendererMessageAnnotations([message({
         id: 'turn-1-sdk-evt-000002-user_message',
         sender: 'user',
         text: 'inspect recent commits',
@@ -156,8 +169,14 @@ describe('desktopConversationDisplayProjection', () => {
         sourceEventType: 'renderer-compose',
         sourceChannel: 'renderer-local',
         isComplete: true,
-      })],
-    )).toEqual([sdkToolCall]);
+      })]),
+    })).toEqual([
+      expect.objectContaining({
+        id: 'tool-row',
+        sender: 'assistant',
+        turnRef: 'turn-1',
+      }),
+    ]);
   });
 
   test('keeps only the explicit pending bridge until SDK projects the pending turn', () => {
@@ -179,39 +198,33 @@ describe('desktopConversationDisplayProjection', () => {
       sourceEventType: 'tool_call',
     });
 
-    expect(mergeRendererAnnotationsIntoSdkMessages(
-      [sdkToolCall],
-      [],
-      {
-        pendingTurn: {
-          turnRef: 'turn-1',
-          userMessageId: 'turn-1-sdk-evt-000002-user_message',
-          text: 'inspect recent commits',
-        },
+    expect(buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'tool-row',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_call',
+        content: '',
+      }]),
+      pendingTurn: {
+        turnRef: 'turn-1',
+        userMessageId: 'turn-1-sdk-evt-000002-user_message',
+        text: 'inspect recent commits',
       },
-    )).toEqual([
+      preserveRendererAnnotations: true,
+    })).toEqual([
       expect.objectContaining(pendingUser),
-      sdkToolCall,
+      expect.objectContaining({
+        id: sdkToolCall.id,
+        sender: sdkToolCall.sender,
+        turnRef: sdkToolCall.turnRef,
+      }),
     ]);
   });
 
   test('uses SDK user rows when SDK echoes the pending user turn', () => {
-    const optimisticUser = message({
-      id: 'renderer-user-edit',
-      sender: 'user',
-      text: 'edited prompt',
-      turnRef: 'turn-edit',
-      sourceEventType: 'renderer-compose',
-      sourceChannel: 'renderer-local',
-      attachments: [{
-        id: 'artifact-one',
-        kind: 'image',
-        source: 'user_included',
-        status: 'ready',
-        filename: 'one.png',
-      }],
-      isComplete: true,
-    });
     const sdkUserSameTurn = message({
       id: 'sdk-user-edit',
       sender: 'user',
@@ -222,17 +235,23 @@ describe('desktopConversationDisplayProjection', () => {
       isComplete: true,
     });
 
-    expect(mergeRendererAnnotationsIntoSdkMessages(
-      [sdkUserSameTurn],
-      [optimisticUser],
-      {
-        pendingTurn: {
-          turnRef: 'turn-edit',
-          userMessageId: 'renderer-user-edit',
-          text: 'edited prompt',
-        },
+    expect(buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'sdk-user-edit',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-edit',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'edited prompt',
+      }]),
+      pendingTurn: {
+        turnRef: 'turn-edit',
+        userMessageId: 'renderer-user-edit',
+        text: 'edited prompt',
       },
-    )).toEqual([sdkUserSameTurn]);
+      preserveRendererAnnotations: true,
+    })).toEqual([expect.objectContaining(sdkUserSameTurn)]);
   });
 
   test('builds conversation-view messages without replacing SDK user rows with pending bridge rows', () => {
@@ -352,17 +371,29 @@ describe('desktopConversationDisplayProjection', () => {
       isComplete: true,
     });
 
-    const firstMerge = mergeRendererAnnotationsIntoSdkMessages(
-      [sdkTextOnlyUser],
-      [optimisticUser],
-    );
-    expect(firstMerge).toEqual([sdkTextOnlyUser]);
+    const projectedMessages = buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'turn-1-sdk-evt-000002-user_message',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'Please review the attached files.',
+      }]),
+      preserveRendererAnnotations: true,
+      rendererAnnotations: selectRendererMessageAnnotations([optimisticUser]),
+    });
 
-    const secondMerge = mergeRendererAnnotationsIntoSdkMessages(
-      [sdkTextOnlyUser],
-      firstMerge,
-    );
-    expect(secondMerge).toEqual([sdkTextOnlyUser]);
+    expect(projectedMessages).toEqual([expect.objectContaining({
+      id: sdkTextOnlyUser.id,
+      sender: sdkTextOnlyUser.sender,
+      sourceChannel: 'sdk:display-rows',
+      text: sdkTextOnlyUser.text,
+      turnRef: sdkTextOnlyUser.turnRef,
+    })]);
+    expect(projectedMessages[0]).not.toHaveProperty('attachments');
+    expect(projectedMessages[0]).not.toHaveProperty('attachmentFilenames');
     expect(buildDisplayProjectionTraceSummary({
       rows: [{
         id: 'turn-1-sdk-evt-000002-user_message',
@@ -373,7 +404,7 @@ describe('desktopConversationDisplayProjection', () => {
         },
       }],
       sdkMessages: [sdkTextOnlyUser],
-      mergedMessages: secondMerge,
+      mergedMessages: projectedMessages,
     })).toEqual(expect.objectContaining({
       sdkUserImageCount: 0,
       sdkProjectedUserImageCount: 0,
