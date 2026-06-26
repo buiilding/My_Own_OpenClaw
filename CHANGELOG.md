@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: make first-user-message read-model checks treat any
+  `ConversationView` object as authoritative, preventing direct send-state
+  callers from falling back to raw chat-store messages under partial views. No
+  migration required.
 - frontend/chat: make thread presentation ignore untagged raw transcript rows
   whenever `ConversationView` is present; only SDK display rows and the pending
   bridge can act as base rows for view-owned live presentation. No migration

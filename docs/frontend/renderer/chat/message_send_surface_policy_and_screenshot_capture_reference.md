@@ -231,6 +231,9 @@ Capture path specifics:
   - `screenshotRef`/`screenshotUrl` artifact attachment only (no base64)
 - SDK upload/materialization treats either shape as valid screenshot context and
   keeps user-row metadata stable.
+- first-message decisions use `ConversationView.displayRows` whenever a view
+  object exists; direct app-runtime callers do not fall back to raw
+  chat-store messages under a partial view shape.
 
 ## SDK User Row Contract
 

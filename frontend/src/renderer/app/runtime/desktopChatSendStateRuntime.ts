@@ -34,11 +34,15 @@ function hasConversationViewUserRows(conversationView: ConversationViewState): b
   return displayRows.some((row) => row.role === 'user');
 }
 
+function isConversationView(value: ConversationViewState): boolean {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
 function hasPriorUserMessages({
   conversationView,
   messages,
 }: PriorUserMessageState): boolean {
-  if (Array.isArray(conversationView?.displayRows)) {
+  if (isConversationView(conversationView)) {
     return hasConversationViewUserRows(conversationView);
   }
   return hasUserMessages(messages);

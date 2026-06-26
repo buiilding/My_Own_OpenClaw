@@ -285,6 +285,10 @@ the full raw workspace transcript into
 `DesktopChatInterfacePresentationRuntime`. Raw messages remain available only
 through raw workspace mutation/adapters and for no-view historical fallback
 rendering; the pending-send bridge is carried separately as `pendingTurn`.
+Send-read-model helpers follow the same rule: once a `ConversationView` object
+is present, first-user-message decisions read only `displayRows` and do not
+fall back to raw chat-store messages, even if a direct app-runtime caller passes
+a partial view shape.
 
 `selectChatInterfaceState` exposes the active workspace selector model:
 
