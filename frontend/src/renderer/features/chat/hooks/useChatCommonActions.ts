@@ -3,19 +3,17 @@
  */
 
 import {
+  addMessageToChatStore,
   setIsSendingInChatStore,
   setThinkingSourceEventTypeInChatStore,
   setThinkingStatusInChatStore,
-  useChatStore,
+  updateStreamTargetMessageInChatStore,
 } from '../stores/chatStore';
 
 export function useChatCommonActions() {
-  const addMessage = useChatStore((state) => state.addMessage);
-  const updateStreamTargetMessage = useChatStore((state) => state.updateStreamTargetMessage);
-
   return {
-    addMessage,
-    updateStreamTargetMessage,
+    addMessage: addMessageToChatStore,
+    updateStreamTargetMessage: updateStreamTargetMessageInChatStore,
     setIsSending: setIsSendingInChatStore,
     setThinkingStatus: setThinkingStatusInChatStore,
     setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,

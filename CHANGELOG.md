@@ -200,6 +200,9 @@ All notable changes to WindieOS will be documented in this file.
   workspace mutation construction behind `DesktopChatWorkspaceMessageRuntime`
   so `chatStore` no longer owns message-list replacement, missing-row no-op,
   or turn-ref indexing assembly. No migration required.
+- frontend/store: move message-list and clear-message writes out of the
+  Zustand action surface; stream/replay/chat-interface callers now use
+  module-level chat store adapters. No migration required.
 - frontend/store: move `registerTurnConversationRef` map update/no-op
   handling behind `DesktopChatTurnConversationRefRuntime` so `chatStore` no
   longer owns turn-to-conversation routing map writes. No migration required.

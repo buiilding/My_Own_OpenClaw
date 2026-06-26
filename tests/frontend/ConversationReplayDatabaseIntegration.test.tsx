@@ -9,7 +9,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { useConversationReplayActions } from '../../frontend/src/renderer/features/chat/hooks/useConversationReplayActions';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  clearMessagesInChatStore,
+  setMessagesInChatStore,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   createConversationEvent,
   LocalRuntimeConversationStore,
@@ -443,7 +447,7 @@ const BASE_MESSAGES = [
 ];
 
 function renderReplayHook(messages: Array<Record<string, unknown>>) {
-  useChatStore.getState().setMessages(messages as never, 'conv-replay-db');
+  setMessagesInChatStore(messages as never, 'conv-replay-db');
   return renderHook(() => useConversationReplayActions());
 }
 
@@ -472,7 +476,7 @@ describe('conversation replay database integration', () => {
     mockBackendRehydrateFailure = null;
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     useChatStore.setState({ activeConversationRef: 'conv-replay-db' });
-    useChatStore.getState().clearMessages('conv-replay-db');
+    clearMessagesInChatStore('conv-replay-db');
     sentQueries.length = 0;
     backendRehydrates.length = 0;
     history = new SqliteConversationHistory();

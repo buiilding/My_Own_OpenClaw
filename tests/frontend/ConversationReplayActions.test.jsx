@@ -5,7 +5,10 @@
 import { act, renderHook } from '@testing-library/react';
 
 import { useConversationReplayActions } from '../../frontend/src/renderer/features/chat/hooks/useConversationReplayActions';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  clearMessagesInChatStore,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
@@ -222,7 +225,7 @@ describe('useConversationReplayActions', () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     mockRetryTurn.mockRejectedValue(new Error('send rejected'));
     useChatStore.getState().setActiveConversationRef('conv-existing');
-    useChatStore.getState().clearMessages('conv-existing');
+    clearMessagesInChatStore('conv-existing');
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {

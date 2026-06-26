@@ -86,18 +86,22 @@ replay/store compatibility adapters and low-level artifact helpers.
 
 `chatStore` action behavior:
 
-- `addMessage` appends immutably through
+- Message writes enter through the module-level
+  `addMessageToChatStore(...)`, `updateMessageInChatStore(...)`,
+  `updateStreamTargetMessageInChatStore(...)`, and
+  `setMessagesInChatStore(...)` adapters instead of Zustand actions.
+  `addMessageToChatStore(...)` appends immutably through
   `DesktopChatWorkspaceMessageRuntime.buildAddMessageStateUpdate(...)`.
-- `updateMessage` updates by id through
+- `updateMessageInChatStore(...)` updates by id through
   `DesktopChatWorkspaceMessageRuntime.buildUpdateMessageStateUpdate(...)` and
   returns original state when id missing.
-- `updateStreamTargetMessage` applies stream metadata updates to named
+- `updateStreamTargetMessageInChatStore(...)` applies stream metadata updates to named
   app-runtime targets such as the last sender row or last assistant LLM-text
   row. Target lookup lives in
   `DesktopChatWorkspaceMessageRuntime.buildUpdateStreamTargetMessageStateUpdate(...)`
   so chat-stream hooks pass target intent instead of reading workspace
   `messages` to choose row ids.
-- `setMessages` no-op when array reference unchanged; when hydrating a concrete
+- `setMessagesInChatStore(...)` no-ops when array reference is unchanged; when hydrating a concrete
   conversation workspace, it records message `turnRef` values through the
   app-runtime turn-routing registry so later turn-scoped stream events can
   route even when `conversation_ref` is absent. Turn-ref normalization and map
@@ -178,11 +182,11 @@ replay/store compatibility adapters and low-level artifact helpers.
   React stop handlers and `acceptStoppedTurn` callers pass only target identity
   from SDK `ConversationView` or the renderer pending bridge into that runtime;
   raw `currentTurnProjection` is not accepted as caller-supplied stop state.
-- `clearMessages` clears messages, clears raw send cleanup state, and resets
-  `streamTracking` to initial idle shape through
+- `clearMessagesInChatStore(...)` clears messages, clears raw send cleanup
+  state, and resets `streamTracking` to initial idle shape through
   `DesktopChatClearMessagesRuntime.buildClearMessagesStateUpdate(...)`. The
   clear-message reset field list and workspace update assembly live in that app
-  runtime; the store only passes clear intent plus workspace dependency
+  runtime; the store module only passes clear intent plus workspace dependency
   adapters.
 - `setActiveConversationRef` switches only the active workspace ref and ensures
   the workspace record exists through

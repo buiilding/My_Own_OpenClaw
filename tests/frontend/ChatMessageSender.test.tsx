@@ -6,6 +6,7 @@ import { act, renderHook } from '@testing-library/react';
 import { useChatMessageSender } from '../../frontend/src/renderer/features/chat/hooks/useChatMessageSender';
 import {
   setConversationViewInChatStore,
+  setMessagesInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
@@ -445,7 +446,7 @@ describe('useChatMessageSender', () => {
   });
 
   test('uses non-first capture path when user message already exists', async () => {
-    useChatStore.getState().setMessages([
+    setMessagesInChatStore([
       {
         id: 'existing-user',
         text: 'previous',

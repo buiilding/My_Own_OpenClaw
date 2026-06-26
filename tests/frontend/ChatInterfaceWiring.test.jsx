@@ -213,6 +213,9 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
     mockChatState.conversationView = args[0] ?? null;
     mockSetConversationView(...args);
   },
+  addMessageToChatStore: (...args) => mockChatState.addMessage(...args),
+  clearMessagesInChatStore: (...args) => mockChatState.clearMessages(...args),
+  updateMessageInChatStore: (...args) => mockChatState.updateMessage(...args),
   setIsSendingInChatStore: (...args) => mockSetIsSending(...args),
   setThinkingStatusInChatStore: (...args) => mockSetThinkingStatus(...args),
   setThinkingSourceEventTypeInChatStore: (...args) => mockSetThinkingSourceEventType(...args),

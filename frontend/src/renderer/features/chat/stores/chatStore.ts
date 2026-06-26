@@ -229,25 +229,6 @@ interface ChatState {
   isResponseOverlayEntryDismissed: (input: ResponseOverlayDismissalInput) => boolean;
 
   // Actions
-  addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
-  updateMessage: (
-    id: string,
-    updates: Partial<ChatMessage>,
-    conversationRef?: string | null,
-  ) => void;
-  updateStreamTargetMessage: (
-    target: {
-      kind: 'last_by_sender';
-      sender: ChatMessage['sender'];
-      turnRef?: string | null;
-    } | {
-      kind: 'last_assistant_llm_text';
-      turnRef?: string | null;
-    },
-    updates: Partial<ChatMessage>,
-    conversationRef?: string | null,
-  ) => void;
-  setMessages: (messages: ChatMessage[], conversationRef?: string | null) => void;
   acceptPendingTurn: (pendingTurn: PendingTurn) => void;
   clearPendingTurn: (
     input?: { conversationRef?: string | null; turnRef?: string | null } | null,
@@ -259,7 +240,6 @@ interface ChatState {
       stoppedAt?: string | null;
     } | null,
   ) => void;
-  clearMessages: (conversationRef?: string | null) => void;
 }
 
 export function selectChatInterfaceState(state: ChatState) {
@@ -326,48 +306,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   // Actions
-  addMessage: (message, conversationRef) =>
-    set((state) => {
-      return buildAddMessageStateUpdate<ChatState, ChatWorkspaceState>({
-        conversationRef,
-        deps: workspaceMessageStateRuntimeDependencies,
-        message,
-        state,
-      });
-    }),
-
-  updateMessage: (id, updates, conversationRef) =>
-    set((state) => {
-      return buildUpdateMessageStateUpdate<ChatState, ChatWorkspaceState>({
-        conversationRef,
-        deps: workspaceMessageStateRuntimeDependencies,
-        id,
-        state,
-        updates,
-      }) ?? state;
-    }),
-
-  updateStreamTargetMessage: (target, updates, conversationRef) =>
-    set((state) => {
-      return buildUpdateStreamTargetMessageStateUpdate<ChatState, ChatWorkspaceState>({
-        conversationRef,
-        deps: workspaceMessageStateRuntimeDependencies,
-        state,
-        target,
-        updates,
-      }) ?? state;
-    }),
-
-  setMessages: (messages, conversationRef) =>
-    set((state) => {
-      return buildSetMessagesStateUpdate<ChatState, ChatWorkspaceState>({
-        conversationRef,
-        deps: workspaceMessageStateRuntimeDependencies,
-        messages,
-        state,
-      }) ?? state;
-    }),
-
   acceptPendingTurn: (pendingTurn) =>
     set((state) => {
       return buildAcceptPendingTurnStateUpdate<ChatState, ChatWorkspaceState>({
@@ -395,14 +333,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }) ?? state;
     }),
 
-  clearMessages: (conversationRef) =>
-    set((state) => {
-      return buildClearMessagesStateUpdate<ChatState, StreamTracking, ChatWorkspaceState>({
-        conversationRef,
-        deps: clearMessagesStateRuntimeDependencies,
-        state,
-      });
-    }),
 }));
 
 export function applyPendingTurnBroadcastToChatStore(
@@ -414,6 +344,85 @@ export function applyPendingTurnBroadcastToChatStore(
       deps: pendingTurnStateRuntimeDependencies,
       state,
     }) ?? state
+  ));
+}
+
+export function addMessageToChatStore(
+  message: ChatMessage,
+  conversationRef?: string | null,
+): void {
+  useChatStore.setState((state) => (
+    buildAddMessageStateUpdate<ChatState, ChatWorkspaceState>({
+      conversationRef,
+      deps: workspaceMessageStateRuntimeDependencies,
+      message,
+      state,
+    })
+  ));
+}
+
+export function updateMessageInChatStore(
+  id: string,
+  updates: Partial<ChatMessage>,
+  conversationRef?: string | null,
+): void {
+  useChatStore.setState((state) => (
+    buildUpdateMessageStateUpdate<ChatState, ChatWorkspaceState>({
+      conversationRef,
+      deps: workspaceMessageStateRuntimeDependencies,
+      id,
+      state,
+      updates,
+    }) ?? state
+  ));
+}
+
+export function updateStreamTargetMessageInChatStore(
+  target: {
+    kind: 'last_by_sender';
+    sender: ChatMessage['sender'];
+    turnRef?: string | null;
+  } | {
+    kind: 'last_assistant_llm_text';
+    turnRef?: string | null;
+  },
+  updates: Partial<ChatMessage>,
+  conversationRef?: string | null,
+): void {
+  useChatStore.setState((state) => (
+    buildUpdateStreamTargetMessageStateUpdate<ChatState, ChatWorkspaceState>({
+      conversationRef,
+      deps: workspaceMessageStateRuntimeDependencies,
+      state,
+      target,
+      updates,
+    }) ?? state
+  ));
+}
+
+export function setMessagesInChatStore(
+  messages: ChatMessage[],
+  conversationRef?: string | null,
+): void {
+  useChatStore.setState((state) => (
+    buildSetMessagesStateUpdate<ChatState, ChatWorkspaceState>({
+      conversationRef,
+      deps: workspaceMessageStateRuntimeDependencies,
+      messages,
+      state,
+    }) ?? state
+  ));
+}
+
+export function clearMessagesInChatStore(
+  conversationRef?: string | null,
+): void {
+  useChatStore.setState((state) => (
+    buildClearMessagesStateUpdate<ChatState, StreamTracking, ChatWorkspaceState>({
+      conversationRef,
+      deps: clearMessagesStateRuntimeDependencies,
+      state,
+    })
   ));
 }
 

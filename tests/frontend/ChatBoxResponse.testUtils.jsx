@@ -44,6 +44,7 @@ import {
   setConversationViewInChatStore,
   setCurrentTurnProjectionInChatStore,
   setIsSendingInChatStore,
+  setMessagesInChatStore,
   setThinkingStatusInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
@@ -231,7 +232,7 @@ function buildCurrentTurnProjection(messages, phase = null) {
 
 export function setChatState(messages) {
   const currentTurnProjection = messages.length > 0 ? buildCurrentTurnProjection(messages) : null;
-  useChatStore.getState().setMessages(messages);
+  setMessagesInChatStore(messages);
   setIsSendingInChatStore(false);
   setThinkingStatusInChatStore(null);
   useChatStore.getState().clearPendingTurn();

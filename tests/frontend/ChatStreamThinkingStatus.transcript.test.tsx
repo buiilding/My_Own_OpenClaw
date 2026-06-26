@@ -7,6 +7,7 @@ import {
   selectChatInterfaceState,
   setConversationViewInChatStore,
   setCurrentTurnProjectionInChatStore,
+  setMessagesInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
@@ -59,7 +60,7 @@ describe('useChatStream live SDK event ownership', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.getState().setMessages([
+      setMessagesInChatStore([
         {
           id: 'user-1',
           text: 'hi',
@@ -253,7 +254,7 @@ describe('useChatStream live SDK event ownership', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.getState().setMessages([
+      setMessagesInChatStore([
         {
           id: 'user-1',
           text: 'hi',
@@ -306,7 +307,7 @@ describe('useChatStream live SDK event ownership', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.getState().setMessages([
+      setMessagesInChatStore([
         {
           id: 'user-1',
           text: 'new question',
@@ -402,7 +403,7 @@ describe('useChatStream live SDK event ownership', () => {
   test('routes non-active conversation events into their own workspace', () => {
     setMockActiveConversationRef('conv-active');
     const { emitBackendEvent, emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
-    useChatStore.getState().setMessages([
+    setMessagesInChatStore([
       {
         id: 'active-assistant-1',
         text: 'active',

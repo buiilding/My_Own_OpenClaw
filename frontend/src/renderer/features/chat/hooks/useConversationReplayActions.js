@@ -3,7 +3,10 @@
  */
 
 import { useCallback } from 'react';
-import { useChatStore } from '../stores/chatStore';
+import {
+  addMessageToChatStore,
+  useChatStore,
+} from '../stores/chatStore';
 import {
   DesktopRendererConfigRuntimeClient,
 } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
@@ -32,6 +35,7 @@ export function useConversationReplayActions() {
         sendFailureMessage: chatSkin.sendFailureMessage,
         replayPreparationFailureMessage: chatSkin.replayPreparationFailureMessage,
       },
+      addMessage: addMessageToChatStore,
       chatStore: useChatStore,
     });
   }, [
@@ -47,6 +51,7 @@ export function useConversationReplayActions() {
         sendFailureMessage: chatSkin.sendFailureMessage,
         replayPreparationFailureMessage: chatSkin.replayPreparationFailureMessage,
       },
+      addMessage: addMessageToChatStore,
       chatStore: useChatStore,
     });
   }, [

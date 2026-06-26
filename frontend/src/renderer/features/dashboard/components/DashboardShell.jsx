@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import ChatInterface from '../../chat/components/ChatInterface';
 import {
+  clearMessagesInChatStore,
   setConversationViewInChatStore,
   setIsSendingInChatStore,
   setThinkingStatusInChatStore,
@@ -97,7 +98,6 @@ function DashboardShell({
   const resolvedUserId = sessionInfo.userId || snapshotUserId || null;
 
   const activeChatConversationRef = useChatStore((state) => state.activeConversationRef);
-  const clearChatMessages = useChatStore((state) => state.clearMessages);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const getChatWorkspaceState = useChatStore((state) => state.getWorkspaceState);
   const {
@@ -122,7 +122,7 @@ function DashboardShell({
     sessionConversationRef: sessionInfo.conversationRef,
     activeConversationRef: activeChatConversationRef,
     getChatWorkspaceState,
-    clearChatMessages,
+    clearChatMessages: clearMessagesInChatStore,
     setChatIsSending: setIsSendingInChatStore,
     setChatThinkingStatus: setThinkingStatusInChatStore,
     setChatTokenCounts: setTokenCountsInChatStore,
@@ -209,7 +209,7 @@ function DashboardShell({
     resetActiveChatSession({
       conversationRef: sessionInfo.conversationRef || null,
       userId: resolvedUserId,
-      clearMessages: clearChatMessages,
+      clearMessages: clearMessagesInChatStore,
       setThinkingStatus: setThinkingStatusInChatStore,
       setTokenCounts: setTokenCountsInChatStore,
       setChatActiveConversationRef,
@@ -217,7 +217,6 @@ function DashboardShell({
     DesktopWorkspaceRuntimeClient.clearAllConversationWorkspaceBindings();
     await loadRecentConversations();
   }, [
-    clearChatMessages,
     loadRecentConversations,
     resolvedUserId,
     sessionInfo.conversationRef,

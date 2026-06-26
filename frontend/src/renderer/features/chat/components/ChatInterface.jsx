@@ -9,11 +9,13 @@ import MessageInput from './MessageInput';
 import ChatInterfaceHeaderControls from './ChatInterfaceHeaderControls';
 import ChatFindBar from './ChatFindBar';
 import {
+  clearMessagesInChatStore,
   selectChatInterfaceState,
   setConversationViewInChatStore,
   setThinkingSourceEventTypeInChatStore,
   setThinkingStatusInChatStore,
   setTokenCountsInChatStore,
+  updateMessageInChatStore,
   useChatStore,
 } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
@@ -96,9 +98,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
-  const clearMessages = useChatStore((state) => state.clearMessages);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
-  const updateMessage = useChatStore((state) => state.updateMessage);
   const { config, updateConfig, availableModels } = (
     DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext()
   );
@@ -114,14 +114,13 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const workspaceSelectionVersionRef = useRef(0);
   const startWorkspaceBoundNewChat = useCallback((workspace) => {
     return startNewChatSession({
-      clearMessages,
+      clearMessages: clearMessagesInChatStore,
       setThinkingStatus: setThinkingStatusInChatStore,
       setTokenCounts: setTokenCountsInChatStore,
       setChatActiveConversationRef,
       workspace,
     });
   }, [
-    clearMessages,
     setChatActiveConversationRef,
   ]);
 
@@ -590,8 +589,8 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   }, [configuredModelId, configuredProvider, selectedModelOption, updateConfig]);
 
   const handleAssistantFeedbackChange = useCallback((messageId, feedback) => {
-    updateMessage(messageId, { feedback });
-  }, [updateMessage]);
+    updateMessageInChatStore(messageId, { feedback });
+  }, []);
   const { handleEditFromUser, handleTryAgainFromAssistant } = useConversationReplayActions();
 
   useChatInterfaceNewChatEvent(handleNewChat);

@@ -3,12 +3,16 @@
  */
 
 import {
+  addMessageToChatStore,
   applyPendingTurnBroadcastToChatStore,
+  clearMessagesInChatStore,
   setCurrentTurnProjectionInChatStore,
   setIsSendingInChatStore,
+  setMessagesInChatStore,
   setThinkingSourceEventTypeInChatStore,
   setThinkingStatusInChatStore,
   setTokenCountsInChatStore,
+  updateMessageInChatStore,
   updateStreamTrackingInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
@@ -39,7 +43,7 @@ describe('chatStore', () => {
   });
 
   test('addMessage appends to message list', () => {
-    useChatStore.getState().addMessage({
+    addMessageToChatStore({
       id: 'user-1',
       text: 'hello',
       sender: 'user',
@@ -57,7 +61,7 @@ describe('chatStore', () => {
   });
 
   test('addMessage replaces an existing message with the same id', () => {
-    useChatStore.getState().addMessage({
+    addMessageToChatStore({
       id: 'bundle-output-1',
       text: 'first projection',
       sender: 'tool',
@@ -65,7 +69,7 @@ describe('chatStore', () => {
       sourceEventType: 'tool_output',
     });
 
-    useChatStore.getState().addMessage({
+    addMessageToChatStore({
       id: 'bundle-output-1',
       text: 'updated projection',
       sender: 'tool',
@@ -86,14 +90,14 @@ describe('chatStore', () => {
   });
 
   test('updateMessage merges updates for matching id', () => {
-    useChatStore.getState().addMessage({
+    addMessageToChatStore({
       id: 'assistant-2',
       text: 'partial',
       sender: 'assistant',
       isComplete: false,
     });
 
-    useChatStore.getState().updateMessage('assistant-2', {
+    updateMessageInChatStore('assistant-2', {
       text: 'complete',
       isComplete: true,
     });
@@ -115,7 +119,7 @@ describe('chatStore', () => {
   test('updateMessage is a no-op when id does not exist', () => {
     const before = getActiveWorkspace().messages;
 
-    useChatStore.getState().updateMessage('missing-id', {
+    updateMessageInChatStore('missing-id', {
       text: 'no-op',
     });
 
@@ -125,12 +129,12 @@ describe('chatStore', () => {
 
   test('setMessages is a no-op when given existing array reference', () => {
     const before = getActiveWorkspace().messages;
-    useChatStore.getState().setMessages(before);
+    setMessagesInChatStore(before);
     expect(getActiveWorkspace().messages).toBe(before);
   });
 
   test('setMessages indexes hydrated turn refs for targeted conversations', () => {
-    useChatStore.getState().setMessages([
+    setMessagesInChatStore([
       {
         id: 'assistant-turn-message',
         text: 'streamed elsewhere',
@@ -200,18 +204,18 @@ describe('chatStore', () => {
 
   test('clearMessages resets to an empty message list', () => {
     setIsSendingInChatStore(true);
-    useChatStore.getState().addMessage({
+    addMessageToChatStore({
       id: 'user-1',
       text: 'hello',
       sender: 'user',
     });
 
-    useChatStore.getState().clearMessages();
+    clearMessagesInChatStore();
     const firstReset = getActiveWorkspace();
     expect(firstReset.messages).toHaveLength(0);
     expect(firstReset.isSending).toBe(false);
 
-    useChatStore.getState().clearMessages();
+    clearMessagesInChatStore();
     const secondReset = getActiveWorkspace().messages;
     expect(secondReset).toHaveLength(0);
   });
@@ -236,7 +240,7 @@ describe('chatStore', () => {
   });
 
   test('workspace-targeted mutations do not overwrite the active workspace state', () => {
-    useChatStore.getState().addMessage({
+    addMessageToChatStore({
       id: 'stale-workspace-message',
       text: 'offscreen',
       sender: 'assistant',
@@ -319,7 +323,7 @@ describe('chatStore', () => {
   test('switching active conversation exposes that workspace through the workspace reader', () => {
     setIsSendingInChatStore(true, 'conv-other');
     setThinkingStatusInChatStore('thinking elsewhere', 'conv-other');
-    useChatStore.getState().addMessage({
+    addMessageToChatStore({
       id: 'other-message',
       text: 'other workspace',
       sender: 'assistant',

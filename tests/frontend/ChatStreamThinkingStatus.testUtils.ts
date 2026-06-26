@@ -9,7 +9,10 @@ import { useChatStream } from '../../frontend/src/renderer/features/chat/hooks/u
 import { useConversationRuntimeProjectionStream } from '../../frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  setMessagesInChatStore,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { normalizeBackendEventToConversationEvent } from '../../packages/windie-sdk-js/src/transport/backendEventNormalizer';
 import {
   createAssistantSeedMessage,
@@ -62,7 +65,7 @@ export function resetChatStreamTestState() {
   useChatStore.setState({
     activeConversationRef: DEFAULT_TEST_CONVERSATION_REF,
   });
-  useChatStore.getState().setMessages([initialMessage], DEFAULT_TEST_CONVERSATION_REF);
+  setMessagesInChatStore([initialMessage], DEFAULT_TEST_CONVERSATION_REF);
 }
 
 export function getActiveWorkspaceStateForTest() {

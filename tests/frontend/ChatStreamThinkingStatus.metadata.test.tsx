@@ -4,6 +4,7 @@
 
 import { act } from '@testing-library/react';
 import {
+  setMessagesInChatStore,
   updateStreamTrackingInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
@@ -26,7 +27,7 @@ describe('useChatStream message metadata handling', () => {
   test('system-prompt event updates last user message metadata', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
-      useChatStore.getState().setMessages([
+      setMessagesInChatStore([
         { id: 'user-1', sender: 'user', text: 'ask' },
         { id: 'assistant-1', sender: 'assistant', text: 'reply' },
       ]);
@@ -49,7 +50,7 @@ describe('useChatStream message metadata handling', () => {
   test('full-message events enrich existing user and assistant messages', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
-      useChatStore.getState().setMessages([
+      setMessagesInChatStore([
         { id: 'user-1', sender: 'user', text: 'ask', turnRef: 'turn-1' },
         { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text', turnRef: 'turn-1' },
       ]);
@@ -78,7 +79,7 @@ describe('useChatStream message metadata handling', () => {
   test('turn-scoped user-message-full does not update unrelated user messages', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
-      useChatStore.getState().setMessages([
+      setMessagesInChatStore([
         { id: 'user-1', sender: 'user', text: 'ask for older turn', turnRef: 'turn-a' },
         { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text', turnRef: 'turn-1' },
       ]);
@@ -96,7 +97,7 @@ describe('useChatStream message metadata handling', () => {
   test('turn-scoped tool-schemas metadata does not update unrelated user messages', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
-      useChatStore.getState().setMessages([
+      setMessagesInChatStore([
         { id: 'user-1', sender: 'user', text: 'first user', turnRef: 'turn-a' },
         { id: 'assistant-1', sender: 'assistant', text: 'assistant', type: 'llm-text', turnRef: 'turn-a' },
         { id: 'user-2', sender: 'user', text: 'second user', turnRef: 'turn-c' },
@@ -117,7 +118,7 @@ describe('useChatStream message metadata handling', () => {
   test('tool-schemas event updates the current turn user message and later user rows still inherit conversation transparency', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
-      useChatStore.getState().setMessages([
+      setMessagesInChatStore([
         { id: 'user-1', sender: 'user', text: 'first user' },
         { id: 'assistant-1', sender: 'assistant', text: 'assistant' },
         { id: 'user-2', sender: 'user', text: 'second user' },
@@ -140,7 +141,7 @@ describe('useChatStream message metadata handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.getState().setMessages([
+      setMessagesInChatStore([
         { id: 'user-1', sender: 'user', text: 'check', turnRef: 'turn-1' },
         {
           id: 'tool-output-1',
@@ -166,7 +167,7 @@ describe('useChatStream message metadata handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.getState().setMessages([
+      setMessagesInChatStore([
         { id: 'user-1', sender: 'user', text: 'ask', turnRef: 'turn-new' },
         { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text', turnRef: 'turn-new' },
       ]);

@@ -3,6 +3,8 @@
  */
 
 import {
+  addMessageToChatStore,
+  updateMessageInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
@@ -23,9 +25,7 @@ describe('chatStore turn conversation refs', () => {
   });
 
   test('normalizes turn refs inferred from added messages', () => {
-    const store = useChatStore.getState();
-
-    store.addMessage({
+    addMessageToChatStore({
       id: 'message-1',
       sender: 'assistant',
       text: 'hello',
@@ -38,19 +38,17 @@ describe('chatStore turn conversation refs', () => {
   });
 
   test('normalizes turn refs inferred from message updates and ignores blanks', () => {
-    const store = useChatStore.getState();
-
-    store.addMessage({
+    addMessageToChatStore({
       id: 'message-1',
       sender: 'assistant',
       text: 'hello',
     }, 'conv-a');
-    useChatStore.getState().updateMessage('message-1', { turnRef: '   ' }, 'conv-a');
+    updateMessageInChatStore('message-1', { turnRef: '   ' }, 'conv-a');
 
     expect(resolveRendererConversationRefForTurn('')).toBeNull();
     expect(getRendererTurnConversationRefsSnapshot()).toEqual({});
 
-    useChatStore.getState().updateMessage('message-1', { turnRef: ' turn-2 ' }, 'conv-a');
+    updateMessageInChatStore('message-1', { turnRef: ' turn-2 ' }, 'conv-a');
 
     expect(resolveRendererConversationRefForTurn('turn-2')).toBe('conv-a');
     expect(Object.keys(getRendererTurnConversationRefsSnapshot())).toEqual(['turn-2']);
