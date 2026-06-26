@@ -3764,6 +3764,8 @@ describe('renderer chat runtime boundary', () => {
     expect(workspaceMessageRuntimeSource).toContain('buildUpdateStreamTargetMessageStateUpdate');
     expect(workspaceMessageRuntimeSource).toContain('buildSetMessagesStateUpdate');
     expect(workspaceMessageRuntimeSource).toContain('existingMessageIndex');
+    expect(workspaceMessageRuntimeSource).toContain('hasConversationView(currentWorkspace.conversationView)');
+    expect(workspaceMessageRuntimeSource).toContain('selectRendererAnnotationUpdates');
     expect(workspaceMessageRuntimeSource).toContain('recordTurnConversationRefs');
     expect(workspaceMessageRuntimeSource).not.toContain('turnConversationRefs:');
     expect(workspaceMessageRuntimeSource).not.toContain('features/chat');

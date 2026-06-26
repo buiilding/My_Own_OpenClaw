@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/state: make workspace message mutations no-op under
+  `ConversationView` except for narrow renderer annotation updates, keeping raw
+  messages from reclaiming SDK display-row authority. No migration required.
 - frontend/pending: keep view-time pending sends in the `pendingTurn` bridge
   without appending a renderer-compose row to raw workspace `messages`, so
   `ConversationView` remains the chat read model during pending-send handoff.

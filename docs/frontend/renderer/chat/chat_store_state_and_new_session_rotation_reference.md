@@ -117,6 +117,11 @@ replay/store compatibility adapters and low-level artifact helpers.
   workspace update assembly live in `desktopChatWorkspaceMessageRuntime.ts`.
   The adapter module only passes message intent plus workspace and registry
   dependency adapters.
+  Once a workspace has a `ConversationView`, raw message add/set/stream-target
+  writes no-op because SDK display rows are authoritative. Direct id updates
+  under a view are narrowed to renderer annotation fields such as feedback,
+  transparency metadata, and token counts, stored only so
+  `rendererAnnotations` can merge them back onto SDK rows.
 - Scalar workspace-field writes enter through the module-level
   `setIsSendingInChatStore(...)`, `setThinkingStatusInChatStore(...)`,
   `setThinkingSourceEventTypeInChatStore(...)`,

@@ -7,6 +7,7 @@ import type {
 } from './desktopChatMessageTypes';
 
 type MessageWorkspace = {
+  conversationView?: unknown | null;
   messages: ChatMessage[];
 };
 
@@ -34,6 +35,16 @@ type ChatStreamMessageTarget = {
   turnRef?: string | null;
 };
 
+type RendererAnnotationUpdate = Pick<
+  ChatMessage,
+  | 'feedback'
+  | 'fullAssistantMessage'
+  | 'fullUserMessage'
+  | 'systemPrompt'
+  | 'tokenCounts'
+  | 'toolSchemas'
+>;
+
 type MessageStateDependencies<
   TState,
   TWorkspace extends MessageWorkspace,
@@ -54,6 +65,35 @@ type MessageStateDependencies<
   ) => WorkspaceMutationTarget<TWorkspace>;
 };
 
+function hasConversationView(value: unknown): boolean {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function selectRendererAnnotationUpdates(
+  updates: Partial<ChatMessage>,
+): Partial<RendererAnnotationUpdate> | null {
+  const annotationUpdates: Partial<RendererAnnotationUpdate> = {};
+  if (Object.prototype.hasOwnProperty.call(updates, 'feedback')) {
+    annotationUpdates.feedback = updates.feedback;
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, 'fullAssistantMessage')) {
+    annotationUpdates.fullAssistantMessage = updates.fullAssistantMessage;
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, 'fullUserMessage')) {
+    annotationUpdates.fullUserMessage = updates.fullUserMessage;
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, 'systemPrompt')) {
+    annotationUpdates.systemPrompt = updates.systemPrompt;
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, 'tokenCounts')) {
+    annotationUpdates.tokenCounts = updates.tokenCounts;
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, 'toolSchemas')) {
+    annotationUpdates.toolSchemas = updates.toolSchemas;
+  }
+  return Object.keys(annotationUpdates).length > 0 ? annotationUpdates : null;
+}
+
 function buildAddMessageStateUpdate<
   TState,
   TWorkspace extends MessageWorkspace,
@@ -73,6 +113,9 @@ function buildAddMessageStateUpdate<
     workspaceRef,
     workspace: currentWorkspace,
   } = deps.resolveWorkspaceMutationTarget(state, conversationRef);
+  if (hasConversationView(currentWorkspace.conversationView)) {
+    return null;
+  }
   const existingMessageIndex = currentWorkspace.messages.findIndex(
     (existingMessage) => existingMessage.id === message.id,
   );
@@ -113,6 +156,31 @@ function buildUpdateMessageStateUpdate<
     workspaceRef,
     workspace: currentWorkspace,
   } = deps.resolveWorkspaceMutationTarget(state, conversationRef);
+  if (hasConversationView(currentWorkspace.conversationView)) {
+    const annotationUpdates = selectRendererAnnotationUpdates(updates);
+    if (!annotationUpdates) {
+      return null;
+    }
+    const existingAnnotationIndex = currentWorkspace.messages.findIndex((message) => message.id === id);
+    const annotationMessage = existingAnnotationIndex >= 0
+      ? {
+        ...currentWorkspace.messages[existingAnnotationIndex],
+        ...annotationUpdates,
+      }
+      : {
+        id,
+        text: '',
+        sender: 'assistant' as const,
+        ...annotationUpdates,
+      };
+    const nextMessages = existingAnnotationIndex >= 0
+      ? currentWorkspace.messages.map((message, index) => (
+        index === existingAnnotationIndex ? annotationMessage : message
+      ))
+      : [...currentWorkspace.messages, annotationMessage];
+    const nextWorkspace = { ...currentWorkspace, messages: nextMessages };
+    return deps.buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
+  }
   const index = currentWorkspace.messages.findIndex((message) => message.id === id);
   if (index === -1) {
     return null;
@@ -209,6 +277,9 @@ function buildUpdateStreamTargetMessageStateUpdate<
   const {
     workspace: currentWorkspace,
   } = deps.resolveWorkspaceMutationTarget(state, conversationRef);
+  if (hasConversationView(currentWorkspace.conversationView)) {
+    return null;
+  }
   const targetMessageId = resolveStreamMessageTargetId(currentWorkspace.messages, target);
   if (!targetMessageId) {
     return null;
@@ -241,6 +312,9 @@ function buildSetMessagesStateUpdate<
     workspaceRef,
     workspace: currentWorkspace,
   } = deps.resolveWorkspaceMutationTarget(state, conversationRef);
+  if (hasConversationView(currentWorkspace.conversationView)) {
+    return null;
+  }
   if (
     currentWorkspace.messages === messages
     || (
