@@ -37,6 +37,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/attachments: delete the legacy renderer screenshot message-state
   service; artifact URL inference now lives in `ArtifactImageUtils`, while SDK
   projection owns screenshot alias recovery. No migration required.
+- frontend/state: make the workspace read-model runtime the only selector
+  boundary that maps raw current-turn storage into `sdkLiveTurn`; surface and
+  send selectors now consume the sanitized read model directly. No migration
+  required.
 - frontend/attachments: rename the app-runtime artifact image resolver to
   `DesktopAttachmentImageRuntime`, so chat attachment rendering no longer
   imports a screenshot-named resolver facade. No migration required.

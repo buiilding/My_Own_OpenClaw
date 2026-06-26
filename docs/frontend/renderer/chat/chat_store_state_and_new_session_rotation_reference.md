@@ -226,10 +226,13 @@ and stop-target selection while keeping stable nested selector objects.
 import chat feature store internals.
 
 `DesktopChatWorkspaceStateRuntime.selectActiveWorkspaceReadModelState(...)` is
-the normal read entrypoint for chat UI selectors. It returns the raw workspace
-object while no SDK `ConversationView` exists. Once `ConversationView` exists,
-it returns a cached read model with raw `messages` replaced by the stable empty
-list and raw `currentTurnProjection` set to `null`. The short `pendingTurn`
+the normal read entrypoint for chat UI selectors. It always returns a cached
+selector read model rather than the raw workspace object. While no SDK
+`ConversationView` exists, raw stored messages remain available and the
+temporary live fallback is exposed as `sdkLiveTurn`; raw
+`currentTurnProjection` is set to `null` before selector consumers see the
+model. Once `ConversationView` exists, raw `messages` are replaced by the
+stable empty list and `sdkLiveTurn` is also `null`. The short `pendingTurn`
 bridge remains available, and renderer-only feedback/transparency/token
 metadata is carried separately as `rendererAnnotations` for display-row
 annotation merge.
@@ -238,11 +241,11 @@ Surface and send-read-model selector adapters consume that read model as their
 input contract. They should not rederive renderer annotations from raw messages
 or independently choose between `messages`, `currentTurnProjection`, and
 `ConversationView`; that choice belongs to the workspace read-model runtime.
-Selected surface state exposes the no-view live-turn fallback as `sdkLiveTurn`,
-not `currentTurnProjection`, so dashboard, pill, and response-overlay consumers
-receive SDK live-turn intent without reopening the raw workspace field. When
-`ConversationView` exists, `sdkLiveTurn` is `null` and the view plus pending
-bridge own visible lifecycle and stop authority.
+Selected surface state passes through the no-view live-turn fallback as
+`sdkLiveTurn`, not `currentTurnProjection`, so dashboard, pill, and
+response-overlay consumers receive SDK live-turn intent without reopening the
+raw workspace field. When `ConversationView` exists, `sdkLiveTurn` is `null`
+and the view plus pending bridge own visible lifecycle and stop authority.
 
 When `ConversationView` exists, the shared interface projection returns the
 stable empty message list plus narrow `rendererAnnotations`; it does not pass

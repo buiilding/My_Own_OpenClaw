@@ -53,6 +53,7 @@ interface ChatWorkspaceStoreSnapshot {
 
 export type ChatWorkspaceReadModelState = ChatWorkspaceState & {
   rendererAnnotations?: unknown[];
+  sdkLiveTurn?: CurrentTurnProjection | null;
 };
 
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
@@ -193,18 +194,19 @@ export function selectActiveWorkspaceState(
 export function projectWorkspaceReadModelState(
   workspace: ChatWorkspaceState,
 ): ChatWorkspaceReadModelState {
-  if (!workspace.conversationView) {
-    return workspace;
-  }
   const cachedReadModel = workspaceReadModelCache.get(workspace);
   if (cachedReadModel) {
     return cachedReadModel;
   }
+  const hasConversationView = Boolean(workspace.conversationView);
   const readModelWorkspace = {
     ...workspace,
-    messages: emptyChatMessages,
+    messages: hasConversationView ? emptyChatMessages : workspace.messages,
     currentTurnProjection: null,
-    rendererAnnotations: selectRendererMessageAnnotations(workspace.messages),
+    sdkLiveTurn: hasConversationView ? null : workspace.currentTurnProjection,
+    rendererAnnotations: hasConversationView
+      ? selectRendererMessageAnnotations(workspace.messages)
+      : [],
   };
   workspaceReadModelCache.set(workspace, readModelWorkspace);
   return readModelWorkspace;

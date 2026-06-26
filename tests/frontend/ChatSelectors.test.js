@@ -80,7 +80,7 @@ describe('chatSelectors', () => {
     expect(interfaceState).not.toHaveProperty('currentTurnProjection');
     expect(interfaceState).not.toHaveProperty('streamTracking');
     expect(projectDesktopChatSurfaceState({
-      activeWorkspace,
+      activeWorkspace: projectWorkspaceReadModelState(activeWorkspace),
     })).toEqual({
       messages: activeWorkspace.messages,
       conversationView: null,
@@ -88,18 +88,18 @@ describe('chatSelectors', () => {
       sdkLiveTurn: activeWorkspace.currentTurnProjection,
     });
     expect(projectDesktopLiveTurnSurfaceState({
-      activeWorkspace,
+      activeWorkspace: projectWorkspaceReadModelState(activeWorkspace),
     })).toEqual(expect.objectContaining({
       sdkLiveTurn: activeWorkspace.currentTurnProjection,
     }));
     expect(projectDesktopLiveTurnSurfaceState({
-      activeWorkspace,
+      activeWorkspace: projectWorkspaceReadModelState(activeWorkspace),
     })).not.toHaveProperty('isSending');
     expect(projectDesktopLiveTurnSurfaceState({
-      activeWorkspace,
+      activeWorkspace: projectWorkspaceReadModelState(activeWorkspace),
     })).not.toHaveProperty('thinkingStatus');
     expect(projectDesktopLiveTurnSurfaceState({
-      activeWorkspace,
+      activeWorkspace: projectWorkspaceReadModelState(activeWorkspace),
     })).not.toHaveProperty('thinkingSourceEventType');
   });
 
@@ -180,7 +180,7 @@ describe('chatSelectors', () => {
     expect(secondSurfaceState.messages).toBe(firstSurfaceState.messages);
   });
 
-  test('surface selector treats ConversationView as authoritative even with raw workspace input', () => {
+  test('surface selector consumes the sanitized ConversationView read model', () => {
     const conversationView = {
       conversationRef: 'conv-view',
       liveTurn: {
@@ -189,7 +189,7 @@ describe('chatSelectors', () => {
       },
     };
     const selected = projectDesktopChatSurfaceState({
-      activeWorkspace: {
+      activeWorkspace: projectWorkspaceReadModelState({
         messages: [{ id: 'stale-user', text: 'stale', sender: 'user' }],
         currentTurnProjection: {
           conversationRef: 'conv-raw',
@@ -201,7 +201,7 @@ describe('chatSelectors', () => {
           conversationRef: 'conv-view',
           turnRef: 'turn-pending',
         },
-      },
+      }),
     });
 
     expect(selected).toEqual({
@@ -444,11 +444,11 @@ describe('chatSelectors', () => {
     };
 
     expect(buildChatSendReadModelSelectorState({
-      activeWorkspace: createWorkspace({
+      activeWorkspace: projectWorkspaceReadModelState(createWorkspace({
         messages: [{ id: 'stale-user', text: 'stale raw', sender: 'user' }],
         conversationView,
         currentTurnProjection: { turnRef: 'raw-turn' },
-      }),
+      })),
     })).toEqual({
       conversationView,
       messages: [],

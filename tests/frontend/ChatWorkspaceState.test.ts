@@ -180,7 +180,7 @@ describe('chatWorkspaceState', () => {
     expect(resolved.streamTracking.phase).toBe('idle');
   });
 
-  test('keeps no-view workspace read model as the raw workspace object', () => {
+  test('projects no-view workspace read model with only sdk live-turn fallback', () => {
     const workspace = {
       ...createInitialWorkspaceState(),
       messages: [{ id: 'workspace', text: 'workspace', sender: 'assistant' as const }],
@@ -193,8 +193,14 @@ describe('chatWorkspaceState', () => {
       },
     };
 
-    expect(projectWorkspaceReadModelState(workspace)).toBe(workspace);
-    expect(selectActiveWorkspaceReadModelState(state)).toBe(workspace);
+    const readModel = projectWorkspaceReadModelState(workspace);
+
+    expect(readModel).not.toBe(workspace);
+    expect(readModel.messages).toBe(workspace.messages);
+    expect(readModel.currentTurnProjection).toBeNull();
+    expect(readModel.sdkLiveTurn).toBe(workspace.currentTurnProjection);
+    expect(readModel.rendererAnnotations).toEqual([]);
+    expect(selectActiveWorkspaceReadModelState(state)).toBe(readModel);
   });
 
   test('projects ConversationView workspace read model without raw fallback authorities', () => {
@@ -237,6 +243,7 @@ describe('chatWorkspaceState', () => {
     expect(readModel).not.toBe(workspace);
     expect(readModel.messages).toEqual([]);
     expect(readModel.currentTurnProjection).toBeNull();
+    expect(readModel.sdkLiveTurn).toBeNull();
     expect(readModel.conversationView).toBe(conversationView);
     expect(readModel.pendingTurn).toBe(pendingTurn);
     expect(readModel.rendererAnnotations).toEqual([{
