@@ -78,7 +78,7 @@ const {
   executeRevisionCheckoutCommand,
   executeRevisionForkCommand,
   loadRevisionOptions,
-  markActiveRevisionInList,
+  markActiveRevisionFromCheckoutResult,
 } = DesktopChatRevisionActionRuntime;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
@@ -482,9 +482,9 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     try {
       const result = await executeRevisionCheckoutCommand(command);
       applyConversationView(result?.view, activeConversationRef);
-      setRevisionOptions((current) => markActiveRevisionInList(
+      setRevisionOptions((current) => markActiveRevisionFromCheckoutResult(
         current,
-        result?.revisionId,
+        result,
       ));
       setRevisionMenuOpen(false);
     } catch (error) {

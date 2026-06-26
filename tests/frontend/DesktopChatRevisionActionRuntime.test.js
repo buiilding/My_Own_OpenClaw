@@ -20,6 +20,7 @@ const {
   executeRevisionCheckoutCommand,
   executeRevisionForkCommand,
   loadRevisionOptions,
+  markActiveRevisionFromCheckoutResult,
   markActiveRevisionInList,
   normalizeRevisionId,
 } = DesktopChatRevisionActionRuntime;
@@ -175,6 +176,29 @@ describe('DesktopChatRevisionActionRuntime', () => {
       {
         operation: 'missing',
         active: false,
+      },
+    ]);
+  });
+
+  test('marks the active revision from checkout runtime results', () => {
+    expect(markActiveRevisionFromCheckoutResult([
+      {
+        revisionId: 'rev-old',
+        active: true,
+      },
+      {
+        revisionId: ' rev-new ',
+      },
+    ], {
+      revisionId: ' rev-new ',
+    })).toEqual([
+      {
+        revisionId: 'rev-old',
+        active: false,
+      },
+      {
+        revisionId: ' rev-new ',
+        active: true,
       },
     ]);
   });

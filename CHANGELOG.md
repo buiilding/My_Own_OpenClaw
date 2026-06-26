@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/revisions: move checkout-result active revision marking into
+  `DesktopChatRevisionActionRuntime.markActiveRevisionFromCheckoutResult`, so
+  `ChatInterface` no longer reads checkout result revision ids directly. No
+  migration required.
 - frontend/stop: move stop-plan execution into
   `DesktopStopTurnRuntime.executeStopTurnExecutionPlan`, so
   `useStopTurnHandler` wires UI dependencies instead of unpacking

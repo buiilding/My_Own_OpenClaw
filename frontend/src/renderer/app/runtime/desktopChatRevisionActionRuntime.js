@@ -118,6 +118,10 @@ function markActiveRevisionInList(revisions = [], revisionId = null) {
   }));
 }
 
+function markActiveRevisionFromCheckoutResult(revisions = [], checkoutResult = null) {
+  return markActiveRevisionInList(revisions, checkoutResult?.revisionId);
+}
+
 async function loadRevisionOptions({
   activeConversationRef = null,
   limit = 50,
@@ -168,6 +172,7 @@ export const DesktopChatRevisionActionRuntime = Object.freeze({
   executeRevisionCheckoutCommand,
   executeRevisionForkCommand,
   loadRevisionOptions,
+  markActiveRevisionFromCheckoutResult,
   markActiveRevisionInList,
   normalizeRevisionId,
 });
