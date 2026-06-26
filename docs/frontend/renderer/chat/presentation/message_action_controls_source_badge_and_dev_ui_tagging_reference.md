@@ -30,6 +30,13 @@ title: "Message Action Controls, Source Badge, and Dev-UI Tagging Reference"
 
 ## Action-Row Render Gating (`MessageList`)
 
+SDK display rows own replay action availability and target ids through each
+message's `actions` metadata. `MessageList` resolves the renderer props for
+retry/edit controls through
+`DesktopMessageActionRuntime.resolveMessageReplayActions(message)` instead of
+parsing `actions.canRetry`, `actions.canEdit`, `retryTargetRowId`, or
+`editTargetRowId` inline.
+
 Assistant action row render conditions:
 
 - `enableAssistantActions === true`

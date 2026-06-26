@@ -3555,6 +3555,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationDisplayProjection.ts'),
       'utf8',
     );
+    const messageActionRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageActionRuntime.js'),
+      'utf8',
+    );
     const messageListSource = await fs.readFile(
       path.join(chatRoot, 'components/MessageList.jsx'),
       'utf8',
@@ -3662,16 +3666,17 @@ describe('renderer chat runtime boundary', () => {
     expect(messageListSource).not.toContain('canEditMessages');
     expect(messageListSource).not.toContain('canRetryMessages');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('features/chat');
-    expect(messageListSource).toContain("messageActionFlag(msg, 'canRetry'");
-    expect(messageListSource).toContain("messageActionFlag(msg, 'canEdit'");
-    expect(messageListSource).not.toContain("messageActionFlag(msg, 'canRetry', true)");
-    expect(messageListSource).not.toContain("messageActionFlag(msg, 'canEdit', true)");
+    expect(messageListSource).toContain('resolveMessageReplayActions(msg)');
+    expect(messageListSource).not.toContain("messageActionFlag(msg, 'canRetry'");
+    expect(messageListSource).not.toContain("messageActionFlag(msg, 'canEdit'");
     expect(messageListSource).not.toContain('messageActionFallback');
-    expect(messageListSource).toContain('return value === true;');
-    expect(messageListSource).toContain("messageActionTargetId(msg, 'retryTargetRowId')");
-    expect(messageListSource).toContain("messageActionTargetId(msg, 'editTargetRowId')");
+    expect(messageListSource).not.toContain("messageActionTargetId(msg, 'retryTargetRowId')");
+    expect(messageListSource).not.toContain("messageActionTargetId(msg, 'editTargetRowId')");
     expect(messageListSource).toContain('assistantRetryTargetMessageId={retryTargetMessageId}');
     expect(messageListSource).toContain('userEditTargetMessageId={editTargetMessageId}');
+    expect(messageActionRuntimeSource).toContain('resolveMessageReplayActions');
+    expect(messageActionRuntimeSource).toContain("messageActionFlag(message, 'canRetry')");
+    expect(messageActionRuntimeSource).toContain("messageActionFlag(message, 'canEdit')");
     expect(messageItemSource).toContain('canRetryMessage');
     expect(messageItemSource).toContain('canEditMessage');
     expect(messageItemSource).toContain('canTryAgain={canRetryMessage}');

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/actions: move per-row retry/edit action flag and target resolution
+  into `DesktopMessageActionRuntime`, so `MessageList` renders SDK-projected
+  action props without parsing row availability inline. No migration required.
 - frontend/live-turn: move SDK tool-detail owned-channel sanitization into
   `DesktopSdkToolDetailProjection`, so current-turn row construction no longer
   carries screenshot alias filtering locally. No migration required.

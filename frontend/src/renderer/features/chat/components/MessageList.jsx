@@ -14,10 +14,14 @@ import messageShapePropType from './message/messageShapePropType';
 import MessageItem from './message/MessageItem';
 import { DesktopMessageListRuntime } from '../../../app/runtime/desktopMessageListRuntime';
 import { DesktopMessageTransparencyRuntime } from '../../../app/runtime/desktopMessageTransparencyRuntime';
+import { DesktopMessageActionRuntime } from '../../../app/runtime/desktopMessageActionRuntime';
 import { useMessageListAutoScroll } from '../hooks/useMessageListAutoScroll';
 import { DesktopDevUiRuntime } from '../../../app/runtime/desktopDevUiRuntime';
 
 const { isDevUiEnabled } = DesktopDevUiRuntime;
+const {
+  resolveMessageReplayActions,
+} = DesktopMessageActionRuntime;
 
 function MessageList({
   messages,
@@ -124,21 +128,14 @@ function MessageList({
     [messages],
   );
 
-  const messageActionFlag = useCallback((message, key) => {
-    const value = message?.actions?.[key];
-    return value === true;
-  }, []);
-  const messageActionTargetId = useCallback((message, key) => {
-    const value = message?.actions?.[key];
-    return typeof value === 'string' && value.trim() ? value.trim() : null;
-  }, []);
-
   const renderedMessages = useMemo(
     () => messages.flatMap((msg) => {
-      const canRetryMessage = messageActionFlag(msg, 'canRetry');
-      const canEditMessage = messageActionFlag(msg, 'canEdit');
-      const retryTargetMessageId = messageActionTargetId(msg, 'retryTargetRowId') || msg.id;
-      const editTargetMessageId = messageActionTargetId(msg, 'editTargetRowId') || msg.id;
+      const {
+        canRetryMessage,
+        canEditMessage,
+        retryTargetMessageId,
+        editTargetMessageId,
+      } = resolveMessageReplayActions(msg);
       const nodes = [
         (
           <MessageItem
@@ -198,8 +195,6 @@ function MessageList({
       enableAssistantActions,
       enableUserActions,
       disableAssistantActions,
-      messageActionFlag,
-      messageActionTargetId,
       onAssistantFeedbackChange,
       onAssistantTryAgain,
       editingUserMessageId,
