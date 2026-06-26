@@ -68,6 +68,9 @@ All notable changes to WindieOS will be documented in this file.
   `ConversationView.liveTurn.phase` whenever an SDK view exists, avoiding
   stale raw current-turn projection phase in view-backed diagnostics. No
   migration required.
+- frontend/pill: stop falling back to raw `currentTurnProjection.turnRef` in
+  chat-pill traces once `ConversationView` exists; view-backed diagnostics now
+  report the SDK live-turn ref or `null`. No migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.

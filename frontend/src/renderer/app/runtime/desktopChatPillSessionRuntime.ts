@@ -166,7 +166,9 @@ function buildChatPillLifecycleTraceSnapshot({
   const hasConversationView = Boolean(conversationView && typeof conversationView === 'object');
   return {
     conversationRef: normalizeOptionalString(sessionConversationRef),
-    turnRef: viewTurnRef || normalizeOptionalTurnRef(currentTurnProjection?.turnRef),
+    turnRef: hasConversationView
+      ? viewTurnRef
+      : normalizeOptionalTurnRef(currentTurnProjection?.turnRef),
     phase: hasConversationView
       ? resolveViewLiveTurnPhase(conversationView)
       : normalizeOptionalString(currentTurnProjection?.phase),
@@ -195,7 +197,9 @@ function buildChatPillStateTraceSnapshot({
     ? resolveViewLiveTurnPhase(conversationView)
     : normalizeOptionalString(currentTurnProjection?.phase);
   const viewTurnRef = resolveViewLiveTurnRef(conversationView);
-  const currentTurnRef = viewTurnRef || normalizeOptionalTurnRef(currentTurnProjection?.turnRef);
+  const currentTurnRef = hasConversationView
+    ? viewTurnRef
+    : normalizeOptionalTurnRef(currentTurnProjection?.turnRef);
   const viewPillMode = resolveViewPillMode(conversationView);
   const viewCanStop = conversationView?.liveTurn?.canStop === true;
   return {

@@ -242,7 +242,7 @@ describe('desktopChatPillSessionRuntime', () => {
     });
   });
 
-  test('does not mix raw current-turn phase into chat pill traces when ConversationView exists', () => {
+  test('does not mix raw current-turn identity into chat pill traces when ConversationView exists', () => {
     expect(buildChatPillLifecycleTraceSnapshot({
       sessionConversationRef: ' conv-1 ',
       chatSurfaceState: {
@@ -251,14 +251,12 @@ describe('desktopChatPillSessionRuntime', () => {
           phase: ' stale-awaiting ',
         },
         conversationView: {
-          liveTurn: {
-            turnRef: ' view-turn ',
-          },
+          liveTurn: {},
         },
       },
     })).toEqual({
       conversationRef: 'conv-1',
-      turnRef: 'view-turn',
+      turnRef: null,
       phase: null,
     });
 
@@ -272,7 +270,6 @@ describe('desktopChatPillSessionRuntime', () => {
         conversationView: {
           liveTurn: {
             canStop: true,
-            turnRef: ' view-turn ',
           },
         },
       },
@@ -284,9 +281,10 @@ describe('desktopChatPillSessionRuntime', () => {
 
     expect(JSON.parse(snapshot.signature)).toEqual(expect.objectContaining({
       currentTurnPhase: null,
-      currentTurnRef: 'view-turn',
-      viewTurnRef: 'view-turn',
+      currentTurnRef: null,
+      viewTurnRef: null,
     }));
+    expect(snapshot.trace.turnRef).toBeNull();
     expect(snapshot.trace.currentTurnPhase).toBeNull();
   });
 
