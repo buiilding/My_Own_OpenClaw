@@ -111,6 +111,101 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
+  test('does not recover malformed string-owned display row content in renderer projection', () => {
+    const messages = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-user-object-content',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: { text: 'renderer must not recover this' },
+      },
+      {
+        id: 'msg-assistant-array-content',
+        conversationRef: 'conv-sdk',
+        index: 1,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: ['renderer must not recover this'],
+      },
+      {
+        id: 'msg-tool-output-object-content',
+        conversationRef: 'conv-sdk',
+        index: 2,
+        role: 'tool',
+        type: 'tool_output',
+        content: { output: 'renderer must not recover this' },
+      },
+      {
+        id: 'msg-tool-progress-object-content',
+        conversationRef: 'conv-sdk',
+        index: 3,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: { progress: 'renderer must not recover this' },
+      },
+    ] as any);
+
+    expect(messages).toEqual([
+      expect.objectContaining({
+        id: 'msg-user-object-content',
+        text: '',
+      }),
+      expect.objectContaining({
+        id: 'msg-assistant-array-content',
+        text: '',
+      }),
+      expect.objectContaining({
+        id: 'msg-tool-output-object-content',
+        text: '',
+      }),
+      expect.objectContaining({
+        id: 'msg-tool-progress-object-content',
+        text: '',
+      }),
+    ]);
+  });
+
+  test('keeps SDK-declared structured tool display rows visible', () => {
+    const [toolCall, toolBundleOutput] = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-tool-call-structured-content',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_call',
+        content: {
+          id: 'call-1',
+          name: 'read_file',
+          arguments: { path: 'package.json' },
+        },
+      },
+      {
+        id: 'msg-tool-bundle-output-structured-content',
+        conversationRef: 'conv-sdk',
+        index: 1,
+        role: 'tool',
+        type: 'tool_bundle_output',
+        content: {
+          step_results: [{
+            output: 'package contents',
+          }],
+        },
+      },
+    ]);
+
+    expect(toolCall).toEqual(expect.objectContaining({
+      id: 'msg-tool-call-structured-content',
+      text: expect.stringContaining('"name": "read_file"'),
+      toolCallDisplayText: expect.stringContaining('"path": "package.json"'),
+    }));
+    expect(toolBundleOutput).toEqual(expect.objectContaining({
+      id: 'msg-tool-bundle-output-structured-content',
+      text: expect.stringContaining('"step_results"'),
+    }));
+  });
+
   test('preserves user row turn refs so replay pending rows dedupe after SDK projection', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {

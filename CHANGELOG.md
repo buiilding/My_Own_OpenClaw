@@ -18,6 +18,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/attachments: require typed SDK image attachment descriptors before
   resolving attachment screenshot refs/URLs, preventing whole-message screenshot
   aliases from re-entering image rendering. No migration required.
+- frontend/chat: stop JSON-stringifying malformed string-owned SDK display-row
+  content in the renderer adapter; producers must normalize user, assistant,
+  tool-output, and progress row text before `ConversationView` reaches React. No
+  migration required.
 - frontend/state: rename private no-view live-turn workspace storage from
   `currentTurnProjection` to `sdkLiveTurn`, removing the raw current-turn name
   from production renderer workspace state. No migration required.

@@ -54,8 +54,15 @@ function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
   return payload;
 }
 
-function displayTextFromRowContent(content: unknown): string {
-  return typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+function displayTextFromStringRowContent(content: unknown): string {
+  return typeof content === 'string' ? content : '';
+}
+
+function displayTextFromStructuredRowContent(content: unknown): string {
+  if (typeof content === 'string') {
+    return content;
+  }
+  return JSON.stringify(content, null, 2) ?? '';
 }
 
 function recordFromPayloadValue(value: unknown): Record<string, unknown> | null {
@@ -113,7 +120,7 @@ function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
   const attachments = readSdkDisplayAttachments(recordField(payload, 'attachments'));
   return withRowActions({
     id: row.id,
-    text: displayTextFromRowContent(row.content),
+    text: displayTextFromStringRowContent(row.content),
     sender: 'user',
     turnRef: row.turnRef ?? null,
     sourceEventType: rowSourceEventType(row),
@@ -133,7 +140,7 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
   const sourceEventType = rowSourceEventType(row);
   const base = buildAssistantTextChatMessageState({
     id: row.id,
-    text: displayTextFromRowContent(row.content),
+    text: displayTextFromStringRowContent(row.content),
     sourceEventType,
     turnRef: row.turnRef ?? null,
     isComplete: sourceEventType !== 'assistant_delta',
@@ -152,7 +159,7 @@ function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
   const bundleToolCallPayload = row.type === 'tool_bundle_call'
     ? payload
     : null;
-  const text = displayTextFromRowContent(row.content);
+  const text = displayTextFromStructuredRowContent(row.content);
   const base = buildToolCallChatMessageState({
     id: row.id,
     text,
@@ -175,7 +182,9 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
   const attachments = readSdkDisplayAttachments(recordField(payload, 'attachments'));
   const base = buildToolOutputChatMessageState({
     id: row.id,
-    outputText: displayTextFromRowContent(row.content),
+    outputText: row.type === 'tool_bundle_output'
+      ? displayTextFromStructuredRowContent(row.content)
+      : displayTextFromStringRowContent(row.content),
     sourceEventType: rowSourceEventType(row),
     attachments,
     toolName: row.metadata?.toolName ?? null,
@@ -198,7 +207,7 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
   const sourceEventType = recordField(payload, 'sourceEventType');
   return withRowActions({
     id: row.id,
-    text: displayTextFromRowContent(row.content),
+    text: displayTextFromStringRowContent(row.content),
     sender: 'assistant',
     type: 'search-source',
     sourceEventType: typeof sourceEventType === 'string' && sourceEventType.trim()

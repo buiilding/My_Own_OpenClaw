@@ -299,6 +299,12 @@ edit surface while replay targets the SDK-provided original row identity;
 row-level SDK action metadata gates whether the edit/resend or Try again
 controls are shown, and missing row action booleans on SDK display rows mean
 the command is unavailable rather than defaulting to a renderer heuristic.
+Renderer display-row adapters do not JSON-stringify malformed content for row
+types whose SDK contract owns string content, such as user, assistant,
+tool-output, and progress rows. Producers must normalize those rows before they
+reach `ConversationView`; the renderer may only stringify SDK-declared
+structured tool rows such as tool calls and bundle outputs for component
+compatibility.
 Copy/feedback actions remain renderer-local affordances. Renderer
 replay execution calls the SDK edit/resend and retry commands directly; when a
 `ConversationView` exists, replay target preparation derives its row model from

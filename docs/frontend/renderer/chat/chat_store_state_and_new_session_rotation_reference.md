@@ -350,8 +350,8 @@ Workspace-binding invariant:
 `DesktopChatInterfacePresentationRuntime` owns the main chat thread
 presentation view model. It combines SDK `ConversationView`, the no-view
 current-turn bridge, stored messages, the local pending bridge, and
-`ConversationView.actions` into `renderedMessages`, edit/retry availability,
-and active revision id. When a view exists, it builds base thread messages from
+SDK display-row `actions` into `renderedMessages`, edit/retry availability, and
+active revision id. When a view exists, it builds base thread messages from
 `ConversationView.displayRows` through
 `DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`
 and passes only renderer annotation records selected by the surface/interface
