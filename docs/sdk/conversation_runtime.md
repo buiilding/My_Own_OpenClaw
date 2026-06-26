@@ -319,9 +319,12 @@ Renderer display-row and live-turn adapters also keep SDK attachment
 descriptors on the typed `attachments[]` prop only. Tool detail panels may
 receive display identity fields such as `toolName`, `requestId`,
 `correlationId`, `bundleId`, `toolCallId`, and `success`, plus SDK-authored
-display details, but must not receive provider-facing `modelFacingToolCall`,
-model-selection metadata, raw payloads, screenshot aliases, or SDK attachment
-lifecycle descriptors as generic detail payload.
+display details, but component correlation identity comes from the SDK-authored
+`displayCorrelationId` field. Renderer adapters must not recover correlation
+identity by trying request, bundle, tool-call, or legacy correlation fields in
+fallback order. Tool detail panels must not receive provider-facing
+`modelFacingToolCall`, model-selection metadata, raw payloads, screenshot
+aliases, or SDK attachment lifecycle descriptors as generic detail payload.
 Copy/feedback actions remain renderer-local affordances. Renderer
 replay execution calls the SDK edit/resend and retry commands directly; when a
 `ConversationView` exists, replay target preparation derives its row model from

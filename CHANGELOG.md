@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend: add SDK-authored `displayCorrelationId` on display-row
+  metadata and make the renderer display-row adapter read only that field for
+  component correlation identity, removing request/bundle/tool-call fallback
+  recovery from the renderer. No migration required.
 - docs/frontend: update dashboard resume references to name
   `DesktopConversationLibraryClient.loadConversationView(...)` as the normal
   renderer read path, with a boundary test preventing the old dashboard

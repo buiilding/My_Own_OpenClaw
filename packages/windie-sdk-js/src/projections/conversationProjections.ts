@@ -350,6 +350,20 @@ function sourceEventTypeFromPayload(payload: JsonRecord): string | null {
   return stringField(payload, 'sourceEventType', 'source_event_type');
 }
 
+function displayCorrelationIdFromEvent(event: ConversationEvent): string | null {
+  return stringField(
+    event.payload,
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'toolCallId',
+    'tool_call_id',
+    'correlationId',
+    'correlation_id',
+  );
+}
+
 function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
   const screenshotRef = stringField(event.payload, 'screenshotRef', 'screenshot_ref');
   const screenshotUrl = stringField(event.payload, 'screenshotUrl', 'screenshot_url');
@@ -366,6 +380,7 @@ function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
     toolName: toolNameFromPayload(event.payload),
     requestId: stringField(event.payload, 'requestId', 'request_id'),
     correlationId: stringField(event.payload, 'correlationId', 'correlation_id'),
+    displayCorrelationId: displayCorrelationIdFromEvent(event),
     bundleId: stringField(event.payload, 'bundleId', 'bundle_id'),
     toolCallId: stringField(event.payload, 'toolCallId', 'tool_call_id'),
     screenshotRef,

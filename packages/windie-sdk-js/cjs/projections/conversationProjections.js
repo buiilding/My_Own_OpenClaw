@@ -293,6 +293,9 @@ function mergeDisplayAttachments(existing, incoming) {
 function sourceEventTypeFromPayload(payload) {
     return (0, toolOutputContent_js_1.stringField)(payload, 'sourceEventType', 'source_event_type');
 }
+function displayCorrelationIdFromEvent(event) {
+    return (0, toolOutputContent_js_1.stringField)(event.payload, 'requestId', 'request_id', 'bundleId', 'bundle_id', 'toolCallId', 'tool_call_id', 'correlationId', 'correlation_id');
+}
 function displayRowMetadata(event) {
     const screenshotRef = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotRef', 'screenshot_ref');
     const screenshotUrl = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotUrl', 'screenshot_url');
@@ -309,6 +312,7 @@ function displayRowMetadata(event) {
         toolName: toolNameFromPayload(event.payload),
         requestId: (0, toolOutputContent_js_1.stringField)(event.payload, 'requestId', 'request_id'),
         correlationId: (0, toolOutputContent_js_1.stringField)(event.payload, 'correlationId', 'correlation_id'),
+        displayCorrelationId: displayCorrelationIdFromEvent(event),
         bundleId: (0, toolOutputContent_js_1.stringField)(event.payload, 'bundleId', 'bundle_id'),
         toolCallId: (0, toolOutputContent_js_1.stringField)(event.payload, 'toolCallId', 'tool_call_id'),
         screenshotRef,

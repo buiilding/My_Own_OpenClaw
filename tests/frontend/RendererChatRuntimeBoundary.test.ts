@@ -3621,6 +3621,11 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('modelFacingToolCall');
     expect(projectionRuntimeSource).not.toContain('reasoning_text');
     expect(projectionRuntimeSource).not.toContain('fallbackToolCall');
+    expect(projectionRuntimeSource).toContain('row.metadata?.displayCorrelationId ?? null');
+    expect(projectionRuntimeSource).toContain('row.metadata?.displayCorrelationId ?? undefined');
+    expect(projectionRuntimeSource).not.toContain('row.metadata?.requestId\n    ?? row.metadata?.bundleId');
+    expect(projectionRuntimeSource).not.toContain('row.metadata?.toolCallId\n    ?? row.metadata?.correlationId');
+    expect(projectionRuntimeSource).not.toContain('row.metadata?.requestId ?? row.metadata?.correlationId');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.toolName\n      ?');
     expect(displayAttachmentProjectionSource).toContain('readSdkDisplayAttachments');
     expect(displayAttachmentProjectionSource).not.toContain('screenshot_refs');

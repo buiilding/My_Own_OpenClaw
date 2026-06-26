@@ -43,6 +43,7 @@ function recordPayloadFromRow(
     'toolName',
     'requestId',
     'correlationId',
+    'displayCorrelationId',
     'bundleId',
     'toolCallId',
     'sourceEventType',
@@ -80,11 +81,7 @@ function rowSourceEventType(row: SdkDisplayRow): string {
 }
 
 function rowCorrelationId(row: SdkDisplayRow): string | null {
-  return row.metadata?.requestId
-    ?? row.metadata?.bundleId
-    ?? row.metadata?.toolCallId
-    ?? row.metadata?.correlationId
-    ?? null;
+  return row.metadata?.displayCorrelationId ?? null;
 }
 
 function rowActions(row: SdkDisplayRow): ChatMessage['actions'] | undefined {
@@ -216,7 +213,7 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
     timestamp: rowTimestamp(row),
     toolName: row.metadata?.toolName ?? undefined,
     toolMetadata: payload,
-    correlationId: row.metadata?.requestId ?? row.metadata?.correlationId ?? undefined,
+    correlationId: row.metadata?.displayCorrelationId ?? undefined,
   }, row);
 }
 

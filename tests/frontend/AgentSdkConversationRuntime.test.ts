@@ -2549,6 +2549,7 @@ describe('Agent SDK conversation runtime core', () => {
           toolName: 'web_search',
           requestId: 'req-search-1',
           correlationId: 'corr-search-1',
+          displayCorrelationId: 'req-search-1',
         }),
       }),
       expect.objectContaining({
@@ -2559,6 +2560,7 @@ describe('Agent SDK conversation runtime core', () => {
           toolName: 'web_search',
           requestId: 'req-search-1',
           correlationId: 'corr-search-1',
+          displayCorrelationId: 'req-search-1',
         }),
       }),
     ]);
