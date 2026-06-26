@@ -2299,6 +2299,7 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('screenshotUrl');
     expect(sendPreparationSource).not.toContain('readSdkDisplayAttachments');
     expect(sendPreparationSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(sendPreparationSource).not.toContain('displayAttachmentId');
     expect(sendPreparationSource).not.toContain('attachments:');
     expect(sendPreparationSource).not.toContain('{ attachmentFilenames, attachment_filenames');
     expect(sendPreparationSource).not.toContain('chatMessageSenderPayloads');

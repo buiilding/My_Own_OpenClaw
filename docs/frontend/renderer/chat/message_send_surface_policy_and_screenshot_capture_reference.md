@@ -152,7 +152,9 @@ When attachment(s) exist:
    - `query_screenshot_request` when overlay/config policy asks for a query screenshot
    - `workspace` when the conversation has a workspace binding
    Filename labels are metadata/pending-bridge hints only; they do not make a
-   SDK turn resource by themselves.
+   SDK turn resource by themselves. Renderer resources do not assign
+   `displayAttachmentId`; SDK turn processing assigns stable display attachment
+   ids before producing live visual attachment projection state.
 7. call `DesktopLiveTurnRuntimeClient.sendQuery` with text, conversation ref,
    turn ref, typed resources, and the legacy filename payload used for filename
    chips/query compatibility. Normal sends do not also build a renderer-owned

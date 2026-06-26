@@ -112,7 +112,6 @@ function buildTurnInputResources({
   isFirstUserMessage,
   surfaceReason,
   workspacePath,
-  turnId,
 }: {
   readableFiles: ReadableFilePayload[];
   clipboardImages: ClipboardImagePayload[];
@@ -120,10 +119,8 @@ function buildTurnInputResources({
   isFirstUserMessage: boolean;
   surfaceReason: string;
   workspacePath?: string | null;
-  turnId: string;
 }): TurnInputResource[] {
   const resources: TurnInputResource[] = [];
-  let visualIndex = 0;
   for (const readableFile of readableFiles) {
     resources.push({
       kind: 'readable_file',
@@ -135,18 +132,15 @@ function buildTurnInputResources({
   for (const clipboardImage of clipboardImages) {
     resources.push({
       kind: 'clipboard_image',
-      displayAttachmentId: `${turnId}:attachment:${visualIndex.toString().padStart(3, '0')}`,
       base64: clipboardImage.base64,
       contentType: clipboardImage.contentType ?? null,
       filename: clipboardImage.filename ?? null,
       required: true,
     });
-    visualIndex += 1;
   }
   if (shouldCaptureQueryScreenshot) {
     resources.push({
       kind: 'query_screenshot_request',
-      displayAttachmentId: `${turnId}:attachment:${visualIndex.toString().padStart(3, '0')}`,
       isFirstUserMessage,
       reason: surfaceReason,
       required: false,
@@ -326,7 +320,6 @@ async function prepareDesktopChatSend({
     isFirstUserMessage: !hadUserMessages,
     surfaceReason: sendLifecycle.surfaceReason,
     workspacePath: workspaceBinding.workspacePath || null,
-    turnId,
   });
 
   return {

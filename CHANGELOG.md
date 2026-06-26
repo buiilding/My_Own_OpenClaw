@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: stop assigning visual display attachment ids in
+  `DesktopChatSendPreparationRuntime`; renderer sends typed resources only and
+  SDK turn processing assigns stable attachment ids before projection. No
+  migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.
