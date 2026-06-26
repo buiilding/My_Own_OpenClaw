@@ -399,7 +399,9 @@ describe('renderer app runtime boundary', () => {
     expect(traceRuntimeSource).toContain('current_turn_phase');
     expect(traceRuntimeSource).not.toContain('is_sending');
     expect(minimalPillSource).toContain('DesktopChatPillSessionRuntime');
+    expect(minimalPillSource).toContain('buildChatPillLifecycleTraceValues');
     expect(minimalPillSource).toContain('buildChatPillLifecycleTraceSnapshot');
+    expect(minimalPillSource).toContain('buildChatPillResetTraceValues');
     expect(minimalPillSource).toContain('buildChatPillStateTraceSnapshot');
     expect(minimalPillSource).toContain('DesktopRendererTraceRuntime');
     expect(minimalPillSource).toContain('logRendererChatPillResetTrace');
@@ -411,6 +413,10 @@ describe('renderer app runtime boundary', () => {
     expect(minimalPillSource).not.toContain("'renderer.chat_pill.mount'");
     expect(minimalPillSource).not.toContain("'renderer.chat_pill.unmount'");
     expect(minimalPillSource).not.toContain("'chat_pill.hit_test.set'");
+    expect(minimalPillSource).not.toContain('previousSnapshot.turnRef');
+    expect(minimalPillSource).not.toContain('previousSnapshot.phase');
+    expect(minimalPillSource).not.toContain('initialSnapshot.turnRef');
+    expect(minimalPillSource).not.toContain('latestSnapshot.turnRef');
     expect(minimalPillSource).not.toContain('renderer-normal-hit-test-request');
     expect(minimalPillSource).not.toContain('ignoreMouseEvents');
     expect(minimalPillSource).not.toContain('conversation_ref');

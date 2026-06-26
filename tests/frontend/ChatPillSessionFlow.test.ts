@@ -6,7 +6,9 @@ import { DesktopChatPillSessionRuntime } from '../../frontend/src/renderer/app/r
 
 describe('desktopChatPillSessionRuntime', () => {
   const {
+    buildChatPillLifecycleTraceValues,
     buildChatPillLifecycleTraceSnapshot,
+    buildChatPillResetTraceValues,
     buildChatPillStateTraceSnapshot,
     resolveChatPillSendLifecycle,
     resolveChatPillViewIntent,
@@ -261,6 +263,40 @@ describe('desktopChatPillSessionRuntime', () => {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'streaming',
+    });
+  });
+
+  test('builds chat pill lifecycle and reset trace values from runtime snapshots', () => {
+    const snapshot = buildChatPillLifecycleTraceSnapshot({
+      sessionConversationRef: ' conv-1 ',
+      chatSurfaceState: {
+        sdkLiveTurn: {
+          turnRef: ' turn-1 ',
+          phase: ' streaming ',
+        },
+      },
+    });
+
+    expect(buildChatPillLifecycleTraceValues({
+      action: 'mount',
+      snapshot,
+    })).toEqual({
+      action: 'mount',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+    });
+
+    expect(buildChatPillResetTraceValues({
+      snapshot,
+      attachmentCount: 2,
+      includeQueryScreenshot: true,
+    })).toEqual({
+      conversationRef: 'conv-1',
+      previousTurnRef: 'turn-1',
+      previousPhase: 'streaming',
+      attachmentCount: 2,
+      includeQueryScreenshot: true,
     });
   });
 

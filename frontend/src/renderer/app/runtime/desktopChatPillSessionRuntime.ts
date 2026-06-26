@@ -49,6 +49,23 @@ type ChatPillSurfaceState = {
   sdkLiveTurn?: ChatPillCurrentTurnProjection;
 } | null | undefined;
 
+type ChatPillLifecycleTraceSnapshot = {
+  conversationRef: string | null;
+  turnRef: string | null;
+  phase: string | null;
+};
+
+type ChatPillLifecycleTraceValuesInput = {
+  action: 'mount' | 'unmount';
+  snapshot: ChatPillLifecycleTraceSnapshot;
+};
+
+type ChatPillResetTraceValuesInput = {
+  attachmentCount?: number;
+  includeQueryScreenshot?: boolean;
+  snapshot: ChatPillLifecycleTraceSnapshot;
+};
+
 const CHAT_PILL_SURFACE_REASON = Object.freeze({
   QUERY_SEND_WITH_CAPTURE: 'query_send_with_capture',
   QUERY_SEND_WITHOUT_CAPTURE: 'query_send_without_capture',
@@ -200,6 +217,32 @@ function buildChatPillLifecycleTraceSnapshot({
   };
 }
 
+function buildChatPillLifecycleTraceValues({
+  action,
+  snapshot,
+}: ChatPillLifecycleTraceValuesInput) {
+  return {
+    action,
+    conversationRef: normalizeOptionalString(snapshot?.conversationRef),
+    turnRef: normalizeOptionalTurnRef(snapshot?.turnRef),
+    phase: normalizeOptionalString(snapshot?.phase),
+  };
+}
+
+function buildChatPillResetTraceValues({
+  attachmentCount = 0,
+  includeQueryScreenshot = false,
+  snapshot,
+}: ChatPillResetTraceValuesInput) {
+  return {
+    conversationRef: normalizeOptionalString(snapshot?.conversationRef),
+    previousTurnRef: normalizeOptionalTurnRef(snapshot?.turnRef),
+    previousPhase: normalizeOptionalString(snapshot?.phase),
+    attachmentCount,
+    includeQueryScreenshot,
+  };
+}
+
 function buildChatPillStateTraceSnapshot({
   busy,
   chatSurfaceState = null,
@@ -254,7 +297,9 @@ function buildChatPillStateTraceSnapshot({
 }
 
 export const DesktopChatPillSessionRuntime = Object.freeze({
+  buildChatPillLifecycleTraceValues,
   buildChatPillLifecycleTraceSnapshot,
+  buildChatPillResetTraceValues,
   buildChatPillStateTraceSnapshot,
   resolveChatPillSendLifecycle,
   resolveChatPillTurnId,

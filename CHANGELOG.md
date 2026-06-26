@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pill: move minimal chat pill lifecycle and reset trace value
+  construction into `DesktopChatPillSessionRuntime`, so `MinimalChatPill`
+  no longer unpacks lifecycle snapshot turn fields for trace payloads. No
+  migration required.
 - frontend/overlay: move response-overlay window size and lifecycle trace value
   construction into `DesktopResponseOverlayViewRuntime`, so
   `useResponseOverlayWindowSync` no longer unpacks turn or stale-guard identity

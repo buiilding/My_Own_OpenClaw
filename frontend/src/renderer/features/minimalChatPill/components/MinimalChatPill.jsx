@@ -48,7 +48,9 @@ const CHATBOX_COMPOSER_MAX_HEIGHT = 128;
 const CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS = 180;
 const { isDevUiEnabled } = DesktopDevUiRuntime;
 const {
+  buildChatPillLifecycleTraceValues,
   buildChatPillLifecycleTraceSnapshot,
+  buildChatPillResetTraceValues,
   buildChatPillStateTraceSnapshot,
 } = DesktopChatPillSessionRuntime;
 const {
@@ -128,14 +130,11 @@ function MinimalChatPill() {
     isSubmitBlocked: loopInteractionLocked,
     onSendMessage: sendMessage,
     onBeforeSend: () => {
-      const previousSnapshot = lifecycleTraceSnapshotRef.current;
-      logRendererChatPillResetTrace({
-        conversationRef: previousSnapshot.conversationRef,
-        previousTurnRef: previousSnapshot.turnRef,
-        previousPhase: previousSnapshot.phase,
+      logRendererChatPillResetTrace(buildChatPillResetTraceValues({
+        snapshot: lifecycleTraceSnapshotRef.current,
         attachmentCount: clipboardImages.length + selectedReadableFiles.length,
         includeQueryScreenshot,
-      });
+      }));
       setWakewordSttSessionActive(false);
     },
   });
@@ -228,21 +227,15 @@ function MinimalChatPill() {
   }, [wakewordSttEnabled, wakewordSttSessionActive]);
 
   useEffect(() => {
-    const initialSnapshot = lifecycleTraceSnapshotRef.current;
-    logRendererChatPillLifecycleTrace({
+    logRendererChatPillLifecycleTrace(buildChatPillLifecycleTraceValues({
       action: 'mount',
-      conversationRef: initialSnapshot.conversationRef,
-      turnRef: initialSnapshot.turnRef,
-      phase: initialSnapshot.phase,
-    });
+      snapshot: lifecycleTraceSnapshotRef.current,
+    }));
     return () => {
-      const latestSnapshot = lifecycleTraceSnapshotRef.current;
-      logRendererChatPillLifecycleTrace({
+      logRendererChatPillLifecycleTrace(buildChatPillLifecycleTraceValues({
         action: 'unmount',
-        conversationRef: latestSnapshot.conversationRef,
-        turnRef: latestSnapshot.turnRef,
-        phase: latestSnapshot.phase,
-      });
+        snapshot: lifecycleTraceSnapshotRef.current,
+      }));
     };
   }, []);
 
