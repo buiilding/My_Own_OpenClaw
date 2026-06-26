@@ -3530,6 +3530,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateSource).not.toContain('currentTurnProjection?: CurrentTurnProjection | null;');
     expect(chatWorkspaceStateSource).not.toContain('conversationView?: ConversationView | null;');
     expect(chatWorkspaceStateSource).not.toContain('pendingTurn?: PendingTurn | null;');
+    expect(chatWorkspaceStateSource).not.toContain("from './chatStore'");
+    expect(chatWorkspaceStateSource).toContain('desktopChatMessageTypes');
     expect(chatWorkspaceStateSource).not.toContain('export function createInitialStreamTracking');
     expect(chatWorkspaceStateSource).toContain('CompactionDebugInfo');
     expect(chatWorkspaceStateSource).not.toContain('replacementHistoryPreview: Array');

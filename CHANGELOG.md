@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: make chat workspace state import message/token types directly
+  from `desktopChatMessageTypes` instead of treating `chatStore` as the type
+  owner. No migration required.
 - frontend/store: use the app-runtime `CompactionDebugInfo` contract in chat
   workspace state instead of duplicating the compaction payload shape in the
   store module. No migration required.

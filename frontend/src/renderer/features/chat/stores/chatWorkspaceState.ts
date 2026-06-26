@@ -21,7 +21,7 @@ import {
 import type {
   ChatMessage,
   TokenCounts,
-} from './chatStore';
+} from '../../../app/runtime/desktopChatMessageTypes';
 
 const {
   createInitialStreamTracking,
