@@ -257,6 +257,47 @@ describe('desktopStopTurnRuntime', () => {
     }));
   });
 
+  test('buildStoppedTurnWorkspaceMutation ignores raw live-turn fallback when ConversationView exists', () => {
+    expect(buildStoppedTurnWorkspaceMutation({
+      conversationRef: 'conv-stop',
+      currentWorkspace: workspace({
+        conversationView: conversationView({
+          conversationRef: 'conv-stop',
+          turnRef: 'turn-view',
+          canStop: true,
+        }),
+        pendingTurn: null,
+      }),
+      stoppedAt: '2026-06-25T12:01:00.000Z',
+      turnRef: 'turn-stop',
+    })).toBeNull();
+  });
+
+  test('buildStoppedTurnWorkspaceMutation clears pending bridge under ConversationView without raw fallback', () => {
+    const nextWorkspace = buildStoppedTurnWorkspaceMutation({
+      conversationRef: 'conv-stop',
+      currentWorkspace: workspace({
+        conversationView: conversationView({
+          conversationRef: 'conv-stop',
+          turnRef: 'turn-view',
+          canStop: true,
+        }),
+      }),
+      stoppedAt: '2026-06-25T12:01:00.000Z',
+      turnRef: 'turn-stop',
+    });
+
+    expect(nextWorkspace).toEqual(expect.objectContaining({
+      pendingTurn: null,
+      currentTurnProjection: null,
+      isSending: false,
+      streamTracking: expect.objectContaining({
+        phase: 'complete',
+        lastEventType: 'stop-query',
+      }),
+    }));
+  });
+
   test('buildStoppedTurnWorkspaceMutation ignores stale target identities', () => {
     expect(buildStoppedTurnWorkspaceMutation({
       conversationRef: 'conv-other',

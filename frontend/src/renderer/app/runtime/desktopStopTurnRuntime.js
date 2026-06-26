@@ -84,6 +84,10 @@ function doesPendingTurnMatch(pendingTurn, input = null) {
   );
 }
 
+function hasConversationView(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
 function resolveStoppedAt(stoppedAt) {
   return typeof stoppedAt === 'string' && stoppedAt.trim()
     ? stoppedAt
@@ -104,7 +108,10 @@ function buildStoppedTurnWorkspaceMutation({
     conversationRef: normalizeRef(conversationRef),
     turnRef: normalizeRef(turnRef),
   };
-  const workspaceSdkLiveTurn = currentWorkspace.currentTurnProjection ?? null;
+  const hasWorkspaceConversationView = hasConversationView(currentWorkspace.conversationView);
+  const workspaceSdkLiveTurn = hasWorkspaceConversationView
+    ? null
+    : currentWorkspace.currentTurnProjection ?? null;
   const isWorkspaceSdkLiveTurnTarget = doesSdkLiveTurnMatch(workspaceSdkLiveTurn, target);
   const isPendingTurnTarget = doesPendingTurnMatch(currentWorkspace.pendingTurn, target);
   if (!isWorkspaceSdkLiveTurnTarget && !isPendingTurnTarget) {
@@ -126,7 +133,7 @@ function buildStoppedTurnWorkspaceMutation({
     thinkingStatus: null,
     thinkingSourceEventType: null,
     pendingTurn: nextPendingTurn,
-    currentTurnProjection: nextSdkLiveTurn,
+    currentTurnProjection: hasWorkspaceConversationView ? null : nextSdkLiveTurn,
     streamTracking: {
       ...currentWorkspace.streamTracking,
       ...buildStopQueryTrackingPatch(nextStoppedAt),

@@ -2204,6 +2204,9 @@ describe('renderer chat runtime boundary', () => {
     expect(stopRuntimeSource).toContain('DesktopStopTurnRuntime');
     expect(stopRuntimeSource).toContain('buildStoppedSdkLiveTurn');
     expect(stopRuntimeSource).toContain('doesSdkLiveTurnMatch');
+    expect(stopRuntimeSource).toContain('const hasWorkspaceConversationView = hasConversationView(currentWorkspace.conversationView);');
+    expect(stopRuntimeSource).toContain('const workspaceSdkLiveTurn = hasWorkspaceConversationView');
+    expect(stopRuntimeSource).toContain('currentTurnProjection: hasWorkspaceConversationView ? null : nextSdkLiveTurn');
     expect(stopRuntimeSource).not.toContain('buildStoppedCurrentTurnProjection');
     expect(stopRuntimeSource).not.toContain('doesProjectionMatch');
     expect(stopRuntimeSource).not.toContain('currentTurnProjection = null');

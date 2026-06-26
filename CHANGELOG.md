@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stop: make stopped-turn workspace mutation ignore and clear the
+  no-view SDK live-turn fallback once `ConversationView` exists, leaving only a
+  matching renderer pending bridge for local stop cleanup. No migration
+  required.
 - frontend/chat: make the interface presentation adapter blank the no-view
   `sdkLiveTurn` fallback before invoking thread presentation whenever
   `ConversationView` exists, keeping SDK view live rows as the only normal live

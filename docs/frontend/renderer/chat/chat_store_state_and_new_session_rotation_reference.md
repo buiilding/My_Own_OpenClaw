@@ -188,6 +188,9 @@ replay/store compatibility adapters and low-level artifact helpers.
   React stop handlers and stopped-turn callers pass only target identity from
   SDK `ConversationView` or the renderer pending bridge into that runtime; raw
   `currentTurnProjection` is not accepted as caller-supplied stop state.
+  When a workspace already has a `ConversationView`, stopped-turn mutation
+  ignores the raw no-view live-turn fallback, clears it to `null`, and only
+  applies renderer-local cleanup for a matching pending bridge.
 - `clearMessagesInChatStore(...)` clears messages, clears raw send cleanup
   state, and resets `streamTracking` to initial idle shape through
   `DesktopChatClearMessagesRuntime.buildClearMessagesStateUpdate(...)`. The
