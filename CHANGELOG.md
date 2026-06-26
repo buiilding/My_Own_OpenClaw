@@ -71,6 +71,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/pill: stop falling back to raw `currentTurnProjection.turnRef` in
   chat-pill traces once `ConversationView` exists; view-backed diagnostics now
   report the SDK live-turn ref or `null`. No migration required.
+- frontend/surfaces: stop borrowing raw `currentTurnProjection.conversationRef`
+  for local pending surface identity; pending overlays now use only the
+  renderer pending bridge conversation ref. No migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.

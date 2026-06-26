@@ -105,6 +105,35 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
+  test('does not borrow stale current-turn conversation refs for pending surface identity', () => {
+    const result = resolveLiveTurnPresentationInput({
+      pendingTurn: {
+        conversationRef: 'conv-pending',
+        turnRef: 'turn-local',
+        userMessageId: 'user-local',
+        text: 'hello',
+        timestamp: '2026-06-25T12:00:00.000Z',
+        attachmentFilenames: null,
+      },
+      currentTurnProjection: {
+        conversationRef: 'conv-stale',
+        turnRef: 'turn-stale',
+        phase: 'complete',
+      },
+    });
+
+    expect(result).toMatchObject({
+      source: 'pending-turn',
+      useLocalPendingTurn: true,
+      turnRef: 'turn-local',
+      conversationRef: 'conv-pending',
+      overlayIntent: expect.objectContaining({
+        conversationRef: 'conv-pending',
+        turnRef: 'turn-local',
+      }),
+    });
+  });
+
   test('lets same-turn ConversationView replace local pending surface state', () => {
     const result = resolveLiveTurnPresentationInput({
       conversationView: conversationView({

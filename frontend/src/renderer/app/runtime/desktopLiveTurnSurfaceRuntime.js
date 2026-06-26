@@ -225,11 +225,7 @@ function resolveLiveTurnPresentationInput({
   if (useLocalPendingTurn) {
     const turnRef = normalizeTurnRef(pendingTurn?.turnRef);
     const preflightGuardRef = getResponseOverlayPreflightGuardRef();
-    const conversationRef = (
-      normalizeConversationRef(pendingTurn?.conversationRef)
-      || currentTurnProjection?.conversationRef
-      || null
-    );
+    const conversationRef = normalizeConversationRef(pendingTurn?.conversationRef);
     return {
       phase: getAwaitingFirstChunkResponseOverlayPhase(),
       isBusy: true,
