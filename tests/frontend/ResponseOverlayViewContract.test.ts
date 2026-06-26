@@ -300,6 +300,53 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(state.useLocalPendingTurn).toBe(false);
   });
 
+  test('projects response overlay thinking text from SDK presentation entries', () => {
+    const state = resolveResponseOverlaySurfaceState({
+      chatSurfaceState: {
+        sdkLiveTurn: {
+          conversationRef: 'conv-sdk',
+          turnRef: 'turn-sdk',
+          phase: 'streaming',
+          reasoningText: 'raw reasoning fallback',
+          presentation: {
+            entries: [{
+              id: 'thinking-sdk',
+              type: 'thinking',
+              text: 'presentation thinking',
+              turnRef: 'turn-sdk',
+            }],
+            lastError: null,
+          },
+        },
+      },
+    });
+
+    expect(state.thinkingText).toBe('presentation thinking');
+    expect(state.responseOverlayEntries).toEqual([
+      expect.objectContaining({
+        id: 'thinking-sdk',
+        thinkingText: 'presentation thinking',
+      }),
+    ]);
+
+    const hiddenPresentationState = resolveResponseOverlaySurfaceState({
+      chatSurfaceState: {
+        sdkLiveTurn: {
+          conversationRef: 'conv-sdk',
+          turnRef: 'turn-sdk',
+          phase: 'streaming',
+          reasoningText: 'raw reasoning fallback',
+          presentation: {
+            entries: [],
+            lastError: null,
+          },
+        },
+      },
+    });
+
+    expect(hiddenPresentationState.thinkingText).toBe('');
+  });
+
   test('response overlay surface state blanks raw fallback under direct ConversationView input', () => {
     const state = resolveResponseOverlaySurfaceState({
       chatSurfaceState: {

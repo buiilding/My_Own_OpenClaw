@@ -77,6 +77,17 @@ function normalizeReasoningText(reasoningText: unknown): string {
   return typeof reasoningText === 'string' ? reasoningText.trim() : '';
 }
 
+function normalizeEntryThinkingText(entry: unknown): string {
+  const message = recordFromUnknown(entry);
+  const thinkingText = normalizeReasoningText(message.thinkingText);
+  if (thinkingText) {
+    return thinkingText;
+  }
+  return message.type === 'thinking'
+    ? normalizeReasoningText(message.text)
+    : '';
+}
+
 function recordFromUnknown(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -170,6 +181,28 @@ function resolveResponseOverlayWindowSizeIdentity({
   };
 }
 
+function resolveResponseOverlayThinkingText({
+  responseOverlayEntries,
+  sdkLiveTurn,
+}: {
+  responseOverlayEntries: ResponseOverlayEntryLike[];
+  sdkLiveTurn?: unknown;
+}): string {
+  const thinkingText = responseOverlayEntries
+    .map(normalizeEntryThinkingText)
+    .filter(Boolean)
+    .join('');
+  if (thinkingText) {
+    return thinkingText;
+  }
+  if (hasSdkLiveTurnPresentationObject(sdkLiveTurn)) {
+    return '';
+  }
+  return normalizeReasoningText(
+    recordFromUnknown(sdkLiveTurn).reasoningText,
+  );
+}
+
 function resolveResponseOverlaySurfaceState({
   chatSurfaceState = null,
 }: {
@@ -222,9 +255,10 @@ function resolveResponseOverlaySurfaceState({
     responseOverlayEntries,
     responseOverlayMessages,
     sdkLiveTurn,
-    thinkingText: normalizeReasoningText(
-      recordFromUnknown(sdkLiveTurn).reasoningText,
-    ),
+    thinkingText: resolveResponseOverlayThinkingText({
+      responseOverlayEntries,
+      sdkLiveTurn,
+    }),
     useLocalPendingTurn,
     useSdkLiveTurnPresentation,
     visibleTurnLifecycle,
