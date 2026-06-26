@@ -85,15 +85,19 @@ function resolveWorkspaceThinkingSourceEventType(
   return optionalString(sourceEventType);
 }
 
-function resolveWorkspaceActiveTurnRef(workspace: StreamGuardWorkspace | null | undefined): string | null {
-  return (
-    normalizeTurnRef((workspace as {
+function resolveWorkspaceViewLiveTurnRef(workspace: StreamGuardWorkspace | null | undefined): string | null {
+  return normalizeTurnRef((workspace as {
       conversationView?: {
         liveTurn?: {
           turnRef?: string | null;
         } | null;
       } | null;
-    } | null | undefined)?.conversationView?.liveTurn?.turnRef)
+    } | null | undefined)?.conversationView?.liveTurn?.turnRef);
+}
+
+function resolveWorkspaceActiveTurnRef(workspace: StreamGuardWorkspace | null | undefined): string | null {
+  return (
+    resolveWorkspaceViewLiveTurnRef(workspace)
     || normalizeTurnRef(workspace?.streamTracking?.activeTurnRef)
   );
 }
@@ -270,6 +274,10 @@ function shouldRecordTerminalCompletionTracking(
     return true;
   }
   const normalizedEventTurnRef = normalizeTurnRef(eventTurnRef);
+  const normalizedViewTurnRef = resolveWorkspaceViewLiveTurnRef(workspace);
+  if (normalizedViewTurnRef && normalizedEventTurnRef === normalizedViewTurnRef) {
+    return true;
+  }
   const normalizedPendingTurnRef = normalizeTurnRef(workspace.pendingTurn?.turnRef);
   return (
     normalizedEventTurnRef.length > 0

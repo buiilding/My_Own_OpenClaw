@@ -219,7 +219,8 @@ SDK conversation-event stale-turn gating also belongs to
 `DesktopChatStreamEventRuntime`: it resolves active turn identity from
 `ConversationView.liveTurn.turnRef` first and uses raw `streamTracking` only as
 the no-view fallback so stale renderer stream tracking cannot reject the
-SDK-owned live turn.
+SDK-owned live turn. Terminal completion tracking uses the same view-first
+turn identity before falling back to raw complete-state/pending-bridge checks.
 
 ### Removed Chat Stream Transparency and Thinking Helper Paths
 

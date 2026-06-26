@@ -227,6 +227,46 @@ describe('DesktopChatStreamEventRuntime', () => {
     } as any, 'turn-old')).toBe(false);
   });
 
+  test('terminal completion tracking records matching ConversationView live turn over stale complete stream state', () => {
+    expect(shouldRecordTerminalCompletionTracking({
+      messages: [],
+      pendingTurn: null,
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: {
+          turnRef: ' turn-view ',
+          phase: 'streaming',
+        },
+        displayRows: [],
+      },
+      streamTracking: {
+        activeTurnRef: 'turn-stale',
+        phase: 'complete',
+      },
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+    } as any, 'turn-view')).toBe(true);
+
+    expect(shouldRecordTerminalCompletionTracking({
+      messages: [],
+      pendingTurn: null,
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'streaming',
+        },
+        displayRows: [],
+      },
+      streamTracking: {
+        activeTurnRef: 'turn-stale',
+        phase: 'complete',
+      },
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+    } as any, 'turn-stale')).toBe(false);
+  });
+
   test('terminal completion tracking records non-complete stream phase', () => {
     expect(shouldRecordTerminalCompletionTracking({
       messages: [],
