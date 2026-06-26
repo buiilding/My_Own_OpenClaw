@@ -270,10 +270,6 @@ interface ChatState {
       stoppedAt?: string | null;
     } | null,
   ) => void;
-  updateStreamTracking: (
-    updater: (current: StreamTracking) => StreamTracking,
-    conversationRef?: string | null,
-  ) => void;
   clearMessages: (conversationRef?: string | null) => void;
 }
 
@@ -465,16 +461,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }) ?? state;
     }),
 
-  updateStreamTracking: (updater, conversationRef) =>
-    set((state) => {
-      return buildUpdateStreamTrackingStateUpdate<ChatState, ChatWorkspaceState>({
-        conversationRef,
-        deps: streamTrackingStateRuntimeDependencies,
-        state,
-        updater,
-      }) ?? state;
-    }),
-
   clearMessages: (conversationRef) =>
     set((state) => {
       return buildClearMessagesStateUpdate<ChatState, StreamTracking, ChatWorkspaceState>({
@@ -521,6 +507,20 @@ export function setConversationViewInChatStore(
       conversationRef,
       deps: conversationViewStateRuntimeDependencies,
       state,
+    }) ?? state
+  ));
+}
+
+export function updateStreamTrackingInChatStore(
+  updater: (current: StreamTracking) => StreamTracking,
+  conversationRef?: string | null,
+): void {
+  useChatStore.setState((state) => (
+    buildUpdateStreamTrackingStateUpdate<ChatState, ChatWorkspaceState>({
+      conversationRef,
+      deps: streamTrackingStateRuntimeDependencies,
+      state,
+      updater,
     }) ?? state
   ));
 }

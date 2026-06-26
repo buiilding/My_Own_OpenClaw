@@ -3385,6 +3385,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('currentWorkspace.messages.findIndex');
     expect(chatStoreSource).toContain('DesktopChatStreamTrackingRuntime');
     expect(chatStoreSource).toContain('buildUpdateStreamTrackingStateUpdate');
+    expect(chatStoreSource).toContain('updateStreamTrackingInChatStore');
+    expect(chatStoreSource).not.toContain('updateStreamTracking:');
     expect(chatStoreSource).toContain('DesktopChatWorkspaceFieldRuntime');
     expect(chatStoreSource).toContain('buildSetWorkspaceFieldStateUpdate');
     expect(chatStoreSource).toContain('DesktopResponseOverlayViewRuntime');

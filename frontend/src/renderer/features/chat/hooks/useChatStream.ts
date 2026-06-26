@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import type { ConversationEvent } from '../../../app/runtime/desktopConversationRuntimeContracts';
 import {
   useChatStore,
+  updateStreamTrackingInChatStore,
 } from '../stores/chatStore';
 import { DesktopRendererConfigRuntimeClient } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopModelThinkingRuntime } from '../../../app/runtime/desktopModelThinkingRuntime';
@@ -68,7 +69,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingSourceEventType,
   } = useChatCommonActions();
   const setCompactionDebugInfo = useChatStore((state) => state.setCompactionDebugInfo);
-  const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const { config, availableModels } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const modelCapabilities = useMemo(() => DesktopModelThinkingRuntime.resolveThinkingCapabilities(
@@ -89,12 +89,12 @@ export function useChatStream(enableTranscript: boolean = true) {
     options: StreamTrackingOptions = {},
     conversationRef?: string | null,
   ) => recordTrackingEventRuntime(
-    updateStreamTracking,
+    updateStreamTrackingInChatStore,
     eventType,
     turnRef,
     options,
     conversationRef,
-  ), [updateStreamTracking]);
+  ), []);
 
   // Active-turn gating is shared across most handlers so late events from older turns
   // never mutate the current workspace stream state.

@@ -5,6 +5,7 @@
 import {
   applyPendingTurnBroadcastToChatStore,
   setCurrentTurnProjectionInChatStore,
+  updateStreamTrackingInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
@@ -211,8 +212,8 @@ describe('chatStore', () => {
     expect(secondReset).toHaveLength(0);
   });
 
-  test('updateStreamTracking applies updater result', () => {
-    useChatStore.getState().updateStreamTracking((current) => ({
+  test('updateStreamTrackingInChatStore applies updater result', () => {
+    updateStreamTrackingInChatStore((current) => ({
       ...current,
       phase: 'streaming',
       activeTurnRef: 'turn-1',

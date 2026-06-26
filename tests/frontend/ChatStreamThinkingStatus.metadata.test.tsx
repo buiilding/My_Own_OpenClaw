@@ -3,7 +3,10 @@
  */
 
 import { act } from '@testing-library/react';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  updateStreamTrackingInChatStore,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   getActiveWorkspaceStateForTest,
   registerBackendListener,
@@ -167,7 +170,7 @@ describe('useChatStream message metadata handling', () => {
         { id: 'user-1', sender: 'user', text: 'ask', turnRef: 'turn-new' },
         { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text', turnRef: 'turn-new' },
       ]);
-      useChatStore.getState().updateStreamTracking(() => ({
+      updateStreamTrackingInChatStore(() => ({
         activeTurnRef: 'turn-new',
         phase: 'streaming',
         startedAt: '2026-03-05T00:00:00.000Z',

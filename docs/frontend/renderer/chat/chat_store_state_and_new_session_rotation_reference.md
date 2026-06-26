@@ -113,11 +113,13 @@ replay/store compatibility adapters and low-level artifact helpers.
   Workspace resolution, equality no-op handling, and workspace update assembly
   live in that app runtime; the store only passes field intent plus workspace
   dependency adapters.
-- `updateStreamTracking` applies updater output through
+- Stream-tracking updates enter through the module-level
+  `updateStreamTrackingInChatStore(...)` adapter instead of a Zustand action.
+  The adapter applies updater output through
   `DesktopChatStreamTrackingRuntime.buildUpdateStreamTrackingStateUpdate(...)`.
   Workspace resolution, stream-tracking reference no-op handling, and workspace
-  update assembly live in that app runtime; the store only passes updater intent
-  plus workspace dependency adapters.
+  update assembly live in that app runtime; the store module only passes
+  updater intent plus workspace dependency adapters.
 - SDK current-turn projection updates enter through the module-level
   `setCurrentTurnProjectionInChatStore(...)` adapter instead of a Zustand
   action. It updates the target workspace and clears a matching `pendingTurn`

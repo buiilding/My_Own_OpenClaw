@@ -215,6 +215,9 @@ All notable changes to WindieOS will be documented in this file.
   behind `DesktopChatStreamTrackingRuntime` so `chatStore` no longer owns
   stream-tracking workspace lookup or reference no-op handling. No migration
   required.
+- frontend/store: move stream-tracking writes out of the Zustand action
+  surface; stream/projection hooks now call the module-level
+  `updateStreamTrackingInChatStore(...)` adapter. No migration required.
 - frontend/store: move `setCurrentTurnProjection` state-update construction
   behind `DesktopCurrentTurnWorkspaceRuntime` so `chatStore` no longer owns
   workspace lookup or pending-bridge replacement for SDK current-turn
