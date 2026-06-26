@@ -173,6 +173,41 @@ describe('chatSelectors', () => {
     expect(secondSurfaceState.messages).toBe(firstSurfaceState.messages);
   });
 
+  test('surface selector treats ConversationView as authoritative even with raw workspace input', () => {
+    const conversationView = {
+      conversationRef: 'conv-view',
+      liveTurn: {
+        turnRef: 'turn-view',
+        phase: 'streaming',
+      },
+    };
+    const selected = projectDesktopChatSurfaceState({
+      activeWorkspace: {
+        messages: [{ id: 'stale-user', text: 'stale', sender: 'user' }],
+        currentTurnProjection: {
+          conversationRef: 'conv-raw',
+          turnRef: 'turn-raw',
+          phase: 'streaming',
+        },
+        conversationView,
+        pendingTurn: {
+          conversationRef: 'conv-view',
+          turnRef: 'turn-pending',
+        },
+      },
+    });
+
+    expect(selected).toEqual({
+      messages: [],
+      currentTurnProjection: null,
+      conversationView,
+      pendingTurn: {
+        conversationRef: 'conv-view',
+        turnRef: 'turn-pending',
+      },
+    });
+  });
+
   test('drops raw surface messages while carrying the pending bridge under ConversationView', () => {
     const activeWorkspace = {
       messages: [{ id: 'pending-user', text: 'pending', sender: 'user' }],

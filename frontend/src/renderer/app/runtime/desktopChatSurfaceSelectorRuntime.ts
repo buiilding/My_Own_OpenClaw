@@ -17,16 +17,23 @@ type DesktopChatWorkspaceProjection = {
 };
 
 const emptyRendererAnnotations: unknown[] = [];
+const emptyChatMessages: ChatMessage[] = [];
+
+function hasConversationView(value: unknown): boolean {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
 
 function projectDesktopChatSurfaceState({
   activeWorkspace,
 }: {
   activeWorkspace: DesktopChatWorkspaceProjection;
 }) {
+  const conversationView = activeWorkspace.conversationView ?? null;
+  const hasSdkConversationView = hasConversationView(conversationView);
   return {
-    messages: activeWorkspace.messages,
-    currentTurnProjection: activeWorkspace.currentTurnProjection ?? null,
-    conversationView: activeWorkspace.conversationView ?? null,
+    messages: hasSdkConversationView ? emptyChatMessages : activeWorkspace.messages,
+    currentTurnProjection: hasSdkConversationView ? null : activeWorkspace.currentTurnProjection ?? null,
+    conversationView,
     pendingTurn: activeWorkspace.pendingTurn ?? null,
   };
 }
@@ -37,13 +44,13 @@ function projectDesktopChatInterfaceState(
   const surfaceState = projectDesktopChatSurfaceState({
     activeWorkspace,
   });
-  const hasConversationView = Boolean(surfaceState.conversationView);
+  const hasSdkConversationView = hasConversationView(surfaceState.conversationView);
   const projectedRendererAnnotations = Array.isArray(activeWorkspace.rendererAnnotations)
     ? activeWorkspace.rendererAnnotations
     : emptyRendererAnnotations;
   return {
     messages: surfaceState.messages,
-    rendererAnnotations: hasConversationView
+    rendererAnnotations: hasSdkConversationView
       ? projectedRendererAnnotations
       : emptyRendererAnnotations,
     thinkingStatus: activeWorkspace.thinkingStatus,

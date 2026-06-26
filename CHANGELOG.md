@@ -86,6 +86,10 @@ All notable changes to WindieOS will be documented in this file.
   replay runtime; edit/retry traces now stay at command intent and workspace
   snapshot level while SDK owns replacement turn identity. No migration
   required.
+- frontend/selectors: make the shared chat surface selector enforce
+  `ConversationView` authority directly, hiding raw messages and
+  `currentTurnProjection` even if a caller passes an unprojected workspace. No
+  migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.

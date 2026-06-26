@@ -3460,7 +3460,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
     expect(chatSurfaceSelectorRuntimeSource).toContain('activeWorkspace.rendererAnnotations');
     expect(chatSurfaceSelectorRuntimeSource).toContain('messages: surfaceState.messages');
-    expect(chatSurfaceSelectorRuntimeSource).toContain('rendererAnnotations: hasConversationView');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('rendererAnnotations: hasSdkConversationView');
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('conversationView\n    ? emptyChatMessages\n    : interfaceState.messages');
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('messages: conversationView ?');
     expect(chatInterfaceSelectorRuntimeSource).toContain('messages: presentationMessages');
