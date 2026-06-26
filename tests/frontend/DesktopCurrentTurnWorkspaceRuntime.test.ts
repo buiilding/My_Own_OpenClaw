@@ -30,7 +30,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
     })).toBeNull();
   });
 
-  test('clears matching pending turn when SDK live turn is authoritative', () => {
+  test('keeps matching pending turn when SDK live turn has no visible replacement rows', () => {
     const currentWorkspace = {
       sdkLiveTurn: null,
       pendingTurn: {
@@ -58,7 +58,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       sdkLiveTurn,
     })).toEqual({
       sdkLiveTurn: sdkLiveTurn,
-      pendingTurn: null,
+      pendingTurn: currentWorkspace.pendingTurn,
       messages: [],
     });
   });
@@ -228,14 +228,22 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       'conv-1',
       expect.objectContaining({
         sdkLiveTurn: sdkLiveTurn,
-        pendingTurn: null,
+        pendingTurn: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          userMessageId: 'user-1',
+        },
       }),
     );
     expect(nextState).toEqual(expect.objectContaining({
       workspaces: {
         'conv-1': expect.objectContaining({
           sdkLiveTurn: sdkLiveTurn,
-          pendingTurn: null,
+          pendingTurn: {
+            conversationRef: 'conv-1',
+            turnRef: 'turn-1',
+            userMessageId: 'user-1',
+          },
         }),
       },
     }));

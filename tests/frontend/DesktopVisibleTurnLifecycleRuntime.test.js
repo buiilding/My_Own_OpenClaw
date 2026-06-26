@@ -193,7 +193,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(resolvePendingTurnForSdkLiveTurn({
       pendingTurn: pending,
       sdkLiveTurn: awaitingProjection,
-    })).toBeNull();
+    })).toBe(pending);
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,

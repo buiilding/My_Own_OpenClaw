@@ -9,6 +9,7 @@ import {
   setMockActiveConversationRef,
 } from './ChatStreamThinkingStatus.testUtils';
 import {
+  selectChatInterfaceState,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
@@ -107,6 +108,55 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     expect(workspace.conversationView).toBe(conversationView);
     expect(workspace.pendingTurn).toBeNull();
     expect(workspace.sdkLiveTurn).toBeNull();
+  });
+
+  test('keeps pending user row visible through awaiting current-turn projection without view rows', () => {
+    acceptPendingTurnInChatStore({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-awaiting',
+      userMessageId: 'turn-awaiting-sdk-evt-000002-user_message',
+      text: 'normal dashboard send',
+      timestamp: '2026-06-26T00:00:00.000Z',
+    });
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
+
+    act(() => {
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-1',
+        currentTurn: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-awaiting',
+          phase: 'awaiting',
+          assistantText: '',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+          presentation: {
+            phase: 'awaiting',
+            entries: [],
+            isBusy: true,
+            isTerminal: false,
+            awaitingAnchor: {
+              kind: 'user-message',
+              rowId: 'turn-awaiting-sdk-evt-000002-user_message',
+            },
+          },
+        },
+      });
+    });
+
+    const storeState = useChatStore.getState();
+    const workspace = storeState.getWorkspaceState('conv-1');
+    expect(workspace.pendingTurn).toEqual(expect.objectContaining({
+      turnRef: 'turn-awaiting',
+    }));
+    expect(selectChatInterfaceState(storeState).renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'turn-awaiting-sdk-evt-000002-user_message',
+        sender: 'user',
+        text: 'normal dashboard send',
+      }),
+    ]);
   });
 
   test('applies SDK current-turn projection atomically with pending-turn replacement', () => {

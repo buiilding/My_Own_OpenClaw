@@ -69,6 +69,40 @@ function hasPresentationLifecycleEvidence(presentation) {
   );
 }
 
+function hasLegacyVisibleLiveTurnContent(sdkLiveTurn) {
+  if (!sdkLiveTurn || typeof sdkLiveTurn !== 'object') {
+    return false;
+  }
+  if (sdkLiveTurn.presentation && typeof sdkLiveTurn.presentation === 'object') {
+    return false;
+  }
+  return Boolean(
+    normalizeString(sdkLiveTurn.assistantText)
+      || normalizeString(sdkLiveTurn.reasoningText)
+      || normalizeString(sdkLiveTurn.lastError)
+      || (Array.isArray(sdkLiveTurn.toolEvents) && sdkLiveTurn.toolEvents.length > 0),
+  );
+}
+
+function hasTerminalSdkLiveTurnLifecycle(sdkLiveTurn) {
+  const phase = normalizeSdkLiveTurnPhase(sdkLiveTurn);
+  return Boolean(
+    TERMINAL_PHASES.has(phase)
+      || sdkLiveTurn?.presentation?.isTerminal === true,
+  );
+}
+
+function canSdkLiveTurnReplacePendingTurn(pendingTurn, sdkLiveTurn) {
+  return (
+    sdkLiveTurnMatchesPendingTurn(pendingTurn, sdkLiveTurn)
+    && (
+      hasVisiblePresentationContent(sdkLiveTurn?.presentation)
+      || hasLegacyVisibleLiveTurnContent(sdkLiveTurn)
+      || hasTerminalSdkLiveTurnLifecycle(sdkLiveTurn)
+    )
+  );
+}
+
 function isAuthoritativeSdkLiveTurn(sdkLiveTurn) {
   if (!sdkLiveTurn) {
     return false;
@@ -108,7 +142,7 @@ function resolvePendingTurnForSdkLiveTurn({
   if (!normalizedPendingTurn) {
     return null;
   }
-  return hasAuthoritativeSameTurnSdkReplacement(normalizedPendingTurn, sdkLiveTurn)
+  return canSdkLiveTurnReplacePendingTurn(normalizedPendingTurn, sdkLiveTurn)
     ? null
     : pendingTurn;
 }
@@ -158,6 +192,7 @@ function resolveSdkLifecycleStatus(sdkLiveTurn) {
   if (
     ACTIVE_PROGRESS_PHASES.has(phase)
     || hasVisiblePresentationContent(sdkLiveTurn.presentation)
+    || hasLegacyVisibleLiveTurnContent(sdkLiveTurn)
   ) {
     return 'active';
   }

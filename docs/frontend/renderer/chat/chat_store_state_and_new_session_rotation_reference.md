@@ -158,7 +158,11 @@ current-turn row construction on typed SDK presentation fields.
 - SDK live-turn updates enter through the module-level
   `setNoViewSdkLiveTurnInChatStore(...)` adapter instead of a Zustand action. It
   updates the target workspace and clears a matching `pendingTurn` only after
-  the SDK live-turn projection for that conversation/turn arrives. Raw
+  the SDK live-turn projection for that conversation/turn has visible
+  replacement content or terminal lifecycle. Awaiting-only and flag-only SDK
+  projections may drive typing/busy state, but they must not clear the pending
+  bridge because the pending bridge owns the only visible dashboard user row
+  until SDK display rows or `ConversationView` arrive. Raw
   no-view SDK live-turn storage is read, written, and reset through
   `DesktopChatWorkspaceStateRuntime` helpers; pending-turn replacement and
   no-op guards live in `desktopCurrentTurnWorkspaceRuntime.ts`. The store

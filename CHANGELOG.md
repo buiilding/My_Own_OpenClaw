@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pending-turn: keep the renderer pending user-row bridge through
+  awaiting or flag-only SDK current-turn projections until SDK view/display
+  content, legacy visible current-turn content, or terminal lifecycle can
+  replace it, so normal dashboard sends do not fall back to the empty welcome
+  state while waiting for the first visible response. No migration required.
 - frontend/conversation-view: apply SDK `ConversationView` payloads carried on
   live current-turn IPC events before no-view current-turn side effects, so
   dashboard retry/resend renders the replacement user row, typing state, and
