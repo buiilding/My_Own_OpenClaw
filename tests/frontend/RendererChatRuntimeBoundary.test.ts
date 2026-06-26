@@ -151,6 +151,9 @@ describe('renderer chat runtime boundary', () => {
     expect(surfaceRuntimeSource).toContain('resolveVisibleTurnLifecycle');
     expect(surfaceRuntimeSource).toContain('resolveLiveTurnPresentationInput');
     expect(surfaceRuntimeSource).toContain('buildChatSurfaceControllerStateFromSurfaceState');
+    expect(surfaceRuntimeSource).toContain('const conversationView = isObject(surfaceState.conversationView)');
+    expect(surfaceRuntimeSource).toContain('const hasConversationView = isObject(conversationView)');
+    expect(surfaceRuntimeSource).toContain('currentTurnProjection: hasConversationView ? null : surfaceState.currentTurnProjection ?? null');
     expect(surfaceRuntimeSource).toContain('const rendererFallbackMessages = hasConversationView ? [] : messages');
     expect(surfaceRuntimeSource).toContain('const effectiveCurrentTurnProjection = hasConversationView ? null : currentTurnProjection');
     expect(surfaceRuntimeSource).toContain('currentTurnProjection: effectiveCurrentTurnProjection');

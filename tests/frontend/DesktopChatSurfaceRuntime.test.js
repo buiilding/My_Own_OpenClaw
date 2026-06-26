@@ -134,4 +134,52 @@ describe('DesktopChatSurfaceRuntime', () => {
     });
     expect(state.currentTurnPresentationState.activeResponse).toBeNull();
   });
+
+  test('surface-state adapter strips raw rows before controller projection under ConversationView', () => {
+    const state = buildChatSurfaceControllerStateFromSurfaceState({
+      conversationViewSurface: 'dashboard',
+      sessionConversationRef: 'conv-session',
+      chatSurfaceState: {
+        conversationView: {
+          conversationRef: 'conv-view',
+          liveTurn: {
+            turnRef: 'turn-view',
+            phase: 'complete',
+            canStop: false,
+            entries: [],
+          },
+          surfaces: {
+            dashboard: {
+              mode: 'idle',
+            },
+          },
+        },
+        currentTurnProjection: {
+          conversationRef: 'conv-raw',
+          turnRef: 'turn-raw',
+          phase: 'streaming',
+          assistantText: 'stale raw answer',
+        },
+        messages: [{
+          id: 'raw-assistant',
+          sender: 'assistant',
+          type: 'llm-text',
+          text: 'stale raw answer',
+        }],
+      },
+    });
+
+    expect(state).toMatchObject({
+      isBusy: false,
+      canStop: false,
+      liveTurnSource: 'conversation-view',
+    });
+    expect(state.visibleTurnLifecycle).toMatchObject({
+      conversationRef: 'conv-view',
+      turnRef: 'turn-view',
+      status: 'terminal',
+    });
+    expect(state.currentTurnPresentationState.activeResponse).toBeNull();
+    expect(state.currentTurnPresentationState.visibleResponse).toBeNull();
+  });
 });

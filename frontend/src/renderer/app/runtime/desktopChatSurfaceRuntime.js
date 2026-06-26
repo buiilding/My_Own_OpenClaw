@@ -116,10 +116,16 @@ function buildChatSurfaceControllerStateFromSurfaceState({
   sessionConversationRef = null,
 } = {}) {
   const surfaceState = isObject(chatSurfaceState) ? chatSurfaceState : {};
+  const conversationView = isObject(surfaceState.conversationView)
+    ? surfaceState.conversationView
+    : null;
+  const hasConversationView = isObject(conversationView);
   return buildChatSurfaceControllerState({
-    messages: Array.isArray(surfaceState.messages) ? surfaceState.messages : [],
-    currentTurnProjection: surfaceState.currentTurnProjection ?? null,
-    conversationView: surfaceState.conversationView ?? null,
+    messages: hasConversationView
+      ? []
+      : Array.isArray(surfaceState.messages) ? surfaceState.messages : [],
+    currentTurnProjection: hasConversationView ? null : surfaceState.currentTurnProjection ?? null,
+    conversationView,
     conversationViewSurface,
     pendingTurn: surfaceState.pendingTurn ?? null,
     sessionConversationRef,

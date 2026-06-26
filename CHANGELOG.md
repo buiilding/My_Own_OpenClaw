@@ -93,6 +93,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/send: make the chat send read-model selector hide raw renderer
   messages whenever `ConversationView` exists, so first-send decisions read SDK
   display rows instead of stale workspace history. No migration required.
+- frontend/surfaces: make the chat surface-controller adapter strip raw
+  messages and `currentTurnProjection` before projection when
+  `ConversationView` exists, keeping selected surface state view-authoritative.
+  No migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.
