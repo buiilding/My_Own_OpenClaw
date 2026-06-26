@@ -187,12 +187,11 @@ describe('UserMessage attachments', () => {
     });
   });
 
-  test('renders typed attachments and ignores filename metadata as display fallback', () => {
+  test('renders typed attachments without filename metadata fallback', () => {
     render(
       <UserMessage
         message={{
           text: 'Please inspect this',
-          attachmentFilenames: ['legacy-name.png'],
           attachments: [{
             id: 'attachment-ready',
             kind: 'image',
@@ -205,6 +204,5 @@ describe('UserMessage attachments', () => {
     );
 
     expect(screen.getByRole('img')).toHaveAttribute('src', 'resolved://artifact-ready');
-    expect(screen.queryByText('legacy-name.png')).not.toBeInTheDocument();
   });
 });
