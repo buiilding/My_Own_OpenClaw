@@ -261,7 +261,6 @@ function buildDisplayRowsProjection({
   workspace,
 }: DisplayRowsProjectionInput): {
   mergedMessages: ChatMessage[];
-  projectedRows: SdkDisplayRow[];
   shouldApplyMessages: boolean;
   sdkMessages: ChatMessage[];
   traceSummary: Record<string, unknown>;
@@ -270,7 +269,6 @@ function buildDisplayRowsProjection({
   if (!shouldApplyMessages) {
     return {
       mergedMessages: [],
-      projectedRows: rows,
       shouldApplyMessages,
       sdkMessages: [],
       traceSummary: buildDisplayProjectionTraceSummary({
@@ -288,7 +286,6 @@ function buildDisplayRowsProjection({
   );
   return {
     mergedMessages,
-    projectedRows: rows,
     shouldApplyMessages,
     sdkMessages,
     traceSummary: buildDisplayProjectionTraceSummary({
@@ -311,7 +308,6 @@ function applyDisplayRowsProjectionEvent({
   const workspace = deps.getWorkspaceState(conversationRef);
   const {
     mergedMessages,
-    projectedRows,
     shouldApplyMessages,
     traceSummary,
   } = buildDisplayRowsProjection({ rows, workspace });
@@ -322,7 +318,7 @@ function applyDisplayRowsProjectionEvent({
   });
   logReplayProjectionTrace('sdk_display_rows_projected', conversationRef, workspace, {
     displayRowCount: rows.length,
-    projectedRowCount: projectedRows.length,
+    projectedRowCount: rows.length,
     shouldApplyMessages,
   });
   if (!shouldApplyMessages) {
