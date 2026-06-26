@@ -149,6 +149,103 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     });
   });
 
+  test('keeps pending bridge when awaiting ConversationView has no replacement rows yet', () => {
+    const pendingTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      userMessageId: 'user-1',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    };
+    const conversationView: ConversationView = {
+      ...buildConversationView('conv-1'),
+      displayRows: [],
+      liveTurn: {
+        turnRef: 'turn-1',
+        phase: 'awaiting',
+        isBusy: true,
+        entries: [],
+      },
+      surfaces: {
+        responseOverlay: {
+          mode: 'awaiting',
+          visible: true,
+          turnRef: 'turn-1',
+          guardRef: 'turn-1',
+          ownerConversationRef: 'conv-1',
+        },
+      },
+    };
+    const workspace = {
+      conversationView: null,
+      isSending: true,
+      pendingTurn,
+    };
+
+    expect(buildConversationViewWorkspaceMutation({
+      conversationView,
+      currentWorkspace: workspace,
+    })).toEqual({
+      workspace: {
+        conversationView,
+        isSending: true,
+        pendingTurn,
+      },
+    });
+  });
+
+  test('clears pending bridge when ConversationView has the same-turn SDK user row', () => {
+    const conversationView: ConversationView = {
+      ...buildConversationView('conv-1'),
+      displayRows: [{
+        id: 'sdk-user-row',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'hello',
+      }],
+      liveTurn: {
+        turnRef: 'turn-1',
+        phase: 'awaiting',
+        isBusy: true,
+        entries: [],
+      },
+      surfaces: {
+        responseOverlay: {
+          mode: 'awaiting',
+          visible: true,
+          turnRef: 'turn-1',
+          guardRef: 'turn-1',
+          ownerConversationRef: 'conv-1',
+        },
+      },
+    };
+    const workspace = {
+      conversationView: null,
+      isSending: true,
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        userMessageId: 'user-1',
+        text: 'hello',
+        timestamp: '2026-06-25T12:00:00.000Z',
+      },
+    };
+
+    expect(buildConversationViewWorkspaceMutation({
+      conversationView,
+      currentWorkspace: workspace,
+    })).toEqual({
+      workspace: {
+        conversationView,
+        isSending: false,
+        pendingTurn: null,
+      },
+    });
+  });
+
   test('keeps unrelated pending bridge when ConversationView is for another turn', () => {
     const conversationView = buildLiveConversationView({
       conversationRef: 'conv-1',

@@ -63,7 +63,7 @@ function normalizePendingTurn(value: unknown): {
 function normalizeConversationViewLiveTurn(conversationView: ConversationView | null): {
   conversationRef: string;
   turnRef: string;
-  isAuthoritative: boolean;
+  hasVisibleReplacement: boolean;
 } | null {
   if (!conversationView || typeof conversationView !== 'object') {
     return null;
@@ -83,24 +83,28 @@ function normalizeConversationViewLiveTurn(conversationView: ConversationView | 
     || normalizeString(responseOverlay?.turnRef)
   );
   const phase = normalizeString(liveTurn?.phase);
-  const responseMode = normalizeString(responseOverlay?.mode);
   const entries = Array.isArray(liveTurn?.entries) ? liveTurn.entries : [];
-  const isAuthoritative = Boolean(
-    responseMode === 'awaiting'
-      || responseMode === 'typing'
-      || responseMode === 'response'
-      || liveTurn?.isBusy === true
-      || liveTurn?.isTerminal === true
+  const displayRows = Array.isArray(conversationView.displayRows)
+    ? conversationView.displayRows
+    : [];
+  const hasSameTurnUserDisplayRow = displayRows.some((row) => (
+    row
+      && typeof row === 'object'
+      && (
+        row.role === 'user'
+        || row.type === 'user_message'
+      )
+      && normalizeString(row.turnRef) === turnRef
+  ));
+  const hasVisibleReplacement = Boolean(
+    hasSameTurnUserDisplayRow
       || entries.length > 0
-      || phase === 'awaiting'
-      || phase === 'streaming'
-      || phase === 'tool_call'
-      || phase === 'tool_output'
+      || liveTurn?.isTerminal === true
       || phase === 'complete'
       || phase === 'error'
   );
   return conversationRef && turnRef
-    ? { conversationRef, turnRef, isAuthoritative }
+    ? { conversationRef, turnRef, hasVisibleReplacement }
     : null;
 }
 
@@ -112,7 +116,7 @@ function shouldClearPendingTurnForConversationView(
   const normalizedViewTurn = normalizeConversationViewLiveTurn(conversationView);
   return Boolean(
     normalizedPendingTurn
-      && normalizedViewTurn?.isAuthoritative
+      && normalizedViewTurn?.hasVisibleReplacement
       && normalizedPendingTurn.conversationRef === normalizedViewTurn.conversationRef
       && normalizedPendingTurn.turnRef === normalizedViewTurn.turnRef,
   );

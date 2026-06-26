@@ -171,10 +171,13 @@ current-turn row construction on typed SDK presentation fields.
   `setConversationViewInChatStore(...)` adapter instead of a Zustand action.
   The conversation-view workspace state update lives in
   `desktopConversationViewWorkspaceRuntime.ts`; the adapter module delegates
-  conversation-view intent plus workspace dependency adapters. A same-turn
-  authoritative SDK `ConversationView.liveTurn` also clears the renderer-local
-  pending bridge there, so `chatStore.ts` does not keep a competing pending
-  state after SDK view authority exists.
+  conversation-view intent plus workspace dependency adapters. A same-turn SDK
+  `ConversationView` clears the renderer-local pending bridge only after the
+  view has a visible replacement for that pending send: a same-turn SDK user
+  display row, live entries, or terminal lifecycle. Awaiting-only or busy-only
+  view snapshots may drive surface state, but they do not erase the pending
+  bridge because that bridge owns the only visible dashboard user row and
+  typing anchor before SDK rows arrive.
 - `acceptPendingTurnInChatStore(...)` stores the renderer-local pending turn
   before the SDK live turn opens, so dashboard/pill surfaces can
   show awaiting state and stop can target the real outgoing `turnRef`; an
@@ -338,6 +341,10 @@ the full raw workspace transcript into
 `DesktopChatInterfacePresentationRuntime`. Raw messages remain available only
 through raw workspace mutation/adapters and for no-view historical fallback
 rendering; the pending-send bridge is carried separately as `pendingTurn`.
+First-class `ConversationView` presentation still projects the pending bridge
+while the view has not yet supplied a same-turn SDK user display row, so an
+awaiting/busy view snapshot cannot render an empty transcript between user
+send acceptance and the first display-row/live-entry projection.
 Send-read-model helpers follow the same rule: once a `ConversationView` object
 is present, first-user-message decisions read only `displayRows` and do not
 fall back to raw chat-store messages, even if a direct app-runtime caller passes

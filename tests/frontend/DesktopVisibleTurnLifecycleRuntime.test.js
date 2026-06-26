@@ -377,6 +377,97 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
   });
 
+  test('keeps local pending through awaiting ConversationView before visible view rows arrive', () => {
+    const pending = pendingTurn({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-view',
+      userMessageId: 'pending-user',
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'awaiting',
+          isBusy: true,
+          entries: [],
+        },
+        surfaces: {
+          responseOverlay: {
+            mode: 'awaiting',
+            visible: true,
+            turnRef: 'turn-view',
+            guardRef: 'turn-view',
+            ownerConversationRef: 'conv-1',
+          },
+        },
+      },
+    })).toMatchObject({
+      status: 'local_pending',
+      source: 'local',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-view',
+      awaitingAnchor: {
+        kind: 'user-message',
+        rowId: 'pending-user',
+      },
+      showTyping: true,
+    });
+  });
+
+  test('anchors ConversationView awaiting lifecycle to SDK user display row', () => {
+    const pending = pendingTurn({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-view',
+      userMessageId: 'pending-user',
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [{
+          id: 'sdk-user-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-view',
+          role: 'user',
+          type: 'user_message',
+          content: 'hello',
+        }],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'awaiting',
+          isBusy: true,
+          entries: [],
+        },
+        surfaces: {
+          responseOverlay: {
+            mode: 'awaiting',
+            visible: true,
+            turnRef: 'turn-view',
+            guardRef: 'turn-view',
+            ownerConversationRef: 'conv-1',
+          },
+        },
+      },
+    })).toMatchObject({
+      status: 'awaiting',
+      source: 'conversation-view',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-view',
+      awaitingAnchor: {
+        kind: 'user-message',
+        rowId: 'sdk-user-row',
+      },
+      showTyping: true,
+    });
+  });
+
   test('does not fall through to raw current-turn lifecycle when ConversationView is idle', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-view',

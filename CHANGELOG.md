@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/conversation-view: keep the renderer pending bridge and typing
+  anchor through awaiting-only first-class `ConversationView` snapshots until
+  the view has a same-turn SDK user row, live entries, or terminal lifecycle,
+  so dashboard sends do not flash back to the welcome state before streaming
+  starts. No migration required.
 - frontend/pending-turn: keep the renderer pending user-row bridge through
   awaiting or flag-only SDK current-turn projections until SDK view/display
   content, legacy visible current-turn content, or terminal lifecycle can

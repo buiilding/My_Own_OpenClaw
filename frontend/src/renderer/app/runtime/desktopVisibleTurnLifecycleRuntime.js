@@ -134,6 +134,71 @@ function conversationViewMatchesPendingTurn(pendingTurn, conversationView) {
   );
 }
 
+function getConversationViewLiveTurnRef(conversationView) {
+  return (
+    normalizeTurnRef(conversationView?.liveTurn?.turnRef)
+    || normalizeTurnRef(conversationView?.surfaces?.responseOverlay?.turnRef)
+  );
+}
+
+function isConversationViewUserDisplayRow(row) {
+  return Boolean(
+    row
+      && typeof row === 'object'
+      && (
+        row.role === 'user'
+        || row.type === 'user_message'
+      ),
+  );
+}
+
+function findConversationViewUserDisplayRowForTurn(conversationView, turnRef) {
+  const normalizedTurnRef = normalizeTurnRef(turnRef);
+  if (!normalizedTurnRef || !Array.isArray(conversationView?.displayRows)) {
+    return null;
+  }
+  for (let index = conversationView.displayRows.length - 1; index >= 0; index -= 1) {
+    const row = conversationView.displayRows[index];
+    if (
+      isConversationViewUserDisplayRow(row)
+      && normalizeTurnRef(row.turnRef) === normalizedTurnRef
+      && normalizeString(row.id)
+    ) {
+      return row;
+    }
+  }
+  return null;
+}
+
+function hasConversationViewVisibleReplacement(conversationView, pendingTurn = null) {
+  if (!conversationView || typeof conversationView !== 'object') {
+    return false;
+  }
+  const liveTurn = conversationView.liveTurn || {};
+  const entries = Array.isArray(liveTurn.entries) ? liveTurn.entries : [];
+  if (
+    entries.length > 0
+    || liveTurn.isTerminal === true
+    || TERMINAL_PHASES.has(normalizeSdkLiveTurnPhase(liveTurn))
+  ) {
+    return true;
+  }
+  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
+  const liveTurnRef = getConversationViewLiveTurnRef(conversationView);
+  return Boolean(
+    normalizedPendingTurn
+      && liveTurnRef === normalizedPendingTurn.turnRef
+      && findConversationViewUserDisplayRowForTurn(conversationView, normalizedPendingTurn.turnRef),
+  );
+}
+
+function canConversationViewReplacePendingTurn(pendingTurn, conversationView) {
+  return Boolean(
+    conversationViewMatchesPendingTurn(pendingTurn, conversationView)
+      && hasConversationViewVisibleReplacement(conversationView, pendingTurn),
+  );
+}
+
 function resolvePendingTurnForSdkLiveTurn({
   pendingTurn = null,
   sdkLiveTurn = null,
@@ -168,6 +233,19 @@ function findAwaitingAnchor(pendingTurn, sdkLiveTurn) {
   }
 
   return null;
+}
+
+function findConversationViewAwaitingAnchor(conversationView, pendingTurn) {
+  const liveTurnRef = getConversationViewLiveTurnRef(conversationView);
+  const userRow = findConversationViewUserDisplayRowForTurn(conversationView, liveTurnRef);
+  const rowId = normalizeString(userRow?.id);
+  if (rowId) {
+    return {
+      kind: 'user-message',
+      rowId,
+    };
+  }
+  return findAwaitingAnchor(pendingTurn, null);
 }
 
 function resolveTerminalReason(sdkLiveTurn) {
@@ -254,7 +332,7 @@ function resolveVisibleTurnLifecycle({
   );
   const viewStatus = resolveConversationViewLifecycleStatus(conversationView);
   const sameTurnConversationViewReplacement = (
-    conversationViewMatchesPendingTurn(normalizedPendingTurn, conversationView)
+    canConversationViewReplacePendingTurn(normalizedPendingTurn, conversationView)
     && viewStatus !== 'idle'
   );
 
@@ -280,7 +358,9 @@ function resolveVisibleTurnLifecycle({
       source: 'conversation-view',
       conversationRef: normalizeConversationRef(conversationView.conversationRef),
       turnRef: normalizeTurnRef(liveTurn.turnRef),
-      awaitingAnchor: null,
+      awaitingAnchor: viewStatus === 'awaiting'
+        ? findConversationViewAwaitingAnchor(conversationView, normalizedPendingTurn)
+        : null,
       entries,
       terminalReason: liveTurn.isTerminal === true ? 'complete' : null,
       isBusy: liveTurn.isBusy === true && viewStatus !== 'terminal',
