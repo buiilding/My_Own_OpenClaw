@@ -87,7 +87,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     activeRevisionId,
     canEditMessages,
     canRetryMessages,
-    replayReadModel,
     renderedMessages,
     stopTurnTarget,
   } = useChatStore(
@@ -596,9 +595,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const handleAssistantFeedbackChange = useCallback((messageId, feedback) => {
     updateMessage(messageId, { feedback });
   }, [updateMessage]);
-  const { handleEditFromUser, handleTryAgainFromAssistant } = useConversationReplayActions({
-    replayReadModel,
-  });
+  const { handleEditFromUser, handleTryAgainFromAssistant } = useConversationReplayActions();
 
   useChatInterfaceNewChatEvent(handleNewChat);
   useChatInterfaceFindShortcut({

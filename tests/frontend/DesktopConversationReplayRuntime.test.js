@@ -9,9 +9,6 @@ import {
   DesktopConversationContinuityService,
 } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import {
-  DesktopPendingTurnRuntimeClient,
-} from '../../frontend/src/renderer/app/runtime/desktopPendingTurnRuntimeClient';
-import {
   DesktopTranscriptSessionRuntimeClient,
 } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
@@ -28,13 +25,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
       turnRef: input.turnRef,
       queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
     })),
-  },
-}));
-
-jest.mock('../../frontend/src/renderer/app/runtime/desktopPendingTurnRuntimeClient', () => ({
-  DesktopPendingTurnRuntimeClient: {
-    setPending: jest.fn(),
-    clear: jest.fn(),
   },
 }));
 
@@ -60,26 +50,8 @@ const {
   executeReplayAction,
 } = DesktopConversationReplayRuntime;
 
-function displayRowsFromMessages(messages, conversationRef = 'conv-replay', revisionId = 'rev-view') {
-  return messages.map((message, index) => ({
-    id: message.id,
-    conversationRef,
-    revisionId,
-    index,
-    role: message.sender === 'user' ? 'user' : 'assistant',
-    type: message.sender === 'user' ? 'user_message' : 'assistant_message',
-    content: message.text,
-    ...(message.turnRef ? { turnRef: message.turnRef } : {}),
-    metadata: {
-      revisionId,
-      ...(Array.isArray(message.attachments) ? { attachments: message.attachments } : {}),
-    },
-  }));
-}
-
 function createChatStore() {
   const state = {
-    acceptReplayPendingTurn: jest.fn(),
     activeConversationRef: 'conv-replay',
     addMessage: jest.fn(),
     clearPendingTurn: jest.fn(),
@@ -137,26 +109,16 @@ describe('desktopConversationReplayRuntime', () => {
     expect(Object.keys(DesktopConversationReplayRuntime)).toEqual(['executeReplayAction']);
   });
 
-  test('edits from ConversationView rows before stale renderer messages', async () => {
+  test('edits through SDK command without publishing renderer replay rows', async () => {
     const chatStoreBundle = createChatStore();
     const staleMessages = [
       { id: 'stale-user', sender: 'user', text: 'stale prompt' },
       { id: 'stale-assistant', sender: 'assistant', text: 'stale answer' },
     ];
-    const viewMessages = [
-      { id: 'view-user-1', sender: 'user', text: 'view prompt', turnRef: 'turn-view-1' },
-      { id: 'view-assistant-1', sender: 'assistant', text: 'view answer', turnRef: 'turn-view-1' },
-      { id: 'view-user-2', sender: 'user', text: 'second prompt', turnRef: 'turn-view-2' },
-      { id: 'view-assistant-2', sender: 'assistant', text: 'second answer', turnRef: 'turn-view-2' },
-    ];
 
     await expect(executeReplayAction(replayArgs({
       action: 'edit_resend',
       chatStoreBundle,
-      conversationView: {
-        conversationRef: 'conv-replay',
-        displayRows: displayRowsFromMessages(viewMessages),
-      },
       messages: staleMessages,
       userMessageId: 'view-user-2',
       editedText: ' edited prompt ',
@@ -168,28 +130,8 @@ describe('desktopConversationReplayRuntime', () => {
       text: 'edited prompt',
       turnRef: 'turn-replay',
     }));
-    expect(chatStoreBundle.state.acceptReplayPendingTurn).toHaveBeenCalledWith(expect.objectContaining({
-      conversationRef: 'conv-replay',
-      pendingTurn: expect.objectContaining({
-        text: 'edited prompt',
-        turnRef: 'turn-replay',
-        userMessageId: 'turn-replay-sdk-evt-000002-user_message',
-      }),
-      messages: [
-        expect.objectContaining({ id: 'view-user-1' }),
-        expect.objectContaining({ id: 'view-assistant-1' }),
-        expect.objectContaining({
-          id: 'turn-replay-sdk-evt-000002-user_message',
-          text: 'edited prompt',
-          turnRef: 'turn-replay',
-        }),
-      ],
-      supersededTurnRef: 'turn-view-2',
-    }));
-    expect(DesktopPendingTurnRuntimeClient.setPending).toHaveBeenCalledWith(expect.objectContaining({
-      turnRef: 'turn-replay',
-      text: 'edited prompt',
-    }));
+    expect(chatStoreBundle.state.clearPendingTurn).not.toHaveBeenCalled();
+    expect(chatStoreBundle.state.setMessages).not.toHaveBeenCalled();
   });
 
   test('resolves active conversation ref from the store dependency', async () => {
@@ -220,7 +162,7 @@ describe('desktopConversationReplayRuntime', () => {
     }));
   });
 
-  test('retries through SDK command with retained visible prefix', async () => {
+  test('retries through SDK command without resolving previous user rows in the renderer', async () => {
     const chatStoreBundle = createChatStore();
     const messages = [
       { id: 'user-1', sender: 'user', type: 'user', text: 'first' },
@@ -244,35 +186,20 @@ describe('desktopConversationReplayRuntime', () => {
       messageId: 'assistant-2',
       turnRef: 'turn-replay',
     }));
-    expect(chatStoreBundle.state.acceptReplayPendingTurn.mock.calls[0][0].messages.map((message) => message.id)).toEqual([
-      'user-1',
-      'tool-call-1',
-      'tool-output-1',
-      'tool-call-orphan',
-      'assistant-1',
-      'turn-replay-sdk-evt-000002-user_message',
-    ]);
-    expect(chatStoreBundle.state.acceptReplayPendingTurn).toHaveBeenCalledWith(expect.objectContaining({
-      pendingTurn: expect.objectContaining({
-        text: 'retry this',
-        turnRef: 'turn-replay',
-      }),
-      supersededTurnRef: 'turn-old',
-    }));
+    expect(chatStoreBundle.state.clearPendingTurn).not.toHaveBeenCalled();
+    expect(chatStoreBundle.state.setMessages).not.toHaveBeenCalled();
   });
 
-  test('returns undefined for missing replay targets without dispatching SDK commands', async () => {
+  test('returns undefined for empty replay targets without dispatching SDK commands', async () => {
     const chatStoreBundle = createChatStore();
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
       chatStoreBundle,
       messages: [{ id: 'assistant-1', sender: 'assistant', text: 'orphan answer' }],
-      assistantMessageId: 'assistant-1',
+      assistantMessageId: ' ',
     }))).resolves.toBeUndefined();
 
     expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
-    expect(chatStoreBundle.state.acceptReplayPendingTurn).not.toHaveBeenCalled();
-    expect(DesktopPendingTurnRuntimeClient.setPending).not.toHaveBeenCalled();
   });
 });

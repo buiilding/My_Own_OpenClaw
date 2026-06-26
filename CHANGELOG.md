@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: route edit/retry UI actions as SDK command intent without
+  renderer retained-prefix or pending-row publication; SDK runtime now remains
+  the owner of replay target resolution, supersession, replacement rows, and
+  attachment/resource carry-forward. No migration required.
 - frontend/chat-stream: remove the unused first-message stream updater helper
   so chat stream hooks keep only active row-targeting adapters. No migration
   required.
@@ -24,16 +28,11 @@ All notable changes to WindieOS will be documented in this file.
   the full `selectChatInterfaceState(...)` UI selector. No migration required.
 - frontend/chat: remove raw `messages`, `currentTurnProjection`,
   `conversationView`, and `pendingTurn` from `selectChatInterfaceState(...)`
-  output; ChatInterface now receives rendered rows, action state, replay read
-  model, stop target, and nested surface state only. No migration required.
-- frontend/replay: keep `replayFallbackMessages` internal to
-  `DesktopChatInterfaceSelectorRuntime` when building `replayReadModel` so
-  `selectChatInterfaceState(...)` no longer exposes fallback rows to React. No
-  migration required.
-- frontend/replay: remove legacy raw `ConversationView` and
-  `replayFallbackMessages` inputs from `useConversationReplayActions`; replay
-  hooks now consume only the selector-owned `replayReadModel`. No migration
-  required.
+  output; ChatInterface now receives rendered rows, action state, stop target,
+  and nested surface state only. No migration required.
+- frontend/replay: remove `replayReadModel` from the normal chat interface
+  selector and replay hook inputs; replay hooks now pass only row ids/text to
+  the SDK command runtime. No migration required.
 - frontend/stop: remove legacy raw `ConversationView`, `pendingTurn`, and
   session-ref inputs from `useStopTurnHandler`; stop-target selection now stays
   in `DesktopChatInterfaceSelectorRuntime` and the hook consumes only the
@@ -42,10 +41,6 @@ All notable changes to WindieOS will be documented in this file.
   rows, replay read models, and stop targets behind
   `DesktopChatInterfaceSelectorRuntime` so `chatStore.ts` only binds active
   workspace state into the selector facade. No migration required.
-- frontend/replay: select a stable replay read model from
-  `selectChatInterfaceState(...)` so `ChatInterface` passes one
-  `replayReadModel` object to replay actions instead of transporting
-  `ConversationView` plus fallback row inputs. No migration required.
 - frontend/stop: select dashboard and pill stop targets from chat selectors so
   UI callers pass a narrow `stopTurnTarget` object to `useStopTurnHandler`
   instead of transporting raw `ConversationView` and `pendingTurn` inputs. No

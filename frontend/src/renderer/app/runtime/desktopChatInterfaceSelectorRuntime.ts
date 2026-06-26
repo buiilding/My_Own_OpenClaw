@@ -168,9 +168,10 @@ function buildChatInterfaceSelectorState({
     pendingTurn,
   });
   const {
-    replayFallbackMessages,
+    replayFallbackMessages: _replayFallbackMessages,
     ...chatPresentationState
   } = presentationState;
+  void _replayFallbackMessages;
   const chatSurfaceState = projectDesktopChatSurfaceState({
     activeWorkspace,
   });
@@ -180,10 +181,6 @@ function buildChatInterfaceSelectorState({
     compactionDebugInfo: interfaceState.compactionDebugInfo,
     tokenCounts: interfaceState.tokenCounts,
     ...chatPresentationState,
-    replayReadModel: selectStableReplayReadModel({
-      conversationView,
-      messages: replayFallbackMessages,
-    }),
     stopTurnTarget: selectStableStopTurnTarget({
       conversationRef: activeConversationRef,
       conversationView,

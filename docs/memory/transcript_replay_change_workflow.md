@@ -120,35 +120,30 @@ flowchart LR
      owner retained until a durable local-store migration rewrites those rows.
    - Local snapshots should not replace durable transcript storage unless the code explicitly uses them as a fallback.
    - Edit/resend and try-again must route execution through SDK
-     `conversation.editAndResend` and `conversation.retryTurn`. Renderer may
-     build only the temporary retained visible prefix/pending bridge from
-     already projected messages; the retained prefix is copied as visible UI
-     rows, not filtered or paired as model/tool context. Renderer replay must
-     not load the active display timeline, construct durable replacement rows,
-     call `conversation.replaceRows`, or dispatch a separate normal send for
-     replay execution.
+     `conversation.editAndResend` and `conversation.retryTurn`. Renderer replay
+     must not inspect visible rows to find retry user rows, calculate retained
+     prefixes, supersede turns, build pending replacement rows, load the active
+     display timeline, construct durable replacement rows, call
+     `conversation.replaceRows`, or dispatch a separate normal send for replay
+     execution. SDK commands own target-row resolution, child display revision
+     cuts, supersession, target-row resources, and replacement display rows.
    - React replay hooks should pass edit/retry intent through
-     `desktopConversationReplayRuntime`, which owns target-message selection,
-     retained visible-prefix construction, superseded-turn detection, pending
-     bridge shaping, SDK command dispatch, and failure cleanup. Hooks call the
-     runtime's single replay-action entrypoint with row ids/text plus UI
-     dependencies; active conversation state and failure-row publication are
-     resolved by the runtime from the store dependency instead of selected in
-     React. That public facade exports only `executeReplayAction`, and hooks do
-     not call replay preparation helpers or replay SDK commands directly.
-     `ChatInterface` passes the selector-owned `replayReadModel`; when a
-     `ConversationView` exists that read model must carry an empty fallback row
-     list so the runtime cannot choose raw `chatStore.messages` beside the SDK
-     view.
+     `desktopConversationReplayRuntime`. Hooks call the runtime's single
+     replay-action entrypoint with row ids/text plus UI dependencies; active
+     conversation state and failure-row publication are resolved by the runtime
+     from the store dependency instead of selected in React. That public facade
+     exports only `executeReplayAction`, and hooks do not call replay preparation
+     helpers, inspect `ConversationView`/message arrays, or call replay SDK
+     commands directly.
    - Renderer app-runtime facades should not expose direct display timeline
      load/replace helpers to React. Low-level display timeline operations remain
      SDK/main-owner diagnostics and command-handler concerns; normal UI paths
      use SDK intent commands such as retry, edit/resend, checkout, and fork.
-   - If the SDK replay command fails after the renderer publishes the pending
-     bridge, restore the retained prefix, clear only the pending turn, and
-     append a send-failure row. Do not restore event-log cutting through
-     `conversation.rewrite_after_event`, SDK `prepareEditAndResend`, SDK
-     `prepareRetryTurn`, or durable row replacement from React.
+   - If the SDK replay command fails, append a send-failure row without
+     restoring renderer-cut prefixes or clearing renderer replay pending state.
+     Do not restore event-log cutting through `conversation.rewrite_after_event`,
+     SDK `prepareEditAndResend`, SDK `prepareRetryTurn`, or durable row
+     replacement from React.
 
 5. Preserve model-history resume shape.
    - SDK `modelHistoryPayloadFromCheckpoint(...)` should emit

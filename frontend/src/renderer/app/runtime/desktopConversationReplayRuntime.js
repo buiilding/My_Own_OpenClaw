@@ -2,7 +2,6 @@
  * Provides renderer conversation replay projection helpers.
  */
 
-import { DesktopPendingTurnBridgeRuntime } from './desktopPendingTurnBridgeRuntime';
 import { DesktopConversationContinuityService } from './desktopConversationContinuityService';
 import {
   DesktopConversationSessionRuntime,
@@ -10,10 +9,6 @@ import {
 import {
   DesktopConversationProjectionStreamRuntime,
 } from './desktopConversationProjectionStreamRuntime';
-import {
-  DesktopConversationDisplayProjection,
-} from './desktopConversationDisplayProjection';
-import { DesktopPendingTurnRuntimeClient } from './desktopPendingTurnRuntimeClient';
 import { DesktopRendererTraceRuntime } from './desktopRendererTraceRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
@@ -25,130 +20,41 @@ const {
   resolveRendererConversationSessionSnapshot,
 } = DesktopConversationSessionRuntime;
 const {
-  buildPendingTurn,
-  mergePendingTurnUserMessage,
-} = DesktopPendingTurnBridgeRuntime;
-const {
   logRendererReplayTrace,
 } = DesktopRendererTraceRuntime;
 const {
   buildReplayProjectionTracePayload,
 } = DesktopConversationProjectionStreamRuntime;
-const {
-  buildConversationViewChatMessages,
-} = DesktopConversationDisplayProjection;
 
-function isReplayUserMessage(message) {
-  return message?.sender === 'user';
+function normalizeReplayMessageId(messageId) {
+  return typeof messageId === 'string' ? messageId.trim() : '';
 }
 
-function isReplayAssistantMessage(message) {
-  return message?.sender === 'assistant';
-}
-
-function findReplayEditableUserMessageIndex(messages, userMessageId) {
-  if (!Array.isArray(messages) || typeof userMessageId !== 'string' || !userMessageId) {
-    return -1;
-  }
-  return messages.findIndex(
-    (message) => message?.id === userMessageId && isReplayUserMessage(message),
-  );
-}
-
-function resolveReplayRetryMessageIndexes(messages, assistantMessageId) {
-  if (!Array.isArray(messages) || typeof assistantMessageId !== 'string' || !assistantMessageId) {
-    return { assistantIndex: -1, userIndex: -1 };
-  }
-  const assistantIndex = messages.findIndex(
-    (message) => message?.id === assistantMessageId && isReplayAssistantMessage(message),
-  );
-  if (assistantIndex < 0) {
-    return { assistantIndex: -1, userIndex: -1 };
-  }
-  for (let index = assistantIndex; index >= 0; index -= 1) {
-    if (isReplayUserMessage(messages[index])) {
-      return { assistantIndex, userIndex: index };
-    }
-  }
-  return { assistantIndex, userIndex: -1 };
-}
-
-function buildReplayMessagesWithPendingTurn(messages, pendingTurn) {
-  return mergePendingTurnUserMessage(messages, pendingTurn);
-}
-
-function resolveReplaySupersededTurnRef(sourceUserMessage, replayTurnRef) {
-  const sourceTurnRef = typeof sourceUserMessage?.turnRef === 'string'
-    ? sourceUserMessage.turnRef.trim()
-    : '';
-  return sourceTurnRef && sourceTurnRef !== replayTurnRef ? sourceTurnRef : null;
-}
-
-function buildReplayPendingPublication({
-  conversationRef,
-  replayMessages,
-  sourceUserMessage,
-  text,
-  timestamp,
-  turnRef,
-}) {
-  const pendingTurn = buildPendingTurn({
-    attachmentFilenames: sourceUserMessage?.attachmentFilenames ?? null,
-    conversationRef,
-    turnRef,
-    text,
-    timestamp,
-  });
-  if (!pendingTurn) {
-    return null;
-  }
-  return {
-    pendingTurn,
-    messages: buildReplayMessagesWithPendingTurn(replayMessages, pendingTurn),
-    supersededTurnRef: resolveReplaySupersededTurnRef(sourceUserMessage, turnRef),
-  };
-}
-
-function prepareReplayEditIntent({ messages, userMessageId, editedText }) {
+function prepareReplayEditIntent({ userMessageId, editedText }) {
   const normalizedEditedText = typeof editedText === 'string'
     ? editedText.trim()
     : '';
-  if (!normalizedEditedText) {
+  const normalizedMessageId = normalizeReplayMessageId(userMessageId);
+  if (!normalizedEditedText || !normalizedMessageId) {
     return null;
   }
-  const userIndex = findReplayEditableUserMessageIndex(messages, userMessageId);
-  if (userIndex < 0) {
-    return null;
-  }
-  const sourceUserMessage = {
-    ...messages[userIndex],
-    text: normalizedEditedText,
-  };
   return {
     action: 'edit_resend',
     errorPrefix: 'Failed to edit user message',
-    messageId: userMessageId,
+    messageId: normalizedMessageId,
     queryText: normalizedEditedText,
-    replayMessages: messages.slice(0, userIndex),
-    sourceUserMessage,
-    targetUserMessageId: userMessageId,
   };
 }
 
-function prepareReplayRetryIntent({ messages, assistantMessageId }) {
-  const { userIndex } = resolveReplayRetryMessageIndexes(messages, assistantMessageId);
-  if (userIndex < 0) {
+function prepareReplayRetryIntent({ assistantMessageId }) {
+  const normalizedMessageId = normalizeReplayMessageId(assistantMessageId);
+  if (!normalizedMessageId) {
     return null;
   }
-  const sourceUserMessage = messages[userIndex];
   return {
     action: 'retry',
     errorPrefix: 'Failed to retry assistant message',
-    messageId: assistantMessageId,
-    queryText: sourceUserMessage.text,
-    replayMessages: messages.slice(0, userIndex),
-    sourceUserMessage,
-    targetUserMessageId: sourceUserMessage.id,
+    messageId: normalizedMessageId,
   };
 }
 
@@ -237,9 +143,6 @@ async function executeReplayIntent({
     errorPrefix,
     messageId,
     queryText,
-    replayMessages,
-    sourceUserMessage,
-    targetUserMessageId,
   } = intent;
   const conversationRef = ensureConversationRef(
     sessionInfo.conversationRef,
@@ -252,57 +155,27 @@ async function executeReplayIntent({
     updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
   });
   const replayTurnRef = crypto.randomUUID();
-  let pendingTurnPublished = false;
-  let supersededTurnRef = null;
   logReplayTimeline(chatStore, 'replay_start', {
     conversationRef,
     newTurnRef: replayTurnRef,
-    targetUserMessageId,
+    targetUserMessageId: messageId,
   });
   try {
     const sdkReplayPayload = {
       ...(workspaceBinding.workspacePath ? { workspace_path: workspaceBinding.workspacePath } : {}),
     };
-    const replayStartedAt = new Date().toISOString();
-    const pendingPublication = buildReplayPendingPublication({
-      conversationRef,
-      replayMessages,
-      sourceUserMessage,
-      turnRef: replayTurnRef,
-      text: queryText,
-      timestamp: replayStartedAt,
-    });
-    if (!pendingPublication) {
-      throw new Error('Unable to build replay pending turn');
-    }
-    supersededTurnRef = pendingPublication.supersededTurnRef;
-    chatStore.getState().acceptReplayPendingTurn({
-      conversationRef,
-      messages: pendingPublication.messages,
-      pendingTurn: pendingPublication.pendingTurn,
-      supersededTurnRef,
-    });
-    DesktopPendingTurnRuntimeClient.setPending(pendingPublication.pendingTurn);
-    pendingTurnPublished = true;
-    logReplayTimeline(chatStore, 'pending_published', {
-      conversationRef,
-      oldTurnRef: supersededTurnRef,
-      newTurnRef: replayTurnRef,
-      targetUserMessageId,
-    });
     try {
       logReplayTimeline(chatStore, 'sdk_replay_sent', {
         conversationRef,
-        oldTurnRef: supersededTurnRef,
         newTurnRef: replayTurnRef,
         action,
-        targetUserMessageId,
+        targetUserMessageId: messageId,
       });
       if (action === 'edit_resend') {
         await DesktopConversationContinuityService.editAndResend({
           userId: sessionInfo.userId,
           conversationRef,
-          messageId: targetUserMessageId,
+          messageId,
           text: queryText,
           turnRef: replayTurnRef,
           payload: sdkReplayPayload,
@@ -320,21 +193,19 @@ async function executeReplayIntent({
       }
       logReplayTimeline(chatStore, 'sdk_replay_done', {
         conversationRef,
-        oldTurnRef: supersededTurnRef,
         newTurnRef: replayTurnRef,
         action,
         replaySucceeded: true,
-        targetUserMessageId,
+        targetUserMessageId: messageId,
       });
     } catch (sdkReplayError) {
       logReplayTimeline(chatStore, 'sdk_replay_failed', {
         conversationRef,
-        oldTurnRef: supersededTurnRef,
         newTurnRef: replayTurnRef,
         action,
         replaySucceeded: false,
         errorKind: traceErrorKind(sdkReplayError),
-        targetUserMessageId,
+        targetUserMessageId: messageId,
       });
       if (sdkReplayError && typeof sdkReplayError === 'object') {
         sdkReplayError.__desktopRuntimeReplayStep = 'send';
@@ -344,26 +215,11 @@ async function executeReplayIntent({
     return true;
   } catch (error) {
     console.error(`[ChatInterface] ${errorPrefix}:`, error);
-    chatStore.getState().clearPendingTurn({
-      conversationRef,
-      turnRef: replayTurnRef,
-    });
-    DesktopPendingTurnRuntimeClient.clear({
-      conversationRef,
-      turnRef: replayTurnRef,
-    });
-    if (pendingTurnPublished) {
-      chatStore.getState().setMessages(
-        Array.isArray(replayMessages) ? replayMessages : [],
-        conversationRef,
-      );
-    }
     logReplayTimeline(chatStore, 'replay_failed_cleanup', {
       conversationRef,
-      oldTurnRef: supersededTurnRef,
       newTurnRef: replayTurnRef,
       errorKind: traceErrorKind(error),
-      targetUserMessageId,
+      targetUserMessageId: messageId,
     });
     const addMessage = chatStore.getState()?.addMessage;
     if (typeof addMessage === 'function') {
@@ -387,35 +243,16 @@ async function executeReplayIntent({
 function prepareReplayActionIntent({
   action,
   assistantMessageId,
-  conversationView = null,
   editedText,
-  messages,
   userMessageId,
 }) {
-  const replayMessages = resolveReplayReadModel({
-    conversationView,
-    messages,
-  });
   if (action === 'edit_resend') {
-    return prepareReplayEditIntent({ messages: replayMessages, userMessageId, editedText });
+    return prepareReplayEditIntent({ userMessageId, editedText });
   }
   if (action === 'retry') {
-    return prepareReplayRetryIntent({ messages: replayMessages, assistantMessageId });
+    return prepareReplayRetryIntent({ assistantMessageId });
   }
   return null;
-}
-
-function resolveReplayReadModel({
-  conversationView = null,
-  messages = [],
-} = {}) {
-  if (conversationView && typeof conversationView === 'object') {
-    return buildConversationViewChatMessages({
-      conversationView,
-      preserveRendererAnnotations: false,
-    });
-  }
-  return Array.isArray(messages) ? messages : [];
 }
 
 async function executeReplayAction({
@@ -423,20 +260,16 @@ async function executeReplayAction({
   activeConversationRef,
   assistantMessageId = null,
   chatStore,
-  conversationView = null,
   deferredQueryModelSelection,
   editedText = null,
   failureMessages = {},
-  messages = [],
   sessionInfo = null,
   userMessageId = null,
 }) {
   const intent = prepareReplayActionIntent({
     action,
     assistantMessageId,
-    conversationView,
     editedText,
-    messages,
     userMessageId,
   });
   if (!intent) {

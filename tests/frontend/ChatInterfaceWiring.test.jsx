@@ -241,10 +241,6 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
       canEditMessages: presentationState.canEditMessages,
       canRetryMessages: presentationState.canRetryMessages,
       activeRevisionId: presentationState.activeRevisionId,
-      replayReadModel: {
-        conversationView: state.conversationView,
-        messages: presentationState.replayFallbackMessages,
-      },
       stopTurnTarget: DesktopStopTurnRuntime.resolveStopTurnTarget({
         conversationRef: state.activeConversationRef,
         conversationView: state.conversationView,
@@ -2416,23 +2412,7 @@ describe('ChatInterface wiring', () => {
     expect(mockSetMessages).not.toHaveBeenCalled();
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
     expect(mockAcceptPendingTurn).not.toHaveBeenCalled();
-    expect(mockAcceptReplayPendingTurn).toHaveBeenCalledWith(expect.objectContaining({
-      conversationRef: 'conv_existing',
-      messages: [
-        expect.objectContaining({
-          id: 'turn-wiring-retry-sdk-evt-000002-user_message',
-          sender: 'user',
-          text: 'create a dashboard for this',
-          sourceEventType: 'renderer-compose',
-          sourceChannel: 'renderer-local',
-        }),
-      ],
-      pendingTurn: expect.objectContaining({
-        conversationRef: 'conv_existing',
-        userMessageId: 'turn-wiring-retry-sdk-evt-000002-user_message',
-        text: 'create a dashboard for this',
-      }),
-    }));
+    expect(mockAcceptReplayPendingTurn).not.toHaveBeenCalled();
 
     expect(mockReplaceRows).not.toHaveBeenCalled();
     const retryPayload = mockRetryTurn.mock.calls[0]?.[0];
@@ -2463,23 +2443,7 @@ describe('ChatInterface wiring', () => {
     expect(mockSetMessages).not.toHaveBeenCalled();
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
     expect(mockAcceptPendingTurn).not.toHaveBeenCalled();
-    expect(mockAcceptReplayPendingTurn).toHaveBeenCalledWith(expect.objectContaining({
-      conversationRef: 'conv_existing',
-      messages: [
-        expect.objectContaining({
-          id: 'turn-wiring-edit-sdk-evt-000002-user_message',
-          sender: 'user',
-          text: 'new prompt',
-          sourceEventType: 'renderer-compose',
-          sourceChannel: 'renderer-local',
-        }),
-      ],
-      pendingTurn: expect.objectContaining({
-        conversationRef: 'conv_existing',
-        userMessageId: 'turn-wiring-edit-sdk-evt-000002-user_message',
-        text: 'new prompt',
-      }),
-    }));
+    expect(mockAcceptReplayPendingTurn).not.toHaveBeenCalled();
 
     expect(mockReplaceRows).not.toHaveBeenCalled();
     const editPayload = mockEditAndResend.mock.calls[0]?.[0];

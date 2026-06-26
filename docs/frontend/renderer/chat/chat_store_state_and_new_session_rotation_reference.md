@@ -137,16 +137,14 @@ replay/store compatibility adapters and low-level artifact helpers.
   decisions also live in `desktopChatPendingTurnStateRuntime.ts`; `chatStore.ts`
   only supplies workspace read/write dependencies and applies the returned
   update.
-- `acceptReplayPendingTurn` stores the retained replay prefix and
-  renderer-local pending turn in one workspace mutation before awaiting the SDK
-  retry/edit command, so edit/resend never publishes a prefix-only frame before
-  the edited user row appears. Replay pending rows use the SDK replacement
-  display-row id and leave display-row `attachments[]` to the later
-  `sdk:display-rows` projection, so visual preservation stays on the SDK
-  target-row path. Replay and normal sends use
-  `DesktopPendingTurnBridgeRuntime` for pending-turn bridge payload
-  construction, then the same app-runtime pending workspace mutation helper for
-  store application.
+- Replay/edit/retry commands do not use the renderer pending-turn bridge.
+  `desktopConversationReplayRuntime` passes only row ids/text, workspace path,
+  model selection, and session identity to SDK command APIs; SDK runtime owns
+  target-row lookup, child display revision cuts, supersession, replacement
+  display rows, and display-row `attachments[]`. The legacy
+  `acceptReplayPendingTurn` reducer remains an app-runtime pending-state
+  primitive for narrow store/projection coverage, but it is not part of the
+  normal replay execution path.
 - `clearPendingTurn` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn.
   Pending-turn clear matching, broadcast action branching, and workspace
@@ -204,8 +202,6 @@ feature store internals.
 - `renderedMessages`, `canEditMessages`, `canRetryMessages`, and
   `activeRevisionId` from
   `DesktopChatInterfacePresentationRuntime`
-- `replayReadModel`, a stable object carrying SDK `ConversationView` plus the
-  no-view fallback rows selected internally for replay commands
 - `stopTurnTarget` from `DesktopStopTurnRuntime.resolveStopTurnTarget(...)`,
   selected from SDK `ConversationView` first and the renderer pending bridge
   second
@@ -273,12 +269,10 @@ messages, current-turn rows, and `ConversationView` action metadata inline.
 When checkout/fork commands return a `ConversationView`, `ChatInterface` stores
 only that SDK view for the target conversation; it does not project
 `displayRows` back into `chatStore.messages`.
-Replay actions follow the same read-model rule: the hook passes the active
-selector-owned `replayReadModel` to `DesktopConversationReplayRuntime`, which
-derives edit and retry targets from `ConversationView.displayRows` when the SDK
-view exists. The read model carries an empty fallback row list while a
-`ConversationView` exists, so `chatStore.messages` remains only the no-view
-fallback bridge.
+Replay actions do not consume selector row models. The hook passes only row
+ids/text plus UI dependencies to `DesktopConversationReplayRuntime`, which
+forwards intent to SDK command APIs. SDK runtime resolves display rows and
+resources from its canonical `ConversationView`/display timeline state.
 
 `DesktopChatRevisionActionRuntime` owns checkout/fork command input shaping for
 the revision menu: revision id normalization, action ids, default user id, and

@@ -16,16 +16,8 @@ const {
   executeReplayAction,
 } = DesktopConversationReplayRuntime;
 const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
-const EMPTY_REPLAY_MESSAGES = Object.freeze([]);
 
-export function useConversationReplayActions({
-  replayReadModel = null,
-} = {}) {
-  const conversationView = replayReadModel?.conversationView ?? null;
-  const replayMessages = replayReadModel?.messages;
-  const messages = Array.isArray(replayMessages)
-    ? replayMessages
-    : EMPTY_REPLAY_MESSAGES;
+export function useConversationReplayActions() {
   const { config } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const deferredQueryModelSelection = DesktopRendererConfigRuntimeClient
     .buildDeferredQueryModelSelection(config);
@@ -34,8 +26,6 @@ export function useConversationReplayActions({
     return executeReplayAction({
       action: 'edit_resend',
       deferredQueryModelSelection,
-      conversationView,
-      messages,
       userMessageId,
       editedText,
       failureMessages: {
@@ -46,16 +36,12 @@ export function useConversationReplayActions({
     });
   }, [
     deferredQueryModelSelection,
-    conversationView,
-    messages,
   ]);
 
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
     return executeReplayAction({
       action: 'retry',
       deferredQueryModelSelection,
-      conversationView,
-      messages,
       assistantMessageId,
       failureMessages: {
         sendFailureMessage: chatSkin.sendFailureMessage,
@@ -65,8 +51,6 @@ export function useConversationReplayActions({
     });
   }, [
     deferredQueryModelSelection,
-    conversationView,
-    messages,
   ]);
 
   return {

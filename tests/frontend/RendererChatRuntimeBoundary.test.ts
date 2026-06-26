@@ -1729,10 +1729,6 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime.js'),
       'utf8',
     );
-    const pendingBridgeSource = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopPendingTurnBridgeRuntime.js'),
-      'utf8',
-    );
     const continuityServiceSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts'),
       'utf8',
@@ -1751,7 +1747,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopConversationContinuityService.prepareRetryTurn');
     expect(source).not.toContain('dispatchPreparedDesktopChatTurn');
     expect(source).toContain('executeReplayAction');
-    expect(source).toContain('conversationView');
+    expect(source).not.toContain('conversationView');
     expect(source).not.toContain('useChatStore((state)');
     expect(source).not.toContain('state.activeConversationRef');
     expect(source).not.toContain('state.addMessage');
@@ -1780,45 +1776,42 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('resolvedConversationView');
     expect(source).not.toContain('resolvedReplayFallbackMessages');
     expect(source).not.toContain('conversationView = null');
-    expect(source).toContain('const conversationView = replayReadModel?.conversationView ?? null');
-    expect(source).toContain('const replayMessages = replayReadModel?.messages');
-    expect(source).toContain('const messages = Array.isArray(replayMessages)');
-    expect(source).toContain('messages,');
-    expect(source).toContain('replayReadModel = null');
+    expect(source).not.toContain('replayReadModel');
+    expect(source).not.toContain('const replayMessages = replayReadModel?.messages');
+    expect(source).not.toContain('const messages = Array.isArray(replayMessages)');
     expect(source).not.toContain('useMemo');
     expect(source).not.toContain('() => (conversationView ? [] : messages)');
     expect(normalizedChatInterfaceSource).not.toContain('() => (conversationView ? [] : messages)');
     expect(chatInterfacePresentationRuntimeSource).toContain('replayFallbackMessages: hasConversationView ? [] : messages');
-    expect(normalizedChatInterfaceSource).toContain(
-      'useConversationReplayActions({\n    replayReadModel,\n  })',
-    );
+    expect(normalizedChatInterfaceSource).toContain('useConversationReplayActions()');
+    expect(normalizedChatInterfaceSource).not.toContain('replayReadModel');
     expect(normalizedChatInterfaceSource).not.toContain('useConversationReplayActions({\n    conversationView,');
     expect(normalizedChatInterfaceSource).not.toContain('useConversationReplayActions({\n    replayFallbackMessages,');
     expect(normalizedChatInterfaceSource).not.toContain('useConversationReplayActions({\n    conversationView,\n    messages,\n    setMessages,');
     expect(normalizedChatInterfaceSource).not.toContain('setThinkingSourceEventType,\n  })');
     expect(continuityServiceSource).not.toContain('loadForDisplay');
     expect(continuityServiceSource).not.toContain('loadDisplayRows');
-    expect(replayRuntimeSource).toContain('buildPendingTurn');
+    expect(replayRuntimeSource).not.toContain('buildPendingTurn');
     expect(replayRuntimeSource).not.toContain('function buildReplayPendingTurn');
-    expect(pendingBridgeSource).toContain('function buildPendingTurn');
-    expect(replayRuntimeSource).toContain('resolveReplayReadModel');
-    expect(replayRuntimeSource).toContain('buildConversationViewChatMessages');
-    expect(replayRuntimeSource).toContain('buildReplayPendingPublication');
+    expect(replayRuntimeSource).not.toContain('DesktopPendingTurnBridgeRuntime');
+    expect(replayRuntimeSource).not.toContain('resolveReplayReadModel');
+    expect(replayRuntimeSource).not.toContain('buildConversationViewChatMessages');
+    expect(replayRuntimeSource).not.toContain('buildReplayPendingPublication');
     expect(replayRuntimeSource).toContain('executeReplayAction');
     expect(replayRuntimeSource).toContain('executeReplayIntent');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.editAndResend');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.retryTurn');
-    expect(replayRuntimeSource).toContain('DesktopPendingTurnRuntimeClient.setPending');
+    expect(replayRuntimeSource).not.toContain('DesktopPendingTurnRuntimeClient');
     expect(replayRuntimeSource).not.toContain('buildReplayContextMessages');
     expect(replayRuntimeSource).not.toContain('resolveReplayToolMessageCorrelationId');
     expect(replayRuntimeSource).not.toContain('resolveToolCallCorrelationId');
     expect(replayRuntimeSource).not.toContain('resolveToolOutputCorrelationId');
     expect(replayRuntimeSource).not.toContain('resolveToolBundleCorrelationId');
     expect(replayRuntimeSource).not.toContain('buildPreparedReplayDesktopChatTurn');
-    expect(replayRuntimeSource).toContain('findReplayEditableUserMessageIndex');
+    expect(replayRuntimeSource).not.toContain('findReplayEditableUserMessageIndex');
     expect(replayRuntimeSource).toContain('prepareReplayEditIntent');
     expect(replayRuntimeSource).toContain('prepareReplayRetryIntent');
-    expect(replayRuntimeSource).toContain('resolveReplayRetryMessageIndexes');
+    expect(replayRuntimeSource).not.toContain('resolveReplayRetryMessageIndexes');
     expect(replayRuntimeSource).toContain('DesktopConversationReplayRuntime');
     expect(replayRuntimeSource).not.toContain('export function findReplayEditableUserMessageIndex');
     expect(replayRuntimeSource).not.toContain('export function resolveReplayRetryMessageIndexes');
@@ -1835,7 +1828,7 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('  resolveReplayRetryMessageIndexes,');
     expect(replayRuntimeSource).not.toContain('screenshot_ref');
     expect(replayRuntimeSource).not.toContain('screenshotRef');
-    expect(replayRuntimeSource).toContain('attachmentFilenames');
+    expect(replayRuntimeSource).not.toContain('attachmentFilenames');
     expect(replayRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/conversationReplayToolMessages.js'),

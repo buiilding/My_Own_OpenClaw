@@ -144,10 +144,6 @@ describe('chatSelectors', () => {
       canEditMessages: true,
       canRetryMessages: true,
       renderedMessages: state.messages,
-      replayReadModel: {
-        conversationView: null,
-        messages: state.messages,
-      },
       stopTurnTarget: {
         source: 'idle',
         conversationRef: null,
@@ -192,8 +188,8 @@ describe('chatSelectors', () => {
     expect(chatInterface).not.toHaveProperty('messages');
     expect(chatInterface.renderedMessages).toBe(messages);
     expect(chatInterface).not.toHaveProperty('replayFallbackMessages');
-    expect(chatInterface.replayReadModel.messages).toBe(messages);
-    expect(chatInterface.replayReadModel).toBe(nextChatInterface.replayReadModel);
+    expect(chatInterface).not.toHaveProperty('replayReadModel');
+    expect(nextChatInterface).not.toHaveProperty('replayReadModel');
     expect(chatInterface.tokenCounts).toBe(tokenCounts);
     expect(selectChatInterfaceSurfaceState(state).messages).toBe(messages);
   });
@@ -253,8 +249,8 @@ describe('chatSelectors', () => {
     const second = selectChatInterfaceState(state);
 
     expect(first).not.toHaveProperty('messages');
-    expect(first.replayReadModel.messages).toBe(messages);
-    expect(first.replayReadModel).toBe(second.replayReadModel);
+    expect(first).not.toHaveProperty('replayReadModel');
+    expect(second).not.toHaveProperty('replayReadModel');
     expect(first.renderedMessages).toEqual(second.renderedMessages);
   });
 
@@ -442,10 +438,7 @@ describe('chatSelectors', () => {
       }),
     ]);
     expect(selected).not.toHaveProperty('replayFallbackMessages');
-    expect(selected.replayReadModel).toEqual({
-      conversationView: view,
-      messages: [],
-    });
+    expect(selected).not.toHaveProperty('replayReadModel');
     expect(selected.stopTurnTarget).toEqual({
       source: 'conversation-view',
       conversationRef: 'conv-dashboard',
@@ -476,10 +469,6 @@ describe('chatSelectors', () => {
       canEditMessages: true,
       canRetryMessages: true,
       renderedMessages: [],
-      replayReadModel: {
-        conversationView: null,
-        messages: [],
-      },
       stopTurnTarget: {
         source: 'idle',
         conversationRef: null,
