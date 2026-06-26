@@ -128,13 +128,13 @@ Thinking status methods from `DesktopChatStreamThinkingRuntime`:
 ## Runtime Projection Listener and Side Effects
 
 `useConversationRuntimeProjectionStream` subscribes through
-`DesktopConversationRuntimeEventClient` to SDK `windie:current-turn` and
-`windie:rows` projections, then delegates current-turn application,
-display-row filtering, optimistic pending-row preservation, display-message
-projection, and replay trace payload shaping to
-`DesktopConversationProjectionStreamRuntime`. Display-row
-presentation metadata uses `sdk:display-rows` as its source label; the
-`windie:rows` name is only the Electron IPC transport channel.
+`DesktopConversationRuntimeEventClient` to renderer pending-turn broadcasts and
+SDK `windie:current-turn` projections, then delegates current-turn application
+and replay trace payload shaping to
+`DesktopConversationProjectionStreamRuntime`. Normal chat display rows enter
+the renderer through SDK `ConversationView`; the `windie:rows` channel remains
+an Electron IPC compatibility/diagnostic transport, not a normal chat render
+subscription.
 
 Replay diagnostics use the same projection-stream helper. Replay intent runtime
 passes old/new turn refs into `buildReplayProjectionTracePayload(...)` and logs
