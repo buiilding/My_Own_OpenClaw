@@ -7,6 +7,9 @@ import type {
   CurrentTurnProjection,
 } from '../../../app/runtime/desktopConversationRuntimeContracts';
 import type {
+  CompactionDebugInfo,
+} from '../../../app/runtime/desktopChatStreamEventPayloadRuntime';
+import type {
   DesktopPendingTurnState,
 } from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
 import type {
@@ -29,23 +32,7 @@ export interface ChatWorkspaceState {
   isSending: boolean;
   thinkingStatus: string | null;
   thinkingSourceEventType: string | null;
-  compactionDebugInfo: {
-    reason: string | null;
-    strategy: string | null;
-    beforeTokens: number | null;
-    afterTokens: number | null;
-    removedMessages: number | null;
-    summaryPreview: string | null;
-    summaryText: string | null;
-    replacementHistoryPreview: Array<{
-      role: string | null;
-      messageType: string | null;
-      content: string | null;
-      toolName: string | null;
-      toolCallId: string | null;
-    }>;
-    skippedReason: string | null;
-  } | null;
+  compactionDebugInfo: CompactionDebugInfo | null;
   tokenCounts: TokenCounts | null;
   streamTracking: StreamTracking;
   currentTurnProjection: CurrentTurnProjection | null;

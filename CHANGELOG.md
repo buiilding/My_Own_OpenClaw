@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: use the app-runtime `CompactionDebugInfo` contract in chat
+  workspace state instead of duplicating the compaction payload shape in the
+  store module. No migration required.
 - frontend/store: move initial stream-tracking state construction into
   `DesktopChatStreamTrackingRuntime` so workspace state no longer owns the
   runtime phase/counter seed. No migration required.
