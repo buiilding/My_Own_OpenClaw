@@ -7,16 +7,13 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopChatPendingTurnStateRuntime';
 
 const {
-  addSupersededTurnRef,
   buildAcceptPendingTurnStateUpdate,
-  buildAcceptReplayPendingTurnStateUpdate,
   buildClearPendingTurnStateUpdate,
   buildPendingTurnBroadcastStateUpdate,
   buildPendingTurnClearWorkspaceMutation,
   buildPendingTurnWorkspaceMutation,
   doesPendingTurnMatch,
   normalizePendingTurn,
-  removeSupersededTurnRef,
 } = DesktopChatPendingTurnStateRuntime;
 
 function workspace(overrides = {}) {
@@ -132,17 +129,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
     })).toBe(false);
   });
 
-  test('adds and removes superseded turn refs without changing no-op maps', () => {
-    const current = { 'turn-old': true } as Record<string, true>;
-    expect(addSupersededTurnRef(current, 'turn-old')).toBe(current);
-    expect(addSupersededTurnRef(current, 'turn-new')).toEqual({
-      'turn-old': true,
-      'turn-new': true,
-    });
-    expect(removeSupersededTurnRef(current, 'turn-missing')).toBe(current);
-    expect(removeSupersededTurnRef(current, 'turn-old')).toEqual({});
-  });
-
   test('builds pending-turn workspace mutations with the renderer bridge row', () => {
     const mutation = buildPendingTurnWorkspaceMutation({
       currentWorkspace: workspace({
@@ -156,7 +142,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
         timestamp: '2026-06-25T12:00:00.000Z',
         attachmentFilenames: ['one.png'],
       },
-      supersededTurnRef: 'turn-old',
     });
 
     expect(mutation).toEqual(expect.objectContaining({
@@ -324,41 +309,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
       pendingTurn: expect.objectContaining({
         turnRef: 'turn-state',
       }),
-    }));
-  });
-
-  test('builds replay-pending store updates with superseded turn tracking', () => {
-    const state = storeState({
-      workspaces: {
-        'conv-replay': workspace({
-          supersededTurnRefs: {},
-        }),
-      },
-    });
-
-    const update = buildAcceptReplayPendingTurnStateUpdate({
-      deps: stateRuntimeDeps,
-      messages: [],
-      pendingTurn: {
-        conversationRef: 'conv-replay',
-        turnRef: 'turn-new',
-        userMessageId: 'user-new',
-        text: 'edited',
-        timestamp: '2026-06-25T12:00:00.000Z',
-        attachmentFilenames: null,
-      },
-      state,
-      supersededTurnRef: 'turn-old',
-    });
-
-    expect(update?.workspaces['conv-replay']).toEqual(expect.objectContaining({
-      conversationView: null,
-      pendingTurn: expect.objectContaining({
-        turnRef: 'turn-new',
-      }),
-      supersededTurnRefs: {
-        'turn-old': true,
-      },
     }));
   });
 

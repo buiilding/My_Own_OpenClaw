@@ -141,10 +141,10 @@ replay/store compatibility adapters and low-level artifact helpers.
   `desktopConversationReplayRuntime` passes only row ids/text, workspace path,
   model selection, and session identity to SDK command APIs; SDK runtime owns
   target-row lookup, child display revision cuts, supersession, replacement
-  display rows, and display-row `attachments[]`. The legacy
-  `acceptReplayPendingTurn` reducer remains an app-runtime pending-state
-  primitive for narrow store/projection coverage, but it is not part of the
-  normal replay execution path.
+  display rows, and display-row `attachments[]`. The legacy replay-pending
+  reducer has been removed; renderer pending state is now only the normal
+  post-send bridge, and tests seed superseded refs directly only when covering
+  stale event filtering.
 - `clearPendingTurn` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn.
   Pending-turn clear matching, broadcast action branching, and workspace

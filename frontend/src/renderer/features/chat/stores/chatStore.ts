@@ -97,7 +97,6 @@ const {
 } = DesktopResponseOverlayViewRuntime;
 const {
   buildAcceptPendingTurnStateUpdate,
-  buildAcceptReplayPendingTurnStateUpdate,
   buildClearPendingTurnStateUpdate,
   buildPendingTurnBroadcastStateUpdate,
 } = DesktopChatPendingTurnStateRuntime;
@@ -291,12 +290,6 @@ interface ChatState {
     conversationView: ConversationView | null,
     conversationRef?: string | null,
   ) => void;
-  acceptReplayPendingTurn: (input: {
-    conversationRef?: string | null;
-    messages: ChatMessage[];
-    pendingTurn: PendingTurn;
-    supersededTurnRef?: string | null;
-  }) => void;
   acceptPendingTurn: (pendingTurn: PendingTurn) => void;
   clearPendingTurn: (
     input?: { conversationRef?: string | null; turnRef?: string | null } | null,
@@ -524,17 +517,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
         conversationRef,
         deps: conversationViewStateRuntimeDependencies,
         state,
-      }) ?? state;
-    }),
-
-  acceptReplayPendingTurn: ({ messages, pendingTurn, supersededTurnRef = null }) =>
-    set((state) => {
-      return buildAcceptReplayPendingTurnStateUpdate<ChatState, ChatWorkspaceState>({
-        deps: pendingTurnStateRuntimeDependencies,
-        messages,
-        pendingTurn,
-        state,
-        supersededTurnRef,
       }) ?? state;
     }),
 

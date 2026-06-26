@@ -65,7 +65,6 @@ const mockSetThinkingStatus = jest.fn();
 const mockSetThinkingSourceEventType = jest.fn();
 const mockSetTokenCounts = jest.fn();
 const mockAcceptStoppedTurn = jest.fn();
-const mockAcceptReplayPendingTurn = jest.fn();
 const mockAcceptPendingTurn = jest.fn();
 const mockClearPendingTurn = jest.fn();
 const mockSetChatActiveConversationRef = jest.fn();
@@ -106,12 +105,6 @@ const mockChatState = {
   setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
   setTokenCounts: (...args) => mockSetTokenCounts(...args),
   acceptStoppedTurn: (...args) => mockAcceptStoppedTurn(...args),
-  acceptReplayPendingTurn: (input) => {
-    mockChatState.messages = input.messages;
-    mockChatState.pendingTurn = input.pendingTurn;
-    mockChatState.isSending = true;
-    mockAcceptReplayPendingTurn(input);
-  },
   acceptPendingTurn: (pendingTurn) => {
     mockChatState.pendingTurn = pendingTurn;
     mockChatState.isSending = true;
@@ -550,7 +543,6 @@ describe('ChatInterface wiring', () => {
     mockSetThinkingSourceEventType.mockClear();
     mockSetTokenCounts.mockClear();
     mockAcceptStoppedTurn.mockClear();
-    mockAcceptReplayPendingTurn.mockClear();
     mockAcceptPendingTurn.mockClear();
     mockClearPendingTurn.mockClear();
     mockSetChatActiveConversationRef.mockClear();
@@ -2412,7 +2404,6 @@ describe('ChatInterface wiring', () => {
     expect(mockSetMessages).not.toHaveBeenCalled();
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
     expect(mockAcceptPendingTurn).not.toHaveBeenCalled();
-    expect(mockAcceptReplayPendingTurn).not.toHaveBeenCalled();
 
     expect(mockReplaceRows).not.toHaveBeenCalled();
     const retryPayload = mockRetryTurn.mock.calls[0]?.[0];
@@ -2443,7 +2434,6 @@ describe('ChatInterface wiring', () => {
     expect(mockSetMessages).not.toHaveBeenCalled();
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
     expect(mockAcceptPendingTurn).not.toHaveBeenCalled();
-    expect(mockAcceptReplayPendingTurn).not.toHaveBeenCalled();
 
     expect(mockReplaceRows).not.toHaveBeenCalled();
     const editPayload = mockEditAndResend.mock.calls[0]?.[0];

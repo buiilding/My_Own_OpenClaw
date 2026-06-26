@@ -262,19 +262,30 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       sourceChannel: 'renderer-local',
       isComplete: true,
     });
-    useChatStore.getState().acceptReplayPendingTurn({
+    useChatStore.getState().acceptPendingTurn({
       conversationRef: 'conv-1',
-      messages: [],
-      pendingTurn: {
-        conversationRef: 'conv-1',
-        turnRef: 'turn-new',
-        userMessageId: 'turn-new-sdk-evt-000002-user_message',
-        text: 'edited first question',
-        timestamp: '2026-06-23T00:00:00.000Z',
-        attachmentFilenames: null,
-      },
-      supersededTurnRef: 'turn-old',
+      turnRef: 'turn-new',
+      userMessageId: 'turn-new-sdk-evt-000002-user_message',
+      text: 'edited first question',
+      timestamp: '2026-06-23T00:00:00.000Z',
+      attachmentFilenames: null,
     });
+    useChatStore.setState((state) => ({
+      supersededTurnRefs: {
+        ...state.supersededTurnRefs,
+        'turn-old': true,
+      },
+      workspaces: {
+        ...state.workspaces,
+        'conv-1': {
+          ...state.getWorkspaceState('conv-1'),
+          supersededTurnRefs: {
+            ...state.getWorkspaceState('conv-1').supersededTurnRefs,
+            'turn-old': true,
+          },
+        },
+      },
+    }));
     const { emitConversationRuntimeUpdated, emitDisplayRows } = registerBackendAndProjectionListeners();
 
     act(() => {
@@ -328,18 +339,13 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
   });
 
   test('applies SDK current-turn projection atomically with pending-turn replacement', () => {
-    useChatStore.getState().acceptReplayPendingTurn({
+    useChatStore.getState().acceptPendingTurn({
       conversationRef: 'conv-1',
-      messages: [],
-      pendingTurn: {
-        conversationRef: 'conv-1',
-        turnRef: 'turn-new',
-        userMessageId: 'turn-new-sdk-evt-000002-user_message',
-        text: 'edited first question',
-        timestamp: '2026-06-23T00:00:00.000Z',
-        attachmentFilenames: null,
-      },
-      supersededTurnRef: 'turn-old',
+      turnRef: 'turn-new',
+      userMessageId: 'turn-new-sdk-evt-000002-user_message',
+      text: 'edited first question',
+      timestamp: '2026-06-23T00:00:00.000Z',
+      attachmentFilenames: null,
     });
     const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
     const observedSnapshots: Array<{

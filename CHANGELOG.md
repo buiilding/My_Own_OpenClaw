@@ -36,6 +36,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/send: rename the remaining selector-side replay read-model helper
   to a send read-model helper so replay row authority is no longer represented
   in app-runtime selector plumbing. No migration required.
+- frontend/store: remove the legacy replay-pending chat-store action and
+  pending-state helper so replay replacement rows and supersession cannot be
+  rebuilt by renderer state; normal sends keep the pending bridge. No migration
+  required.
 - frontend/stop: remove legacy raw `ConversationView`, `pendingTurn`, and
   session-ref inputs from `useStopTurnHandler`; stop-target selection now stays
   in `DesktopChatInterfaceSelectorRuntime` and the hook consumes only the

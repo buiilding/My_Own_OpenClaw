@@ -405,11 +405,7 @@ describe('chatStore', () => {
       }],
     };
 
-    useChatStore.getState().acceptReplayPendingTurn({
-      conversationRef: 'conv-echo',
-      messages: [],
-      pendingTurn,
-    });
+    useChatStore.getState().acceptPendingTurn(pendingTurn);
     const beforeState = useChatStore.getState();
     const beforeMessages = beforeState.messages;
 
@@ -427,33 +423,6 @@ describe('chatStore', () => {
         attachments: null,
       }),
     ]);
-  });
-
-  test('acceptReplayPendingTurn records the superseded turn without marking the replacement superseded', () => {
-    useChatStore.getState().acceptReplayPendingTurn({
-      conversationRef: 'conv-replay-active',
-      messages: [],
-      pendingTurn: {
-        conversationRef: 'conv-replay-active',
-        turnRef: 'turn-new',
-        userMessageId: 'user-new',
-        text: 'edited question',
-        timestamp: '2026-06-16T00:00:00.000Z',
-        attachmentFilenames: null,
-      },
-      supersededTurnRef: 'turn-old',
-    });
-
-    expect(useChatStore.getState().getWorkspaceState('conv-replay-active')).toEqual(
-      expect.objectContaining({
-        pendingTurn: expect.objectContaining({
-          turnRef: 'turn-new',
-        }),
-        supersededTurnRefs: {
-          'turn-old': true,
-        },
-      }),
-    );
   });
 
   test('setCurrentTurnProjection replaces matching pending turn without clearing busy state first', () => {
@@ -581,19 +550,30 @@ describe('chatStore', () => {
   });
 
   test('acceptStoppedTurn ignores stale superseded turns while a replacement is pending', () => {
-    useChatStore.getState().acceptReplayPendingTurn({
+    useChatStore.getState().acceptPendingTurn({
       conversationRef: 'conv-stale-stop',
-      messages: [],
-      pendingTurn: {
-        conversationRef: 'conv-stale-stop',
-        turnRef: 'turn-new',
-        userMessageId: 'user-new',
-        text: 'edited question',
-        timestamp: '2026-06-16T00:00:00.000Z',
-        attachmentFilenames: null,
-      },
-      supersededTurnRef: 'turn-old',
+      turnRef: 'turn-new',
+      userMessageId: 'user-new',
+      text: 'edited question',
+      timestamp: '2026-06-16T00:00:00.000Z',
+      attachmentFilenames: null,
     });
+    useChatStore.setState((state) => ({
+      supersededTurnRefs: {
+        ...state.supersededTurnRefs,
+        'turn-old': true,
+      },
+      workspaces: {
+        ...state.workspaces,
+        'conv-stale-stop': {
+          ...state.getWorkspaceState('conv-stale-stop'),
+          supersededTurnRefs: {
+            ...state.getWorkspaceState('conv-stale-stop').supersededTurnRefs,
+            'turn-old': true,
+          },
+        },
+      },
+    }));
     const beforeState = useChatStore.getState();
 
     useChatStore.getState().acceptStoppedTurn({

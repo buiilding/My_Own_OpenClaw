@@ -3363,7 +3363,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('DesktopChatCurrentTurnStateRuntime');
     expect(chatStoreSource).not.toContain('doesCurrentTurnProjectionMatch');
     expect(chatStoreSource).toContain('buildAcceptPendingTurnStateUpdate');
-    expect(chatStoreSource).toContain('buildAcceptReplayPendingTurnStateUpdate');
+    expect(chatStoreSource).not.toContain('buildAcceptReplayPendingTurnStateUpdate');
     expect(chatStoreSource).toContain('buildClearPendingTurnStateUpdate');
     expect(chatStoreSource).toContain('buildPendingTurnBroadcastStateUpdate');
     expect(chatStoreSource).not.toContain('buildPendingTurnWorkspaceMutation');
@@ -3395,14 +3395,14 @@ describe('renderer chat runtime boundary', () => {
     expect(pendingStateRuntimeSource).toContain('normalizePendingTurn');
     expect(pendingStateRuntimeSource).toContain('doesPendingTurnMatch');
     expect(pendingStateRuntimeSource).toContain('buildAcceptPendingTurnStateUpdate');
-    expect(pendingStateRuntimeSource).toContain('buildAcceptReplayPendingTurnStateUpdate');
+    expect(pendingStateRuntimeSource).not.toContain('buildAcceptReplayPendingTurnStateUpdate');
     expect(pendingStateRuntimeSource).toContain('buildClearPendingTurnStateUpdate');
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnBroadcastStateUpdate');
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnWorkspaceMutation');
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnClearWorkspaceMutation');
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnUserMessage');
-    expect(pendingStateRuntimeSource).toContain('addSupersededTurnRef');
-    expect(pendingStateRuntimeSource).toContain('removeSupersededTurnRef');
+    expect(pendingStateRuntimeSource).not.toContain('addSupersededTurnRef');
+    expect(pendingStateRuntimeSource).not.toContain('removeSupersededTurnRef');
     expect(clearMessagesRuntimeSource).toContain('buildClearMessagesStateUpdate');
     expect(clearMessagesRuntimeSource).toContain('createInitialStreamTracking');
     expect(clearMessagesRuntimeSource).not.toContain('features/chat');
