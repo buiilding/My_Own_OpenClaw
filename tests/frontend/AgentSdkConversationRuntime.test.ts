@@ -9654,6 +9654,50 @@ describe('Agent SDK conversation runtime core', () => {
     ]));
   });
 
+  test('conversation view does not duplicate materialized tool calls in live entries', () => {
+    const events = [
+      event('user_message', { text: '@script tool screenshot' }),
+      event('tool_call', {
+        toolName: 'screenshot',
+        requestId: 'ab9a6769-5651-4fca-bada-152d4ad50b54',
+        toolCallId: 'scripted_call_1',
+        args: {
+          explanation: 'Validate the scripted model tool path.',
+        },
+      }),
+    ];
+    const state = events.reduce(
+      (current, next) => reduceConversationRuntimeState(current, next),
+      createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1'),
+    );
+    const displayRows = buildDisplayRows(events);
+    const view = buildConversationView({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: state.revisionId,
+      state,
+      events,
+      displayRows,
+      currentTurn: buildCurrentTurnProjection(events),
+      pendingTurnRef: 'turn-1',
+    });
+
+    expect(view.displayRows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'tool_call',
+        content: expect.objectContaining({
+          id: 'scripted_call_1',
+          name: 'screenshot',
+        }),
+      }),
+    ]));
+    expect(view.liveTurn).toMatchObject({
+      turnRef: 'turn-1',
+      phase: 'tool',
+      isBusy: true,
+    });
+    expect(view.liveTurn.entries).toEqual([]);
+  });
+
   test('conversation view keeps edit resend replacement as the live lane', () => {
     const events = [
       eventForTurn('turn-old', 'user_message', { text: 'old' }),

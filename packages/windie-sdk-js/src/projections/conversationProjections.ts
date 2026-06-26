@@ -1665,6 +1665,111 @@ function modelHistoryCheckpointIdFromEvents(events: ConversationEvent[], revisio
   return stringField(event?.payload ?? {}, 'checkpointId', 'checkpoint_id');
 }
 
+function liveToolEntryTypeMatchesDisplayRow(
+  entry: LiveTurnPresentationEntry,
+  row: SdkDisplayRow,
+): boolean {
+  if (entry.type === 'tool-call') {
+    return row.type === 'tool_call' || row.type === 'tool_bundle_call';
+  }
+  if (entry.type === 'tool-output') {
+    return row.type === 'tool_output' || row.type === 'tool_bundle_output';
+  }
+  if (entry.type === 'tool-progress') {
+    return row.type === 'tool_progress';
+  }
+  return false;
+}
+
+function identityFromToolRecord(record: JsonRecord | null): string | null {
+  const metadata = recordFromUnknown(record?.metadata);
+  return stringField(
+    record,
+    'toolCallId',
+    'tool_call_id',
+    'id',
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'displayCorrelationId',
+    'correlationId',
+    'correlation_id',
+  ) ?? stringField(
+    metadata,
+    'toolCallId',
+    'tool_call_id',
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'displayCorrelationId',
+    'correlationId',
+    'correlation_id',
+  );
+}
+
+function liveToolEntryIdentity(entry: LiveTurnPresentationEntry): string | null {
+  return stringField(
+    entry,
+    'correlationId',
+    'requestId',
+    'bundleId',
+  )
+    ?? identityFromToolRecord(recordFromUnknown(entry.toolCallDetails))
+    ?? identityFromToolRecord(recordFromUnknown(entry.toolOutputDetails))
+    ?? identityFromToolRecord(recordFromUnknown(entry.modelFacingToolCall));
+}
+
+function displayRowToolIdentity(row: SdkDisplayRow): string | null {
+  const metadata = row.metadata ?? {};
+  return stringField(
+    metadata,
+    'displayCorrelationId',
+    'toolCallId',
+    'tool_call_id',
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'correlationId',
+    'correlation_id',
+    'eventId',
+  )
+    ?? identityFromToolRecord(recordFromUnknown(metadata.toolCallDetails))
+    ?? identityFromToolRecord(recordFromUnknown(metadata.toolOutputDetails))
+    ?? identityFromToolRecord(recordFromUnknown(metadata.modelFacingToolCall))
+    ?? identityFromToolRecord(recordFromUnknown(row.content));
+}
+
+function displayRowMaterializesLiveToolEntry(
+  row: SdkDisplayRow,
+  entry: LiveTurnPresentationEntry,
+): boolean {
+  if (!liveToolEntryTypeMatchesDisplayRow(entry, row)) {
+    return false;
+  }
+  if (entry.turnRef && row.turnRef && entry.turnRef !== row.turnRef) {
+    return false;
+  }
+  const entryIdentity = liveToolEntryIdentity(entry);
+  return Boolean(entryIdentity && displayRowToolIdentity(row) === entryIdentity);
+}
+
+function filterMaterializedLiveTurnEntries(
+  entries: LiveTurnPresentationEntry[],
+  displayRows: SdkDisplayRow[],
+): LiveTurnPresentationEntry[] {
+  return entries.filter(entry => (
+    (
+      entry.type !== 'tool-call'
+      && entry.type !== 'tool-output'
+      && entry.type !== 'tool-progress'
+    )
+    || !displayRows.some(row => displayRowMaterializesLiveToolEntry(row, entry))
+  ));
+}
+
 export function buildConversationView(input: ConversationViewBuildInput): ConversationView {
   const conversationRef = resolveConversationViewConversationRef(input);
   const displayRows = (input.displayRows ?? []).filter(row => (
@@ -1675,6 +1780,7 @@ export function buildConversationView(input: ConversationViewBuildInput): Conver
   const currentTurn = currentTurnForView(input, conversationRef, revisionId);
   const livePhase = conversationViewLiveTurnPhase(currentTurn.phase);
   const presentation = currentTurn.presentation;
+  const liveTurnEntries = filterMaterializedLiveTurnEntries(presentation.entries, displayRows);
   const responseOverlayMode = responseOverlayModeFromPresentation(presentation);
   const isBusy = presentation.isBusy;
   return {
@@ -1684,7 +1790,7 @@ export function buildConversationView(input: ConversationViewBuildInput): Conver
     liveTurn: {
       turnRef: currentTurn.turnRef,
       phase: livePhase,
-      entries: presentation.entries,
+      entries: liveTurnEntries,
       isBusy,
       isTerminal: presentation.isTerminal,
       canStop: isBusy && Boolean(currentTurn.turnRef),

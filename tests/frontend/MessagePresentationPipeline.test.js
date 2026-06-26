@@ -340,68 +340,6 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
-  test('buildThreadPresentationMessages suppresses duplicate ConversationView tool calls already in display rows', () => {
-    const userRow = {
-      id: 'sdk-user-row',
-      sender: 'user',
-      text: '@script tool screenshot',
-      turnRef: 'turn-view',
-      sourceChannel: 'sdk:display-rows',
-      sourceEventType: 'user_message',
-    };
-    const displayToolCallRow = {
-      id: 'display-tool-call-row',
-      sender: 'assistant',
-      text: '{\n  "name": "screenshot",\n  "arguments": {\n    "explanation": "Validate the scripted model tool path."\n  },\n  "id": "scripted_call_1"\n}',
-      type: 'tool-call',
-      turnRef: 'turn-view',
-      sourceChannel: 'sdk:display-rows',
-      sourceEventType: 'tool_call',
-      toolCallDetails: {
-        name: 'screenshot',
-        arguments: {
-          explanation: 'Validate the scripted model tool path.',
-        },
-        id: 'scripted_call_1',
-      },
-    };
-    const conversationView = {
-      conversationRef: 'conv-1',
-      liveTurn: {
-        turnRef: 'turn-view',
-        entries: [{
-          id: 'view-tool-call-row',
-          type: 'tool-call',
-          text: '{\n  "id": "scripted_call_1",\n  "name": "screenshot",\n  "arguments": {\n    "explanation": "Validate the scripted model tool path."\n  },\n  "metadata": {\n    "tool_call_id": "scripted_call_1",\n    "request_id": "request-1"\n  }\n}',
-          sourceEventType: 'tool_call',
-          turnRef: 'turn-view',
-          toolCallDetails: {
-            id: 'scripted_call_1',
-            name: 'screenshot',
-            arguments: {
-              explanation: 'Validate the scripted model tool path.',
-            },
-            metadata: {
-              tool_call_id: 'scripted_call_1',
-              request_id: 'request-1',
-            },
-          },
-        }],
-      },
-    };
-
-    expect(buildThreadPresentationMessages([
-      userRow,
-      displayToolCallRow,
-    ], {
-      conversationView,
-      activeConversationRef: 'conv-1',
-    })).toEqual([
-      userRow,
-      displayToolCallRow,
-    ]);
-  });
-
   test('buildThreadPresentationMessages keeps pending bridge rows with ConversationView', () => {
     const rawRow = {
       id: 'raw-user-row',

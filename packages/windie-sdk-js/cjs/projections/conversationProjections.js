@@ -1429,6 +1429,52 @@ function modelHistoryCheckpointIdFromEvents(events, revisionId) {
         && (!revisionId || candidate.revisionId === revisionId)));
     return (0, toolOutputContent_js_1.stringField)(event?.payload ?? {}, 'checkpointId', 'checkpoint_id');
 }
+function liveToolEntryTypeMatchesDisplayRow(entry, row) {
+    if (entry.type === 'tool-call') {
+        return row.type === 'tool_call' || row.type === 'tool_bundle_call';
+    }
+    if (entry.type === 'tool-output') {
+        return row.type === 'tool_output' || row.type === 'tool_bundle_output';
+    }
+    if (entry.type === 'tool-progress') {
+        return row.type === 'tool_progress';
+    }
+    return false;
+}
+function identityFromToolRecord(record) {
+    const metadata = (0, toolOutputContent_js_1.recordFromUnknown)(record?.metadata);
+    return (0, toolOutputContent_js_1.stringField)(record, 'toolCallId', 'tool_call_id', 'id', 'requestId', 'request_id', 'bundleId', 'bundle_id', 'displayCorrelationId', 'correlationId', 'correlation_id') ?? (0, toolOutputContent_js_1.stringField)(metadata, 'toolCallId', 'tool_call_id', 'requestId', 'request_id', 'bundleId', 'bundle_id', 'displayCorrelationId', 'correlationId', 'correlation_id');
+}
+function liveToolEntryIdentity(entry) {
+    return (0, toolOutputContent_js_1.stringField)(entry, 'correlationId', 'requestId', 'bundleId')
+        ?? identityFromToolRecord((0, toolOutputContent_js_1.recordFromUnknown)(entry.toolCallDetails))
+        ?? identityFromToolRecord((0, toolOutputContent_js_1.recordFromUnknown)(entry.toolOutputDetails))
+        ?? identityFromToolRecord((0, toolOutputContent_js_1.recordFromUnknown)(entry.modelFacingToolCall));
+}
+function displayRowToolIdentity(row) {
+    const metadata = row.metadata ?? {};
+    return (0, toolOutputContent_js_1.stringField)(metadata, 'displayCorrelationId', 'toolCallId', 'tool_call_id', 'requestId', 'request_id', 'bundleId', 'bundle_id', 'correlationId', 'correlation_id', 'eventId')
+        ?? identityFromToolRecord((0, toolOutputContent_js_1.recordFromUnknown)(metadata.toolCallDetails))
+        ?? identityFromToolRecord((0, toolOutputContent_js_1.recordFromUnknown)(metadata.toolOutputDetails))
+        ?? identityFromToolRecord((0, toolOutputContent_js_1.recordFromUnknown)(metadata.modelFacingToolCall))
+        ?? identityFromToolRecord((0, toolOutputContent_js_1.recordFromUnknown)(row.content));
+}
+function displayRowMaterializesLiveToolEntry(row, entry) {
+    if (!liveToolEntryTypeMatchesDisplayRow(entry, row)) {
+        return false;
+    }
+    if (entry.turnRef && row.turnRef && entry.turnRef !== row.turnRef) {
+        return false;
+    }
+    const entryIdentity = liveToolEntryIdentity(entry);
+    return Boolean(entryIdentity && displayRowToolIdentity(row) === entryIdentity);
+}
+function filterMaterializedLiveTurnEntries(entries, displayRows) {
+    return entries.filter(entry => ((entry.type !== 'tool-call'
+        && entry.type !== 'tool-output'
+        && entry.type !== 'tool-progress')
+        || !displayRows.some(row => displayRowMaterializesLiveToolEntry(row, entry))));
+}
 function buildConversationView(input) {
     const conversationRef = resolveConversationViewConversationRef(input);
     const displayRows = (input.displayRows ?? []).filter(row => (row.conversationRef === conversationRef
@@ -1437,6 +1483,7 @@ function buildConversationView(input) {
     const currentTurn = currentTurnForView(input, conversationRef, revisionId);
     const livePhase = conversationViewLiveTurnPhase(currentTurn.phase);
     const presentation = currentTurn.presentation;
+    const liveTurnEntries = filterMaterializedLiveTurnEntries(presentation.entries, displayRows);
     const responseOverlayMode = responseOverlayModeFromPresentation(presentation);
     const isBusy = presentation.isBusy;
     return {
@@ -1446,7 +1493,7 @@ function buildConversationView(input) {
         liveTurn: {
             turnRef: currentTurn.turnRef,
             phase: livePhase,
-            entries: presentation.entries,
+            entries: liveTurnEntries,
             isBusy,
             isTerminal: presentation.isTerminal,
             canStop: isBusy && Boolean(currentTurn.turnRef),

@@ -210,14 +210,6 @@ vertical scroll box. Long JSON lines wrap inside the card so the first line is
 visible immediately after render; the details panel may remain internally
 scrollable for large diagnostic payloads.
 
-When a first-class `ConversationView` carries live tool-call entries while the
-same tool call has already materialized in `ConversationView.displayRows`, the
-thread presenter suppresses the live duplicate. Dedupe compares renderer row id,
-correlation id, and nested tool-call/request identity such as
-`toolCallDetails.id`, `toolCallDetails.tool_call_id`, and
-`toolCallDetails.metadata.tool_call_id`; it does not require the display-row
-JSON preview and live-entry JSON preview to match byte-for-byte.
-
 Backend contract:
 
 - `metadata.model_facing_tool_call` should carry the exact LLM-emitted tool payload whenever available, including successful unified wrapper calls that are internally normalized before execution

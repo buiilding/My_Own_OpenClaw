@@ -122,46 +122,7 @@ function resolveToolName(message) {
   const candidates = [
     message?.toolName,
     message?.toolCallDetails?.toolName,
-    message?.toolCallDetails?.tool_name,
-    message?.toolCallDetails?.name,
     message?.toolOutputDetails?.toolName,
-    message?.toolOutputDetails?.tool_name,
-    message?.toolOutputDetails?.name,
-  ];
-  for (const candidate of candidates) {
-    const normalized = normalizeRef(candidate);
-    if (normalized) {
-      return normalized;
-    }
-  }
-  return null;
-}
-
-function resolveToolIdentity(message) {
-  const toolCallDetails = message?.toolCallDetails || {};
-  const toolOutputDetails = message?.toolOutputDetails || {};
-  const candidates = [
-    message?.correlationId,
-    message?.toolCallId,
-    message?.requestId,
-    toolCallDetails.toolCallId,
-    toolCallDetails.tool_call_id,
-    toolCallDetails.id,
-    toolCallDetails.requestId,
-    toolCallDetails.request_id,
-    toolCallDetails.metadata?.toolCallId,
-    toolCallDetails.metadata?.tool_call_id,
-    toolCallDetails.metadata?.requestId,
-    toolCallDetails.metadata?.request_id,
-    toolOutputDetails.toolCallId,
-    toolOutputDetails.tool_call_id,
-    toolOutputDetails.id,
-    toolOutputDetails.requestId,
-    toolOutputDetails.request_id,
-    toolOutputDetails.metadata?.toolCallId,
-    toolOutputDetails.metadata?.tool_call_id,
-    toolOutputDetails.metadata?.requestId,
-    toolOutputDetails.metadata?.request_id,
   ];
   for (const candidate of candidates) {
     const normalized = normalizeRef(candidate);
@@ -176,7 +137,6 @@ function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
   const liveId = normalizeRef(liveMessage?.id);
   const liveText = normalizeText(liveMessage?.text);
   const liveThinkingText = normalizeText(liveMessage?.thinkingText);
-  const liveToolIdentity = resolveToolIdentity(liveMessage);
   return messages.some((message) => {
     if (!message || isSdkLiveTurnSourceChannel(message.sourceChannel)) {
       return false;
@@ -202,9 +162,6 @@ function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
       return false;
     }
     if (liveMessage?.correlationId && message.correlationId === liveMessage.correlationId) {
-      return true;
-    }
-    if (liveToolIdentity && resolveToolIdentity(message) === liveToolIdentity) {
       return true;
     }
     const liveToolName = resolveToolName(liveMessage);
