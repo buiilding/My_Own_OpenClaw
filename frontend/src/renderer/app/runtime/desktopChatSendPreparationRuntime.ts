@@ -22,15 +22,11 @@ import {
   type OutgoingUserMessagePayload,
   type ReadableFilePayload,
 } from './desktopChatSendPayloadRuntime';
-import { DesktopChatSendStateRuntime } from './desktopChatSendStateRuntime';
 import { DesktopRendererTraceRuntime } from './desktopRendererTraceRuntime';
 
 const {
   normalizeOutgoingPayload,
 } = DesktopChatSendPayloadRuntime;
-const {
-  hasPriorUserMessages,
-} = DesktopChatSendStateRuntime;
 const {
   buildPendingTurn,
 } = DesktopPendingTurnBridgeRuntime;
@@ -55,19 +51,8 @@ type WorkspaceBinding = {
   workspacePath?: string | null;
 };
 
-type ChatSendMessageSnapshot = {
-  sender?: string | null;
-};
-
-type ChatSendConversationViewSnapshot = {
-  displayRows?: Array<{
-    role?: string | null;
-  }> | null;
-} | null | undefined;
-
 type ChatSendReadModel = {
-  conversationView: ChatSendConversationViewSnapshot;
-  messages: ChatSendMessageSnapshot[];
+  hasPriorUserMessages: boolean;
 };
 
 type PendingDesktopChatTurn = {
@@ -261,7 +246,7 @@ async function prepareDesktopChatSend({
   dependencies.stopPlayback?.();
 
   const sendReadModel = dependencies.getSendReadModel();
-  const hadUserMessages = hasPriorUserMessages(sendReadModel);
+  const hadUserMessages = sendReadModel.hasPriorUserMessages === true;
   const turnId = crypto.randomUUID();
   const timestamp = new Date().toISOString();
   const conversationRef = await resolveImmediateConversationRef(dependencies);

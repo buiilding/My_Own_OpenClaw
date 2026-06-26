@@ -297,12 +297,12 @@ through raw workspace mutation/adapters and for no-view fallback rendering.
   no-view fallback path and never exposes raw `currentTurnProjection`
 
 `selectChatSendReadModel` is the send-only read model for
-`useChatMessageSender(...)`. It exposes SDK `ConversationView` plus raw
-`messages` only for the no-view first-message fallback without adding those raw
-fields back to the React chat-interface selector. Once `ConversationView`
-exists, the send read model returns an empty raw message list so send
-preparation and direct selector callers cannot accidentally use active
-workspace messages as competing history authority beside SDK display rows.
+`useChatMessageSender(...)`. It exposes only the resolved
+`hasPriorUserMessages` predicate. The selector computes that predicate from SDK
+`ConversationView.displayRows` when a view exists and from raw `messages` only
+for the no-view first-message fallback, without passing either row source into
+send preparation or adding those raw fields back to the React chat-interface
+selector.
 
 Minimal chat pill and response overlay state now route through the live-turn
 presentation/view-model helpers instead of a separate chat-box selector. The

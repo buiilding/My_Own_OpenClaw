@@ -456,8 +456,7 @@ describe('chatSelectors', () => {
     });
 
     expect(selectChatSendReadModel(state)).toEqual({
-      conversationView,
-      messages: [],
+      hasPriorUserMessages: true,
     });
     expect(selectChatInterfaceState(state)).not.toHaveProperty('messages');
     expect(selectChatInterfaceState(state)).not.toHaveProperty('conversationView');
@@ -478,8 +477,7 @@ describe('chatSelectors', () => {
         sdkLiveTurn: { turnRef: 'raw-turn' },
       })),
     })).toEqual({
-      conversationView,
-      messages: [],
+      hasPriorUserMessages: true,
     });
   });
 
@@ -495,8 +493,7 @@ describe('chatSelectors', () => {
         conversationView,
       }),
     })).toEqual({
-      conversationView,
-      messages: [],
+      hasPriorUserMessages: true,
     });
   });
 
@@ -508,8 +505,7 @@ describe('chatSelectors', () => {
         conversationView: null,
       }),
     })).toEqual({
-      conversationView: null,
-      messages,
+      hasPriorUserMessages: true,
     });
   });
 

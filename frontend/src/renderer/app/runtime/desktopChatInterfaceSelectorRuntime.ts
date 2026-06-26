@@ -18,6 +18,9 @@ import {
 import {
   DesktopStopTurnRuntime,
 } from './desktopStopTurnRuntime';
+import {
+  DesktopChatSendStateRuntime,
+} from './desktopChatSendStateRuntime';
 
 type DesktopChatWorkspaceProjection = {
   messages: ChatMessage[];
@@ -37,8 +40,7 @@ type PendingTurnProjection = {
 } | null;
 
 type ChatSendReadModel = {
-  conversationView: ConversationView | null;
-  messages: ChatMessage[];
+  hasPriorUserMessages: boolean;
 };
 
 type StopTurnTarget = {
@@ -59,34 +61,16 @@ const {
 const {
   resolveStopTurnTarget,
 } = DesktopStopTurnRuntime;
-const chatSendReadModelObjectCache = new WeakMap<object, WeakMap<object, ChatSendReadModel>>();
-const chatSendReadModelPrimitiveCache = new Map<string, ChatSendReadModel>();
+const {
+  hasPriorUserMessages,
+} = DesktopChatSendStateRuntime;
+const chatSendReadModelWithPriorUserMessages = Object.freeze({
+  hasPriorUserMessages: true,
+});
+const chatSendReadModelWithoutPriorUserMessages = Object.freeze({
+  hasPriorUserMessages: false,
+});
 const stopTurnTargetCache = new Map<string, StopTurnTarget>();
-
-function readChatSendReadModelObjectCache(
-  conversationView: ConversationView | null,
-  messages: ChatMessage[],
-): ChatSendReadModel | null {
-  if (!conversationView || typeof conversationView !== 'object') {
-    return null;
-  }
-  const messagesKey = messages as unknown as object;
-  let messageCache = chatSendReadModelObjectCache.get(conversationView);
-  if (!messageCache) {
-    messageCache = new WeakMap<object, ChatSendReadModel>();
-    chatSendReadModelObjectCache.set(conversationView, messageCache);
-  }
-  const cached = messageCache.get(messagesKey);
-  if (cached) {
-    return cached;
-  }
-  const sendReadModel = {
-    conversationView,
-    messages,
-  };
-  messageCache.set(messagesKey, sendReadModel);
-  return sendReadModel;
-}
 
 function selectStableChatSendReadModel({
   conversationView = null,
@@ -96,31 +80,12 @@ function selectStableChatSendReadModel({
   messages?: ChatMessage[];
 }): ChatSendReadModel {
   const fallbackMessages = Array.isArray(messages) ? messages : [];
-  const objectCachedReadModel = readChatSendReadModelObjectCache(conversationView, fallbackMessages);
-  if (objectCachedReadModel) {
-    return objectCachedReadModel;
-  }
-  const primitiveKey = [
-    conversationView ? 'view' : 'none',
-    fallbackMessages.length,
-  ].join('\u0001');
-  const cached = chatSendReadModelPrimitiveCache.get(primitiveKey);
-  if (
-    cached
-    && cached.conversationView === conversationView
-    && cached.messages === fallbackMessages
-  ) {
-    return cached;
-  }
-  if (chatSendReadModelPrimitiveCache.size > 64) {
-    chatSendReadModelPrimitiveCache.clear();
-  }
-  const sendReadModel = {
+  return hasPriorUserMessages({
     conversationView,
     messages: fallbackMessages,
-  };
-  chatSendReadModelPrimitiveCache.set(primitiveKey, sendReadModel);
-  return sendReadModel;
+  })
+    ? chatSendReadModelWithPriorUserMessages
+    : chatSendReadModelWithoutPriorUserMessages;
 }
 
 function buildStopTurnTargetSignature(stopTurnTarget: StopTurnTarget): string {

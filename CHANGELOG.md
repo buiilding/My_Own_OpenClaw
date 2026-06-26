@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/chat: remove the renderer-wide edit/retry message gates from
   ChatInterface presentation state; SDK display-row `actions` now solely own
   replay command availability and targets. No migration required.
+- frontend/send: narrow the chat send read model to `hasPriorUserMessages`, so
+  send preparation no longer receives SDK display rows or raw messages just to
+  decide first-message screenshot capture. No migration required.
 - frontend/state: rename private no-view live-turn workspace storage from
   `currentTurnProjection` to `sdkLiveTurn`, removing the raw current-turn name
   from production renderer workspace state. No migration required.

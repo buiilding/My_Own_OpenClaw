@@ -37,8 +37,8 @@ final live-turn dispatch to `DesktopChatSendPreparationRuntime`, which returns a
 The hook reads send-history inputs through
 `selectChatSendReadModel(useChatStore.getState())` instead of the full
 `selectChatInterfaceState(...)` UI selector or raw top-level
-`chatStore.messages` / `chatStore.conversationView`, so send preparation sees a
-narrow `ConversationView`-first read model without making React chat surfaces
+`chatStore.messages` / `chatStore.conversationView`, so send preparation sees
+only a boolean first-user-message predicate without making React chat surfaces
 carry send-only raw state.
 `DesktopChatSendPreparationRuntime.prepareDesktopChatSend(...)` accepts that
 state through one `getSendReadModel` dependency rather than split
@@ -175,11 +175,12 @@ stored screenshot refs as legacy resolved payload because replay reuses durable
 transcript metadata rather than composer resources.
 
 `DesktopChatSendStateRuntime.hasPriorUserMessages(...)` owns the
-first-user-message predicate used by send preparation. When a SDK
+first-user-message predicate used by the send read-model selector. When a SDK
 `ConversationView.displayRows` snapshot exists, the predicate reads user rows
 from that view instead of treating `chatStore.messages` as competing durable
-history; `chatStore.messages` remains the no-view/pending bridge fallback. The
-raw predicate stays private behind the renderer app-runtime facade.
+history; `chatStore.messages` remains the no-view/pending bridge fallback.
+`DesktopChatSendPreparationRuntime` receives only the resolved boolean, not the
+view rows or raw messages.
 
 Send lifecycle chat-pill traces go through `DesktopRendererTraceRuntime`.
 `DesktopChatSendPreparationRuntime` reports send-start,
