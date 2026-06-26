@@ -24,10 +24,7 @@ const {
   isUserMessageMetadataConversationStreamEvent,
   isUsageUpdatedConversationStreamEvent,
   recordTrackingEvent,
-  resolveConversationStreamEventConversationRef,
   resolveConversationStreamEventIdentity,
-  resolveConversationStreamEventTurnRef,
-  resolveConversationStreamEventTurnRefForUpdate,
   resolveTurnCompletedStreamEventState,
   resolveWorkspaceThinkingSourceEventType,
   shouldIgnoreConversationEventForStaleTurn,
@@ -442,22 +439,18 @@ describe('DesktopChatStreamEventRuntime', () => {
   });
 
   test('normalizes SDK conversation stream event identity fields', () => {
-    expect(resolveConversationStreamEventConversationRef({
-      conversationRef: ' conversation-1 ',
-      turnRef: ' turn-1 ',
-    })).toBe('conversation-1');
-    expect(resolveConversationStreamEventTurnRef({
-      conversationRef: ' conversation-1 ',
-      turnRef: ' turn-1 ',
-    })).toBe('turn-1');
-    expect(resolveConversationStreamEventTurnRefForUpdate({
-      turnRef: ' turn-1 ',
-    })).toBe('turn-1');
     expect(resolveConversationStreamEventIdentity({
       conversationRef: ' conversation-1 ',
       turnRef: ' turn-1 ',
     })).toEqual({
       conversationRef: 'conversation-1',
+      turnRef: 'turn-1',
+      turnRefForUpdate: 'turn-1',
+    });
+    expect(resolveConversationStreamEventIdentity({
+      turnRef: ' turn-1 ',
+    })).toEqual({
+      conversationRef: null,
       turnRef: 'turn-1',
       turnRefForUpdate: 'turn-1',
     });
@@ -470,17 +463,14 @@ describe('DesktopChatStreamEventRuntime', () => {
       turnRefForUpdate: 'turn-1',
     });
 
-    expect(resolveConversationStreamEventConversationRef({
+    expect(resolveConversationStreamEventIdentity({
       conversationRef: '   ',
-    })).toBeNull();
-    expect(resolveConversationStreamEventTurnRef({
       turnRef: '   ',
-    })).toBeNull();
-    expect(resolveConversationStreamEventTurnRefForUpdate({
-      turnRef: '   ',
-    })).toBeUndefined();
-    expect(resolveConversationStreamEventConversationRef(null)).toBeNull();
-    expect(resolveConversationStreamEventTurnRef(undefined)).toBeNull();
+    })).toEqual({
+      conversationRef: null,
+      turnRef: null,
+      turnRefForUpdate: undefined,
+    });
     expect(resolveConversationStreamEventIdentity(null)).toEqual({
       conversationRef: null,
       turnRef: null,

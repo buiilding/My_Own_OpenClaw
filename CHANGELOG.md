@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stream: keep low-level conversation-stream conversation/turn ref
+  helpers internal to `DesktopChatStreamEventRuntime`; renderer consumers now
+  use the exported identity object helper. No migration required.
 - frontend/stream: route chat stream dispatcher, ingress, compaction, and
   local-user handlers through the runtime-built conversation stream event
   identity object instead of resolving conversation and turn refs independently.

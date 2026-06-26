@@ -171,6 +171,9 @@ Conversation-stream sub-handlers resolve event identity through
 The dispatcher, ingress runtime, compaction, local-user, metadata, and terminal
 handlers consume that runtime-built conversation ref, turn ref, and update-target
 turn ref object instead of unpacking SDK event identity fields independently.
+Low-level conversation-ref and turn-ref helpers stay internal to
+`DesktopChatStreamEventRuntime`; renderer consumers should not import or
+destructure them from the facade.
 
 The old exported `mergeRendererAnnotations` helper remains removed.
 Annotation merging is internal to `desktopConversationDisplayProjection.ts`;
