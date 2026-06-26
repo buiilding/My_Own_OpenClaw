@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: move replay chat-store plumbing into
+  `executeReplayActionFromChatStore` and model-selection normalization into
+  `DesktopConversationReplayRuntime`, so `useConversationReplayActions` passes
+  only edit/retry intent plus renderer config. No migration required.
 - frontend/stop: move pending-bridge stop cleanup classification into
   `DesktopStopTurnRuntime.buildStopTurnExecutionPlan`, so stop handlers no
   longer inspect stop-target source to decide pending-turn IPC cleanup. No

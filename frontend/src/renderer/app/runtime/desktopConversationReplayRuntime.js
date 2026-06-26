@@ -9,6 +9,7 @@ import {
 import {
   DesktopConversationProjectionStreamRuntime,
 } from './desktopConversationProjectionStreamRuntime';
+import { DesktopRendererConfigRuntimeClient } from './desktopRendererConfigRuntimeClient';
 import {
   projectWorkspaceReadModelState,
 } from './desktopChatWorkspaceStateRuntime';
@@ -227,10 +228,19 @@ function prepareReplayActionIntent({
   return null;
 }
 
+function resolveReplayModelSelection({
+  config = null,
+  deferredQueryModelSelection,
+} = {}) {
+  return deferredQueryModelSelection
+    ?? DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection(config);
+}
+
 async function executeReplayAction({
   action,
   activeConversationRef,
   assistantMessageId = null,
+  config = null,
   chatStore,
   deferredQueryModelSelection,
   editedText = null,
@@ -255,7 +265,10 @@ async function executeReplayAction({
   return executeReplayIntent({
     activeConversationRef: resolvedActiveConversationRef,
     chatStore,
-    deferredQueryModelSelection,
+    deferredQueryModelSelection: resolveReplayModelSelection({
+      config,
+      deferredQueryModelSelection,
+    }),
     intent,
     sessionInfo: resolvedSessionInfo,
   });

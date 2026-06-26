@@ -1820,6 +1820,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js'),
       'utf8',
     );
+    const chatStoreAdaptersSource = await fs.readFile(
+      path.join(chatRoot, 'stores/chatStoreAdapters.ts'),
+      'utf8',
+    );
     const chatInterfacePresentationRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime.js'),
       'utf8',
@@ -1830,9 +1834,12 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(source).not.toContain('DesktopConversationStoreAdapter');
-    expect(source).toContain('desktopConversationReplayRuntime');
-    expect(source).toContain('DesktopConversationReplayRuntime');
+    expect(source).not.toContain('desktopConversationReplayRuntime');
+    expect(source).not.toContain('DesktopConversationReplayRuntime');
     expect(source).not.toContain('DesktopChatSendPreparationRuntime');
+    expect(source).not.toContain("} from '../stores/chatStore';");
+    expect(source).not.toContain('useChatStore');
+    expect(source).not.toContain('buildDeferredQueryModelSelection');
     expect(source).not.toContain('utils/conversationReplayToolMessages');
     expect(source).not.toContain('DesktopConversationContinuityService.loadDisplayTimeline');
     expect(source).not.toContain('DesktopConversationContinuityService.editAndResend');
@@ -1841,7 +1848,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopConversationContinuityService.prepareEditAndResend');
     expect(source).not.toContain('DesktopConversationContinuityService.prepareRetryTurn');
     expect(source).not.toContain('dispatchPreparedDesktopChatTurn');
-    expect(source).toContain('executeReplayAction');
+    expect(source).toContain('executeReplayActionFromChatStore');
     expect(source).not.toContain('conversationView');
     expect(source).not.toContain('useChatStore((state)');
     expect(source).not.toContain('state.activeConversationRef');
@@ -1853,6 +1860,10 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopPendingTurnRuntimeClient.setPending');
     expect(source).not.toContain('prepareReplayEditIntent');
     expect(source).not.toContain('prepareReplayRetryIntent');
+    expect(source).toContain('executeReplayActionFromChatStore');
+    expect(replayRuntimeSource).toContain('buildDeferredQueryModelSelection');
+    expect(chatStoreAdaptersSource).toContain('executeReplayActionFromChatStore');
+    expect(chatStoreAdaptersSource).toContain('chatStore: useChatStore');
     expect(source).not.toContain('findReplayEditableUserMessageIndex');
     expect(source).not.toContain('resolveReplayRetryMessageIndexes');
     expect(source).not.toContain('buildReplayContextMessages');
@@ -3768,6 +3779,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('acceptPendingTurnInChatStore');
     expect(chatStoreAdaptersSource).toContain('clearPendingTurnInChatStore');
     expect(chatStoreAdaptersSource).toContain('acceptStoppedTurnInChatStore');
+    expect(chatStoreAdaptersSource).toContain('executeReplayActionFromChatStore');
     expect(chatStoreAdaptersSource).toContain('setSdkLiveTurnInChatStore');
     expect(chatStoreAdaptersSource).toContain('setConversationViewInChatStore');
     expect(chatStoreAdaptersSource).toContain('updateStreamTrackingInChatStore');

@@ -22,6 +22,9 @@ import {
   DesktopStopTurnRuntime,
 } from '../../../app/runtime/desktopStopTurnRuntime';
 import {
+  DesktopConversationReplayRuntime,
+} from '../../../app/runtime/desktopConversationReplayRuntime';
+import {
   DesktopChatPendingTurnStateRuntime,
 } from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
 import type {
@@ -82,6 +85,13 @@ const {
     } | null;
     state: TState;
   }) => Partial<TState> | TState | null;
+};
+const {
+  executeReplayAction,
+} = DesktopConversationReplayRuntime as {
+  executeReplayAction: (input: ReplayActionFromChatStoreInput & {
+    chatStore: typeof useChatStore;
+  }) => Promise<boolean | undefined>;
 };
 const {
   buildAcceptPendingTurnStateUpdate,
@@ -278,6 +288,29 @@ export function clearPendingTurnInChatStore(
       state,
     }) ?? state
   ));
+}
+
+type ReplayActionFromChatStoreInput = {
+  action?: string | null;
+  activeConversationRef?: string | null;
+  assistantMessageId?: string | null;
+  config?: Record<string, unknown> | null;
+  deferredQueryModelSelection?: unknown;
+  editedText?: string | null;
+  sessionInfo?: {
+    conversationRef?: string | null;
+    userId?: string | null;
+  } | null;
+  userMessageId?: string | null;
+};
+
+export function executeReplayActionFromChatStore(
+  input: ReplayActionFromChatStoreInput,
+): Promise<boolean | undefined> {
+  return executeReplayAction({
+    ...input,
+    chatStore: useChatStore,
+  });
 }
 
 export function acceptStoppedTurnInChatStore(

@@ -4,45 +4,34 @@
 
 import { useCallback } from 'react';
 import {
-  useChatStore,
-} from '../stores/chatStore';
+  executeReplayActionFromChatStore,
+} from '../stores/chatStoreAdapters';
 import {
   DesktopRendererConfigRuntimeClient,
 } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
-import {
-  DesktopConversationReplayRuntime,
-} from '../../../app/runtime/desktopConversationReplayRuntime';
-
-const {
-  executeReplayAction,
-} = DesktopConversationReplayRuntime;
 
 export function useConversationReplayActions() {
   const { config } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
-  const deferredQueryModelSelection = DesktopRendererConfigRuntimeClient
-    .buildDeferredQueryModelSelection(config);
 
   const handleEditFromUser = useCallback(async (userMessageId, editedText) => {
-    return executeReplayAction({
+    return executeReplayActionFromChatStore({
       action: 'edit_resend',
-      deferredQueryModelSelection,
+      config,
       userMessageId,
       editedText,
-      chatStore: useChatStore,
     });
   }, [
-    deferredQueryModelSelection,
+    config,
   ]);
 
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
-    return executeReplayAction({
+    return executeReplayActionFromChatStore({
       action: 'retry',
-      deferredQueryModelSelection,
+      config,
       assistantMessageId,
-      chatStore: useChatStore,
     });
   }, [
-    deferredQueryModelSelection,
+    config,
   ]);
 
   return {

@@ -179,6 +179,10 @@ replay/store compatibility adapters and low-level artifact helpers.
   display rows, and display-row `attachments[]`. The legacy replay-pending
   reducer and renderer superseded-turn ledger have been removed; renderer
   pending state is now only the normal post-send bridge.
+  `useConversationReplayActions(...)` passes replay intent plus renderer config
+  into `executeReplayActionFromChatStore(...)`; the chat-store adapter supplies
+  the store bridge and the replay runtime derives the deferred SDK model
+  selection before dispatching SDK commands.
 - `clearPendingTurnInChatStore(...)` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn.
   Pending-turn clear matching, broadcast action branching, and workspace
