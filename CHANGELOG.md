@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: move SDK display-row to chat-message conversion behind
+  `DesktopSdkDisplayChatMessageProjectionRuntime`; the old
+  `sdkDisplayChatMessageProjection.ts` path is now a narrow compatibility
+  adapter. No migration required.
 - frontend/selectors: make chat surface and send-read-model selector adapters
   consume the workspace read model without re-normalizing raw
   `ConversationView` fallback state. No migration required.

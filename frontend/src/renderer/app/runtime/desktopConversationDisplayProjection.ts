@@ -5,12 +5,15 @@
 import type { ChatMessage } from './desktopChatMessageTypes';
 import type { ConversationView } from './desktopConversationRuntimeContracts';
 import {
-  buildChatMessagesFromSdkDisplayRows,
-} from '../../infrastructure/transcript/sdkDisplayChatMessageProjection';
+  DesktopSdkDisplayChatMessageProjectionRuntime,
+} from './desktopSdkDisplayChatMessageProjectionRuntime';
 import {
   DesktopPendingTurnBridgeRuntime,
 } from './desktopPendingTurnBridgeRuntime';
 
+const {
+  buildChatMessagesFromSdkDisplayRows,
+} = DesktopSdkDisplayChatMessageProjectionRuntime;
 const {
   buildPendingTurnUserMessage,
 } = DesktopPendingTurnBridgeRuntime;

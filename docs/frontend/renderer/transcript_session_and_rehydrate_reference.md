@@ -20,10 +20,12 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
 - `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
+  (compatibility adapter)
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/infrastructure/transcript/toolCallMessageState.js`
@@ -228,7 +230,8 @@ If transcript rows never appear:
 If resumed conversation loses screenshot/tool linkage:
 
 1. inspect SDK display and rehydrate projection mapping
-   (`sdkDisplayChatMessageProjection.ts` and the renderer continuity service)
+   (`desktopSdkDisplayChatMessageProjectionRuntime.ts` and the renderer
+   continuity service)
 2. verify screenshot ref propagation
 3. verify `correlation_id` + `tool_name` survive list/get round-trip
 

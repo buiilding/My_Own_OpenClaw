@@ -12,8 +12,10 @@ title: "Screenshot Message State and SDK Projection Reference"
 
 - `frontend/src/renderer/infrastructure/services/screenshotMessageState.js`
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts`
 - `packages/windie-sdk-js/src/projections/legacyVisualAttachmentReplayAdapter.ts`
 - `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
+  (compatibility adapter)
 - `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`
 - `frontend/src/renderer/features/chat/components/message/content/AttachmentList.jsx`
 - `tests/frontend/ScreenshotMessageState.test.js`
@@ -75,11 +77,13 @@ typed attachments and any legacy screenshot refs.
 
 ## SDK Display Projection
 
-`sdkDisplayChatMessageProjection.ts` maps SDK display rows directly to renderer
-chat-message props and reads typed attachment descriptors from SDK display row
-metadata. It does not build an intermediate `DisplayMessage` model or adapt
-legacy screenshot aliases for primary renderer display; old rows must be
-adapted earlier by `legacyVisualAttachmentReplayAdapter`.
+`DesktopSdkDisplayChatMessageProjectionRuntime` maps SDK display rows directly
+to renderer chat-message props and reads typed attachment descriptors from SDK
+display row metadata. The legacy `sdkDisplayChatMessageProjection.ts` module is
+only a compatibility adapter to that runtime. The runtime does not build an
+intermediate `DisplayMessage` model or adapt legacy screenshot aliases for
+primary renderer display; old rows must be adapted earlier by
+`legacyVisualAttachmentReplayAdapter`.
 Streaming assistant rows read SDK `reasoningText` only; the renderer adapter
 does not recover old snake-case reasoning aliases.
 It also must not synthesize missing model-facing tool-call objects from
@@ -122,9 +126,9 @@ If the missing image was sent from the chat pill while the dashboard still shows
 the earlier optimistic text-only user row, enable `[LiveSurfaceTrace]` and check
 `renderer.display_rows.projected`. `sdkUserImageCount` means the SDK display row
 contained screenshot metadata, `sdkProjectedUserImageCount` means
-`sdkDisplayChatMessageProjection.ts` converted it into renderer message image
-state, and `mergedUserImageCount` means the renderer store kept that image after
-replacing the optimistic row.
+`DesktopSdkDisplayChatMessageProjectionRuntime` converted it into renderer
+message image state, and `mergedUserImageCount` means the renderer store kept
+that image after replacing the optimistic row.
 
 If a row shows one image instead of multiple:
 
