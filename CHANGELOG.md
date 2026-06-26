@@ -34,6 +34,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/attachments: remove the dead chat-stream screenshot attachment
   builder, keeping renderer visual attachment resolution on SDK `attachments[]`
   descriptors. No migration required.
+- frontend/attachments: delete the legacy renderer screenshot message-state
+  service; artifact URL inference now lives in `ArtifactImageUtils`, while SDK
+  projection owns screenshot alias recovery. No migration required.
 - frontend/attachments: rename the app-runtime artifact image resolver to
   `DesktopAttachmentImageRuntime`, so chat attachment rendering no longer
   imports a screenshot-named resolver facade. No migration required.

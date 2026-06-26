@@ -3,6 +3,7 @@
  */
 
 import {
+  inferArtifactRefFromUrl,
   normalizeArtifactImageContentType,
   resolveArtifactImageExtension,
 } from '../../frontend/src/renderer/infrastructure/services/ArtifactImageUtils';
@@ -37,5 +38,11 @@ describe('ArtifactImageUtils', () => {
     expect(resolveArtifactImageExtension('image/tiff')).toBe('tiff');
     expect(resolveArtifactImageExtension('image/x-icon')).toBe('ico');
     expect(resolveArtifactImageExtension('image/svg+xml')).toBe('svg');
+  });
+
+  test('infers artifact ids from backend artifact urls', () => {
+    expect(inferArtifactRefFromUrl('http://127.0.0.1:8765/api/artifacts/artifact-77')).toBe('artifact-77');
+    expect(inferArtifactRefFromUrl('https://cdn.example/not-an-artifact.png')).toBeNull();
+    expect(inferArtifactRefFromUrl('')).toBeNull();
   });
 });

@@ -15,6 +15,15 @@ const IMAGE_CONTENT_TYPE_TO_EXTENSION: Record<string, string> = {
   'image/svg+xml': 'svg',
 };
 
+export function inferArtifactRefFromUrl(url?: string | null): string | null {
+  const normalizedUrl = (url || '').trim();
+  if (!normalizedUrl) {
+    return null;
+  }
+  const match = normalizedUrl.match(/\/api\/artifacts\/([^/?#]+)/i);
+  return match?.[1] || null;
+}
+
 export function normalizeArtifactImageContentType(contentType?: string | null): string {
   const normalized = (contentType || '').toLowerCase().trim();
   if (!normalized) {

@@ -28,7 +28,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/infrastructure/transcript/toolCallMessageState.js`
 - `frontend/src/renderer/infrastructure/transcript/toolOutputChatMessageState.ts`
-- `frontend/src/renderer/infrastructure/services/screenshotMessageState.js`
+- `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `packages/windie-sdk-js/src/projections/conversationProjections.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`

@@ -12,24 +12,14 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient'
   const imageUtils = jest.requireActual(
     '../../frontend/src/renderer/infrastructure/services/ArtifactImageUtils',
   );
-  const screenshotState = jest.requireActual(
-    '../../frontend/src/renderer/infrastructure/services/screenshotMessageState',
-  );
   const buildArtifactUrl = jest.fn((artifactId) => `http://runtime.test/api/artifacts/${artifactId}`);
-  const withArtifactUrlBuilder = (input = {}) => ({
-    ...input,
-    artifactUrlBuilder: buildArtifactUrl,
-  });
 
   return {
     DesktopArtifactRuntimeClient: {
       buildArtifactUrl,
       fetchArtifactImage: jest.fn(),
-      inferArtifactRefFromUrl: screenshotState.inferArtifactRefFromUrl,
+      inferArtifactRefFromUrl: imageUtils.inferArtifactRefFromUrl,
       normalizeArtifactImageContentType: imageUtils.normalizeArtifactImageContentType,
-      resolveScreenshotAttachmentState: (input) => (
-        screenshotState.resolveScreenshotAttachmentState(withArtifactUrlBuilder(input))
-      ),
     },
   };
 });

@@ -1,7 +1,7 @@
 ---
 summary: "Legacy screenshot metadata and SDK typed attachment projection reference for explicit screenshotRef/screenshotUrl metadata, screenshot_refs SDK replay input, typed attachments, and removed renderer whole-message screenshot display."
 read_when:
-  - When changing `screenshotMessageState.js`, SDK display attachment projection, artifact image resolution, or replay screenshot metadata.
+  - When changing SDK display attachment projection, artifact image resolution, or replay screenshot metadata.
   - When debugging missing renderer visual attachments, SDK-owned `screenshotRef`/`screenshotUrl` replay input, `screenshot_refs` multi-image projection, or stale screenshot artifact inference behavior.
 title: "Screenshot Message State and SDK Projection Reference"
 ---
@@ -10,13 +10,13 @@ title: "Screenshot Message State and SDK Projection Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/infrastructure/services/screenshotMessageState.js`
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
+- `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts`
 - `packages/windie-sdk-js/src/projections/legacyVisualAttachmentReplayAdapter.ts`
 - `frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js`
 - `frontend/src/renderer/features/chat/components/message/content/AttachmentList.jsx`
-- `tests/frontend/ScreenshotMessageState.test.js`
+- `tests/frontend/ArtifactImageUtils.test.ts`
 - `tests/frontend/SdkDisplayChatMessageProjection.test.ts`
 - `tests/frontend/MessageContent.test.jsx`
 - `tests/frontend/ConversationReplayActions.test.jsx`
@@ -38,24 +38,15 @@ Do not reintroduce the retired compatibility path that treats a non-inline
 `screenshotRef`, `screenshotUrl`, or `screenshot_refs` metadata.
 
 URL-to-ref extraction from backend artifact URLs such as `/api/artifacts/<id>`
-is allowed inside low-level screenshot metadata normalization and SDK/store
-compatibility adapters. Renderer replay actions must not perform that
-inference or forward inferred `screenshot_ref`/`screenshot_url` fields; replay
-resource preservation comes from the SDK target display row.
+is limited to artifact image utilities and SDK/store compatibility adapters.
+Renderer replay actions must not perform that inference or forward inferred
+`screenshot_ref`/`screenshot_url` fields; replay resource preservation comes
+from the SDK target display row.
 
 ## Runtime Behavior
 
-`resolveScreenshotAttachmentState(...)`:
-
-1. parses inline screenshot data
-2. rejects `artifact://`, `http://`, and `https://` values as inline payloads
-3. builds remote state from explicit `screenshotRef` or artifact URL-derived ref
-4. derives `screenshotUrl` from the supplied artifact URL builder when a ref
-   exists and no URL was provided
-5. optionally drops inline screenshot bytes when remote metadata exists
-
-`screenshotMessageState.js` keeps low-level legacy normalization rules for
-producer paths. Replay-specific screenshot alias recovery belongs in SDK
+The old renderer `screenshotMessageState.js` helper has been removed from the
+production path. Replay-specific screenshot alias recovery belongs in SDK
 display-row compatibility adapters, not renderer replay actions or renderer
 screenshot state. Renderer feature code should render image descriptors through
 `AttachmentList`/`AttachmentRendererRegistry`; those components resolve ready
