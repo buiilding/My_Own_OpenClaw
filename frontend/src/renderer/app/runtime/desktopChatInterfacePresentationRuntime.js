@@ -43,7 +43,6 @@ function buildChatInterfacePresentationState({
       currentTurnProjection,
       activeConversationRef,
     }),
-    replayFallbackMessages: hasConversationView ? [] : messages,
     canEditMessages: hasConversationView
       ? conversationView?.actions?.canEdit === true
       : true,

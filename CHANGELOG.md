@@ -43,6 +43,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: remove the renderer superseded-turn ledger from chat
   store and projection streams; SDK conversation projections now remain the
   only owner of supersession filtering. No migration required.
+- frontend/replay: remove the internal `replayFallbackMessages` presentation
+  field so chat selectors no longer construct a replay row model beside SDK
+  command intent. No migration required.
 - frontend/stop: remove legacy raw `ConversationView`, `pendingTurn`, and
   session-ref inputs from `useStopTurnHandler`; stop-target selection now stays
   in `DesktopChatInterfaceSelectorRuntime` and the hook consumes only the

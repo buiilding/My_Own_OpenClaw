@@ -160,18 +160,13 @@ function buildChatInterfaceSelectorState({
   const interfaceState = projectDesktopChatInterfaceState(activeWorkspace);
   const conversationView = interfaceState.conversationView as ConversationView | null;
   const pendingTurn = interfaceState.pendingTurn as PendingTurnProjection;
-  const presentationState = buildChatInterfacePresentationState({
+  const chatPresentationState = buildChatInterfacePresentationState({
     activeConversationRef,
     conversationView,
     currentTurnProjection: interfaceState.currentTurnProjection as CurrentTurnProjection | null,
     messages: interfaceState.messages as ChatMessage[],
     pendingTurn,
   });
-  const {
-    replayFallbackMessages: _replayFallbackMessages,
-    ...chatPresentationState
-  } = presentationState;
-  void _replayFallbackMessages;
   const chatSurfaceState = projectDesktopChatSurfaceState({
     activeWorkspace,
   });

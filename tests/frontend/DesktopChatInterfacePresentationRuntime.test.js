@@ -82,7 +82,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         text: 'view answer',
       }),
     ]);
-    expect(state.replayFallbackMessages).toEqual([]);
+    expect(state).not.toHaveProperty('replayFallbackMessages');
   });
 
   test('keeps renderer pending bridge beside ConversationView display rows', () => {
@@ -146,7 +146,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     expect(state.canEditMessages).toBe(true);
     expect(state.canRetryMessages).toBe(true);
     expect(state.activeRevisionId).toBeNull();
-    expect(state.replayFallbackMessages).toBe(messages);
+    expect(state).not.toHaveProperty('replayFallbackMessages');
   });
 
   test('renders ConversationView live rows instead of stale raw current-turn rows', () => {

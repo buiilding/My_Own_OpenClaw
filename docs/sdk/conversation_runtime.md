@@ -297,12 +297,10 @@ identity. Copy/feedback actions remain renderer-local affordances. Renderer
 replay execution calls the SDK edit/resend and retry commands directly; when a
 `ConversationView` exists, replay target preparation derives its row model from
 `ConversationView.displayRows` instead of raw `chatStore.messages`.
-`ChatInterface` passes replay hooks an explicit `replayFallbackMessages` input
-and empties that fallback while a `ConversationView` exists, keeping raw
-renderer messages available only for the no-view bridge. That fallback decision
-lives in `DesktopChatInterfacePresentationRuntime`, not in React. The renderer's
-temporary replay bridge retains the already projected visible prefix as UI rows
-only; it does not filter tool pairs or reconstruct model context for replay.
+`ChatInterface` no longer passes a replay row model or fallback transcript into
+replay hooks. The renderer's temporary replay bridge retains already projected
+visible prefix rows as UI rows only; it does not filter tool pairs, reconstruct
+model context, or provide fallback rows for replay command resolution.
 React replay hooks do not select store `activeConversationRef` or `addMessage`
 for replay orchestration; `desktopConversationReplayRuntime` resolves active
 conversation state and failure-row publication from its store dependency.

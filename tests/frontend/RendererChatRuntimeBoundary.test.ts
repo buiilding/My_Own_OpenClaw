@@ -1783,7 +1783,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('useMemo');
     expect(source).not.toContain('() => (conversationView ? [] : messages)');
     expect(normalizedChatInterfaceSource).not.toContain('() => (conversationView ? [] : messages)');
-    expect(chatInterfacePresentationRuntimeSource).toContain('replayFallbackMessages: hasConversationView ? [] : messages');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('replayFallbackMessages');
     expect(normalizedChatInterfaceSource).toContain('useConversationReplayActions()');
     expect(normalizedChatInterfaceSource).not.toContain('replayReadModel');
     expect(normalizedChatInterfaceSource).not.toContain('useConversationReplayActions({\n    conversationView,');
