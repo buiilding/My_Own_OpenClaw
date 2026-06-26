@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: route response-overlay hit-test and rendered-typing trace
+  identity through `DesktopRendererTraceRuntime`, so `MinimalResponseOverlay`
+  no longer extracts SDK overlay-intent conversation or turn refs for trace
+  payloads. No migration required.
 - frontend/dashboard: move dashboard-open raw workspace reset decisions into
   `DesktopDashboardConversationLoadRuntime`, so the dashboard hook no longer
   inspects cached `ConversationView` state before loading SDK view rows. No

@@ -469,6 +469,9 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlaySource).not.toContain('awaiting-indicator-rendered');
     expect(responseOverlaySource).not.toContain('awaiting-indicator-not-rendered');
     expect(responseOverlaySource).not.toContain('ignoreMouseEvents');
+    expect(responseOverlaySource).not.toContain('overlayIntent?.conversationRef');
+    expect(responseOverlaySource).not.toContain('overlayIntent?.turnRef');
+    expect(responseOverlaySource).not.toContain('overlayIntent?.staleGuardRef');
     expect(responseOverlayViewModelSource).toContain('buildRendererOverlayViewModelTracePayload');
     expect(responseOverlayViewModelSource).toContain('DesktopRendererTraceRuntime');
     expect(responseOverlayViewModelSource).toContain('logRendererOverlayViewModelTrace');

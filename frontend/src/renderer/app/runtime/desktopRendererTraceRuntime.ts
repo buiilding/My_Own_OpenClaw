@@ -49,6 +49,9 @@ export type RendererResponseOverlayLifecycleTraceValues = {
 export type RendererResponseOverlayHitTestTraceValues = {
   source?: string;
   conversationRef?: unknown;
+  overlayIntent?: {
+    conversationRef?: unknown;
+  } | null;
   active?: boolean;
 };
 
@@ -61,6 +64,7 @@ export type RendererResponseOverlayTypingRenderedTraceValues = {
   currentTurnId?: unknown;
   overlayIntent?: {
     mode?: unknown;
+    conversationRef?: unknown;
     turnRef?: unknown;
     staleGuardRef?: unknown;
   } | null;
@@ -430,6 +434,19 @@ function logRendererResponseOverlayLifecycleTrace(
   );
 }
 
+function resolveRendererResponseOverlayConversationRef(values: {
+  conversationRef?: unknown;
+  overlayIntent?: {
+    conversationRef?: unknown;
+  } | null;
+}): string | null {
+  return (
+    traceString(values.conversationRef)
+    || traceString(values.overlayIntent?.conversationRef)
+    || null
+  );
+}
+
 function buildRendererResponseOverlayHitTestTracePayload(
   values: RendererResponseOverlayHitTestTraceValues,
 ): Record<string, unknown> {
@@ -448,7 +465,7 @@ function logRendererResponseOverlayHitTestTrace(
   logRendererLiveSurfaceTrace(
     'response_overlay.hit_test.set',
     buildRendererResponseOverlayHitTestTracePayload(values),
-    traceString(values.conversationRef) || null,
+    resolveRendererResponseOverlayConversationRef(values),
   );
 }
 
@@ -463,8 +480,7 @@ function buildRendererResponseOverlayTypingRenderedTracePayload(
     || null
   );
   const conversationRef = (
-    traceString(values.conversationRef)
-    || null
+    resolveRendererResponseOverlayConversationRef(values)
   );
   const phase = (
     traceString(values.phase)
@@ -503,7 +519,7 @@ function logRendererResponseOverlayTypingRenderedTrace(
   logRendererLiveSurfaceTrace(
     typingRendered ? 'typing.rendered.show' : 'typing.rendered.hide',
     buildRendererResponseOverlayTypingRenderedTracePayload(values),
-    traceString(values.conversationRef) || null,
+    resolveRendererResponseOverlayConversationRef(values),
   );
 }
 

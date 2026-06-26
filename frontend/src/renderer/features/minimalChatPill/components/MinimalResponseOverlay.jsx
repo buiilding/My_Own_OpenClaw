@@ -86,10 +86,10 @@ function MinimalResponseOverlay() {
     responseboxHitTestActiveRef.current = nextActive;
     DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(nextActive).catch(() => {});
     logRendererResponseOverlayHitTestTrace({
-      conversationRef: overlayIntent?.conversationRef || null,
+      overlayIntent,
       active: nextActive,
     });
-  }, [overlayIntent?.conversationRef]);
+  }, [overlayIntent]);
 
   useEffect(() => {
     setResponseboxHitTestActive(false);
@@ -113,7 +113,6 @@ function MinimalResponseOverlay() {
     lastRenderedTypingVisibleRef.current = typingRendered;
     logRendererResponseOverlayTypingRenderedTrace({
       typingRendered,
-      conversationRef: overlayIntent?.conversationRef || null,
       turnRef: currentTurnId,
       phase: currentTurnPhase,
       currentTurnId,
@@ -129,10 +128,6 @@ function MinimalResponseOverlay() {
     currentTurnPhase,
     isVisible,
     overlayIntent,
-    overlayIntent?.conversationRef,
-    overlayIntent?.mode,
-    overlayIntent?.staleGuardRef,
-    overlayIntent?.turnRef,
     overlayLayoutMode,
     responseOverlayEntries.length,
     awaitingVisible,

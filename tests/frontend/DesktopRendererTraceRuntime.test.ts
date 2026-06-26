@@ -520,11 +520,11 @@ describe('desktopRendererTraceRuntime', () => {
   test('builds response overlay rendered-typing live trace payloads', () => {
     expect(buildRendererResponseOverlayTypingRenderedTracePayload({
       typingRendered: false,
-      conversationRef: ' conv-projected ',
       phase: ' streaming ',
       currentTurnId: ' turn-fallback ',
       overlayIntent: {
         mode: ' response ',
+        conversationRef: ' conv-projected ',
         turnRef: ' turn-intent ',
         staleGuardRef: ' guard-intent ',
       },
@@ -640,13 +640,17 @@ describe('desktopRendererTraceRuntime', () => {
     setSearch('?debug_live_surface=1&view=minimal-response-overlay');
 
     logRendererResponseOverlayHitTestTrace({
-      conversationRef: 'conv-hit',
+      overlayIntent: {
+        conversationRef: 'conv-hit',
+      },
       active: false,
     });
     logRendererResponseOverlayTypingRenderedTrace({
       typingRendered: true,
       currentTurnId: 'turn-rendered',
-      conversationRef: 'conv-rendered',
+      overlayIntent: {
+        conversationRef: 'conv-rendered',
+      },
       phase: 'awaiting',
       overlayLayoutMode: 'awaiting-typing',
       isVisible: true,

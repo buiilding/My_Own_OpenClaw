@@ -208,8 +208,9 @@ Contract ownership:
 - `DesktopRendererTraceRuntime` owns response overlay hit-test and
   rendered-typing live-surface event labels, reason strings, and payload field
   shaping through `logRendererResponseOverlayHitTestTrace(...)` and
-  `logRendererResponseOverlayTypingRenderedTrace(...)`; `MinimalResponseOverlay`
-  reports only interaction and rendered-state values.
+  `logRendererResponseOverlayTypingRenderedTrace(...)`; it also derives trace
+  conversation identity from opaque SDK overlay intent. `MinimalResponseOverlay`
+  reports only interaction state, rendered state, and the overlay intent object.
 - `DesktopRendererTraceRuntime` owns response overlay response-surface
   snapshot stream-trace field shaping through
   `logRendererResponseSurfaceSnapshotTrace(...)`; `MinimalResponseOverlay`
