@@ -44,7 +44,7 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
         mode: 'response',
         turnRef: 'turn-view',
       }),
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-1',
         turnRef: 'turn-stale',
         phase: 'awaiting',
@@ -115,7 +115,7 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
         timestamp: '2026-06-25T12:00:00.000Z',
         attachmentFilenames: null,
       },
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-stale',
         turnRef: 'turn-stale',
         phase: 'complete',
@@ -146,7 +146,7 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
           },
         },
       },
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-stale',
         turnRef: 'turn-stale',
         phase: 'streaming',

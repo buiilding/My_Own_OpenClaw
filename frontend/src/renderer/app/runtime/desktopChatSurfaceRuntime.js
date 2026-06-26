@@ -70,7 +70,7 @@ function buildChatSurfaceControllerState({
     messages: rendererFallbackMessages,
   });
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
-    currentTurnProjection: effectiveSdkLiveTurn,
+    sdkLiveTurn: effectiveSdkLiveTurn,
     conversationView,
     pendingTurn,
     messages: rendererFallbackMessages,

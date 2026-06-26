@@ -546,6 +546,8 @@ describe('renderer app runtime boundary', () => {
     expect(streamPhaseSource).toContain('DesktopResponseOverlayPhaseRuntime');
     expect(liveSurfaceSource).toContain('DesktopResponseOverlayPhaseRuntime');
     expect(liveSurfaceSource).toContain('DesktopLiveTurnSurfaceRuntime');
+    expect(liveSurfaceSource).toContain('sdkLiveTurn = null');
+    expect(liveSurfaceSource).toContain('currentTurnProjection: sdkLiveTurn');
     expect(liveSurfaceSource).not.toContain('isSending:');
     expect(liveSurfaceSource).not.toContain('showAwaiting');
     expect(liveSurfaceSource).not.toContain('showResponse');
