@@ -9,6 +9,7 @@ import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { ChatProvider } from '../../frontend/src/renderer/app/providers/ChatProvider';
+import { DesktopRendererTraceRuntime } from '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime';
 import {
   DesktopChatTurnConversationRefRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime';
@@ -21,6 +22,13 @@ const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 const {
   resetRendererTurnConversationRefs,
 } = DesktopChatTurnConversationRefRuntime;
+const {
+  logRendererChatPillTrace,
+} = DesktopRendererTraceRuntime;
+
+function setSearch(search) {
+  window.history.replaceState({}, '', `/${search}`);
+}
 
 function createInitialStreamTracking() {
   return {
@@ -93,6 +101,7 @@ describe('ChatProvider', () => {
     mockBootstrapSession.mockClear();
     mockIpcOn.mockReset();
     mockIpcOn.mockReturnValue(jest.fn());
+    setSearch('');
     resetChatStore();
   });
 
@@ -173,6 +182,80 @@ describe('ChatProvider', () => {
     await waitFor(() => {
       expect(useChatStore.getState().activeConversationRef).toBe('conv-b');
     });
+  });
+
+  test('enriches trace snapshots from ConversationView before raw workspace messages', () => {
+    const consoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    setSearch('?debug_chat_pill=1&view=minimal-chat-pill');
+    useChatStore.setState({
+      activeConversationRef: 'conv-provider',
+      workspaces: {
+        [DEFAULT_CHAT_WORKSPACE_REF]: {
+          messages: [],
+          isSending: false,
+          thinkingStatus: null,
+          thinkingSourceEventType: null,
+          tokenCounts: null,
+          streamTracking: createInitialStreamTracking(),
+        },
+        'conv-provider': {
+          messages: [{
+            id: 'stale-message',
+            sender: 'assistant',
+            text: 'stale raw answer',
+            turnRef: 'turn-stale',
+            sourceEventType: 'streaming-response',
+          }],
+          isSending: false,
+          thinkingStatus: null,
+          thinkingSourceEventType: null,
+          tokenCounts: null,
+          streamTracking: {
+            ...createInitialStreamTracking(),
+            activeTurnRef: 'turn-stale',
+          },
+          currentTurnProjection: null,
+          pendingTurn: null,
+          conversationView: {
+            conversationRef: 'conv-provider',
+            revisionId: 'rev-provider',
+            liveTurn: {
+              turnRef: 'turn-view',
+            },
+            displayRows: [{
+              id: 'view-row',
+              role: 'assistant',
+              type: 'assistant_message',
+              content: 'view answer',
+              turnRef: 'turn-view',
+              sourceEventType: 'assistant-message-full',
+            }],
+          },
+        },
+      },
+    });
+
+    try {
+      logRendererChatPillTrace({ event: 'provider-trace' }, 'conv-provider');
+
+      expect(consoleLog).toHaveBeenCalledWith(
+        '[ChatPillTrace][renderer]',
+        expect.objectContaining({
+          event: 'provider-trace',
+          workspaceMessageCount: 1,
+          activeTurnRef: 'turn-view',
+          lastMessage: expect.objectContaining({
+            sender: 'assistant',
+            type: 'assistant_message',
+            textLength: 'view answer'.length,
+            turnRef: 'turn-view',
+            sourceEventType: 'assistant-message-full',
+          }),
+        }),
+      );
+    } finally {
+      consoleLog.mockRestore();
+    }
   });
 
 });

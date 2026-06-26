@@ -41,6 +41,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/trace: prefer response overlay visible lifecycle identity over raw
   current-turn projection fields in overlay view-model live-surface trace
   payloads. No migration required.
+- frontend/trace: enrich provider workspace trace snapshots from
+  `ConversationView` live-turn/display-row identity before falling back to raw
+  stream tracking and workspace messages. No migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.
