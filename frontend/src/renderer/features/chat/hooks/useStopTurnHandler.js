@@ -16,7 +16,7 @@ import {
 } from '../../../app/runtime/desktopStopTurnRuntime';
 
 const {
-  isStopTurnTargetFromPendingTurn,
+  buildStopTurnExecutionPlan,
 } = DesktopStopTurnRuntime;
 
 const IDLE_STOP_TURN_TARGET = Object.freeze({
@@ -41,32 +41,33 @@ export function useStopTurnHandler({
   }, [stopTurnTarget]);
 
   const handleStopTurn = useCallback(() => {
-    if (!enabled || !stopTarget.canStop) {
+    const stopPlan = buildStopTurnExecutionPlan(stopTarget);
+    if (!enabled || !stopPlan.canStop) {
       return false;
     }
-    if (stopTarget.conversationRef) {
-      setActiveConversationRef(stopTarget.conversationRef);
+    if (stopPlan.conversationRef) {
+      setActiveConversationRef(stopPlan.conversationRef);
     }
     acceptStoppedTurnInChatStore({
-      conversationRef: stopTarget.conversationRef,
-      turnRef: stopTarget.turnRef,
+      conversationRef: stopPlan.conversationRef,
+      turnRef: stopPlan.turnRef,
     });
     if (typeof stopPlayback === 'function') {
       stopPlayback();
     }
-    if (isStopTurnTargetFromPendingTurn(stopTarget)) {
+    if (stopPlan.shouldClearPendingBridge) {
       try {
         DesktopPendingTurnRuntimeClient.clear({
-          conversationRef: stopTarget.conversationRef,
-          turnRef: stopTarget.turnRef,
+          conversationRef: stopPlan.conversationRef,
+          turnRef: stopPlan.turnRef,
         });
       } catch (error) {
         console.warn(`[${warningContext}] Failed to clear pending turn before stop:`, error);
       }
     }
     void Promise.resolve(DesktopLiveTurnRuntimeClient.stop(
-      stopTarget.conversationRef,
-      stopTarget.turnRef,
+      stopPlan.conversationRef,
+      stopPlan.turnRef,
     )).catch((error) => {
       console.warn(`[${warningContext}] Failed to stop query:`, error);
     });

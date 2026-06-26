@@ -181,6 +181,20 @@ function isStopTurnTargetFromPendingTurn(stopTarget) {
   return stopTarget?.source === 'pending-turn';
 }
 
+function buildStopTurnExecutionPlan(stopTarget = null) {
+  const target = stopTarget && typeof stopTarget === 'object'
+    ? stopTarget
+    : {};
+  const conversationRef = normalizeRef(target.conversationRef);
+  const turnRef = normalizeRef(target.turnRef);
+  return {
+    canStop: target.canStop === true,
+    conversationRef,
+    turnRef,
+    shouldClearPendingBridge: isStopTurnTargetFromPendingTurn(target),
+  };
+}
+
 function isPendingTurn(value) {
   return Boolean(
     value
@@ -252,8 +266,8 @@ function resolveStopTurnTarget({
 export const DesktopStopTurnRuntime = Object.freeze({
   buildAcceptStoppedTurnStateUpdate,
   buildStopQueryTrackingPatch,
+  buildStopTurnExecutionPlan,
   buildStoppedTurnWorkspaceMutation,
   buildStoppedSdkLiveTurn,
-  isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
 });

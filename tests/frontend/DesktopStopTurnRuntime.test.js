@@ -8,9 +8,9 @@ import {
 
 const {
   buildAcceptStoppedTurnStateUpdate,
+  buildStopTurnExecutionPlan,
   buildStoppedTurnWorkspaceMutation,
   buildStoppedSdkLiveTurn,
-  isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
 } = DesktopStopTurnRuntime;
 
@@ -173,7 +173,7 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
-  test('classifies only pending bridge targets behind runtime predicates', () => {
+  test('classifies only pending bridge targets in stop execution plans', () => {
     const pendingTarget = resolveStopTurnTarget({
       pendingTurn: {
         conversationRef: 'conv-pending',
@@ -184,14 +184,40 @@ describe('desktopStopTurnRuntime', () => {
       conversationRef: 'conv-idle',
     });
 
-    expect(isStopTurnTargetFromPendingTurn(pendingTarget)).toBe(true);
-    expect(isStopTurnTargetFromPendingTurn(idleTarget)).toBe(false);
+    expect(buildStopTurnExecutionPlan(pendingTarget).shouldClearPendingBridge).toBe(true);
+    expect(buildStopTurnExecutionPlan(idleTarget).shouldClearPendingBridge).toBe(false);
 
     const viewTarget = resolveStopTurnTarget({
       conversationView: conversationView(),
     });
     expect(viewTarget.source).toBe('conversation-view');
-    expect(isStopTurnTargetFromPendingTurn(viewTarget)).toBe(false);
+    expect(buildStopTurnExecutionPlan(viewTarget).shouldClearPendingBridge).toBe(false);
+  });
+
+  test('builds stop execution plans with pending bridge cleanup owned by runtime', () => {
+    expect(buildStopTurnExecutionPlan(resolveStopTurnTarget({
+      pendingTurn: {
+        conversationRef: ' conv-pending ',
+        turnRef: ' turn-pending ',
+      },
+    }))).toEqual({
+      canStop: true,
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+      shouldClearPendingBridge: true,
+    });
+
+    expect(buildStopTurnExecutionPlan(resolveStopTurnTarget({
+      conversationView: conversationView({
+        conversationRef: 'conv-view',
+        turnRef: 'turn-view',
+      }),
+    }))).toEqual({
+      canStop: true,
+      conversationRef: 'conv-view',
+      turnRef: 'turn-view',
+      shouldClearPendingBridge: false,
+    });
   });
 
   test('buildStoppedSdkLiveTurn strips legacy SDK visibility fields', () => {

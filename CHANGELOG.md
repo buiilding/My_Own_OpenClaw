@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stop: move pending-bridge stop cleanup classification into
+  `DesktopStopTurnRuntime.buildStopTurnExecutionPlan`, so stop handlers no
+  longer inspect stop-target source to decide pending-turn IPC cleanup. No
+  migration required.
 - frontend/revisions: move active revision row marking after checkout into
   `DesktopChatRevisionActionRuntime`, so `ChatInterface` no longer compares
   SDK revision ids inline. No migration required.
