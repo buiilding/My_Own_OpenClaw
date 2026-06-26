@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: remove the one-field response overlay `projectionInput`
+  wrapper; overlay view-model code now receives the already-sanitized
+  current-turn fallback directly. No migration required.
 - frontend/state: stop storing raw current-turn projections in workspaces once
   an SDK `ConversationView` exists, leaving the view and pending bridge as the
   only live-turn authorities. No migration required.

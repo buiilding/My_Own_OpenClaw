@@ -126,12 +126,10 @@ function resolveResponseOverlaySurfaceState({
     ? messages
     : responseOverlayEntries;
   return {
+    currentTurnProjection,
     currentTurnPhase: liveTurnPresentationInput.phase,
     liveTurnPresentationInput,
     messages,
-    projectionInput: {
-      currentTurnProjection,
-    },
     pendingTurn,
     responseOverlayEntries,
     responseOverlayMessages,

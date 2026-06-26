@@ -165,8 +165,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
       }),
     ]);
     expect(state).not.toHaveProperty('traceState');
+    expect(state).not.toHaveProperty('projectionInput');
     expect(state.pendingTurn).toBeNull();
-    expect(state.projectionInput.currentTurnProjection).toBeNull();
+    expect(state.currentTurnProjection).toBeNull();
     expect(state.thinkingText).toBe('');
     expect(state.useLocalPendingTurn).toBe(false);
   });

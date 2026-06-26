@@ -50,9 +50,9 @@ export function useResponseOverlayViewModel({
   );
   const {
     currentTurnPhase,
+    currentTurnProjection,
     liveTurnPresentationInput: surfacePresentationInput,
     pendingTurn,
-    projectionInput,
     responseOverlayEntries,
     responseOverlayMessages,
     thinkingText,
@@ -72,13 +72,13 @@ export function useResponseOverlayViewModel({
 
   const responseOverlayDismissalTarget = useMemo(() => {
     return resolveResponseOverlayDismissalTarget({
-      ...projectionInput,
+      currentTurnProjection,
       overlayIntent: surfacePresentationInput.overlayIntent,
       responseOverlayEntries,
       useSdkLiveTurnPresentation,
     });
   }, [
-    projectionInput,
+    currentTurnProjection,
     responseOverlayEntries,
     surfacePresentationInput.overlayIntent,
     useSdkLiveTurnPresentation,
@@ -106,7 +106,7 @@ export function useResponseOverlayViewModel({
   const resolvedCurrentTurnPresentationState = useMemo(
     () => resolveResponseOverlayPresentationState({
       currentTurnPresentationState,
-      ...projectionInput,
+      currentTurnProjection,
       dismissedResponseId,
       liveTurnPresentationInput: surfacePresentationInput,
       responseOverlayEntries,
@@ -114,8 +114,8 @@ export function useResponseOverlayViewModel({
     }),
     [
       currentTurnPresentationState,
+      currentTurnProjection,
       dismissedResponseId,
-      projectionInput,
       responseOverlayEntries,
       surfacePresentationInput,
       visibleTurnLifecycle,
