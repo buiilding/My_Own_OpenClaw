@@ -216,6 +216,8 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
   ),
   useChatStore: (selector) =>
     require('./storeSelectorTestUtils.cjs').selectMockStoreState(selector, mockChatState),
+  setThinkingStatusInChatStore: (...args) => mockSetThinkingStatus(...args),
+  setThinkingSourceEventTypeInChatStore: (...args) => mockSetThinkingSourceEventType(...args),
 }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({

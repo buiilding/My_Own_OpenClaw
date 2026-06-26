@@ -7,6 +7,9 @@ import PropTypes from 'prop-types';
 import ChatInterface from '../../chat/components/ChatInterface';
 import {
   setConversationViewInChatStore,
+  setIsSendingInChatStore,
+  setThinkingStatusInChatStore,
+  setTokenCountsInChatStore,
   useChatStore,
 } from '../../chat/stores/chatStore';
 import { DesktopClientSessionRuntimeClient } from '../../../app/runtime/desktopClientSessionRuntimeClient';
@@ -95,9 +98,6 @@ function DashboardShell({
 
   const activeChatConversationRef = useChatStore((state) => state.activeConversationRef);
   const clearChatMessages = useChatStore((state) => state.clearMessages);
-  const setChatIsSending = useChatStore((state) => state.setIsSending);
-  const setChatThinkingStatus = useChatStore((state) => state.setThinkingStatus);
-  const setChatTokenCounts = useChatStore((state) => state.setTokenCounts);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const getChatWorkspaceState = useChatStore((state) => state.getWorkspaceState);
   const {
@@ -123,9 +123,9 @@ function DashboardShell({
     activeConversationRef: activeChatConversationRef,
     getChatWorkspaceState,
     clearChatMessages,
-    setChatIsSending,
-    setChatThinkingStatus,
-    setChatTokenCounts,
+    setChatIsSending: setIsSendingInChatStore,
+    setChatThinkingStatus: setThinkingStatusInChatStore,
+    setChatTokenCounts: setTokenCountsInChatStore,
     setChatActiveConversationRef,
     setChatConversationView: setConversationViewInChatStore,
     searchOpen,
@@ -210,8 +210,8 @@ function DashboardShell({
       conversationRef: sessionInfo.conversationRef || null,
       userId: resolvedUserId,
       clearMessages: clearChatMessages,
-      setThinkingStatus: setChatThinkingStatus,
-      setTokenCounts: setChatTokenCounts,
+      setThinkingStatus: setThinkingStatusInChatStore,
+      setTokenCounts: setTokenCountsInChatStore,
       setChatActiveConversationRef,
     });
     DesktopWorkspaceRuntimeClient.clearAllConversationWorkspaceBindings();
@@ -222,8 +222,6 @@ function DashboardShell({
     resolvedUserId,
     sessionInfo.conversationRef,
     setChatActiveConversationRef,
-    setChatThinkingStatus,
-    setChatTokenCounts,
   ]);
 
   useEffect(() => {

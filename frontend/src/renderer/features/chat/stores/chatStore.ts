@@ -248,17 +248,6 @@ interface ChatState {
     conversationRef?: string | null,
   ) => void;
   setMessages: (messages: ChatMessage[], conversationRef?: string | null) => void;
-  setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
-  setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
-  setThinkingSourceEventType: (
-    sourceEventType: string | null,
-    conversationRef?: string | null,
-  ) => void;
-  setCompactionDebugInfo: (
-    debugInfo: ChatWorkspaceState['compactionDebugInfo'],
-    conversationRef?: string | null,
-  ) => void;
-  setTokenCounts: (counts: TokenCounts | null, conversationRef?: string | null) => void;
   acceptPendingTurn: (pendingTurn: PendingTurn) => void;
   clearPendingTurn: (
     input?: { conversationRef?: string | null; turnRef?: string | null } | null,
@@ -379,61 +368,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }) ?? state;
     }),
 
-  setIsSending: (isSending, conversationRef) =>
-    set((state) => {
-      return buildSetWorkspaceFieldStateUpdate<ChatState, ChatWorkspaceState, 'isSending'>({
-        conversationRef,
-        deps: workspaceFieldStateRuntimeDependencies,
-        field: 'isSending',
-        state,
-        value: isSending,
-      }) ?? state;
-    }),
-
-  setThinkingStatus: (thinkingStatus, conversationRef) =>
-    set((state) => {
-      return buildSetWorkspaceFieldStateUpdate<ChatState, ChatWorkspaceState, 'thinkingStatus'>({
-        conversationRef,
-        deps: workspaceFieldStateRuntimeDependencies,
-        field: 'thinkingStatus',
-        state,
-        value: thinkingStatus,
-      }) ?? state;
-    }),
-
-  setThinkingSourceEventType: (thinkingSourceEventType, conversationRef) =>
-    set((state) => {
-      return buildSetWorkspaceFieldStateUpdate<ChatState, ChatWorkspaceState, 'thinkingSourceEventType'>({
-        conversationRef,
-        deps: workspaceFieldStateRuntimeDependencies,
-        field: 'thinkingSourceEventType',
-        state,
-        value: thinkingSourceEventType,
-      }) ?? state;
-    }),
-
-  setCompactionDebugInfo: (compactionDebugInfo, conversationRef) =>
-    set((state) => {
-      return buildSetWorkspaceFieldStateUpdate<ChatState, ChatWorkspaceState, 'compactionDebugInfo'>({
-        conversationRef,
-        deps: workspaceFieldStateRuntimeDependencies,
-        field: 'compactionDebugInfo',
-        state,
-        value: compactionDebugInfo,
-      }) ?? state;
-    }),
-
-  setTokenCounts: (tokenCounts, conversationRef) =>
-    set((state) => {
-      return buildSetWorkspaceFieldStateUpdate<ChatState, ChatWorkspaceState, 'tokenCounts'>({
-        conversationRef,
-        deps: workspaceFieldStateRuntimeDependencies,
-        field: 'tokenCounts',
-        state,
-        value: tokenCounts,
-      }) ?? state;
-    }),
-
   acceptPendingTurn: (pendingTurn) =>
     set((state) => {
       return buildAcceptPendingTurnStateUpdate<ChatState, ChatWorkspaceState>({
@@ -523,4 +457,55 @@ export function updateStreamTrackingInChatStore(
       updater,
     }) ?? state
   ));
+}
+
+function setWorkspaceFieldInChatStore<Field extends keyof ChatWorkspaceState>(
+  field: Field,
+  value: ChatWorkspaceState[Field],
+  conversationRef?: string | null,
+): void {
+  useChatStore.setState((state) => (
+    buildSetWorkspaceFieldStateUpdate<ChatState, ChatWorkspaceState, Field>({
+      conversationRef,
+      deps: workspaceFieldStateRuntimeDependencies,
+      field,
+      state,
+      value,
+    }) ?? state
+  ));
+}
+
+export function setIsSendingInChatStore(
+  isSending: boolean,
+  conversationRef?: string | null,
+): void {
+  setWorkspaceFieldInChatStore('isSending', isSending, conversationRef);
+}
+
+export function setThinkingStatusInChatStore(
+  thinkingStatus: string | null,
+  conversationRef?: string | null,
+): void {
+  setWorkspaceFieldInChatStore('thinkingStatus', thinkingStatus, conversationRef);
+}
+
+export function setThinkingSourceEventTypeInChatStore(
+  thinkingSourceEventType: string | null,
+  conversationRef?: string | null,
+): void {
+  setWorkspaceFieldInChatStore('thinkingSourceEventType', thinkingSourceEventType, conversationRef);
+}
+
+export function setCompactionDebugInfoInChatStore(
+  compactionDebugInfo: ChatWorkspaceState['compactionDebugInfo'],
+  conversationRef?: string | null,
+): void {
+  setWorkspaceFieldInChatStore('compactionDebugInfo', compactionDebugInfo, conversationRef);
+}
+
+export function setTokenCountsInChatStore(
+  tokenCounts: TokenCounts | null,
+  conversationRef?: string | null,
+): void {
+  setWorkspaceFieldInChatStore('tokenCounts', tokenCounts, conversationRef);
 }

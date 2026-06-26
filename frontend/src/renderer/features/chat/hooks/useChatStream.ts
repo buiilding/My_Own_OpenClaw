@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import type { ConversationEvent } from '../../../app/runtime/desktopConversationRuntimeContracts';
 import {
+  setCompactionDebugInfoInChatStore,
   useChatStore,
   updateStreamTrackingInChatStore,
 } from '../stores/chatStore';
@@ -68,7 +69,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus,
     setThinkingSourceEventType,
   } = useChatCommonActions();
-  const setCompactionDebugInfo = useChatStore((state) => state.setCompactionDebugInfo);
   const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const { config, availableModels } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const modelCapabilities = useMemo(() => DesktopModelThinkingRuntime.resolveThinkingCapabilities(
@@ -120,7 +120,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     getThinkingSourceEventType: (conversationRef?: string | null) => (
       useChatStore.getState().getWorkspaceState(conversationRef).thinkingSourceEventType
     ),
-    setCompactionDebugInfo,
+    setCompactionDebugInfo: setCompactionDebugInfoInChatStore,
     recordTrackingEvent,
   });
 

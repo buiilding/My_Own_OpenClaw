@@ -3389,6 +3389,16 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('updateStreamTracking:');
     expect(chatStoreSource).toContain('DesktopChatWorkspaceFieldRuntime');
     expect(chatStoreSource).toContain('buildSetWorkspaceFieldStateUpdate');
+    expect(chatStoreSource).toContain('setIsSendingInChatStore');
+    expect(chatStoreSource).toContain('setThinkingStatusInChatStore');
+    expect(chatStoreSource).toContain('setThinkingSourceEventTypeInChatStore');
+    expect(chatStoreSource).toContain('setCompactionDebugInfoInChatStore');
+    expect(chatStoreSource).toContain('setTokenCountsInChatStore');
+    expect(chatStoreSource).not.toContain('setIsSending:');
+    expect(chatStoreSource).not.toContain('setThinkingStatus:');
+    expect(chatStoreSource).not.toContain('setThinkingSourceEventType:');
+    expect(chatStoreSource).not.toContain('setCompactionDebugInfo:');
+    expect(chatStoreSource).not.toContain('setTokenCounts:');
     expect(chatStoreSource).toContain('DesktopResponseOverlayViewRuntime');
     expect(chatStoreSource).not.toContain('export function buildResponseOverlayDismissalKey');
     expect(chatStoreSource).toContain('DesktopCurrentTurnWorkspaceRuntime');

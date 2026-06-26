@@ -3,7 +3,10 @@
  */
 
 import { useCallback } from 'react';
-import { type ChatMessage, useChatStore } from '../../stores/chatStore';
+import {
+  type ChatMessage,
+  setTokenCountsInChatStore,
+} from '../../stores/chatStore';
 import { DesktopChatStreamEventPayloadRuntime } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
@@ -40,13 +43,11 @@ export function useChatStreamTerminalHandlers({
   recordTrackingEvent,
   updateStreamTargetMessage,
 }: UseChatStreamTerminalHandlersDeps) {
-  const setTokenCounts = useChatStore((state) => state.setTokenCounts);
-
   const handleTokenCount = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
     const eventConversationRef = conversationRef ?? resolveConversationStreamEventConversationRef(event);
     const turnRef = resolveConversationStreamEventTurnRef(event);
     const tokenCounts = buildTokenCountsFromPayload(resolveConversationStreamEventPayload(event));
-    setTokenCounts(tokenCounts, eventConversationRef);
+    setTokenCountsInChatStore(tokenCounts, eventConversationRef);
     updateStreamTargetMessage({
       kind: 'last_assistant_llm_text',
       turnRef: resolveConversationStreamEventTurnRefForUpdate(event),
@@ -55,7 +56,6 @@ export function useChatStreamTerminalHandlers({
     }, eventConversationRef);
     recordTrackingEvent('token-count', turnRef, undefined, eventConversationRef);
   }, [
-    setTokenCounts,
     updateStreamTargetMessage,
     recordTrackingEvent,
   ]);

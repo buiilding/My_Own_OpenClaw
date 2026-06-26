@@ -11,6 +11,9 @@ import ChatFindBar from './ChatFindBar';
 import {
   selectChatInterfaceState,
   setConversationViewInChatStore,
+  setThinkingSourceEventTypeInChatStore,
+  setThinkingStatusInChatStore,
+  setTokenCountsInChatStore,
   useChatStore,
 } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
@@ -96,9 +99,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const clearMessages = useChatStore((state) => state.clearMessages);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const updateMessage = useChatStore((state) => state.updateMessage);
-  const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
-  const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
-  const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const { config, updateConfig, availableModels } = (
     DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext()
   );
@@ -115,16 +115,14 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const startWorkspaceBoundNewChat = useCallback((workspace) => {
     return startNewChatSession({
       clearMessages,
-      setThinkingStatus,
-      setTokenCounts,
+      setThinkingStatus: setThinkingStatusInChatStore,
+      setTokenCounts: setTokenCountsInChatStore,
       setChatActiveConversationRef,
       workspace,
     });
   }, [
     clearMessages,
     setChatActiveConversationRef,
-    setThinkingStatus,
-    setTokenCounts,
   ]);
 
   useEffect(() => {
@@ -216,8 +214,8 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     chatSurfaceState,
     conversationViewSurface: 'dashboard',
     sessionInfo,
-    setThinkingStatus,
-    setThinkingSourceEventType,
+    setThinkingStatus: setThinkingStatusInChatStore,
+    setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,
     allowManualCompactionWhileBusy: true,
     warningContext: 'ChatInterface',
   });

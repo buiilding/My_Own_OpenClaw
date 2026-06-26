@@ -106,13 +106,16 @@ replay/store compatibility adapters and low-level artifact helpers.
   workspace update assembly live in `desktopChatWorkspaceMessageRuntime.ts`.
   The store only passes message intent plus workspace and registry dependency
   adapters.
-- `setIsSending`, `setThinkingStatus`, `setThinkingSourceEventType`,
-  `setCompactionDebugInfo`, and `setTokenCounts` apply simple workspace field
-  updates through
+- Scalar workspace-field writes enter through the module-level
+  `setIsSendingInChatStore(...)`, `setThinkingStatusInChatStore(...)`,
+  `setThinkingSourceEventTypeInChatStore(...)`,
+  `setCompactionDebugInfoInChatStore(...)`, and
+  `setTokenCountsInChatStore(...)` adapters instead of Zustand actions. The
+  adapters apply simple workspace field updates through
   `DesktopChatWorkspaceFieldRuntime.buildSetWorkspaceFieldStateUpdate(...)`.
   Workspace resolution, equality no-op handling, and workspace update assembly
-  live in that app runtime; the store only passes field intent plus workspace
-  dependency adapters.
+  live in that app runtime; the store module only passes field intent plus
+  workspace dependency adapters.
 - Stream-tracking updates enter through the module-level
   `updateStreamTrackingInChatStore(...)` adapter instead of a Zustand action.
   The adapter applies updater output through

@@ -4,7 +4,12 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { selectLiveTurnSurfaceState, useChatStore } from '../../chat/stores/chatStore';
+import {
+  selectLiveTurnSurfaceState,
+  setThinkingSourceEventTypeInChatStore,
+  setThinkingStatusInChatStore,
+  useChatStore,
+} from '../../chat/stores/chatStore';
 import { useChatMessageSender } from '../../chat/hooks/useChatMessageSender';
 import { useChatComposerDraft } from '../../chat/hooks/useChatComposerDraft';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
@@ -58,8 +63,6 @@ function MinimalChatPill() {
     stopTurnTarget,
   } = chatSurfaceState;
   const sessionInfo = useRendererConversationSessionInfo();
-  const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
-  const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
   });
@@ -86,8 +89,8 @@ function MinimalChatPill() {
   const chatSurface = useChatSurfaceController({
     chatSurfaceState,
     sessionInfo,
-    setThinkingStatus,
-    setThinkingSourceEventType,
+    setThinkingStatus: setThinkingStatusInChatStore,
+    setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,
     warningContext: 'MinimalChatPill',
   });
   const {

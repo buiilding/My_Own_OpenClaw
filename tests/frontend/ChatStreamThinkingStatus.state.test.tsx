@@ -5,6 +5,8 @@
 import { act } from '@testing-library/react';
 import {
   setCurrentTurnProjectionInChatStore,
+  setThinkingSourceEventTypeInChatStore,
+  setThinkingStatusInChatStore,
   updateStreamTrackingInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
@@ -127,8 +129,8 @@ describe('useChatStream state + stream handling', () => {
         toolEvents: [],
         lastError: null,
       }, 'conv-test');
-      store.setThinkingStatus('current step', 'conv-test');
-      store.setThinkingSourceEventType('llm-thought', 'conv-test');
+      setThinkingStatusInChatStore('current step', 'conv-test');
+      setThinkingSourceEventTypeInChatStore('llm-thought', 'conv-test');
       updateStreamTrackingInChatStore(() => ({
         activeTurnRef: 'turn-new',
         phase: 'streaming',

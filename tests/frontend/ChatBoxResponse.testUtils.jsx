@@ -43,6 +43,8 @@ import MinimalResponseOverlay from '../../frontend/src/renderer/features/minimal
 import {
   setConversationViewInChatStore,
   setCurrentTurnProjectionInChatStore,
+  setIsSendingInChatStore,
+  setThinkingStatusInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 
@@ -230,8 +232,8 @@ function buildCurrentTurnProjection(messages, phase = null) {
 export function setChatState(messages) {
   const currentTurnProjection = messages.length > 0 ? buildCurrentTurnProjection(messages) : null;
   useChatStore.getState().setMessages(messages);
-  useChatStore.getState().setIsSending(false);
-  useChatStore.getState().setThinkingStatus(null);
+  setIsSendingInChatStore(false);
+  setThinkingStatusInChatStore(null);
   useChatStore.getState().clearPendingTurn();
   setCurrentTurnProjectionInChatStore(currentTurnProjection);
   setConversationViewInChatStore(null);

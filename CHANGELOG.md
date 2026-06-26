@@ -211,6 +211,9 @@ All notable changes to WindieOS will be documented in this file.
   compaction debug, and token counts behind `DesktopChatWorkspaceFieldRuntime`
   so `chatStore` delegates scalar workspace update policy. No migration
   required.
+- frontend/store: move scalar workspace-field writes out of the Zustand action
+  surface; stream/projection/chat-interface paths now call module-level field
+  adapters. No migration required.
 - frontend/store: move `updateStreamTracking` workspace update construction
   behind `DesktopChatStreamTrackingRuntime` so `chatStore` no longer owns
   stream-tracking workspace lookup or reference no-op handling. No migration

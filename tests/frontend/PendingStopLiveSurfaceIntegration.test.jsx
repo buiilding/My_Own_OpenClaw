@@ -9,6 +9,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { AppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';
 import {
   selectLiveTurnSurfaceState,
+  setIsSendingInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { useChatSurfaceController } from '../../frontend/src/renderer/features/chat/hooks/useChatSurfaceController';
@@ -87,7 +88,7 @@ describe('pending stop live surface integration', () => {
       timestamp: '2026-06-16T00:00:00.000Z',
       attachmentFilenames: null,
     });
-    useChatStore.getState().setIsSending(false, 'conv-pending-stop');
+    setIsSendingInChatStore(false, 'conv-pending-stop');
 
     render(
       <AppConfigContext.Provider value={{

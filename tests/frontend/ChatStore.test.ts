@@ -5,6 +5,10 @@
 import {
   applyPendingTurnBroadcastToChatStore,
   setCurrentTurnProjectionInChatStore,
+  setIsSendingInChatStore,
+  setThinkingSourceEventTypeInChatStore,
+  setThinkingStatusInChatStore,
+  setTokenCountsInChatStore,
   updateStreamTrackingInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
@@ -164,15 +168,15 @@ describe('chatStore', () => {
 
   test('setIsSending is a no-op when value is unchanged', () => {
     const beforeSnapshot = useChatStore.getState();
-    useChatStore.getState().setIsSending(false);
+    setIsSendingInChatStore(false);
     const afterSnapshot = useChatStore.getState();
     expect(afterSnapshot).toBe(beforeSnapshot);
   });
 
-  test('setThinkingStatus is a no-op when value is unchanged', () => {
-    useChatStore.getState().setThinkingStatus('thinking');
+  test('setThinkingStatusInChatStore is a no-op when value is unchanged', () => {
+    setThinkingStatusInChatStore('thinking');
     const beforeSnapshot = useChatStore.getState();
-    useChatStore.getState().setThinkingStatus('thinking');
+    setThinkingStatusInChatStore('thinking');
     const afterSnapshot = useChatStore.getState();
     expect(afterSnapshot).toBe(beforeSnapshot);
   });
@@ -187,15 +191,15 @@ describe('chatStore', () => {
       conversation_tokens: 7,
       usage_source: 'provider' as const,
     };
-    useChatStore.getState().setTokenCounts(tokenCounts);
+    setTokenCountsInChatStore(tokenCounts);
     const beforeSnapshot = useChatStore.getState();
-    useChatStore.getState().setTokenCounts(tokenCounts);
+    setTokenCountsInChatStore(tokenCounts);
     const afterSnapshot = useChatStore.getState();
     expect(afterSnapshot).toBe(beforeSnapshot);
   });
 
   test('clearMessages resets to an empty message list', () => {
-    useChatStore.getState().setIsSending(true);
+    setIsSendingInChatStore(true);
     useChatStore.getState().addMessage({
       id: 'user-1',
       text: 'hello',
@@ -313,8 +317,8 @@ describe('chatStore', () => {
   });
 
   test('switching active conversation exposes that workspace through the workspace reader', () => {
-    useChatStore.getState().setIsSending(true, 'conv-other');
-    useChatStore.getState().setThinkingStatus('thinking elsewhere', 'conv-other');
+    setIsSendingInChatStore(true, 'conv-other');
+    setThinkingStatusInChatStore('thinking elsewhere', 'conv-other');
     useChatStore.getState().addMessage({
       id: 'other-message',
       text: 'other workspace',
@@ -550,8 +554,8 @@ describe('chatStore', () => {
       timestamp: '2026-06-16T00:00:00.000Z',
       attachmentFilenames: null,
     });
-    useChatStore.getState().setThinkingStatus('thinking', 'conv-stop-pending');
-    useChatStore.getState().setThinkingSourceEventType('assistant', 'conv-stop-pending');
+    setThinkingStatusInChatStore('thinking', 'conv-stop-pending');
+    setThinkingSourceEventTypeInChatStore('assistant', 'conv-stop-pending');
 
     useChatStore.getState().acceptStoppedTurn({
       conversationRef: 'conv-stop-pending',
