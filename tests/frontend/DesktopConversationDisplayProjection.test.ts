@@ -60,7 +60,7 @@ describe('desktopConversationDisplayProjection', () => {
     ]);
   });
 
-  test('merges renderer-only annotations back into matching SDK messages', () => {
+  test('merges renderer-only feedback back into matching SDK messages', () => {
     const currentAssistant = message({
       id: 'assistant-1',
       sender: 'assistant',
@@ -103,16 +103,29 @@ describe('desktopConversationDisplayProjection', () => {
       expect.objectContaining({
         id: 'assistant-1',
         text: 'Visible answer',
-        systemPrompt: currentAssistant.systemPrompt,
-        toolSchemas: currentAssistant.toolSchemas,
-        fullAssistantMessage: currentAssistant.fullAssistantMessage,
         feedback: 'like',
-        tokenCounts: currentAssistant.tokenCounts,
       }),
     ]);
+    const projected = buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'assistant-1',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'Visible answer',
+      }]),
+      preserveRendererAnnotations: true,
+      rendererAnnotations: selectRendererMessageAnnotations([currentAssistant]),
+    })[0];
+    expect(projected).not.toHaveProperty('systemPrompt');
+    expect(projected).not.toHaveProperty('toolSchemas');
+    expect(projected).not.toHaveProperty('fullAssistantMessage');
+    expect(projected).not.toHaveProperty('tokenCounts');
   });
 
-  test('selects only renderer annotations for ConversationView merges', () => {
+  test('selects only renderer feedback for ConversationView merges', () => {
     const annotations = selectRendererMessageAnnotations([
       message({
         id: 'assistant-1',
@@ -138,14 +151,43 @@ describe('desktopConversationDisplayProjection', () => {
     expect(annotations).toEqual([{
       id: 'assistant-1',
       feedback: 'like',
-      tokenCounts: {
-        usage_source: 'provider',
-        total_tokens: 42,
-      },
     }]);
     expect(annotations[0]).not.toHaveProperty('text');
     expect(annotations[0]).not.toHaveProperty('turnRef');
     expect(annotations[0]).not.toHaveProperty('sourceEventType');
+    expect(annotations[0]).not.toHaveProperty('tokenCounts');
+  });
+
+  test('preserves explicit feedback clears for ConversationView merges', () => {
+    const annotations = selectRendererMessageAnnotations([
+      message({
+        id: 'assistant-1',
+        sender: 'assistant',
+        feedback: null,
+      }),
+    ]);
+
+    expect(annotations).toEqual([{
+      id: 'assistant-1',
+      feedback: null,
+    }]);
+    expect(buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'assistant-1',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'Visible answer',
+        feedback: 'like',
+      }]),
+      preserveRendererAnnotations: true,
+      rendererAnnotations: annotations,
+    })[0]).toEqual(expect.objectContaining({
+      id: 'assistant-1',
+      feedback: null,
+    }));
   });
 
   test('ignores renderer optimistic user rows once SDK display rows own the projection', () => {

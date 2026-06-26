@@ -240,7 +240,7 @@ describe('chatWorkspaceState', () => {
         text: 'raw fallback',
         sender: 'user' as const,
         fullUserMessage: 'full prompt',
-        feedback: { rating: 'positive' },
+        feedback: 'like',
       }],
       sdkLiveTurn: { turnRef: 'turn-raw' } as never,
       conversationView,
@@ -264,8 +264,7 @@ describe('chatWorkspaceState', () => {
     expect(readModel.pendingTurn).toBe(pendingTurn);
     expect(readModel.rendererAnnotations).toEqual([{
       id: 'sdk-row',
-      fullUserMessage: 'full prompt',
-      feedback: { rating: 'positive' },
+      feedback: 'like',
     }]);
     expect(selectedReadModel).toBe(readModel);
     expect(projectWorkspaceReadModelState(workspace)).toBe(readModel);

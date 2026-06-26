@@ -3497,6 +3497,14 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatRevisionActionRuntime.js'),
       'utf8',
     );
+    const chatWorkspaceMessageRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceMessageRuntime.ts'),
+      'utf8',
+    );
+    const conversationDisplayProjectionSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationDisplayProjection.ts'),
+      'utf8',
+    );
     const messageListSource = await fs.readFile(
       path.join(chatRoot, 'components/MessageList.jsx'),
       'utf8',
@@ -3734,6 +3742,17 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('setCompactionDebugInfoInChatStore');
     expect(chatStoreAdaptersSource).toContain('setTokenCountsInChatStore');
     expect(chatStoreAdaptersSource).toContain('applyPendingTurnBroadcastToChatStore');
+    expect(chatWorkspaceMessageRuntimeSource).toContain("Pick<ChatMessage, 'feedback'>");
+    expect(chatWorkspaceMessageRuntimeSource).not.toContain("'fullAssistantMessage'");
+    expect(chatWorkspaceMessageRuntimeSource).not.toContain("'fullUserMessage'");
+    expect(chatWorkspaceMessageRuntimeSource).not.toContain("'systemPrompt'");
+    expect(chatWorkspaceMessageRuntimeSource).not.toContain("'tokenCounts'");
+    expect(chatWorkspaceMessageRuntimeSource).not.toContain("'toolSchemas'");
+    expect(conversationDisplayProjectionSource).not.toContain('annotation?.systemPrompt');
+    expect(conversationDisplayProjectionSource).not.toContain('annotation?.toolSchemas');
+    expect(conversationDisplayProjectionSource).not.toContain('annotation?.fullUserMessage');
+    expect(conversationDisplayProjectionSource).not.toContain('annotation?.fullAssistantMessage');
+    expect(conversationDisplayProjectionSource).not.toContain('annotation?.tokenCounts');
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBridgeRuntime');
     expect(chatStoreSource).not.toContain('buildPendingTurnUserMessage');
     expect(chatStoreSource).not.toContain('function normalizePendingTurn');

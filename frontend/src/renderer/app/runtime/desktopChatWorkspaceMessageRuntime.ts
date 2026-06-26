@@ -35,15 +35,7 @@ type ChatStreamMessageTarget = {
   turnRef?: string | null;
 };
 
-type RendererAnnotationUpdate = Pick<
-  ChatMessage,
-  | 'feedback'
-  | 'fullAssistantMessage'
-  | 'fullUserMessage'
-  | 'systemPrompt'
-  | 'tokenCounts'
-  | 'toolSchemas'
->;
+type RendererAnnotationUpdate = Pick<ChatMessage, 'feedback'>;
 
 type MessageStateDependencies<
   TState,
@@ -75,21 +67,6 @@ function selectRendererAnnotationUpdates(
   const annotationUpdates: Partial<RendererAnnotationUpdate> = {};
   if (Object.prototype.hasOwnProperty.call(updates, 'feedback')) {
     annotationUpdates.feedback = updates.feedback;
-  }
-  if (Object.prototype.hasOwnProperty.call(updates, 'fullAssistantMessage')) {
-    annotationUpdates.fullAssistantMessage = updates.fullAssistantMessage;
-  }
-  if (Object.prototype.hasOwnProperty.call(updates, 'fullUserMessage')) {
-    annotationUpdates.fullUserMessage = updates.fullUserMessage;
-  }
-  if (Object.prototype.hasOwnProperty.call(updates, 'systemPrompt')) {
-    annotationUpdates.systemPrompt = updates.systemPrompt;
-  }
-  if (Object.prototype.hasOwnProperty.call(updates, 'tokenCounts')) {
-    annotationUpdates.tokenCounts = updates.tokenCounts;
-  }
-  if (Object.prototype.hasOwnProperty.call(updates, 'toolSchemas')) {
-    annotationUpdates.toolSchemas = updates.toolSchemas;
   }
   return Object.keys(annotationUpdates).length > 0 ? annotationUpdates : null;
 }

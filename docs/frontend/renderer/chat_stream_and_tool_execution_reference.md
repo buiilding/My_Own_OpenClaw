@@ -145,13 +145,13 @@ uses that live-turn ref as the trace active turn while counting `displayRows`;
 raw `chatStore.messages`, `currentTurnProjection`, and stream-tracking active
 turn refs remain no-view diagnostic fallbacks only.
 
-Renderer-only annotations such as prompt transparency, tool schemas, full
-message details, feedback, and token counts are merged back into matching
-SDK-projected messages by `desktopConversationDisplayProjection.ts`.
-Main-thread `ConversationView` rendering passes those fields as narrow
-annotation records selected from `chatStore.messages`, not as the full raw
-message transcript. Display-row stream fallback may still inspect full
-messages only while applying the no-view bridge.
+Renderer-only feedback is merged back into matching SDK-projected messages by
+`desktopConversationDisplayProjection.ts`; prompt transparency, tool schemas,
+full message details, and token counts should arrive on SDK-projected rows once
+`ConversationView` exists. Main-thread `ConversationView` rendering passes that
+field as a narrow annotation record selected from `chatStore.messages`, not as
+the full raw message transcript. Display-row stream fallback may still inspect
+full messages only while applying the no-view bridge.
 `desktopConversationProjectionStreamRuntime.ts` composes that display adapter
 with replay superseded-turn filtering, stale current-turn side-effect gating,
 projection cursor management, and trace routing so the hook owns subscription

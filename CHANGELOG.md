@@ -452,6 +452,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/pill: stop deriving response-overlay turn identity from latest raw
   chat messages; chat-pill view intent now reads visible/active response turns
   or visible lifecycle turn identity only. No migration required.
+- frontend/display: narrow renderer annotation merging under `ConversationView`
+  to local feedback only; transparency metadata, tool schemas, full-message
+  content, and token counts now stay SDK display-row responsibilities. No
+  migration required.
 - frontend/store: remove turn-ref registry adapter actions from `chatStore`;
   stream ingress now records turn/conversation routing through the app-runtime
   registry owner directly. No migration required.

@@ -32,12 +32,7 @@ type MergeRendererAnnotationsOptions = {
 
 type RendererMessageAnnotation = {
   feedback?: ChatMessage['feedback'];
-  fullAssistantMessage?: ChatMessage['fullAssistantMessage'];
-  fullUserMessage?: ChatMessage['fullUserMessage'];
   id: string;
-  systemPrompt?: ChatMessage['systemPrompt'];
-  tokenCounts?: ChatMessage['tokenCounts'];
-  toolSchemas?: ChatMessage['toolSchemas'];
 };
 
 type BuildConversationViewMessagesInput = {
@@ -121,12 +116,9 @@ function mergeRendererAnnotationsIntoSdkMessages(
     const annotation = annotationsById.get(message.id);
     return {
       ...message,
-      ...(annotation?.systemPrompt ? { systemPrompt: annotation.systemPrompt } : {}),
-      ...(annotation?.toolSchemas ? { toolSchemas: annotation.toolSchemas } : {}),
-      ...(annotation?.fullUserMessage ? { fullUserMessage: annotation.fullUserMessage } : {}),
-      ...(annotation?.fullAssistantMessage ? { fullAssistantMessage: annotation.fullAssistantMessage } : {}),
-      ...(annotation?.feedback ? { feedback: annotation.feedback } : {}),
-      ...(annotation?.tokenCounts ? { tokenCounts: annotation.tokenCounts } : {}),
+      ...(annotation && Object.prototype.hasOwnProperty.call(annotation, 'feedback')
+        ? { feedback: annotation.feedback }
+        : {}),
     };
   });
   return mergePendingBridgeUserMessages(
@@ -136,14 +128,7 @@ function mergeRendererAnnotationsIntoSdkMessages(
 }
 
 function hasRendererMessageAnnotations(message: ChatMessage): boolean {
-  return Boolean(
-    message.systemPrompt
-      || message.toolSchemas
-      || message.fullUserMessage
-      || message.fullAssistantMessage
-      || message.feedback
-      || message.tokenCounts,
-  );
+  return Object.prototype.hasOwnProperty.call(message, 'feedback');
 }
 
 function selectRendererMessageAnnotations(messages: ChatMessage[] = []): RendererMessageAnnotation[] {
@@ -153,12 +138,9 @@ function selectRendererMessageAnnotations(messages: ChatMessage[] = []): Rendere
     }
     return [{
       id: message.id,
-      ...(message.systemPrompt ? { systemPrompt: message.systemPrompt } : {}),
-      ...(message.toolSchemas ? { toolSchemas: message.toolSchemas } : {}),
-      ...(message.fullUserMessage ? { fullUserMessage: message.fullUserMessage } : {}),
-      ...(message.fullAssistantMessage ? { fullAssistantMessage: message.fullAssistantMessage } : {}),
-      ...(message.feedback ? { feedback: message.feedback } : {}),
-      ...(message.tokenCounts ? { tokenCounts: message.tokenCounts } : {}),
+      ...(Object.prototype.hasOwnProperty.call(message, 'feedback')
+        ? { feedback: message.feedback }
+        : {}),
     }];
   });
 }

@@ -251,7 +251,7 @@ attachment presentation. Renderer display projection may synthesize only this
 explicit `pendingTurn` bridge beside SDK display rows; it must not scan prior
 `renderer-compose` chat messages and carry them forward as visible user rows.
 Conversation-view chat projection receives renderer annotation records, not raw
-current chat messages, when copying local feedback/token metadata onto SDK rows.
+current chat messages, when copying local feedback state onto SDK rows.
 Raw current-turn snapshots remain live context for migrated display/surface
 handoff and diagnostics, while normal Stop authority is only the view or the
 local pending bridge. Minimal live surfaces receive a null raw current-turn

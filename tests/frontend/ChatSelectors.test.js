@@ -118,7 +118,7 @@ describe('chatSelectors', () => {
         text: 'raw fallback',
         sender: 'user',
         fullUserMessage: 'full prompt',
-        feedback: { rating: 'positive' },
+        feedback: 'like',
       }],
       thinkingStatus: null,
       sdkLiveTurn: { turnRef: 'raw-turn' },
@@ -134,8 +134,7 @@ describe('chatSelectors', () => {
       messages: [],
       rendererAnnotations: [{
         id: 'sdk-row',
-        fullUserMessage: 'full prompt',
-        feedback: { rating: 'positive' },
+        feedback: 'like',
       }],
       conversationView,
       sdkLiveTurn: null,
