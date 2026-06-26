@@ -8,6 +8,9 @@ import { useConversationRuntimeProjectionStream } from '../../features/chat/hook
 import { useChatSessionBootstrap } from '../../features/chat/hooks/useChatSessionBootstrap';
 import { useConversationSessionProjection } from '../../features/chat/session/useConversationSessionProjection';
 import { useChatStore } from '../../features/chat/stores/chatStore';
+import {
+  projectWorkspaceReadModelState,
+} from '../runtime/desktopChatWorkspaceStateRuntime';
 import { DesktopRendererTraceRuntime } from '../runtime/desktopRendererTraceRuntime';
 import { DesktopTranscriptSessionInfoRuntimeClient } from '../runtime/desktopTranscriptSessionInfoRuntimeClient';
 
@@ -67,7 +70,7 @@ function resolveTraceMessageCount(workspace) {
 
 function resolveChatTraceWorkspaceSnapshot(conversationRef) {
   const store = useChatStore.getState();
-  const workspace = store.getWorkspaceState(conversationRef);
+  const workspace = projectWorkspaceReadModelState(store.getWorkspaceState(conversationRef));
   const lastMessage = resolveTraceLastMessage(workspace);
   return {
     activeConversationRef: store.activeConversationRef,

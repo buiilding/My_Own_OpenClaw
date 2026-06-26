@@ -2241,6 +2241,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('export function configureRendererTraceWorkspaceSnapshotResolver');
     expect(chatProviderSource).toContain('configureRendererTraceWorkspaceSnapshotResolver');
     expect(chatProviderSource).toContain('DesktopRendererTraceRuntime');
+    expect(chatProviderSource).toContain('projectWorkspaceReadModelState(store.getWorkspaceState(conversationRef))');
     expect(chatProviderSource).not.toContain('isSending: workspace.isSending');
     expect(chatProviderSource).not.toContain('thinkingStatus: workspace.thinkingStatus');
     expect(chatProviderSource).not.toContain('phase: workspace.streamTracking.phase');
