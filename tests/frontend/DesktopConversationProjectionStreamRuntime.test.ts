@@ -55,7 +55,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       },
     });
 
-    expect(projection.filteredRows).toHaveLength(1);
+    expect(projection.projectedRows).toHaveLength(1);
     expect(projection.sdkMessages).toEqual([
       expect.objectContaining({
         id: 'tool-row',

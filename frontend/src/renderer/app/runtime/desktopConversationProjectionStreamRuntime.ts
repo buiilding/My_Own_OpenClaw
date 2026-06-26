@@ -260,8 +260,8 @@ function buildDisplayRowsProjection({
   rows,
   workspace,
 }: DisplayRowsProjectionInput): {
-  filteredRows: SdkDisplayRow[];
   mergedMessages: ChatMessage[];
+  projectedRows: SdkDisplayRow[];
   shouldApplyMessages: boolean;
   sdkMessages: ChatMessage[];
   traceSummary: Record<string, unknown>;
@@ -269,8 +269,8 @@ function buildDisplayRowsProjection({
   const shouldApplyMessages = !workspace.conversationView;
   if (!shouldApplyMessages) {
     return {
-      filteredRows: rows,
       mergedMessages: [],
+      projectedRows: rows,
       shouldApplyMessages,
       sdkMessages: [],
       traceSummary: buildDisplayProjectionTraceSummary({
@@ -287,8 +287,8 @@ function buildDisplayRowsProjection({
     { pendingTurn: workspace.pendingTurn },
   );
   return {
-    filteredRows: rows,
     mergedMessages,
+    projectedRows: rows,
     shouldApplyMessages,
     sdkMessages,
     traceSummary: buildDisplayProjectionTraceSummary({
@@ -310,8 +310,8 @@ function applyDisplayRowsProjectionEvent({
   }
   const workspace = deps.getWorkspaceState(conversationRef);
   const {
-    filteredRows,
     mergedMessages,
+    projectedRows,
     shouldApplyMessages,
     traceSummary,
   } = buildDisplayRowsProjection({ rows, workspace });
@@ -322,7 +322,7 @@ function applyDisplayRowsProjectionEvent({
   });
   logReplayProjectionTrace('sdk_display_rows_projected', conversationRef, workspace, {
     displayRowCount: rows.length,
-    replacementRowCount: filteredRows.length,
+    projectedRowCount: projectedRows.length,
     shouldApplyMessages,
   });
   if (!shouldApplyMessages) {

@@ -110,7 +110,7 @@ export type RendererReplayTraceValues = {
   streamPhase?: unknown;
   supersededTurnRef?: unknown;
   targetUserMessageId?: unknown;
-  replacementRowCount?: unknown;
+  projectedRowCount?: unknown;
   sourceRowCount?: unknown;
   messageCount?: unknown;
   displayRowCount?: unknown;
@@ -679,7 +679,7 @@ function buildRendererReplayTracePayload(
     streamPhase: traceString(values.streamPhase) || null,
     supersededTurnRef: traceString(values.supersededTurnRef) || null,
     targetUserMessageId: traceString(values.targetUserMessageId) || null,
-    replacementRowCount: traceNumberOrZero(values.replacementRowCount),
+    projectedRowCount: traceNumberOrZero(values.projectedRowCount),
     sourceRowCount: traceNumberOrZero(values.sourceRowCount),
     messageCount: traceNumberOrZero(values.messageCount),
     displayRowCount: traceNumberOrZero(values.displayRowCount),
