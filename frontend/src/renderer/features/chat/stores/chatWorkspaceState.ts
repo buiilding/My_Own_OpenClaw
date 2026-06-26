@@ -127,63 +127,11 @@ export function createInitialWorkspaceRecord(): Record<string, ChatWorkspaceStat
   };
 }
 
-function buildActiveWorkspaceSnapshot(state: ChatWorkspaceStoreSnapshot): ChatWorkspaceState {
-  return {
-    messages: state.messages ?? [],
-    isSending: state.isSending ?? false,
-    thinkingStatus: state.thinkingStatus ?? null,
-    thinkingSourceEventType: state.thinkingSourceEventType ?? null,
-    compactionDebugInfo: state.compactionDebugInfo ?? null,
-    tokenCounts: state.tokenCounts ?? null,
-    streamTracking: state.streamTracking ?? createInitialStreamTracking(),
-    currentTurnProjection: state.currentTurnProjection ?? null,
-    conversationView: state.conversationView ?? null,
-    pendingTurn: state.pendingTurn ?? null,
-  };
-}
-
-function doesWorkspaceMatch(
-  workspace: ChatWorkspaceState,
-  activeWorkspace: ChatWorkspaceState,
-): boolean {
-  return (
-    workspace.messages === activeWorkspace.messages
-    && workspace.isSending === activeWorkspace.isSending
-    && workspace.thinkingStatus === activeWorkspace.thinkingStatus
-    && workspace.thinkingSourceEventType === activeWorkspace.thinkingSourceEventType
-    && workspace.compactionDebugInfo === activeWorkspace.compactionDebugInfo
-    && workspace.tokenCounts === activeWorkspace.tokenCounts
-    && workspace.streamTracking === activeWorkspace.streamTracking
-    && workspace.currentTurnProjection === activeWorkspace.currentTurnProjection
-    && workspace.conversationView === activeWorkspace.conversationView
-    && workspace.pendingTurn === activeWorkspace.pendingTurn
-  );
-}
-
 export function readWorkspaceState(
   state: ChatWorkspaceStoreSnapshot,
   workspaceRef: string,
 ): ChatWorkspaceState {
-  const workspaces = state.workspaces ?? {};
-  const workspace = workspaces[workspaceRef];
-  const activeWorkspaceRef = resolveChatWorkspaceRef(state.activeConversationRef);
-  const activeWorkspaceSnapshot = buildActiveWorkspaceSnapshot(state);
-
-  if (workspace) {
-    if (
-      workspaceRef === activeWorkspaceRef
-      && !doesWorkspaceMatch(workspace, activeWorkspaceSnapshot)
-    ) {
-      return activeWorkspaceSnapshot;
-    }
-    return workspace;
-  }
-
-  if (workspaceRef === activeWorkspaceRef) {
-    return activeWorkspaceSnapshot;
-  }
-
-  return createInitialWorkspaceState();
+  return state.workspaces?.[workspaceRef] ?? createInitialWorkspaceState();
 }
 
 export type ProjectedWorkspaceFields = Pick<
@@ -269,7 +217,6 @@ export function buildActiveConversationWorkspaceUpdate<TState extends ChatWorksp
   if (
     state.activeConversationRef === normalizedConversationRef
     && hasWorkspace
-    && doesWorkspaceMatch(nextWorkspace, buildActiveWorkspaceSnapshot(state))
   ) {
     return state;
   }

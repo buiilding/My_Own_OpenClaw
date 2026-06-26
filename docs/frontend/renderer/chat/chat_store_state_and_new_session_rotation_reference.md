@@ -54,7 +54,7 @@ The default workspace key is private to `chatWorkspaceState.ts`. Store
 initialization uses `createInitialWorkspaceRecord()` so `chatStore.ts` and
 feature callers do not import the raw sentinel string.
 
-All mutating actions accept optional `conversationRef` and write into that workspace. The projected top-level fields above always mirror the currently active workspace so existing selectors/components stay stable.
+All mutating actions accept optional `conversationRef` and write into that workspace. The workspace record is the read authority. The projected top-level fields above are compatibility mirrors for existing selectors/components and do not override `workspaces[...]` when reading active workspace state.
 
 Message attachment fields used by current renderer message paths:
 
@@ -168,12 +168,14 @@ replay/store compatibility adapters and low-level artifact helpers.
   clear-message reset field list and workspace update assembly live in that app
   runtime; the store only passes clear intent plus workspace dependency
   adapters.
-- `setActiveConversationRef` switches the projected top-level state to that
-  workspace snapshot through
+- `setActiveConversationRef` switches the projected top-level compatibility
+  mirror to that workspace record through
   `chatWorkspaceState.buildActiveConversationWorkspaceUpdate(...)`.
 - active-workspace projected field mirroring, generic workspace update assembly,
-  and workspace mutation target resolution live in `chatWorkspaceState.ts`;
-  `chatStore.ts` calls those helpers instead of defining the boilerplate.
+  workspace-record reads, and workspace mutation target resolution live in
+  `chatWorkspaceState.ts`; `chatStore.ts` calls those helpers instead of
+  defining the boilerplate. `readWorkspaceState(...)` never reconstructs an
+  active workspace from stale top-level mirror fields.
 - `registerTurnConversationRef` / `resolveConversationRefForTurn` bind
   app-runtime turn->conversation routing helpers for events that omit
   `conversation_ref`. The register action's map update/no-op decision lives in

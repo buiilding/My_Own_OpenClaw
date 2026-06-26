@@ -68,16 +68,16 @@ describe('chatWorkspaceState', () => {
     expect(resolveWorkspaceKey(undefined, null)).toBe('__default__');
   });
 
-  test('returns active root snapshot when active workspace entry is stale', () => {
-    const staleWorkspace = {
+  test('returns workspace record when active top-level mirror is stale', () => {
+    const workspace = {
       ...createInitialWorkspaceState(),
-      messages: [{ id: 'stale', text: 'stale', sender: 'assistant' as const }],
+      messages: [{ id: 'workspace', text: 'workspace', sender: 'assistant' as const }],
     };
     const rootMessages = [{ id: 'root', text: 'root', sender: 'assistant' as const }];
     const state = {
       activeConversationRef: 'thread-1',
       workspaces: {
-        'thread-1': staleWorkspace,
+        'thread-1': workspace,
       },
       messages: rootMessages,
       isSending: true,
@@ -88,10 +88,39 @@ describe('chatWorkspaceState', () => {
     };
 
     const resolved = readWorkspaceState(state, 'thread-1');
-    expect(resolved.messages).toBe(rootMessages);
-    expect(resolved.isSending).toBe(true);
-    expect(resolved.thinkingStatus).toBe('thinking');
-    expect(resolved.streamTracking.phase).toBe('streaming');
+    expect(resolved).toBe(workspace);
+    expect(resolved.messages).toEqual([
+      { id: 'workspace', text: 'workspace', sender: 'assistant' },
+    ]);
+    expect(resolved.isSending).toBe(false);
+    expect(resolved.thinkingStatus).toBeNull();
+    expect(resolved.streamTracking.phase).toBe('idle');
+  });
+
+  test('returns initial workspace when active workspace is missing despite top-level mirror', () => {
+    const state = {
+      activeConversationRef: 'active-thread',
+      workspaces: {},
+      messages: [{ id: 'root', text: 'root', sender: 'assistant' as const }],
+      isSending: true,
+      thinkingStatus: 'thinking',
+      thinkingSourceEventType: 'llm-thought',
+      tokenCounts: { total_tokens: 4 },
+      streamTracking: createStreamTracking({ phase: 'streaming', eventCount: 2 }),
+    };
+
+    const resolved = readWorkspaceState(state, 'active-thread');
+    expect(resolved).toEqual(expect.objectContaining({
+      messages: [],
+      isSending: false,
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+      tokenCounts: null,
+      streamTracking: expect.objectContaining({
+        phase: 'idle',
+        eventCount: 0,
+      }),
+    }));
   });
 
   test('returns initial workspace when inactive workspace is missing', () => {
@@ -121,16 +150,16 @@ describe('chatWorkspaceState', () => {
     }));
   });
 
-  test('selects active workspace through the shared active-workspace projection', () => {
-    const staleWorkspace = {
+  test('selects active workspace from the workspace record, not top-level mirrors', () => {
+    const workspace = {
       ...createInitialWorkspaceState(),
-      messages: [{ id: 'stale', text: 'stale', sender: 'assistant' as const }],
+      messages: [{ id: 'workspace', text: 'workspace', sender: 'assistant' as const }],
     };
     const rootMessages = [{ id: 'root', text: 'root', sender: 'assistant' as const }];
     const state = {
       activeConversationRef: 'thread-1',
       workspaces: {
-        'thread-1': staleWorkspace,
+        'thread-1': workspace,
       },
       messages: rootMessages,
       isSending: true,
@@ -141,10 +170,13 @@ describe('chatWorkspaceState', () => {
     };
 
     const resolved = selectActiveWorkspaceState(state);
-    expect(resolved.messages).toBe(rootMessages);
-    expect(resolved.isSending).toBe(true);
-    expect(resolved.thinkingStatus).toBe('thinking');
-    expect(resolved.streamTracking.phase).toBe('streaming');
+    expect(resolved).toBe(workspace);
+    expect(resolved.messages).toEqual([
+      { id: 'workspace', text: 'workspace', sender: 'assistant' },
+    ]);
+    expect(resolved.isSending).toBe(false);
+    expect(resolved.thinkingStatus).toBeNull();
+    expect(resolved.streamTracking.phase).toBe('idle');
   });
 
   test('projects workspace fields through the shared workspace helper', () => {
@@ -275,7 +307,7 @@ describe('chatWorkspaceState', () => {
     }));
   });
 
-  test('keeps active conversation switch as no-op when projected state already matches', () => {
+  test('keeps active conversation switch as no-op when workspace already exists', () => {
     const workspace = {
       ...createInitialWorkspaceState(),
       messages: [{ id: 'active', text: 'active', sender: 'assistant' as const }],
@@ -285,7 +317,8 @@ describe('chatWorkspaceState', () => {
       workspaces: {
         'active-thread': workspace,
       },
-      ...getProjectedWorkspaceFields(workspace),
+      messages: [{ id: 'stale-root', text: 'stale-root', sender: 'assistant' as const }],
+      isSending: true,
     };
 
     expect(buildActiveConversationWorkspaceUpdate(state, 'active-thread')).toBe(state);

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: make chat workspace records the only source for active
+  workspace reads; top-level chat-store fields remain compatibility mirrors and
+  no longer override `workspaces[...]`. No migration required.
 - frontend/replay: route edit/retry UI actions as SDK command intent without
   renderer retained-prefix or pending-row publication; SDK runtime now remains
   the owner of replay target resolution, supersession, replacement rows, and

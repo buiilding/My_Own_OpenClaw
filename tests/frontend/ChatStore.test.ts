@@ -153,7 +153,7 @@ describe('chatStore', () => {
   });
 
   test('setThinkingStatus is a no-op when value is unchanged', () => {
-    useChatStore.setState({ thinkingStatus: 'thinking' });
+    useChatStore.getState().setThinkingStatus('thinking');
     const beforeSnapshot = useChatStore.getState();
     useChatStore.getState().setThinkingStatus('thinking');
     const afterSnapshot = useChatStore.getState();
@@ -170,7 +170,7 @@ describe('chatStore', () => {
       conversation_tokens: 7,
       usage_source: 'provider' as const,
     };
-    useChatStore.setState({ tokenCounts });
+    useChatStore.getState().setTokenCounts(tokenCounts);
     const beforeSnapshot = useChatStore.getState();
     useChatStore.getState().setTokenCounts(tokenCounts);
     const afterSnapshot = useChatStore.getState();

@@ -16,6 +16,34 @@ const {
   projectDesktopLiveTurnSurfaceState,
 } = DesktopChatSurfaceSelectorRuntime;
 
+const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
+
+function createWorkspace(overrides = {}) {
+  return {
+    messages: [],
+    isSending: false,
+    thinkingStatus: null,
+    thinkingSourceEventType: null,
+    compactionDebugInfo: null,
+    tokenCounts: null,
+    streamTracking: { phase: 'idle' },
+    currentTurnProjection: null,
+    conversationView: null,
+    pendingTurn: null,
+    ...overrides,
+  };
+}
+
+function createStateWithActiveWorkspace(overrides = {}) {
+  const workspace = createWorkspace(overrides);
+  return {
+    activeConversationRef: null,
+    workspaces: {
+      [DEFAULT_CHAT_WORKSPACE_REF]: workspace,
+    },
+  };
+}
+
 describe('chatSelectors', () => {
   test('projects shared chat surface fields through app runtime helpers', () => {
     const activeWorkspace = {
@@ -125,15 +153,18 @@ describe('chatSelectors', () => {
   });
 
   test('selects only chat interface state fields', () => {
-    const state = {
-      messages: [{ id: '1', text: 'hello', sender: 'user' }],
+    const messages = [{ id: '1', text: 'hello', sender: 'user' }];
+    const state = createStateWithActiveWorkspace({
+      messages,
       isSending: true,
       thinkingStatus: 'thinking',
       tokenCounts: { total_tokens: 42 },
       streamTracking: { phase: 'streaming' },
+    });
+    Object.assign(state, {
       addMessage: jest.fn(),
       clearMessages: jest.fn(),
-    };
+    });
 
     expect(selectChatInterfaceState(state)).toEqual({
       thinkingStatus: 'thinking',
@@ -143,7 +174,7 @@ describe('chatSelectors', () => {
       activeRevisionId: null,
       canEditMessages: true,
       canRetryMessages: true,
-      renderedMessages: state.messages,
+      renderedMessages: messages,
       stopTurnTarget: {
         source: 'idle',
         conversationRef: null,
@@ -151,7 +182,7 @@ describe('chatSelectors', () => {
         canStop: false,
       },
       chatSurfaceState: {
-        messages: state.messages,
+        messages,
         currentTurnProjection: null,
         conversationView: null,
         pendingTurn: null,
@@ -163,7 +194,7 @@ describe('chatSelectors', () => {
     expect(selectChatInterfaceState(state)).not.toHaveProperty('conversationView');
     expect(selectChatInterfaceState(state)).not.toHaveProperty('pendingTurn');
     expect(selectChatInterfaceSurfaceState(state)).toEqual({
-      messages: state.messages,
+      messages,
       currentTurnProjection: null,
       conversationView: null,
       pendingTurn: null,
@@ -173,14 +204,16 @@ describe('chatSelectors', () => {
   test('keeps selected object references (no cloning)', () => {
     const messages = [{ id: '1', text: 'hello', sender: 'assistant' }];
     const tokenCounts = { total_tokens: 42 };
-    const state = {
+    const state = createStateWithActiveWorkspace({
       messages,
       isSending: false,
       thinkingStatus: null,
       tokenCounts,
       streamTracking: { phase: 'idle' },
+    });
+    Object.assign(state, {
       addMessage: jest.fn(),
-    };
+    });
 
     const chatInterface = selectChatInterfaceState(state);
     const nextChatInterface = selectChatInterfaceState(state);
@@ -202,20 +235,22 @@ describe('chatSelectors', () => {
       { id: 'stale-active-assistant', text: 'stale partial', sender: 'assistant', type: 'llm-text', turnRef: 'turn-new' },
     ];
     const selected = selectChatInterfaceState({
-      messages,
-      isSending: true,
-      thinkingStatus: null,
-      currentTurnProjection: {
-        conversationRef: 'conv-1',
-        turnRef: 'turn-new',
-        phase: 'streaming',
-        assistantText: 'projected answer',
-        reasoningText: null,
-        toolEvents: [],
-        lastError: null,
-      },
-      tokenCounts: null,
-      streamTracking: { phase: 'streaming' },
+      ...createStateWithActiveWorkspace({
+        messages,
+        isSending: true,
+        thinkingStatus: null,
+        currentTurnProjection: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-new',
+          phase: 'streaming',
+          assistantText: 'projected answer',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+        tokenCounts: null,
+        streamTracking: { phase: 'streaming' },
+      }),
     });
 
     expect(selected).not.toHaveProperty('messages');
@@ -236,14 +271,14 @@ describe('chatSelectors', () => {
       toolEvents: [],
       lastError: null,
     };
-    const state = {
+    const state = createStateWithActiveWorkspace({
       messages,
       isSending: true,
       thinkingStatus: null,
       currentTurnProjection,
       tokenCounts: null,
       streamTracking: { phase: 'streaming' },
-    };
+    });
 
     const first = selectChatInterfaceState(state);
     const second = selectChatInterfaceState(state);
@@ -273,12 +308,14 @@ describe('chatSelectors', () => {
       },
     ];
     const selected = selectChatInterfaceState({
-      messages,
-      isSending: false,
-      thinkingStatus: null,
-      currentTurnProjection: null,
-      tokenCounts: null,
-      streamTracking: { phase: 'complete' },
+      ...createStateWithActiveWorkspace({
+        messages,
+        isSending: false,
+        thinkingStatus: null,
+        currentTurnProjection: null,
+        tokenCounts: null,
+        streamTracking: { phase: 'complete' },
+      }),
     });
 
     expect(selected).not.toHaveProperty('messages');
@@ -291,13 +328,13 @@ describe('chatSelectors', () => {
       conversationRef: 'conv-send',
       displayRows: [{ id: 'row-user', role: 'user' }],
     };
-    const state = {
+    const state = createStateWithActiveWorkspace({
       messages,
       conversationView,
       currentTurnProjection: { turnRef: 'raw-turn' },
       pendingTurn: { turnRef: 'pending-turn' },
       thinkingStatus: null,
-    };
+    });
 
     expect(selectChatSendReadModel(state)).toEqual({
       conversationView,
@@ -312,8 +349,10 @@ describe('chatSelectors', () => {
   test('keeps raw send history only for the no-view fallback path', () => {
     const messages = [{ id: 'user-1', text: 'question', sender: 'user' }];
     expect(selectChatSendReadModel({
-      messages,
-      conversationView: null,
+      ...createStateWithActiveWorkspace({
+        messages,
+        conversationView: null,
+      }),
     })).toEqual({
       conversationView: null,
       messages,
@@ -331,12 +370,14 @@ describe('chatSelectors', () => {
       lastError: null,
     };
     const selected = selectLiveTurnSurfaceState({
-      messages: [],
-      isSending: true,
-      thinkingStatus: null,
-      currentTurnProjection: workspaceProjection,
-      tokenCounts: null,
-      streamTracking: { phase: 'awaiting-first-chunk' },
+      ...createStateWithActiveWorkspace({
+        messages: [],
+        isSending: true,
+        thinkingStatus: null,
+        currentTurnProjection: workspaceProjection,
+        tokenCounts: null,
+        streamTracking: { phase: 'awaiting-first-chunk' },
+      }),
     });
 
     expect(selected.currentTurnProjection).toBe(workspaceProjection);
@@ -432,11 +473,13 @@ describe('chatSelectors', () => {
     };
 
     const selected = selectChatInterfaceState({
-      messages: [{ id: 'display-user-1', text: 'question', sender: 'user' }],
-      thinkingStatus: null,
-      currentTurnProjection: workspaceProjection,
-      conversationView: view,
-      pendingTurn: null,
+      ...createStateWithActiveWorkspace({
+        messages: [{ id: 'display-user-1', text: 'question', sender: 'user' }],
+        thinkingStatus: null,
+        currentTurnProjection: workspaceProjection,
+        conversationView: view,
+        pendingTurn: null,
+      }),
     });
 
     expect(selected).not.toHaveProperty('conversationView');
