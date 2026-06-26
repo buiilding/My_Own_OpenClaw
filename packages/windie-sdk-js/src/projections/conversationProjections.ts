@@ -364,6 +364,49 @@ function displayCorrelationIdFromEvent(event: ConversationEvent): string | null 
   );
 }
 
+function toolDisplayDetailsFromEvent(event: ConversationEvent): JsonRecord | null {
+  if (event.type !== 'tool_call'
+    && event.type !== 'tool_bundle_call'
+    && event.type !== 'tool_output'
+    && event.type !== 'tool_bundle_output') {
+    return null;
+  }
+  const details: JsonRecord = {};
+  const toolName = toolNameFromPayload(event.payload)
+    ?? (event.type === 'tool_bundle_call' || event.type === 'tool_bundle_output' ? 'tool_bundle' : null);
+  const requestId = stringField(event.payload, 'requestId', 'request_id');
+  const correlationId = stringField(event.payload, 'correlationId', 'correlation_id');
+  const displayCorrelationId = displayCorrelationIdFromEvent(event);
+  const bundleId = stringField(event.payload, 'bundleId', 'bundle_id');
+  const toolCallId = stringField(event.payload, 'toolCallId', 'tool_call_id');
+  const sourceEventType = sourceEventTypeFromPayload(event.payload);
+  if (toolName) {
+    details.toolName = toolName;
+  }
+  if (requestId) {
+    details.requestId = requestId;
+  }
+  if (correlationId) {
+    details.correlationId = correlationId;
+  }
+  if (displayCorrelationId) {
+    details.displayCorrelationId = displayCorrelationId;
+  }
+  if (bundleId) {
+    details.bundleId = bundleId;
+  }
+  if (toolCallId) {
+    details.toolCallId = toolCallId;
+  }
+  if (sourceEventType) {
+    details.sourceEventType = sourceEventType;
+  }
+  if (typeof event.payload.success === 'boolean') {
+    details.success = event.payload.success;
+  }
+  return Object.keys(details).length > 0 ? details : null;
+}
+
 function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
   const screenshotRef = stringField(event.payload, 'screenshotRef', 'screenshot_ref');
   const screenshotUrl = stringField(event.payload, 'screenshotUrl', 'screenshot_url');
@@ -372,6 +415,7 @@ function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
   const attachments = displayAttachmentsField(event.payload, 'attachments', 'display_attachments')
     ?? legacyVisualAttachmentReplayAdapter(event);
   const screenshotContentType = stringField(event.payload, 'screenshotContentType', 'screenshot_content_type');
+  const toolDetails = toolDisplayDetailsFromEvent(event);
   return {
     eventId: event.eventId,
     source: event.source,
@@ -383,6 +427,12 @@ function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
     displayCorrelationId: displayCorrelationIdFromEvent(event),
     bundleId: stringField(event.payload, 'bundleId', 'bundle_id'),
     toolCallId: stringField(event.payload, 'toolCallId', 'tool_call_id'),
+    toolCallDetails: event.type === 'tool_call' || event.type === 'tool_bundle_call'
+      ? toolDetails
+      : null,
+    toolOutputDetails: event.type === 'tool_output' || event.type === 'tool_bundle_output'
+      ? toolDetails
+      : null,
     screenshotRef,
     screenshot_ref: screenshotRef,
     screenshotUrl,

@@ -218,6 +218,13 @@ SDK-owned `ConversationView` projection. The view is the normal UI contract that
 collapses display rows, live turn entries, surface modes, and action
 capabilities into one conversation-scoped object:
 
+Display rows carry SDK-authored `metadata.toolCallDetails` and
+`metadata.toolOutputDetails` for renderer tool cards. Renderer adapters should
+pass those detail records through as component metadata and must not rebuild
+them by copying request ids, bundle ids, tool-call ids, raw payloads, structured
+payloads, attachment aliases, or provider/model fields out of generic row
+metadata.
+
 ```text
 ConversationView = displayRows + liveTurn + surfaces + actions
 ```

@@ -41,6 +41,11 @@ describe('sdkDisplayChatMessageProjection', () => {
           requestId: 'req-1',
           displayCorrelationId: 'req-1',
           toolCallId: 'call-1',
+          toolCallDetails: {
+            toolName: 'read_file',
+            requestId: 'req-1',
+            toolCallId: 'call-1',
+          },
           modelFacingToolCall: {
             id: 'call-1',
             name: 'read_file',
@@ -63,6 +68,12 @@ describe('sdkDisplayChatMessageProjection', () => {
           displayCorrelationId: 'req-1',
           toolCallId: 'call-1',
           success: true,
+          toolOutputDetails: {
+            toolName: 'read_file',
+            requestId: 'req-1',
+            toolCallId: 'call-1',
+            success: true,
+          },
         },
       },
       {
@@ -278,7 +289,7 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
-  test('does not synthesize missing model-facing tool calls from row metadata', () => {
+  test('reads SDK-authored tool details without forwarding model-facing calls', () => {
     const [message] = buildChatMessagesFromSdkDisplayRows([
       {
         id: 'msg-tool-call-metadata-only',
@@ -298,6 +309,11 @@ describe('sdkDisplayChatMessageProjection', () => {
           requestId: 'req-1',
           displayCorrelationId: 'req-1',
           toolCallId: 'call-1',
+          toolCallDetails: {
+            toolName: 'read_file',
+            requestId: 'req-1',
+            toolCallId: 'call-1',
+          },
         },
       },
     ]);
@@ -307,11 +323,11 @@ describe('sdkDisplayChatMessageProjection', () => {
       sender: 'assistant',
       type: 'tool-call',
       correlationId: 'req-1',
-      toolCallDetails: expect.objectContaining({
+      toolCallDetails: {
         toolName: 'read_file',
         requestId: 'req-1',
         toolCallId: 'call-1',
-      }),
+      },
     }));
     expect(message).not.toHaveProperty('modelFacingToolCall');
   });
@@ -774,6 +790,10 @@ describe('sdkDisplayChatMessageProjection', () => {
           timestamp: '2026-05-15T12:00:02.000Z',
           toolName: 'read_file',
           requestId: 'req-1',
+          toolOutputDetails: {
+            toolName: 'read_file',
+            requestId: 'req-1',
+          },
           raw: {
             type: 'tool-output',
             payload: { output: 'done' },
@@ -782,10 +802,10 @@ describe('sdkDisplayChatMessageProjection', () => {
       },
     ]);
 
-    expect(message.toolOutputDetails).toEqual(expect.objectContaining({
+    expect(message.toolOutputDetails).toEqual({
       toolName: 'read_file',
       requestId: 'req-1',
-    }));
+    });
     expect(message.toolOutputDetails).not.toHaveProperty('raw');
   });
 
@@ -803,6 +823,10 @@ describe('sdkDisplayChatMessageProjection', () => {
           timestamp: '2026-05-15T12:00:02.000Z',
           toolName: 'read_file',
           requestId: 'req-1',
+          toolOutputDetails: {
+            toolName: 'read_file',
+            requestId: 'req-1',
+          },
           structuredPayload: {
             output: 'legacy structured output',
           },
@@ -810,10 +834,10 @@ describe('sdkDisplayChatMessageProjection', () => {
       },
     ] as any);
 
-    expect(message.toolOutputDetails).toEqual(expect.objectContaining({
+    expect(message.toolOutputDetails).toEqual({
       toolName: 'read_file',
       requestId: 'req-1',
-    }));
+    });
     expect(message.toolOutputDetails).not.toHaveProperty('structuredPayload');
   });
 
@@ -831,6 +855,10 @@ describe('sdkDisplayChatMessageProjection', () => {
           timestamp: '2026-06-22T12:00:00.000Z',
           toolName: 'screenshot',
           requestId: 'req-shot',
+          toolOutputDetails: {
+            toolName: 'screenshot',
+            requestId: 'req-shot',
+          },
           attachments: [{
             id: 'tool-output-shot:attachment:000',
             kind: 'image',
@@ -850,10 +878,10 @@ describe('sdkDisplayChatMessageProjection', () => {
           id: 'tool-output-shot:attachment:000',
         }),
       ],
-      toolOutputDetails: expect.objectContaining({
+      toolOutputDetails: {
         toolName: 'screenshot',
         requestId: 'req-shot',
-      }),
+      },
     }));
     expect(message.toolOutputDetails).not.toHaveProperty('attachments');
   });
@@ -877,6 +905,11 @@ describe('sdkDisplayChatMessageProjection', () => {
           toolName: 'read_file',
           requestId: 'req-1',
           toolCallId: 'call-1',
+          toolCallDetails: {
+            toolName: 'read_file',
+            requestId: 'req-1',
+            toolCallId: 'call-1',
+          },
           modelId: 'model-1',
           modelProvider: 'provider-1',
           modelFacingToolCall: {
@@ -891,11 +924,11 @@ describe('sdkDisplayChatMessageProjection', () => {
     expect(message).toEqual(expect.objectContaining({
       id: 'msg-tool-call-details',
       toolCallDisplayText: expect.stringContaining('"name": "read_file"'),
-      toolCallDetails: expect.objectContaining({
+      toolCallDetails: {
         toolName: 'read_file',
         requestId: 'req-1',
         toolCallId: 'call-1',
-      }),
+      },
     }));
     expect(message).not.toHaveProperty('modelFacingToolCall');
     expect(message.toolCallDetails).not.toHaveProperty('modelFacingToolCall');

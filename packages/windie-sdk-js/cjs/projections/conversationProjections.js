@@ -296,6 +296,48 @@ function sourceEventTypeFromPayload(payload) {
 function displayCorrelationIdFromEvent(event) {
     return (0, toolOutputContent_js_1.stringField)(event.payload, 'requestId', 'request_id', 'bundleId', 'bundle_id', 'toolCallId', 'tool_call_id', 'correlationId', 'correlation_id');
 }
+function toolDisplayDetailsFromEvent(event) {
+    if (event.type !== 'tool_call'
+        && event.type !== 'tool_bundle_call'
+        && event.type !== 'tool_output'
+        && event.type !== 'tool_bundle_output') {
+        return null;
+    }
+    const details = {};
+    const toolName = toolNameFromPayload(event.payload)
+        ?? (event.type === 'tool_bundle_call' || event.type === 'tool_bundle_output' ? 'tool_bundle' : null);
+    const requestId = (0, toolOutputContent_js_1.stringField)(event.payload, 'requestId', 'request_id');
+    const correlationId = (0, toolOutputContent_js_1.stringField)(event.payload, 'correlationId', 'correlation_id');
+    const displayCorrelationId = displayCorrelationIdFromEvent(event);
+    const bundleId = (0, toolOutputContent_js_1.stringField)(event.payload, 'bundleId', 'bundle_id');
+    const toolCallId = (0, toolOutputContent_js_1.stringField)(event.payload, 'toolCallId', 'tool_call_id');
+    const sourceEventType = sourceEventTypeFromPayload(event.payload);
+    if (toolName) {
+        details.toolName = toolName;
+    }
+    if (requestId) {
+        details.requestId = requestId;
+    }
+    if (correlationId) {
+        details.correlationId = correlationId;
+    }
+    if (displayCorrelationId) {
+        details.displayCorrelationId = displayCorrelationId;
+    }
+    if (bundleId) {
+        details.bundleId = bundleId;
+    }
+    if (toolCallId) {
+        details.toolCallId = toolCallId;
+    }
+    if (sourceEventType) {
+        details.sourceEventType = sourceEventType;
+    }
+    if (typeof event.payload.success === 'boolean') {
+        details.success = event.payload.success;
+    }
+    return Object.keys(details).length > 0 ? details : null;
+}
 function displayRowMetadata(event) {
     const screenshotRef = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotRef', 'screenshot_ref');
     const screenshotUrl = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotUrl', 'screenshot_url');
@@ -304,6 +346,7 @@ function displayRowMetadata(event) {
     const attachments = displayAttachmentsField(event.payload, 'attachments', 'display_attachments')
         ?? (0, legacyVisualAttachmentReplayAdapter_js_1.legacyVisualAttachmentReplayAdapter)(event);
     const screenshotContentType = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotContentType', 'screenshot_content_type');
+    const toolDetails = toolDisplayDetailsFromEvent(event);
     return {
         eventId: event.eventId,
         source: event.source,
@@ -315,6 +358,12 @@ function displayRowMetadata(event) {
         displayCorrelationId: displayCorrelationIdFromEvent(event),
         bundleId: (0, toolOutputContent_js_1.stringField)(event.payload, 'bundleId', 'bundle_id'),
         toolCallId: (0, toolOutputContent_js_1.stringField)(event.payload, 'toolCallId', 'tool_call_id'),
+        toolCallDetails: event.type === 'tool_call' || event.type === 'tool_bundle_call'
+            ? toolDetails
+            : null,
+        toolOutputDetails: event.type === 'tool_output' || event.type === 'tool_bundle_output'
+            ? toolDetails
+            : null,
         screenshotRef,
         screenshot_ref: screenshotRef,
         screenshotUrl,

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend: add SDK-authored `toolCallDetails` and `toolOutputDetails`
+  metadata to display rows, and make the renderer display-row adapter consume
+  only those detail records instead of copying request/tool ids from generic row
+  metadata. No migration required.
 - frontend/live-turn: render live tool-call rows from SDK-provided entry text
   instead of rebuilding display JSON from tool arguments and recovery metadata
   in the current-turn adapter. No migration required.

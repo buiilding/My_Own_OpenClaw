@@ -289,6 +289,12 @@ describe('Agent SDK conversation runtime core', () => {
         toolName: 'read_file',
         requestId: 'req-readme',
         toolCallId: 'call-readme',
+        toolCallDetails: {
+          toolName: 'read_file',
+          requestId: 'req-readme',
+          displayCorrelationId: 'req-readme',
+          toolCallId: 'call-readme',
+        },
         modelFacingToolCall: {
           id: 'call-readme',
           name: 'read_file',
@@ -304,6 +310,13 @@ describe('Agent SDK conversation runtime core', () => {
         toolName: 'read_file',
         requestId: 'req-readme',
         toolCallId: 'call-readme',
+        toolOutputDetails: {
+          toolName: 'read_file',
+          requestId: 'req-readme',
+          displayCorrelationId: 'req-readme',
+          toolCallId: 'call-readme',
+          success: true,
+        },
       },
     });
   });

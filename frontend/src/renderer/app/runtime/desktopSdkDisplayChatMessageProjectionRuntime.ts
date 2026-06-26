@@ -17,48 +17,14 @@ const {
   readSdkDisplayAttachments,
 } = DesktopSdkDisplayAttachmentProjection;
 
-function recordField(record: Record<string, unknown> | null | undefined, key: string): unknown {
-  return record && typeof record === 'object' ? record[key] : undefined;
+function recordFromUnknown(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
 }
 
 function optionalTrimmedString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
-function recordPayloadFromRow(
-  row: SdkDisplayRow,
-  {
-    includeAttachments = false,
-  }: {
-    includeAttachments?: boolean;
-  } = {},
-): Record<string, unknown> {
-  const metadata = row.metadata;
-  if (!metadata || typeof metadata !== 'object') {
-    return {};
-  }
-  const payload: Record<string, unknown> = {};
-  const copyKeys: Array<keyof typeof metadata> = [
-    'reasoningText',
-    'toolName',
-    'requestId',
-    'correlationId',
-    'displayCorrelationId',
-    'bundleId',
-    'toolCallId',
-    'sourceEventType',
-    'success',
-  ];
-  if (includeAttachments) {
-    copyKeys.push('attachments');
-  }
-  copyKeys.forEach((key) => {
-    const value = metadata[key];
-    if (value !== undefined && value !== null) {
-      payload[key] = value;
-    }
-  });
-  return payload;
 }
 
 function displayTextFromStringRowContent(content: unknown): string {
@@ -113,8 +79,7 @@ function withRowActions(message: ChatMessage, row: SdkDisplayRow): ChatMessage {
 }
 
 function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
-  const payload = recordPayloadFromRow(row, { includeAttachments: true });
-  const attachments = readSdkDisplayAttachments(recordField(payload, 'attachments'));
+  const attachments = readSdkDisplayAttachments(row.metadata?.attachments);
   return withRowActions({
     id: row.id,
     text: displayTextFromStringRowContent(row.content),
@@ -129,8 +94,7 @@ function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
 }
 
 function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
-  const payload = recordPayloadFromRow(row);
-  const reasoningText = recordField(payload, 'reasoningText');
+  const reasoningText = row.metadata?.reasoningText;
   const thinkingText = typeof reasoningText === 'string' && reasoningText.trim()
     ? reasoningText
     : null;
@@ -152,13 +116,13 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
 }
 
 function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
-  const payload = recordPayloadFromRow(row);
   const text = displayTextFromStructuredRowContent(row.content);
+  const toolCallDetails = recordFromUnknown(row.metadata?.toolCallDetails);
   const base = buildToolCallChatMessageState({
     id: row.id,
     text,
     toolCallDisplayText: text,
-    toolCallDetails: payload,
+    toolCallDetails,
     correlationId: rowCorrelationId(row),
     sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
@@ -172,8 +136,8 @@ function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
 }
 
 function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
-  const payload = recordPayloadFromRow(row);
   const attachments = readSdkDisplayAttachments(row.metadata?.attachments);
+  const toolOutputDetails = recordFromUnknown(row.metadata?.toolOutputDetails);
   const base = buildToolOutputChatMessageState({
     id: row.id,
     outputText: row.type === 'tool_bundle_output'
@@ -183,9 +147,9 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
     sourceChannel: sdkDisplayRowsSourceChannel,
     attachments,
     toolName: row.metadata?.toolName ?? null,
-    success: typeof payload.success === 'boolean' ? payload.success : null,
+    success: typeof row.metadata?.success === 'boolean' ? row.metadata.success : null,
     correlationId: rowCorrelationId(row),
-    toolOutputDetails: payload,
+    toolOutputDetails,
     turnRef: row.turnRef ?? null,
     isComplete: true,
     preserveNullToolMetadata: false,
@@ -198,8 +162,7 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
 }
 
 function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
-  const payload = recordPayloadFromRow(row);
-  const sourceEventType = recordField(payload, 'sourceEventType');
+  const sourceEventType = row.metadata?.sourceEventType;
   return withRowActions({
     id: row.id,
     text: displayTextFromStringRowContent(row.content),
@@ -212,7 +175,7 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
     turnRef: row.turnRef ?? undefined,
     timestamp: rowTimestamp(row),
     toolName: row.metadata?.toolName ?? undefined,
-    toolMetadata: payload,
+    toolMetadata: recordFromUnknown(row.metadata?.toolCallDetails ?? row.metadata?.toolOutputDetails),
     correlationId: row.metadata?.displayCorrelationId ?? undefined,
   }, row);
 }
