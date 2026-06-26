@@ -13,7 +13,7 @@ const {
   runManualCompaction: runManualCompactionCommand,
 } = DesktopManualCompactionRuntime;
 const {
-  buildChatSurfaceControllerState,
+  buildChatSurfaceControllerStateFromSurfaceState,
 } = DesktopChatSurfaceRuntime;
 
 function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
@@ -36,27 +36,15 @@ export function useChatSurfaceController({
   warningContext = 'ChatSurface',
 }) {
   const { config, updateConfig } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
-  const {
-    messages = [],
-    currentTurnProjection = null,
-    conversationView = null,
-    pendingTurn = null,
-  } = chatSurfaceState || {};
   const surfaceState = useMemo(
-    () => buildChatSurfaceControllerState({
-      messages,
-      currentTurnProjection,
-      conversationView,
+    () => buildChatSurfaceControllerStateFromSurfaceState({
+      chatSurfaceState,
       conversationViewSurface,
-      pendingTurn,
       sessionConversationRef: sessionInfo?.conversationRef || null,
     }),
     [
-      conversationView,
+      chatSurfaceState,
       conversationViewSurface,
-      currentTurnProjection,
-      messages,
-      pendingTurn,
       sessionInfo?.conversationRef,
     ],
   );

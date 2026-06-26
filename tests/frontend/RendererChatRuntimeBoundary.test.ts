@@ -132,7 +132,11 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(hookSource).toContain('DesktopChatSurfaceRuntime');
-    expect(hookSource).toContain('buildChatSurfaceControllerState');
+    expect(hookSource).toContain('buildChatSurfaceControllerStateFromSurfaceState');
+    expect(hookSource).not.toContain('buildChatSurfaceControllerState({');
+    expect(hookSource).not.toContain('currentTurnProjection = null');
+    expect(hookSource).not.toContain('conversationView = null');
+    expect(hookSource).not.toContain('pendingTurn = null');
     expect(hookSource).not.toContain('conversationView?.surfaces');
     expect(hookSource).not.toContain('conversationView?.liveTurn?.canStop');
     expect(hookSource).not.toContain('currentTurnProjection?.conversationRef');
@@ -140,6 +144,7 @@ describe('renderer chat runtime boundary', () => {
     expect(hookSource).not.toContain('resolveLiveTurnPresentationInput');
     expect(surfaceRuntimeSource).toContain('resolveVisibleTurnLifecycle');
     expect(surfaceRuntimeSource).toContain('resolveLiveTurnPresentationInput');
+    expect(surfaceRuntimeSource).toContain('buildChatSurfaceControllerStateFromSurfaceState');
     expect(surfaceRuntimeSource).toContain('const rendererFallbackMessages = hasConversationView ? [] : messages');
     expect(surfaceRuntimeSource).toContain('const effectiveCurrentTurnProjection = hasConversationView ? null : currentTurnProjection');
     expect(surfaceRuntimeSource).toContain('currentTurnProjection: effectiveCurrentTurnProjection');

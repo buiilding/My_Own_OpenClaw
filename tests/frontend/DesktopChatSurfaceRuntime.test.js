@@ -4,6 +4,7 @@ import {
 
 const {
   buildChatSurfaceControllerState,
+  buildChatSurfaceControllerStateFromSurfaceState,
 } = DesktopChatSurfaceRuntime;
 
 describe('DesktopChatSurfaceRuntime', () => {
@@ -88,5 +89,49 @@ describe('DesktopChatSurfaceRuntime', () => {
     expect(state.isBusy).toBe(false);
     expect(state.canStop).toBe(false);
     expect(state.liveTurnSource).not.toBe('conversation-view');
+  });
+
+  test('projects controller state from a selected chat surface object', () => {
+    const state = buildChatSurfaceControllerStateFromSurfaceState({
+      conversationViewSurface: 'dashboard',
+      sessionConversationRef: 'conv-session',
+      chatSurfaceState: {
+        conversationView: {
+          conversationRef: 'conv-view',
+          liveTurn: {
+            turnRef: 'turn-view',
+            phase: 'streaming',
+            canStop: true,
+          },
+          surfaces: {
+            dashboard: {
+              mode: 'busy',
+            },
+          },
+        },
+        currentTurnProjection: {
+          conversationRef: 'conv-raw',
+          turnRef: 'turn-raw',
+          phase: 'complete',
+        },
+        pendingTurn: null,
+        messages: [{
+          id: 'raw-message',
+          sender: 'assistant',
+          text: 'raw fallback',
+        }],
+      },
+    });
+
+    expect(state).toMatchObject({
+      isBusy: true,
+      canStop: true,
+      liveTurnSource: 'conversation-view',
+    });
+    expect(state.visibleTurnLifecycle).toMatchObject({
+      conversationRef: 'conv-view',
+      turnRef: 'turn-view',
+    });
+    expect(state.currentTurnPresentationState.activeResponse).toBeNull();
   });
 });

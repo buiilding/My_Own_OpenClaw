@@ -110,6 +110,23 @@ function buildChatSurfaceControllerState({
   };
 }
 
+function buildChatSurfaceControllerStateFromSurfaceState({
+  chatSurfaceState = null,
+  conversationViewSurface = 'pill',
+  sessionConversationRef = null,
+} = {}) {
+  const surfaceState = isObject(chatSurfaceState) ? chatSurfaceState : {};
+  return buildChatSurfaceControllerState({
+    messages: Array.isArray(surfaceState.messages) ? surfaceState.messages : [],
+    currentTurnProjection: surfaceState.currentTurnProjection ?? null,
+    conversationView: surfaceState.conversationView ?? null,
+    conversationViewSurface,
+    pendingTurn: surfaceState.pendingTurn ?? null,
+    sessionConversationRef,
+  });
+}
+
 export const DesktopChatSurfaceRuntime = Object.freeze({
   buildChatSurfaceControllerState,
+  buildChatSurfaceControllerStateFromSurfaceState,
 });

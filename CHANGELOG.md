@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/surfaces: move chat surface-state unpacking into
+  `DesktopChatSurfaceRuntime` so `useChatSurfaceController` no longer names raw
+  `ConversationView`, pending-turn, or current-turn projection fields. No
+  migration required.
 - frontend/overlay: move response overlay component trace metadata off raw
   `currentTurnProjection` reads; the view-model now supplies resolved phase and
   trace identity flows through explicit trace fields. No migration required.
