@@ -124,6 +124,51 @@ describe('DesktopChatSurfaceRuntime', () => {
     expect(state.currentTurnPresentationState.activeResponse).toBeNull();
   });
 
+  test('direct controller input blanks raw messages and SDK fallback under ConversationView', () => {
+    const state = buildChatSurfaceControllerState({
+      conversationViewSurface: 'dashboard',
+      sessionConversationRef: 'conv-session',
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: null,
+        surfaces: {
+          dashboard: {
+            mode: 'idle',
+          },
+        },
+      },
+      pendingTurn: {
+        conversationRef: 'conv-view',
+        turnRef: 'turn-pending',
+      },
+      sdkLiveTurn: {
+        conversationRef: 'conv-view',
+        turnRef: 'turn-sdk',
+        phase: 'streaming',
+        assistantText: 'stale SDK fallback',
+      },
+      messages: [{
+        id: 'stale-user',
+        sender: 'user',
+        text: 'stale raw user',
+      }],
+    });
+
+    expect(state).toMatchObject({
+      isBusy: true,
+      canStop: true,
+      liveTurnSource: 'pending-turn',
+    });
+    expect(state.visibleTurnLifecycle).toMatchObject({
+      source: 'local',
+      status: 'local_pending',
+      awaitingAnchor: null,
+      conversationRef: 'conv-view',
+      turnRef: 'turn-pending',
+    });
+    expect(state.currentTurnPresentationState.activeResponse).toBeNull();
+  });
+
   test('surface-state adapter consumes sanitized read-model rows under ConversationView', () => {
     const state = buildChatSurfaceControllerStateFromSurfaceState({
       conversationViewSurface: 'dashboard',

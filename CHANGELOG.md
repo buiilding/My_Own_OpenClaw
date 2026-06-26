@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/surfaces: make the chat surface controller blank raw messages and
+  the no-view SDK live-turn fallback under `ConversationView`, preserving only
+  the pending bridge as renderer-local surface authority. No migration required.
 - frontend/surfaces: enforce `ConversationView` authority inside the surface
   selector itself, blanking raw messages and the no-view `sdkLiveTurn` fallback
   even for direct app-runtime selector callers. No migration required.

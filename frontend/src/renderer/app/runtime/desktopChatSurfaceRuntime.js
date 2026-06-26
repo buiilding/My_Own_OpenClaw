@@ -56,20 +56,23 @@ function buildChatSurfaceControllerState({
   sessionConversationRef = null,
 } = {}) {
   const hasConversationView = isObject(conversationView);
-  const rendererFallbackMessages = Array.isArray(messages) ? messages : [];
+  const rendererFallbackMessages = hasConversationView
+    ? []
+    : Array.isArray(messages) ? messages : [];
+  const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
     activeConversationRef: resolveSurfaceConversationRef({
       conversationView,
-      sdkLiveTurn,
+      sdkLiveTurn: effectiveSdkLiveTurn,
       sessionConversationRef,
     }),
     pendingTurn,
-    sdkLiveTurn,
+    sdkLiveTurn: effectiveSdkLiveTurn,
     conversationView,
     messages: rendererFallbackMessages,
   });
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
-    sdkLiveTurn,
+    sdkLiveTurn: effectiveSdkLiveTurn,
     conversationView,
     pendingTurn,
     messages: rendererFallbackMessages,
