@@ -2275,6 +2275,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/useChatMessageSender.ts'),
       'utf8',
     );
+    const senderTestSource = await fs.readFile(
+      path.resolve(__dirname, 'ChatMessageSender.test.tsx'),
+      'utf8',
+    );
     const sendPreparationSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts'),
       'utf8',
@@ -2328,6 +2332,10 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('displayAttachmentId');
     expect(sendPreparationSource).not.toContain('attachments:');
     expect(sendPreparationSource).not.toContain('{ attachmentFilenames, attachment_filenames');
+    expect(senderTestSource).toContain('function expectPendingBridgeUserMessage');
+    expect(senderTestSource).not.toContain('function expectOptimisticUserMessage');
+    expect(senderTestSource).toContain('attachments: null');
+    expect(senderTestSource).not.toContain('attachments: unknown[] | null = null');
     expect(sendPreparationSource).not.toContain('chatMessageSenderPayloads');
     expect(sendPreparationSource).not.toContain('chatMessageSenderUtils');
     expect(traceRuntimeSource).toContain('buildRendererChatSendLifecycleTracePayload');

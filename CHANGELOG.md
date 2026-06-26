@@ -51,6 +51,9 @@ All notable changes to WindieOS will be documented in this file.
   chat surface, response-overlay, and interface presentation adapters; they now
   consume the workspace read model as their input authority. No migration
   required.
+- frontend/tests: tighten chat sender boundary coverage so pending-send bridge
+  assertions cannot carry renderer-owned attachment descriptors. No migration
+  required.
 - frontend/attachments: rename the app-runtime artifact image resolver to
   `DesktopAttachmentImageRuntime`, so chat attachment rendering no longer
   imports a screenshot-named resolver facade. No migration required.

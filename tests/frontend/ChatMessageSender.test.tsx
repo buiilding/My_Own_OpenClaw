@@ -159,10 +159,9 @@ describe('useChatMessageSender', () => {
     );
   }
 
-  function expectOptimisticUserMessage(
+  function expectPendingBridgeUserMessage(
     text: string,
     attachmentFilenames: string[] | null = null,
-    attachments: unknown[] | null = null,
   ) {
     expect(getActiveWorkspace().messages).toEqual([
       expect.objectContaining({
@@ -174,7 +173,7 @@ describe('useChatMessageSender', () => {
         sourceChannel: 'renderer-local',
         isComplete: true,
         attachmentFilenames,
-        attachments,
+        attachments: null,
       }),
     ]);
   }
@@ -300,7 +299,7 @@ describe('useChatMessageSender', () => {
     );
   });
 
-  test('shows an optimistic user row before async send preparation finishes', async () => {
+  test('shows a pending-bridge user row before async send preparation finishes', async () => {
     mockActiveConversationRef = 'conv_existing';
     let resolvePermission: ((value: unknown) => void) | null = null;
     const permissionPromise = new Promise((resolve) => {
@@ -326,7 +325,7 @@ describe('useChatMessageSender', () => {
       await Promise.resolve();
     });
 
-    expectOptimisticUserMessage('hello while prepping');
+    expectPendingBridgeUserMessage('hello while prepping');
     expect(getActiveWorkspace().isSending).toBe(true);
     expect(mockSendQuery).not.toHaveBeenCalled();
 
@@ -568,7 +567,7 @@ describe('useChatMessageSender', () => {
       reason: 'query_send_with_capture',
       required: false,
     }]);
-    expectOptimisticUserMessage('hello');
+    expectPendingBridgeUserMessage('hello');
     expect(getActiveWorkspace().messages[0].attachments).toBeNull();
     expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
@@ -584,7 +583,7 @@ describe('useChatMessageSender', () => {
       reason: 'query_send_with_capture',
       required: false,
     }]);
-    expectOptimisticUserMessage('hello auto screenshot');
+    expectPendingBridgeUserMessage('hello auto screenshot');
   });
 
   test('sends pasted clipboard image as a SDK resource handle', async () => {
@@ -609,7 +608,7 @@ describe('useChatMessageSender', () => {
       required: true,
     }]);
     expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['clipboard-image.png']);
-    expectOptimisticUserMessage('Please inspect this image', ['clipboard-image.png']);
+    expectPendingBridgeUserMessage('Please inspect this image', ['clipboard-image.png']);
   });
 
   test('sends pasted image before camera screenshot request for mixed visual sends', async () => {
@@ -642,7 +641,7 @@ describe('useChatMessageSender', () => {
       },
     ]);
     expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['clipboard-image.png']);
-    expectOptimisticUserMessage('Please inspect this image and screen', ['clipboard-image.png']);
+    expectPendingBridgeUserMessage('Please inspect this image and screen', ['clipboard-image.png']);
   });
 
   test('sends multiple pasted clipboard images as SDK resource handles', async () => {
@@ -684,7 +683,7 @@ describe('useChatMessageSender', () => {
       'clipboard-image-1.png',
       'clipboard-image-2.jpg',
     ]);
-    expectOptimisticUserMessage(
+    expectPendingBridgeUserMessage(
       'Please inspect both images',
       ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
     );
@@ -730,7 +729,7 @@ describe('useChatMessageSender', () => {
     }]);
     expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['notes.txt']);
 
-    expectOptimisticUserMessage('Summarize the attached file', ['notes.txt']);
+    expectPendingBridgeUserMessage('Summarize the attached file', ['notes.txt']);
   });
 
   test('does not block renderer send when selected file resolution will happen in SDK', async () => {
@@ -775,7 +774,7 @@ describe('useChatMessageSender', () => {
       required: true,
     }]);
     expect(mockSendQuery.mock.calls[0][0].attachmentFilenames).toEqual(['private.txt']);
-    expectOptimisticUserMessage('Summarize the attached file', ['private.txt']);
+    expectPendingBridgeUserMessage('Summarize the attached file', ['private.txt']);
   });
 
   test('resets sending state and appends error message when send fails', async () => {
