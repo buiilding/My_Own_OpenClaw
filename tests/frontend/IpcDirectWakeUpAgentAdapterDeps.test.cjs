@@ -11,7 +11,7 @@ describe('ipc direct wake-up agent adapter deps runtime', () => {
     const deps = {
       broadcastToRenderers: jest.fn(),
       resolveRuntimeConversationRef: jest.fn(),
-      setLatestCurrentTurnProjection: jest.fn(),
+      setLatestSdkLiveTurn: jest.fn(),
       setLatestConversationView: jest.fn(),
       getLatestPendingTurn: jest.fn(),
       pendingTurnMatchesCurrentTurn: jest.fn(),
@@ -49,7 +49,7 @@ describe('ipc direct wake-up agent adapter deps runtime', () => {
       'buildDirectWakeUpAgentAdapterDeps: () => directWakeUpAgentAdapterDepsRuntime.build()',
     );
     expect(mainSource).not.toContain('buildDirectWakeUpAgentAdapterDeps: () => ({');
-    expect(helperSource).toContain('setLatestCurrentTurnProjection');
+    expect(helperSource).toContain('setLatestSdkLiveTurn');
     expect(helperSource).toContain('setLatestConversationView');
     expect(helperSource).toContain('refreshMcpServersForConfig');
     expect(helperSource).toContain('traceRuntimeSend');

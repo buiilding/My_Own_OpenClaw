@@ -26,6 +26,10 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopSdkLiveTurnEffectsRuntime`, keeping live turn side effects framed as
   SDK view plumbing instead of a renderer-owned projection authority. No
   migration required.
+- frontend/main: rename Electron-main live-turn cache/dependency internals from
+  `latestCurrentTurnProjection` to `latestSdkLiveTurn`, matching the SDK
+  live-turn boundary while preserving `snapshot.currentTurn` payload handling.
+  No migration required.
 - frontend/state: rename private no-view live-turn workspace storage from
   `currentTurnProjection` to `sdkLiveTurn`, removing the raw current-turn name
   from production renderer workspace state. No migration required.

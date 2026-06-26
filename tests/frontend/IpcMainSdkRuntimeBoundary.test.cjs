@@ -328,7 +328,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(directWakeUpAdapterSource).toContain('function createDirectWakeUpAgentAdapter');
     expect(directWakeUpAdapterSource).toContain('agent.conversation({');
     expect(directWakeUpAdapterSource).toContain('buildConversationTerminalStatus(event, workspacePath)');
-    expect(directWakeUpAdapterSource).toContain('setLatestCurrentTurnProjection(snapshot.currentTurn || null)');
+    expect(directWakeUpAdapterSource).toContain('setLatestSdkLiveTurn(snapshot.currentTurn || null)');
     expect(directWakeUpAdapterSource).toContain('setLatestConversationView(snapshot.view || null)');
     expect(directWakeUpAdapterSource).toContain('syncSdkLiveTurnSurfaceIntent(snapshot || null)');
     expect(directWakeUpAdapterSource).toContain('view: snapshot.view || null');
@@ -678,11 +678,12 @@ describe('main ipc sdk runtime boundary', () => {
     expect(pendingTurnHandlersSource).not.toContain('  registerPendingTurnHandlers,');
     expect(pendingTurnHandlersSource).not.toContain('  normalizePendingTurnPayload,');
     expect(pendingTurnHandlersSource).not.toContain('  pendingTurnMatchesCurrentTurn,');
-    expect(source).not.toContain('let latestCurrentTurnProjection = null');
+    expect(source).not.toContain('let latestSdkLiveTurn = null');
     expect(source).not.toContain('let latestPendingTurn = null');
-    expect(source).not.toContain('latestCurrentTurnProjection = currentTurnProjection');
+    expect(source).not.toContain('latestCurrentTurnProjection');
+    expect(source).not.toContain('currentTurnProjection');
     expect(source).not.toContain('latestPendingTurn = pendingTurn');
-    expect(liveTurnStateSource).toContain('let latestCurrentTurnProjection = initialCurrentTurn;');
+    expect(liveTurnStateSource).toContain('let latestSdkLiveTurn = initialSdkLiveTurn;');
     expect(liveTurnStateSource).toContain('let latestConversationView = initialConversationView;');
     expect(liveTurnStateSource).toContain('let latestPendingTurn = initialPendingTurn;');
     expect(source).toContain('createConversationEventProjectionRuntime({');

@@ -567,8 +567,8 @@ const ipcProcessResetRuntime = createIpcProcessResetRuntime({
 const directWakeUpAgentAdapterDepsRuntime = createDirectWakeUpAgentAdapterDepsRuntime({
   broadcastToRenderers,
   resolveRuntimeConversationRef,
-  setLatestCurrentTurnProjection: (currentTurnProjection) => liveTurnState.setLatestCurrentTurn(
-    currentTurnProjection,
+  setLatestSdkLiveTurn: (sdkLiveTurn) => liveTurnState.setLatestCurrentTurn(
+    sdkLiveTurn,
   ),
   setLatestConversationView: (conversationView) => liveTurnState.setLatestConversationView(
     conversationView,
