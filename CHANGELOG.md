@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/state: rename no-view SDK live-turn write facades to
+  `setNoViewSdkLiveTurnInChatStore` and
+  `buildSetNoViewSdkLiveTurnStateUpdate`, making raw live-turn writes explicit
+  fallback storage under SDK `ConversationView`. No migration required.
 - frontend/stream: route stale-turn gating through
   `DesktopChatStreamEventRuntime` event identity objects instead of raw event
   turn-ref shapes in chat stream hooks. No migration required.
@@ -307,7 +311,7 @@ All notable changes to WindieOS will be documented in this file.
   selector itself, blanking raw messages and the no-view `sdkLiveTurn` fallback
   even for direct app-runtime selector callers. No migration required.
 - frontend/state: rename the current-turn workspace mutation helper to
-  `buildSdkLiveTurnWorkspaceMutation`, so the app-runtime storage bridge exposes
+  `buildNoViewSdkLiveTurnWorkspaceMutation`, so the app-runtime storage bridge exposes
   SDK live-turn intent while keeping `currentTurnProjection` as a private
   workspace storage field. No migration required.
 - frontend/stop: rename the stopped no-view live-turn terminalizer to
@@ -375,7 +379,7 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopAttachmentImageRuntime`, so chat attachment rendering no longer
   imports a screenshot-named resolver facade. No migration required.
 - frontend/state: rename the feature-facing SDK current-turn store adapter to
-  `setSdkLiveTurnInChatStore`, keeping raw `currentTurnProjection` workspace
+  `setNoViewSdkLiveTurnInChatStore`, keeping raw `currentTurnProjection` workspace
   field plumbing behind app-runtime boundaries. No migration required.
 - frontend/overlay: move response overlay dismissal and SDK presentation
   fallback plumbing behind `DesktopResponseOverlayViewRuntime`, so the feature

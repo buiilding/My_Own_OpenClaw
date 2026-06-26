@@ -10,7 +10,7 @@ import {
 import {
   acceptPendingTurnInChatStore,
   applyPendingTurnBroadcastToChatStore,
-  setSdkLiveTurnInChatStore,
+  setNoViewSdkLiveTurnInChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import {
   DesktopLiveTurnSurfaceRuntime,
@@ -241,7 +241,7 @@ describe('pending-turn live surface integration', () => {
     });
 
     const currentTurnProjection = currentTurnWithPresentation();
-    setSdkLiveTurnInChatStore(
+    setNoViewSdkLiveTurnInChatStore(
       currentTurnProjection,
       currentTurnProjection.conversationRef,
     );

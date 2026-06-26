@@ -53,7 +53,7 @@ type ProjectionWorkspace = {
 
 type CurrentTurnProjectionStreamDeps = {
   getWorkspaceState: (conversationRef?: string | null) => ProjectionWorkspace;
-  setSdkLiveTurn: (
+  setNoViewSdkLiveTurn: (
     currentTurn: SdkLiveTurnEffectsInput,
     conversationRef?: string | null,
   ) => void;
@@ -79,7 +79,8 @@ type ReplayProjectionTracePayloadInput = {
 
 const {
   recordTrackingEvent,
-  shouldIgnoreConversationEventForStaleTurn,
+  resolveConversationStreamEventIdentity,
+  shouldIgnoreConversationEventIdentityForStaleTurn,
 } = DesktopChatStreamEventRuntime;
 const {
   applySdkLiveTurnSideEffects,
@@ -184,13 +185,15 @@ function applyCurrentTurnProjectionEvent({
 
   const preProjectionWorkspace = deps.getWorkspaceState(conversationRef);
   // Check stale-turn status before current-turn storage can resolve pendingTurn.
-  deps.setSdkLiveTurn(currentTurn, conversationRef);
+  deps.setNoViewSdkLiveTurn(currentTurn, conversationRef);
 
+  const currentTurnIdentity = resolveConversationStreamEventIdentity(
+    currentTurn,
+    conversationRef,
+  );
   const shouldSkipDerivedSideEffects = (
     !shouldAcceptCurrentTurnBeforeLocalSend(currentTurn)
-    && shouldIgnoreConversationEventForStaleTurn({
-      turnRef: currentTurn.turnRef,
-    }, conversationRef, {
+    && shouldIgnoreConversationEventIdentityForStaleTurn(currentTurnIdentity, conversationRef, {
       getWorkspaceState: () => preProjectionWorkspace,
     })
   );

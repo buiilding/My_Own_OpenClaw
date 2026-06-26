@@ -3,8 +3,8 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnWorkspaceRuntime';
 
 const {
-  buildSdkLiveTurnWorkspaceMutation,
-  buildSetSdkLiveTurnStateUpdate,
+  buildNoViewSdkLiveTurnWorkspaceMutation,
+  buildSetNoViewSdkLiveTurnStateUpdate,
 } = DesktopCurrentTurnWorkspaceRuntime;
 
 describe('DesktopCurrentTurnWorkspaceRuntime', () => {
@@ -24,7 +24,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       messages: [],
     };
 
-    expect(buildSdkLiveTurnWorkspaceMutation({
+    expect(buildNoViewSdkLiveTurnWorkspaceMutation({
       currentWorkspace,
       sdkLiveTurn,
     })).toBeNull();
@@ -48,9 +48,12 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       reasoningText: null,
       toolEvents: [],
       lastError: null,
+      presentation: {
+        isBusy: true,
+      },
     };
 
-    expect(buildSdkLiveTurnWorkspaceMutation({
+    expect(buildNoViewSdkLiveTurnWorkspaceMutation({
       currentWorkspace,
       sdkLiveTurn,
     })).toEqual({
@@ -76,7 +79,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       lastError: null,
     };
 
-    expect(buildSdkLiveTurnWorkspaceMutation({
+    expect(buildNoViewSdkLiveTurnWorkspaceMutation({
       currentWorkspace: {
         sdkLiveTurn: null,
         pendingTurn,
@@ -115,7 +118,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       userMessageId: 'user-2',
     };
 
-    expect(buildSdkLiveTurnWorkspaceMutation({
+    expect(buildNoViewSdkLiveTurnWorkspaceMutation({
       currentWorkspace: {
         conversationView: {
           conversationRef: 'conv-1',
@@ -146,7 +149,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
   });
 
   test('returns null when conversation view already owns live-turn state', () => {
-    expect(buildSdkLiveTurnWorkspaceMutation({
+    expect(buildNoViewSdkLiveTurnWorkspaceMutation({
       currentWorkspace: {
         conversationView: {
           conversationRef: 'conv-1',
@@ -172,7 +175,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
     })).toBeNull();
   });
 
-  test('buildSetSdkLiveTurnStateUpdate resolves workspace and applies mutation', () => {
+  test('buildSetNoViewSdkLiveTurnStateUpdate resolves workspace and applies mutation', () => {
     const state = {
       activeConversationRef: 'conv-1',
       workspaces: {
@@ -195,6 +198,9 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       reasoningText: null,
       toolEvents: [],
       lastError: null,
+      presentation: {
+        isBusy: true,
+      },
     };
     const deps = {
       buildWorkspaceUpdate: jest.fn((currentState, workspaceRef, nextWorkspace) => ({
@@ -208,7 +214,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       resolveWorkspaceKey: jest.fn(() => 'conv-1'),
     };
 
-    const nextState = buildSetSdkLiveTurnStateUpdate({
+    const nextState = buildSetNoViewSdkLiveTurnStateUpdate({
       conversationRef: 'conv-1',
       deps,
       sdkLiveTurn: sdkLiveTurn,

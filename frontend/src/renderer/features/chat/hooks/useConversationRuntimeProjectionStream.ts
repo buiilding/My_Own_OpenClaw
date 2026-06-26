@@ -7,7 +7,7 @@ import {
   applyPendingTurnBroadcastToChatStore,
   getProjectedWorkspaceReadModelFromChatStore,
   setIsSendingInChatStore,
-  setSdkLiveTurnInChatStore,
+  setNoViewSdkLiveTurnInChatStore,
   setThinkingSourceEventTypeInChatStore,
   setThinkingStatusInChatStore,
   updateStreamTrackingInChatStore,
@@ -45,7 +45,7 @@ export function useConversationRuntimeProjectionStream(): void {
         projectionCursors: projectionCursorsRef.current,
         deps: {
           getWorkspaceState: getProjectedWorkspaceReadModelFromChatStore,
-          setSdkLiveTurn: setSdkLiveTurnInChatStore,
+          setNoViewSdkLiveTurn: setNoViewSdkLiveTurnInChatStore,
           setIsSending: setIsSendingInChatStore,
           setThinkingStatus: setThinkingStatusInChatStore,
           setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,

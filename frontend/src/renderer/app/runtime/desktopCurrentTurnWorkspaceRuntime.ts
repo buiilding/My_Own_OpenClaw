@@ -48,7 +48,7 @@ function hasConversationView(value: unknown): boolean {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-function buildSdkLiveTurnWorkspaceMutation<TWorkspace extends CurrentTurnWorkspace>({
+function buildNoViewSdkLiveTurnWorkspaceMutation<TWorkspace extends CurrentTurnWorkspace>({
   currentWorkspace,
   sdkLiveTurn,
 }: {
@@ -77,7 +77,7 @@ function buildSdkLiveTurnWorkspaceMutation<TWorkspace extends CurrentTurnWorkspa
   };
 }
 
-function buildSetSdkLiveTurnStorageStateUpdate<
+function buildSetNoViewSdkLiveTurnStorageStateUpdate<
   TState extends CurrentTurnStateSnapshot,
   TWorkspace extends CurrentTurnWorkspace,
 >({
@@ -93,7 +93,7 @@ function buildSetSdkLiveTurnStorageStateUpdate<
 }): Partial<TState> | TState | null {
   const targetWorkspaceRef = deps.resolveWorkspaceKey(conversationRef, state.activeConversationRef);
   const currentWorkspace = deps.readWorkspaceState(state, targetWorkspaceRef);
-  const nextWorkspace = buildSdkLiveTurnWorkspaceMutation({
+  const nextWorkspace = buildNoViewSdkLiveTurnWorkspaceMutation({
     currentWorkspace,
     sdkLiveTurn,
   });
@@ -103,7 +103,7 @@ function buildSetSdkLiveTurnStorageStateUpdate<
   return deps.buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
 }
 
-function buildSetSdkLiveTurnStateUpdate<
+function buildSetNoViewSdkLiveTurnStateUpdate<
   TState extends CurrentTurnStateSnapshot,
   TWorkspace extends CurrentTurnWorkspace,
 >({
@@ -117,7 +117,7 @@ function buildSetSdkLiveTurnStateUpdate<
   sdkLiveTurn: CurrentTurnProjection | null;
   state: TState;
 }): Partial<TState> | TState | null {
-  return buildSetSdkLiveTurnStorageStateUpdate({
+  return buildSetNoViewSdkLiveTurnStorageStateUpdate({
     conversationRef,
     deps,
     sdkLiveTurn,
@@ -126,6 +126,6 @@ function buildSetSdkLiveTurnStateUpdate<
 }
 
 export const DesktopCurrentTurnWorkspaceRuntime = Object.freeze({
-  buildSdkLiveTurnWorkspaceMutation,
-  buildSetSdkLiveTurnStateUpdate,
+  buildNoViewSdkLiveTurnWorkspaceMutation,
+  buildSetNoViewSdkLiveTurnStateUpdate,
 });

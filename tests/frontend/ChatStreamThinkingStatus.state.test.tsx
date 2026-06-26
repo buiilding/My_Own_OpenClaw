@@ -7,7 +7,7 @@ import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
-  setSdkLiveTurnInChatStore,
+  setNoViewSdkLiveTurnInChatStore,
   setThinkingSourceEventTypeInChatStore,
   setThinkingStatusInChatStore,
   updateStreamTrackingInChatStore,
@@ -122,7 +122,7 @@ describe('useChatStream state + stream handling', () => {
 
     act(() => {
       const store = useChatStore.getState();
-      setSdkLiveTurnInChatStore({
+      setNoViewSdkLiveTurnInChatStore({
         conversationRef: 'conv-test',
         turnRef: 'turn-new',
         phase: 'streaming',

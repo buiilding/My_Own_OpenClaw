@@ -26,7 +26,7 @@ import {
   acceptStoppedTurnInChatStore,
   clearPendingTurnInChatStore,
   setConversationViewInChatStore,
-  setSdkLiveTurnInChatStore,
+  setNoViewSdkLiveTurnInChatStore,
   setIsSendingInChatStore,
   setMessagesInChatStore,
   setThinkingStatusInChatStore,
@@ -350,7 +350,7 @@ describe('ChatBoxResponse state behavior', () => {
       setMessagesInChatStore([{ id: 'user-sdk-transition', text: 'run command', sender: 'user' }]);
       setIsSendingInChatStore(true);
       setThinkingStatusInChatStore(null);
-      setSdkLiveTurnInChatStore(sdkPresentationProjection({ mode: 'awaiting' }));
+      setNoViewSdkLiveTurnInChatStore(sdkPresentationProjection({ mode: 'awaiting' }));
       setConversationViewInChatStore(null);
     });
 
@@ -391,7 +391,7 @@ describe('ChatBoxResponse state behavior', () => {
         },
       ]);
       setIsSendingInChatStore(false);
-      setSdkLiveTurnInChatStore(responseProjection);
+      setNoViewSdkLiveTurnInChatStore(responseProjection);
     });
 
     await waitFor(() => {

@@ -46,7 +46,7 @@ import {
 import {
   clearPendingTurnInChatStore,
   setConversationViewInChatStore,
-  setSdkLiveTurnInChatStore,
+  setNoViewSdkLiveTurnInChatStore,
   setIsSendingInChatStore,
   setMessagesInChatStore,
   setThinkingStatusInChatStore,
@@ -239,7 +239,7 @@ export function setChatState(messages) {
   setIsSendingInChatStore(false);
   setThinkingStatusInChatStore(null);
   clearPendingTurnInChatStore();
-  setSdkLiveTurnInChatStore(currentTurnProjection);
+  setNoViewSdkLiveTurnInChatStore(currentTurnProjection);
   setConversationViewInChatStore(null);
 }
 
@@ -247,7 +247,7 @@ export function emitOverlayPhase(phase) {
   act(() => {
     const workspace = useChatStore.getState().getWorkspaceState();
     const currentTurnProjection = buildCurrentTurnProjection(workspace.messages || [], phase);
-    setSdkLiveTurnInChatStore(currentTurnProjection);
+    setNoViewSdkLiveTurnInChatStore(currentTurnProjection);
     setConversationViewInChatStore(null);
   });
 }

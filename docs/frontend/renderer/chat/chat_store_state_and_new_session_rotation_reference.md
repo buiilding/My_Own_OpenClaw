@@ -156,7 +156,7 @@ current-turn row construction on typed SDK presentation fields.
   update assembly live in that app runtime; the adapter module only passes
   updater intent plus workspace dependency adapters.
 - SDK live-turn updates enter through the module-level
-  `setSdkLiveTurnInChatStore(...)` adapter instead of a Zustand action. It
+  `setNoViewSdkLiveTurnInChatStore(...)` adapter instead of a Zustand action. It
   updates the target workspace and clears a matching `pendingTurn` only after
   the SDK live-turn projection for that conversation/turn arrives. Raw
   no-view SDK live-turn storage is read, written, and reset through

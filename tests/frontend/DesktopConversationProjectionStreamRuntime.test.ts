@@ -133,7 +133,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
           phase: 'streaming',
         },
       })),
-      setSdkLiveTurn: jest.fn(),
+      setNoViewSdkLiveTurn: jest.fn(),
       setIsSending: jest.fn(),
       setThinkingStatus: jest.fn(),
       setThinkingSourceEventType: jest.fn(),
@@ -151,12 +151,21 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
         reasoningText: null,
         toolEvents: [],
         lastError: null,
+        presentation: {
+          entries: [
+            {
+              id: 'entry-assistant',
+              type: 'llm-text',
+              text: 'hello',
+            },
+          ],
+        },
       },
       deps,
       projectionCursors,
     });
 
-    expect(deps.setSdkLiveTurn).toHaveBeenCalledWith(
+    expect(deps.setNoViewSdkLiveTurn).toHaveBeenCalledWith(
       expect.objectContaining({ turnRef: 'turn-1' }),
       'conv-1',
     );

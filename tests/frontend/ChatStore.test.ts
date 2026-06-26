@@ -12,7 +12,7 @@ import {
   applyPendingTurnBroadcastToChatStore,
   clearMessagesInChatStore,
   clearPendingTurnInChatStore,
-  setSdkLiveTurnInChatStore,
+  setNoViewSdkLiveTurnInChatStore,
   setIsSendingInChatStore,
   setMessagesInChatStore,
   setThinkingSourceEventTypeInChatStore,
@@ -311,8 +311,8 @@ describe('chatStore', () => {
     };
 
     useChatStore.getState().setActiveConversationRef('conv-user');
-    setSdkLiveTurnInChatStore(userProjection, 'conv-user');
-    setSdkLiveTurnInChatStore(
+    setNoViewSdkLiveTurnInChatStore(userProjection, 'conv-user');
+    setNoViewSdkLiveTurnInChatStore(
       internalProjection,
       'conv-agent-internal',
     );
@@ -440,7 +440,7 @@ describe('chatStore', () => {
       timestamp: '2026-06-16T00:00:00.000Z',
     });
 
-    setSdkLiveTurnInChatStore({
+    setNoViewSdkLiveTurnInChatStore({
       conversationRef: 'conv-sdk',
       turnRef: 'turn-sdk',
       phase: 'awaiting',
@@ -473,7 +473,7 @@ describe('chatStore', () => {
       timestamp: '2026-06-16T00:00:00.000Z',
     });
 
-    setSdkLiveTurnInChatStore({
+    setNoViewSdkLiveTurnInChatStore({
       conversationRef: 'conv-sdk-idle',
       turnRef: 'turn-sdk-idle',
       phase: 'idle',
@@ -580,7 +580,7 @@ describe('chatStore', () => {
       },
     };
     useChatStore.getState().setActiveConversationRef('conv-stop-sdk');
-    setSdkLiveTurnInChatStore(currentTurnProjection, 'conv-stop-sdk');
+    setNoViewSdkLiveTurnInChatStore(currentTurnProjection, 'conv-stop-sdk');
 
     acceptStoppedTurnInChatStore({
       conversationRef: 'conv-stop-sdk',

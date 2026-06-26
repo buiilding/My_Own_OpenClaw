@@ -2219,7 +2219,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('hasAuthoritativeSameTurnSdkReplacement');
     expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForSdkLiveTurn');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('resolvePendingTurnForCurrentProjection');
-    expect(currentTurnWorkspaceRuntimeSource).toContain('buildSdkLiveTurnWorkspaceMutation');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('buildNoViewSdkLiveTurnWorkspaceMutation');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('buildCurrentTurnWorkspaceMutation');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('buildSetCurrentTurnProjectionStateUpdate');
     expect(chatStoreSource).not.toContain('buildPendingTurnBroadcastStateUpdate');
@@ -3892,10 +3892,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('const dismissalKey =');
     expect(chatStoreSource).not.toContain('[dismissalKey]');
     expect(chatStoreSource).not.toContain('DesktopCurrentTurnWorkspaceRuntime');
-    expect(chatStoreSource).not.toContain('buildSetSdkLiveTurnStateUpdate');
-    expect(chatStoreSource).not.toContain('setSdkLiveTurnInChatStore');
-    expect(chatStoreSource).not.toContain('setSdkLiveTurn:');
-    expect(chatStoreSource).not.toContain('buildSdkLiveTurnWorkspaceMutation');
+    expect(chatStoreSource).not.toContain('buildSetNoViewSdkLiveTurnStateUpdate');
+    expect(chatStoreSource).not.toContain('setNoViewSdkLiveTurnInChatStore');
+    expect(chatStoreSource).not.toContain('setNoViewSdkLiveTurn:');
+    expect(chatStoreSource).not.toContain('buildNoViewSdkLiveTurnWorkspaceMutation');
     expect(chatStoreSource).not.toContain('buildCurrentTurnWorkspaceMutation');
     expect(chatStoreSource).not.toContain('DesktopConversationViewWorkspaceRuntime');
     expect(chatStoreSource).not.toContain('buildSetConversationViewStateUpdate');
@@ -3946,7 +3946,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('clearPendingTurnInChatStore');
     expect(chatStoreAdaptersSource).toContain('acceptStoppedTurnInChatStore');
     expect(chatStoreAdaptersSource).toContain('executeReplayActionFromChatStore');
-    expect(chatStoreAdaptersSource).toContain('setSdkLiveTurnInChatStore');
+    expect(chatStoreAdaptersSource).toContain('setNoViewSdkLiveTurnInChatStore');
     expect(chatStoreAdaptersSource).toContain('setConversationViewInChatStore');
     expect(chatStoreAdaptersSource).toContain('updateStreamTrackingInChatStore');
     expect(chatStoreAdaptersSource).toContain('setIsSendingInChatStore');
@@ -4071,9 +4071,9 @@ describe('renderer chat runtime boundary', () => {
     expect(turnConversationRefRuntimeSource).not.toContain('buildRegisterTurnConversationRefStateUpdate');
     expect(turnConversationRefRuntimeSource).toContain('resolveConversationRefForTurn');
     expect(turnConversationRefRuntimeSource).not.toContain('features/chat');
-    expect(currentTurnWorkspaceRuntimeSource).toContain('buildSdkLiveTurnWorkspaceMutation');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('buildNoViewSdkLiveTurnWorkspaceMutation');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('buildCurrentTurnWorkspaceMutation');
-    expect(currentTurnWorkspaceRuntimeSource).toContain('buildSetSdkLiveTurnStateUpdate');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('buildSetNoViewSdkLiveTurnStateUpdate');
     expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForSdkLiveTurn');
     expect(currentTurnWorkspaceRuntimeSource).toContain('readNoViewSdkLiveTurnStorage(currentWorkspace)');
     expect(currentTurnWorkspaceRuntimeSource).toContain('buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace');

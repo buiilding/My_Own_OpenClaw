@@ -188,7 +188,7 @@ are diagnostic compatibility state and do not record another terminal tracking
 event by themselves.
 
 SDK live-turn side effects run stale-turn checks against the
-workspace snapshot captured before `setSdkLiveTurnInChatStore(...)` stores the
+workspace snapshot captured before `setNoViewSdkLiveTurnInChatStore(...)` stores the
 new projection. This preserves renderer pending-turn handoff evidence for the
 guard even when storing an authoritative same-turn projection clears
 `pendingTurn`.

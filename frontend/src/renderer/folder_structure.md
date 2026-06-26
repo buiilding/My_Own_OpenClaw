@@ -318,7 +318,7 @@ frontend/src/renderer/
            v
 3. CHAT STORE ADAPTERS
    `-> features/chat/stores/chatStoreAdapters.ts
-       |-> setSdkLiveTurnInChatStore() - Apply SDK live turn runtime update
+       |-> setNoViewSdkLiveTurnInChatStore() - Apply SDK live turn runtime update
        |-> setThinkingStatusInChatStore() - Apply thinking display update from projection
        `-> setTokenCountsInChatStore() - Apply token statistics update from conversation events
            v
@@ -452,7 +452,7 @@ frontend/src/renderer/
            v
 3. UI UPDATE
    `-> features/chat/hooks/useConversationRuntimeProjectionStream.ts
-       `-> chatStoreAdapters.setSdkLiveTurnInChatStore()
+       `-> chatStoreAdapters.setNoViewSdkLiveTurnInChatStore()
            `-> app/runtime/desktopCurrentTurnMessageRuntime.js renders projected bundle/tool output
 ```
 
