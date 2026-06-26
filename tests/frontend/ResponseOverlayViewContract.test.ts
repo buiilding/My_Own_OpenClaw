@@ -164,8 +164,8 @@ describe('desktopResponseOverlayViewRuntime', () => {
         text: 'from view',
       }),
     ]);
-    expect(state.traceState).not.toHaveProperty('currentTurnProjection');
-    expect(state.traceState).not.toHaveProperty('conversationView');
+    expect(state).not.toHaveProperty('traceState');
+    expect(state.pendingTurn).toBeNull();
     expect(state.projectionInput.currentTurnProjection).toBeNull();
     expect(state.thinkingText).toBe('');
     expect(state.useLocalPendingTurn).toBe(false);
@@ -200,6 +200,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
       source: 'pending-turn',
       turnRef: 'turn-pending',
     });
+    expect(state.pendingTurn).toEqual(expect.objectContaining({
+      turnRef: 'turn-pending',
+    }));
   });
 
   test('resolves SDK projection presentation state before visible lifecycle stamping', () => {

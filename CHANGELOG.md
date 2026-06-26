@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/trace: remove the response overlay `traceState` wrapper now that
+  overlay view-model traces receive the pending bridge directly. No migration
+  required.
 - frontend/trace: stop carrying `ConversationView` through response overlay
   view-model trace state; overlay traces now receive only projected lifecycle,
   overlay intent, phase, and pending bridge inputs. No migration required.

@@ -132,14 +132,12 @@ function resolveResponseOverlaySurfaceState({
     projectionInput: {
       currentTurnProjection,
     },
+    pendingTurn,
     responseOverlayEntries,
     responseOverlayMessages,
     thinkingText: normalizeReasoningText(
       recordFromUnknown(currentTurnProjection).reasoningText,
     ),
-    traceState: {
-      pendingTurn,
-    },
     useLocalPendingTurn,
     useSdkLiveTurnPresentation,
     visibleTurnLifecycle,

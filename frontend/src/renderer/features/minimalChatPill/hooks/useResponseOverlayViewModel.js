@@ -51,11 +51,11 @@ export function useResponseOverlayViewModel({
   const {
     currentTurnPhase,
     liveTurnPresentationInput: surfacePresentationInput,
+    pendingTurn,
     projectionInput,
     responseOverlayEntries,
     responseOverlayMessages,
     thinkingText,
-    traceState,
     useLocalPendingTurn,
     useSdkLiveTurnPresentation,
     visibleTurnLifecycle,
@@ -168,7 +168,7 @@ export function useResponseOverlayViewModel({
   useEffect(() => {
     const overlayIntent = resolvedCurrentTurnPresentationState.overlayIntent ?? null;
     const tracePayload = buildRendererOverlayViewModelTracePayload({
-      ...traceState,
+      pendingTurn,
       visibleTurnLifecycle,
       currentTurnPhase,
       overlayIntent,
@@ -205,7 +205,7 @@ export function useResponseOverlayViewModel({
     currentTurnPhase,
     responseOverlayEntries,
     resolvedCurrentTurnPresentationState,
-    traceState,
+    pendingTurn,
     useLocalPendingTurn,
     useSdkLiveTurnPresentation,
     visibleTurnLifecycle,
