@@ -552,6 +552,35 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
+  test('does not read snake-case reasoning aliases from display rows', () => {
+    const [message] = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'conv-1:turn-1:assistant',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'Partial answer',
+        isStreaming: true,
+        metadata: {
+          reasoning_text: 'old alias',
+        },
+      },
+    ] as any);
+
+    expect(message).toEqual(expect.objectContaining({
+      id: 'conv-1:turn-1:assistant',
+      sender: 'assistant',
+      type: 'llm-text',
+      text: 'Partial answer',
+      isComplete: false,
+      sourceEventType: 'assistant_delta',
+    }));
+    expect(message).not.toHaveProperty('thinkingText');
+    expect(message).not.toHaveProperty('thinkingSourceEventType');
+  });
+
   test('projects SDK tool progress rows into retained search-source messages', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {

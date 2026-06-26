@@ -80,6 +80,8 @@ chat-message props and reads typed attachment descriptors from SDK display row
 metadata. It does not build an intermediate `DisplayMessage` model or adapt
 legacy screenshot aliases for primary renderer display; old rows must be
 adapted earlier by `legacyVisualAttachmentReplayAdapter`.
+Streaming assistant rows read SDK `reasoningText` only; the renderer adapter
+does not recover old snake-case reasoning aliases.
 It also must not synthesize missing model-facing tool-call objects from
 metadata-only rows; SDK display rows should provide that semantic object when
 it is part of the row contract, and renderer projection keeps metadata as

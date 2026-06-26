@@ -21,16 +21,6 @@ function recordField(record: Record<string, unknown> | null | undefined, key: st
   return record && typeof record === 'object' ? record[key] : undefined;
 }
 
-function stringField(record: Record<string, unknown> | null | undefined, ...keys: string[]): string | null {
-  for (const key of keys) {
-    const value = recordField(record, key);
-    if (typeof value === 'string' && value.trim()) {
-      return value;
-    }
-  }
-  return null;
-}
-
 function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
   const metadata = row.metadata;
   if (!metadata || typeof metadata !== 'object') {
@@ -105,7 +95,10 @@ function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
 
 function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
   const payload = recordPayloadFromRow(row);
-  const thinkingText = stringField(payload, 'reasoningText', 'reasoning_text');
+  const reasoningText = recordField(payload, 'reasoningText');
+  const thinkingText = typeof reasoningText === 'string' && reasoningText.trim()
+    ? reasoningText
+    : null;
   const sourceEventType = rowSourceEventType(row);
   const base = buildAssistantTextChatMessageState({
     id: row.id,

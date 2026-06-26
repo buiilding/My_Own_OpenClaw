@@ -44,6 +44,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/tests: route the ChatInterface wiring store mock through the real
   app-runtime selector so tests no longer duplicate raw message/current-turn
   fallback decisions. No migration required.
+- frontend/projection: remove the stale `reasoning_text` display-row alias
+  from the SDK chat-message adapter; streaming assistant rows now read the
+  SDK `reasoningText` contract only. No migration required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own
