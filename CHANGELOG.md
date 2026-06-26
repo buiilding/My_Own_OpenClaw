@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/selectors: keep dashboard chat surface and pending-turn presentation
+  projections referentially stable across repeated selector snapshots, so
+  opening the dashboard after sending from the minimal pill no longer trips
+  React's maximum update-depth guard. No migration required.
 - cli/dev: make `<windie> start dev` preflight missing source-mode Node
   installs by running `npm install` in `frontend` and `packages/windie-sdk-js`
   only when their owned runtime dependencies are absent, so fresh worktrees can

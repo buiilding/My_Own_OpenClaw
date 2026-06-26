@@ -341,8 +341,37 @@ describe('chatSelectors', () => {
     expect(chatInterface).not.toHaveProperty('replayFallbackMessages');
     expect(chatInterface).not.toHaveProperty('replayReadModel');
     expect(nextChatInterface).not.toHaveProperty('replayReadModel');
+    expect(nextChatInterface.renderedMessages).toBe(chatInterface.renderedMessages);
+    expect(nextChatInterface.chatSurfaceState).toBe(chatInterface.chatSurfaceState);
     expect(chatInterface.tokenCounts).toBe(tokenCounts);
     expect(selectChatInterfaceSurfaceState(state).messages).toBe(messages);
+  });
+
+  test('keeps pending-turn dashboard projections stable across repeated snapshots', () => {
+    const pendingTurn = {
+      conversationRef: 'conv-pending',
+      text: 'from minimal pill',
+      timestamp: '2026-06-26T20:00:00.000Z',
+      turnRef: 'turn-pending',
+      userMessageId: 'pending-user',
+    };
+    const state = createStateWithActiveWorkspace({
+      messages: [],
+      pendingTurn,
+    });
+
+    const first = selectChatInterfaceState(state);
+    const second = selectChatInterfaceState(state);
+
+    expect(first.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'pending-user',
+        sender: 'user',
+        text: 'from minimal pill',
+      }),
+    ]);
+    expect(second.renderedMessages).toBe(first.renderedMessages);
+    expect(second.chatSurfaceState).toBe(first.chatSurfaceState);
   });
 
   test('does not rebuild active dashboard rows from SDK current-turn state', () => {

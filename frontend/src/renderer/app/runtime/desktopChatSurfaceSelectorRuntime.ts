@@ -18,6 +18,25 @@ type DesktopChatWorkspaceProjection = {
 
 const emptySurfaceMessages: ChatMessage[] = [];
 const emptyRendererAnnotations: unknown[] = [];
+let chatSurfaceStateCache: {
+  conversationView: unknown | null | undefined;
+  messages: ChatMessage[] | undefined;
+  pendingTurn: unknown | null | undefined;
+  sdkLiveTurn: unknown | null | undefined;
+  state: {
+    messages: ChatMessage[];
+    sdkLiveTurn: unknown | null;
+    conversationView: unknown | null;
+    pendingTurn: unknown | null;
+  } | null;
+} = {
+  conversationView: null,
+  messages: undefined,
+  pendingTurn: null,
+  sdkLiveTurn: null,
+  state: null,
+};
+
 function projectDesktopChatSurfaceState({
   activeWorkspace,
 }: {
@@ -26,12 +45,30 @@ function projectDesktopChatSurfaceState({
   const conversationView = activeWorkspace.conversationView ?? null;
   const messages = conversationView ? emptySurfaceMessages : activeWorkspace.messages;
   const sdkLiveTurn = conversationView ? null : activeWorkspace.sdkLiveTurn ?? null;
-  return {
+  const pendingTurn = activeWorkspace.pendingTurn ?? null;
+  if (
+    chatSurfaceStateCache.state
+    && chatSurfaceStateCache.conversationView === conversationView
+    && chatSurfaceStateCache.messages === messages
+    && chatSurfaceStateCache.pendingTurn === pendingTurn
+    && chatSurfaceStateCache.sdkLiveTurn === sdkLiveTurn
+  ) {
+    return chatSurfaceStateCache.state;
+  }
+  const state = {
     messages,
     sdkLiveTurn,
     conversationView,
-    pendingTurn: activeWorkspace.pendingTurn ?? null,
+    pendingTurn,
   };
+  chatSurfaceStateCache = {
+    conversationView,
+    messages,
+    pendingTurn,
+    sdkLiveTurn,
+    state,
+  };
+  return state;
 }
 
 function projectDesktopChatInterfaceState(

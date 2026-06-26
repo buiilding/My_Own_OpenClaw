@@ -278,6 +278,10 @@ No-op guards reduce unnecessary re-renders on high-frequency stream paths.
 the full chat interface and live minimal surfaces. It applies
 `DesktopChatSurfaceSelectorRuntime`, `DesktopChatInterfacePresentationRuntime`,
 and stop-target selection while keeping stable nested selector objects.
+Repeated selector reads for the same pending-turn, surface, and presentation
+inputs must reuse the same `chatSurfaceState` and `renderedMessages`
+references, because React/Zustand treats fresh derived snapshots during
+dashboard mount as an infinite subscription update loop.
 `chatStore.ts` only binds those projection methods to
 `selectActiveWorkspaceReadModelState(...)` so the app-runtime helper does not
 import chat feature store internals.
