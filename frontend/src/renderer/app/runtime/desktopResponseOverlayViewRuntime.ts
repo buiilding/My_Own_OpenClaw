@@ -5,6 +5,7 @@
 import { DesktopResponseOverlayLayoutRuntime } from './desktopResponseOverlayLayoutRuntime';
 import { DesktopCurrentTurnMessageRuntime } from './desktopCurrentTurnMessageRuntime';
 import { DesktopCurrentTurnPresentationRuntime } from './desktopCurrentTurnPresentationRuntime';
+import { DesktopLiveTurnSurfaceRuntime } from './desktopLiveTurnSurfaceRuntime';
 import { DesktopVisibleTurnLifecycleRuntime } from './desktopVisibleTurnLifecycleRuntime';
 
 const AWAITING_VISIBLE_LIFECYCLE_STATUSES = new Set(['local_pending', 'awaiting']);
@@ -18,7 +19,11 @@ const {
   resolveSdkResponseOverlayPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
 const {
+  resolveLiveTurnPresentationInput,
+} = DesktopLiveTurnSurfaceRuntime;
+const {
   applyVisibleTurnLifecycleToPresentationState,
+  resolveVisibleTurnLifecycle,
 } = DesktopVisibleTurnLifecycleRuntime;
 
 type CurrentTurnPresentationStateLike = {
@@ -48,6 +53,16 @@ function normalizeString(value: string | null | undefined): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
+function normalizeReasoningText(reasoningText: unknown): string {
+  return typeof reasoningText === 'string' ? reasoningText.trim() : '';
+}
+
+function recordFromUnknown(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
 function buildResponseOverlayDismissalKey({
   conversationRef,
   turnRef,
@@ -62,6 +77,62 @@ function buildResponseOverlayDismissalKey({
     normalizeString(turnRef) || '',
     normalizedResponseEntryId,
   ].join('\u0001');
+}
+
+function resolveResponseOverlaySurfaceState({
+  chatSurfaceState = null,
+}: {
+  chatSurfaceState?: unknown;
+} = {}) {
+  const surfaceState = recordFromUnknown(chatSurfaceState);
+  const messages = Array.isArray(surfaceState.messages) ? surfaceState.messages : [];
+  const conversationView = surfaceState.conversationView ?? null;
+  const currentTurnProjection = conversationView ? null : surfaceState.currentTurnProjection ?? null;
+  const pendingTurn = surfaceState.pendingTurn ?? null;
+  const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
+    conversationView,
+    pendingTurn,
+    currentTurnProjection,
+    messages,
+  });
+  const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
+    conversationView,
+    currentTurnProjection,
+    pendingTurn,
+    messages,
+    visibleTurnLifecycle,
+  });
+  const useSdkLiveTurnPresentation = liveTurnPresentationInput.useSdkLiveTurnPresentation;
+  const useLocalPendingTurn = liveTurnPresentationInput.useLocalPendingTurn;
+  const responseOverlayEntries = resolveResponseOverlayEntries({
+    conversationView,
+    currentTurnProjection,
+    liveTurnPresentationInput,
+  });
+  const responseOverlayMessages = useLocalPendingTurn
+    ? messages
+    : responseOverlayEntries;
+  return {
+    currentTurnPhase: liveTurnPresentationInput.phase,
+    liveTurnPresentationInput,
+    messages,
+    projectionInput: {
+      currentTurnProjection,
+    },
+    responseOverlayEntries,
+    responseOverlayMessages,
+    thinkingText: normalizeReasoningText(
+      recordFromUnknown(currentTurnProjection).reasoningText,
+    ),
+    traceState: {
+      conversationView,
+      currentTurnProjection,
+      pendingTurn,
+    },
+    useLocalPendingTurn,
+    useSdkLiveTurnPresentation,
+    visibleTurnLifecycle,
+  };
 }
 
 function normalizeProjectedCurrentTurnEntries(currentTurnProjection: unknown): ResponseOverlayEntryLike[] {
@@ -200,5 +271,6 @@ export const DesktopResponseOverlayViewRuntime = Object.freeze({
   buildResponseOverlayDismissalKey,
   resolveResponseOverlayEntries,
   resolveResponseOverlayPresentationState,
+  resolveResponseOverlaySurfaceState,
   resolveResponseOverlayViewContract,
 });

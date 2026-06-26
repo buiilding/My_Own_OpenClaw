@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: move response overlay surface-state resolution into
+  `DesktopResponseOverlayViewRuntime`; the overlay view-model hook now receives
+  one resolved surface state instead of unpacking `ConversationView`,
+  pending-turn, and current-turn projection inputs itself. No migration
+  required.
 - frontend/dashboard: move cached `ConversationView` detection behind
   `DesktopConversationViewWorkspaceRuntime` so dashboard resume no longer
   inspects the SDK view shape directly. No migration required.

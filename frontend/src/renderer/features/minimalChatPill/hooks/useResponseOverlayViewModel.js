@@ -5,9 +5,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
 import { useChatStore } from '../../chat/stores/chatStore';
-import {
-  DesktopLiveTurnSurfaceRuntime,
-} from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
 import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 import {
   DesktopCurrentTurnMessageRuntime,
@@ -17,7 +14,6 @@ import {
 } from '../../../app/runtime/desktopResponseOverlayViewRuntime';
 import { DesktopChatPillSessionRuntime } from '../../../app/runtime/desktopChatPillSessionRuntime';
 import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
-import { DesktopVisibleTurnLifecycleRuntime } from '../../../app/runtime/desktopVisibleTurnLifecycleRuntime';
 
 const {
   buildRendererOverlayIntentTraceEvent,
@@ -38,33 +34,32 @@ const {
 } = DesktopCurrentTurnMessageRuntime;
 const {
   buildResponseOverlayDismissalKey,
-  resolveResponseOverlayEntries,
   resolveResponseOverlayPresentationState,
+  resolveResponseOverlaySurfaceState,
 } = DesktopResponseOverlayViewRuntime;
-const {
-  resolveLiveTurnPresentationInput,
-} = DesktopLiveTurnSurfaceRuntime;
 const {
   resolveChatPillViewIntent,
 } = DesktopChatPillSessionRuntime;
-const {
-  resolveVisibleTurnLifecycle,
-} = DesktopVisibleTurnLifecycleRuntime;
-
-function normalizeReasoningText(reasoningText) {
-  return typeof reasoningText === 'string' ? reasoningText.trim() : '';
-}
 
 export function useResponseOverlayViewModel({
   chatSurfaceState = null,
 }) {
+  const responseOverlaySurfaceState = useMemo(
+    () => resolveResponseOverlaySurfaceState({ chatSurfaceState }),
+    [chatSurfaceState],
+  );
   const {
-    messages = [],
-    conversationView = null,
-    currentTurnProjection = null,
-    pendingTurn = null,
-  } = chatSurfaceState || {};
-  const effectiveCurrentTurnProjection = conversationView ? null : currentTurnProjection;
+    currentTurnPhase,
+    liveTurnPresentationInput,
+    projectionInput,
+    responseOverlayEntries,
+    responseOverlayMessages,
+    thinkingText,
+    traceState,
+    useLocalPendingTurn,
+    useSdkLiveTurnPresentation,
+    visibleTurnLifecycle,
+  } = responseOverlaySurfaceState;
   const dismissedResponseOverlayEntries = useChatStore(
     (state) => state.dismissedResponseOverlayEntries,
   );
@@ -74,54 +69,17 @@ export function useResponseOverlayViewModel({
   const lastResolvedTraceSignatureRef = useRef(null);
   const lastTypingVisibleRef = useRef(null);
   const lastOverlayIntentModeRef = useRef(null);
-  const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
-    conversationView,
-    pendingTurn,
-    currentTurnProjection: effectiveCurrentTurnProjection,
-    messages,
-  });
-  const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
-    conversationView,
-    currentTurnProjection: effectiveCurrentTurnProjection,
-    pendingTurn,
-    messages,
-    visibleTurnLifecycle,
-  });
-  const useSdkLiveTurnPresentation = liveTurnPresentationInput.useSdkLiveTurnPresentation;
-  const useLocalPendingTurn = liveTurnPresentationInput.useLocalPendingTurn;
-  const currentTurnPhase = liveTurnPresentationInput.phase;
-  const responseOverlayEntries = useMemo(
-    () => resolveResponseOverlayEntries({
-      conversationView,
-      currentTurnProjection: effectiveCurrentTurnProjection,
-      liveTurnPresentationInput,
-    }),
-    [
-      conversationView,
-      effectiveCurrentTurnProjection,
-      liveTurnPresentationInput,
-    ],
-  );
-
-  const responseOverlayMessages = useMemo(
-    () => (
-      useLocalPendingTurn
-        ? messages
-        : responseOverlayEntries
-    ),
-    [messages, responseOverlayEntries, useLocalPendingTurn],
-  );
 
   const responseOverlayDismissalTarget = useMemo(() => {
     return resolveResponseOverlayDismissalTarget({
-      currentTurnProjection: effectiveCurrentTurnProjection,
+      ...projectionInput,
       overlayIntent: liveTurnPresentationInput.overlayIntent,
       responseOverlayEntries,
       useSdkLiveTurnPresentation,
     });
   }, [
-    effectiveCurrentTurnProjection,
     liveTurnPresentationInput.overlayIntent,
+    projectionInput,
     responseOverlayEntries,
     useSdkLiveTurnPresentation,
   ]);
@@ -148,7 +106,7 @@ export function useResponseOverlayViewModel({
   const resolvedCurrentTurnPresentationState = useMemo(
     () => resolveResponseOverlayPresentationState({
       currentTurnPresentationState,
-      currentTurnProjection: effectiveCurrentTurnProjection,
+      ...projectionInput,
       dismissedResponseId,
       liveTurnPresentationInput,
       responseOverlayEntries,
@@ -156,9 +114,9 @@ export function useResponseOverlayViewModel({
     }),
     [
       currentTurnPresentationState,
-      effectiveCurrentTurnProjection,
       dismissedResponseId,
       liveTurnPresentationInput,
+      projectionInput,
       visibleTurnLifecycle,
       responseOverlayEntries,
     ],
@@ -207,19 +165,10 @@ export function useResponseOverlayViewModel({
     viewIntent.responseVisible,
   ]);
 
-  const thinkingText = useMemo(
-    () => normalizeReasoningText(
-      effectiveCurrentTurnProjection?.reasoningText,
-    ),
-    [effectiveCurrentTurnProjection?.reasoningText],
-  );
-
   useEffect(() => {
     const overlayIntent = resolvedCurrentTurnPresentationState.overlayIntent ?? null;
     const tracePayload = buildRendererOverlayViewModelTracePayload({
-      conversationView,
-      currentTurnProjection: effectiveCurrentTurnProjection,
-      pendingTurn,
+      ...traceState,
       visibleTurnLifecycle,
       currentTurnPhase,
       overlayIntent,
@@ -254,11 +203,9 @@ export function useResponseOverlayViewModel({
     }
   }, [
     currentTurnPhase,
-    conversationView,
-    effectiveCurrentTurnProjection,
     responseOverlayEntries,
     resolvedCurrentTurnPresentationState,
-    pendingTurn,
+    traceState,
     useLocalPendingTurn,
     useSdkLiveTurnPresentation,
     visibleTurnLifecycle,

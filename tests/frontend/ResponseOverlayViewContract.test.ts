@@ -9,6 +9,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
     buildResponseOverlayDismissalKey,
     resolveResponseOverlayEntries,
     resolveResponseOverlayPresentationState,
+    resolveResponseOverlaySurfaceState,
     resolveResponseOverlayViewContract,
   } = DesktopResponseOverlayViewRuntime;
 
@@ -98,6 +99,88 @@ describe('desktopResponseOverlayViewRuntime', () => {
         useLocalPendingTurn: true,
       },
     })).toEqual([]);
+  });
+
+  test('projects response overlay surface state from ConversationView without raw fallback', () => {
+    const state = resolveResponseOverlaySurfaceState({
+      chatSurfaceState: {
+        messages: [{
+          id: 'stale-raw-message',
+          sender: 'assistant',
+          text: 'stale renderer answer',
+        }],
+        conversationView: {
+          conversationRef: 'conv-view',
+          liveTurn: {
+            turnRef: 'turn-view',
+            phase: 'streaming',
+            isBusy: true,
+            entries: [{
+              id: 'entry-view',
+              kind: 'assistant_text',
+              text: 'from view',
+            }],
+          },
+          surfaces: {
+            responseOverlay: {
+              mode: 'response',
+              visible: true,
+              turnRef: 'turn-view',
+              conversationRef: 'conv-view',
+            },
+          },
+        },
+        currentTurnProjection: {
+          conversationRef: 'conv-raw',
+          turnRef: 'turn-raw',
+          phase: 'streaming',
+          assistantText: 'from raw projection',
+          reasoningText: 'raw thinking',
+        },
+      },
+    });
+
+    expect(state.responseOverlayEntries).toEqual([
+      expect.objectContaining({
+        id: 'entry-view',
+        text: 'from view',
+      }),
+    ]);
+    expect(state.traceState.currentTurnProjection).toBeNull();
+    expect(state.projectionInput.currentTurnProjection).toBeNull();
+    expect(state.thinkingText).toBe('');
+    expect(state.useLocalPendingTurn).toBe(false);
+  });
+
+  test('projects local pending bridge surface state before SDK view exists', () => {
+    const state = resolveResponseOverlaySurfaceState({
+      chatSurfaceState: {
+        messages: [{
+          id: 'pending-user',
+          sender: 'user',
+          text: 'pending prompt',
+          sourceEventType: 'renderer-compose',
+        }],
+        pendingTurn: {
+          conversationRef: 'conv-pending',
+          turnRef: 'turn-pending',
+          text: 'pending prompt',
+          timestamp: '2026-06-25T12:00:00.000Z',
+        },
+      },
+    });
+
+    expect(state.useLocalPendingTurn).toBe(true);
+    expect(state.responseOverlayEntries).toEqual([]);
+    expect(state.responseOverlayMessages).toEqual([
+      expect.objectContaining({
+        id: 'pending-user',
+      }),
+    ]);
+    expect(state.liveTurnPresentationInput).toMatchObject({
+      source: 'pending-turn',
+      turnRef: 'turn-pending',
+    });
   });
 
   test('resolves SDK projection presentation state before visible lifecycle stamping', () => {
