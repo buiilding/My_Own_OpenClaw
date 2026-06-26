@@ -36,6 +36,13 @@ const VISIBLE_LIFECYCLE_STATUS_TO_SURFACE_PHASE = Object.freeze({
   terminal: getCompleteResponseOverlayPhase(),
   idle: getIdleResponseOverlayPhase(),
 });
+const LEGACY_NO_PRESENTATION_RESPONSE_PHASES = new Set([
+  'streaming',
+  'tool_call',
+  'tool_output',
+  'complete',
+  'error',
+]);
 
 function normalizePhase(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
@@ -117,6 +124,9 @@ function resolveSdkOverlayIntentMode(presentation, sdkLiveTurn) {
   }
   if (hasSdkLiveTurnPresentationObject(sdkLiveTurn)) {
     return 'hidden';
+  }
+  if (LEGACY_NO_PRESENTATION_RESPONSE_PHASES.has(normalizePhase(sdkLiveTurn?.phase))) {
+    return 'response';
   }
   return 'hidden';
 }

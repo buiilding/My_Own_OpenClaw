@@ -1115,6 +1115,29 @@ describe('ChatBoxResponse state behavior', () => {
           reasoningText: null,
           toolEvents: [],
           lastError: null,
+          presentation: {
+            conversationRef: 'conv-test',
+            turnRef: 'turn-2',
+            phase: 'streaming',
+            entries: [{
+              id: 'entry-new-streaming-response',
+              type: 'llm-text',
+              text: 'new streaming response',
+              sourceEventType: 'assistant_delta',
+              turnRef: 'turn-2',
+            }],
+            isBusy: true,
+            isTerminal: false,
+            lastError: null,
+            awaitingAnchor: null,
+            overlayIntent: {
+              visible: true,
+              mode: 'response',
+              turnRef: 'turn-2',
+              conversationRef: 'conv-test',
+              staleGuardRef: 'turn-2',
+            },
+          },
         },
       });
     });
@@ -1342,7 +1365,7 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
-  test('falls back to projection response when SDK presentation entries are empty', async () => {
+  test('does not fall back to projection response when SDK presentation entries are empty', async () => {
     setChatState([
       { id: 'user-1', text: 'hello', sender: 'user', type: 'user', turnRef: 'turn-sdk' },
     ]);
@@ -1382,7 +1405,7 @@ describe('ChatBoxResponse state behavior', () => {
     render(<ChatBoxResponse />);
 
     await waitFor(() => {
-      expect(screen.getByText('projection visible response')).toBeInTheDocument();
+      expect(screen.queryByText('projection visible response')).not.toBeInTheDocument();
     });
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });

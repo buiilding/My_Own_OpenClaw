@@ -168,7 +168,7 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
-  test('buildThreadPresentationMessages derives current-turn rows from SDK live-turn fallback', () => {
+  test('buildThreadPresentationMessages derives current-turn rows only when SDK presentation is absent', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
     ];
@@ -180,9 +180,6 @@ describe('desktopThreadPresentationRuntime', () => {
       reasoningText: 'Thinking about files.',
       toolEvents: [],
       lastError: null,
-      presentation: {
-        entries: [],
-      },
     };
 
     expect(buildThreadPresentationMessages(messages, {
@@ -198,6 +195,16 @@ describe('desktopThreadPresentationRuntime', () => {
         sourceChannel: 'sdk:current-turn',
       }),
     ]);
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn: {
+        ...sdkLiveTurn,
+        presentation: {
+          entries: [],
+        },
+      },
+      activeConversationRef: 'conv-1',
+    })).toEqual(messages);
   });
 
   test('buildThreadPresentationMessages prefers SDK presentation entries over SDK live-turn fallback rows', () => {

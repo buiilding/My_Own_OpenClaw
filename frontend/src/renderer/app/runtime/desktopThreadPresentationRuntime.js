@@ -45,6 +45,11 @@ function isConversationView(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
+function hasSdkLiveTurnPresentationObject(sdkLiveTurn) {
+  const presentation = sdkLiveTurn?.presentation;
+  return Boolean(presentation && typeof presentation === 'object' && !Array.isArray(presentation));
+}
+
 function isRendererPendingBridgeMessage(message) {
   return (
     message?.sender === 'user'
@@ -190,9 +195,12 @@ function resolveCurrentTurnMessages({
   if (presentationMessages.length > 0) {
     return presentationMessages;
   }
-  const sdkLiveTurnFallbackMessages = buildCurrentTurnMessagesFromSdkLiveTurn(sdkLiveTurn);
-  if (sdkLiveTurnFallbackMessages.length > 0) {
-    return sdkLiveTurnFallbackMessages;
+  if (hasSdkLiveTurnPresentationObject(sdkLiveTurn)) {
+    return [];
+  }
+  const legacyNoPresentationMessages = buildCurrentTurnMessagesFromSdkLiveTurn(sdkLiveTurn);
+  if (legacyNoPresentationMessages.length > 0) {
+    return legacyNoPresentationMessages;
   }
   return [];
 }

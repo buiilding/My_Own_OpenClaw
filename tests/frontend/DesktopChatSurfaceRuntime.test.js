@@ -75,7 +75,7 @@ describe('DesktopChatSurfaceRuntime', () => {
       messages: [],
     });
 
-    expect(state.isBusy).toBe(false);
+    expect(state.isBusy).toBe(true);
     expect(state.canStop).toBe(false);
     expect(state.liveTurnSource).not.toBe('conversation-view');
   });

@@ -673,7 +673,9 @@ describe('renderer app runtime boundary', () => {
     expect(threadPresentationSource).toContain('desktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopThreadPresentationRuntime');
-    expect(threadPresentationSource).toContain('sdkLiveTurnFallbackMessages');
+    expect(threadPresentationSource).toContain('legacyNoPresentationMessages');
+    expect(threadPresentationSource).toContain('hasSdkLiveTurnPresentationObject');
+    expect(threadPresentationSource).not.toContain('sdkLiveTurnFallbackMessages');
     expect(threadPresentationSource).not.toContain('projectionFallbackMessages');
     expect(threadPresentationSource).not.toContain('currentTurnMessages');
     expect(threadPresentationSource).not.toContain('legacyProjectionMessages');
