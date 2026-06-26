@@ -29,12 +29,12 @@ function isObject(value) {
 
 function resolveSurfaceConversationRef({
   conversationView = null,
-  currentTurnProjection = null,
+  sdkLiveTurn = null,
   sessionConversationRef = null,
 } = {}) {
   return (
     conversationView?.conversationRef
-    || currentTurnProjection?.conversationRef
+    || sdkLiveTurn?.conversationRef
     || sessionConversationRef
     || null
   );
@@ -49,28 +49,28 @@ function resolveConversationViewSurfaceMode(conversationView, surfaceName) {
 
 function buildChatSurfaceControllerState({
   messages = [],
-  currentTurnProjection = null,
   conversationView = null,
   conversationViewSurface = 'pill',
   pendingTurn = null,
+  sdkLiveTurn = null,
   sessionConversationRef = null,
 } = {}) {
   const hasConversationView = isObject(conversationView);
   const rendererFallbackMessages = hasConversationView ? [] : messages;
-  const effectiveCurrentTurnProjection = hasConversationView ? null : currentTurnProjection;
+  const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
     activeConversationRef: resolveSurfaceConversationRef({
       conversationView,
-      currentTurnProjection: effectiveCurrentTurnProjection,
+      sdkLiveTurn: effectiveSdkLiveTurn,
       sessionConversationRef,
     }),
     pendingTurn,
-    currentTurnProjection: effectiveCurrentTurnProjection,
+    currentTurnProjection: effectiveSdkLiveTurn,
     conversationView,
     messages: rendererFallbackMessages,
   });
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
-    currentTurnProjection: effectiveCurrentTurnProjection,
+    currentTurnProjection: effectiveSdkLiveTurn,
     conversationView,
     pendingTurn,
     messages: rendererFallbackMessages,
@@ -124,10 +124,10 @@ function buildChatSurfaceControllerStateFromSurfaceState({
     messages: hasConversationView
       ? []
       : Array.isArray(surfaceState.messages) ? surfaceState.messages : [],
-    currentTurnProjection: hasConversationView ? null : surfaceState.currentTurnProjection ?? null,
     conversationView,
     conversationViewSurface,
     pendingTurn: surfaceState.pendingTurn ?? null,
+    sdkLiveTurn: hasConversationView ? null : surfaceState.sdkLiveTurn ?? null,
     sessionConversationRef,
   });
 }

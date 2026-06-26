@@ -208,7 +208,7 @@ describe('desktopChatPillSessionRuntime', () => {
     expect(buildChatPillLifecycleTraceSnapshot({
       sessionConversationRef: ' conv-1 ',
       chatSurfaceState: {
-        currentTurnProjection: {
+        sdkLiveTurn: {
           turnRef: ' turn-1 ',
           phase: ' streaming ',
         },
@@ -224,7 +224,7 @@ describe('desktopChatPillSessionRuntime', () => {
     expect(buildChatPillLifecycleTraceSnapshot({
       sessionConversationRef: ' conv-1 ',
       chatSurfaceState: {
-        currentTurnProjection: {
+        sdkLiveTurn: {
           turnRef: ' stale-current ',
           phase: ' awaiting ',
         },
@@ -246,7 +246,7 @@ describe('desktopChatPillSessionRuntime', () => {
     expect(buildChatPillLifecycleTraceSnapshot({
       sessionConversationRef: ' conv-1 ',
       chatSurfaceState: {
-        currentTurnProjection: {
+        sdkLiveTurn: {
           turnRef: ' stale-current ',
           phase: ' stale-awaiting ',
         },
@@ -263,7 +263,7 @@ describe('desktopChatPillSessionRuntime', () => {
     const snapshot = buildChatPillStateTraceSnapshot({
       busy: true,
       chatSurfaceState: {
-        currentTurnProjection: {
+        sdkLiveTurn: {
           turnRef: ' stale-current ',
           phase: ' stale-awaiting ',
         },
@@ -293,7 +293,7 @@ describe('desktopChatPillSessionRuntime', () => {
       busy: true,
       chatSurfaceState: {
         messages: [{ id: 'pending-row' }],
-        currentTurnProjection: {
+        sdkLiveTurn: {
           turnRef: ' turn-current ',
           phase: ' awaiting ',
         },

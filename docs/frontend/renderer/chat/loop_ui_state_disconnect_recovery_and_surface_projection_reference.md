@@ -169,7 +169,8 @@ composes `DesktopVisibleTurnLifecycleRuntime`,
 `DesktopLiveTurnSurfaceRuntime`, and
 `DesktopCurrentTurnPresentationRuntime`. That app-runtime helper reads
 `ConversationView.surfaces`, `ConversationView.liveTurn.canStop`, SDK
-current-turn projection, and the renderer pending bridge, then returns
+live-turn fallback (`sdkLiveTurn` in selected surface state), and the renderer
+pending bridge, then returns
 dashboard/pill busy state, stop affordance gating, awaiting-dot visibility, and
 chatbox awaiting state. The React hook owns config toggles and manual
 compaction callbacks only; it should not branch over SDK view/current-turn

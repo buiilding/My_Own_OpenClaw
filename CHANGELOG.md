@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/surfaces: rename selected surface current-turn fallback to
+  `sdkLiveTurn`, keeping raw `currentTurnProjection` confined to workspace
+  storage and lower app-runtime projection helpers. No migration required.
 - frontend/attachments: rename the app-runtime artifact image resolver to
   `DesktopAttachmentImageRuntime`, so chat attachment rendering no longer
   imports a screenshot-named resolver facade. No migration required.

@@ -149,7 +149,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
             },
           },
         },
-        currentTurnProjection: {
+        sdkLiveTurn: {
           conversationRef: 'conv-raw',
           turnRef: 'turn-raw',
           phase: 'streaming',
@@ -168,7 +168,8 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(state).not.toHaveProperty('traceState');
     expect(state).not.toHaveProperty('projectionInput');
     expect(state.pendingTurn).toBeNull();
-    expect(state.currentTurnProjection).toBeNull();
+    expect(state.sdkLiveTurn).toBeNull();
+    expect(state).not.toHaveProperty('currentTurnProjection');
     expect(state.responseOverlayDismissalTarget).toEqual(expect.objectContaining({
       conversationRef: 'conv-view',
       turnRef: 'turn-view',
@@ -279,7 +280,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
   test('resolves presentation state from sanitized surface state', () => {
     const responseOverlaySurfaceState = resolveResponseOverlaySurfaceState({
       chatSurfaceState: {
-        currentTurnProjection: {
+        sdkLiveTurn: {
           conversationRef: 'conv-sdk',
           turnRef: 'turn-sdk',
           phase: 'streaming',

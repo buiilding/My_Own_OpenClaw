@@ -73,23 +73,24 @@ describe('chatSelectors', () => {
       thinkingSourceEventType: 'reasoning_delta',
       compactionDebugInfo: activeWorkspace.compactionDebugInfo,
       tokenCounts: activeWorkspace.tokenCounts,
-      currentTurnProjection: activeWorkspace.currentTurnProjection,
       conversationView: null,
       pendingTurn: activeWorkspace.pendingTurn,
+      sdkLiveTurn: activeWorkspace.currentTurnProjection,
     });
+    expect(interfaceState).not.toHaveProperty('currentTurnProjection');
     expect(interfaceState).not.toHaveProperty('streamTracking');
     expect(projectDesktopChatSurfaceState({
       activeWorkspace,
     })).toEqual({
       messages: activeWorkspace.messages,
-      currentTurnProjection: activeWorkspace.currentTurnProjection,
       conversationView: null,
       pendingTurn: activeWorkspace.pendingTurn,
+      sdkLiveTurn: activeWorkspace.currentTurnProjection,
     });
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
     })).toEqual(expect.objectContaining({
-      currentTurnProjection: activeWorkspace.currentTurnProjection,
+      sdkLiveTurn: activeWorkspace.currentTurnProjection,
     }));
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
@@ -136,9 +137,10 @@ describe('chatSelectors', () => {
         fullUserMessage: 'full prompt',
         feedback: { rating: 'positive' },
       }],
-      currentTurnProjection: null,
       conversationView,
+      sdkLiveTurn: null,
     }));
+    expect(interfaceState).not.toHaveProperty('currentTurnProjection');
   });
 
   test('drops raw surface messages once ConversationView owns the live surface', () => {
@@ -171,9 +173,10 @@ describe('chatSelectors', () => {
     });
     expect(firstSurfaceState).toEqual(expect.objectContaining({
       messages: [],
-      currentTurnProjection: null,
       conversationView: activeWorkspace.conversationView,
+      sdkLiveTurn: null,
     }));
+    expect(firstSurfaceState).not.toHaveProperty('currentTurnProjection');
     expect(secondSurfaceState.messages).toBe(firstSurfaceState.messages);
   });
 
@@ -203,12 +206,12 @@ describe('chatSelectors', () => {
 
     expect(selected).toEqual({
       messages: [],
-      currentTurnProjection: null,
       conversationView,
       pendingTurn: {
         conversationRef: 'conv-view',
         turnRef: 'turn-pending',
       },
+      sdkLiveTurn: null,
     });
   });
 
@@ -234,9 +237,9 @@ describe('chatSelectors', () => {
       activeWorkspace: projectWorkspaceReadModelState(activeWorkspace),
     })).toEqual(expect.objectContaining({
       messages: [],
-      currentTurnProjection: null,
       conversationView: activeWorkspace.conversationView,
       pendingTurn: activeWorkspace.pendingTurn,
+      sdkLiveTurn: null,
     }));
   });
 
@@ -271,9 +274,9 @@ describe('chatSelectors', () => {
       },
       chatSurfaceState: {
         messages,
-        currentTurnProjection: null,
         conversationView: null,
         pendingTurn: null,
+        sdkLiveTurn: null,
       },
     });
     expect(selectChatInterfaceState(state)).not.toHaveProperty('streamTracking');
@@ -283,9 +286,9 @@ describe('chatSelectors', () => {
     expect(selectChatInterfaceState(state)).not.toHaveProperty('pendingTurn');
     expect(selectChatInterfaceSurfaceState(state)).toEqual({
       messages,
-      currentTurnProjection: null,
       conversationView: null,
       pendingTurn: null,
+      sdkLiveTurn: null,
     });
   });
 
@@ -486,7 +489,8 @@ describe('chatSelectors', () => {
       }),
     });
 
-    expect(selected.currentTurnProjection).toBe(workspaceProjection);
+    expect(selected.sdkLiveTurn).toBe(workspaceProjection);
+    expect(selected).not.toHaveProperty('currentTurnProjection');
     expect(selected).not.toHaveProperty('isSending');
     expect(selected).not.toHaveProperty('thinkingStatus');
     expect(selected).not.toHaveProperty('thinkingSourceEventType');
@@ -531,13 +535,14 @@ describe('chatSelectors', () => {
     });
 
     expect(selected.conversationView).toBe(view);
-    expect(selected.currentTurnProjection).toBeNull();
+    expect(selected.sdkLiveTurn).toBeNull();
+    expect(selected).not.toHaveProperty('currentTurnProjection');
     expect(selected.messages).toEqual([]);
     expect(selected).toEqual({
       messages: [],
-      currentTurnProjection: null,
       conversationView: view,
       pendingTurn: null,
+      sdkLiveTurn: null,
       stopTurnTarget: {
         source: 'idle',
         conversationRef: 'conv-view',
@@ -608,10 +613,11 @@ describe('chatSelectors', () => {
     });
     expect(selected.chatSurfaceState).toEqual({
       messages: [],
-      currentTurnProjection: null,
       conversationView: view,
       pendingTurn: null,
+      sdkLiveTurn: null,
     });
+    expect(selected.chatSurfaceState).not.toHaveProperty('currentTurnProjection');
   });
 
   test('defaults optional active-workspace fields when not present', () => {

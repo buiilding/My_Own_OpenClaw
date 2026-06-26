@@ -101,17 +101,17 @@ function resolveResponseOverlaySurfaceState({
   const conversationView = isConversationView(surfaceState.conversationView)
     ? surfaceState.conversationView
     : null;
-  const currentTurnProjection = conversationView ? null : surfaceState.currentTurnProjection ?? null;
+  const sdkLiveTurn = conversationView ? null : surfaceState.sdkLiveTurn ?? null;
   const pendingTurn = surfaceState.pendingTurn ?? null;
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
     conversationView,
     pendingTurn,
-    currentTurnProjection,
+    currentTurnProjection: sdkLiveTurn,
     messages,
   });
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
     conversationView,
-    currentTurnProjection,
+    currentTurnProjection: sdkLiveTurn,
     pendingTurn,
     messages,
     visibleTurnLifecycle,
@@ -120,11 +120,11 @@ function resolveResponseOverlaySurfaceState({
   const useLocalPendingTurn = liveTurnPresentationInput.useLocalPendingTurn;
   const responseOverlayEntries = resolveResponseOverlayEntries({
     conversationView,
-    currentTurnProjection,
+    currentTurnProjection: sdkLiveTurn,
     liveTurnPresentationInput,
   });
   const responseOverlayDismissalTarget = resolveResponseOverlayDismissalTarget({
-    currentTurnProjection,
+    currentTurnProjection: sdkLiveTurn,
     overlayIntent: liveTurnPresentationInput.overlayIntent,
     responseOverlayEntries,
     useSdkLiveTurnPresentation,
@@ -133,7 +133,6 @@ function resolveResponseOverlaySurfaceState({
     ? messages
     : responseOverlayEntries;
   return {
-    currentTurnProjection,
     currentTurnPhase: liveTurnPresentationInput.phase,
     liveTurnPresentationInput,
     messages,
@@ -141,8 +140,9 @@ function resolveResponseOverlaySurfaceState({
     responseOverlayDismissalTarget,
     responseOverlayEntries,
     responseOverlayMessages,
+    sdkLiveTurn,
     thinkingText: normalizeReasoningText(
-      recordFromUnknown(currentTurnProjection).reasoningText,
+      recordFromUnknown(sdkLiveTurn).reasoningText,
     ),
     useLocalPendingTurn,
     useSdkLiveTurnPresentation,
@@ -303,7 +303,7 @@ function resolveResponseOverlayPresentationStateForSurfaceState({
 }) {
   return resolveResponseOverlayPresentationState({
     currentTurnPresentationState,
-    currentTurnProjection: responseOverlaySurfaceState.currentTurnProjection,
+    currentTurnProjection: responseOverlaySurfaceState.sdkLiveTurn,
     dismissedResponseId,
     liveTurnPresentationInput: responseOverlaySurfaceState.liveTurnPresentationInput,
     responseOverlayEntries: responseOverlaySurfaceState.responseOverlayEntries,

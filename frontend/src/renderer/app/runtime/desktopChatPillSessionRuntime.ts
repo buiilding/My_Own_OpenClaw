@@ -41,8 +41,8 @@ type ChatPillConversationView = {
 
 type ChatPillSurfaceState = {
   conversationView?: ChatPillConversationView;
-  currentTurnProjection?: ChatPillCurrentTurnProjection;
   messages?: unknown[] | null;
+  sdkLiveTurn?: ChatPillCurrentTurnProjection;
 } | null | undefined;
 
 const CHAT_PILL_SURFACE_REASON = Object.freeze({
@@ -160,7 +160,7 @@ function buildChatPillLifecycleTraceSnapshot({
   chatSurfaceState?: ChatPillSurfaceState;
   sessionConversationRef?: string | null;
 }) {
-  const currentTurnProjection = chatSurfaceState?.currentTurnProjection ?? null;
+  const sdkLiveTurn = chatSurfaceState?.sdkLiveTurn ?? null;
   const conversationView = chatSurfaceState?.conversationView ?? null;
   const viewTurnRef = resolveViewLiveTurnRef(conversationView);
   const hasConversationView = Boolean(conversationView && typeof conversationView === 'object');
@@ -168,10 +168,10 @@ function buildChatPillLifecycleTraceSnapshot({
     conversationRef: normalizeOptionalString(sessionConversationRef),
     turnRef: hasConversationView
       ? viewTurnRef
-      : normalizeOptionalTurnRef(currentTurnProjection?.turnRef),
+      : normalizeOptionalTurnRef(sdkLiveTurn?.turnRef),
     phase: hasConversationView
       ? resolveViewLiveTurnPhase(conversationView)
-      : normalizeOptionalString(currentTurnProjection?.phase),
+      : normalizeOptionalString(sdkLiveTurn?.phase),
   };
 }
 
@@ -190,16 +190,16 @@ function buildChatPillStateTraceSnapshot({
   surfaceSource?: string | null;
   stopAvailable: boolean;
 }) {
-  const currentTurnProjection = chatSurfaceState?.currentTurnProjection ?? null;
+  const sdkLiveTurn = chatSurfaceState?.sdkLiveTurn ?? null;
   const conversationView = chatSurfaceState?.conversationView ?? null;
   const hasConversationView = Boolean(conversationView && typeof conversationView === 'object');
   const currentTurnPhase = hasConversationView
     ? resolveViewLiveTurnPhase(conversationView)
-    : normalizeOptionalString(currentTurnProjection?.phase);
+    : normalizeOptionalString(sdkLiveTurn?.phase);
   const viewTurnRef = resolveViewLiveTurnRef(conversationView);
   const currentTurnRef = hasConversationView
     ? viewTurnRef
-    : normalizeOptionalTurnRef(currentTurnProjection?.turnRef);
+    : normalizeOptionalTurnRef(sdkLiveTurn?.turnRef);
   const viewPillMode = resolveViewPillMode(conversationView);
   const viewCanStop = conversationView?.liveTurn?.canStop === true;
   return {

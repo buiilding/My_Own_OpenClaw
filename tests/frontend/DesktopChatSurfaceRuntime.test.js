@@ -26,7 +26,7 @@ describe('DesktopChatSurfaceRuntime', () => {
           },
         },
       },
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-stale',
         turnRef: 'turn-stale',
         phase: 'complete',
@@ -72,9 +72,9 @@ describe('DesktopChatSurfaceRuntime', () => {
     expect(state.visibleTurnLifecycle.status).toBe('local_pending');
   });
 
-  test('does not allow raw current-turn projection alone to enable stop', () => {
+  test('does not allow SDK live-turn fallback alone to enable stop', () => {
     const state = buildChatSurfaceControllerState({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
         phase: 'streaming',
@@ -109,7 +109,7 @@ describe('DesktopChatSurfaceRuntime', () => {
             },
           },
         },
-        currentTurnProjection: {
+        sdkLiveTurn: {
           conversationRef: 'conv-raw',
           turnRef: 'turn-raw',
           phase: 'complete',
@@ -154,7 +154,7 @@ describe('DesktopChatSurfaceRuntime', () => {
             },
           },
         },
-        currentTurnProjection: {
+        sdkLiveTurn: {
           conversationRef: 'conv-raw',
           turnRef: 'turn-raw',
           phase: 'streaming',

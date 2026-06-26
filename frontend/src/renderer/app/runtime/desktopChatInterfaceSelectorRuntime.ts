@@ -169,10 +169,10 @@ function buildChatInterfaceSelectorState({
   const chatPresentationState = buildChatInterfacePresentationState({
     activeConversationRef,
     conversationView,
-    currentTurnProjection: interfaceState.currentTurnProjection as CurrentTurnProjection | null,
     messages: presentationMessages,
     pendingTurn,
     rendererAnnotations: interfaceState.rendererAnnotations,
+    sdkLiveTurn: interfaceState.sdkLiveTurn as CurrentTurnProjection | null,
   });
   const chatSurfaceState = projectDesktopChatSurfaceState({
     activeWorkspace,

@@ -32,7 +32,7 @@ function projectDesktopChatSurfaceState({
   const hasSdkConversationView = hasConversationView(conversationView);
   return {
     messages: hasSdkConversationView ? emptyChatMessages : activeWorkspace.messages,
-    currentTurnProjection: hasSdkConversationView ? null : activeWorkspace.currentTurnProjection ?? null,
+    sdkLiveTurn: hasSdkConversationView ? null : activeWorkspace.currentTurnProjection ?? null,
     conversationView,
     pendingTurn: activeWorkspace.pendingTurn ?? null,
   };
@@ -57,7 +57,7 @@ function projectDesktopChatInterfaceState(
     thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null,
     compactionDebugInfo: activeWorkspace.compactionDebugInfo ?? null,
     tokenCounts: activeWorkspace.tokenCounts ?? null,
-    currentTurnProjection: surfaceState.currentTurnProjection,
+    sdkLiveTurn: surfaceState.sdkLiveTurn,
     conversationView: surfaceState.conversationView,
     pendingTurn: surfaceState.pendingTurn,
   };

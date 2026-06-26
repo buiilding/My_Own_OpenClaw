@@ -222,7 +222,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
           canRetry: true,
         },
       },
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-1',
         turnRef: 'turn-stale',
         phase: 'streaming',
@@ -280,7 +280,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
           canRetry: true,
         },
       },
-      currentTurnProjection: {
+      sdkLiveTurn: {
         conversationRef: 'conv-1',
         turnRef: 'turn-stale',
         phase: 'streaming',
