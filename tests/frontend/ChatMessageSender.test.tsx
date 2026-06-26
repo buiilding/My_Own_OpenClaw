@@ -5,6 +5,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { useChatMessageSender } from '../../frontend/src/renderer/features/chat/hooks/useChatMessageSender';
 import {
+  setConversationViewInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
@@ -466,7 +467,7 @@ describe('useChatMessageSender', () => {
 
   test('uses sdk conversation view rows to detect prior user messages', async () => {
     useChatStore.getState().setActiveConversationRef('conv-existing');
-    useChatStore.getState().setConversationView({
+    setConversationViewInChatStore({
       conversationRef: 'conv-existing',
       revisionId: 'rev-existing',
       displayRows: [{

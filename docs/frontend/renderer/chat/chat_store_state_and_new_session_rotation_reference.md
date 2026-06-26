@@ -126,9 +126,10 @@ replay/store compatibility adapters and low-level artifact helpers.
   and no-op guard live in `desktopCurrentTurnWorkspaceRuntime.ts`; the store
   module delegates current-turn projection intent plus workspace dependency
   adapters.
-- `setConversationView` updates the target workspace. The
-  conversation-view workspace state update lives in
-  `desktopConversationViewWorkspaceRuntime.ts`; the store delegates
+- SDK `ConversationView` writes enter through the module-level
+  `setConversationViewInChatStore(...)` adapter instead of a Zustand action.
+  The conversation-view workspace state update lives in
+  `desktopConversationViewWorkspaceRuntime.ts`; the store module delegates
   conversation-view intent plus workspace dependency adapters. A same-turn
   authoritative SDK `ConversationView.liveTurn` also clears the renderer-local
   pending bridge there, so `chatStore.ts` does not keep a competing pending

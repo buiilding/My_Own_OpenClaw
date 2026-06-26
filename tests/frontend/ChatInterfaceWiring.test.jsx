@@ -95,10 +95,6 @@ const mockChatState = {
   pendingTurn: null,
   clearMessages: (...args) => mockClearMessages(...args),
   setMessages: (...args) => mockSetMessages(...args),
-  setConversationView: (...args) => {
-    mockChatState.conversationView = args[0] ?? null;
-    mockSetConversationView(...args);
-  },
   updateMessage: (...args) => mockUpdateMessage(...args),
   setIsSending: (...args) => mockSetIsSending(...args),
   setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
@@ -212,6 +208,10 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
       activeConversationRef: state.activeConversationRef,
       activeWorkspace: state,
     });
+  },
+  setConversationViewInChatStore: (...args) => {
+    mockChatState.conversationView = args[0] ?? null;
+    mockSetConversationView(...args);
   },
 }));
 

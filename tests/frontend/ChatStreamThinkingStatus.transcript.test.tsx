@@ -5,6 +5,7 @@
 import { act } from '@testing-library/react';
 import {
   selectChatInterfaceState,
+  setConversationViewInChatStore,
   setCurrentTurnProjectionInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
@@ -106,7 +107,7 @@ describe('useChatStream live SDK event ownership', () => {
     const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
-      useChatStore.getState().setConversationView({
+      setConversationViewInChatStore({
         conversationRef: 'conv-1',
         revisionId: 'revision-1',
         displayRows: [

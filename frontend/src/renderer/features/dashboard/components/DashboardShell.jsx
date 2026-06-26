@@ -5,7 +5,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import ChatInterface from '../../chat/components/ChatInterface';
-import { useChatStore } from '../../chat/stores/chatStore';
+import {
+  setConversationViewInChatStore,
+  useChatStore,
+} from '../../chat/stores/chatStore';
 import { DesktopClientSessionRuntimeClient } from '../../../app/runtime/desktopClientSessionRuntimeClient';
 import { DesktopWindowRuntimeClient } from '../../../app/runtime/desktopWindowRuntimeClient';
 import ModelsSection from './sections/ModelsSection';
@@ -96,7 +99,6 @@ function DashboardShell({
   const setChatThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setChatTokenCounts = useChatStore((state) => state.setTokenCounts);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
-  const setChatConversationView = useChatStore((state) => state.setConversationView);
   const getChatWorkspaceState = useChatStore((state) => state.getWorkspaceState);
   const {
     searchQuery,
@@ -125,7 +127,7 @@ function DashboardShell({
     setChatThinkingStatus,
     setChatTokenCounts,
     setChatActiveConversationRef,
-    setChatConversationView,
+    setChatConversationView: setConversationViewInChatStore,
     searchOpen,
   });
 

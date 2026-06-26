@@ -41,6 +41,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => {
 
 import MinimalResponseOverlay from '../../frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay';
 import {
+  setConversationViewInChatStore,
   setCurrentTurnProjectionInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
@@ -233,7 +234,7 @@ export function setChatState(messages) {
   useChatStore.getState().setThinkingStatus(null);
   useChatStore.getState().clearPendingTurn();
   setCurrentTurnProjectionInChatStore(currentTurnProjection);
-  useChatStore.getState().setConversationView(null);
+  setConversationViewInChatStore(null);
 }
 
 export function emitOverlayPhase(phase) {
@@ -241,7 +242,7 @@ export function emitOverlayPhase(phase) {
     const workspace = useChatStore.getState().getWorkspaceState();
     const currentTurnProjection = buildCurrentTurnProjection(workspace.messages || [], phase);
     setCurrentTurnProjectionInChatStore(currentTurnProjection);
-    useChatStore.getState().setConversationView(null);
+    setConversationViewInChatStore(null);
   });
 }
 

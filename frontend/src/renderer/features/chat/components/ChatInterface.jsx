@@ -10,6 +10,7 @@ import ChatInterfaceHeaderControls from './ChatInterfaceHeaderControls';
 import ChatFindBar from './ChatFindBar';
 import {
   selectChatInterfaceState,
+  setConversationViewInChatStore,
   useChatStore,
 } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
@@ -94,7 +95,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   );
   const clearMessages = useChatStore((state) => state.clearMessages);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
-  const setConversationView = useChatStore((state) => state.setConversationView);
   const updateMessage = useChatStore((state) => state.updateMessage);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
@@ -420,10 +420,9 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     if (!conversationRef) {
       return;
     }
-    setConversationView(view, conversationRef);
+    setConversationViewInChatStore(view, conversationRef);
   }, [
     activeConversationRef,
-    setConversationView,
   ]);
 
   useEffect(() => {
