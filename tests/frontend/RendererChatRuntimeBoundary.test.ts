@@ -2366,6 +2366,7 @@ describe('renderer chat runtime boundary', () => {
     expect(payloadRuntimeSource).toContain('export const DesktopChatSendPayloadRuntime = Object.freeze');
     expect(payloadRuntimeSource).not.toContain('export function normalizeOutgoingPayload');
     expect(payloadRuntimeSource).not.toContain('export function normalizeAttachmentFilenames');
+    expect(payloadRuntimeSource).not.toContain('normalizeAttachmentFilenames');
     expect(payloadRuntimeSource).not.toContain('features/chat');
     expect(stateRuntimeSource).toContain('export const DesktopChatSendStateRuntime = Object.freeze');
     expect(stateRuntimeSource).toContain('hasPriorUserMessages');

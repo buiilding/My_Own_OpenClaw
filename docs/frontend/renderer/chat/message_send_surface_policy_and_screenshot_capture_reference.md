@@ -83,11 +83,10 @@ Normalized shape:
 
 Invalid object payloads are ignored (no send side effect).
 
-`DesktopChatSendPayloadRuntime.normalizeOutgoingPayload(...)` owns payload
-shape normalization and
-`DesktopChatSendPayloadRuntime.normalizeAttachmentFilenames(...)` owns
-attachment filename projection. The raw helper functions stay private behind the
-renderer app-runtime facade.
+`DesktopChatSendPayloadRuntime.normalizeOutgoingPayload(...)` owns renderer
+payload shape normalization. The renderer does not project attachment filenames
+for normal sends; filenames travel only as fields on typed SDK resources and are
+resolved into visible metadata by SDK resource handling.
 
 `clipboardImages[]` metadata fields:
 

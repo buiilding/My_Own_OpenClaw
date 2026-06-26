@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: remove the remaining renderer attachment filename projection
+  helper from chat send payload normalization; SDK resource resolution now owns
+  filename metadata for normal sends. No migration required.
 - frontend/send: remove the renderer-authored attachment filename command
   payload from normal chat sends; typed SDK resources now carry filenames for
   SDK resource resolution and display metadata. No migration required.
