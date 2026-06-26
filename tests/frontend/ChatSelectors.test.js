@@ -61,6 +61,7 @@ describe('chatSelectors', () => {
     const interfaceState = projectDesktopChatInterfaceState(activeWorkspace);
     expect(interfaceState).toEqual({
       messages: activeWorkspace.messages,
+      rendererAnnotations: [],
       thinkingStatus: 'thinking',
       thinkingSourceEventType: 'reasoning_delta',
       compactionDebugInfo: activeWorkspace.compactionDebugInfo,
@@ -92,6 +93,43 @@ describe('chatSelectors', () => {
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
     })).not.toHaveProperty('thinkingSourceEventType');
+  });
+
+  test('projects only renderer annotations beside ConversationView interface state', () => {
+    const conversationView = {
+      conversationRef: 'conv-view',
+      displayRows: [{ id: 'sdk-row', role: 'user' }],
+      liveTurn: null,
+      surfaces: {
+        pill: { mode: 'idle' },
+      },
+    };
+    const activeWorkspace = {
+      messages: [{
+        id: 'sdk-row',
+        text: 'raw fallback',
+        sender: 'user',
+        fullUserMessage: 'full prompt',
+        feedback: { rating: 'positive' },
+      }],
+      thinkingStatus: null,
+      currentTurnProjection: { turnRef: 'raw-turn' },
+      conversationView,
+      pendingTurn: null,
+    };
+
+    const interfaceState = projectDesktopChatInterfaceState(activeWorkspace);
+
+    expect(interfaceState).toEqual(expect.objectContaining({
+      messages: [],
+      rendererAnnotations: [{
+        id: 'sdk-row',
+        fullUserMessage: 'full prompt',
+        feedback: { rating: 'positive' },
+      }],
+      currentTurnProjection: null,
+      conversationView,
+    }));
   });
 
   test('drops raw surface messages once ConversationView owns the live surface', () => {

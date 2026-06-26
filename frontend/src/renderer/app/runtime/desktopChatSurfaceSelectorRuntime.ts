@@ -2,8 +2,13 @@
  * Provides shared chat surface selector projection rules for renderer UI surfaces.
  */
 
+import type { ChatMessage } from './desktopChatMessageTypes';
+import {
+  DesktopConversationDisplayProjection,
+} from './desktopConversationDisplayProjection';
+
 type DesktopChatWorkspaceProjection = {
-  messages: unknown[];
+  messages: ChatMessage[];
   thinkingStatus: string | null;
   thinkingSourceEventType?: string | null;
   compactionDebugInfo?: unknown | null;
@@ -13,7 +18,12 @@ type DesktopChatWorkspaceProjection = {
   pendingTurn?: unknown | null;
 };
 
-const emptyChatMessages: unknown[] = [];
+const emptyChatMessages: ChatMessage[] = [];
+const emptyRendererAnnotations: unknown[] = [];
+
+const {
+  selectRendererMessageAnnotations,
+} = DesktopConversationDisplayProjection;
 
 function projectDesktopChatSurfaceState({
   activeWorkspace,
@@ -42,8 +52,12 @@ function projectDesktopChatInterfaceState(
   const surfaceState = projectDesktopChatSurfaceState({
     activeWorkspace,
   });
+  const hasConversationView = Boolean(surfaceState.conversationView);
   return {
-    messages: activeWorkspace.messages,
+    messages: surfaceState.messages,
+    rendererAnnotations: hasConversationView
+      ? selectRendererMessageAnnotations(activeWorkspace.messages)
+      : emptyRendererAnnotations,
     thinkingStatus: activeWorkspace.thinkingStatus,
     thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null,
     compactionDebugInfo: activeWorkspace.compactionDebugInfo ?? null,

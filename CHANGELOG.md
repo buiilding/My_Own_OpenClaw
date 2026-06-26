@@ -34,6 +34,10 @@ All notable changes to WindieOS will be documented in this file.
   presentation runtime; the ConversationView path now receives annotation
   records from the selector instead of full raw workspace messages. No
   migration required.
+- frontend/selectors: suppress raw workspace messages inside the shared
+  ChatInterface projection when `ConversationView` exists; the selector now
+  carries only narrow renderer annotations beside SDK display rows. No
+  migration required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own

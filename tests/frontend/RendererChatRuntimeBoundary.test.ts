@@ -3331,7 +3331,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).not.toContain('selectRendererMessageAnnotations');
     expect(chatInterfacePresentationRuntimeSource).toContain('rendererAnnotations = []');
     expect(chatInterfacePresentationRuntimeSource).toContain('rendererAnnotations,');
-    expect(chatInterfaceSelectorRuntimeSource).toContain('selectRendererMessageAnnotations(interfaceState.messages');
+    expect(chatInterfaceSelectorRuntimeSource).not.toContain('selectRendererMessageAnnotations(interfaceState.messages');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('selectRendererMessageAnnotations(activeWorkspace.messages)');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('messages: surfaceState.messages');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('rendererAnnotations: hasConversationView');
     expect(chatInterfaceSelectorRuntimeSource).toContain('messages: fallbackMessages');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('currentMessages: messages');
     expect(chatInterfacePresentationRuntimeSource).toContain('resolveConversationViewStoreRef');

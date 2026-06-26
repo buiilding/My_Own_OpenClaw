@@ -206,6 +206,12 @@ and stop-target selection while keeping stable nested selector objects.
 `selectActiveWorkspaceState(...)` so the app-runtime helper does not import chat
 feature store internals.
 
+When `ConversationView` exists, the shared interface projection returns the
+stable empty message list plus narrow `rendererAnnotations`; it does not pass
+the full raw workspace transcript into
+`DesktopChatInterfacePresentationRuntime`. Raw messages remain available only
+for no-view fallback rendering and the send read model described below.
+
 `selectChatInterfaceState` exposes the active workspace selector model:
 
 - `thinkingStatus`, `tokenCounts`
@@ -276,15 +282,15 @@ current-turn bridge, stored messages, the local pending bridge, and
 and active revision id. When a view exists, it builds base thread messages from
 `ConversationView.displayRows` through
 `DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`
-and passes only renderer annotation records selected from active workspace
-messages for feedback, transparency metadata, and token counts. The pending
-bridge is projected from `pendingTurn` directly, so a view-time render does not
-receive the full raw active workspace message transcript as a competing read
-model. Raw `ROWS`/display-row stream events remain Electron IPC compatibility
-plumbing only; the renderer chat projection hook does not subscribe to them or
-write those rows into `ChatWorkspaceState.messages`. The component consumes
-that view model and does not choose between raw messages, current-turn rows,
-and `ConversationView` action metadata inline.
+and passes only renderer annotation records selected by the surface/interface
+selector boundary for feedback, transparency metadata, and token counts. The
+pending bridge is projected from `pendingTurn` directly, so a view-time render
+does not receive the full raw active workspace message transcript as a
+competing read model. Raw `ROWS`/display-row stream events remain Electron IPC
+compatibility plumbing only; the renderer chat projection hook does not
+subscribe to them or write those rows into `ChatWorkspaceState.messages`. The
+component consumes that view model and does not choose between raw messages,
+current-turn rows, and `ConversationView` action metadata inline.
 When checkout/fork commands return a `ConversationView`, `ChatInterface` stores
 only that SDK view for the target conversation; it does not project
 `displayRows` back into active workspace messages.
