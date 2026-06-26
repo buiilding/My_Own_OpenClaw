@@ -4,13 +4,8 @@
 
 import { useEffect, useRef } from 'react';
 import {
-  useChatStore,
-} from '../stores/chatStore';
-import {
-  projectWorkspaceReadModelState,
-} from '../../../app/runtime/desktopChatWorkspaceStateRuntime';
-import {
   applyPendingTurnBroadcastToChatStore,
+  getProjectedWorkspaceReadModelFromChatStore,
   setIsSendingInChatStore,
   setSdkLiveTurnInChatStore,
   setThinkingSourceEventTypeInChatStore,
@@ -25,12 +20,6 @@ import {
 const {
   applyCurrentTurnProjectionEvent,
 } = DesktopConversationProjectionStreamRuntime;
-
-function getChatWorkspaceReadModel(conversationRef?: string | null) {
-  return projectWorkspaceReadModelState(
-    useChatStore.getState().getWorkspaceState(conversationRef),
-  );
-}
 
 export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map());
@@ -55,7 +44,7 @@ export function useConversationRuntimeProjectionStream(): void {
         currentTurn,
         projectionCursors: projectionCursorsRef.current,
         deps: {
-          getWorkspaceState: getChatWorkspaceReadModel,
+          getWorkspaceState: getProjectedWorkspaceReadModelFromChatStore,
           setSdkLiveTurn: setSdkLiveTurnInChatStore,
           setIsSending: setIsSendingInChatStore,
           setThinkingStatus: setThinkingStatusInChatStore,

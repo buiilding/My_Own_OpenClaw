@@ -12,6 +12,7 @@ import type {
 } from '../../../app/runtime/desktopChatMessageTypes';
 import {
   buildWorkspaceUpdate,
+  projectWorkspaceReadModelState,
   readWorkspaceState,
   resolveChatWorkspaceRef,
   resolveWorkspaceMutationTarget,
@@ -56,6 +57,7 @@ import {
 } from '../../../app/runtime/desktopConversationViewWorkspaceRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 import {
+  selectChatSendReadModel,
   useChatStore,
 } from './chatStore';
 import type {
@@ -174,6 +176,28 @@ const workspaceMessageStateRuntimeDependencies = {
   recordTurnConversationRefs: recordRendererTurnConversationRefs,
   resolveWorkspaceMutationTarget,
 };
+
+export function getActiveConversationRefFromChatStore(): string | null {
+  return useChatStore.getState().activeConversationRef;
+}
+
+export function getWorkspaceStateFromChatStore(
+  conversationRef?: string | null,
+): ChatWorkspaceState {
+  return useChatStore.getState().getWorkspaceState(conversationRef);
+}
+
+export function getProjectedWorkspaceReadModelFromChatStore(
+  conversationRef?: string | null,
+): ChatWorkspaceState {
+  return projectWorkspaceReadModelState(
+    getWorkspaceStateFromChatStore(conversationRef),
+  );
+}
+
+export function getChatSendReadModelFromChatStore(): ReturnType<typeof selectChatSendReadModel> {
+  return selectChatSendReadModel(useChatStore.getState());
+}
 
 export function applyPendingTurnBroadcastToChatStore(
   action: DesktopPendingTurnBroadcastAction,

@@ -1067,9 +1067,10 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(projectionSource).toContain('desktopConversationProjectionStreamRuntime');
     expect(projectionSource).toContain('DesktopConversationProjectionStreamRuntime');
-    expect(projectionSource).toContain('projectWorkspaceReadModelState');
-    expect(projectionSource).toContain('getWorkspaceState(conversationRef)');
-    expect(projectionSource).toContain('getWorkspaceState: getChatWorkspaceReadModel');
+    expect(projectionSource).toContain('getProjectedWorkspaceReadModelFromChatStore');
+    expect(projectionSource).not.toContain('projectWorkspaceReadModelState');
+    expect(projectionSource).not.toContain('getWorkspaceState(conversationRef)');
+    expect(projectionSource).toContain('getWorkspaceState: getProjectedWorkspaceReadModelFromChatStore');
     expect(projectionSource).not.toContain('getWorkspaceState: useChatStore.getState().getWorkspaceState');
     expect(projectionSource).not.toContain('applyDisplayRowsProjectionEvent');
     expect(projectionSource).not.toContain('buildDisplayRowsProjection');
@@ -2351,8 +2352,9 @@ describe('renderer chat runtime boundary', () => {
 
     expect(senderHookSource).toContain('desktopChatSendPayloadRuntime');
     expect(senderHookSource).toContain('DesktopChatSendPreparationRuntime');
-    expect(senderHookSource).toContain('selectChatSendReadModel');
-    expect(senderHookSource).toContain('getSendReadModel: getChatSendReadModel');
+    expect(senderHookSource).toContain('getChatSendReadModelFromChatStore');
+    expect(senderHookSource).toContain('getSendReadModel: getChatSendReadModelFromChatStore');
+    expect(senderHookSource).not.toContain('selectChatSendReadModel');
     expect(senderHookSource).not.toContain('useChatCommonActions');
     expect(senderHookSource).not.toContain('addMessage');
     expect(senderHookSource).not.toContain('DesktopRuntimeSkin');

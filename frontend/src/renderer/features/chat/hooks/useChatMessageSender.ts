@@ -5,12 +5,13 @@
 
 import { useCallback, useMemo } from 'react';
 import {
-  selectChatSendReadModel,
   useChatStore,
 } from '../stores/chatStore';
 import {
   acceptPendingTurnInChatStore,
   clearPendingTurnInChatStore,
+  getActiveConversationRefFromChatStore,
+  getChatSendReadModelFromChatStore,
 } from '../stores/chatStoreAdapters';
 import { DesktopRendererConfigRuntimeClient } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import {
@@ -30,10 +31,6 @@ const {
   dispatchPreparedDesktopChatTurn,
   prepareDesktopChatSend,
 } = DesktopChatSendPreparationRuntime;
-
-function getChatSendReadModel() {
-  return selectChatSendReadModel(useChatStore.getState());
-}
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -64,8 +61,8 @@ export function useChatMessageSender(
       config,
       dependencies: {
         acceptPendingTurn: acceptPendingTurnInChatStore,
-        getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
-        getSendReadModel: getChatSendReadModel,
+        getActiveConversationRef: getActiveConversationRefFromChatStore,
+        getSendReadModel: getChatSendReadModelFromChatStore,
         setChatActiveConversationRef,
         stopPlayback,
       },

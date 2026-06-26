@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from 'react';
-import { useChatStore } from '../../stores/chatStore';
+import { getWorkspaceStateFromChatStore } from '../../stores/chatStoreAdapters';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
 
@@ -37,7 +37,7 @@ export const useChatStreamCompletionHandler = ({
       event,
       conversationRef,
       {
-        getWorkspaceState: useChatStore.getState().getWorkspaceState,
+        getWorkspaceState: getWorkspaceStateFromChatStore,
       },
     );
     if (!completionState) {

@@ -8,6 +8,8 @@ import {
   useChatStore,
 } from '../stores/chatStore';
 import {
+  getActiveConversationRefFromChatStore,
+  getWorkspaceStateFromChatStore,
   setCompactionDebugInfoInChatStore,
   setIsSendingInChatStore,
   setThinkingSourceEventTypeInChatStore,
@@ -102,7 +104,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     event: { turnRef?: string | null },
     conversationRef?: string | null,
   ): boolean => shouldIgnoreConversationEventForStaleTurn(event, conversationRef, {
-    getWorkspaceState: useChatStore.getState().getWorkspaceState,
+    getWorkspaceState: getWorkspaceStateFromChatStore,
   }), []);
 
   const {
@@ -119,7 +121,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,
     getThinkingSourceEventType: (conversationRef?: string | null) => (
       resolveWorkspaceThinkingSourceEventType(conversationRef, {
-        getWorkspaceState: useChatStore.getState().getWorkspaceState,
+        getWorkspaceState: getWorkspaceStateFromChatStore,
       })
     ),
     setCompactionDebugInfo: setCompactionDebugInfoInChatStore,
@@ -239,7 +241,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   useEffect(() => {
     const removeListener = DesktopConversationRuntimeEventClient.onConversationEvent((data: unknown) => {
       handleConversationEventIngress(data as ConversationEvent, {
-        getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
+        getActiveConversationRef: getActiveConversationRefFromChatStore,
         setActiveConversationRef,
         registerTurnConversationRef: registerRendererTurnConversationRef,
         enableTranscript,

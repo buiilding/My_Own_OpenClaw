@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: route hook-level active-conversation, workspace, projected
+  read-model, and send read-model reads through `chatStoreAdapters`, keeping
+  direct Zustand `getState()` access out of stream and send hooks. No migration
+  required.
 - frontend/attachments: move SDK image attachment source extraction into
   `DesktopSdkDisplayAttachmentProjection.readSdkImageAttachmentSource`, so the
   React artifact image resolver no longer validates SDK attachment lifecycle

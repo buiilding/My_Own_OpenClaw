@@ -70,7 +70,10 @@ All mutating actions accept optional `conversationRef` and write into that works
 `chatStore.ts` is the Zustand state/selector module. Workspace mutation
 adapter functions live in `chatStoreAdapters.ts`, which imports the runtime
 mutation helpers and applies their returned state updates through
-`useChatStore.setState(...)`.
+`useChatStore.setState(...)`. Hooks that need active conversation, workspace,
+projected read-model, or send read-model snapshots use named
+`chatStoreAdapters.ts` getters instead of calling `useChatStore.getState()`
+directly.
 
 Message attachment fields used by current renderer message paths:
 
