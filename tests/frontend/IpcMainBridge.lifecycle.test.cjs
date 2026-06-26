@@ -298,7 +298,6 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       userMessageId: 'user-pending',
       text: 'start now',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     };
 
     handlers['windie:pending-turn']({}, {
@@ -645,7 +644,6 @@ describe('ipc.cjs bridge lifecycle/config', () => {
         userMessageId: 'user-global-pending',
         text: 'pending stop',
         timestamp: '2026-06-16T00:00:00.000Z',
-        attachmentFilenames: null,
       },
     });
 
@@ -668,7 +666,6 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       userMessageId: 'user-global-pending',
       text: 'pending stop',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     };
     handlers['windie:pending-turn']({}, {
       type: 'pending',

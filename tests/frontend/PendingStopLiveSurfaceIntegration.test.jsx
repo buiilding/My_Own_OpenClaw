@@ -93,7 +93,6 @@ describe('pending stop live surface integration', () => {
       userMessageId: 'user-pending-stop',
       text: 'pending stop',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     });
     setIsSendingInChatStore(false, 'conv-pending-stop');
 

@@ -122,7 +122,6 @@ describe('ipc_renderer_windows', () => {
       userMessageId: 'user-1',
       text: 'hello',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     };
 
     const runtime = createRendererWindowRuntime({

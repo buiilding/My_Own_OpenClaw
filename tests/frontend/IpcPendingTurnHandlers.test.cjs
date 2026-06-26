@@ -90,8 +90,8 @@ describe('pending turn IPC handlers', () => {
       userMessageId: 'user-1',
       text: '',
       timestamp: ' 2026-06-19T00:00:00.000Z ',
-      attachmentFilenames: [' one.png ', 'two.png'],
     });
+    expect(getLatestPendingTurn()).not.toHaveProperty('attachmentFilenames');
   });
 
   test('rejects incomplete pending-turn payloads through the runtime', () => {
@@ -129,7 +129,6 @@ describe('pending turn IPC handlers', () => {
       userMessageId: 'user-1',
       text: 'hello',
       timestamp: '2026-06-19T00:00:00.000Z',
-      attachmentFilenames: null,
     });
     expect(broadcastToRenderers).toHaveBeenCalledWith('windie:pending-turn', {
       type: 'pending',
@@ -292,7 +291,6 @@ describe('pending turn IPC handlers', () => {
       userMessageId: 'user-2',
       text: 'next',
       timestamp: '2026-06-20T00:00:00.000Z',
-      attachmentFilenames: null,
     });
   });
 

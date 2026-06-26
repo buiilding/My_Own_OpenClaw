@@ -30,6 +30,10 @@ All notable changes to WindieOS will be documented in this file.
   `latestCurrentTurnProjection` to `latestSdkLiveTurn`, matching the SDK
   live-turn boundary while preserving `snapshot.currentTurn` payload handling.
   No migration required.
+- frontend/pending-turn: drop `attachmentFilenames` from Electron-main
+  pending-turn state and broadcasts, keeping the pre-view bridge limited to
+  identity, text, and timestamp while SDK display rows own attachment metadata.
+  No migration required.
 - frontend/state: rename private no-view live-turn workspace storage from
   `currentTurnProjection` to `sdkLiveTurn`, removing the raw current-turn name
   from production renderer workspace state. No migration required.

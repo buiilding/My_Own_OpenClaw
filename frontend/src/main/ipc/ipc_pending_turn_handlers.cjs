@@ -28,20 +28,12 @@ function normalizePendingTurnPayload(value) {
   if (!conversationRef || !turnRef || !userMessageId || text === null || !timestamp) {
     return null;
   }
-  const attachmentFilenames = Array.isArray(pendingTurn.attachmentFilenames)
-    ? pendingTurn.attachmentFilenames.filter((entry) => (
-      typeof entry === 'string' && entry.trim()
-    ))
-    : null;
   return {
     conversationRef,
     turnRef,
     userMessageId,
     text,
     timestamp,
-    attachmentFilenames: attachmentFilenames && attachmentFilenames.length > 0
-      ? attachmentFilenames
-      : null,
   };
 }
 
