@@ -152,12 +152,11 @@ describe('renderer chat runtime boundary', () => {
     expect(surfaceRuntimeSource).toContain('resolveLiveTurnPresentationInput');
     expect(surfaceRuntimeSource).toContain('buildChatSurfaceControllerStateFromSurfaceState');
     expect(surfaceRuntimeSource).toContain('const conversationView = isObject(surfaceState.conversationView)');
-    expect(surfaceRuntimeSource).toContain('const hasConversationView = isObject(conversationView)');
-    expect(surfaceRuntimeSource).toContain('sdkLiveTurn: hasConversationView ? null : surfaceState.sdkLiveTurn ?? null');
+    expect(surfaceRuntimeSource).not.toContain('sdkLiveTurn: hasConversationView ? null : surfaceState.sdkLiveTurn ?? null');
     expect(surfaceRuntimeSource).not.toContain('surfaceState.currentTurnProjection');
-    expect(surfaceRuntimeSource).toContain('const rendererFallbackMessages = hasConversationView ? [] : messages');
-    expect(surfaceRuntimeSource).toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');
-    expect(surfaceRuntimeSource).toContain('sdkLiveTurn: effectiveSdkLiveTurn');
+    expect(surfaceRuntimeSource).toContain('const rendererFallbackMessages = Array.isArray(messages) ? messages : []');
+    expect(surfaceRuntimeSource).not.toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');
+    expect(surfaceRuntimeSource).toContain('sdkLiveTurn,');
     expect(surfaceRuntimeSource).toContain('messages: rendererFallbackMessages');
     expect(surfaceRuntimeSource).toContain('conversationView?.surfaces');
     expect(surfaceRuntimeSource).toContain('conversationView?.liveTurn?.canStop');
@@ -3490,8 +3489,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).toContain('buildThreadPresentationMessages');
     expect(chatInterfacePresentationRuntimeSource).toContain('DesktopConversationDisplayProjection');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildConversationViewChatMessages');
-    expect(chatInterfacePresentationRuntimeSource).toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');
-    expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurn: effectiveSdkLiveTurn');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');
+    expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurn,');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('currentTurnProjection = null');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('selectRendererMessageAnnotations');
     expect(chatInterfacePresentationRuntimeSource).toContain('rendererAnnotations = []');

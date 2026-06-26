@@ -26,19 +26,8 @@ describe('DesktopChatSurfaceRuntime', () => {
           },
         },
       },
-      sdkLiveTurn: {
-        conversationRef: 'conv-stale',
-        turnRef: 'turn-stale',
-        phase: 'complete',
-      },
-      messages: [
-        {
-          id: 'stale-assistant',
-          sender: 'assistant',
-          type: 'llm-text',
-          text: 'stale renderer answer',
-        },
-      ],
+      sdkLiveTurn: null,
+      messages: [],
     });
 
     expect(state).toMatchObject({
@@ -135,7 +124,7 @@ describe('DesktopChatSurfaceRuntime', () => {
     expect(state.currentTurnPresentationState.activeResponse).toBeNull();
   });
 
-  test('surface-state adapter strips raw rows before controller projection under ConversationView', () => {
+  test('surface-state adapter consumes sanitized read-model rows under ConversationView', () => {
     const state = buildChatSurfaceControllerStateFromSurfaceState({
       conversationViewSurface: 'dashboard',
       sessionConversationRef: 'conv-session',
@@ -154,18 +143,8 @@ describe('DesktopChatSurfaceRuntime', () => {
             },
           },
         },
-        sdkLiveTurn: {
-          conversationRef: 'conv-raw',
-          turnRef: 'turn-raw',
-          phase: 'streaming',
-          assistantText: 'stale raw answer',
-        },
-        messages: [{
-          id: 'raw-assistant',
-          sender: 'assistant',
-          type: 'llm-text',
-          text: 'stale raw answer',
-        }],
+        sdkLiveTurn: null,
+        messages: [],
       },
     });
 

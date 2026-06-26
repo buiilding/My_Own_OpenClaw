@@ -47,6 +47,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/surfaces: rename the visible lifecycle pending-handoff helper to
   `resolvePendingTurnForSdkLiveTurn`, keeping live surface naming aligned with
   the SDK live-turn boundary. No migration required.
+- frontend/surfaces: stop re-sanitizing `sdkLiveTurn` and raw messages inside
+  chat surface and interface presentation adapters; they now consume the
+  workspace read model as their input authority. No migration required.
 - frontend/attachments: rename the app-runtime artifact image resolver to
   `DesktopAttachmentImageRuntime`, so chat attachment rendering no longer
   imports a screenshot-named resolver facade. No migration required.

@@ -29,7 +29,6 @@ function buildChatInterfacePresentationState({
   sdkLiveTurn = null,
 } = {}) {
   const hasConversationView = isConversationView(conversationView);
-  const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
   const baseMessages = hasConversationView
     ? buildConversationViewChatMessages({
       conversationView,
@@ -41,7 +40,7 @@ function buildChatInterfacePresentationState({
   return {
     renderedMessages: buildThreadPresentationMessages(baseMessages, {
       conversationView,
-      sdkLiveTurn: effectiveSdkLiveTurn,
+      sdkLiveTurn,
       activeConversationRef,
     }),
     canEditMessages: hasConversationView

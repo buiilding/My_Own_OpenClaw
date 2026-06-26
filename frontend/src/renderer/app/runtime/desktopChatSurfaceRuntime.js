@@ -56,21 +56,20 @@ function buildChatSurfaceControllerState({
   sessionConversationRef = null,
 } = {}) {
   const hasConversationView = isObject(conversationView);
-  const rendererFallbackMessages = hasConversationView ? [] : messages;
-  const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
+  const rendererFallbackMessages = Array.isArray(messages) ? messages : [];
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
     activeConversationRef: resolveSurfaceConversationRef({
       conversationView,
-      sdkLiveTurn: effectiveSdkLiveTurn,
+      sdkLiveTurn,
       sessionConversationRef,
     }),
     pendingTurn,
-    sdkLiveTurn: effectiveSdkLiveTurn,
+    sdkLiveTurn,
     conversationView,
     messages: rendererFallbackMessages,
   });
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
-    sdkLiveTurn: effectiveSdkLiveTurn,
+    sdkLiveTurn,
     conversationView,
     pendingTurn,
     messages: rendererFallbackMessages,
@@ -119,15 +118,12 @@ function buildChatSurfaceControllerStateFromSurfaceState({
   const conversationView = isObject(surfaceState.conversationView)
     ? surfaceState.conversationView
     : null;
-  const hasConversationView = isObject(conversationView);
   return buildChatSurfaceControllerState({
-    messages: hasConversationView
-      ? []
-      : Array.isArray(surfaceState.messages) ? surfaceState.messages : [],
+    messages: Array.isArray(surfaceState.messages) ? surfaceState.messages : [],
     conversationView,
     conversationViewSurface,
     pendingTurn: surfaceState.pendingTurn ?? null,
-    sdkLiveTurn: hasConversationView ? null : surfaceState.sdkLiveTurn ?? null,
+    sdkLiveTurn: surfaceState.sdkLiveTurn ?? null,
     sessionConversationRef,
   });
 }
