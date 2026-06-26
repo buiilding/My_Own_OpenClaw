@@ -16,6 +16,7 @@ const {
   isVisibleResponseOverlayMessage,
 } = DesktopCurrentTurnMessageRuntime;
 const {
+  resolveResponseOverlayDismissalTarget,
   resolveSdkResponseOverlayPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
 const {
@@ -122,6 +123,12 @@ function resolveResponseOverlaySurfaceState({
     currentTurnProjection,
     liveTurnPresentationInput,
   });
+  const responseOverlayDismissalTarget = resolveResponseOverlayDismissalTarget({
+    currentTurnProjection,
+    overlayIntent: liveTurnPresentationInput.overlayIntent,
+    responseOverlayEntries,
+    useSdkLiveTurnPresentation,
+  });
   const responseOverlayMessages = useLocalPendingTurn
     ? messages
     : responseOverlayEntries;
@@ -131,6 +138,7 @@ function resolveResponseOverlaySurfaceState({
     liveTurnPresentationInput,
     messages,
     pendingTurn,
+    responseOverlayDismissalTarget,
     responseOverlayEntries,
     responseOverlayMessages,
     thinkingText: normalizeReasoningText(
@@ -274,10 +282,40 @@ function resolveResponseOverlayPresentationState({
   );
 }
 
+function resolveResponseOverlayPresentationStateForSurfaceState({
+  currentTurnPresentationState,
+  dismissedResponseId = null,
+  responseOverlaySurfaceState = {},
+}: {
+  currentTurnPresentationState: Record<string, unknown>;
+  dismissedResponseId?: string | null;
+  responseOverlaySurfaceState?: {
+    currentTurnProjection?: unknown;
+    liveTurnPresentationInput?: {
+      overlayIntent?: unknown;
+      source?: string | null;
+      useLocalPendingTurn?: boolean;
+      useSdkLiveTurnPresentation?: boolean;
+    };
+    responseOverlayEntries?: ResponseOverlayEntryLike[];
+    visibleTurnLifecycle?: unknown;
+  };
+}) {
+  return resolveResponseOverlayPresentationState({
+    currentTurnPresentationState,
+    currentTurnProjection: responseOverlaySurfaceState.currentTurnProjection,
+    dismissedResponseId,
+    liveTurnPresentationInput: responseOverlaySurfaceState.liveTurnPresentationInput,
+    responseOverlayEntries: responseOverlaySurfaceState.responseOverlayEntries,
+    visibleTurnLifecycle: responseOverlaySurfaceState.visibleTurnLifecycle,
+  });
+}
+
 export const DesktopResponseOverlayViewRuntime = Object.freeze({
   buildResponseOverlayDismissalKey,
   resolveResponseOverlayEntries,
   resolveResponseOverlayPresentationState,
+  resolveResponseOverlayPresentationStateForSurfaceState,
   resolveResponseOverlaySurfaceState,
   resolveResponseOverlayViewContract,
 });

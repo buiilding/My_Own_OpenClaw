@@ -25,7 +25,6 @@ const {
 
 const {
   resolveCurrentTurnPresentationState,
-  resolveResponseOverlayDismissalTarget,
 } = DesktopCurrentTurnPresentationRuntime;
 const {
   isResponseCloseable,
@@ -34,7 +33,7 @@ const {
 } = DesktopCurrentTurnMessageRuntime;
 const {
   buildResponseOverlayDismissalKey,
-  resolveResponseOverlayPresentationState,
+  resolveResponseOverlayPresentationStateForSurfaceState,
   resolveResponseOverlaySurfaceState,
 } = DesktopResponseOverlayViewRuntime;
 const {
@@ -50,9 +49,8 @@ export function useResponseOverlayViewModel({
   );
   const {
     currentTurnPhase,
-    currentTurnProjection,
-    liveTurnPresentationInput: surfacePresentationInput,
     pendingTurn,
+    responseOverlayDismissalTarget,
     responseOverlayEntries,
     responseOverlayMessages,
     thinkingText,
@@ -69,20 +67,6 @@ export function useResponseOverlayViewModel({
   const lastResolvedTraceSignatureRef = useRef(null);
   const lastTypingVisibleRef = useRef(null);
   const lastOverlayIntentModeRef = useRef(null);
-
-  const responseOverlayDismissalTarget = useMemo(() => {
-    return resolveResponseOverlayDismissalTarget({
-      currentTurnProjection,
-      overlayIntent: surfacePresentationInput.overlayIntent,
-      responseOverlayEntries,
-      useSdkLiveTurnPresentation,
-    });
-  }, [
-    currentTurnProjection,
-    responseOverlayEntries,
-    surfacePresentationInput.overlayIntent,
-    useSdkLiveTurnPresentation,
-  ]);
 
   const dismissedResponseId = useMemo(() => {
     const dismissalKey = buildResponseOverlayDismissalKey(responseOverlayDismissalTarget || {});
@@ -104,21 +88,15 @@ export function useResponseOverlayViewModel({
   );
 
   const resolvedCurrentTurnPresentationState = useMemo(
-    () => resolveResponseOverlayPresentationState({
+    () => resolveResponseOverlayPresentationStateForSurfaceState({
       currentTurnPresentationState,
-      currentTurnProjection,
       dismissedResponseId,
-      liveTurnPresentationInput: surfacePresentationInput,
-      responseOverlayEntries,
-      visibleTurnLifecycle,
+      responseOverlaySurfaceState,
     }),
     [
       currentTurnPresentationState,
-      currentTurnProjection,
       dismissedResponseId,
-      responseOverlayEntries,
-      surfacePresentationInput,
-      visibleTurnLifecycle,
+      responseOverlaySurfaceState,
     ],
   );
 
@@ -249,5 +227,12 @@ export function useResponseOverlayViewModel({
     thinkingText,
     handleCloseResponse,
     ...viewIntent,
+    turnId: (
+      viewIntent.turnId
+      || resolvedCurrentTurnPresentationState.overlayIntent?.turnRef
+      || visibleTurnLifecycle?.turnRef
+      || pendingTurn?.turnRef
+      || null
+    ),
   };
 }

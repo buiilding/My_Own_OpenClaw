@@ -9,6 +9,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
     buildResponseOverlayDismissalKey,
     resolveResponseOverlayEntries,
     resolveResponseOverlayPresentationState,
+    resolveResponseOverlayPresentationStateForSurfaceState,
     resolveResponseOverlaySurfaceState,
     resolveResponseOverlayViewContract,
   } = DesktopResponseOverlayViewRuntime;
@@ -168,6 +169,12 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(state).not.toHaveProperty('projectionInput');
     expect(state.pendingTurn).toBeNull();
     expect(state.currentTurnProjection).toBeNull();
+    expect(state.responseOverlayDismissalTarget).toEqual(expect.objectContaining({
+      conversationRef: 'conv-view',
+      turnRef: 'turn-view',
+      guardRef: 'turn-view',
+      responseEntryId: 'entry-view',
+    }));
     expect(state.thinkingText).toBe('');
     expect(state.useLocalPendingTurn).toBe(false);
   });
@@ -267,6 +274,53 @@ describe('desktopResponseOverlayViewRuntime', () => {
       isBusy: true,
       awaitingDotTargetMessageId: null,
     });
+  });
+
+  test('resolves presentation state from sanitized surface state', () => {
+    const responseOverlaySurfaceState = resolveResponseOverlaySurfaceState({
+      chatSurfaceState: {
+        currentTurnProjection: {
+          conversationRef: 'conv-sdk',
+          turnRef: 'turn-sdk',
+          phase: 'streaming',
+          presentation: {
+            hasVisibleContent: true,
+            entries: [{
+              id: 'assistant-sdk',
+              sender: 'assistant',
+              type: 'llm-text',
+              text: 'from sdk',
+            }],
+            overlayIntent: {
+              visible: true,
+              mode: 'response',
+              turnRef: 'turn-sdk',
+              staleGuardRef: 'guard-sdk',
+              conversationRef: 'conv-sdk',
+            },
+          },
+        },
+      },
+    });
+
+    expect(resolveResponseOverlayPresentationStateForSurfaceState({
+      currentTurnPresentationState: {
+        activeResponse: null,
+        hasVisibleReply: false,
+        visibleResponse: null,
+        chatboxSurfaceState: 'compact',
+      },
+      responseOverlaySurfaceState,
+    })).toEqual(expect.objectContaining({
+      activeResponse: expect.objectContaining({
+        id: 'assistant-sdk',
+        text: 'from sdk',
+      }),
+      overlayIntent: expect.objectContaining({
+        turnRef: 'turn-sdk',
+        staleGuardRef: 'guard-sdk',
+      }),
+    }));
   });
 
   test('keeps ConversationView presentation state instead of replaying stale projection state', () => {

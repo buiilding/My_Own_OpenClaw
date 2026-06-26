@@ -2988,8 +2988,9 @@ describe('renderer chat runtime boundary', () => {
     expect(syncSource).not.toContain('setResponseboxSize({');
     expect(overlaySource).not.toContain('currentTurnProjection');
     expect(viewModelSource).toContain('resolveResponseOverlaySurfaceState');
-    expect(viewModelSource).toContain('liveTurnPresentationInput: surfacePresentationInput');
-    expect(viewModelSource).toContain('surfacePresentationInput');
+    expect(viewModelSource).toContain('resolveResponseOverlayPresentationStateForSurfaceState');
+    expect(viewModelSource).toContain('responseOverlaySurfaceState');
+    expect(viewModelSource).not.toContain('surfacePresentationInput');
     expect(viewModelSource).not.toContain('const liveTurnPresentationInput');
     expect(viewModelSource).not.toContain('DesktopLiveTurnSurfaceRuntime');
     expect(viewModelSource).not.toContain('DesktopVisibleTurnLifecycleRuntime');
@@ -2999,6 +3000,7 @@ describe('renderer chat runtime boundary', () => {
     expect(viewModelSource).not.toContain('conversationView = null');
     expect(responseViewRuntimeSource).not.toContain('traceState');
     expect(responseViewRuntimeSource).not.toContain('projectionInput');
+    expect(viewModelSource).not.toContain('currentTurnProjection');
     expect(viewModelSource).not.toContain('currentTurnProjection = null');
     expect(viewModelSource).not.toContain('pendingTurn = null');
     expect(viewModelSource).not.toContain('effectiveCurrentTurnProjection');
