@@ -310,14 +310,14 @@ frontend/src/renderer/
            v
 2. CURRENT-TURN PROJECTION HOOK
    `-> features/chat/hooks/useConversationRuntimeProjectionStream.ts
-       |-> Stores SDK currentTurn projection
+       |-> Applies SDK currentTurn projection through store adapter
        |-> Tracks first assistant/reasoning deltas for UI state
        |-> Tracks tool-call/tool-output phases
        `-> Tracks complete/error phases
            v
 3. CHAT STORE
    `-> features/chat/stores/chatStore.ts
-       |-> setCurrentTurnProjection() - Store SDK live turn state
+       |-> setCurrentTurnProjectionInChatStore() - Store SDK live turn state
        |-> setThinkingStatus() - Update thinking display from projection
        `-> setTokenCounts() - Update token statistics from conversation events
            v
@@ -451,7 +451,7 @@ frontend/src/renderer/
            v
 3. UI UPDATE
    `-> features/chat/hooks/useConversationRuntimeProjectionStream.ts
-       `-> chatStore.setCurrentTurnProjection()
+       `-> setCurrentTurnProjectionInChatStore()
            `-> app/runtime/desktopCurrentTurnMessageRuntime.js renders projected bundle/tool output
 ```
 

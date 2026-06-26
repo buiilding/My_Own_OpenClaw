@@ -3391,6 +3391,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('export function buildResponseOverlayDismissalKey');
     expect(chatStoreSource).toContain('DesktopCurrentTurnWorkspaceRuntime');
     expect(chatStoreSource).toContain('buildSetCurrentTurnProjectionStateUpdate');
+    expect(chatStoreSource).toContain('setCurrentTurnProjectionInChatStore');
+    expect(chatStoreSource).not.toContain('setCurrentTurnProjection:');
     expect(chatStoreSource).not.toContain('buildCurrentTurnWorkspaceMutation');
     expect(chatStoreSource).toContain('DesktopConversationViewWorkspaceRuntime');
     expect(chatStoreSource).toContain('buildSetConversationViewStateUpdate');

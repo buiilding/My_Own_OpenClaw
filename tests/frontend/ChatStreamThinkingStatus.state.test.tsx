@@ -3,7 +3,10 @@
  */
 
 import { act } from '@testing-library/react';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  setCurrentTurnProjectionInChatStore,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   getActiveWorkspaceStateForTest,
   registerBackendAndProjectionListeners,
@@ -114,7 +117,7 @@ describe('useChatStream state + stream handling', () => {
 
     act(() => {
       const store = useChatStore.getState();
-      store.setCurrentTurnProjection({
+      setCurrentTurnProjectionInChatStore({
         conversationRef: 'conv-test',
         turnRef: 'turn-new',
         phase: 'streaming',

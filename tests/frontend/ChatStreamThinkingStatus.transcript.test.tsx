@@ -5,6 +5,7 @@
 import { act } from '@testing-library/react';
 import {
   selectChatInterfaceState,
+  setCurrentTurnProjectionInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
@@ -73,7 +74,7 @@ describe('useChatStream live SDK event ownership', () => {
           turnRef: 'turn-1',
         },
       ], 'conv-1');
-      useChatStore.getState().setCurrentTurnProjection({
+      setCurrentTurnProjectionInChatStore({
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
         phase: 'complete',
@@ -270,7 +271,7 @@ describe('useChatStream live SDK event ownership', () => {
           },
         },
       ], 'conv-1');
-      useChatStore.getState().setCurrentTurnProjection({
+      setCurrentTurnProjectionInChatStore({
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
         phase: 'complete',

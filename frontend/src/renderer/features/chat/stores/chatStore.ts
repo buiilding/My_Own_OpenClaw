@@ -259,10 +259,6 @@ interface ChatState {
     conversationRef?: string | null,
   ) => void;
   setTokenCounts: (counts: TokenCounts | null, conversationRef?: string | null) => void;
-  setCurrentTurnProjection: (
-    currentTurnProjection: CurrentTurnProjection | null,
-    conversationRef?: string | null,
-  ) => void;
   setConversationView: (
     conversationView: ConversationView | null,
     conversationRef?: string | null,
@@ -446,16 +442,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }) ?? state;
     }),
 
-  setCurrentTurnProjection: (currentTurnProjection, conversationRef) =>
-    set((state) => {
-      return buildSetCurrentTurnProjectionStateUpdate<ChatState, ChatWorkspaceState>({
-        conversationRef,
-        currentTurnProjection,
-        deps: currentTurnStateRuntimeDependencies,
-        state,
-      }) ?? state;
-    }),
-
   setConversationView: (conversationView, conversationRef) =>
     set((state) => {
       return buildSetConversationViewStateUpdate<ChatState, ChatWorkspaceState>({
@@ -520,6 +506,20 @@ export function applyPendingTurnBroadcastToChatStore(
     buildPendingTurnBroadcastStateUpdate<ChatState, ChatWorkspaceState>({
       action,
       deps: pendingTurnStateRuntimeDependencies,
+      state,
+    }) ?? state
+  ));
+}
+
+export function setCurrentTurnProjectionInChatStore(
+  currentTurnProjection: CurrentTurnProjection | null,
+  conversationRef?: string | null,
+): void {
+  useChatStore.setState((state) => (
+    buildSetCurrentTurnProjectionStateUpdate<ChatState, ChatWorkspaceState>({
+      conversationRef,
+      currentTurnProjection,
+      deps: currentTurnStateRuntimeDependencies,
       state,
     }) ?? state
   ));

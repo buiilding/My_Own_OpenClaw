@@ -40,7 +40,10 @@ jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => {
 });
 
 import MinimalResponseOverlay from '../../frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  setCurrentTurnProjectionInChatStore,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
 
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 const WORKSPACE_MIRROR_FIELDS = [
@@ -229,7 +232,7 @@ export function setChatState(messages) {
   useChatStore.getState().setIsSending(false);
   useChatStore.getState().setThinkingStatus(null);
   useChatStore.getState().clearPendingTurn();
-  useChatStore.getState().setCurrentTurnProjection(currentTurnProjection);
+  setCurrentTurnProjectionInChatStore(currentTurnProjection);
   useChatStore.getState().setConversationView(null);
 }
 
@@ -237,7 +240,7 @@ export function emitOverlayPhase(phase) {
   act(() => {
     const workspace = useChatStore.getState().getWorkspaceState();
     const currentTurnProjection = buildCurrentTurnProjection(workspace.messages || [], phase);
-    useChatStore.getState().setCurrentTurnProjection(currentTurnProjection);
+    setCurrentTurnProjectionInChatStore(currentTurnProjection);
     useChatStore.getState().setConversationView(null);
   });
 }

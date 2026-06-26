@@ -5,6 +5,7 @@
 import { useEffect, useRef } from 'react';
 import {
   applyPendingTurnBroadcastToChatStore,
+  setCurrentTurnProjectionInChatStore,
   useChatStore,
 } from '../stores/chatStore';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
@@ -18,7 +19,6 @@ const {
 
 export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map());
-  const setCurrentTurnProjection = useChatStore((state) => state.setCurrentTurnProjection);
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
@@ -45,7 +45,7 @@ export function useConversationRuntimeProjectionStream(): void {
         projectionCursors: projectionCursorsRef.current,
         deps: {
           getWorkspaceState: useChatStore.getState().getWorkspaceState,
-          setCurrentTurnProjection,
+          setCurrentTurnProjection: setCurrentTurnProjectionInChatStore,
           setIsSending,
           setThinkingStatus,
           setThinkingSourceEventType,
@@ -57,7 +57,6 @@ export function useConversationRuntimeProjectionStream(): void {
       removeListener?.();
     };
   }, [
-    setCurrentTurnProjection,
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,

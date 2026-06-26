@@ -4,6 +4,7 @@
 
 import {
   applyPendingTurnBroadcastToChatStore,
+  setCurrentTurnProjectionInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
@@ -296,8 +297,8 @@ describe('chatStore', () => {
     };
 
     useChatStore.getState().setActiveConversationRef('conv-user');
-    useChatStore.getState().setCurrentTurnProjection(userProjection, 'conv-user');
-    useChatStore.getState().setCurrentTurnProjection(
+    setCurrentTurnProjectionInChatStore(userProjection, 'conv-user');
+    setCurrentTurnProjectionInChatStore(
       internalProjection,
       'conv-agent-internal',
     );
@@ -453,7 +454,7 @@ describe('chatStore', () => {
       attachmentFilenames: null,
     });
 
-    useChatStore.getState().setCurrentTurnProjection({
+    setCurrentTurnProjectionInChatStore({
       conversationRef: 'conv-sdk',
       turnRef: 'turn-sdk',
       phase: 'awaiting',
@@ -487,7 +488,7 @@ describe('chatStore', () => {
       attachmentFilenames: null,
     });
 
-    useChatStore.getState().setCurrentTurnProjection({
+    setCurrentTurnProjectionInChatStore({
       conversationRef: 'conv-sdk-idle',
       turnRef: 'turn-sdk-idle',
       phase: 'idle',
@@ -596,7 +597,7 @@ describe('chatStore', () => {
       },
     };
     useChatStore.getState().setActiveConversationRef('conv-stop-sdk');
-    useChatStore.getState().setCurrentTurnProjection(currentTurnProjection, 'conv-stop-sdk');
+    setCurrentTurnProjectionInChatStore(currentTurnProjection, 'conv-stop-sdk');
 
     useChatStore.getState().acceptStoppedTurn({
       conversationRef: 'conv-stop-sdk',

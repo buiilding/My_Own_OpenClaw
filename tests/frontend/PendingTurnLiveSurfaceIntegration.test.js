@@ -6,6 +6,7 @@ import { waitFor } from '@testing-library/react';
 import { DesktopChatSendPreparationRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime';
 import {
   applyPendingTurnBroadcastToChatStore,
+  setCurrentTurnProjectionInChatStore,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
@@ -227,7 +228,7 @@ describe('pending-turn live surface integration', () => {
     });
 
     const currentTurnProjection = currentTurnWithPresentation();
-    useChatStore.getState().setCurrentTurnProjection(
+    setCurrentTurnProjectionInChatStore(
       currentTurnProjection,
       currentTurnProjection.conversationRef,
     );
