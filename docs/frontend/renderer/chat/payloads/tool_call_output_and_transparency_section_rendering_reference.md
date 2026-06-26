@@ -147,7 +147,7 @@ SDK tool_output/tool_bundle_output metadata.attachments[]
 -> renderer ChatMessage.attachments
 -> ToolOutputMessage
 -> AttachmentList / AttachmentRendererRegistry
--> useResolvedArtifactImageSrc(attachment)
+-> useResolvedAttachmentImageSrc(attachment)
 ```
 
 Renderer tool-output components do not infer display visuals from
@@ -173,7 +173,7 @@ by the message content components listed above.
 The old standalone screenshot-source test path `MessageScreenshotSrc.test.js`
 and the whole-message `DesktopMessageScreenshotRuntime` path were removed.
 Screenshot source selection is covered through typed attachment rendering,
-`desktopResolvedMessageScreenshotsRuntime.js`, and attachment/artifact tests.
+`desktopAttachmentImageRuntime.js`, and attachment/artifact tests.
 Stale searches for either removed helper should route here.
 
 ## Tool Call Card Contract

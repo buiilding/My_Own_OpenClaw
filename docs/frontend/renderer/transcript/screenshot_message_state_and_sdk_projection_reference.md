@@ -14,7 +14,7 @@ title: "Screenshot Message State and SDK Projection Reference"
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts`
 - `packages/windie-sdk-js/src/projections/legacyVisualAttachmentReplayAdapter.ts`
-- `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js`
 - `frontend/src/renderer/features/chat/components/message/content/AttachmentList.jsx`
 - `tests/frontend/ScreenshotMessageState.test.js`
 - `tests/frontend/SdkDisplayChatMessageProjection.test.ts`
@@ -60,7 +60,7 @@ display-row compatibility adapters, not renderer replay actions or renderer
 screenshot state. Renderer feature code should render image descriptors through
 `AttachmentList`/`AttachmentRendererRegistry`; those components resolve ready
 artifact-backed images with
-`DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc`.
+`DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc`.
 `UserMessage` must not render `attachmentFilenames[]` as a separate visible
 fallback; filename metadata is compatibility/context data until the SDK display
 row provides typed `attachments[]`.
@@ -118,7 +118,7 @@ If a replayed or resumed image is missing:
    converted `screenshotRef`, `screenshotUrl`, or `screenshot_refs`
 3. confirm `screenshot` is not being used as renderer display input
 4. check `AttachmentList` / `AttachmentRendererRegistry` for descriptor state
-5. check `desktopResolvedMessageScreenshotsRuntime.js` fetch/cache behavior for remote
+5. check `desktopAttachmentImageRuntime.js` fetch/cache behavior for remote
    artifact URLs
 
 If the missing image was sent from the chat pill while the dashboard still shows

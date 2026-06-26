@@ -915,9 +915,9 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
   });
 
-  test('chat screenshot presentation builds artifact URLs through app runtime client', async () => {
-    const resolvedScreenshotSource = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js'),
+  test('chat attachment image presentation builds artifact URLs through app runtime client', async () => {
+    const resolvedAttachmentSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js'),
       'utf8',
     );
     const replayActionsSource = await fs.readFile(
@@ -946,7 +946,7 @@ describe('renderer chat runtime boundary', () => {
     );
 
     for (const source of [
-      resolvedScreenshotSource,
+      resolvedAttachmentSource,
       replayActionsSource,
       composerAttachmentSource,
       chatStreamEventPayloadSource,
@@ -954,11 +954,11 @@ describe('renderer chat runtime boundary', () => {
       expect(source).not.toContain('infrastructure/services/screenshotMessageState');
       expect(source).not.toContain('infrastructure/services/ArtifactImageUtils');
     }
-    expect(resolvedScreenshotSource).not.toContain('desktopMessageScreenshotRuntime');
-    expect(resolvedScreenshotSource).toContain('export const DesktopResolvedMessageScreenshotsRuntime = Object.freeze');
-    expect(resolvedScreenshotSource).not.toContain('useResolvedMessageScreenshotSrc');
-    expect(resolvedScreenshotSource).toContain('DesktopArtifactRuntimeClient.inferArtifactRefFromUrl');
-    expect(resolvedScreenshotSource).toContain('DesktopArtifactRuntimeClient.fetchArtifactImage');
+    expect(resolvedAttachmentSource).not.toContain('desktopMessageScreenshotRuntime');
+    expect(resolvedAttachmentSource).toContain('export const DesktopAttachmentImageRuntime = Object.freeze');
+    expect(resolvedAttachmentSource).not.toContain('useResolvedMessageScreenshotSrc');
+    expect(resolvedAttachmentSource).toContain('DesktopArtifactRuntimeClient.inferArtifactRefFromUrl');
+    expect(resolvedAttachmentSource).toContain('DesktopArtifactRuntimeClient.fetchArtifactImage');
     expect(replayActionsSource).not.toContain('DesktopArtifactRuntimeClient.resolveReplayScreenshotState');
     expect(composerAttachmentSource).toContain('DesktopArtifactRuntimeClient.resolveArtifactImageExtension');
     expect(chatStreamEventPayloadSource).toContain('DesktopArtifactRuntimeClient.buildRemoteScreenshotAttachment');
@@ -2351,7 +2351,7 @@ describe('renderer chat runtime boundary', () => {
 
   test('message artifact image UI routes desktop IPC through app runtime client', async () => {
     const resolverSource = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js'),
       'utf8',
     );
     const userMessageSource = await fs.readFile(
@@ -2377,7 +2377,7 @@ describe('renderer chat runtime boundary', () => {
 
     expect(resolverSource).not.toContain('FETCH_ARTIFACT_IMAGE');
     expect(resolverSource).not.toContain('IpcBridge.invoke');
-    expect(resolverSource).toContain('DesktopResolvedMessageScreenshotsRuntime');
+    expect(resolverSource).toContain('DesktopAttachmentImageRuntime');
     expect(resolverSource).toContain('DesktopArtifactRuntimeClient.fetchArtifactImage');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/useResolvedMessageScreenshots.js'),
@@ -2389,7 +2389,7 @@ describe('renderer chat runtime boundary', () => {
     expect(userMessageSource).not.toContain('user-file-attachments');
     expect(attachmentRegistrySource).toContain('DesktopArtifactRuntimeClient.showImageContextMenu');
     expect(toolOutputSource).toContain('AttachmentList');
-    expect(toolOutputSource).not.toContain('DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrc');
+    expect(toolOutputSource).not.toContain('useResolvedMessageScreenshotSrc');
     expect(toolOutputStateSource).not.toContain('screenshotMessageState');
     expect(toolOutputStateSource).not.toContain('screenshotRef');
     expect(toolOutputStateSource).not.toContain('screenshotUrl');

@@ -1,12 +1,12 @@
 /**
- * Resolves message screenshot sources, including asynchronous artifact images.
+ * Resolves SDK attachment image sources, including asynchronous artifact images.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DesktopArtifactRuntimeClient } from './desktopArtifactRuntimeClient';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 
-const MAX_SCREENSHOT_SOURCE_CACHE_ENTRIES = 100;
+const MAX_ATTACHMENT_IMAGE_SOURCE_CACHE_ENTRIES = 100;
 
 const artifactImagePromiseCache = new Map();
 const artifactImageSourceCache = new Map();
@@ -19,7 +19,7 @@ function rememberBoundedCacheEntry(cache, key, value) {
     cache.delete(key);
   }
   cache.set(key, value);
-  while (cache.size > MAX_SCREENSHOT_SOURCE_CACHE_ENTRIES) {
+  while (cache.size > MAX_ATTACHMENT_IMAGE_SOURCE_CACHE_ENTRIES) {
     const oldestKey = cache.keys().next().value;
     cache.delete(oldestKey);
   }
@@ -76,7 +76,7 @@ async function resolveArtifactAttachmentSrc(attachment) {
   return pending;
 }
 
-function resolveStaticScreenshotAttachmentSrc(attachment) {
+function resolveStaticAttachmentImageSrc(attachment) {
   if (!attachment || typeof attachment !== 'object') {
     return null;
   }
@@ -102,7 +102,7 @@ function useAttachmentIdentityNonce(attachment) {
   return nonce;
 }
 
-function useResolvedArtifactImageSrc(attachment) {
+function useResolvedAttachmentImageSrc(attachment) {
   const screenshotRef = attachment?.screenshotRef ?? null;
   const screenshotUrl = attachment?.screenshotUrl ?? null;
   const screenshotContentType = attachment?.contentType ?? attachment?.screenshotContentType ?? null;
@@ -113,7 +113,7 @@ function useResolvedArtifactImageSrc(attachment) {
     screenshotContentType,
   }), [screenshotRef, screenshotUrl, screenshotContentType]);
   const [resolvedSrc, setResolvedSrc] = useState(
-    resolveStaticScreenshotAttachmentSrc(normalizedAttachment)
+    resolveStaticAttachmentImageSrc(normalizedAttachment)
     || cachedArtifactAttachmentSrc(normalizedAttachment)
     || null,
   );
@@ -122,7 +122,7 @@ function useResolvedArtifactImageSrc(attachment) {
     let cancelled = false;
     const retryNonce = attachmentIdentityNonce;
     void retryNonce;
-    const staticSrc = resolveStaticScreenshotAttachmentSrc(normalizedAttachment);
+    const staticSrc = resolveStaticAttachmentImageSrc(normalizedAttachment);
     if (staticSrc) {
       setResolvedSrc((currentSrc) => (currentSrc === staticSrc ? currentSrc : staticSrc));
       return () => {
@@ -157,6 +157,6 @@ function useResolvedArtifactImageSrc(attachment) {
   return resolvedSrc;
 }
 
-export const DesktopResolvedMessageScreenshotsRuntime = Object.freeze({
-  useResolvedArtifactImageSrc,
+export const DesktopAttachmentImageRuntime = Object.freeze({
+  useResolvedAttachmentImageSrc,
 });

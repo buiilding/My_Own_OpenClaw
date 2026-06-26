@@ -53,7 +53,7 @@ frontend/src/renderer/
 |   |   |-- desktopMessageInputRuntime.js # Renderer outgoing message payload normalization facade
 |   |   |-- desktopMessageListRuntime.js # Renderer message-list scroll/action/compaction presentation state facade
 |   |   |-- desktopMessageSendUiRuntime.ts # Renderer main-window vs overlay-chatbox send-surface UI policy facade
-|   |   |-- desktopResolvedMessageScreenshotsRuntime.js # Renderer async message screenshot artifact source resolver hook facade
+|   |   |-- desktopAttachmentImageRuntime.js # Renderer async SDK attachment image source resolver hook facade
 |   |   |-- desktopMessageSourceTagRuntime.js # Renderer dev/source tag label facade for message badges and thinking labels
 |   |   |-- desktopMessageTransparencyRuntime.js # Renderer message transparency section descriptor facade
 |   |   |-- desktopMessageTokenUsageRuntime.js # Renderer dev token usage tag facade for message badges

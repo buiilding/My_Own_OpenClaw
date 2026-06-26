@@ -1,11 +1,11 @@
 /**
- * Covers resolved message screenshot source behavior in the frontend test suite.
+ * Covers attachment image source behavior in the frontend test suite.
  */
 
 import { act, renderHook, waitFor } from '@testing-library/react';
 import {
-  DesktopResolvedMessageScreenshotsRuntime,
-} from '../../frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime';
+  DesktopAttachmentImageRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime';
 import { DesktopArtifactRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient', () => {
@@ -42,7 +42,7 @@ function createDeferred() {
   return { promise, resolve };
 }
 
-describe('DesktopResolvedMessageScreenshotsRuntime', () => {
+describe('DesktopAttachmentImageRuntime', () => {
   beforeEach(() => {
     DesktopArtifactRuntimeClient.fetchArtifactImage.mockReset();
   });
@@ -53,7 +53,7 @@ describe('DesktopResolvedMessageScreenshotsRuntime', () => {
 
     const { result, rerender } = renderHook(
       ({ attachment }) => (
-        DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc(attachment)
+        DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc(attachment)
       ),
       {
         initialProps: {
@@ -97,7 +97,7 @@ describe('DesktopResolvedMessageScreenshotsRuntime', () => {
 
   test('returns static non-artifact attachment urls without fetching', () => {
     const { result } = renderHook(
-      () => DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc({
+      () => DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc({
         id: 'attachment-static',
         screenshotUrl: 'https://cdn.example/static.png',
       }),
@@ -124,7 +124,7 @@ describe('DesktopResolvedMessageScreenshotsRuntime', () => {
     try {
       const { result, rerender } = renderHook(
         ({ attachment }) => (
-          DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc(attachment)
+          DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc(attachment)
         ),
         { initialProps: { attachment: createAttachment() } },
       );

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: rename the app-runtime artifact image resolver to
+  `DesktopAttachmentImageRuntime`, so chat attachment rendering no longer
+  imports a screenshot-named resolver facade. No migration required.
 - frontend/state: rename the feature-facing SDK current-turn store adapter to
   `setSdkLiveTurnInChatStore`, keeping raw `currentTurnProjection` workspace
   field plumbing behind app-runtime boundaries. No migration required.
