@@ -37,15 +37,19 @@ function buildPendingTurnUserMessage(pendingTurn) {
   if (!pendingTurn || typeof pendingTurn !== 'object') {
     return null;
   }
+  const normalizedPendingTurn = buildPendingTurn(pendingTurn);
+  if (!normalizedPendingTurn) {
+    return null;
+  }
   return {
-    id: pendingTurn.userMessageId,
-    text: pendingTurn.text,
+    id: normalizedPendingTurn.userMessageId,
+    text: normalizedPendingTurn.text,
     sender: 'user',
-    turnRef: pendingTurn.turnRef,
+    turnRef: normalizedPendingTurn.turnRef,
     sourceEventType: 'renderer-compose',
     sourceChannel: 'renderer-local',
     isComplete: true,
-    timestamp: pendingTurn.timestamp,
+    timestamp: normalizedPendingTurn.timestamp,
     attachments: null,
   };
 }

@@ -250,9 +250,11 @@ describe('desktopConversationDisplayProjection', () => {
         content: '',
       }]),
       pendingTurn: {
+        conversationRef: 'conv-1',
         turnRef: 'turn-1',
         userMessageId: 'turn-1-sdk-evt-000002-user_message',
         text: 'inspect recent commits',
+        timestamp: '2026-06-25T12:00:00.000Z',
       },
       preserveRendererAnnotations: true,
     })).toEqual([
@@ -261,6 +263,32 @@ describe('desktopConversationDisplayProjection', () => {
         id: sdkToolCall.id,
         sender: sdkToolCall.sender,
         turnRef: sdkToolCall.turnRef,
+      }),
+    ]);
+  });
+
+  test('does not synthesize a pending bridge from partial pending state', () => {
+    expect(buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'tool-row',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_call',
+        content: '',
+      }]),
+      pendingTurn: {
+        turnRef: 'turn-1',
+        userMessageId: 'pending-user',
+        text: 'partial pending prompt',
+      },
+      preserveRendererAnnotations: true,
+    })).toEqual([
+      expect.objectContaining({
+        id: 'tool-row',
+        sender: 'assistant',
+        turnRef: 'turn-1',
       }),
     ]);
   });
@@ -287,9 +315,11 @@ describe('desktopConversationDisplayProjection', () => {
         content: 'edited prompt',
       }]),
       pendingTurn: {
+        conversationRef: 'conv-1',
         turnRef: 'turn-edit',
         userMessageId: 'renderer-user-edit',
         text: 'edited prompt',
+        timestamp: '2026-06-25T12:00:00.000Z',
       },
       preserveRendererAnnotations: true,
     })).toEqual([expect.objectContaining(sdkUserSameTurn)]);
@@ -316,9 +346,11 @@ describe('desktopConversationDisplayProjection', () => {
     expect(buildConversationViewChatMessages({
       conversationView,
       pendingTurn: {
+        conversationRef: 'conv-1',
         turnRef: 'turn-edit',
         userMessageId: 'renderer-user-edit',
         text: 'edited prompt',
+        timestamp: '2026-06-25T12:00:00.000Z',
       },
       preserveRendererAnnotations: true,
     })).toEqual([
@@ -331,9 +363,11 @@ describe('desktopConversationDisplayProjection', () => {
     expect(buildConversationViewChatMessages({
       conversationView,
       pendingTurn: {
+        conversationRef: 'conv-1',
         turnRef: 'turn-edit',
         userMessageId: 'renderer-user-edit',
         text: 'edited prompt',
+        timestamp: '2026-06-25T12:00:00.000Z',
       },
       preserveRendererAnnotations: true,
     })[0]).not.toHaveProperty('attachments');

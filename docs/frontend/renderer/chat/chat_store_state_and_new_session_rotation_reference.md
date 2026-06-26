@@ -162,7 +162,10 @@ replay/store compatibility adapters and low-level artifact helpers.
   preserves the raw workspace `messages` list and stores only `pendingTurn`,
   because presentation projects the short bridge from `pendingTurn` directly
   for both no-view and `ConversationView` rendering. The pending user-row shape
-  and SDK live-turn workspace mutation are built by app-runtime helpers.
+  and SDK live-turn workspace mutation are built by app-runtime helpers. The
+  pending row builder rejects partial pending objects that do not match the
+  normalized bridge payload, so projection adapters cannot recover a user row
+  from incomplete renderer state.
   The accept-pending and clear decisions also live in
   `desktopChatPendingTurnStateRuntime.ts`; `chatStoreAdapters.ts` supplies
   workspace read/write dependencies and applies the returned update through the

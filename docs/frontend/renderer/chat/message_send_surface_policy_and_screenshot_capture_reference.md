@@ -133,7 +133,8 @@ When attachment(s) exist:
    preview/ready artifact descriptors. Renderer `UserMessage` display consumes
    typed SDK `attachments[]` only and does not render filename metadata as a
    separate attachment fallback. `DesktopPendingTurnBridgeRuntime` owns
-   pending-turn payload construction for normal sends.
+   pending-turn payload construction for normal sends, and the renderer-local
+   pending user row is projected only from that normalized payload shape.
    Normal sends preserve any existing `ConversationView` in chat-store state
    and store only `pendingTurn` for the short pre-SDK handoff. Presentation
    projects that bridge beside no-view history or SDK display rows until the

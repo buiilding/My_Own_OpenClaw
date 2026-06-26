@@ -45,6 +45,11 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
       text: null,
       timestamp: '2026-06-25T12:00:00.000Z',
     })).toBeNull();
+    expect(DesktopPendingTurnBridgeRuntime.buildPendingTurnUserMessage({
+      turnRef: 'turn-pending',
+      userMessageId: 'user-pending',
+      text: 'hello',
+    })).toBeNull();
   });
 
   test('builds a renderer-local pending user row without visual attachments', () => {

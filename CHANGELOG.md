@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pending-turn: require normalized pending bridge payloads before
+  projecting renderer-local pending user rows, so partial pending objects no
+  longer recover chat display state under `ConversationView`. No migration
+  required.
 - frontend/send: make first-user-message read-model checks treat any
   `ConversationView` object as authoritative, preventing direct send-state
   callers from falling back to raw chat-store messages under partial views. No
