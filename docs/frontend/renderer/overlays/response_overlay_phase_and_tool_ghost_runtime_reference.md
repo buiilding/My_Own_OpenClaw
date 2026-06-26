@@ -221,6 +221,10 @@ Contract ownership:
   value-level view model fields to `buildResponseOverlayTraceSummary(...)` and
   logs the returned trace inputs instead of recomputing turn ids, text lengths,
   or JSON state signatures inline.
+- `DesktopResponseOverlayViewRuntime` owns response overlay latest source-tagged
+  entry selection, entry signature construction, and closeability checks.
+  `useResponseOverlayViewModel(...)` passes entry lists and visibility/busy
+  booleans to the runtime instead of importing current-turn message classifiers.
 - `DesktopRendererTraceRuntime` also owns response overlay view-model
   live-surface trace payload, resolved-event, typing-event, intent-event, and
   reason mapping. `useResponseOverlayViewModel(...)` reports value-level SDK,

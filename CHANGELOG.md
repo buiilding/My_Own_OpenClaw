@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: move response-overlay latest-entry selection, entry
+  signature, and closeability decisions into `DesktopResponseOverlayViewRuntime`,
+  so `useResponseOverlayViewModel` no longer imports current-turn message
+  classifiers directly. No migration required.
 - frontend/overlay: move minimal response-overlay trace summary/signature
   construction into `DesktopResponseOverlayViewRuntime`, leaving
   `MinimalResponseOverlay` to log runtime-built state, snapshot, and render

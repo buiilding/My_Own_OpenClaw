@@ -7,9 +7,6 @@ import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/deskto
 import { useChatStore } from '../../chat/stores/chatStore';
 import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 import {
-  DesktopCurrentTurnMessageRuntime,
-} from '../../../app/runtime/desktopCurrentTurnMessageRuntime';
-import {
   DesktopResponseOverlayViewRuntime,
 } from '../../../app/runtime/desktopResponseOverlayViewRuntime';
 import { DesktopChatPillSessionRuntime } from '../../../app/runtime/desktopChatPillSessionRuntime';
@@ -27,12 +24,10 @@ const {
   resolveCurrentTurnPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
 const {
-  isResponseCloseable,
-  isResponseOverlayProgressMessage,
-  isResponseOverlaySourceTaggedMessage,
-} = DesktopCurrentTurnMessageRuntime;
-const {
+  buildResponseOverlayEntrySignature,
   resolveDismissedResponseOverlayEntryId,
+  resolveLatestSourceTaggedResponseOverlayEntry,
+  resolveResponseOverlayCloseable,
   resolveResponseOverlayPresentationStateForSurfaceState,
   resolveResponseOverlaySurfaceState,
 } = DesktopResponseOverlayViewRuntime;
@@ -113,36 +108,34 @@ export function useResponseOverlayViewModel({
     visibleTurnLifecycle,
   ]);
 
-  const latestSourceTaggedResponseEntry = useMemo(() => {
-    for (let index = responseOverlayEntries.length - 1; index >= 0; index -= 1) {
-      const entry = responseOverlayEntries[index];
-      if (isResponseOverlaySourceTaggedMessage(entry)) {
-        return entry;
-      }
-    }
-    return null;
-  }, [responseOverlayEntries]);
-
-  const responseEntrySignature = useMemo(
-    () => responseOverlayEntries.map((entry) => `${entry.id}:${entry.text}`).join('\u0001'),
+  const latestSourceTaggedResponseEntry = useMemo(
+    () => resolveLatestSourceTaggedResponseOverlayEntry({
+      responseOverlayEntries,
+    }),
     [responseOverlayEntries],
   );
 
-  const responseIsCloseable = useMemo(() => {
-    if (!viewIntent.responseVisible) {
-      return false;
-    }
-    if (resolvedCurrentTurnPresentationState.isBusy) {
-      return false;
-    }
-    return isResponseCloseable(latestSourceTaggedResponseEntry)
-      || responseOverlayEntries.some(isResponseOverlayProgressMessage);
-  }, [
-    resolvedCurrentTurnPresentationState.isBusy,
-    latestSourceTaggedResponseEntry,
-    responseOverlayEntries,
-    viewIntent.responseVisible,
-  ]);
+  const responseEntrySignature = useMemo(
+    () => buildResponseOverlayEntrySignature({
+      responseOverlayEntries,
+    }),
+    [responseOverlayEntries],
+  );
+
+  const responseIsCloseable = useMemo(
+    () => resolveResponseOverlayCloseable({
+      isBusy: resolvedCurrentTurnPresentationState.isBusy,
+      latestSourceTaggedResponseEntry,
+      responseOverlayEntries,
+      responseVisible: viewIntent.responseVisible,
+    }),
+    [
+      resolvedCurrentTurnPresentationState.isBusy,
+      latestSourceTaggedResponseEntry,
+      responseOverlayEntries,
+      viewIntent.responseVisible,
+    ],
+  );
 
   useEffect(() => {
     const overlayIntent = resolvedCurrentTurnPresentationState.overlayIntent ?? null;

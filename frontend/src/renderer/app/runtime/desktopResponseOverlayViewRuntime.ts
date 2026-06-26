@@ -13,6 +13,9 @@ const {
   buildConversationViewLiveTurnMessages,
   buildLegacyNoPresentationCurrentTurnMessages,
   buildCurrentTurnMessagesFromPresentation,
+  isResponseCloseable,
+  isResponseOverlayProgressMessage,
+  isResponseOverlaySourceTaggedMessage,
   isVisibleResponseOverlayMessage,
 } = DesktopCurrentTurnMessageRuntime;
 const {
@@ -189,6 +192,55 @@ function resolveDismissedResponseOverlayEntryId(
     return null;
   }
   return responseEntryId;
+}
+
+function resolveLatestSourceTaggedResponseOverlayEntry({
+  responseOverlayEntries = [],
+}: {
+  responseOverlayEntries?: ResponseOverlayEntryLike[] | null;
+} = {}): ResponseOverlayEntryLike | null {
+  if (!Array.isArray(responseOverlayEntries)) {
+    return null;
+  }
+  for (let index = responseOverlayEntries.length - 1; index >= 0; index -= 1) {
+    const entry = responseOverlayEntries[index];
+    if (isResponseOverlaySourceTaggedMessage(entry)) {
+      return entry;
+    }
+  }
+  return null;
+}
+
+function buildResponseOverlayEntrySignature({
+  responseOverlayEntries = [],
+}: {
+  responseOverlayEntries?: ResponseOverlayEntryLike[] | null;
+} = {}): string {
+  if (!Array.isArray(responseOverlayEntries)) {
+    return '';
+  }
+  return responseOverlayEntries.map((entry) => `${entry.id}:${entry.text}`).join('\u0001');
+}
+
+function resolveResponseOverlayCloseable({
+  isBusy = false,
+  latestSourceTaggedResponseEntry = null,
+  responseOverlayEntries = [],
+  responseVisible = false,
+}: {
+  isBusy?: boolean;
+  latestSourceTaggedResponseEntry?: ResponseOverlayEntryLike | null;
+  responseOverlayEntries?: ResponseOverlayEntryLike[] | null;
+  responseVisible?: boolean;
+} = {}): boolean {
+  if (responseVisible !== true || isBusy === true) {
+    return false;
+  }
+  return isResponseCloseable(latestSourceTaggedResponseEntry)
+    || (
+      Array.isArray(responseOverlayEntries)
+      && responseOverlayEntries.some(isResponseOverlayProgressMessage)
+    );
 }
 
 function buildResponseOverlayTraceSummary({
@@ -582,11 +634,14 @@ function resolveResponseOverlayPresentationStateForSurfaceState({
 
 export const DesktopResponseOverlayViewRuntime = Object.freeze({
   buildDismissResponseOverlayEntryStateUpdate,
+  buildResponseOverlayEntrySignature,
   buildResponseOverlayDismissalKey,
   buildResponseOverlayTraceSummary,
   createResponseOverlayWindowGuardSnapshot,
   isResponseOverlayEntryDismissedInState,
   resolveDismissedResponseOverlayEntryId,
+  resolveLatestSourceTaggedResponseOverlayEntry,
+  resolveResponseOverlayCloseable,
   resolveResponseOverlayEntries,
   resolveResponseOverlayPresentationState,
   resolveResponseOverlayPresentationStateForSurfaceState,

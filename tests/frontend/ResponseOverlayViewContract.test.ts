@@ -7,11 +7,14 @@ import { DesktopResponseOverlayViewRuntime } from '../../frontend/src/renderer/a
 describe('desktopResponseOverlayViewRuntime', () => {
   const {
     buildDismissResponseOverlayEntryStateUpdate,
+    buildResponseOverlayEntrySignature,
     buildResponseOverlayDismissalKey,
     buildResponseOverlayTraceSummary,
     createResponseOverlayWindowGuardSnapshot,
     isResponseOverlayEntryDismissedInState,
     resolveDismissedResponseOverlayEntryId,
+    resolveLatestSourceTaggedResponseOverlayEntry,
+    resolveResponseOverlayCloseable,
     resolveResponseOverlayEntries,
     resolveResponseOverlayPresentationState,
     resolveResponseOverlayPresentationStateForSurfaceState,
@@ -161,6 +164,66 @@ describe('desktopResponseOverlayViewRuntime', () => {
       responseVisible: true,
       awaitingVisible: false,
     });
+  });
+
+  test('owns response overlay entry selection, signature, and closeability', () => {
+    const responseOverlayEntries = [
+      {
+        id: 'progress-entry',
+        sender: 'assistant',
+        type: 'tool-explanation',
+        text: 'Searching',
+      },
+      {
+        id: 'assistant-entry',
+        sender: 'assistant',
+        type: 'llm-text',
+        text: 'Final answer',
+        isComplete: true,
+      },
+      {
+        id: 'tool-source',
+        sender: 'assistant',
+        sourceEventType: 'tool-output',
+        text: 'Tool source',
+      },
+    ];
+
+    expect(resolveLatestSourceTaggedResponseOverlayEntry({
+      responseOverlayEntries,
+    })).toBe(responseOverlayEntries[2]);
+    expect(buildResponseOverlayEntrySignature({
+      responseOverlayEntries,
+    })).toBe('progress-entry:Searching\u0001assistant-entry:Final answer\u0001tool-source:Tool source');
+    expect(resolveResponseOverlayCloseable({
+      responseOverlayEntries,
+      latestSourceTaggedResponseEntry: responseOverlayEntries[1],
+      responseVisible: true,
+      isBusy: false,
+    })).toBe(true);
+    expect(resolveResponseOverlayCloseable({
+      responseOverlayEntries,
+      latestSourceTaggedResponseEntry: responseOverlayEntries[1],
+      responseVisible: true,
+      isBusy: true,
+    })).toBe(false);
+    expect(resolveResponseOverlayCloseable({
+      responseOverlayEntries,
+      latestSourceTaggedResponseEntry: responseOverlayEntries[1],
+      responseVisible: false,
+      isBusy: false,
+    })).toBe(false);
+    expect(resolveResponseOverlayCloseable({
+      responseOverlayEntries: [{
+        id: 'progress-entry',
+        sender: 'assistant',
+        type: 'tool-explanation',
+        text: 'Still working',
+      }],
+      latestSourceTaggedResponseEntry: null,
+      responseVisible: true,
+      isBusy: false,
+    })).toBe(true);
   });
 
   test('keeps response overlay window guard identity in app runtime', () => {
