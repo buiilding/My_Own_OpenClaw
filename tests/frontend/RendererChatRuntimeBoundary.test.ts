@@ -1043,6 +1043,7 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN');
     expect(eventClientSource).toContain('function normalizeCurrentTurnProjectionEvent');
     expect(eventClientSource).not.toContain('export function normalizeCurrentTurnProjectionEvent');
+    expect(eventClientSource).not.toContain('onCurrentTurn(listener');
     expect(eventClientSource).not.toContain('DESKTOP_RUNTIME_ON_CHANNELS.ROWS');
     expect(eventClientSource).not.toContain('function normalizeDisplayRowsProjectionEvent');
     expect(eventClientSource).not.toContain('export function normalizeDisplayRowsProjectionEvent');

@@ -82,10 +82,6 @@ export const DesktopConversationRuntimeEventClient = {
     );
   },
 
-  onCurrentTurn(listener: DesktopRuntimeEventListener): (() => void) | undefined {
-    return subscribe(DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN, listener);
-  },
-
   onCurrentTurnProjection(
     listener: (event: DesktopCurrentTurnProjectionEvent) => void,
   ): (() => void) | undefined {

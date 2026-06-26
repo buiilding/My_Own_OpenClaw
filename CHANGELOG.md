@@ -61,6 +61,9 @@ All notable changes to WindieOS will be documented in this file.
   subscription facade from `DesktopConversationRuntimeEventClient`; normal
   chat display rows are consumed through SDK `ConversationView`. No migration
   required.
+- frontend/runtime: remove the unused raw current-turn event facade from
+  `DesktopConversationRuntimeEventClient`; renderer chat code now enters
+  through the normalized projection subscription only. No migration required.
 - frontend/send: stop duplicating attachment filenames into renderer-authored
   send metadata; normal sends now pass typed SDK resources plus the existing
   filename payload/pending bridge, leaving SDK resource resolution to own

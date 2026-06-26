@@ -94,6 +94,10 @@ describe('DesktopConversationRuntimeEventClient', () => {
     expect(DesktopConversationRuntimeEventClient).not.toHaveProperty('onDisplayRowsProjection');
   });
 
+  test('does not expose raw current-turn subscriptions', () => {
+    expect(DesktopConversationRuntimeEventClient).not.toHaveProperty('onCurrentTurn');
+  });
+
   test('pending-turn subscriptions emit normalized broadcast actions', () => {
     const actions: unknown[] = [];
     const unsubscribe = DesktopConversationRuntimeEventClient.onPendingTurn((action) => {
