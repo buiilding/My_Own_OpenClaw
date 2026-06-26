@@ -39,6 +39,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       conversationRef: 'conv-1',
       pendingTurnRef: 'turn-new',
       currentTurnRef: 'turn-new',
+      streamActiveTurnRef: 'turn-new',
       pendingMatchesNewTurn: true,
       currentMatchesNewTurn: true,
       currentMatchesOldTurn: false,
@@ -79,6 +80,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
     })).toEqual(expect.objectContaining({
       currentTurnRef: 'turn-view',
       currentTurnPhase: 'complete',
+      streamActiveTurnRef: 'turn-view',
       currentMatchesOldTurn: true,
       currentMatchesNewTurn: false,
       displayRowCount: 2,

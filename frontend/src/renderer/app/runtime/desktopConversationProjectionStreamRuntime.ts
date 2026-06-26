@@ -119,6 +119,9 @@ function buildReplayProjectionTracePayload({
   const currentTurnPhase = hasConversationView
     ? viewLiveTurn?.phase ?? null
     : workspace.currentTurnProjection?.phase ?? null;
+  const streamActiveTurnRef = hasConversationView
+    ? currentTurnRef
+    : normalizeTurnRef(workspace.streamTracking?.activeTurnRef);
   const messageCount = hasConversationView
     ? 0
     : Array.isArray(workspace.messages) ? workspace.messages.length : 0;
@@ -131,7 +134,7 @@ function buildReplayProjectionTracePayload({
     pendingTurnRef,
     currentTurnRef,
     currentTurnPhase,
-    streamActiveTurnRef: workspace.streamTracking?.activeTurnRef ?? null,
+    streamActiveTurnRef,
     streamPhase: workspace.streamTracking?.phase ?? null,
     messageCount,
     displayRowCount,
