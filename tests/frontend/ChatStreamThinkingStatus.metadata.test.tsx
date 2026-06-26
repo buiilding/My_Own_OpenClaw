@@ -255,15 +255,9 @@ describe('useChatStream message metadata handling', () => {
     const toolCallMessage = messages.at(-1);
     expect(toolCallMessage).toEqual(expect.objectContaining({
       type: 'tool-call',
-      modelFacingToolCall: expect.objectContaining({
-        name: 'run_shell_command',
-        raw_tool_call_preview: expect.stringContaining('"name":"run_shell_command"'),
-        raw_arguments_preview: expect.stringContaining('cat > index.html'),
-        parse_error: 'failed to parse streamed tool-call arguments',
-        execution_skipped: true,
-      }),
+      toolCallDisplayText: expect.stringContaining('"name":"run_shell_command"'),
     }));
-    expect((toolCallMessage?.modelFacingToolCall as Record<string, unknown>)?.arguments).toBeUndefined();
+    expect(toolCallMessage).not.toHaveProperty('modelFacingToolCall');
     expect(toolCallMessage?.text).toBe(
       '{"id":"tool_bad","name":"run_shell_command","arguments":"{\\"command\\":\\"cat > index.html << \\\\\\"EOF\\\\\\"\\"}...[truncated]"}',
     );
@@ -320,16 +314,10 @@ describe('useChatStream message metadata handling', () => {
     );
     expect(toolCallMessage).toEqual(expect.objectContaining({
       type: 'tool-call',
-      modelFacingToolCall: expect.objectContaining({
-        id: 'tool_raw_2',
-        name: 'run_shell_command',
-        arguments: {
-          explanation: 'Create a temporary test file to test the replace tool',
-          command: "echo 'Original text to replace' > /tmp/test_replace.txt",
-        },
-        execution_skipped: true,
-      }),
+      toolCallDisplayText: expect.stringContaining('"name": "run_shell_command"'),
     }));
+    expect(toolCallMessage).not.toHaveProperty('modelFacingToolCall');
+    expect(toolCallMessage?.toolCallDisplayText).toContain('"execution_skipped": true');
   });
 
   test('projected tool-call message marks execution skipped for direct-tool validation failures', () => {
@@ -365,11 +353,9 @@ describe('useChatStream message metadata handling', () => {
     const toolCallMessage = messages.at(-1);
     expect(toolCallMessage).toEqual(expect.objectContaining({
       type: 'tool-call',
-      modelFacingToolCall: expect.objectContaining({
-        name: 'mouse_control',
-        execution_skipped: true,
-        arguments: { action: 'click', x: 100, y: 200 },
-      }),
+      toolCallDisplayText: expect.stringContaining('"name": "mouse_control"'),
     }));
+    expect(toolCallMessage).not.toHaveProperty('modelFacingToolCall');
+    expect(toolCallMessage?.toolCallDisplayText).toContain('"execution_skipped": true');
   });
 });

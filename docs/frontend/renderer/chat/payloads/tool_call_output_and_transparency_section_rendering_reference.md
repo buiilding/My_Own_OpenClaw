@@ -186,13 +186,12 @@ Details panel payload:
 
 1. object `message.toolCallDetails`
 
-SDK display-row projection must set the preview text from display-row content
-and must not forward provider-facing `modelFacingToolCall` as a renderer chat
-message prop. Tool-call render, find, and estimated-token helpers use
-`toolCallDisplayText` only; they do not serialize provider-facing payloads as a
-fallback. Legacy/live message paths may still carry that field until their
-component contracts are migrated, but `ConversationView.displayRows` remains a
-display contract, not a provider-payload recovery channel. Recovery preview and
+SDK display-row and live-turn projection must set the preview text from SDK
+display content and must not forward provider-facing `modelFacingToolCall` as a
+renderer chat message prop. Tool-call render, find, and estimated-token helpers
+use `toolCallDisplayText` only; they do not serialize provider-facing payloads
+as a fallback. `ConversationView.displayRows` and SDK live entries remain
+display contracts, not provider-payload recovery channels. Recovery preview and
 display-only execution state come from SDK current-turn fields such as
 `rawToolCallPreview`, `rawArgumentsPreview`, `parseError`,
 `toolCallValidationFailed`, and `executionSkipped`, not from backend-shaped

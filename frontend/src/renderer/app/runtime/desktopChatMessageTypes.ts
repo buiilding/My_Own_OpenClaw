@@ -36,17 +36,6 @@ export interface ChatMessage {
   success?: boolean;
   correlationId?: string;
   timestamp?: string;
-  modelFacingToolCall?: {
-    id?: string;
-    name?: string;
-    arguments?: Record<string, unknown>;
-    metadata?: Record<string, unknown>;
-    thought_signature?: string;
-    raw_tool_call_preview?: string;
-    raw_arguments_preview?: string;
-    parse_error?: string;
-    execution_skipped?: boolean;
-  } | null;
   toolCallDisplayText?: string | null;
   modelFacingToolOutput?: string | null;
   toolCallDetails?: Record<string, unknown> | null;

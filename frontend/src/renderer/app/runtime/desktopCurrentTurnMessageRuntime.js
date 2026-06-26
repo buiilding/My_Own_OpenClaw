@@ -105,7 +105,6 @@ function buildProjectedToolCallMessage({
     id: `${baseId}:tool:${toolEvent.id}`,
     text: toolCallState.text,
     toolCallDisplayText: toolCallState.toolCallDisplayText,
-    modelFacingToolCall: toolCallState.modelFacingToolCall ?? null,
     toolCallDetails: toolCallState.toolCallDetails ?? null,
     correlationId: toolCallState.correlationId ?? null,
     sourceEventType: toolEvent.kind,
@@ -398,7 +397,6 @@ function buildToolCallMessage(entry, liveTurnContext) {
     ...buildBaseMessageFields(entry, liveTurnContext),
     text: toolCallState.text || text,
     toolCallDisplayText: toolCallState.toolCallDisplayText || text,
-    modelFacingToolCall: toolCallState.modelFacingToolCall ?? null,
     toolCallDetails: toolCallState.toolCallDetails ?? displayToolDetails,
     correlationId: toolCallState.correlationId ?? null,
   });

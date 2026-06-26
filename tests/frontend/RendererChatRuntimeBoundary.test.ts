@@ -1335,6 +1335,7 @@ describe('renderer chat runtime boundary', () => {
     expect(attachmentRendererRegistrySource).not.toContain('screenshotRef: PropTypes');
     expect(attachmentRendererRegistrySource).not.toContain('screenshotUrl: PropTypes');
     expect(messageTypeSource).toContain('attachments?: SdkDisplayAttachment[] | null');
+    expect(messageTypeSource).not.toContain('modelFacingToolCall?:');
     expect(messageTypeSource).not.toContain('attachmentFilenames?:');
     expect(messageTypeSource).not.toContain('screenshot?:');
     expect(messageTypeSource).not.toContain('screenshotRef?:');
@@ -1519,6 +1520,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatMessageClientSource).toContain('export const DesktopChatMessageRuntimeClient = Object.freeze');
     expect(chatMessageClientSource).not.toContain('export {');
     expect(currentTurnMessageSource).toContain('desktopChatMessageRuntimeClient');
+    expect(currentTurnMessageSource).not.toContain('modelFacingToolCall: toolCallState');
     expect(currentTurnMessageSource).toContain('DesktopChatMessageRuntimeClient');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/toolOutputMessages.ts'),
@@ -3453,6 +3455,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('|| entry.id');
     expect(source).not.toContain('entry.structuredPayload');
     expect(source).not.toContain('entry.payload');
+    expect(source).not.toContain('modelFacingToolCall: toolCallState');
     expect(source).not.toContain('screenshotRef');
     expect(source).not.toContain('screenshotUrl');
     expect(toolDetailProjectionSource).toContain('screenshotRef');
@@ -3470,6 +3473,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('buildCurrentTurnMessagesFromSdkLiveTurn');
     expect(source).not.toContain('buildCurrentTurnMessagesFromProjection');
     expect(source).not.toContain('toolEvent.payload');
+    expect(source).not.toContain('modelFacingToolCall: toolCallState');
     expect(source).not.toContain('structuredPayload');
   });
 

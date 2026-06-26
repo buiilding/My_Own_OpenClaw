@@ -441,16 +441,13 @@ describe('desktopThreadPresentationRuntime', () => {
       sender: 'assistant',
       type: 'tool-call',
       text: expect.stringContaining('"name": "read_file"'),
+      toolCallDisplayText: expect.stringContaining('"path": "README.md"'),
       correlationId: 'corr-read',
-      modelFacingToolCall: expect.objectContaining({
-        id: 'call-read',
-        name: 'read_file',
-        arguments: { path: 'README.md' },
-      }),
       toolCallDetails: {
         displaySource: 'sdk-entry-details',
       },
     }));
+    expect(rendered[1]).not.toHaveProperty('modelFacingToolCall');
     expect(rendered[1].text).not.toContain('wrong_backend_tool');
     expect(rendered[1].text).not.toContain('wrong.md');
     expect(rendered[1].correlationId).not.toBe('wrong-correlation');
@@ -588,13 +585,10 @@ describe('desktopThreadPresentationRuntime', () => {
       sender: 'assistant',
       type: 'tool-call',
       text: expect.stringContaining('"name": "read_file"'),
+      toolCallDisplayText: expect.stringContaining('"path": "README.md"'),
       correlationId: 'corr-read',
-      modelFacingToolCall: expect.objectContaining({
-        id: 'call-read',
-        name: 'read_file',
-        arguments: { path: 'README.md' },
-      }),
     }));
+    expect(rendered[1]).not.toHaveProperty('modelFacingToolCall');
     expect(rendered[1].text).not.toContain('wrong_backend_tool');
     expect(rendered[1].text).not.toContain('wrong.md');
     expect(rendered[1]).not.toHaveProperty('toolCallDetails');
@@ -629,12 +623,9 @@ describe('desktopThreadPresentationRuntime', () => {
     expect(rendered[1]).toEqual(expect.objectContaining({
       sender: 'assistant',
       type: 'tool-call',
-      modelFacingToolCall: expect.objectContaining({
-        name: 'read_file',
-        arguments: { path: 'README.md' },
-      }),
+      toolCallDisplayText: expect.stringContaining('"name": "read_file"'),
     }));
-    expect(rendered[1].modelFacingToolCall).not.toHaveProperty('id');
+    expect(rendered[1]).not.toHaveProperty('modelFacingToolCall');
     expect(rendered[1].text).not.toContain('view-entry-tool-row');
   });
 

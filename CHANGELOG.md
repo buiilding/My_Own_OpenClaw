@@ -89,6 +89,9 @@ All notable changes to WindieOS will be documented in this file.
   and estimated token tags depend on display fields instead of recovering
   content or identity from provider-facing `modelFacingToolCall` payloads. No
   migration required.
+- frontend/live-turn: stop re-emitting SDK `modelFacingToolCall` as a renderer
+  `ChatMessage` prop; live tool rows keep provider payloads only long enough to
+  build SDK display text and sanitized detail metadata. No migration required.
 - frontend/live-turn: stop using SDK live-entry row ids as fallback
   model-facing tool-call ids; live tool identity now comes only from SDK tool
   fields such as `requestId` or `modelFacingToolCall`. No migration required.
