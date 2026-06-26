@@ -7,6 +7,7 @@ import { DesktopCurrentTurnMessageRuntime } from './desktopCurrentTurnMessageRun
 import { DesktopCurrentTurnPresentationRuntime } from './desktopCurrentTurnPresentationRuntime';
 import { DesktopLiveTurnSurfaceRuntime } from './desktopLiveTurnSurfaceRuntime';
 import { DesktopVisibleTurnLifecycleRuntime } from './desktopVisibleTurnLifecycleRuntime';
+import { DesktopSdkDisplayChatMessageProjectionRuntime } from './desktopSdkDisplayChatMessageProjectionRuntime';
 
 const AWAITING_VISIBLE_LIFECYCLE_STATUSES = new Set(['local_pending', 'awaiting']);
 const {
@@ -28,6 +29,11 @@ const {
   applyVisibleTurnLifecycleToPresentationState,
   resolveVisibleTurnLifecycle,
 } = DesktopVisibleTurnLifecycleRuntime;
+const {
+  buildChatMessagesFromSdkDisplayRows,
+} = DesktopSdkDisplayChatMessageProjectionRuntime;
+
+type SdkDisplayRowsInput = Parameters<typeof buildChatMessagesFromSdkDisplayRows>[0];
 
 type CurrentTurnPresentationStateLike = {
   visibleTurnLifecycle?: {
@@ -42,6 +48,8 @@ type ResponseOverlayEntryLike = {
   id?: string | null;
   text?: string | null;
   type?: string | null;
+  sourceEventType?: string | null;
+  turnRef?: string | null;
 };
 
 export type ResponseOverlayDismissalInput = {
@@ -150,6 +158,88 @@ function isConversationView(value: unknown): boolean {
       || view.liveTurn
       || view.surfaces,
   );
+}
+
+function conversationViewLiveTurnRef(conversationView: unknown): string | null {
+  const view = recordFromUnknown(conversationView);
+  const liveTurn = recordFromUnknown(view.liveTurn);
+  const surfaces = recordFromUnknown(view.surfaces);
+  const responseOverlay = recordFromUnknown(surfaces.responseOverlay);
+  return (
+    normalizeUnknownString(liveTurn.turnRef)
+    || normalizeUnknownString(responseOverlay.turnRef)
+    || null
+  );
+}
+
+function displayRowsForLiveTurn(conversationView: unknown): unknown[] {
+  const view = recordFromUnknown(conversationView);
+  const displayRows = Array.isArray(view.displayRows) ? view.displayRows : [];
+  const liveTurnRef = conversationViewLiveTurnRef(conversationView);
+  if (!liveTurnRef) {
+    return [];
+  }
+  return displayRows.filter((row) => {
+    const record = recordFromUnknown(row);
+    return normalizeUnknownString(record.turnRef) === liveTurnRef;
+  });
+}
+
+function responseOverlayDisplayRowMessages(conversationView: unknown): ResponseOverlayEntryLike[] {
+  const displayRows = displayRowsForLiveTurn(conversationView);
+  if (displayRows.length === 0) {
+    return [];
+  }
+  return buildChatMessagesFromSdkDisplayRows(displayRows as SdkDisplayRowsInput)
+    .filter(isVisibleResponseOverlayMessage);
+}
+
+function responseOverlayMaterializedSourceTypes(
+  displayMessages: ResponseOverlayEntryLike[],
+): Set<string> {
+  const materializedTypes = new Set<string>();
+  displayMessages.forEach((message) => {
+    const sourceEventType = normalizeString(message.sourceEventType);
+    if (sourceEventType) {
+      materializedTypes.add(sourceEventType);
+    }
+    const type = normalizeString(message.type);
+    if (type) {
+      materializedTypes.add(type);
+    }
+  });
+  return materializedTypes;
+}
+
+function liveEntryMaterializedByDisplayRows(
+  liveMessage: ResponseOverlayEntryLike,
+  materializedTypes: Set<string>,
+): boolean {
+  const sourceEventType = normalizeString(liveMessage.sourceEventType);
+  if (sourceEventType && materializedTypes.has(sourceEventType)) {
+    return true;
+  }
+  const type = normalizeString(liveMessage.type);
+  return Boolean(type && materializedTypes.has(type));
+}
+
+function mergeConversationViewOverlayMessages(conversationView: unknown): ResponseOverlayEntryLike[] {
+  const displayMessages = responseOverlayDisplayRowMessages(conversationView);
+  const liveMessages = buildSdkLiveTurnMessages({
+    conversationView: isConversationView(conversationView) ? conversationView : null,
+    sdkLiveTurn: null,
+  }).filter(isVisibleResponseOverlayMessage);
+  if (displayMessages.length === 0) {
+    return liveMessages;
+  }
+  const materializedTypes = responseOverlayMaterializedSourceTypes(displayMessages);
+  const liveOnlyMessages = liveMessages.filter(
+    (message) => !liveEntryMaterializedByDisplayRows(message, materializedTypes),
+  );
+  return [
+    ...displayMessages,
+    ...liveOnlyMessages,
+  ];
 }
 
 function buildResponseOverlayDismissalKey({
@@ -579,8 +669,11 @@ function resolveResponseOverlayEntries({
   if (liveTurnPresentationInput.useLocalPendingTurn) {
     return [];
   }
+  if (isConversationView(conversationView)) {
+    return mergeConversationViewOverlayMessages(conversationView);
+  }
   return buildSdkLiveTurnMessages({
-    conversationView: isConversationView(conversationView) ? conversationView : null,
+    conversationView: null,
     sdkLiveTurn,
   }).filter(isVisibleResponseOverlayMessage);
 }

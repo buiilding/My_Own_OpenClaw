@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: build response-overlay transcript entries from the active
+  `ConversationView.displayRows` first, then append only non-materialized
+  `liveTurn.entries`, so tool call/output cards remain visible in the floating
+  overlay after the SDK removes them from live entries to prevent dashboard
+  duplication. No migration required.
 - sdk/conversation-view: stop projecting tool calls/outputs/progress into
   `ConversationView.liveTurn.entries` after the same tool event has
   materialized in `ConversationView.displayRows`, so dashboard rendering no

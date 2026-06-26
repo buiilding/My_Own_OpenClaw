@@ -457,6 +457,96 @@ describe('desktopResponseOverlayViewRuntime', () => {
     ]);
   });
 
+  test('keeps materialized current-turn tool rows visible in the response overlay', () => {
+    const entries = resolveResponseOverlayEntries({
+      conversationView: {
+        conversationRef: 'conv-view',
+        displayRows: [
+          {
+            id: 'row-user',
+            conversationRef: 'conv-view',
+            turnRef: 'turn-view',
+            index: 0,
+            role: 'user',
+            type: 'user_message',
+            content: '@script tool screenshot',
+          },
+          {
+            id: 'row-tool-call',
+            conversationRef: 'conv-view',
+            turnRef: 'turn-view',
+            index: 1,
+            role: 'assistant',
+            type: 'tool_call',
+            content: {
+              id: 'scripted_call_1',
+              name: 'screenshot',
+              arguments: {
+                explanation: 'Validate the scripted model tool path.',
+              },
+            },
+          },
+          {
+            id: 'row-tool-output',
+            conversationRef: 'conv-view',
+            turnRef: 'turn-view',
+            index: 2,
+            role: 'tool',
+            type: 'tool_output',
+            content: 'Screenshot captured successfully.',
+            metadata: {
+              toolName: 'screenshot',
+            },
+          },
+          {
+            id: 'row-assistant-final',
+            conversationRef: 'conv-view',
+            turnRef: 'turn-view',
+            index: 3,
+            role: 'assistant',
+            type: 'assistant_message',
+            content: 'Scripted runtime completed 1 tool call(s): screenshot.',
+          },
+        ],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'complete',
+          isBusy: false,
+          entries: [{
+            id: 'live-assistant-final',
+            type: 'llm-text',
+            text: 'Scripted runtime completed 1 tool call(s): screenshot.',
+            sourceEventType: 'assistant_delta',
+            turnRef: 'turn-view',
+          }],
+        },
+      },
+      liveTurnPresentationInput: {
+        source: 'conversation-view',
+      },
+    });
+
+    expect(entries).toEqual([
+      expect.objectContaining({
+        id: 'row-tool-call',
+        type: 'tool-call',
+        sourceEventType: 'tool_call',
+      }),
+      expect.objectContaining({
+        id: 'row-tool-output',
+        type: 'tool-output',
+        sourceEventType: 'tool_output',
+      }),
+      expect.objectContaining({
+        id: 'row-assistant-final',
+        type: 'llm-text',
+        text: 'Scripted runtime completed 1 tool call(s): screenshot.',
+        sourceEventType: 'assistant_message',
+      }),
+    ]);
+    expect(entries).toHaveLength(3);
+  });
+
   test('does not require a source flag before ConversationView blocks raw overlay rows', () => {
     expect(resolveResponseOverlayEntries({
       conversationView: {

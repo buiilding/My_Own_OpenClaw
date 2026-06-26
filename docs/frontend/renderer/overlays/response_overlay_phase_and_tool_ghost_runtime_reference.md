@@ -51,6 +51,12 @@ Current-turn entry construction:
   `DesktopCurrentTurnMessageRuntime.buildSdkLiveTurnMessages(...)`, so the
   response overlay does not independently choose between `ConversationView`,
   presentation entries, and older no-presentation projection snapshots.
+- under `ConversationView`, response-overlay entries start with active-turn
+  `displayRows` converted through the SDK display-row projection, then append
+  only live-turn rows whose source/type has not materialized in those display
+  rows. The overlay must not depend only on `liveTurn.entries`, because
+  materialized tool rows are intentionally removed from live entries to avoid
+  duplicate dashboard cards.
 - the response overlay filters those current-turn messages through
   `DesktopCurrentTurnMessageRuntime.isVisibleResponseOverlayMessage(...)`
   instead of carrying an inline assistant-message scanner after the latest user
