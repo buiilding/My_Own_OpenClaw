@@ -70,7 +70,8 @@ Edit:
 - `ConversationContinuityService.ts` for SDK-owned display/rehydrate/delete orchestration over a `ConversationStore`.
 - `desktopConversationContinuityService.ts` for Electron's local-runtime-backed continuity service instance.
 - `desktopConversationStore.ts` for desktop projection conversion and SDK store write enrichment.
-- `sdkDisplayChatMessageProjection.ts` for stored event to renderer row projection.
+- `desktopSdkDisplayChatMessageProjectionRuntime.ts` for SDK display row to
+  renderer chat-message projection.
 - `sessionInfoStorage.ts` only for transcript session identity storage.
 - SDK projection/rehydrate helpers if stored events are replayed into backend history.
 

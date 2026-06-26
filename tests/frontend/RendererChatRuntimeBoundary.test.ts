@@ -1040,9 +1040,9 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts'),
       'utf8',
     );
-    const sdkDisplayProjectionAdapterSource = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts'),
-      'utf8',
+    const legacySdkDisplayProjectionAdapterPath = path.resolve(
+      __dirname,
+      '../../frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts',
     );
     const projectionStreamRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationProjectionStreamRuntime.ts'),
@@ -1099,9 +1099,7 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(sdkDisplayProjectionRuntimeSource).toContain('buildChatMessagesFromSdkDisplayRows');
     expect(sdkDisplayProjectionRuntimeSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
-    expect(sdkDisplayProjectionAdapterSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
-    expect(sdkDisplayProjectionAdapterSource).not.toContain('recordPayloadFromRow');
-    expect(sdkDisplayProjectionAdapterSource).not.toContain('buildToolOutputChatMessageState');
+    await expect(fs.stat(legacySdkDisplayProjectionAdapterPath)).rejects.toThrow();
     expect(displayProjectionSource).not.toContain('isOptimisticUserMessage');
     expect(displayProjectionSource).not.toContain('pendingOptimisticUserMessages');
     expect(displayProjectionSource).not.toContain('renderer-compose');
@@ -3313,10 +3311,6 @@ describe('renderer chat runtime boundary', () => {
   });
 
   test('display-row chat projection consumes SDK source event metadata', async () => {
-    const source = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts'),
-      'utf8',
-    );
     const projectionRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts'),
       'utf8',
@@ -3407,20 +3401,15 @@ describe('renderer chat runtime boundary', () => {
     );
     const sourceChannelPath = path.join(chatRoot, 'utils/message/sourceChannels.js');
 
-    expect(source).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
-    expect(source).not.toContain('recordPayloadFromRow');
-    expect(source).not.toContain('buildToolOutputChatMessageState');
     expect(projectionRuntimeSource).toContain('sourceEventType');
     expect(projectionRuntimeSource).toContain('rowActions');
     expect(projectionRuntimeSource).toContain('withRowActions');
+    expect(projectionRuntimeSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
     expect(projectionRuntimeSource).toContain('editTargetRowId');
     expect(projectionRuntimeSource).toContain('retryTargetRowId');
     expect(projectionRuntimeSource).toContain('desktopChatMessageTypes');
     expect(projectionRuntimeSource).toContain('desktopPresentationSourceChannels');
     expect(projectionRuntimeSource).toContain('desktopSdkDisplayAttachmentProjection');
-    expect(source).not.toContain('DisplayMessage');
-    expect(source).not.toContain('displayMessageFromSdkDisplayRow');
-    expect(source).not.toContain('function displayAttachmentsFromPayload');
     expect(projectionRuntimeSource).not.toContain('DisplayMessage');
     expect(projectionRuntimeSource).not.toContain('displayMessageFromSdkDisplayRow');
     expect(projectionRuntimeSource).not.toContain('function displayAttachmentsFromPayload');
@@ -3492,12 +3481,11 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSource).not.toContain('buildChatMessagesFromSdkDisplayRows');
     expect(chatInterfaceSource).not.toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(projectionRuntimeSource).toContain('packages/windie-sdk-js/src/conversation/types.js');
-    expect(source).not.toContain("packages/windie-sdk-js/src';");
     expect(projectionRuntimeSource).not.toContain("packages/windie-sdk-js/src';");
-    expect(source).not.toContain('features/chat');
-    expect(source).not.toContain('rawEventType');
-    expect(source).not.toContain('metadata.raw');
-    expect(source).not.toContain('payload.raw');
+    expect(projectionRuntimeSource).not.toContain('features/chat');
+    expect(projectionRuntimeSource).not.toContain('rawEventType');
+    expect(projectionRuntimeSource).not.toContain('metadata.raw');
+    expect(projectionRuntimeSource).not.toContain('payload.raw');
     expect(chatStoreSource).toContain('desktopChatMessageTypes');
     expect(chatStoreSource).toContain('export type { ChatMessage, TokenCounts }');
     expect(chatStoreSource).toContain('createInitialWorkspaceRecord');

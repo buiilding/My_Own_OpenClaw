@@ -73,6 +73,7 @@ frontend/src/renderer/
 |   |   |-- desktopPermissionPresentationRuntime.js # Renderer permission status and presentation mapping facade
 |   |   |-- desktopOnboardingSlideRuntime.js # Renderer onboarding slide-state rules facade
 |   |   |-- desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
+|   |   |-- desktopSdkDisplayChatMessageProjectionRuntime.ts # Renderer SDK display-row to chat-message adapter runtime
 |   |   |-- desktopConversationReplayRuntime.js # Renderer replay context tool-message pairing facade
 |   |   |-- desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
 |   |   |-- desktopConversationSessionRuntime.ts # Renderer transcript/chat conversation identity helper rules
@@ -217,7 +218,6 @@ frontend/src/renderer/
 |   |
 |   `-- transcript/                       # SDK-backed transcript projection helpers
 |       |-- desktopConversationStore.ts  # desktopConversationStore - Direct SDK conversation command bridge
-|       |-- sdkDisplayChatMessageProjection.ts # sdkDisplayChatMessageProjection - SDK display rows to renderer chat messages
 |       |-- sessionInfoState.ts          # sessionInfoState - Lazy-loaded session resolver/update state machine
 |       |-- sessionInfoStorage.ts        # sessionInfoStorage - sessionStorage read/write + update event emitter
 |       |-- transcriptSessionRuntime.ts  # Session-aware transcript identity runtime used by renderer app-runtime clients

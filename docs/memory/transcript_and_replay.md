@@ -26,7 +26,7 @@ For code changes or debugging, start with [Transcript Replay Change Workflow](tr
 | Transcript session facade | `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`, `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js`, `desktopTranscriptSessionRuntime.ts` |
 | Session identity | `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionInfoStorage.ts` |
 | SDK conversation store adapter | `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts` |
-| SDK display to chat-message projection | `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts` |
+| SDK display to chat-message projection | `frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts` |
 | Local snapshots/replay | SDK conversation store/projection and backend rehydrate services |
 | Chat replay actions | `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`, `frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js` |
 | Dashboard conversation list | `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js` |
@@ -102,7 +102,8 @@ without flattening ancestor events into the child event log.
 Key files:
 
 - Desktop conversation store adapter: `desktopConversationStore.ts`,
-- SDK display projection: `sdkDisplayChatMessageProjection.ts`,
+- SDK display projection: `DesktopSdkDisplayChatMessageProjectionRuntime` in
+  `desktopSdkDisplayChatMessageProjectionRuntime.ts`,
 - diagnostic rehydrate snapshot projection: `packages/windie-sdk-js/src/projections/conversationProjections.ts`,
 - model-history resume dispatch: `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`,
 - tool-message reconstruction and replay payload/turn shaping:

@@ -2,9 +2,11 @@
  * Covers sdk display chat message projection. behavior in the frontend test suite.
  */
 
-import {
+import { DesktopSdkDisplayChatMessageProjectionRuntime } from '../../frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime';
+
+const {
   buildChatMessagesFromSdkDisplayRows,
-} from '../../frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection';
+} = DesktopSdkDisplayChatMessageProjectionRuntime;
 
 describe('sdkDisplayChatMessageProjection', () => {
   test('projects SDK display messages into existing chat message shapes', () => {

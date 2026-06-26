@@ -129,9 +129,9 @@ describe('renderer app runtime boundary', () => {
   });
 
   test('renderer transcript SDK adapters import narrow SDK owner contracts', async () => {
-    const displayProjectionSource = await fs.readFile(
-      path.join(rendererRoot, 'infrastructure/transcript/sdkDisplayChatMessageProjection.ts'),
-      'utf8',
+    const legacyDisplayProjectionPath = path.join(
+      rendererRoot,
+      'infrastructure/transcript/sdkDisplayChatMessageProjection.ts',
     );
     const displayProjectionRuntimeSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts'),
@@ -142,13 +142,10 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
-    expect(displayProjectionSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
-    expect(displayProjectionSource).not.toContain('packages/windie-sdk-js/src/conversation/types.js');
-    expect(displayProjectionSource).not.toContain('buildToolOutputChatMessageState');
-    expect(displayProjectionSource).not.toContain('recordPayloadFromRow');
+    await expect(fs.stat(legacyDisplayProjectionPath)).rejects.toThrow();
     expect(displayProjectionRuntimeSource).toContain('packages/windie-sdk-js/src/conversation/types.js');
     expect(displayProjectionRuntimeSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
-    expect(displayProjectionSource).not.toContain("packages/windie-sdk-js/src';");
+    expect(displayProjectionRuntimeSource).not.toContain("packages/windie-sdk-js/src';");
     expect(conversationStoreSource).toContain('packages/windie-sdk-js/src/conversation/types.js');
     expect(conversationStoreSource).toContain('packages/windie-sdk-js/src/projections/conversationProjections.js');
     expect(conversationStoreSource).toContain('packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.js');

@@ -13,6 +13,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/replay: stop generating replacement turn refs in the renderer replay
   runtime; edit/resend and retry commands now let SDK replay own replacement
   turn identity. No migration required.
+- frontend/projection: delete the legacy `sdkDisplayChatMessageProjection.ts`
+  compatibility re-export; renderer display-row projection tests and docs now
+  target `DesktopSdkDisplayChatMessageProjectionRuntime` directly. No
+  migration required.
 - frontend/store: move chat workspace mutation adapters from `chatStore.ts` to
   `chatStoreAdapters.ts`, leaving `chatStore.ts` focused on Zustand state,
   selectors, and response-overlay dismissal state. No migration required.
@@ -26,9 +30,7 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopChatStreamEventRuntime` so the completion hook no longer inspects raw
   workspace state directly. No migration required.
 - frontend/projection: move SDK display-row to chat-message conversion behind
-  `DesktopSdkDisplayChatMessageProjectionRuntime`; the old
-  `sdkDisplayChatMessageProjection.ts` path is now a narrow compatibility
-  adapter. No migration required.
+  `DesktopSdkDisplayChatMessageProjectionRuntime`. No migration required.
 - frontend/selectors: make chat surface and send-read-model selector adapters
   consume the workspace read model without re-normalizing raw
   `ConversationView` fallback state. No migration required.

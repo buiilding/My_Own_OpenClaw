@@ -14,8 +14,6 @@ title: "Screenshot Message State and SDK Projection Reference"
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts`
 - `packages/windie-sdk-js/src/projections/legacyVisualAttachmentReplayAdapter.ts`
-- `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
-  (compatibility adapter)
 - `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`
 - `frontend/src/renderer/features/chat/components/message/content/AttachmentList.jsx`
 - `tests/frontend/ScreenshotMessageState.test.js`
@@ -79,8 +77,9 @@ typed attachments and any legacy screenshot refs.
 
 `DesktopSdkDisplayChatMessageProjectionRuntime` maps SDK display rows directly
 to renderer chat-message props and reads typed attachment descriptors from SDK
-display row metadata. The legacy `sdkDisplayChatMessageProjection.ts` module is
-only a compatibility adapter to that runtime. The runtime does not build an
+display row metadata. The legacy `sdkDisplayChatMessageProjection.ts`
+compatibility re-export has been deleted; callers use the app-runtime owner
+directly. The runtime does not build an
 intermediate `DisplayMessage` model or adapt legacy screenshot aliases for
 primary renderer display; old rows must be adapted earlier by
 `legacyVisualAttachmentReplayAdapter`.
