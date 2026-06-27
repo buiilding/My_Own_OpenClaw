@@ -34,6 +34,10 @@ function optionalReadyImageUrl(value: unknown): string | null {
   return url;
 }
 
+function optionalAttachmentString(value: unknown): string | null {
+  return optionalExactString(value);
+}
+
 function isDisplayableImageAttachment(record: Record<string, unknown>): boolean {
   if (record.status === 'materializing') {
     return (
@@ -61,34 +65,125 @@ function isDisplayableScreenshotRequestAttachment(record: Record<string, unknown
   );
 }
 
-function isSdkDisplayAttachment(value: unknown): value is SdkDisplayAttachment {
+function baseAttachmentFields(record: Record<string, unknown>): Pick<
+  SdkDisplayAttachment,
+  'id' | 'kind' | 'source' | 'status'
+> | null {
+  const id = optionalExactString(record.id);
+  if (
+    !id
+    || (record.kind !== 'image' && record.kind !== 'screenshot_request')
+    || (
+      record.source !== 'user_included'
+      && record.source !== 'camera_button'
+      && record.source !== 'tool_result'
+      && record.source !== 'replay'
+    )
+    || (
+      record.status !== 'materializing'
+      && record.status !== 'pending_capture'
+      && record.status !== 'ready'
+      && record.status !== 'failed'
+    )
+  ) {
+    return null;
+  }
+  return {
+    id,
+    kind: record.kind,
+    source: record.source,
+    status: record.status,
+  };
+}
+
+function withOptionalDisplayStrings(
+  attachment: SdkDisplayAttachment,
+  record: Record<string, unknown>,
+): SdkDisplayAttachment {
+  const filename = optionalAttachmentString(record.filename);
+  const contentType = optionalAttachmentString(record.contentType);
+  const errorCode = optionalAttachmentString(record.errorCode);
+  return {
+    ...attachment,
+    ...(filename ? { filename } : {}),
+    ...(contentType ? { contentType } : {}),
+    ...(errorCode ? { errorCode } : {}),
+  };
+}
+
+function sanitizeImageAttachment(
+  base: SdkDisplayAttachment,
+  record: Record<string, unknown>,
+): SdkDisplayAttachment | null {
+  if (base.status === 'materializing') {
+    if (base.source !== 'user_included') {
+      return null;
+    }
+    const previewSrc = optionalExactString(record.previewSrc);
+    return previewSrc
+      ? withOptionalDisplayStrings({ ...base, previewSrc }, record)
+      : null;
+  }
+  if (base.status === 'ready') {
+    const screenshotRef = optionalExactString(record.screenshotRef);
+    const screenshotUrl = optionalReadyImageUrl(record.screenshotUrl);
+    if (!screenshotRef && !screenshotUrl) {
+      return null;
+    }
+    return withOptionalDisplayStrings({
+      ...base,
+      ...(screenshotRef ? { screenshotRef } : {}),
+      ...(screenshotUrl ? { screenshotUrl } : {}),
+    }, record);
+  }
+  if (base.status === 'failed') {
+    return withOptionalDisplayStrings(base, record);
+  }
+  return null;
+}
+
+function sanitizeScreenshotRequestAttachment(
+  base: SdkDisplayAttachment,
+  record: Record<string, unknown>,
+): SdkDisplayAttachment | null {
+  if (
+    base.source !== 'camera_button'
+    || (
+      base.status !== 'pending_capture'
+      && base.status !== 'materializing'
+      && base.status !== 'failed'
+    )
+  ) {
+    return null;
+  }
+  return withOptionalDisplayStrings(base, record);
+}
+
+function sanitizeSdkDisplayAttachment(value: unknown): SdkDisplayAttachment | null {
   const record = recordFromUnknown(value);
-  return Boolean(
-    record
-    && optionalExactString(record.id) !== null
-    && (record.kind === 'image' || record.kind === 'screenshot_request')
-    && (
-      record.source === 'user_included'
-      || record.source === 'camera_button'
-      || record.source === 'tool_result'
-      || record.source === 'replay'
-    )
-    && (
-      record.status === 'materializing'
-      || record.status === 'pending_capture'
-      || record.status === 'ready'
-      || record.status === 'failed'
-    )
-    && (
-      record.kind === 'image'
-        ? isDisplayableImageAttachment(record)
-        : isDisplayableScreenshotRequestAttachment(record)
-    ),
-  );
+  if (!record) {
+    return null;
+  }
+  if (
+    record.kind === 'image'
+      ? !isDisplayableImageAttachment(record)
+      : !isDisplayableScreenshotRequestAttachment(record)
+  ) {
+    return null;
+  }
+  const base = baseAttachmentFields(record);
+  if (!base) {
+    return null;
+  }
+  return base.kind === 'image'
+    ? sanitizeImageAttachment(base, record)
+    : sanitizeScreenshotRequestAttachment(base, record);
 }
 
 function readSdkDisplayAttachments(value: unknown): SdkDisplayAttachment[] {
-  return Array.isArray(value) ? value.filter(isSdkDisplayAttachment) : [];
+  return Array.isArray(value)
+    ? value.flatMap((attachment) => sanitizeSdkDisplayAttachment(attachment) ?? [])
+    : [];
 }
 
 function isReadyDisplayImageAttachment(value: unknown): boolean {
@@ -101,15 +196,16 @@ function isReadyDisplayImageAttachment(value: unknown): boolean {
 }
 
 function readSdkImageAttachmentSource(value: unknown): SdkDisplayImageAttachmentSource | null {
-  if (!isSdkDisplayAttachment(value) || !isReadyDisplayImageAttachment(value)) {
+  const attachment = sanitizeSdkDisplayAttachment(value);
+  if (!isReadyDisplayImageAttachment(attachment)) {
     return null;
   }
   return {
-    id: value.id,
+    id: attachment.id,
     status: 'ready',
-    artifactId: optionalExactString(value.screenshotRef),
-    url: optionalReadyImageUrl(value.screenshotUrl),
-    contentType: optionalExactString(value.contentType),
+    artifactId: optionalExactString(attachment.screenshotRef),
+    url: optionalReadyImageUrl(attachment.screenshotUrl),
+    contentType: optionalExactString(attachment.contentType),
   };
 }
 

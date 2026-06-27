@@ -4171,6 +4171,10 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('row.metadata?.requestId ?? row.metadata?.correlationId');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.toolName\n      ?');
     expect(displayAttachmentProjectionSource).toContain('readSdkDisplayAttachments');
+    expect(displayAttachmentProjectionSource).toContain('function sanitizeSdkDisplayAttachment');
+    expect(displayAttachmentProjectionSource).toContain('function sanitizeImageAttachment');
+    expect(displayAttachmentProjectionSource).toContain('function sanitizeScreenshotRequestAttachment');
+    expect(displayAttachmentProjectionSource).toContain('value.flatMap((attachment) => sanitizeSdkDisplayAttachment(attachment) ?? [])');
     expect(displayAttachmentProjectionSource).toContain('function isDisplayableImageAttachment');
     expect(displayAttachmentProjectionSource).toContain('function isDisplayableScreenshotRequestAttachment');
     expect(displayAttachmentProjectionSource).toContain('function isReadyDisplayImageAttachment');
@@ -4189,6 +4193,7 @@ describe('renderer chat runtime boundary', () => {
     expect(displayAttachmentProjectionSource).not.toContain('pendingScreenshotRequestCount');
     expect(displayAttachmentProjectionSource).not.toContain('failedAttachmentCount');
     expect(displayAttachmentProjectionSource).not.toContain('screenshot_refs');
+    expect(displayAttachmentProjectionSource).not.toContain('value.filter(isSdkDisplayAttachment)');
     expect(displayAttachmentProjectionSource).not.toContain('countLegacyScreenshotAttachments');
     expect(attachmentRegistrySource).toContain('function MaterializingImageAttachment');
     expect(attachmentRegistrySource).toContain('function ReadyImageAttachment');

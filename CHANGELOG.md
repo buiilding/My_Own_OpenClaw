@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: sanitize SDK display attachment descriptors at the
+  renderer gate before passing them to message components, preserving only the
+  typed display allowlist and dropping raw screenshot aliases, preview bytes in
+  ready rows, and arbitrary payload fields. No migration required.
 - frontend/conversation-view: require exact pending bridge refs,
   `ConversationView.liveTurn.turnRef`, response-overlay `turnRef`, and
   live-turn phase labels before the workspace view mutation clears local

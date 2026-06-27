@@ -109,9 +109,14 @@ adapter preserves SDK-authored `metadata.sourceEventType` such as
 unlabeled rows, and does not relabel generic progress as `search-source`.
 `DesktopSdkDisplayAttachmentProjection` owns renderer-side display attachment
 validation and artifact image-source extraction for typed SDK descriptors. It
-does not publish image-count, ready-image, or lifecycle summary helpers. Token
-estimates read only the projected SDK `attachments[]` list; legacy screenshot
-arrays remain SDK/replay compatibility input, not a renderer token-count source.
+returns sanitized attachment props rather than the original descriptor object:
+only typed display fields such as id, kind, source, status, filename, content
+type, preview source, artifact ref/URL, and error code can reach message
+components. Raw screenshot aliases, ready-row preview bytes, backend payloads,
+and arbitrary extra fields are dropped at this gate. It does not publish
+image-count, ready-image, or lifecycle summary helpers. Token estimates read
+only the projected SDK `attachments[]` list; legacy screenshot arrays remain
+SDK/replay compatibility input, not a renderer token-count source.
 Renderer message content-kind and row-class helpers also route attachment
 presence through this projection helper instead of inspecting raw attachment
 arrays, so padded or malformed descriptors cannot become attachment UI state.

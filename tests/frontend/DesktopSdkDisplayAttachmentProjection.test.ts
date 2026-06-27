@@ -105,6 +105,67 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
     expect(readSdkDisplayAttachments({ attachments: [] })).toEqual([]);
   });
 
+  test('sanitizes SDK display attachments before renderer components receive them', () => {
+    expect(readSdkDisplayAttachments([
+      {
+        id: 'attachment-ready',
+        kind: 'image',
+        source: 'tool_result',
+        status: 'ready',
+        filename: 'screenshot.png',
+        contentType: 'image/png',
+        screenshotRef: 'artifact-ready',
+        screenshotUrl: 'https://cdn.example/ready.png',
+        screenshot_refs: ['artifact-legacy-array'],
+        attachment_filenames: ['legacy.png'],
+        rawPayload: { screenshotRef: 'raw-artifact' },
+        previewSrc: 'data:image/png;base64,should-not-survive-ready',
+      },
+      {
+        id: 'attachment-materializing',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        previewSrc: 'data:image/png;base64,preview',
+        screenshotRef: 'artifact-should-not-survive-materializing',
+        screenshotUrl: 'https://cdn.example/should-not-survive.png',
+      },
+      {
+        id: 'attachment-request',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'failed',
+        errorCode: 'capture_failed',
+        screenshotRef: 'artifact-should-not-survive-request',
+      },
+    ])).toEqual([
+      {
+        id: 'attachment-ready',
+        kind: 'image',
+        source: 'tool_result',
+        status: 'ready',
+        filename: 'screenshot.png',
+        contentType: 'image/png',
+        screenshotRef: 'artifact-ready',
+        screenshotUrl: 'https://cdn.example/ready.png',
+      },
+      {
+        id: 'attachment-materializing',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        previewSrc: 'data:image/png;base64,preview',
+      },
+      {
+        id: 'attachment-request',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'failed',
+        errorCode: 'capture_failed',
+      },
+    ]);
+  });
+
   test('reads image source fields only from typed SDK image attachments', () => {
     expect(readSdkImageAttachmentSource({
       id: 'attachment-ready',
