@@ -108,7 +108,8 @@ trimmed into tool/thinking/progress rows by renderer presentation. Live entry
 sources when SDK sends padded or empty labels. Renderer presentation assigns
 `sourceChannel` from the adapter path (`sdk:current-turn` or
 `sdk:conversation-view`) instead of trusting live entry payload fields for
-visibility gating.
+visibility gating. Live row `turnRef` projection similarly prefers the
+containing SDK live turn's `turnRef` over entry-level payload refs.
 
 `streamTracking` fields capture turn identity, phase, counters, and timestamps per workspace:
 

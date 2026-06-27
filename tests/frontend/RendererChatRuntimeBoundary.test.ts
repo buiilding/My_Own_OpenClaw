@@ -3610,6 +3610,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain("sourceEventType: entry.sourceEventType || 'tool_output'");
     expect(source).not.toContain('sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel');
     expect(source).toContain('sourceChannel: liveTurnContext?.sourceChannel || sdkCurrentTurnSourceChannel');
+    expect(source).not.toContain('turnRef: entry.turnRef || liveTurnContext?.turnRef || undefined');
+    expect(source).not.toContain('turnRef: entry.turnRef || liveTurnContext?.turnRef || null');
+    expect(source).toContain('turnRef: readExactSdkString(liveTurnContext?.turnRef) || readExactSdkString(entry.turnRef)');
     expect(source).not.toContain('const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);');
     expect(source).toContain('buildLegacyNoPresentationCurrentTurnMessages');
     expect(source).toContain('buildNoViewSdkLiveTurnMessages');

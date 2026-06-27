@@ -273,6 +273,39 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
+  test('buildThreadPresentationMessages uses live turn context before entry turn refs', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:assistant',
+          type: 'llm-text',
+          text: 'Projected answer',
+          sourceEventType: 'assistant_delta',
+          turnRef: 'turn-stale',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      messages[0],
+      expect.objectContaining({
+        id: 'conv-1:turn-1:assistant',
+        sender: 'assistant',
+        turnRef: 'turn-1',
+        text: 'Projected answer',
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages derives current-turn rows only when SDK presentation is absent', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },

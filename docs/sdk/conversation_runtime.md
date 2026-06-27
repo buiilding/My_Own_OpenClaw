@@ -387,6 +387,9 @@ Renderer live-entry adapters assign their own presentation `sourceChannel`
 based on whether the input came from no-view SDK current-turn presentation or
 first-class `ConversationView.liveTurn.entries`; live entry payloads cannot
 override that channel to enter or leave the live-row visibility path.
+Projected live rows also prefer the containing SDK live-turn `turnRef` over any
+entry-level `turnRef`, so stale entry payload identity cannot move a current
+live row onto an older turn.
 Streaming assistant display rows keep exact SDK-authored
 `metadata.sourceEventType` when present and otherwise use the generic
 `assistant_message` display-row type; padded or empty source event metadata
