@@ -410,6 +410,39 @@ describe('desktopConversationDisplayProjection', () => {
     });
   });
 
+  test('keeps malformed SDK trace labels out of ConversationView diagnostics', () => {
+    expect(buildConversationViewTraceSummary({
+      ...conversationViewWithRows([
+        {
+          id: 'view-assistant',
+          conversationRef: 'conv-1',
+          turnRef: ' turn-view ',
+          index: 0,
+          role: ' assistant ',
+          sender: ' sdk-assistant ',
+          type: ' assistant_message ',
+          content: 'visible answer',
+          sourceEventType: ' assistant-message-full ',
+        },
+      ]),
+      liveTurn: {
+        turnRef: ' turn-view ',
+        phase: ' complete ',
+      },
+    } as never)).toEqual({
+      displayRowCount: 1,
+      liveTurnPhase: null,
+      liveTurnRef: null,
+      lastMessage: {
+        sender: null,
+        sourceEventType: null,
+        textLength: 'visible answer'.length,
+        turnRef: null,
+        type: null,
+      },
+    });
+  });
+
   test('merges renderer-only feedback back into matching SDK messages', () => {
     const rendererAnnotations = [{
       id: 'assistant-1',

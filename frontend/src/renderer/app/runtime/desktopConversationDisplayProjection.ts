@@ -94,8 +94,10 @@ function exactTurnRef(turnRef: string | null | undefined): string | null {
     : null;
 }
 
-function normalizeTraceString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+function exactTraceString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
 function resolveTraceTextLength(value: unknown): number {
@@ -113,15 +115,15 @@ function buildConversationViewTraceSummary(
   const latestRecord = latestRow as Record<string, unknown> | null;
   return {
     displayRowCount: displayRows.length,
-    liveTurnPhase: normalizeTraceString(view?.liveTurn?.phase),
+    liveTurnPhase: exactTraceString(view?.liveTurn?.phase),
     liveTurnRef: exactTurnRef(view?.liveTurn?.turnRef),
     lastMessage: latestRecord
       ? {
-        sender: normalizeTraceString(latestRecord.role) || normalizeTraceString(latestRecord.sender),
-        sourceEventType: normalizeTraceString(latestRecord.sourceEventType),
+        sender: exactTraceString(latestRecord.role) || exactTraceString(latestRecord.sender),
+        sourceEventType: exactTraceString(latestRecord.sourceEventType),
         textLength: resolveTraceTextLength(latestRecord.content ?? latestRecord.text),
         turnRef: exactTurnRef(latestRecord.turnRef as string | null | undefined),
-        type: normalizeTraceString(latestRecord.type),
+        type: exactTraceString(latestRecord.type),
       }
       : null,
   };

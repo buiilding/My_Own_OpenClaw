@@ -55,6 +55,11 @@ tool arguments, and tool output. Useful milestones include `replay_start`,
 `sdk_current_turn_applied`, `sdk_current_turn_stale_side_effects_skipped`, and
 `sdk_display_rows_projected`.
 
+ConversationView-backed renderer trace summaries use exact SDK strings for
+live-turn phase, latest-row sender, row type, source-event type, and turn refs.
+Malformed or padded SDK labels appear as missing trace fields rather than being
+trimmed into diagnostic state.
+
 Keep this playbook sanitized. Do not add prompt text, raw user/assistant
 messages, provider payloads, credentials, file contents, shell output,
 screenshots, URLs, browser page text, or tool output bodies to trace rows.
