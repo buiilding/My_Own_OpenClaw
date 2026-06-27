@@ -553,7 +553,7 @@ describe('chatSelectors', () => {
   test('selects send read model separately from chat interface presentation state', () => {
     const messages = [{ id: 'user-1', text: 'question', sender: 'user' }];
     const conversationView = buildConversationView('conv-send', {
-      displayRows: [{ id: 'row-user', role: 'user' }],
+      displayRows: [{ id: 'row-user', role: 'user', type: 'user_message' }],
     });
     const state = createStateWithActiveWorkspace({
       messages,
@@ -574,7 +574,7 @@ describe('chatSelectors', () => {
 
   test('send read model helper does not expose raw messages under ConversationView', () => {
     const conversationView = buildConversationView('conv-send', {
-      displayRows: [{ id: 'row-user', role: 'user' }],
+      displayRows: [{ id: 'row-user', role: 'user', type: 'user_message' }],
     });
 
     expect(buildChatSendReadModelSelectorState({
@@ -590,7 +590,7 @@ describe('chatSelectors', () => {
 
   test('send read model helper rejects raw messages under direct ConversationView input', () => {
     const conversationView = buildConversationView('conv-direct', {
-      displayRows: [{ id: 'row-user', role: 'user' }],
+      displayRows: [{ id: 'row-user', role: 'user', type: 'user_message' }],
     });
 
     expect(buildChatSendReadModelSelectorState({

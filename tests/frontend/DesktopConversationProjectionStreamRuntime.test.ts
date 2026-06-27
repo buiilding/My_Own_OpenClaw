@@ -82,6 +82,8 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       conversationRef: 'conv-1',
       workspace: {
         conversationView: {
+          conversationRef: 'conv-1',
+          revisionId: 'rev-view',
           liveTurn: {
             turnRef: 'turn-view',
             phase: 'complete',
@@ -90,6 +92,16 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
             { id: 'view-user' },
             { id: 'view-assistant' },
           ],
+          surfaces: {
+            dashboard: { mode: 'idle' },
+            pill: { mode: 'idle' },
+            responseOverlay: { mode: 'hidden' },
+          },
+          actions: {
+            canEdit: true,
+            canRetry: true,
+            canFork: true,
+          },
         },
         messages: [{ id: 'stale-message', sender: 'user', text: 'stale' }],
         pendingTurn: { turnRef: 'turn-new' },
@@ -114,6 +126,42 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       currentMatchesNewTurn: false,
       displayRowCount: 2,
       messageCount: 0,
+    }));
+  });
+
+  test('keeps partial conversation views on the no-view trace path', () => {
+    expect(buildReplayProjectionTracePayload({
+      action: 'sdk_current_turn_applied',
+      conversationRef: 'conv-1',
+      workspace: {
+        conversationView: {
+          displayRows: [
+            { id: 'partial-view-row' },
+          ],
+        },
+        messages: [{ id: 'raw-message', sender: 'user', text: 'raw fallback' }],
+        pendingTurn: { turnRef: 'turn-new' },
+        sdkLiveTurn: {
+          turnRef: 'turn-raw',
+          phase: 'streaming',
+        },
+        streamTracking: {
+          activeTurnRef: 'turn-raw',
+          phase: 'streaming',
+        },
+      },
+      values: {
+        newTurnRef: 'turn-new',
+        oldTurnRef: 'turn-raw',
+      },
+    })).toEqual(expect.objectContaining({
+      currentTurnRef: 'turn-raw',
+      currentTurnPhase: 'streaming',
+      streamActiveTurnRef: 'turn-raw',
+      currentMatchesOldTurn: true,
+      currentMatchesNewTurn: false,
+      displayRowCount: 0,
+      messageCount: 1,
     }));
   });
 

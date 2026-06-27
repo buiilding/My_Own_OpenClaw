@@ -145,6 +145,11 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
           turnRef: null,
         },
       },
+      actions: {
+        canEdit: false,
+        canRetry: false,
+        canFork: false,
+      },
     };
 
     act(() => {

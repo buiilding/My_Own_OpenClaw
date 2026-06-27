@@ -448,9 +448,12 @@ chat-store rows are ignored before live-row insertion and duplicate checks.
 The conversation projection-stream hook applies the same rule when it needs
 workspace context for stale-turn checks and projection diagnostics: it wraps raw store
 workspace reads with `projectWorkspaceReadModelState(...)`, so projection-stream
-diagnostics consume `sdkLiveTurn`. Replay projection traces accept exact
-pending, live, and stream-tracking turn refs only; padded refs are reported as
-missing instead of being trimmed into same-turn match diagnostics.
+diagnostics consume `sdkLiveTurn` only on the no-view path. Replay projection
+traces require the complete SDK `ConversationView` envelope before consuming
+view display-row or live-turn trace state; partial objects stay on the no-view
+raw-message/`sdkLiveTurn` diagnostic path. They accept exact pending, live, and
+stream-tracking turn refs only; padded refs are reported as missing instead of
+being trimmed into same-turn match diagnostics.
 Replay action diagnostics no longer route workspace snapshots through that
 read-model runtime; SDK replay commands log command intent/results without
 reading raw message/current-turn authority when `ConversationView` exists.

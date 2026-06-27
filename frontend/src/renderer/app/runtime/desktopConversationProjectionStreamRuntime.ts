@@ -19,6 +19,9 @@ import {
   DesktopConversationDisplayProjection,
 } from './desktopConversationDisplayProjection';
 import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
+import {
   type RendererReplayTraceValues,
   DesktopRendererTraceRuntime,
 } from './desktopRendererTraceRuntime';
@@ -98,6 +101,9 @@ const {
 const {
   buildConversationViewTraceSummary,
 } = DesktopConversationDisplayProjection;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 
@@ -107,10 +113,6 @@ function normalizeTurnRef(turnRef: string | null | undefined): string | null {
     : null;
 }
 
-function isConversationView(value: ConversationViewLike): value is NonNullable<ConversationViewLike> {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
 function buildReplayProjectionTracePayload({
   action,
   conversationRef,
@@ -118,7 +120,7 @@ function buildReplayProjectionTracePayload({
   values = {},
 }: ReplayProjectionTracePayloadInput): RendererReplayTraceValues {
   const pendingTurnRef = normalizeTurnRef(workspace.pendingTurn?.turnRef);
-  const hasConversationView = isConversationView(workspace.conversationView);
+  const hasConversationView = hasWorkspaceConversationView(workspace);
   const viewTrace = hasConversationView
     ? buildConversationViewTraceSummary(workspace.conversationView)
     : null;
