@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: require canonical SDK display-row role/type pairs before
+  mapping rows into renderer chat messages, leaving mismatched rows inert
+  instead of assigning renderer sender or tool semantics from `type` alone. No
+  migration required.
 - frontend/chat-store: narrow stream and current-turn store adapter read types
   to purpose-shaped runtime read models instead of exposing the full projected
   workspace type to hooks. No migration required.

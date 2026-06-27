@@ -71,12 +71,24 @@ function isSdkDisplayRowStreaming(row: SdkDisplayRow): boolean {
   return 'isStreaming' in row && row.isStreaming === true;
 }
 
-function isUserReplayActionRow(row: SdkDisplayRow): boolean {
+function isUserDisplayRow(row: SdkDisplayRow): boolean {
   return row.type === 'user_message' && row.role === 'user';
 }
 
-function isAssistantReplayActionRow(row: SdkDisplayRow): boolean {
+function isAssistantDisplayRow(row: SdkDisplayRow): boolean {
   return row.type === 'assistant_message' && row.role === 'assistant';
+}
+
+function isToolCallDisplayRow(row: SdkDisplayRow): boolean {
+  return (row.type === 'tool_call' || row.type === 'tool_bundle_call') && row.role === 'assistant';
+}
+
+function isToolOutputDisplayRow(row: SdkDisplayRow): boolean {
+  return (row.type === 'tool_output' || row.type === 'tool_bundle_output') && row.role === 'tool';
+}
+
+function isToolProgressDisplayRow(row: SdkDisplayRow): boolean {
+  return row.type === 'tool_progress' && row.role === 'assistant';
 }
 
 function rowReplayActions(row: SdkDisplayRow): ChatMessage['actions'] | null {
@@ -88,11 +100,11 @@ function rowReplayActions(row: SdkDisplayRow): ChatMessage['actions'] | null {
   const actions: NonNullable<ChatMessage['actions']> = {};
   const editTargetRowId = exactNonEmptyString(actionRecord.editTargetRowId);
   const retryTargetRowId = exactNonEmptyString(actionRecord.retryTargetRowId);
-  if (isUserReplayActionRow(row) && actionRecord.canEdit === true && editTargetRowId) {
+  if (isUserDisplayRow(row) && actionRecord.canEdit === true && editTargetRowId) {
     actions.canEdit = true;
     actions.editTargetRowId = editTargetRowId;
   }
-  if (isAssistantReplayActionRow(row) && actionRecord.canRetry === true && retryTargetRowId) {
+  if (isAssistantDisplayRow(row) && actionRecord.canRetry === true && retryTargetRowId) {
     actions.canRetry = true;
     actions.retryTargetRowId = retryTargetRowId;
   }
@@ -208,19 +220,19 @@ function buildChatMessagesFromSdkDisplayRow(row: SdkDisplayRow): ChatMessage[] {
   if (row.type === 'reasoning' || row.type === 'error') {
     return [];
   }
-  if (row.type === 'user_message') {
+  if (isUserDisplayRow(row)) {
     return [buildUserChatMessage(row)];
   }
-  if (row.type === 'tool_call' || row.type === 'tool_bundle_call') {
+  if (isToolCallDisplayRow(row)) {
     return [buildToolCallMessage(row)];
   }
-  if (row.type === 'tool_output' || row.type === 'tool_bundle_output') {
+  if (isToolOutputDisplayRow(row)) {
     return [buildToolOutputMessage(row)];
   }
-  if (row.type === 'tool_progress') {
+  if (isToolProgressDisplayRow(row)) {
     return [buildToolProgressMessage(row)];
   }
-  if (row.type === 'assistant_message') {
+  if (isAssistantDisplayRow(row)) {
     return [buildAssistantChatMessage(row)];
   }
   return [];

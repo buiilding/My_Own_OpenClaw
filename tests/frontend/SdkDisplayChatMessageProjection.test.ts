@@ -207,6 +207,51 @@ describe('sdkDisplayChatMessageProjection', () => {
     expect(messages[3]).not.toHaveProperty('toolCallDisplayText');
   });
 
+  test('drops display rows with mismatched SDK role and type pairs', () => {
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'mismatched-user-row',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'assistant',
+        type: 'user_message',
+        content: 'renderer must not make this a user row',
+      },
+      {
+        id: 'mismatched-assistant-row',
+        conversationRef: 'conv-sdk',
+        index: 1,
+        role: 'user',
+        type: 'assistant_message',
+        content: 'renderer must not make this an assistant row',
+      },
+      {
+        id: 'mismatched-tool-call-row',
+        conversationRef: 'conv-sdk',
+        index: 2,
+        role: 'tool',
+        type: 'tool_call',
+        content: 'renderer must not make this a tool call',
+      },
+      {
+        id: 'mismatched-tool-output-row',
+        conversationRef: 'conv-sdk',
+        index: 3,
+        role: 'assistant',
+        type: 'tool_output',
+        content: 'renderer must not make this a tool output',
+      },
+      {
+        id: 'mismatched-tool-progress-row',
+        conversationRef: 'conv-sdk',
+        index: 4,
+        role: 'tool',
+        type: 'tool_progress',
+        content: 'renderer must not make this tool progress',
+      },
+    ] as any)).toEqual([]);
+  });
+
   test('keeps SDK-declared string tool display rows visible', () => {
     const [toolCall, toolBundleOutput] = buildChatMessagesFromSdkDisplayRows([
       {

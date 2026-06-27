@@ -569,7 +569,11 @@ repaired into same-turn matches. A row must also have the canonical SDK user
 display shape (`role: "user"` and `type: "user_message"`) before it can count as
 a user row for pending-bridge replacement or first-message send-state checks;
 malformed role/type combinations remain inert instead of claiming SDK row
-authority.
+authority. Renderer display-row projection applies that same canonical
+role/type gate to visible rows too: assistant text, tool-call/progress, and
+tool-output rows are mapped only when the SDK-authored role matches the row
+type, so the renderer does not assign sender or tool semantics from `type`
+alone.
 Renderer display-row and live-turn adapters also keep SDK attachment
 descriptors on the typed `attachments[]` prop only. Renderer attachment helpers
 may perform narrow component checks such as artifact image-source resolution,

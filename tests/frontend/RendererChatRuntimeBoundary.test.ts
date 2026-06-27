@@ -4194,10 +4194,15 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).toContain('withRowActions');
     expect(projectionRuntimeSource).toContain('function rowReplayActions(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain('const actions = rowReplayActions(row);');
-    expect(projectionRuntimeSource).toContain('function isUserReplayActionRow(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('function isUserDisplayRow(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain("return row.type === 'user_message' && row.role === 'user';");
-    expect(projectionRuntimeSource).toContain('function isAssistantReplayActionRow(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('function isAssistantDisplayRow(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain("return row.type === 'assistant_message' && row.role === 'assistant';");
+    expect(projectionRuntimeSource).toContain('function isToolCallDisplayRow(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain("&& row.role === 'assistant'");
+    expect(projectionRuntimeSource).toContain('function isToolOutputDisplayRow(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain("&& row.role === 'tool'");
+    expect(projectionRuntimeSource).toContain('function isToolProgressDisplayRow(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain('actionRecord.canEdit === true && editTargetRowId');
     expect(projectionRuntimeSource).toContain('actionRecord.canRetry === true && retryTargetRowId');
     expect(projectionRuntimeSource).not.toContain('actions: row.actions');
@@ -4231,6 +4236,9 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).toContain('function rowId(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.id);');
     expect(projectionRuntimeSource).toContain('if (!rowId(row))');
+    expect(projectionRuntimeSource).not.toContain("if (row.type === 'user_message')");
+    expect(projectionRuntimeSource).not.toContain("if (row.type === 'assistant_message')");
+    expect(projectionRuntimeSource).not.toContain("if (row.type === 'tool_output' || row.type === 'tool_bundle_output')");
     expect(projectionRuntimeSource).toContain('function rowTimestamp(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.timestamp) ?? \'\';');
     expect(projectionRuntimeSource).not.toContain("typeof row.metadata?.timestamp === 'string' ? row.metadata.timestamp : ''");

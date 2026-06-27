@@ -90,6 +90,12 @@ directly. The runtime does not build an
 intermediate `DisplayMessage` model or adapt legacy screenshot aliases for
 primary renderer display; old rows must be adapted earlier by
 `legacyVisualAttachmentReplayAdapter`.
+Display rows also need canonical SDK role/type pairs before the renderer maps
+them into component props: user rows must be `role: "user"` with
+`type: "user_message"`, assistant text/progress/tool-call rows must be
+assistant-authored rows, and tool-output rows must be `role: "tool"`. Mismatched
+pairs stay inert instead of the renderer assigning sender or tool semantics from
+`type` alone.
 Streaming assistant rows read SDK `reasoningText` only; the renderer adapter
 does not recover old snake-case reasoning aliases. The adapter also does not
 relabel streaming SDK assistant display rows as `assistant_delta`: it preserves
