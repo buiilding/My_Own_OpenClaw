@@ -287,7 +287,8 @@ Conversation-view chat projection receives explicit renderer annotation records,
 not raw current chat messages, when copying local assistant feedback state onto
 SDK assistant rows. The renderer stores those annotations beside the
 `ConversationView` workspace state and migrates pre-view assistant feedback into
-that list once when the SDK view becomes authoritative. Renderer annotations
+that list once when the SDK view becomes authoritative. The display projection
+adapter does not expose a raw-message annotation selector. Renderer annotations
 are not a generic message overlay channel.
 Raw current-turn snapshots remain live context for migrated display/surface
 handoff and diagnostics, while normal Stop authority is only the view or the

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: delete the raw-message renderer annotation selector from
+  the ConversationView display projection adapter, so callers must pass explicit
+  `rendererAnnotations` records instead of asking the adapter to recover
+  feedback from chat rows. No migration required.
 - frontend/chat-store: store renderer-local assistant feedback as explicit
   `rendererAnnotations` beside SDK `ConversationView` workspaces instead of
   recovering it from raw `messages`, keeping raw message arrays out of the

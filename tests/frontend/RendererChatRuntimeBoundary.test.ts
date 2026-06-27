@@ -4073,8 +4073,9 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationDisplayProjectionSource).not.toContain('annotation?.fullUserMessage');
     expect(conversationDisplayProjectionSource).not.toContain('annotation?.fullAssistantMessage');
     expect(conversationDisplayProjectionSource).not.toContain('annotation?.tokenCounts');
-    expect(conversationDisplayProjectionSource).toContain('emptyRendererMessageAnnotations');
-    expect(conversationDisplayProjectionSource).toContain('annotations.length > 0 ? annotations : emptyRendererMessageAnnotations');
+    expect(conversationDisplayProjectionSource).not.toContain('selectRendererMessageAnnotations');
+    expect(conversationDisplayProjectionSource).not.toContain('emptyRendererMessageAnnotations');
+    expect(conversationDisplayProjectionSource).not.toContain('hasRendererMessageAnnotations');
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBridgeRuntime');
     expect(chatStoreSource).not.toContain('buildPendingTurnUserMessage');
     expect(chatStoreSource).not.toContain('function normalizePendingTurn');

@@ -10,7 +10,6 @@ import type { ChatMessage } from '../../frontend/src/renderer/app/runtime/deskto
 const {
   buildConversationViewChatMessages,
   buildPendingBridgeChatMessages,
-  selectRendererMessageAnnotations,
 } = DesktopConversationDisplayProjection;
 
 function message(overrides: Partial<ChatMessage>): ChatMessage {
@@ -109,31 +108,10 @@ describe('desktopConversationDisplayProjection', () => {
   });
 
   test('merges renderer-only feedback back into matching SDK messages', () => {
-    const currentAssistant = message({
+    const rendererAnnotations = [{
       id: 'assistant-1',
-      sender: 'assistant',
-      text: 'Old answer',
-      turnRef: 'turn-1',
-      systemPrompt: {
-        content: 'System prompt',
-      },
-      toolSchemas: [{
-        name: 'read_file',
-        description: 'Read a file',
-        parameters: {
-          type: 'object',
-          properties: {},
-        },
-      }],
-      fullAssistantMessage: {
-        content: 'Full assistant text',
-      },
-      feedback: 'like',
-      tokenCounts: {
-        usage_source: 'provider',
-        total_tokens: 42,
-      },
-    });
+      feedback: 'like' as const,
+    }];
 
     expect(buildConversationViewChatMessages({
       conversationView: conversationViewWithRows([{
@@ -146,7 +124,7 @@ describe('desktopConversationDisplayProjection', () => {
         content: 'Visible answer',
       }]),
       preserveRendererAnnotations: true,
-      rendererAnnotations: selectRendererMessageAnnotations([currentAssistant]),
+      rendererAnnotations,
     })).toEqual([
       expect.objectContaining({
         id: 'assistant-1',
@@ -165,76 +143,12 @@ describe('desktopConversationDisplayProjection', () => {
         content: 'Visible answer',
       }]),
       preserveRendererAnnotations: true,
-      rendererAnnotations: selectRendererMessageAnnotations([currentAssistant]),
+      rendererAnnotations,
     })[0];
     expect(projected).not.toHaveProperty('systemPrompt');
     expect(projected).not.toHaveProperty('toolSchemas');
     expect(projected).not.toHaveProperty('fullAssistantMessage');
     expect(projected).not.toHaveProperty('tokenCounts');
-  });
-
-  test('selects only renderer feedback for ConversationView merges', () => {
-    const annotations = selectRendererMessageAnnotations([
-      message({
-        id: 'assistant-1',
-        sender: 'assistant',
-        text: 'stale visible text',
-        turnRef: 'turn-stale',
-        sourceEventType: 'assistant_message',
-        feedback: 'like',
-        tokenCounts: {
-          usage_source: 'provider',
-          total_tokens: 42,
-        },
-      }),
-      message({
-        id: 'assistant-2',
-        sender: 'assistant',
-        text: 'no annotations',
-        turnRef: 'turn-stale',
-        sourceEventType: 'assistant_message',
-      }),
-      message({
-        id: 'user-1',
-        sender: 'user',
-        text: 'not an assistant feedback row',
-        feedback: 'dislike',
-      }),
-    ]);
-
-    expect(annotations).toEqual([{
-      id: 'assistant-1',
-      feedback: 'like',
-    }]);
-    expect(annotations[0]).not.toHaveProperty('text');
-    expect(annotations[0]).not.toHaveProperty('turnRef');
-    expect(annotations[0]).not.toHaveProperty('sourceEventType');
-    expect(annotations[0]).not.toHaveProperty('tokenCounts');
-  });
-
-  test('reuses the empty renderer annotation list when raw rows have no feedback', () => {
-    const firstAnnotations = selectRendererMessageAnnotations([
-      message({
-        id: 'assistant-1',
-        sender: 'assistant',
-        text: 'stale visible text',
-      }),
-      message({
-        id: 'user-1',
-        sender: 'user',
-        text: 'stale user text',
-      }),
-    ]);
-    const secondAnnotations = selectRendererMessageAnnotations([
-      message({
-        id: 'assistant-2',
-        sender: 'assistant',
-        text: 'different stale visible text',
-      }),
-    ]);
-
-    expect(firstAnnotations).toEqual([]);
-    expect(secondAnnotations).toBe(firstAnnotations);
   });
 
   test('does not merge renderer feedback annotations into SDK user rows', () => {
@@ -264,13 +178,10 @@ describe('desktopConversationDisplayProjection', () => {
   });
 
   test('preserves explicit feedback clears for ConversationView merges', () => {
-    const annotations = selectRendererMessageAnnotations([
-      message({
-        id: 'assistant-1',
-        sender: 'assistant',
-        feedback: null,
-      }),
-    ]);
+    const annotations = [{
+      id: 'assistant-1',
+      feedback: null,
+    }];
 
     expect(annotations).toEqual([{
       id: 'assistant-1',
@@ -307,15 +218,10 @@ describe('desktopConversationDisplayProjection', () => {
         content: '',
       }]),
       preserveRendererAnnotations: true,
-      rendererAnnotations: selectRendererMessageAnnotations([message({
+      rendererAnnotations: [{
         id: 'turn-1-sdk-evt-000002-user_message',
-        sender: 'user',
-        text: 'inspect recent commits',
-        turnRef: 'turn-1',
-        sourceEventType: 'renderer-compose',
-        sourceChannel: 'renderer-local',
-        isComplete: true,
-      })]),
+        feedback: 'like',
+      }],
     })).toEqual([
       expect.objectContaining({
         id: 'tool-row',
@@ -557,6 +463,34 @@ describe('desktopConversationDisplayProjection', () => {
     ]);
   });
 
+  test('does not copy non-feedback annotation fields into SDK rows', () => {
+    const projected = buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'assistant-1',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-view',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'SDK answer',
+      }]),
+      rendererAnnotations: [{
+        id: 'assistant-1',
+        feedback: 'like',
+        text: 'stale renderer text',
+        tokenCounts: { total_tokens: 42 },
+      } as never],
+      preserveRendererAnnotations: true,
+    })[0];
+
+    expect(projected).toEqual(expect.objectContaining({
+      id: 'assistant-1',
+      text: 'SDK answer',
+      feedback: 'like',
+    }));
+    expect(projected).not.toHaveProperty('tokenCounts');
+  });
+
   test('does not copy renderer screenshot metadata into text-only SDK user projections', () => {
     const sdkTextOnlyUser = message({
       id: 'turn-1-sdk-evt-000002-user_message',
@@ -565,22 +499,6 @@ describe('desktopConversationDisplayProjection', () => {
       turnRef: 'turn-1',
       sourceEventType: 'user_message',
       sourceChannel: 'sdk:conversation-event',
-      isComplete: true,
-    });
-    const optimisticUser = message({
-      id: 'turn-1-sdk-evt-000002-user_message',
-      sender: 'user',
-      text: 'Please review the attached files.',
-      turnRef: 'turn-1',
-      sourceEventType: 'renderer-compose',
-      sourceChannel: 'renderer-local',
-      attachments: [{
-        id: 'turn-1:attachment:000',
-        kind: 'image',
-        source: 'user_included',
-        status: 'materializing',
-        previewSrc: 'data:image/png;base64,inline-optimistic-base64',
-      }],
       isComplete: true,
     });
 
@@ -595,7 +513,7 @@ describe('desktopConversationDisplayProjection', () => {
         content: 'Please review the attached files.',
       }]),
       preserveRendererAnnotations: true,
-      rendererAnnotations: selectRendererMessageAnnotations([optimisticUser]),
+      rendererAnnotations: [],
     });
 
     expect(projectedMessages).toEqual([expect.objectContaining({

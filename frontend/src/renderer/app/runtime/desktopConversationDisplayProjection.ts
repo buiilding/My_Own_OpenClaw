@@ -43,8 +43,6 @@ type BuildPendingBridgeMessagesInput = {
   pendingTurn?: PendingTurnLike;
 };
 
-const emptyRendererMessageAnnotations: RendererMessageAnnotation[] = [];
-
 function normalizeTurnRef(turnRef: string | null | undefined): string | null {
   return typeof turnRef === 'string' && turnRef.trim()
     ? turnRef.trim()
@@ -145,26 +143,6 @@ function buildPendingBridgeChatMessages({
   return appendPendingBridgeUserMessages(baseMessages, pendingTurn);
 }
 
-function hasRendererMessageAnnotations(message: ChatMessage): boolean {
-  return message.sender === 'assistant'
-    && Object.prototype.hasOwnProperty.call(message, 'feedback');
-}
-
-function selectRendererMessageAnnotations(messages: ChatMessage[] = []): RendererMessageAnnotation[] {
-  const annotations = messages.flatMap((message) => {
-    if (typeof message.id !== 'string' || !message.id || !hasRendererMessageAnnotations(message)) {
-      return [];
-    }
-    return [{
-      id: message.id,
-      ...(Object.prototype.hasOwnProperty.call(message, 'feedback')
-        ? { feedback: message.feedback }
-        : {}),
-    }];
-  });
-  return annotations.length > 0 ? annotations : emptyRendererMessageAnnotations;
-}
-
 function buildConversationViewChatMessages({
   conversationView = null,
   pendingTurn = null,
@@ -193,5 +171,4 @@ function buildConversationViewChatMessages({
 export const DesktopConversationDisplayProjection = Object.freeze({
   buildConversationViewChatMessages,
   buildPendingBridgeChatMessages,
-  selectRendererMessageAnnotations,
 });
