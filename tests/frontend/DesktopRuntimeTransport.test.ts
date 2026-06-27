@@ -162,6 +162,23 @@ describe('desktopRuntimeTransport', () => {
     expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
   });
 
+  test('ignores padded stop refs instead of trimming them into commands', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({});
+
+    const transport = createDesktopRuntimeTransport(null);
+
+    await transport.stop({
+      conversation_ref: ' conv-stop ',
+      turn_ref: 'turn-stop',
+    });
+    await transport.stop({
+      conversation_ref: 'conv-stop',
+      turn_ref: ' turn-stop ',
+    });
+
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
+  });
+
   test('rejects removed camelCase rehydrate and compact payload aliases', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({});
 

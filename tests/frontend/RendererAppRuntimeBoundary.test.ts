@@ -1357,6 +1357,10 @@ describe('renderer app runtime boundary', () => {
     expect(liveTurnSource).toContain('invokeAgentSdkCommand');
     expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
     expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
+    expect(liveTurnSource).toContain('function optionalExactString');
+    expect(liveTurnSource).toContain('optionalExactString(conversationRef)');
+    expect(liveTurnSource).toContain('optionalExactString(turnRef)');
+    expect(liveTurnSource).not.toContain('optionalString(conversationRef)\n      ?? DesktopTranscriptSessionRuntimeClient.getActiveConversationRef()');
     expect(liveTurnSource).not.toContain('screenshotRef');
     expect(liveTurnSource).not.toContain('screenshotUrl');
     expect(liveTurnSource).not.toContain('screenshotRefs');
@@ -1381,6 +1385,7 @@ describe('renderer app runtime boundary', () => {
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE');
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.MODELS_LIST');
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED');
+    expect(agentRuntimeTransportSource).toContain('const turnRef = optionalExactString(payload.turn_ref)');
     expect(agentRuntimeTransportSource).toContain('AgentRuntimeTransport');
     expect(agentRuntimeTransportSource).toContain('export const DesktopRuntimeTransport = Object.freeze');
     expect(agentRuntimeTransportSource).not.toContain('export function createDesktopRuntimeTransport');

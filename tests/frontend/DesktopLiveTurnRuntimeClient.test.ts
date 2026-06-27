@@ -90,17 +90,29 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     })).rejects.toThrow('Failed to send command to the renderer app runtime');
   });
 
-  test('stop routes through SDK-shaped command invoke with the active turn ref', async () => {
+  test('stop routes through SDK-shaped command invoke with exact refs', async () => {
     const { DesktopLiveTurnRuntimeClient } = require(
       '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
     );
 
-    await DesktopLiveTurnRuntimeClient.stop('conv-stop', ' turn-stop ');
+    await DesktopLiveTurnRuntimeClient.stop('conv-stop', 'turn-stop');
 
     expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.stop', {
       conversation_ref: 'conv-stop',
       turn_ref: 'turn-stop',
     });
+  });
+
+  test('stop ignores padded explicit refs without falling back to active conversation', async () => {
+    mockGetActiveConversationRef.mockReturnValue('conv-active');
+    const { DesktopLiveTurnRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
+    );
+
+    await DesktopLiveTurnRuntimeClient.stop(' conv-stop ', 'turn-stop');
+    await DesktopLiveTurnRuntimeClient.stop('conv-stop', ' turn-stop ');
+
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
   });
 
   test('stop falls back to the active conversation and nullable turn ref', async () => {
@@ -115,6 +127,17 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       conversation_ref: 'conv-active',
       turn_ref: null,
     });
+  });
+
+  test('stop ignores padded active conversation fallback refs', async () => {
+    mockGetActiveConversationRef.mockReturnValue(' conv-active ');
+    const { DesktopLiveTurnRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
+    );
+
+    await DesktopLiveTurnRuntimeClient.stop();
+
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
   });
 
 });

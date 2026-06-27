@@ -27,6 +27,10 @@ function optionalExactString(value: unknown): string | null {
     : null;
 }
 
+function hasOwnField(payload: Record<string, unknown>, field: string): boolean {
+  return Object.prototype.hasOwnProperty.call(payload, field);
+}
+
 function optionalExactStringArray(value: unknown): string[] | null {
   if (!Array.isArray(value)) {
     return null;
@@ -76,9 +80,7 @@ async function sendQuery(
     'queryMessageId',
     'messageId',
   ], 'conversation.send');
-  const removedSnakeCaseFields = ['message_id'].filter((field) => (
-    Object.prototype.hasOwnProperty.call(payload, field)
-  ));
+  const removedSnakeCaseFields = ['message_id'].filter((field) => hasOwnField(payload, field));
   if (removedSnakeCaseFields.length > 0) {
     throw new Error(
       `conversation.send received removed field(s): ${removedSnakeCaseFields.join(', ')}. Use query_message_id.`,
@@ -191,9 +193,19 @@ function createDesktopRuntimeTransport(workspacePath: string | null = null): Age
     },
     stop: async (payload) => {
       rejectRemovedCamelCaseFields(payload, ['conversationRef', 'turnRef'], 'conversation.stop');
+      const hasConversationRef = hasOwnField(payload, 'conversation_ref');
+      const hasTurnRef = hasOwnField(payload, 'turn_ref');
+      const conversationRef = optionalExactString(payload.conversation_ref);
+      const turnRef = optionalExactString(payload.turn_ref);
+      if (
+        (hasConversationRef && payload.conversation_ref != null && !conversationRef)
+        || (hasTurnRef && payload.turn_ref != null && !turnRef)
+      ) {
+        return;
+      }
       await sendStopQuery(
-        optionalString(payload.conversation_ref),
-        optionalString(payload.turn_ref),
+        conversationRef,
+        turnRef,
       );
     },
     subscribe: () => () => undefined,

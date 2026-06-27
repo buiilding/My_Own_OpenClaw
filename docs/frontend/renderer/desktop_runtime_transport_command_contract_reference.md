@@ -562,8 +562,9 @@ commands. SDK library commands such as `conversation.loadDisplay`,
 `compactHistory(...)`, `wakewordDetected(...)`, and `updateSettings(...)` return
 the snake_case `turn_ref` when present. Removed `turnRef` aliases are rejected.
 
-`stop(...)` sends only `conversation_ref` and `turn_ref` to
-`conversation.stop`; camelCase stop aliases are rejected.
+`stop(...)` sends only exact `conversation_ref` and `turn_ref` values to
+`conversation.stop`; camelCase stop aliases are rejected, and padded explicit
+refs are ignored instead of being trimmed into SDK stop commands.
 
 ## Drift Hotspots
 

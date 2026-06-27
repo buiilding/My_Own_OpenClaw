@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stop: reject padded explicit stop refs in renderer SDK command
+  facades instead of trimming them into `conversation.stop` identity. No
+  migration required.
 - frontend/revisions: reject padded revision ids and conversation refs in
   revision menu checkout/fork command shaping instead of trimming them into SDK
   command identity. No migration required.

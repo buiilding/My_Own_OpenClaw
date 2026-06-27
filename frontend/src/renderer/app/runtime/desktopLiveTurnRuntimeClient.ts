@@ -37,6 +37,12 @@ function optionalString(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
+function optionalExactString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function throwIfFailedIpcResult(result: unknown): void {
   if (!result || typeof result !== 'object' || !('ok' in result) || result.ok !== false) {
     return;
@@ -72,12 +78,18 @@ export const DesktopLiveTurnRuntimeClient = {
   },
 
   async stop(conversationRef: string | null = null, turnRef: string | null = null): Promise<void> {
-    const resolvedConversationRef = optionalString(conversationRef)
-      ?? DesktopTranscriptSessionRuntimeClient.getActiveConversationRef();
+    const hasExplicitConversationRef = conversationRef !== null && conversationRef !== undefined;
+    const hasExplicitTurnRef = turnRef !== null && turnRef !== undefined;
+    const resolvedConversationRef = hasExplicitConversationRef
+      ? optionalExactString(conversationRef)
+      : optionalExactString(DesktopTranscriptSessionRuntimeClient.getActiveConversationRef());
     if (!resolvedConversationRef) {
       return;
     }
-    const resolvedTurnRef = optionalString(turnRef);
+    const resolvedTurnRef = optionalExactString(turnRef);
+    if (hasExplicitTurnRef && !resolvedTurnRef) {
+      return;
+    }
     await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_STOP, {
       conversation_ref: resolvedConversationRef,
       turn_ref: resolvedTurnRef,
