@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: require exact non-empty SDK live-entry ids before
+  projecting no-view or `ConversationView` live entries into renderer chat
+  messages, keeping padded or malformed entry ids from becoming visible row
+  identity. No migration required.
 - frontend/display-rows: require exact non-empty SDK display-row ids before
   projecting renderer chat messages, leaving rows with padded, empty, or
   malformed ids inert instead of turning them into renderer message identity.

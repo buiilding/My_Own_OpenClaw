@@ -47,6 +47,43 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     expect(messages[0].turnRef).toBeUndefined();
   });
 
+  test('drops no-view live entries with malformed SDK row ids', () => {
+    const messages = buildCurrentTurnMessagesFromPresentation({
+      turnRef: 'turn-live',
+      presentation: {
+        entries: [
+          {
+            id: ' entry-padded ',
+            type: 'llm-text',
+            text: 'padded id',
+          },
+          {
+            id: '',
+            type: 'llm-text',
+            text: 'empty id',
+          },
+          {
+            id: { value: 'entry-object' },
+            type: 'llm-text',
+            text: 'object id',
+          },
+          {
+            id: 'entry-exact',
+            type: 'llm-text',
+            text: 'exact id',
+          },
+        ],
+      },
+    });
+
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toMatchObject({
+      id: 'entry-exact',
+      text: 'exact id',
+      sourceChannel: 'sdk:current-turn',
+    });
+  });
+
   test('uses containing ConversationView live-turn identity for tool outputs', () => {
     const messages = buildConversationViewLiveTurnMessages({
       conversationRef: 'conv-1',
@@ -65,6 +102,34 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     expect(messages).toHaveLength(1);
     expect(messages[0]).toMatchObject({
       id: 'entry-tool-output',
+      turnRef: 'turn-view',
+      sourceChannel: 'sdk:conversation-view',
+    });
+  });
+
+  test('drops ConversationView live entries with malformed SDK row ids', () => {
+    const messages = buildConversationViewLiveTurnMessages({
+      conversationRef: 'conv-1',
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries: [
+          {
+            id: ' entry-padded ',
+            type: 'llm-text',
+            text: 'padded id',
+          },
+          {
+            id: 'entry-exact',
+            type: 'llm-text',
+            text: 'exact id',
+          },
+        ],
+      },
+    });
+
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toMatchObject({
+      id: 'entry-exact',
       turnRef: 'turn-view',
       sourceChannel: 'sdk:conversation-view',
     });

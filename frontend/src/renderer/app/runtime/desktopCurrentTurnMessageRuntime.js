@@ -377,7 +377,7 @@ function buildToolOutputMessage(entry, liveTurnContext) {
 }
 
 function buildChatMessageFromLiveTurnEntry(entry, liveTurnContext = null) {
-  if (!entry || typeof entry !== 'object' || typeof entry.id !== 'string') {
+  if (!entry || typeof entry !== 'object' || !readExactSdkString(entry.id)) {
     return null;
   }
   const type = normalizeEntryType(entry.type);

@@ -3881,6 +3881,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('function readExactSdkString(value)');
     expect(source).toContain('value.length > 0');
     expect(source).toContain('value === value.trim()');
+    expect(source).toContain('!readExactSdkString(entry.id)');
+    expect(source).not.toContain("typeof entry.id !== 'string'");
     expect(source).not.toContain("return typeof value === 'string' && value.trim() ? value.trim() : 'llm-text';");
     expect(source).not.toContain('sourceEventType: entry.sourceEventType || null');
     expect(source).not.toContain("thinkingSourceEventType: entry.sourceEventType || 'reasoning_delta'");

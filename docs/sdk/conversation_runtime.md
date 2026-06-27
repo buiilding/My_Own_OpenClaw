@@ -473,7 +473,9 @@ rendered live row instead of being preserved or trimmed as authored SDK event
 identity. Renderer live-turn side-effect dedupe also treats SDK presentation
 entry ids as exact-only. Padded entry ids fall back to the local entry
 index/type key instead of being trimmed into a key that can suppress a later
-exact SDK entry.
+exact SDK entry. Visible live-entry projection uses the same exact id gate:
+entries with padded, empty, or malformed `id` values are dropped before they can
+become renderer message identity.
 Renderer live-entry adapters assign their own presentation `sourceChannel`
 based on whether the input came from no-view SDK current-turn presentation or
 first-class `ConversationView.liveTurn.entries`; live entry payloads cannot
