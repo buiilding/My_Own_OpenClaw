@@ -194,9 +194,7 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
 }
 
 function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
-  const toolMetadata = sanitizeSdkToolDetailRecord(
-    row.metadata?.toolCallDetails ?? row.metadata?.toolOutputDetails,
-  );
+  const toolMetadata = sanitizeSdkToolDetailRecord(row.metadata?.toolCallDetails);
   return withRowActions({
     id: row.id,
     text: displayTextFromStringRowContent(row.content),
@@ -207,8 +205,8 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
     turnRef: rowTurnRef(row) ?? undefined,
     timestamp: rowTimestamp(row),
     toolName: rowToolName(row) ?? undefined,
-    toolMetadata,
     correlationId: rowCorrelationId(row) ?? undefined,
+    ...(toolMetadata ? { toolMetadata } : {}),
   }, row);
 }
 

@@ -1257,6 +1257,38 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
+  test('does not recover tool progress details from SDK output-detail metadata', () => {
+    const [message] = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'progress-output-details-only',
+        conversationRef: 'conv-tool',
+        turnRef: 'turn-tool',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Waiting for tool output',
+        metadata: {
+          revisionId: 'rev-tool',
+          timestamp: '2026-06-09T04:22:00.000Z',
+          toolName: 'read_file',
+          displayCorrelationId: 'req-tool-1',
+          toolOutputDetails: {
+            toolName: 'read_file',
+            requestId: 'req-tool-1',
+          },
+        },
+      },
+    ]);
+
+    expect(message).toEqual(expect.objectContaining({
+      id: 'progress-output-details-only',
+      type: 'tool-progress',
+      toolName: 'read_file',
+      correlationId: 'req-tool-1',
+    }));
+    expect(message).not.toHaveProperty('toolMetadata');
+  });
+
   test('does not forward raw SDK diagnostics into renderer chat details', () => {
     const [message] = buildChatMessagesFromSdkDisplayRows([
       {

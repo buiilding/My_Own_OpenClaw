@@ -146,7 +146,9 @@ do not rebuild missing details from `toolMetadata`, `toolName`,
 payload authority. The transcript tool-output state helper also omits
 `toolMetadata`, `toolName`, `executionTime`, and `success`, so adapters must
 pass explicit `toolOutputDetails` instead of publishing parallel detail
-channels.
+channels. SDK `tool_progress` display rows do not borrow
+`toolOutputDetails` as progress metadata; if the SDK wants a progress detail
+payload, it must author that on `toolCallDetails`.
 
 Visible tool-output screenshots render through the same typed attachment path as
 user visuals:

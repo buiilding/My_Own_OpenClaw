@@ -573,6 +573,10 @@ instead of rebuilding details from legacy `toolMetadata`, `toolName`,
 overlay live/display materialization also ignore legacy `toolMetadata`; tool
 identity comes from exact `correlationId`, `toolCallDetails`, or
 `toolOutputDetails` only.
+Display-row `tool_progress` projection does not borrow
+`metadata.toolOutputDetails` as progress metadata; progress rows may pass
+SDK-authored `toolCallDetails` only, leaving output details scoped to
+tool-output rows.
 Thread presentation duplicate suppression also treats live row ids and tool
 detail identity fields as exact SDK identity; padded live ids or nested
 `toolCallDetails`/`toolOutputDetails` ids do not suppress materialized display
