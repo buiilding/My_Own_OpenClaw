@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pill: route chat-pill `ConversationView` trace authority through
+  the shared workspace gate so partial view objects stay on the no-view SDK
+  live-turn fallback path. No migration required.
 - frontend/traces: route chat-provider `ConversationView` trace authority
   through the shared workspace gate so partial view objects fall back to no-view
   workspace trace snapshots. No migration required.

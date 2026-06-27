@@ -190,12 +190,15 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
 
-    expect(pillSessionRuntimeSource).toContain('function isConversationView');
-    expect(pillSessionRuntimeSource).toContain('readExactNonEmptyString(value.conversationRef)');
-    expect(pillSessionRuntimeSource).toContain('Array.isArray(value.displayRows)');
-    expect(pillSessionRuntimeSource).toContain('isObjectRecord(value.liveTurn)');
-    expect(pillSessionRuntimeSource).toContain('isObjectRecord(value.surfaces)');
-    expect(pillSessionRuntimeSource).toContain('isObjectRecord(value.actions)');
+    expect(pillSessionRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(pillSessionRuntimeSource).toContain(
+      'hasWorkspaceConversationView({ conversationView: candidateConversationView })',
+    );
+    expect(pillSessionRuntimeSource).not.toContain('function isConversationView');
+    expect(pillSessionRuntimeSource).not.toContain('Array.isArray(value.displayRows)');
+    expect(pillSessionRuntimeSource).not.toContain('isObjectRecord(value.liveTurn)');
+    expect(pillSessionRuntimeSource).not.toContain('isObjectRecord(value.surfaces)');
+    expect(pillSessionRuntimeSource).not.toContain('isObjectRecord(value.actions)');
     expect(pillSessionRuntimeSource).not.toContain('Boolean(conversationView && typeof conversationView === \'object\')');
   });
 

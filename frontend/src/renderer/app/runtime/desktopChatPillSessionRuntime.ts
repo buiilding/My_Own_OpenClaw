@@ -7,11 +7,17 @@ import {
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
 } from './desktopMessageSendUiRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 import { DesktopResponseOverlayViewRuntime } from './desktopResponseOverlayViewRuntime';
 
 const {
   resolveMessageSendUiBehavior,
 } = DesktopMessageSendUiRuntime;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 const {
   resolveResponseOverlayViewContract,
 } = DesktopResponseOverlayViewRuntime;
@@ -89,23 +95,6 @@ function normalizeOptionalTurnRef(value: unknown): string | null {
 
 function normalizeOptionalString(value: unknown): string | null {
   return readExactNonEmptyString(value);
-}
-
-function isObjectRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
-function isConversationView(value: ChatPillConversationView): value is NonNullable<ChatPillConversationView> {
-  if (!isObjectRecord(value)) {
-    return false;
-  }
-  return Boolean(
-    readExactNonEmptyString(value.conversationRef)
-      && Array.isArray(value.displayRows)
-      && isObjectRecord(value.liveTurn)
-      && isObjectRecord(value.surfaces)
-      && isObjectRecord(value.actions),
-  );
 }
 
 function resolveViewLiveTurnRef(conversationView: ChatPillConversationView): string | null {
@@ -223,7 +212,7 @@ function buildChatPillLifecycleTraceSnapshot({
 }) {
   const sdkLiveTurn = chatSurfaceState?.sdkLiveTurn ?? null;
   const candidateConversationView = chatSurfaceState?.conversationView ?? null;
-  const conversationView = isConversationView(candidateConversationView)
+  const conversationView = hasWorkspaceConversationView({ conversationView: candidateConversationView })
     ? candidateConversationView
     : null;
   const viewTurnRef = resolveViewLiveTurnRef(conversationView);
@@ -282,7 +271,7 @@ function buildChatPillStateTraceSnapshot({
 }) {
   const sdkLiveTurn = chatSurfaceState?.sdkLiveTurn ?? null;
   const candidateConversationView = chatSurfaceState?.conversationView ?? null;
-  const conversationView = isConversationView(candidateConversationView)
+  const conversationView = hasWorkspaceConversationView({ conversationView: candidateConversationView })
     ? candidateConversationView
     : null;
   const hasConversationView = Boolean(conversationView);
