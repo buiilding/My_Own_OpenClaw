@@ -235,8 +235,10 @@ trimmed into no-view/pending routing state.
   `messages`. Annotation row ids must already be exact SDK display-row ids;
   padded or empty ids do not get trimmed into annotation records. When a
   `ConversationView` first becomes authoritative, existing no-view assistant
-  feedback is migrated into `rendererAnnotations` once; the projected read model
-  must not recover annotations from raw `messages` under a view.
+  feedback with exact row ids is migrated into `rendererAnnotations` once;
+  padded fallback message ids are ignored instead of repaired during that
+  migration. The projected read model must not recover annotations from raw
+  `messages` under a view.
 - Scalar workspace-field writes enter through the module-level
   `setIsSendingInChatStore(...)`, `setThinkingStatusInChatStore(...)`,
   `setThinkingSourceEventTypeInChatStore(...)`,

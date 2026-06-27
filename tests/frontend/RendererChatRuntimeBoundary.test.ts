@@ -4772,6 +4772,7 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationViewWorkspaceRuntimeSource).toContain('value === value.trim()');
     expect(conversationViewWorkspaceRuntimeSource).toContain('const conversationRef = exactNonEmptyString(source.conversationRef);');
     expect(conversationViewWorkspaceRuntimeSource).toContain('const turnRef = exactNonEmptyString(source.turnRef);');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('const id = exactNonEmptyString(source.id);');
     expect(conversationViewWorkspaceRuntimeSource).toContain('const conversationRef = exactNonEmptyString(conversationView.conversationRef);');
     expect(conversationViewWorkspaceRuntimeSource).toContain('exactNonEmptyString(liveTurn?.turnRef)');
     expect(conversationViewWorkspaceRuntimeSource).toContain('exactNonEmptyString(responseOverlay?.turnRef)');
@@ -4782,6 +4783,7 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationViewWorkspaceRuntimeSource).toContain('isObjectRecord(source.surfaces)');
     expect(conversationViewWorkspaceRuntimeSource).toContain('isObjectRecord(source.actions)');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain("typeof source.conversationRef === 'string'");
+    expect(conversationViewWorkspaceRuntimeSource).not.toContain('function normalizeString(value: unknown)');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('buildSetLatestConversationViewStateUpdate');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('hasLatestConversationViewUpdate');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('latestConversationView');

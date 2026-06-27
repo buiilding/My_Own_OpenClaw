@@ -173,6 +173,40 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     ]);
   });
 
+  test('does not repair padded assistant feedback ids into renderer annotations', () => {
+    const conversationView = buildConversationView('conv-1');
+    const workspace = {
+      conversationView: null,
+      messages: [
+        {
+          id: ' assistant-row ',
+          sender: 'assistant',
+          text: 'raw fallback',
+          feedback: 'like',
+        },
+        {
+          id: 'assistant-row-exact',
+          sender: 'assistant',
+          text: 'raw fallback',
+          feedback: 'dislike',
+        },
+      ],
+      rendererAnnotations: [],
+    };
+
+    const mutation = buildConversationViewWorkspaceMutation({
+      conversationView,
+      currentWorkspace: workspace,
+    });
+
+    expect(mutation?.workspace.rendererAnnotations).toEqual([
+      {
+        id: 'assistant-row-exact',
+        feedback: 'dislike',
+      },
+    ]);
+  });
+
   test('clears explicit renderer annotations when the ConversationView is cleared', () => {
     const workspace = {
       conversationView: buildConversationView('conv-1'),

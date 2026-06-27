@@ -45,10 +45,6 @@ type ConversationViewStateDependencies<
   ) => string;
 };
 
-function normalizeString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
 function exactNonEmptyString(value: unknown): string | null {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
     ? value
@@ -99,7 +95,7 @@ function selectRendererAnnotationsFromMessages(messages: unknown[] | undefined):
       return [];
     }
     const source = message as Record<string, unknown>;
-    const id = normalizeString(source.id);
+    const id = exactNonEmptyString(source.id);
     return id
       ? [{
         id,

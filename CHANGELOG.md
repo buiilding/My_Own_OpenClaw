@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: require exact assistant row ids when migrating legacy
+  feedback into `rendererAnnotations` beside an authoritative
+  `ConversationView`, so padded raw fallback ids cannot become SDK-row
+  annotation records. No migration required.
 - frontend/compaction: require exact manual-compaction conversation refs at the
   renderer continuity service boundary, rejecting padded explicit refs and
   ignoring malformed active-session fallbacks instead of trimming them into SDK
