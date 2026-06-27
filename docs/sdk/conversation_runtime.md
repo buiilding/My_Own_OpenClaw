@@ -491,7 +491,10 @@ no-view SDK `toolEvents` use the same exact rule when projected into renderer
 correlation ids, so fallback current-turn rows do not repair malformed tool
 identity either. Live-entry and legacy no-view `toolEvents` tool names follow
 the same rule: padded names are ignored instead of being trimmed into visible
-tool labels or fallback status text.
+tool labels or fallback status text. Live-entry and legacy no-view tool detail
+metadata comes only from SDK-authored `toolCallDetails`/`toolOutputDetails`;
+renderer text fallbacks may label a tool row, but they must not synthesize
+detail records from a bare tool name.
 Thread presentation duplicate suppression also treats live row ids and tool
 detail identity fields as exact SDK identity; padded live ids or nested
 `toolCallDetails`/`toolOutputDetails` ids do not suppress materialized display

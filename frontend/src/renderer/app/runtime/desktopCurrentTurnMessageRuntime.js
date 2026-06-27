@@ -85,7 +85,7 @@ function buildProjectedToolCallMessage({
   toolEvent,
 }) {
   const toolName = resolveToolName(toolEvent.toolName) || '';
-  const toolCallDetails = asObject(toolEvent.toolCallDetails) || (toolName ? { toolName } : null);
+  const toolCallDetails = asObject(toolEvent.toolCallDetails);
   const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);
   const correlationId = resolveToolEventCorrelationId(toolEvent);
   const text = normalizeText(toolEvent.text) || (toolName ? `Using ${toolName}` : 'Using tool');
@@ -107,7 +107,7 @@ function buildProjectedToolOutputMessage({
   liveTurnRef,
   toolEvent,
 }) {
-  const toolOutputDetails = asObject(toolEvent.toolOutputDetails) || {};
+  const toolOutputDetails = asObject(toolEvent.toolOutputDetails);
   const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);
   const toolName = resolveToolName(toolEvent.toolName);
   const correlationId = resolveToolEventCorrelationId(toolEvent);

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-tools: stop synthesizing live tool detail metadata from legacy
+  fallback tool names; renderer tool details now come only from SDK-authored
+  `toolCallDetails` and `toolOutputDetails`. No migration required.
 - frontend/live-rows: ignore entry-level live `turnRef` values and project row
   identity only from the containing SDK live turn or ConversationView live-turn
   context. No migration required.
