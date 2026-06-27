@@ -2700,6 +2700,10 @@ describe('renderer chat runtime boundary', () => {
     expect(attachmentRegistrySource).not.toContain('lastVisibleSrc');
     expect(attachmentRegistrySource).not.toContain('useState');
     expect(attachmentRegistrySource).not.toContain('setLastVisibleSrc');
+    expect(toolOutputSource).toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(toolOutputSource).toContain('readSdkDisplayAttachments(message.attachments)');
+    expect(toolOutputSource).toContain('displayAttachments.length > 0');
+    expect(toolOutputSource).not.toContain('Array.isArray(message.attachments) ? message.attachments : []');
     expect(toolOutputSource).toContain('AttachmentList');
     expect(toolOutputSource).not.toContain('useResolvedMessageScreenshotSrc');
     expect(toolOutputStateSource).not.toContain('screenshotMessageState');

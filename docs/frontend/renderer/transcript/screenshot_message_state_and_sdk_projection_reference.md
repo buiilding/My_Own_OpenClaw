@@ -64,6 +64,10 @@ while SDK attachment lifecycle changes. A materializing preview renders only
 while the descriptor remains `status: "materializing"`, and a ready image
 renders only after the artifact/image resolver returns a source for the current
 SDK descriptor.
+Tool-output attachment chrome is also gated on
+`DesktopSdkDisplayAttachmentProjection.readSdkDisplayAttachments(...)`; raw
+`message.attachments` arrays that contain only malformed descriptors must not
+show screenshot headers or other lifecycle UI.
 
 There is no renderer `resolveReplayScreenshotState(...)` facade. React replay
 actions dispatch SDK retry/edit intent only; SDK target-row resolution preserves

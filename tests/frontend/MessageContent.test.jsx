@@ -246,6 +246,37 @@ describe('MessageContent', () => {
     expect(screen.getByText('result')).toBeInTheDocument();
   });
 
+  test('does not show tool-output attachment chrome for malformed SDK attachments', () => {
+    render(
+      <MessageContent
+        message={{
+          sender: 'assistant',
+          type: 'tool-output',
+          text: 'result',
+          attachments: [
+            {
+              id: ' padded-tool-attachment ',
+              kind: 'image',
+              source: 'tool_result',
+              status: 'ready',
+              screenshotRef: 'artifact-legacy',
+            },
+            {
+              id: 'missing-ready-source',
+              kind: 'image',
+              source: 'tool_result',
+              status: 'ready',
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.queryByText(/Screenshot After Action/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'User message attachment' })).toBeNull();
+    expect(screen.getByText('result')).toBeInTheDocument();
+  });
+
   test('tool output details button reveals model-facing output and details payload', () => {
     render(
       <MessageContent

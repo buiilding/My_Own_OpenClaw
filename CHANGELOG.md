@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: gate tool-output screenshot chrome on SDK-validated
+  display attachments, so malformed raw `message.attachments` arrays no longer
+  create renderer attachment UI. No migration required.
 - frontend/attachments: stop carrying a renderer-local last image source across
   SDK attachment lifecycle changes; materializing previews now render only while
   the SDK descriptor is materializing, and ready images wait for the artifact
