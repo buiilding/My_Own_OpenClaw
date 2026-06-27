@@ -40,7 +40,11 @@ function rowTimestamp(row: SdkDisplayRow): string {
 
 function rowSourceEventType(row: SdkDisplayRow): string {
   const sourceEventType = row.metadata?.sourceEventType;
-  if (typeof sourceEventType === 'string' && sourceEventType.trim()) {
+  if (
+    typeof sourceEventType === 'string'
+    && sourceEventType.length > 0
+    && sourceEventType === sourceEventType.trim()
+  ) {
     return sourceEventType;
   }
   return row.type;

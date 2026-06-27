@@ -216,6 +216,42 @@ describe('sdkDisplayChatMessageProjection', () => {
     }));
   });
 
+  test('does not repair padded SDK source event types', () => {
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-user-padded-source',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'hello',
+        metadata: {
+          sourceEventType: ' user_message_metadata ',
+        },
+      },
+      {
+        id: 'msg-assistant-source',
+        conversationRef: 'conv-sdk',
+        index: 1,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'hi',
+        metadata: {
+          sourceEventType: 'assistant_delta',
+        },
+      },
+    ])).toEqual([
+      expect.objectContaining({
+        id: 'msg-user-padded-source',
+        sourceEventType: 'user_message',
+      }),
+      expect.objectContaining({
+        id: 'msg-assistant-source',
+        sourceEventType: 'assistant_delta',
+      }),
+    ]);
+  });
+
   test('preserves user row turn refs so replay pending rows dedupe after SDK projection', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {
