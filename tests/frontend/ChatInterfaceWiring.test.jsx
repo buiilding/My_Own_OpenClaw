@@ -243,25 +243,22 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/stores/chatStoreAdapters', () => ({
-  executeReplayActionFromChatStore: jest.fn(async (input = {}) => {
-    if (input.action === 'edit_resend') {
-      return mockEditAndResend({
-        conversationRef: mockChatState.activeConversationRef || 'conv_existing',
-        userId: 'default_user',
-        messageId: typeof input.userMessageId === 'string' ? input.userMessageId.trim() : input.userMessageId,
-        text: typeof input.editedText === 'string' ? input.editedText.trim() : input.editedText,
-      });
-    }
-    if (input.action === 'retry') {
-      return mockRetryTurn({
-        conversationRef: mockChatState.activeConversationRef || 'conv_existing',
-        userId: 'default_user',
-        messageId: typeof input.assistantMessageId === 'string'
-          ? input.assistantMessageId.trim()
-          : input.assistantMessageId,
-      });
-    }
-    return undefined;
+  editUserMessageReplayFromChatStore: jest.fn(async (input = {}) => {
+    return mockEditAndResend({
+      conversationRef: mockChatState.activeConversationRef || 'conv_existing',
+      userId: 'default_user',
+      messageId: typeof input.userMessageId === 'string' ? input.userMessageId.trim() : input.userMessageId,
+      text: typeof input.editedText === 'string' ? input.editedText.trim() : input.editedText,
+    });
+  }),
+  retryAssistantMessageReplayFromChatStore: jest.fn(async (input = {}) => {
+    return mockRetryTurn({
+      conversationRef: mockChatState.activeConversationRef || 'conv_existing',
+      userId: 'default_user',
+      messageId: typeof input.assistantMessageId === 'string'
+        ? input.assistantMessageId.trim()
+        : input.assistantMessageId,
+    });
   }),
   clearMessagesInChatStore: (...args) => {
     mockChatState.messages = [];

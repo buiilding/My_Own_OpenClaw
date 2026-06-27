@@ -91,7 +91,7 @@ const {
 const {
   executeReplayAction,
 } = DesktopConversationReplayRuntime as {
-  executeReplayAction: (input: ReplayActionFromChatStoreInput & {
+  executeReplayAction: (input: ReplayActionRuntimeInput & {
     chatStore: typeof useChatStore;
   }) => Promise<boolean | undefined>;
 };
@@ -314,25 +314,50 @@ export function clearPendingTurnInChatStore(
   ));
 }
 
-type ReplayActionFromChatStoreInput = {
-  action?: string | null;
+type ReplayActionFromChatStoreBaseInput = {
   activeConversationRef?: string | null;
-  assistantMessageId?: string | null;
   config?: Record<string, unknown> | null;
   deferredQueryModelSelection?: unknown;
-  editedText?: string | null;
   sessionInfo?: {
     conversationRef?: string | null;
     userId?: string | null;
   } | null;
+};
+
+type ReplayEditUserMessageFromChatStoreInput = ReplayActionFromChatStoreBaseInput & {
+  editedText?: string | null;
   userMessageId?: string | null;
 };
 
-export function executeReplayActionFromChatStore(
-  input: ReplayActionFromChatStoreInput,
+type ReplayRetryAssistantMessageFromChatStoreInput = ReplayActionFromChatStoreBaseInput & {
+  assistantMessageId?: string | null;
+};
+
+type ReplayActionFromChatStoreInput = (
+  ReplayEditUserMessageFromChatStoreInput
+  | ReplayRetryAssistantMessageFromChatStoreInput
+);
+
+type ReplayActionRuntimeInput = ReplayActionFromChatStoreInput & {
+  action: 'edit_resend' | 'retry';
+};
+
+export function editUserMessageReplayFromChatStore(
+  input: ReplayEditUserMessageFromChatStoreInput,
 ): Promise<boolean | undefined> {
   return executeReplayAction({
     ...input,
+    action: 'edit_resend',
+    chatStore: useChatStore,
+  });
+}
+
+export function retryAssistantMessageReplayFromChatStore(
+  input: ReplayRetryAssistantMessageFromChatStoreInput,
+): Promise<boolean | undefined> {
+  return executeReplayAction({
+    ...input,
+    action: 'retry',
     chatStore: useChatStore,
   });
 }

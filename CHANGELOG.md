@@ -11,6 +11,14 @@ All notable changes to WindieOS will be documented in this file.
   cached `ConversationView` but no raw current-turn projection, so renderer
   reloads restore the SDK-owned chat read model without waiting for another
   runtime event. No migration required.
+- frontend/replay: replace the generic chat-store replay action adapter with
+  named edit-user-row and retry-assistant-row commands, so React replay hooks
+  pass row intent while the adapter/runtime layer owns the SDK replay action
+  discriminator. No migration required.
+- frontend/live-turn: stop the legacy no-presentation current-turn tool-row
+  fallback from recovering tool names or correlation ids out of raw
+  `toolEvent.payload`; live tool presentation now uses SDK-shaped tool fields
+  only. No migration required.
 - cli/test: update the core-loop regression preset to run the renamed
   `DesktopSdkLiveTurnEffectsRuntime` and `DesktopAttachmentImageRuntime`
   coverage instead of stale pre-boundary filenames, keeping SDK live-turn and

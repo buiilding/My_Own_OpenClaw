@@ -1915,7 +1915,10 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopConversationContinuityService.prepareEditAndResend');
     expect(source).not.toContain('DesktopConversationContinuityService.prepareRetryTurn');
     expect(source).not.toContain('dispatchPreparedDesktopChatTurn');
-    expect(source).toContain('executeReplayActionFromChatStore');
+    expect(source).toContain('editUserMessageReplayFromChatStore');
+    expect(source).toContain('retryAssistantMessageReplayFromChatStore');
+    expect(source).not.toContain("action: 'edit_resend'");
+    expect(source).not.toContain("action: 'retry'");
     expect(source).not.toContain('conversationView');
     expect(source).not.toContain('useChatStore((state)');
     expect(source).not.toContain('state.activeConversationRef');
@@ -1927,9 +1930,11 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopPendingTurnRuntimeClient.setPending');
     expect(source).not.toContain('prepareReplayEditIntent');
     expect(source).not.toContain('prepareReplayRetryIntent');
-    expect(source).toContain('executeReplayActionFromChatStore');
+    expect(source).not.toContain('executeReplayActionFromChatStore');
     expect(replayRuntimeSource).toContain('buildDeferredQueryModelSelection');
-    expect(chatStoreAdaptersSource).toContain('executeReplayActionFromChatStore');
+    expect(chatStoreAdaptersSource).toContain('editUserMessageReplayFromChatStore');
+    expect(chatStoreAdaptersSource).toContain('retryAssistantMessageReplayFromChatStore');
+    expect(chatStoreAdaptersSource).not.toContain('export function executeReplayActionFromChatStore');
     expect(chatStoreAdaptersSource).toContain('chatStore: useChatStore');
     expect(source).not.toContain('findReplayEditableUserMessageIndex');
     expect(source).not.toContain('resolveReplayRetryMessageIndexes');
@@ -3972,7 +3977,9 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('acceptPendingTurnInChatStore');
     expect(chatStoreAdaptersSource).toContain('clearPendingTurnInChatStore');
     expect(chatStoreAdaptersSource).toContain('acceptStoppedTurnInChatStore');
-    expect(chatStoreAdaptersSource).toContain('executeReplayActionFromChatStore');
+    expect(chatStoreAdaptersSource).toContain('editUserMessageReplayFromChatStore');
+    expect(chatStoreAdaptersSource).toContain('retryAssistantMessageReplayFromChatStore');
+    expect(chatStoreAdaptersSource).not.toContain('executeReplayActionFromChatStore');
     expect(chatStoreAdaptersSource).toContain('setNoViewSdkLiveTurnInChatStore');
     expect(chatStoreAdaptersSource).toContain('setConversationViewInChatStore');
     expect(chatStoreAdaptersSource).toContain('updateStreamTrackingInChatStore');
