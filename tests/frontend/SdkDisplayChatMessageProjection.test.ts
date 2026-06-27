@@ -243,7 +243,7 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
-  test('projects SDK row action metadata and replay target ids', () => {
+  test('passes through SDK row action metadata and replay target ids', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {
         id: 'visible-user-row',
@@ -276,14 +276,14 @@ describe('sdkDisplayChatMessageProjection', () => {
         id: 'visible-user-row',
         actions: {
           canEdit: true,
-          editTargetRowId: 'original-user-row',
+          editTargetRowId: ' original-user-row ',
         },
       }),
       expect.objectContaining({
         id: 'visible-assistant-row',
         actions: {
           canRetry: true,
-          retryTargetRowId: 'original-assistant-row',
+          retryTargetRowId: ' original-assistant-row ',
         },
       }),
     ]);

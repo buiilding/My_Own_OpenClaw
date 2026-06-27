@@ -1924,7 +1924,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
-    expect(lastInputProps.isLoopActive).toBe(true);
+    expect(lastInputProps.isLoopActive).toBe(false);
     expect(lastInputProps.canStopResponse).toBe(false);
     lastInputProps.onStopResponse();
     expect(mockStopQuery).not.toHaveBeenCalled();

@@ -88,9 +88,9 @@ describe('desktopMessageActionRuntime', () => {
       id: 'assistant-visible',
       actions: {
         canRetry: true,
-        retryTargetRowId: ' assistant-original ',
+        retryTargetRowId: 'assistant-original',
         canEdit: false,
-        editTargetRowId: ' user-original ',
+        editTargetRowId: 'user-original',
       },
     })).toEqual({
       canRetryMessage: true,
@@ -117,8 +117,8 @@ describe('desktopMessageActionRuntime', () => {
       actions: {
         canRetry: true,
         canEdit: true,
-        retryTargetRowId: '   ',
-        editTargetRowId: null,
+        retryTargetRowId: ' assistant-original ',
+        editTargetRowId: '   ',
       },
     })).toEqual({
       canRetryMessage: false,

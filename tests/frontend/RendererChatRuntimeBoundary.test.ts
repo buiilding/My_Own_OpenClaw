@@ -3711,11 +3711,13 @@ describe('renderer chat runtime boundary', () => {
     const sourceChannelPath = path.join(chatRoot, 'utils/message/sourceChannels.js');
 
     expect(projectionRuntimeSource).toContain('sourceEventType');
-    expect(projectionRuntimeSource).toContain('rowActions');
     expect(projectionRuntimeSource).toContain('withRowActions');
+    expect(projectionRuntimeSource).toContain('actions: row.actions');
     expect(projectionRuntimeSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
-    expect(projectionRuntimeSource).toContain('editTargetRowId');
-    expect(projectionRuntimeSource).toContain('retryTargetRowId');
+    expect(projectionRuntimeSource).not.toContain('function rowActions');
+    expect(projectionRuntimeSource).not.toContain('optionalTrimmedString');
+    expect(projectionRuntimeSource).not.toContain('editTargetRowId');
+    expect(projectionRuntimeSource).not.toContain('retryTargetRowId');
     expect(projectionRuntimeSource).toContain('desktopChatMessageTypes');
     expect(projectionRuntimeSource).toContain('desktopPresentationSourceChannels');
     expect(projectionRuntimeSource).toContain('desktopSdkDisplayAttachmentProjection');
@@ -3846,8 +3848,10 @@ describe('renderer chat runtime boundary', () => {
     expect(messageActionRuntimeSource).toContain('resolveMessageReplayActions');
     expect(messageActionRuntimeSource).toContain("messageActionFlag(message, 'canRetry')");
     expect(messageActionRuntimeSource).toContain("messageActionFlag(message, 'canEdit')");
+    expect(messageActionRuntimeSource).toContain('value === value.trim()');
     expect(messageActionRuntimeSource).toContain('canRetryMessage: messageActionFlag(message, \'canRetry\') && Boolean(retryTargetMessageId)');
     expect(messageActionRuntimeSource).toContain('canEditMessage: messageActionFlag(message, \'canEdit\') && Boolean(editTargetMessageId)');
+    expect(messageActionRuntimeSource).not.toContain('? value.trim() : null');
     expect(messageActionRuntimeSource).not.toContain("messageActionTargetId(message, 'retryTargetRowId') || message?.id");
     expect(messageActionRuntimeSource).not.toContain("messageActionTargetId(message, 'editTargetRowId') || message?.id");
     expect(messageListSource).not.toContain('editTargetMessageId || messageId');

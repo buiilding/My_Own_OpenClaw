@@ -336,9 +336,12 @@ metadata with `canEdit`/`editTargetRowId` for user rows and
 those row targets into chat messages so a replacement row can remain the visible
 edit surface while replay targets the SDK-provided original row identity;
 row-level SDK action metadata gates whether the edit/resend or Try again
-controls are shown, and missing row action booleans or target row ids on SDK
-display rows mean the command is unavailable rather than defaulting to a
-renderer heuristic.
+controls are shown. Renderer display-row adapters pass SDK `row.actions`
+through to chat-message props and do not trim, repair, or reconstruct action
+target ids. Renderer action-control helpers also reject padded or empty target
+ids instead of normalizing them; missing or invalid row action booleans or
+target row ids on SDK display rows mean the command is unavailable rather than
+defaulting to a renderer heuristic.
 Renderer message-list controls apply the same rule for all rows: copy and
 feedback remain renderer-local affordances, but edit/resend and Try again are
 shown only when row `actions.canEdit`/`actions.editTargetRowId` or
@@ -351,9 +354,9 @@ structured tool rows such as tool calls and bundle outputs for component
 compatibility.
 Renderer display-row and live-turn adapters also keep SDK attachment
 descriptors on the typed `attachments[]` prop only. Renderer attachment helpers
-may perform narrow component checks such as image count, ready-image presence,
-and artifact image-source resolution, but they must not expose aggregate
-lifecycle summaries that make the renderer a second attachment state authority.
+may perform narrow component checks such as artifact image-source resolution,
+but they must not expose aggregate lifecycle summaries that make the renderer a
+second attachment state authority.
 Tool detail panels may receive display identity fields such as `toolName`, `requestId`,
 `correlationId`, `bundleId`, `toolCallId`, and `success`, plus SDK-authored
 display details, but component correlation identity comes from the SDK-authored

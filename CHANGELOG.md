@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/conversation-view: pass SDK display-row action metadata through to
+  chat message props without renderer target-id trimming or reconstruction. No
+  migration required.
 - frontend/attachments: remove renderer aggregate attachment lifecycle helpers
   from message class and token usage presentation; those facades now consume
   only the projected SDK `attachments[]` list. No migration required.

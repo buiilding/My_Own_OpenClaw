@@ -81,11 +81,10 @@ metadata-only rows; SDK display rows should provide that semantic object when
 it is part of the row contract, and renderer projection keeps metadata as
 display/details only.
 `DesktopSdkDisplayAttachmentProjection` owns renderer-side display attachment
-validation, image counting, ready-image checks, and trace lifecycle summaries.
-Other renderer presentation runtimes should call those helpers instead of
-inspecting `screenshotRef`/`screenshotUrl` fields directly. Token estimates also
-read SDK typed `attachments[]`; legacy screenshot arrays remain SDK/replay
-compatibility input, not a renderer token-count source.
+validation and artifact image-source extraction for typed SDK descriptors. It
+does not publish image-count, ready-image, or lifecycle summary helpers. Token
+estimates read only the projected SDK `attachments[]` list; legacy screenshot
+arrays remain SDK/replay compatibility input, not a renderer token-count source.
 
 - primary display field: `attachments[]`
 - backend/replay compatibility input before renderer projection:
@@ -113,12 +112,10 @@ If a replayed or resumed image is missing:
    artifact URLs
 
 If the missing image was sent from the chat pill while the dashboard still shows
-the earlier optimistic text-only user row, enable `[LiveSurfaceTrace]` and check
-`renderer.display_rows.projected`. `sdkUserImageCount` means the SDK display row
-contained screenshot metadata, `sdkProjectedUserImageCount` means
-`DesktopSdkDisplayChatMessageProjectionRuntime` converted it into renderer
-message image state, and `mergedUserImageCount` means the renderer store kept
-that image after replacing the optimistic row.
+the earlier pending user row, enable `[LiveSurfaceTrace]` and check
+`renderer.display_rows.projected`. The renderer-side display adapter should
+project only typed SDK `attachments[]`; compatibility screenshot metadata must
+already have been adapted by the SDK replay adapter or SDK display projection.
 
 If a row shows one image instead of multiple:
 

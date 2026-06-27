@@ -23,10 +23,6 @@ function recordFromUnknown(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function optionalTrimmedString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
 function displayTextFromStringRowContent(content: unknown): string {
   return typeof content === 'string' ? content : '';
 }
@@ -50,32 +46,8 @@ function rowCorrelationId(row: SdkDisplayRow): string | null {
   return row.metadata?.displayCorrelationId ?? null;
 }
 
-function rowActions(row: SdkDisplayRow): ChatMessage['actions'] | undefined {
-  const actions = row.actions;
-  if (!actions || typeof actions !== 'object') {
-    return undefined;
-  }
-  const projectedActions: NonNullable<ChatMessage['actions']> = {};
-  if (typeof actions.canEdit === 'boolean') {
-    projectedActions.canEdit = actions.canEdit;
-  }
-  const editTargetRowId = optionalTrimmedString(actions.editTargetRowId);
-  if (editTargetRowId) {
-    projectedActions.editTargetRowId = editTargetRowId;
-  }
-  if (typeof actions.canRetry === 'boolean') {
-    projectedActions.canRetry = actions.canRetry;
-  }
-  const retryTargetRowId = optionalTrimmedString(actions.retryTargetRowId);
-  if (retryTargetRowId) {
-    projectedActions.retryTargetRowId = retryTargetRowId;
-  }
-  return Object.keys(projectedActions).length > 0 ? projectedActions : undefined;
-}
-
 function withRowActions(message: ChatMessage, row: SdkDisplayRow): ChatMessage {
-  const actions = rowActions(row);
-  return actions ? { ...message, actions } : message;
+  return row.actions ? { ...message, actions: row.actions } : message;
 }
 
 function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
