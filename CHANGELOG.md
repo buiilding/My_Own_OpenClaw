@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: scope SDK display-row replay action metadata to the row
+  kinds that own it, so user rows project edit targets, assistant message rows
+  project retry targets, and tool rows drop misplaced replay actions. No
+  migration required.
 - frontend/send: require workspace bindings to be exact before send preparation
   includes `workspacePath` or a workspace SDK resource in the prepared turn
   handoff. No migration required.
