@@ -2096,6 +2096,11 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('storeConversationRef');
     expect(replayRuntimeSource).toContain('targetRowId');
     expect(replayRuntimeSource).toContain('messageId: targetRowId');
+    expect(replayRuntimeSource).not.toContain('assistantMessageId');
+    expect(replayRuntimeSource).not.toContain('userMessageId');
+    expect(source).toContain('targetRowId');
+    expect(source).not.toContain('assistantMessageId');
+    expect(source).not.toContain('userMessageId');
     expect(replayRuntimeSource).not.toContain('targetUserMessageId');
     expect(replayRuntimeSource).not.toContain('chatStore');
     expect(replayRuntimeSource).not.toContain('.getState()');
@@ -2117,7 +2122,7 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('findReplayEditableUserMessageIndex');
     expect(replayRuntimeSource).toContain('prepareReplayEditIntent');
     expect(replayRuntimeSource).toContain('prepareReplayRetryIntent');
-    expect(replayRuntimeSource).toContain('readExactReplayMessageId');
+    expect(replayRuntimeSource).toContain('readExactReplayTargetRowId');
     expect(replayRuntimeSource).toContain('readExactReplayConversationRef');
     expect(replayRuntimeSource).not.toContain('resolveRendererConversationSessionSnapshot');
     expect(replayRuntimeSource).not.toContain('normalizeReplayMessageId');

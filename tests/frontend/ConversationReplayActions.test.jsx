@@ -83,7 +83,7 @@ describe('useConversationReplayActions', () => {
     jest.restoreAllMocks();
   });
 
-  test('routes retry intent through the SDK retry command', async () => {
+  test('routes retry row-target intent through the SDK retry command', async () => {
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
@@ -107,7 +107,7 @@ describe('useConversationReplayActions', () => {
     expect(useChatStore.getState().getWorkspaceState('conv-existing').pendingTurn).toBeNull();
   });
 
-  test('routes edit intent through the SDK edit-and-resend command', async () => {
+  test('routes edit row-target intent through the SDK edit-and-resend command', async () => {
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
@@ -198,7 +198,7 @@ describe('useConversationReplayActions', () => {
     expect(mockRetryTurn).not.toHaveBeenCalled();
   });
 
-  test('does not dispatch SDK commands for empty replay targets', async () => {
+  test('does not dispatch SDK commands for empty replay row targets', async () => {
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
@@ -210,7 +210,7 @@ describe('useConversationReplayActions', () => {
     expect(mockEditAndResend).not.toHaveBeenCalled();
   });
 
-  test('does not repair padded replay targets before SDK dispatch', async () => {
+  test('does not repair padded replay row targets before SDK dispatch', async () => {
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {

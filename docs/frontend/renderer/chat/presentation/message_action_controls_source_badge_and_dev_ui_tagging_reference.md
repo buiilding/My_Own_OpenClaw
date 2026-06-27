@@ -171,7 +171,7 @@ Per-message token telemetry tag:
 
 - assistant copy/like/dislike/try-again controls appear for assistant `llm-text` rows
 - assistant controls do not appear for `tool-call` / `tool-output` rows
-- try-again callback receives assistant message id
+- try-again callback receives the SDK retry target row id from row action metadata
 - copy success icon/title reverts after 4-second timer
 - user edit flow opens inline composer and dispatches edited message
 - user cancel closes editor without callback

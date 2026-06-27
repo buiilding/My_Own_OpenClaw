@@ -1241,7 +1241,7 @@ rehydrate message types.
 Edit/resend and retry are display revision operations:
 
 ```text
-visible row action/message id selects the SDK target
+visible row action target id selects the SDK target
   -> SDK editAndResend/retryTurn resolves the stored display row
   -> SDK replaces the retained prefix plus replacement user row
   -> SDK send() sends the replacement user message as the same new turn

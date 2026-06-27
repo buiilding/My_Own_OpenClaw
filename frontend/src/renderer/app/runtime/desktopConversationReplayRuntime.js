@@ -17,7 +17,7 @@ const {
   logRendererReplayTrace,
 } = DesktopRendererTraceRuntime;
 
-function readExactReplayMessageId(value) {
+function readExactReplayTargetRowId(value) {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
     ? value
     : '';
@@ -29,28 +29,28 @@ function readExactReplayConversationRef(value) {
     : null;
 }
 
-function prepareReplayEditIntent({ userMessageId, editedText }) {
-  const normalizedMessageId = readExactReplayMessageId(userMessageId);
-  if (typeof editedText !== 'string' || !normalizedMessageId) {
+function prepareReplayEditIntent({ targetRowId, editedText }) {
+  const normalizedTargetRowId = readExactReplayTargetRowId(targetRowId);
+  if (typeof editedText !== 'string' || !normalizedTargetRowId) {
     return null;
   }
   return {
     action: 'edit_resend',
     errorPrefix: 'Failed to edit user message',
     queryText: editedText,
-    targetRowId: normalizedMessageId,
+    targetRowId: normalizedTargetRowId,
   };
 }
 
-function prepareReplayRetryIntent({ assistantMessageId }) {
-  const normalizedMessageId = readExactReplayMessageId(assistantMessageId);
-  if (!normalizedMessageId) {
+function prepareReplayRetryIntent({ targetRowId }) {
+  const normalizedTargetRowId = readExactReplayTargetRowId(targetRowId);
+  if (!normalizedTargetRowId) {
     return null;
   }
   return {
     action: 'retry',
     errorPrefix: 'Failed to retry assistant message',
-    targetRowId: normalizedMessageId,
+    targetRowId: normalizedTargetRowId,
   };
 }
 
@@ -171,15 +171,14 @@ async function executeReplayIntent({
 
 function prepareReplayActionIntent({
   action,
-  assistantMessageId,
   editedText,
-  userMessageId,
+  targetRowId,
 }) {
   if (action === 'edit_resend') {
-    return prepareReplayEditIntent({ userMessageId, editedText });
+    return prepareReplayEditIntent({ targetRowId, editedText });
   }
   if (action === 'retry') {
-    return prepareReplayRetryIntent({ assistantMessageId });
+    return prepareReplayRetryIntent({ targetRowId });
   }
   return null;
 }
@@ -190,15 +189,13 @@ function resolveReplayModelSelection() {
 
 async function executeReplayAction({
   action,
-  assistantMessageId = null,
   editedText = null,
-  userMessageId = null,
+  targetRowId = null,
 }) {
   const intent = prepareReplayActionIntent({
     action,
-    assistantMessageId,
     editedText,
-    userMessageId,
+    targetRowId,
   });
   if (!intent) {
     return undefined;

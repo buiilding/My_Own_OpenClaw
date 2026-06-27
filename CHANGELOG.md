@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: name renderer replay dispatch inputs as SDK target row ids
+  before mapping them to SDK `messageId` command fields, keeping edit/retry
+  semantics aligned with row action metadata. No migration required.
 - frontend/projection: report projection/replay trace phase from SDK
   `ConversationView.liveTurn` whenever a view is present, leaving renderer
   stream-tracking phase as a no-view diagnostic fallback only. No migration

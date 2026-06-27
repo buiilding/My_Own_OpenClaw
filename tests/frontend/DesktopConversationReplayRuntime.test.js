@@ -110,7 +110,7 @@ describe('desktopConversationReplayRuntime', () => {
       action: 'edit_resend',
       chatStoreBundle,
       messages: staleMessages,
-      userMessageId: 'view-user-2',
+      targetRowId: 'view-user-2',
       editedText: ' edited prompt ',
     }))).resolves.toBe(true);
 
@@ -141,7 +141,7 @@ describe('desktopConversationReplayRuntime', () => {
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
-      assistantMessageId: 'assistant-1',
+      targetRowId: 'assistant-1',
       chatStoreBundle,
       messages,
     }))).resolves.toBe(false);
@@ -164,7 +164,7 @@ describe('desktopConversationReplayRuntime', () => {
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
-      assistantMessageId: 'assistant-1',
+      targetRowId: 'assistant-1',
       chatStoreBundle,
     }))).resolves.toBe(false);
 
@@ -191,7 +191,7 @@ describe('desktopConversationReplayRuntime', () => {
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
-      assistantMessageId: 'assistant-1',
+      targetRowId: 'assistant-1',
       chatStoreBundle,
       activeConversationRef: 'conv-caller-override',
     }))).resolves.toBe(true);
@@ -239,7 +239,7 @@ describe('desktopConversationReplayRuntime', () => {
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
-      assistantMessageId: 'view-assistant',
+      targetRowId: 'view-assistant',
       chatStoreBundle,
     }))).resolves.toBe(true);
 
@@ -271,7 +271,7 @@ describe('desktopConversationReplayRuntime', () => {
       action: 'retry',
       chatStoreBundle,
       messages,
-      assistantMessageId: 'assistant-2',
+      targetRowId: 'assistant-2',
     }))).resolves.toBe(true);
 
     expect(DesktopConversationContinuityService.retryTurn).toHaveBeenCalledWith(expect.objectContaining({
@@ -289,7 +289,7 @@ describe('desktopConversationReplayRuntime', () => {
     await expect(executeReplayAction(replayArgs({
       action: 'edit_resend',
       chatStoreBundle,
-      userMessageId: 'view-user-blank',
+      targetRowId: 'view-user-blank',
       editedText: '   ',
     }))).resolves.toBe(true);
 
@@ -314,7 +314,7 @@ describe('desktopConversationReplayRuntime', () => {
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
-      assistantMessageId: 'assistant-runtime',
+      targetRowId: 'assistant-runtime',
       chatStoreBundle,
       sessionInfo: {
         conversationRef: 'conv-caller-session',
@@ -336,31 +336,31 @@ describe('desktopConversationReplayRuntime', () => {
     expect(replayCommand.model).not.toEqual(callerModel);
   });
 
-  test('returns undefined for empty replay targets without dispatching SDK commands', async () => {
+  test('returns undefined for empty replay row targets without dispatching SDK commands', async () => {
     const chatStoreBundle = createChatStore();
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
       chatStoreBundle,
       messages: [{ id: 'assistant-1', sender: 'assistant', text: 'orphan answer' }],
-      assistantMessageId: ' ',
+      targetRowId: ' ',
     }))).resolves.toBeUndefined();
 
     expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
   });
 
-  test('returns undefined for padded replay targets without dispatching SDK commands', async () => {
+  test('returns undefined for padded replay row targets without dispatching SDK commands', async () => {
     const chatStoreBundle = createChatStore();
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
       chatStoreBundle,
-      assistantMessageId: ' assistant-1 ',
+      targetRowId: ' assistant-1 ',
     }))).resolves.toBeUndefined();
     await expect(executeReplayAction(replayArgs({
       action: 'edit_resend',
       chatStoreBundle,
-      userMessageId: ' user-1 ',
+      targetRowId: ' user-1 ',
       editedText: 'edited question',
     }))).resolves.toBeUndefined();
 
@@ -380,7 +380,7 @@ describe('desktopConversationReplayRuntime', () => {
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
-      assistantMessageId: 'assistant-1',
+      targetRowId: 'assistant-1',
       chatStoreBundle,
     }))).resolves.toBe(false);
 
