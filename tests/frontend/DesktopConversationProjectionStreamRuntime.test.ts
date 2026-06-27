@@ -9,8 +9,9 @@ const {
 } = DesktopConversationProjectionStreamRuntime;
 
 describe('DesktopConversationProjectionStreamRuntime', () => {
-  test('normalizes turn refs', () => {
-    expect(normalizeTurnRef(' turn-old ')).toBe('turn-old');
+  test('accepts only exact turn refs', () => {
+    expect(normalizeTurnRef('turn-old')).toBe('turn-old');
+    expect(normalizeTurnRef(' turn-old ')).toBeNull();
     expect(normalizeTurnRef('   ')).toBeNull();
   });
 
@@ -20,7 +21,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       conversationRef: 'conv-1',
       workspace: {
         messages: [{ id: 'm-1', sender: 'user', text: 'hello' }],
-        pendingTurn: { turnRef: ' turn-new ' },
+        pendingTurn: { turnRef: 'turn-new' },
         sdkLiveTurn: {
           turnRef: 'turn-new',
           phase: 'streaming',
@@ -44,6 +45,34 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       currentMatchesNewTurn: true,
       currentMatchesOldTurn: false,
       messageCount: 1,
+    }));
+  });
+
+  test('does not repair padded replay trace turn refs into matches', () => {
+    expect(buildReplayProjectionTracePayload({
+      action: 'sdk_current_turn_applied',
+      conversationRef: 'conv-1',
+      workspace: {
+        messages: [],
+        pendingTurn: { turnRef: ' turn-new ' },
+        sdkLiveTurn: {
+          turnRef: ' turn-new ',
+          phase: 'streaming',
+        },
+        streamTracking: {
+          activeTurnRef: ' turn-new ',
+          phase: 'streaming',
+        },
+      },
+      values: {
+        newTurnRef: 'turn-new',
+      },
+    })).toEqual(expect.objectContaining({
+      pendingTurnRef: null,
+      currentTurnRef: null,
+      streamActiveTurnRef: null,
+      pendingMatchesNewTurn: false,
+      currentMatchesNewTurn: false,
     }));
   });
 

@@ -102,8 +102,8 @@ const {
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 
 function normalizeTurnRef(turnRef: string | null | undefined): string | null {
-  return typeof turnRef === 'string' && turnRef.trim()
-    ? turnRef.trim()
+  return typeof turnRef === 'string' && turnRef.length > 0 && turnRef === turnRef.trim()
+    ? turnRef
     : null;
 }
 

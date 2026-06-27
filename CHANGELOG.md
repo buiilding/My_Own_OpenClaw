@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: reject padded turn refs in replay projection trace
+  matching instead of trimming them into pending/live/current-turn diagnostics.
+  No migration required.
 - frontend/send: reject padded renderer send `turnRef`/`query_message_id`
   values before dispatch instead of trimming them into SDK command identity. No
   migration required.
