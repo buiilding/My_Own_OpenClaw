@@ -464,6 +464,54 @@ describe('DesktopConversationContinuityService', () => {
     }
   });
 
+  test('compactHistory rejects padded explicit conversation refs before IPC dispatch', async () => {
+    const send = jest.fn();
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send,
+      invoke: jest.fn(async () => ({ ok: true, data: null })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.compactHistory(
+        false,
+        ' conv-compact ',
+      )).rejects.toThrow('Desktop revision command requires exact conversation reference.');
+
+      expect(window.ipc.invoke).not.toHaveBeenCalled();
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('compactHistory ignores padded active conversation fallback refs', async () => {
+    const send = jest.fn();
+    const originalIpc = window.ipc;
+    mockGetActiveConversationRef.mockReturnValue(' conv-active ');
+    window.ipc = {
+      send,
+      invoke: jest.fn(async () => ({ ok: true, data: null })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await DesktopConversationContinuityService.compactHistory();
+
+      expect(window.ipc.invoke).not.toHaveBeenCalled();
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
   test('loadTraceTimeline reads persisted trace rows through the SDK command bridge', async () => {
     const send = jest.fn();
     const invoke = jest.fn(async (channel, payload) => {

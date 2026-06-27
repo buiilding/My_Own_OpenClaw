@@ -1226,6 +1226,9 @@ commands such as `loadForDisplay`, `rehydrateFromStore`, and
 service. Manual compaction follows the same boundary: callers use
 `SdkConversationRuntime.compactHistory(...)`, and the host agent runtime transport
 maps that SDK command to the backend `compact-history` control message.
+Desktop renderer continuity facades must not repair compaction command identity:
+explicit compact conversation refs are exact SDK command inputs, and malformed
+active-session fallback refs are ignored instead of trimmed.
 
 Responsibility split:
 

@@ -180,6 +180,10 @@ Utility controls:
 
 The overlay chatbox dev compaction button uses the same helper, so dashboard and
 overlay compaction controls share the same rehydrate-before-compact behavior.
+`DesktopConversationContinuityService.compactHistory(...)` forwards only exact
+conversation refs. Explicit padded refs fail before IPC dispatch, and malformed
+active-session fallback refs leave the compact command inert instead of being
+trimmed into SDK command identity.
 
 Failure behavior:
 

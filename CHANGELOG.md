@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/compaction: require exact manual-compaction conversation refs at the
+  renderer continuity service boundary, rejecting padded explicit refs and
+  ignoring malformed active-session fallbacks instead of trimming them into SDK
+  command identity. No migration required.
 - frontend/send: require exact renderer workspace paths at the SDK
   `conversation.send` command boundary, omitting padded values instead of
   trimming them into SDK command data. No migration required.

@@ -2217,10 +2217,13 @@ describe('renderer chat runtime boundary', () => {
     expect(continuityServiceSource).toContain("exactRevisionCommandString(input.conversationRef, 'conversation reference')");
     expect(continuityServiceSource).toContain("exactRevisionCommandString(input.revisionId, 'revision id')");
     expect(continuityServiceSource).toContain("exactRevisionCommandString(input.sourceRevisionId, 'source revision id')");
+    expect(continuityServiceSource).toContain("exactRevisionCommandString(conversationRef, 'conversation reference')");
+    expect(continuityServiceSource).toContain('readExactConversationRef(DesktopTranscriptSessionRuntimeClient.getActiveConversationRef())');
     expect(continuityServiceSource).toContain("optionalExactRevisionCommandString(input.cutAfterRowId, 'cut row id')");
     expect(continuityServiceSource).toContain("optionalExactRevisionCommandString(\n      input.newConversationRef,\n      'new conversation reference',\n    )");
     expect(continuityServiceSource).not.toContain('input.conversationRef.trim');
     expect(continuityServiceSource).not.toContain('input.messageId.trim');
+    expect(continuityServiceSource).not.toContain('function optionalString(value: unknown)');
     expect(replayRuntimeSource).not.toContain('const replayTurnRef = crypto.randomUUID');
     expect(replayRuntimeSource).toContain('MissingConversationRef');
     expect(replayRuntimeSource).not.toContain('turnRef: replayTurnRef');

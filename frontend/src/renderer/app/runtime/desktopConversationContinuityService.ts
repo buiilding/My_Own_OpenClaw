@@ -71,10 +71,6 @@ type SearchConversationsInput = {
   limit?: number;
 };
 
-function optionalString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
-}
-
 function exactReplayCommandString(value: unknown, label: string): string {
   if (typeof value === 'string' && value.length > 0 && value === value.trim()) {
     return value;
@@ -94,6 +90,12 @@ function optionalExactRevisionCommandString(value: unknown, label: string): stri
     return null;
   }
   return exactRevisionCommandString(value, label);
+}
+
+function readExactConversationRef(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
 const desktopConversationContinuityService = new ConversationContinuityService({
@@ -195,8 +197,10 @@ export const DesktopConversationContinuityService = {
   },
 
   async compactHistory(force: boolean = true, conversationRef: string | null = null): Promise<void> {
-    const resolvedConversationRef = optionalString(conversationRef)
-      ?? DesktopTranscriptSessionRuntimeClient.getActiveConversationRef();
+    const hasExplicitConversationRef = conversationRef !== null && conversationRef !== undefined;
+    const resolvedConversationRef = hasExplicitConversationRef
+      ? exactRevisionCommandString(conversationRef, 'conversation reference')
+      : readExactConversationRef(DesktopTranscriptSessionRuntimeClient.getActiveConversationRef());
     if (!resolvedConversationRef) {
       return;
     }
