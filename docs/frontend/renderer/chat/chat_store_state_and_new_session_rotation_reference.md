@@ -219,8 +219,11 @@ trimmed into no-view/pending routing state.
   the no-view fallback path instead of becoming a second chat read model.
 - Shared chat surface selectors use that same predicate before replacing raw
   surface messages with the empty view-owned list or nulling the no-view
-  `sdkLiveTurn`, so direct selector callers cannot make partial
-  `conversationView` objects suppress no-view state.
+  `sdkLiveTurn`. Interface selectors also null no-view thinking status,
+  compaction debug info, and token counts when a valid SDK view is present, so
+  direct selector callers cannot mix SDK display rows with renderer fallback
+  runtime state or make partial `conversationView` objects suppress no-view
+  state.
 - ChatInterface presentation applies the same full SDK view-envelope predicate
   before using view display rows, active revision, or view cache identity, and
   passes `null` to the thread presenter for partial objects. Invalid

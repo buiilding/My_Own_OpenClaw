@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: make chat interface selectors null no-view thinking,
+  compaction, and token state whenever `ConversationView` is authoritative so
+  direct selector callers cannot mix SDK display rows with renderer fallback
+  runtime fields. No migration required.
 - frontend/replay: align hook coverage with the SDK-owned replay boundary so
   empty or padded row ids are rejected before reaching SDK command facades. No
   migration required.

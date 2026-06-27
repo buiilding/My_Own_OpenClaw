@@ -86,6 +86,7 @@ function projectDesktopChatInterfaceState(
   const surfaceState = projectDesktopChatSurfaceState({
     activeWorkspace,
   });
+  const hasConversationView = Boolean(surfaceState.conversationView);
   const projectedRendererAnnotations = Array.isArray(activeWorkspace.rendererAnnotations)
     ? activeWorkspace.rendererAnnotations
     : emptyRendererAnnotations;
@@ -94,10 +95,10 @@ function projectDesktopChatInterfaceState(
     rendererAnnotations: surfaceState.conversationView
       ? projectedRendererAnnotations
       : emptyRendererAnnotations,
-    thinkingStatus: activeWorkspace.thinkingStatus,
-    thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null,
-    compactionDebugInfo: activeWorkspace.compactionDebugInfo ?? null,
-    tokenCounts: activeWorkspace.tokenCounts ?? null,
+    thinkingStatus: hasConversationView ? null : activeWorkspace.thinkingStatus,
+    thinkingSourceEventType: hasConversationView ? null : (activeWorkspace.thinkingSourceEventType ?? null),
+    compactionDebugInfo: hasConversationView ? null : (activeWorkspace.compactionDebugInfo ?? null),
+    tokenCounts: hasConversationView ? null : (activeWorkspace.tokenCounts ?? null),
     sdkLiveTurn: surfaceState.sdkLiveTurn,
     conversationView: surfaceState.conversationView,
     pendingTurn: surfaceState.pendingTurn,

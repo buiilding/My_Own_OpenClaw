@@ -302,6 +302,39 @@ describe('chatSelectors', () => {
     });
   });
 
+  test('interface selector rejects no-view runtime fields under direct ConversationView input', () => {
+    const conversationView = buildConversationView('conv-direct', {
+      displayRows: [{ id: 'sdk-row', role: 'assistant', type: 'assistant_message' }],
+    });
+
+    expect(projectDesktopChatInterfaceState({
+      messages: [{ id: 'stale-user', text: 'stale raw', sender: 'user' }],
+      rendererAnnotations: [{
+        id: 'sdk-row',
+        feedback: 'like',
+      }],
+      thinkingStatus: 'Compacting conversation history...',
+      thinkingSourceEventType: 'compaction_started',
+      compactionDebugInfo: { strategy: 'summarize' },
+      tokenCounts: { total_tokens: 42 },
+      sdkLiveTurn: { turnRef: 'raw-live-turn' },
+      conversationView,
+      pendingTurn: null,
+    })).toEqual(expect.objectContaining({
+      messages: [],
+      rendererAnnotations: [{
+        id: 'sdk-row',
+        feedback: 'like',
+      }],
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+      compactionDebugInfo: null,
+      tokenCounts: null,
+      sdkLiveTurn: null,
+      conversationView,
+    }));
+  });
+
   test('surface selector keeps no-view state for display timeline row payloads', () => {
     const messages = [{ id: 'raw-user', text: 'raw no-view', sender: 'user' }];
     const sdkLiveTurn = { turnRef: 'raw-live-turn' };
