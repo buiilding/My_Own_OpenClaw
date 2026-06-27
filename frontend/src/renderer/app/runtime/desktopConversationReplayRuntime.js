@@ -83,8 +83,6 @@ function logReplayTimeline(action, {
 
 async function executeReplayIntent({
   intent,
-  modelSelection,
-  sessionInfo,
 }) {
   if (!intent) {
     return false;
@@ -95,6 +93,8 @@ async function executeReplayIntent({
     queryText,
     targetRowId,
   } = intent;
+  const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
+  const modelSelection = resolveReplayModelSelection();
   const conversationRef = resolveExistingConversationRef(sessionInfo.conversationRef);
   if (!conversationRef) {
     console.error(`[ChatInterface] ${errorPrefix}: missing active conversation`);
@@ -200,11 +200,8 @@ async function executeReplayAction({
   if (!intent) {
     return undefined;
   }
-  const resolvedSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
   return executeReplayIntent({
     intent,
-    modelSelection: resolveReplayModelSelection(),
-    sessionInfo: resolvedSessionInfo,
   });
 }
 

@@ -2116,6 +2116,11 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('.getState()');
     expect(replayRuntimeSource).not.toContain('activeConversationRef,');
     expect(replayRuntimeSource).not.toContain('sessionInfo = null');
+    expect(replayRuntimeSource).toContain('const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();');
+    expect(replayRuntimeSource).toContain('const modelSelection = resolveReplayModelSelection();');
+    expect(replayRuntimeSource).not.toContain('modelSelection,\n  sessionInfo');
+    expect(replayRuntimeSource).not.toContain('modelSelection: resolveReplayModelSelection()');
+    expect(replayRuntimeSource).not.toContain('sessionInfo: resolvedSessionInfo');
     expect(replayRuntimeSource).not.toContain('deferredQueryModelSelection');
     expect(replayRuntimeSource).not.toContain('DesktopSettingsRuntimeClient');
     expect(replayRuntimeSource).not.toContain('.setModel(');

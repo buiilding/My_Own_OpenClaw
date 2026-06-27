@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: resolve transcript session and deferred model selection
+  inside the replay executor instead of passing them as internal caller
+  context, keeping replay actions scoped to row intent plus SDK/runtime-owned
+  context. No migration required.
 - frontend/thread-presentation: pass a pre-gated projection conversation ref
   into live-row filtering so partial `ConversationView` objects cannot reclaim
   thread live-row authority or suppress the no-view SDK fallback. No migration
