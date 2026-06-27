@@ -304,9 +304,13 @@ Dashboard thread live rows also render from `snapshot.view.liveTurn.entries`
 whenever a view exists; SDK view construction removes discrete tool-call,
 tool-output, and tool-progress live entries once the same tool event has
 materialized in `snapshot.view.displayRows`, so a tool card has one UI row
-owner. Raw `snapshot.currentTurn.presentation.entries` and phase-derived
-current-turn rows remain only as the no-view bridge and must not append visible
-rows beside the SDK view.
+owner. Legacy no-view tool-call rows must still preserve request identity from
+the tool event or nested payload as the renderer `correlationId`, because
+display-row reconciliation keys live/materialized tool cards by that identity
+before falling back to tool name or text. Raw
+`snapshot.currentTurn.presentation.entries` and phase-derived current-turn rows
+remain only as the no-view bridge and must not append visible rows beside the
+SDK view.
 The `conversation.loadDisplay` command also carries `snapshot.view`, and
 desktop renderer display-row facades consume `snapshot.view.displayRows`
 without falling back to legacy `snapshot.displayRows`. SDK snapshots may still

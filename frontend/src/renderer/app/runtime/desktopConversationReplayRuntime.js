@@ -10,6 +10,7 @@ import {
   DesktopConversationProjectionStreamRuntime,
 } from './desktopConversationProjectionStreamRuntime';
 import { DesktopRendererConfigRuntimeClient } from './desktopRendererConfigRuntimeClient';
+import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import {
   projectWorkspaceReadModelState,
 } from './desktopChatWorkspaceStateRuntime';
@@ -152,6 +153,9 @@ async function executeReplayIntent({
       ...(workspaceBinding.workspacePath ? { workspace_path: workspaceBinding.workspacePath } : {}),
     };
     try {
+      if (deferredQueryModelSelection) {
+        await DesktopSettingsRuntimeClient.setModel(deferredQueryModelSelection);
+      }
       logReplayTimeline(chatStore, 'sdk_replay_sent', {
         conversationRef,
         action,

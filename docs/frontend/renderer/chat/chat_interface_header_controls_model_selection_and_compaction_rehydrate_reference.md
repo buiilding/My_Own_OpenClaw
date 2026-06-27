@@ -136,11 +136,12 @@ Model dropdown:
 - grouping/label/default selection should prefer runtime family metadata (`family_id`, `family_label`, `default_model_id`, `default_reasoning_mode`, `reasoning_modes`) when present instead of reconstructing families from display-name text
 - when the selected model exposes multiple reasoning levels, model selection preserves the current reasoning mode when possible (fallback: `medium`, then first available)
 - backend session model selection is synced and awaited through
-  `DesktopSettingsRuntimeClient.setModel(...)` on the next send/manual-compaction
-  path; retry/edit replay carries the selected model in its SDK replay command
-  payload, and `ConversationRuntime.editAndResend(...)` / `retryTurn(...)`
-  forward it into `ConversationRuntime.send()`, where the SDK applies the model
-  before inference without adding model fields to backend query payloads
+  `DesktopSettingsRuntimeClient.setModel(...)` on the next send,
+  retry/edit-replay, or manual-compaction path. Retry/edit replay also carries
+  the selected model in its SDK replay command payload, and
+  `ConversationRuntime.editAndResend(...)` / `retryTurn(...)` forward it into
+  `ConversationRuntime.send()`, where the SDK applies the model before
+  inference without adding model fields to backend query payloads.
 
 Reasoning mode dropdown (conditional):
 

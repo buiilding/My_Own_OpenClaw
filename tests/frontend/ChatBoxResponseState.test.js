@@ -95,6 +95,60 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     ]));
   });
 
+  test('buildLegacyNoPresentationCurrentTurnMessages preserves payload request ids for tool correlation', () => {
+    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      assistantText: '',
+      reasoningText: null,
+      lastError: null,
+      toolEvents: [{
+        id: 'tool-1',
+        kind: 'tool_call',
+        payload: {
+          toolName: 'read_file',
+          requestId: 'request-tool-1',
+        },
+      }],
+    });
+
+    expect(messages).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'tool-call',
+        text: 'Using read_file',
+        correlationId: 'request-tool-1',
+      }),
+    ]));
+  });
+
+  test('buildLegacyNoPresentationCurrentTurnMessages prefers explicit tool correlation ids', () => {
+    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      assistantText: '',
+      reasoningText: null,
+      lastError: null,
+      toolEvents: [{
+        id: 'tool-1',
+        kind: 'tool_call',
+        toolName: 'read_file',
+        correlationId: 'corr-tool-1',
+        payload: {
+          requestId: 'request-tool-1',
+        },
+      }],
+    });
+
+    expect(messages).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'tool-call',
+        correlationId: 'corr-tool-1',
+      }),
+    ]));
+  });
+
   test('buildLegacyNoPresentationCurrentTurnMessages ignores presentation-backed current turns', () => {
     const messages = buildLegacyNoPresentationCurrentTurnMessages({
       conversationRef: 'conv-1',

@@ -6,6 +6,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: sync the selected model through
+  `DesktopSettingsRuntimeClient.setModel(...)` before SDK retry/edit resend
+  dispatch, while still passing the model into the SDK replay command, so
+  resend follows the same model-selection gate as normal sends. No migration
+  required.
+- frontend/presentation: preserve legacy current-turn tool-call `requestId`
+  values from the tool event payload as renderer `correlationId`s, so
+  materialized display rows and live tool rows reconcile against the same
+  tool-call identity. No migration required.
 - frontend/overlay: build response-overlay transcript entries from the active
   `ConversationView.displayRows` first, then append only non-materialized
   `liveTurn.entries`, so tool call/output cards remain visible in the floating

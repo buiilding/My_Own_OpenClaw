@@ -60,10 +60,15 @@ function buildProjectedToolCallMessage({
   turnRef,
   toolEvent,
 }) {
+  const payload = asObject(toolEvent.payload);
   const toolCallDetails = asObject(toolEvent.toolCallDetails);
   const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);
-  const toolName = readString(toolEvent.toolName) || '';
-  const correlationId = readString(toolEvent.correlationId);
+  const toolName = readString(toolEvent.toolName) || readString(payload?.toolName) || '';
+  const correlationId = (
+    readString(toolEvent.correlationId)
+    || readString(toolEvent.requestId)
+    || readString(payload?.requestId)
+  );
   const text = normalizeText(toolEvent.text) || (toolName ? `Using ${toolName}` : 'Using tool');
 
   return buildToolCallChatMessageState({
