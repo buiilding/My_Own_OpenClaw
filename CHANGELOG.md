@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: narrow the current-turn projection workspace read adapter
+  to message count, view trace envelope, turn identities, stream tracking, and
+  thinking status instead of exposing raw messages to projection side effects.
+  No migration required.
 - frontend/chat-store: narrow the chat-stream workspace read adapter to
   pending-turn identity, stream tracking, view live-turn ref, and thinking
   source labels instead of exposing raw messages or full SDK view state. No

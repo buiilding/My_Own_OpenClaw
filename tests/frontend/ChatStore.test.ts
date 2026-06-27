@@ -14,6 +14,7 @@ import {
   clearPendingTurnInChatStore,
   getChatProviderTraceWorkspaceSnapshotFromChatStore,
   getChatStreamWorkspaceReadModelFromChatStore,
+  getCurrentTurnProjectionWorkspaceReadModelFromChatStore,
   setNoViewSdkLiveTurnInChatStore,
   setConversationViewInChatStore,
   setIsSendingInChatStore,
@@ -326,6 +327,62 @@ describe('chatStore', () => {
     expect(readModel).not.toHaveProperty('messages');
     expect(readModel).not.toHaveProperty('rendererAnnotations');
     expect(readModel).not.toHaveProperty('sdkLiveTurn');
+  });
+
+  test('current-turn projection read model carries counts instead of raw messages', () => {
+    setMessagesInChatStore([
+      {
+        id: 'raw-message',
+        sender: 'assistant',
+        text: 'raw answer',
+        turnRef: 'turn-raw',
+      },
+    ], 'conv-current-turn');
+    acceptPendingTurnInChatStore({
+      conversationRef: 'conv-current-turn',
+      turnRef: 'turn-pending',
+      userMessageId: 'pending-user',
+      text: 'pending prompt',
+      timestamp: '2026-06-27T12:00:00.000Z',
+    });
+    setNoViewSdkLiveTurnInChatStore({
+      conversationRef: 'conv-current-turn',
+      turnRef: 'turn-live',
+      phase: 'streaming',
+      assistantText: 'raw answer',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        entries: [{
+          id: 'entry-assistant',
+          type: 'llm-text',
+          text: 'raw answer',
+        }],
+      },
+    }, 'conv-current-turn');
+
+    const readModel = getCurrentTurnProjectionWorkspaceReadModelFromChatStore('conv-current-turn') as Record<string, unknown>;
+
+    expect(readModel).toEqual(expect.objectContaining({
+      conversationView: null,
+      messageCount: 1,
+      pendingTurn: {
+        turnRef: 'turn-pending',
+      },
+      sdkLiveTurn: {
+        phase: 'streaming',
+        turnRef: 'turn-live',
+      },
+      streamTracking: expect.objectContaining({
+        activeTurnRef: null,
+        phase: 'idle',
+      }),
+      thinkingStatus: null,
+    }));
+    expect(readModel).not.toHaveProperty('messages');
+    expect(readModel).not.toHaveProperty('rendererAnnotations');
+    expect(readModel).not.toHaveProperty('thinkingSourceEventType');
   });
 
   test('clearMessages resets to an empty message list', () => {

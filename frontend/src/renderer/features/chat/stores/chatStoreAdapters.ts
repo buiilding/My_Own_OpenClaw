@@ -223,6 +223,28 @@ function buildChatStreamWorkspaceReadModel(
   };
 }
 
+function buildCurrentTurnProjectionWorkspaceReadModel(
+  workspace: ChatWorkspaceReadModelState,
+): CurrentTurnProjectionWorkspaceReadModel {
+  return {
+    conversationView: workspace.conversationView,
+    messageCount: workspace.messages.length,
+    pendingTurn: workspace.pendingTurn
+      ? {
+        turnRef: workspace.pendingTurn.turnRef,
+      }
+      : null,
+    sdkLiveTurn: workspace.sdkLiveTurn
+      ? {
+        phase: workspace.sdkLiveTurn.phase,
+        turnRef: workspace.sdkLiveTurn.turnRef,
+      }
+      : null,
+    streamTracking: workspace.streamTracking,
+    thinkingStatus: workspace.thinkingStatus,
+  };
+}
+
 export function getChatStreamWorkspaceReadModelFromChatStore(
   conversationRef?: string | null,
 ): ChatStreamWorkspaceReadModel {
@@ -234,7 +256,9 @@ export function getChatStreamWorkspaceReadModelFromChatStore(
 export function getCurrentTurnProjectionWorkspaceReadModelFromChatStore(
   conversationRef?: string | null,
 ): CurrentTurnProjectionWorkspaceReadModel {
-  return getProjectedWorkspaceReadModelFromChatStore(conversationRef);
+  return buildCurrentTurnProjectionWorkspaceReadModel(
+    getProjectedWorkspaceReadModelFromChatStore(conversationRef),
+  );
 }
 
 export function getChatSendReadModelFromChatStore(): ReturnType<typeof selectChatSendReadModel> {

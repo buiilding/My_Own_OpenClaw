@@ -1294,6 +1294,9 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionStreamRuntimeSource).not.toContain('workspace.currentTurnProjection');
     expect(projectionStreamRuntimeSource).not.toContain('workspace.conversationView.displayRows.length');
     expect(projectionStreamRuntimeSource).toContain('messageCount = hasConversationView');
+    expect(projectionStreamRuntimeSource).toContain(': workspace.messageCount');
+    expect(projectionStreamRuntimeSource).not.toContain('messages: ChatMessage[]');
+    expect(projectionStreamRuntimeSource).not.toContain('workspace.messages');
     expect(projectionStreamRuntimeSource).toContain('streamPhase: hasConversationView ? currentTurnPhase : workspace.streamTracking?.phase ?? null');
     expect(projectionStreamRuntimeSource).toContain('DesktopConversationDisplayProjection');
     expect(projectionStreamRuntimeSource).not.toContain('features/chat');
@@ -4636,7 +4639,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('): ChatStreamWorkspaceReadModel');
     expect(chatStoreAdaptersSource).toContain('): CurrentTurnProjectionWorkspaceReadModel');
     expect(chatStoreAdaptersSource).toContain('function buildChatStreamWorkspaceReadModel');
+    expect(chatStoreAdaptersSource).toContain('function buildCurrentTurnProjectionWorkspaceReadModel');
     expect(chatStoreAdaptersSource).toContain('return buildChatStreamWorkspaceReadModel(');
+    expect(chatStoreAdaptersSource).toContain('return buildCurrentTurnProjectionWorkspaceReadModel(');
+    expect(chatStoreAdaptersSource).toContain('messageCount: workspace.messages.length');
     expect(chatStoreAdaptersSource).toContain('ChatStreamWorkspaceReadModel,\n} from');
     expect(chatStoreAdaptersSource).toContain('CurrentTurnProjectionWorkspaceReadModel,\n} from');
     expect(chatStoreAdaptersSource).toContain('getChatStreamWorkspaceReadModelFromChatStore');
