@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: reject repaired thread presentation conversation and turn
+  refs when gating or placing SDK live rows, so padded refs cannot alter live
+  row visibility or ordering. No migration required.
 - frontend/projection: reject repaired SDK live-entry ids in live-turn
   side-effect dedupe, so padded presentation ids cannot suppress later exact
   SDK entries. No migration required.

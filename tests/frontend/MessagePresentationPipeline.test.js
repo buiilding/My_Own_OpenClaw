@@ -897,6 +897,38 @@ describe('desktopThreadPresentationRuntime', () => {
     })).toBe(messages);
   });
 
+  test('buildThreadPresentationMessages does not repair padded current-turn conversation refs', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: ' conv-1 ',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:assistant',
+          type: 'llm-text',
+          text: 'Wrongly repaired chat',
+          turnRef: 'turn-1',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    })).toBe(messages);
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn: {
+        ...sdkLiveTurn,
+        conversationRef: 'conv-1',
+      },
+      activeConversationRef: ' conv-1 ',
+    })).toBe(messages);
+  });
+
   test('buildThreadPresentationMessages suppresses live assistant text once materialized', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
@@ -1101,12 +1133,57 @@ describe('desktopThreadPresentationRuntime', () => {
     });
 
     expect(rendered).toEqual([
-      ...messages,
+      messages[0],
       expect.objectContaining({
         id: 'live-tool-call',
         type: 'tool-call',
         toolCallDisplayText: 'Using read_file',
       }),
+      messages[1],
+    ]);
+  });
+
+  test('buildThreadPresentationMessages does not repair padded turn refs for live row placement', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-live' },
+      {
+        id: 'materialized-tool-call',
+        sender: 'assistant',
+        text: 'Using read_file',
+        type: 'tool-call',
+        turnRef: ' turn-live ',
+      },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-live',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: 'live-tool-call',
+          type: 'tool-call',
+          text: 'Using exact live row',
+          sourceEventType: 'tool_call',
+          turnRef: 'turn-live',
+          toolName: 'read_file',
+          requestId: 'req-live',
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered).toEqual([
+      messages[0],
+      expect.objectContaining({
+        id: 'live-tool-call',
+        type: 'tool-call',
+        correlationId: 'req-live',
+      }),
+      messages[1],
     ]);
   });
 

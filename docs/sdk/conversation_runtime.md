@@ -435,7 +435,10 @@ detail identity fields as exact SDK identity; padded live ids or nested
 `toolCallDetails`/`toolOutputDetails` ids do not suppress materialized display
 rows by being trimmed into a match. Materialized and live turn refs use the same
 exact comparison for duplicate suppression, so padded turn refs are not repaired
-into same-turn matches that can hide SDK live rows.
+into same-turn matches that can hide SDK live rows. Thread presentation also
+uses exact conversation refs for live-row conversation gating and exact turn
+refs for live-row insertion placement; padded refs cannot be trimmed into
+visibility or ordering decisions.
 Streaming assistant display rows keep exact SDK-authored
 `metadata.sourceEventType` when present and otherwise use the generic
 `assistant_message` display-row type; padded or empty source event metadata

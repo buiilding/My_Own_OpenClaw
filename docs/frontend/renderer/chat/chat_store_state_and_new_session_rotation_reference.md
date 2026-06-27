@@ -124,7 +124,9 @@ ids and nested tool detail identity with the same exactness, so malformed padded
 live ids or `toolCallDetails`/`toolOutputDetails` ids cannot suppress SDK
 display rows. Thread live/display dedupe also compares materialized and live
 turn refs exactly; padded turn refs are not trimmed into same-turn duplicate
-evidence. Display-row `turnRef` and
+evidence. Thread live-row conversation gating and insertion placement use exact
+conversation and turn refs too, so padded refs cannot be trimmed into visibility
+or ordering decisions. Display-row `turnRef` and
 `metadata.displayCorrelationId` are also exact-only when projected into renderer
 chat-message identity props, and display-row `metadata.toolName` is exact-only
 when projected into tool row metadata; padded values are ignored rather than

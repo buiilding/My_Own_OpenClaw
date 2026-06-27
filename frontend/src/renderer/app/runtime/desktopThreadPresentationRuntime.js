@@ -35,10 +35,6 @@ function normalizeText(value) {
   return trimmed.length > 0 ? value : null;
 }
 
-function normalizeRef(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
 function readExactRef(value) {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
     ? value
@@ -235,10 +231,19 @@ function selectVisibleCurrentTurnMessages({
   if (!Array.isArray(liveTurnMessages) || liveTurnMessages.length === 0) {
     return [];
   }
-  const projectionConversationRef = normalizeRef(
-    conversationView?.conversationRef || sdkLiveTurn?.conversationRef,
-  );
-  const normalizedActiveConversationRef = normalizeRef(activeConversationRef);
+  const rawProjectionConversationRef = conversationView?.conversationRef || sdkLiveTurn?.conversationRef;
+  const hasProjectionConversationRef = rawProjectionConversationRef !== null
+    && rawProjectionConversationRef !== undefined;
+  const hasActiveConversationRef = activeConversationRef !== null
+    && activeConversationRef !== undefined;
+  const projectionConversationRef = readExactRef(rawProjectionConversationRef);
+  const normalizedActiveConversationRef = readExactRef(activeConversationRef);
+  if (
+    (hasProjectionConversationRef && !projectionConversationRef)
+    || (hasActiveConversationRef && !normalizedActiveConversationRef)
+  ) {
+    return [];
+  }
   if (
     projectionConversationRef
     && normalizedActiveConversationRef
@@ -261,10 +266,10 @@ function resolveLiveMessageInsertIndex(messages, liveMessages) {
   if (!Array.isArray(messages) || messages.length === 0) {
     return 0;
   }
-  const liveTurnRef = normalizeRef(liveMessages[0]?.turnRef);
+  const liveTurnRef = readExactRef(liveMessages[0]?.turnRef);
   if (liveTurnRef) {
     for (let index = messages.length - 1; index >= 0; index -= 1) {
-      if (normalizeRef(messages[index]?.turnRef) === liveTurnRef) {
+      if (readExactRef(messages[index]?.turnRef) === liveTurnRef) {
         return index + 1;
       }
     }
