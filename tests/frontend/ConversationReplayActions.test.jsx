@@ -138,7 +138,7 @@ describe('useConversationReplayActions', () => {
       conversationRef: 'conv-existing',
       userId: 'user-1',
       messageId: 'renderer-user-2',
-      text: 'edited second question',
+      text: ' edited second question ',
       model: {
         modelProvider: 'anthropic',
         modelId: 'claude-sonnet-4-5',
@@ -209,12 +209,25 @@ describe('useConversationReplayActions', () => {
     expect(mockRetryTurn.mock.calls[0][0].conversationRef).toBe('conv-store-active');
   });
 
+  test('passes blank edit text through to SDK replay command', async () => {
+    const { result } = renderHook(() => useConversationReplayActions());
+
+    await act(async () => {
+      await result.current.handleEditFromUser('renderer-user-blank', '   ');
+    });
+
+    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: 'renderer-user-blank',
+      text: '   ',
+    }));
+    expect(mockRetryTurn).not.toHaveBeenCalled();
+  });
+
   test('does not dispatch SDK commands for empty replay targets', async () => {
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
       await result.current.handleTryAgainFromAssistant(' ');
-      await result.current.handleEditFromUser('renderer-user-1', ' ');
       await result.current.handleEditFromUser(' ', 'edited question');
     });
 

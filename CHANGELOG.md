@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: stop trimming edited replay text in the renderer before
+  dispatching SDK edit/resend commands, leaving text normalization and
+  non-empty validation with SDK replay. No migration required.
 - frontend/overlay: reject repaired response-overlay dismissal and responsebox
   window identity refs instead of trimming padded turn, guard, conversation, or
   entry ids into persisted dismissal keys or native window IPC values. No

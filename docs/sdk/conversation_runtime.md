@@ -486,8 +486,10 @@ fallback order. Tool detail panels must not receive provider-facing
 aliases, or SDK attachment lifecycle descriptors as generic detail payload.
 Copy/feedback actions remain renderer-local affordances. Renderer replay
 execution calls the SDK edit/resend and retry commands directly, passing row
-ids, edited text, and UI adapter context as intent. `ChatInterface` no longer
-passes a replay row model or fallback transcript into replay hooks. The
+ids, edited text, and UI adapter context as intent. Edited text is not trimmed
+or rejected as blank by the renderer before dispatch; SDK replay commands own
+that normalization and validation. `ChatInterface` no longer passes a replay
+row model or fallback transcript into replay hooks. The
 renderer's temporary replay bridge retains already projected visible prefix rows
 as UI rows only; it does not inspect `ConversationView.displayRows`, filter tool
 pairs, reconstruct model context, or provide fallback rows for replay command

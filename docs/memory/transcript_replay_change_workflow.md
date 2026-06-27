@@ -160,7 +160,9 @@ flowchart LR
      from React.
    - Replay target ids are exact SDK display-row ids from action metadata.
      Renderer replay facades reject padded or empty ids instead of trimming
-     them into targets.
+     them into targets. Edit text is forwarded as UI intent without renderer
+     trimming or empty-after-trim rejection; SDK replay commands own text
+     normalization and non-empty validation.
 
 5. Preserve model-history resume shape.
    - SDK `modelHistoryPayloadFromCheckpoint(...)` should emit

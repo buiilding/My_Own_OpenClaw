@@ -32,17 +32,14 @@ function readExactReplayMessageId(value) {
 }
 
 function prepareReplayEditIntent({ userMessageId, editedText }) {
-  const normalizedEditedText = typeof editedText === 'string'
-    ? editedText.trim()
-    : '';
   const normalizedMessageId = readExactReplayMessageId(userMessageId);
-  if (!normalizedEditedText || !normalizedMessageId) {
+  if (typeof editedText !== 'string' || !normalizedMessageId) {
     return null;
   }
   return {
     action: 'edit_resend',
     errorPrefix: 'Failed to edit user message',
-    queryText: normalizedEditedText,
+    queryText: editedText,
     targetRowId: normalizedMessageId,
   };
 }

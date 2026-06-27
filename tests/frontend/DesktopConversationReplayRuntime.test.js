@@ -137,7 +137,7 @@ describe('desktopConversationReplayRuntime', () => {
     expect(DesktopConversationContinuityService.editAndResend).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-replay',
       messageId: 'view-user-2',
-      text: 'edited prompt',
+      text: ' edited prompt ',
     }));
     expect(DesktopConversationContinuityService.editAndResend.mock.calls[0][0]).not.toHaveProperty('turnRef');
     expect(chatStoreBundle.state.clearPendingTurn).not.toHaveBeenCalled();
@@ -271,6 +271,24 @@ describe('desktopConversationReplayRuntime', () => {
     expect(DesktopConversationContinuityService.retryTurn.mock.calls[0][0]).not.toHaveProperty('turnRef');
     expect(chatStoreBundle.state.clearPendingTurn).not.toHaveBeenCalled();
     expect(chatStoreBundle.state.setMessages).not.toHaveBeenCalled();
+  });
+
+  test('passes blank edit text to the SDK replay command', async () => {
+    const chatStoreBundle = createChatStore();
+
+    await expect(executeReplayAction(replayArgs({
+      action: 'edit_resend',
+      chatStoreBundle,
+      userMessageId: 'view-user-blank',
+      editedText: '   ',
+    }))).resolves.toBe(true);
+
+    expect(DesktopConversationContinuityService.editAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-replay',
+      messageId: 'view-user-blank',
+      text: '   ',
+    }));
+    expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
   });
 
   test('returns undefined for empty replay targets without dispatching SDK commands', async () => {

@@ -253,9 +253,10 @@ trimmed into no-view/pending routing state.
   optional model-selection command data, and session identity to SDK command
   APIs; SDK runtime owns target-row lookup, child display revision cuts,
   supersession, applying replay model selection through `send()`, replacement
-  display rows, and display-row `attachments[]`. The legacy replay-pending
-  reducer and renderer superseded-turn ledger have been removed; renderer
-  pending state is now only the normal post-send bridge.
+  display rows, edit-text normalization/validation, and display-row
+  `attachments[]`. The legacy replay-pending reducer and renderer
+  superseded-turn ledger have been removed; renderer pending state is now only
+  the normal post-send bridge.
   `useConversationReplayActions(...)` passes replay intent plus renderer config
   to `DesktopConversationReplayRuntime.executeReplayAction(...)` with only a
   narrow `chatStoreAdapters.ts` UI context for active conversation and
