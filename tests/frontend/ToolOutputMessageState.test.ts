@@ -28,6 +28,8 @@ describe('toolOutputChatMessageState', () => {
       turnRef: 'turn-1',
       modelId: 'model-1',
       modelProvider: 'provider-1',
+    } as Parameters<typeof buildToolOutputChatMessageState>[0] & {
+      toolMetadata: Record<string, unknown>;
     });
 
     expect(message).toEqual({
@@ -37,7 +39,6 @@ describe('toolOutputChatMessageState', () => {
       type: 'tool-output',
       sourceEventType: 'tool-output',
       sourceChannel: 'sdk:conversation-event',
-      toolMetadata: { source: 'backend' },
       toolName: 'mouse_control',
       executionTime: 0.5,
       success: true,
@@ -59,6 +60,7 @@ describe('toolOutputChatMessageState', () => {
     expect(message).not.toHaveProperty('screenshotRef');
     expect(message).not.toHaveProperty('screenshotUrl');
     expect(message).not.toHaveProperty('screenshotContentType');
+    expect(message).not.toHaveProperty('toolMetadata');
 
     uuidSpy.mockRestore();
   });

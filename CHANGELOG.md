@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tool-output: remove legacy `toolMetadata` from the tool-output
+  message-state helper so helper output cannot publish a parallel detail
+  channel beside SDK `toolOutputDetails`. No migration required.
 - frontend/message-content: stop advertising legacy tool-output metadata props
   on the generic MessageContent prop contract; tool output details remain
   explicit SDK `toolOutputDetails` only. No migration required.

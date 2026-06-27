@@ -9,7 +9,6 @@ type ToolOutputChatMessageStateInput = {
   outputText: string;
   sourceEventType?: string | null;
   sourceChannel?: string | null;
-  toolMetadata?: Record<string, unknown> | null;
   toolName?: string | null;
   executionTime?: number | null;
   success?: boolean | null;
@@ -21,7 +20,6 @@ type ToolOutputChatMessageStateInput = {
   modelProvider?: string | null;
   isComplete?: boolean | null;
   modelFacingToolOutput?: string | null;
-  preserveNullToolMetadata?: boolean;
   preserveNullToolOutputDetails?: boolean;
 };
 
@@ -30,7 +28,6 @@ export function buildToolOutputChatMessageState({
   outputText,
   sourceEventType = null,
   sourceChannel = null,
-  toolMetadata = null,
   toolName = null,
   executionTime = null,
   success = null,
@@ -42,7 +39,6 @@ export function buildToolOutputChatMessageState({
   modelProvider = null,
   isComplete = null,
   modelFacingToolOutput = outputText,
-  preserveNullToolMetadata = true,
   preserveNullToolOutputDetails = true,
 }: ToolOutputChatMessageStateInput) {
   return {
@@ -52,7 +48,6 @@ export function buildToolOutputChatMessageState({
     type: 'tool-output',
     ...(sourceEventType ? { sourceEventType } : {}),
     ...(sourceChannel ? { sourceChannel } : {}),
-    ...(preserveNullToolMetadata || toolMetadata !== null ? { toolMetadata } : {}),
     ...(toolName ? { toolName } : {}),
     ...(executionTime !== null && executionTime !== undefined ? { executionTime } : {}),
     ...(success !== null && success !== undefined ? { success } : {}),

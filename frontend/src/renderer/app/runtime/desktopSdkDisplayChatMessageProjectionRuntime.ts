@@ -184,7 +184,6 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
     toolOutputDetails,
     turnRef: rowTurnRef(row),
     isComplete: true,
-    preserveNullToolMetadata: false,
     preserveNullToolOutputDetails: false,
   }) as ChatMessage;
   return withRowActions({

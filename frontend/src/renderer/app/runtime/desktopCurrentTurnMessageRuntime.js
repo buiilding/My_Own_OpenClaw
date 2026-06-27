@@ -115,7 +115,6 @@ function buildProjectedToolOutputMessage({
     turnRef: liveTurnRef || null,
     modelId: null,
     modelProvider: null,
-    preserveNullToolMetadata: false,
     preserveNullToolOutputDetails: false,
   });
 }
@@ -368,7 +367,6 @@ function buildToolOutputMessage(entry, liveTurnContext) {
     modelId: entry.modelId || null,
     modelProvider: entry.modelProvider || null,
     isComplete: entry.isComplete === true,
-    preserveNullToolMetadata: false,
   });
 }
 

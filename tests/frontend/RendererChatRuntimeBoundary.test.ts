@@ -2991,6 +2991,8 @@ describe('renderer chat runtime boundary', () => {
     expect(toolOutputStateSource).not.toContain('screenshotMessageState');
     expect(toolOutputStateSource).not.toContain('screenshotRef');
     expect(toolOutputStateSource).not.toContain('screenshotUrl');
+    expect(toolOutputStateSource).not.toContain('toolMetadata');
+    expect(toolOutputStateSource).not.toContain('preserveNullToolMetadata');
     expect(clientSource).toContain('INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE');
     expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_IMAGE_CONTEXT_MENU');
   });
