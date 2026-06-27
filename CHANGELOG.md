@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stream: reject padded turn-to-conversation fallback refs instead of
+  trimming them into renderer no-view/pending routing maps. No migration
+  required.
 - frontend/projection: reject padded turn refs in replay projection trace
   matching instead of trimming them into pending/live/current-turn diagnostics.
   No migration required.

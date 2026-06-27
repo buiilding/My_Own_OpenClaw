@@ -4338,6 +4338,18 @@ describe('renderer chat runtime boundary', () => {
     expect(stopTurnRuntimeSource).toContain('buildAcceptStoppedTurnStateUpdate');
     expect(stopTurnRuntimeSource).not.toContain('features/chat');
     expect(turnConversationRefRuntimeSource).toContain('normalizeTurnRef');
+    expect(turnConversationRefRuntimeSource).toContain(
+      'turnRef.length > 0 && turnRef === turnRef.trim()',
+    );
+    expect(turnConversationRefRuntimeSource).toContain(
+      'conversationRef.length > 0 && conversationRef === conversationRef.trim()',
+    );
+    expect(turnConversationRefRuntimeSource).not.toContain(
+      'const normalizedTurnRef = turnRef.trim()',
+    );
+    expect(turnConversationRefRuntimeSource).not.toContain(
+      'const normalizedConversationRef = conversationRef.trim()',
+    );
     expect(turnConversationRefRuntimeSource).toContain('mergeTurnConversationRefs');
     expect(turnConversationRefRuntimeSource).toContain('registerTurnConversationRef');
     expect(turnConversationRefRuntimeSource).toContain('registerRendererTurnConversationRef');

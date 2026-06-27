@@ -126,7 +126,10 @@ evidence. Display-row `turnRef` and
 `metadata.displayCorrelationId` are also exact-only when projected into renderer
 chat-message identity props, and display-row `metadata.toolName` is exact-only
 when projected into tool row metadata; padded values are ignored rather than
-exposed as turn, tool, or visible label identity.
+exposed as turn, tool, or visible label identity. The renderer
+turn-to-conversation fallback map applies the same rule to both keys and
+values, so padded turn or conversation refs are ignored instead of being
+trimmed into no-view/pending routing state.
 
 `streamTracking` fields capture turn identity, phase, counters, and timestamps per workspace:
 
