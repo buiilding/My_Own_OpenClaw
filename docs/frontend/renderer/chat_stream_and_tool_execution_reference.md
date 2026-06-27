@@ -146,9 +146,10 @@ Projection-stream diagnostics use `buildReplayProjectionTracePayload(...)` for
 stale-turn and replay-projection summaries; command replay itself no longer
 reads projected workspace state. Once `ConversationView` exists, projection
 diagnostics report trace current-turn identity from `ConversationView.liveTurn`
-and use that live-turn ref as the trace active turn while counting
-`displayRows`; raw `chatStore.messages`, `currentTurnProjection`, and
-stream-tracking active turn refs remain no-view diagnostic fallbacks only.
+and use that live-turn ref and phase as the trace active turn/phase while
+counting `displayRows`; raw `chatStore.messages`, `currentTurnProjection`, and
+stream-tracking active turn refs/phases remain no-view diagnostic fallbacks
+only.
 
 Renderer-only feedback is merged back into matching SDK-projected messages by
 `desktopConversationDisplayProjection.ts`; prompt transparency, tool schemas,

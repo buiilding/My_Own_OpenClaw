@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: report projection/replay trace phase from SDK
+  `ConversationView.liveTurn` whenever a view is present, leaving renderer
+  stream-tracking phase as a no-view diagnostic fallback only. No migration
+  required.
 - frontend/chat-store: suppress renderer stream-tracking phase and counters from
   the projected chat read model once SDK `ConversationView` is authoritative,
   leaving view-backed selectors with a stable idle fallback only. No migration

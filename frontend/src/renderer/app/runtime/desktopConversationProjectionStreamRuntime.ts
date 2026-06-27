@@ -144,7 +144,7 @@ function buildReplayProjectionTracePayload({
     currentTurnRef,
     currentTurnPhase,
     streamActiveTurnRef,
-    streamPhase: workspace.streamTracking?.phase ?? null,
+    streamPhase: hasConversationView ? currentTurnPhase : workspace.streamTracking?.phase ?? null,
     messageCount,
     displayRowCount,
     pendingPresent: Boolean(pendingTurnRef),

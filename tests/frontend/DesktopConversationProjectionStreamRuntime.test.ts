@@ -122,10 +122,54 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       currentTurnRef: 'turn-view',
       currentTurnPhase: 'complete',
       streamActiveTurnRef: 'turn-view',
+      streamPhase: 'complete',
       currentMatchesOldTurn: true,
       currentMatchesNewTurn: false,
       displayRowCount: 2,
       messageCount: 0,
+    }));
+  });
+
+  test('does not report stale renderer stream phase when ConversationView exists', () => {
+    expect(buildReplayProjectionTracePayload({
+      action: 'sdk_current_turn_applied',
+      conversationRef: 'conv-1',
+      workspace: {
+        conversationView: {
+          conversationRef: 'conv-1',
+          revisionId: 'rev-view',
+          liveTurn: {
+            turnRef: 'turn-view',
+            phase: 'awaiting',
+          },
+          displayRows: [],
+          surfaces: {
+            dashboard: { mode: 'busy' },
+            pill: { mode: 'busy' },
+            responseOverlay: { mode: 'awaiting' },
+          },
+          actions: {
+            canEdit: false,
+            canRetry: false,
+            canFork: false,
+          },
+        },
+        messages: [],
+        pendingTurn: null,
+        sdkLiveTurn: {
+          turnRef: 'turn-stale',
+          phase: 'streaming',
+        },
+        streamTracking: {
+          activeTurnRef: 'turn-stale',
+          phase: 'tool-output',
+        },
+      },
+    })).toEqual(expect.objectContaining({
+      currentTurnRef: 'turn-view',
+      currentTurnPhase: 'awaiting',
+      streamActiveTurnRef: 'turn-view',
+      streamPhase: 'awaiting',
     }));
   });
 
