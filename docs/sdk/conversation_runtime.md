@@ -1267,8 +1267,10 @@ Renderer replay facades must pass exact non-empty SDK row ids from row action
 metadata; they reject padded or empty ids instead of trimming them into replay
 targets. Electron main applies the same exact-only rule to replay SDK command
 `conversationRef` and `messageId` payload fields before calling SDK
-`editAndResend` or `retryTurn`; padded command identities fail instead of
-dispatching against trimmed rows. Edit text remains raw command data from the
+`editAndResend` or `retryTurn`; the renderer continuity facade applies that
+same exact-only rule before invoking the command bridge so direct renderer
+callers cannot dispatch repaired replay identities. Padded command identities
+fail instead of dispatching against trimmed rows. Edit text remains raw command data from the
 renderer inline edit composer through replay runtime and main IPC adapters, so
 SDK replay commands own text normalization and non-empty validation.
 

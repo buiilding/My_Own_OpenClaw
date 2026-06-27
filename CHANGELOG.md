@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: reject padded or empty replay conversation refs and target row
+  ids inside the renderer continuity facade before invoking SDK replay commands,
+  keeping direct facade callers on the same exact-identity boundary as the
+  public replay runtime and Electron main. No migration required.
 - frontend/store: remove the raw `getWorkspaceState` method from the Zustand
   chat-store surface and keep raw workspace reads behind
   `chatStoreAdapters.ts`; UI selectors continue to consume projected read

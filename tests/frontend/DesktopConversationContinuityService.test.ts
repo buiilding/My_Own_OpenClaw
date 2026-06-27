@@ -106,6 +106,66 @@ describe('DesktopConversationContinuityService', () => {
     }
   });
 
+  test('replay command facade rejects padded conversation refs before IPC dispatch', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({ ok: true, data: null })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.editAndResend({
+        userId: 'user-1',
+        conversationRef: ' conv-display ',
+        messageId: 'row-user',
+        text: 'edited text',
+      })).rejects.toThrow('Desktop replay command requires exact conversation reference.');
+      await expect(DesktopConversationContinuityService.retryTurn({
+        userId: 'user-1',
+        conversationRef: ' conv-display ',
+        messageId: 'row-assistant',
+      })).rejects.toThrow('Desktop replay command requires exact conversation reference.');
+      expect(window.ipc.invoke).not.toHaveBeenCalled();
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('replay command facade rejects empty or padded row ids before IPC dispatch', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({ ok: true, data: null })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.editAndResend({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        messageId: ' row-user ',
+        text: 'edited text',
+      })).rejects.toThrow('Desktop replay command requires exact message id.');
+      await expect(DesktopConversationContinuityService.retryTurn({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        messageId: '',
+      })).rejects.toThrow('Desktop replay command requires exact message id.');
+      expect(window.ipc.invoke).not.toHaveBeenCalled();
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
   test('checkoutRevision routes revision selection through the SDK command bridge', async () => {
     const originalIpc = window.ipc;
     window.ipc = {

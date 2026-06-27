@@ -75,6 +75,13 @@ function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
+function exactReplayCommandString(value: unknown, label: string): string {
+  if (typeof value === 'string' && value.length > 0 && value === value.trim()) {
+    return value;
+  }
+  throw new Error(`Desktop replay command requires exact ${label}.`);
+}
+
 const desktopConversationContinuityService = new ConversationContinuityService({
   storeFactory: ({ userId }) => createDesktopConversationStore(userId),
   transportFactory: ({ workspacePath }) => createDesktopRuntimeTransport(workspacePath ?? null),
@@ -89,24 +96,28 @@ export const DesktopConversationContinuityService = {
   },
 
   async editAndResend(input: EditAndResendCommandInput): Promise<TurnResult> {
+    const conversationRef = exactReplayCommandString(input.conversationRef, 'conversation reference');
+    const messageId = exactReplayCommandString(input.messageId, 'message id');
     return invokeAgentSdkCommand<TurnResult>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_EDIT_AND_RESEND,
       {
         userId: input.userId,
-        conversationRef: input.conversationRef,
-        messageId: input.messageId,
+        conversationRef,
+        messageId,
         text: input.text,
       },
     );
   },
 
   async retryTurn(input: RetryTurnCommandInput): Promise<TurnResult> {
+    const conversationRef = exactReplayCommandString(input.conversationRef, 'conversation reference');
+    const messageId = exactReplayCommandString(input.messageId, 'message id');
     return invokeAgentSdkCommand<TurnResult>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_RETRY_TURN,
       {
         userId: input.userId,
-        conversationRef: input.conversationRef,
-        messageId: input.messageId,
+        conversationRef,
+        messageId,
       },
     );
   },

@@ -150,7 +150,10 @@ flowchart LR
      their normal `send()` path.
      Renderer continuity service replay methods expose only user id,
      conversation ref, target row id, and edited text; they must not forward
-     replay payloads, attachment aliases, turn refs, or model overrides.
+     replay payloads, attachment aliases, turn refs, or model overrides. They
+     also reject padded or empty replay conversation refs and target row ids
+     before invoking the Electron SDK command bridge, so direct facade callers
+     cannot bypass the public replay runtime's exact-identity gate.
      Chat-store adapters should not export replay wrapper commands, active-scope
      helpers for replay, or projected workspace rows; the store shape and
      `getState()` contract must not be passed into the replay runtime.
