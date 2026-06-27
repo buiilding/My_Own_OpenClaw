@@ -169,7 +169,7 @@ describe('desktopStopTurnRuntime', () => {
     })).toEqual({
       source: 'idle',
       conversationRef: 'conv-view',
-      turnRef: 'turn-view-complete',
+      turnRef: null,
       canStop: false,
     });
   });

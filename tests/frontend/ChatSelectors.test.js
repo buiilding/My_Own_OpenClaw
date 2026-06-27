@@ -622,7 +622,7 @@ describe('chatSelectors', () => {
       stopTurnTarget: {
         source: 'idle',
         conversationRef: 'conv-view',
-        turnRef: 'turn-view',
+        turnRef: null,
         canStop: false,
       },
     });

@@ -29,9 +29,9 @@ the SDK-shaped query runtime:
 5. Electron main registers the accelerator only while an agent loop is active.
    When pressed, the runtime calls the current stop handler, which routes
    through `ipc_stop_target_runtime.cjs` into the active conversation/turn
-   stop-query path. The handler targets the latest SDK current turn first, a
-   renderer pending turn second, and the active conversation only as an idle
-   fallback.
+   stop-query path. The handler targets a stoppable SDK `ConversationView`
+   first, a renderer pending turn second, and the active conversation only as
+   a non-stoppable idle identity fallback.
 
 Focused chat and dashboard windows still support plain `Esc`; the renderer
 keyboard handler accepts the canonical DOM `KeyboardEvent.key === "Escape"`
@@ -77,11 +77,12 @@ rule for an already-registered stop action:
 - `createMainStopTargetRuntime` composes the Electron main live-turn,
   pending-turn, active-conversation, SDK stop, and overlay-phase dependencies so
   `ipc.cjs` delegates the stop action instead of rebuilding the dependency bag.
-- SDK current-turn projections are stoppable during `awaiting`, `streaming`,
-  `tool_call`, `tool_output`, or when the SDK projection reports busy
-  presentation state.
-- Stoppable SDK current turns beat renderer pending-turn fallback.
+- SDK `ConversationView.liveTurn.canStop` plus a valid view turn ref is the
+  SDK-owned stoppable state.
+- Stoppable SDK conversation views beat renderer pending-turn fallback.
 - Renderer pending turns beat idle active-conversation fallback.
+- Idle fallback targets carry no `turn_ref`; only stoppable views and pending
+  turns carry a turn id.
 - A successful stop sends the SDK-shaped `{ conversation_ref, turn_ref }`
   command and completes the response overlay phase.
 - The lower-level target resolver and executable stop trigger remain private to

@@ -80,7 +80,7 @@ describe('ipc_stop_target_runtime', () => {
     }).resolve()).toEqual({
       source: 'idle',
       conversationRef: 'conv-view',
-      turnRef: 'turn-complete',
+      turnRef: null,
       canStop: false,
     });
   });

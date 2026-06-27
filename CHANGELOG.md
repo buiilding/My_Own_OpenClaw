@@ -31,6 +31,10 @@ All notable changes to WindieOS will be documented in this file.
   `editTargetRowId` or `retryTargetRowId` before rendering edit/resend or Try
   again controls, removing renderer fallback target recovery from visible
   message ids. No migration required.
+- frontend/stop: clear idle stop-target `turnRef`s for non-stoppable
+  `ConversationView` snapshots in renderer and Electron main, so only
+  SDK-stoppable views or the renderer pending bridge carry executable stop turn
+  ids. No migration required.
 - cli/test: update the core-loop regression preset to run the renamed
   `DesktopSdkLiveTurnEffectsRuntime` and `DesktopAttachmentImageRuntime`
   coverage instead of stale pre-boundary filenames, keeping SDK live-turn and

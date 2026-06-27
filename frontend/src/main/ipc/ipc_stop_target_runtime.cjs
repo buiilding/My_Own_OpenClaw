@@ -52,7 +52,7 @@ function resolveMainStopTarget({
       source: 'idle',
       conversationRef: normalizeOptionalString(latestConversationView.conversationRef)
         || normalizeOptionalString(currentConversationRef),
-      turnRef: normalizeOptionalString(latestConversationView.liveTurn?.turnRef),
+      turnRef: null,
       canStop: false,
     };
   }

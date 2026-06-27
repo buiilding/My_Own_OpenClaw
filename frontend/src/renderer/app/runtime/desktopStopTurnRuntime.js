@@ -283,7 +283,7 @@ function resolveStopTurnTarget({
     return {
       source: 'idle',
       conversationRef: normalizeRef(conversationView.conversationRef) || normalizeRef(conversationRef),
-      turnRef: normalizeRef(conversationView.liveTurn?.turnRef),
+      turnRef: null,
       canStop: false,
     };
   }
