@@ -60,9 +60,9 @@ Dashboard thread presentation no longer branches on the frontend
 `show_tool_logs` setting or active loop busy state. `ChatInterface` passes
 durable rows and SDK current-turn projection data into
 `DesktopThreadPresentationRuntime.buildThreadPresentationMessages(...)`, and
-the runtime keeps tool-call, tool-output, search-source, and tool-explanation
-rows as rendering data rather than using them as typing or busy lifecycle
-authority.
+the runtime keeps tool-call, tool-output, SDK tool-progress, legacy
+search-source, and tool-explanation rows as rendering data rather than using
+them as typing or busy lifecycle authority.
 
 The old hidden-tool-log filtering path was removed from the dashboard thread
 projection. Tests now assert that toggling `show_tool_logs` does not reorder or

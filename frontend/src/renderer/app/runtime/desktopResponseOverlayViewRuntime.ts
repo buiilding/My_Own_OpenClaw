@@ -254,6 +254,7 @@ function responseOverlayMaterializedSourceTypes(
 const TOOL_OVERLAY_MESSAGE_TYPES = new Set([
   'tool-call',
   'tool-output',
+  'tool-progress',
   'search-source',
   'tool-explanation',
 ]);

@@ -182,7 +182,7 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
     id: row.id,
     text: displayTextFromStringRowContent(row.content),
     sender: 'assistant',
-    type: 'search-source',
+    type: 'tool-progress',
     sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
     turnRef: rowTurnRef(row) ?? undefined,

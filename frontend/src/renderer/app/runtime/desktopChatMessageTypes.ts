@@ -23,7 +23,7 @@ export interface ChatMessage {
   text: string;
   sender: 'user' | 'assistant';
   turnRef?: string;
-  type?: 'llm-text' | 'tool-call' | 'tool-output' | 'tool-explanation' | 'tool-actions-summary' | 'search-source' | 'error';
+  type?: 'llm-text' | 'tool-call' | 'tool-output' | 'tool-explanation' | 'tool-actions-summary' | 'tool-progress' | 'search-source' | 'error';
   sourceEventType?: string | null;
   sourceChannel?: string | null;
   isComplete?: boolean;

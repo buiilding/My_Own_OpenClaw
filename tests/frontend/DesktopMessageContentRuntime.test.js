@@ -28,6 +28,8 @@ describe('desktopMessageContentRuntime', () => {
       .toBe('tool-call');
     expect(resolveMessageContentPresentation({ type: 'tool-explanation' }).renderKind)
       .toBe('tool-explanation');
+    expect(resolveMessageContentPresentation({ type: 'tool-progress' }).renderKind)
+      .toBe('tool-explanation');
     expect(resolveMessageContentPresentation({ type: 'search-source' }).renderKind)
       .toBe('tool-explanation');
     expect(resolveMessageContentPresentation({ type: 'tool-actions-summary' }).renderKind)

@@ -37,7 +37,11 @@ function resolveMessageContentPresentation(message) {
     return { renderKind: MESSAGE_CONTENT_RENDER_KIND.TOOL_CALL };
   }
 
-  if (message?.type === 'tool-explanation' || message?.type === 'search-source') {
+  if (
+    message?.type === 'tool-explanation'
+    || message?.type === 'tool-progress'
+    || message?.type === 'search-source'
+  ) {
     return { renderKind: MESSAGE_CONTENT_RENDER_KIND.TOOL_EXPLANATION };
   }
 

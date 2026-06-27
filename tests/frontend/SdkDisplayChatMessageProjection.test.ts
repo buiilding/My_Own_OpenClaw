@@ -1121,7 +1121,7 @@ describe('sdkDisplayChatMessageProjection', () => {
     expect(message).not.toHaveProperty('thinkingSourceEventType');
   });
 
-  test('projects SDK tool progress rows into retained search-source messages', () => {
+  test('projects SDK tool progress rows into retained tool-progress messages', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {
         id: 'progress-1',
@@ -1145,7 +1145,7 @@ describe('sdkDisplayChatMessageProjection', () => {
       expect.objectContaining({
         id: 'progress-1',
         sender: 'assistant',
-        type: 'search-source',
+        type: 'tool-progress',
         text: 'Searched example.com',
         sourceEventType: 'web-search-progress',
         sourceChannel: 'sdk:display-rows',
@@ -1179,7 +1179,7 @@ describe('sdkDisplayChatMessageProjection', () => {
       expect.objectContaining({
         id: 'progress-generic',
         sender: 'assistant',
-        type: 'search-source',
+        type: 'tool-progress',
         text: 'Preparing tool result',
         sourceEventType: 'tool_progress',
         toolName: 'read_file',

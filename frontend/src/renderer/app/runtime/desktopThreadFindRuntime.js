@@ -41,7 +41,12 @@ function resolveSearchableMessageText(message) {
     return resolveToolOutputSearchText(message);
   }
 
-  if (message.type === 'tool-explanation' || message.type === 'search-source' || message.type === 'error') {
+  if (
+    message.type === 'tool-explanation'
+    || message.type === 'tool-progress'
+    || message.type === 'search-source'
+    || message.type === 'error'
+  ) {
     return typeof message.text === 'string' ? message.text : '';
   }
 

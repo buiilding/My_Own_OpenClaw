@@ -138,7 +138,7 @@ function buildProjectedToolProgressMessage({
     id: `${baseId}:tool:${toolEvent.id}`,
     text,
     sender: 'assistant',
-    type: 'search-source',
+    type: 'tool-progress',
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
     turnRef: liveTurnRef || undefined,
@@ -348,7 +348,7 @@ function buildToolProgressMessage(entry, liveTurnContext) {
     ...buildBaseMessageFields(entry, liveTurnContext),
     text,
     sender: 'assistant',
-    type: 'search-source',
+    type: 'tool-progress',
     toolName: resolveToolName(entry.toolName) || undefined,
     toolMetadata: entry.toolMetadata || null,
   };
@@ -467,6 +467,7 @@ function isResponseCloseable(response) {
 const RESPONSE_OVERLAY_VISIBLE_MESSAGE_TYPES = new Set([
   'tool-call',
   'tool-output',
+  'tool-progress',
   'search-source',
   'tool-explanation',
   'error',
@@ -475,6 +476,7 @@ const RESPONSE_OVERLAY_VISIBLE_MESSAGE_TYPES = new Set([
 const RESPONSE_OVERLAY_PROGRESS_MESSAGE_TYPES = new Set([
   'tool-call',
   'tool-output',
+  'tool-progress',
   'search-source',
   'tool-explanation',
 ]);

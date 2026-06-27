@@ -103,6 +103,10 @@ it is part of the row contract, and renderer projection keeps metadata as
 display/details only. Tool-call and tool-output card text is likewise
 SDK-authored string row content; the renderer adapter drops structured row
 content instead of JSON-stringifying it into a display fallback.
+SDK `tool_progress` display rows remain renderer `tool-progress` messages. The
+adapter preserves SDK-authored `metadata.sourceEventType` such as
+`web-search-progress` when present, falls back to generic `tool_progress` for
+unlabeled rows, and does not relabel generic progress as `search-source`.
 `DesktopSdkDisplayAttachmentProjection` owns renderer-side display attachment
 validation and artifact image-source extraction for typed SDK descriptors. It
 does not publish image-count, ready-image, or lifecycle summary helpers. Token

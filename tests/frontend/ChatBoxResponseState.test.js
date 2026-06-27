@@ -51,6 +51,7 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     })).toBe(false);
 
     expect(isResponseOverlayProgressMessage({ type: 'tool-explanation' })).toBe(true);
+    expect(isResponseOverlayProgressMessage({ type: 'tool-progress' })).toBe(true);
     expect(isResponseOverlayProgressMessage({ type: 'search-source' })).toBe(true);
     expect(isResponseOverlayProgressMessage({ type: 'error' })).toBe(false);
 

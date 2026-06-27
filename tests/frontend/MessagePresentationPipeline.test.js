@@ -1204,7 +1204,7 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
-  test('buildThreadPresentationMessages does not repair padded live row ids for dedupe', () => {
+  test('buildThreadPresentationMessages rejects padded live row ids before dedupe', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
       {
@@ -1236,14 +1236,7 @@ describe('desktopThreadPresentationRuntime', () => {
       activeConversationRef: 'conv-1',
     });
 
-    expect(rendered).toEqual([
-      ...messages,
-      expect.objectContaining({
-        id: ' materialized-tool-call ',
-        type: 'tool-call',
-        text: 'Using read_file live',
-      }),
-    ]);
+    expect(rendered).toBe(messages);
   });
 
   test('buildThreadPresentationMessages does not repair padded materialized turn refs for dedupe', () => {
@@ -1482,7 +1475,22 @@ describe('desktopThreadPresentationRuntime', () => {
     })).toBe(messages);
   });
 
-  test('keeps live search-source rows visible in thread presentation', () => {
+  test('keeps live tool-progress rows visible in thread presentation', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Search the web' },
+      {
+        id: 'search-1',
+        sender: 'assistant',
+        type: 'tool-progress',
+        text: 'Searched youtube.com',
+        sourceEventType: 'web-search-progress',
+      },
+    ];
+
+    expect(buildThreadPresentationMessages(messages)).toEqual(messages);
+  });
+
+  test('keeps legacy search-source rows visible in thread presentation', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Search the web' },
       {

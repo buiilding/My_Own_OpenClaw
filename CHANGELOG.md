@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display-rows: keep SDK-authored progress rows as `tool-progress`
+  messages in display-row and live-turn adapters while preserving legacy
+  `search-source` rendering support for old rows. No migration required.
 - frontend/replay: stop stamping private renderer replay-step markers onto
   rejected SDK replay command errors, and keep replay trace `action` values as
   timeline event names with `replayAction` carrying `retry`/`edit_resend`.

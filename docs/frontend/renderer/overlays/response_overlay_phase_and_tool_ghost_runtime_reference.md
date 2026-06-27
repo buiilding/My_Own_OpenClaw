@@ -72,6 +72,7 @@ Current-turn entry construction:
   - `error`
   - `tool-call`
   - `tool-output`
+  - `tool-progress`
   - `search-source`
   - `tool-explanation`
 
@@ -99,8 +100,8 @@ Closeability:
 
 - `error` rows are closeable immediately.
 - `llm-text` rows are closeable only when `isComplete === true`.
-- tool/progress rows (`tool-call`, `tool-output`, `search-source`, and
-  `tool-explanation`) are classified by
+- tool/progress rows (`tool-call`, `tool-output`, `tool-progress`,
+  legacy `search-source`, and `tool-explanation`) are classified by
   `DesktopCurrentTurnMessageRuntime.isResponseOverlayProgressMessage(...)` so
   the overlay view model does not own raw row-type groups.
 

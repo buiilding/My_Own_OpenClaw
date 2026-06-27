@@ -81,6 +81,7 @@ function isVisibleCurrentTurnMessage(message) {
       || normalizeText(message.thinkingText)
       || message.type === 'tool-output'
       || message.type === 'tool-call'
+      || message.type === 'tool-progress'
       || message.type === 'search-source'
       || message.type === 'tool-explanation'
       || message.type === 'error'

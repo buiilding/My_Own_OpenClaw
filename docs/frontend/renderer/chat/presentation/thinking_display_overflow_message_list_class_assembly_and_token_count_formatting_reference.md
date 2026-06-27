@@ -100,7 +100,7 @@ The runtime owns row classification for:
 
 - error rows
 - tool call/output rows
-- tool explanation and search-source rows
+- tool explanation, tool-progress, and legacy search-source rows
 - tool action summaries
 - user rows
 - assistant LLM-text rows, including whether visible assistant text should render below thinking
