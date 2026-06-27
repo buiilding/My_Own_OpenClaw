@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stop: publish no stop target when neither SDK `ConversationView` nor
+  the renderer pending bridge is stoppable; renderer and Electron main no
+  longer carry active-conversation idle fallback identities through Stop
+  resolution. No migration required.
 - frontend/attachments: rename renderer attachment chrome away from screenshot
   presentation classes and labels; visual rows now use generic SDK attachment
   class names while still rendering only from `attachments[]`. No migration

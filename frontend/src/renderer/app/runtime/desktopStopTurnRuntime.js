@@ -260,10 +260,6 @@ function executeStopTurnExecutionPlan({
   return true;
 }
 
-function isPendingTurn(value) {
-  return Boolean(normalizePendingTurn(value));
-}
-
 function isStoppableConversationView(conversationView) {
   return Boolean(
     isSdkConversationView(conversationView)
@@ -276,7 +272,6 @@ function isStoppableConversationView(conversationView) {
 function resolveStopTurnTarget({
   conversationView = null,
   pendingTurn = null,
-  conversationRef = null,
 } = {}) {
   if (isStoppableConversationView(conversationView)) {
     return {
@@ -297,13 +292,7 @@ function resolveStopTurnTarget({
         canStop: true,
       };
     }
-    return {
-      source: 'idle',
-      conversationRef: readExactNonEmptyRef(conversationView.conversationRef)
-        || readExactNonEmptyRef(conversationRef),
-      turnRef: null,
-      canStop: false,
-    };
+    return null;
   }
 
   const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
@@ -316,13 +305,7 @@ function resolveStopTurnTarget({
     };
   }
 
-  const fallbackConversationRef = readExactNonEmptyRef(conversationRef);
-  return {
-    source: 'idle',
-    conversationRef: fallbackConversationRef,
-    turnRef: null,
-    canStop: false,
-  };
+  return null;
 }
 
 export const DesktopStopTurnRuntime = Object.freeze({

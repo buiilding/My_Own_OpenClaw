@@ -2,10 +2,6 @@
  * Resolves main-process stop targets for SDK conversation turns.
  */
 
-function normalizeOptionalString(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
 function readExactNonEmptyString(value) {
   return typeof value === 'string' && value && value.trim() === value ? value : null;
 }
@@ -32,7 +28,6 @@ function isStoppableConversationView(conversationView) {
 function resolveMainStopTarget({
   latestConversationView = null,
   latestPendingTurn = null,
-  currentConversationRef = null,
 } = {}) {
   if (isStoppableConversationView(latestConversationView)) {
     return {
@@ -52,13 +47,7 @@ function resolveMainStopTarget({
         canStop: true,
       };
     }
-    return {
-      source: 'idle',
-      conversationRef: normalizeOptionalString(latestConversationView.conversationRef)
-        || normalizeOptionalString(currentConversationRef),
-      turnRef: null,
-      canStop: false,
-    };
+    return null;
   }
 
   if (isPendingTurn(latestPendingTurn)) {
@@ -69,13 +58,7 @@ function resolveMainStopTarget({
       canStop: true,
     };
   }
-  const conversationRef = normalizeOptionalString(currentConversationRef);
-  return {
-    source: 'idle',
-    conversationRef,
-    turnRef: null,
-    canStop: false,
-  };
+  return null;
 }
 
 async function triggerMainStopTarget({
@@ -105,7 +88,6 @@ async function triggerMainStopTarget({
 function createMainStopTargetRuntime({
   getLatestConversationView,
   getLatestPendingTurn,
-  getCurrentConversationRef,
   stopQueryThroughAgentSdkRuntime,
   setResponseOverlayPhase,
 } = {}) {
@@ -116,9 +98,6 @@ function createMainStopTargetRuntime({
         : null,
       latestPendingTurn: typeof getLatestPendingTurn === 'function'
         ? getLatestPendingTurn()
-        : null,
-      currentConversationRef: typeof getCurrentConversationRef === 'function'
-        ? getCurrentConversationRef()
         : null,
     });
   }

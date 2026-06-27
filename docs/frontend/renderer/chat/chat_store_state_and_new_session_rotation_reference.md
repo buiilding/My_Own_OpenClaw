@@ -348,9 +348,9 @@ trimmed into no-view/pending routing state.
   Stop-target refs from SDK `ConversationView` and the pending bridge must be
   exact non-empty strings; the runtime rejects padded stoppable refs instead of
   trimming them into stop commands or pending-bridge cleanup.
-  Idle stop state follows the same exact-identity rule for its conversation ref,
-  so malformed `ConversationView` or active conversation refs are not repaired
-  into disabled UI state.
+  When neither SDK `ConversationView` nor the pending bridge provides a
+  stoppable target, the selector publishes `stopTurnTarget: null`; active
+  conversation refs are not repaired into disabled stop-target state.
   Stopped-turn mutation uses the same exact match for incoming targets and
   stored no-view SDK live turns or pending bridge records, so malformed refs do
   not get repaired into terminal workspace cleanup.

@@ -326,7 +326,6 @@ const pendingTurnRuntime = createPendingTurnRuntime({
 const mainStopTargetRuntime = createMainStopTargetRuntime({
   getLatestConversationView: () => liveTurnState.getLatestConversationView(),
   getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
-  getCurrentConversationRef: () => backendSessionState.getConversationRef(),
   stopQueryThroughAgentSdkRuntime: (input) => stopQueryThroughAgentSdkRuntime(input),
   setResponseOverlayPhase,
 });

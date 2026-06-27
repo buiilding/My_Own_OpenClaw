@@ -48,7 +48,7 @@ type StopTurnTarget = {
   conversationRef: string | null;
   turnRef: string | null;
   canStop: boolean;
-};
+} | null;
 
 const {
   projectDesktopChatSurfaceState,
@@ -89,6 +89,9 @@ function selectStableChatSendReadModel({
 }
 
 function buildStopTurnTargetSignature(stopTurnTarget: StopTurnTarget): string {
+  if (!stopTurnTarget) {
+    return 'none';
+  }
   return [
     stopTurnTarget.source,
     stopTurnTarget.conversationRef ?? '',

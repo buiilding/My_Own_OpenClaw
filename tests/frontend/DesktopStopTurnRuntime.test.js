@@ -155,12 +155,7 @@ describe('desktopStopTurnRuntime', () => {
         }],
       }),
       conversationRef: 'conv-session',
-    })).toEqual({
-      source: 'idle',
-      conversationRef: 'conv-session',
-      turnRef: null,
-      canStop: false,
-    });
+    })).toBeNull();
   });
 
   test('resolveStopTurnTarget uses pending turn ref without terminal current-turn fallback', () => {
@@ -178,15 +173,10 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
-  test('resolveStopTurnTarget returns idle when there is no active or pending turn', () => {
+  test('resolveStopTurnTarget returns null when there is no SDK or pending stop target', () => {
     expect(resolveStopTurnTarget({
       conversationRef: 'conv-session',
-    })).toEqual({
-      source: 'idle',
-      conversationRef: 'conv-session',
-      turnRef: null,
-      canStop: false,
-    });
+    })).toBeNull();
   });
 
   test('resolveStopTurnTarget keeps pending turn stoppable through a non-authoritative idle view', () => {
@@ -219,12 +209,7 @@ describe('desktopStopTurnRuntime', () => {
         canStop: false,
       }),
       conversationRef: 'conv-session',
-    })).toEqual({
-      source: 'idle',
-      conversationRef: 'conv-view',
-      turnRef: null,
-      canStop: false,
-    });
+    })).toBeNull();
   });
 
   test('resolveStopTurnTarget does not treat display timeline rows as ConversationView authority', () => {
@@ -234,12 +219,7 @@ describe('desktopStopTurnRuntime', () => {
         rows: [],
       },
       conversationRef: 'conv-session',
-    })).toEqual({
-      source: 'idle',
-      conversationRef: 'conv-session',
-      turnRef: null,
-      canStop: false,
-    });
+    })).toBeNull();
   });
 
   test('classifies only pending bridge targets in stop execution plans', () => {
@@ -296,12 +276,7 @@ describe('desktopStopTurnRuntime', () => {
         turnRef: 'turn-view',
       }),
       conversationRef: 'conv-session',
-    })).toEqual({
-      source: 'idle',
-      conversationRef: 'conv-session',
-      turnRef: null,
-      canStop: false,
-    });
+    })).toBeNull();
 
     expect(resolveStopTurnTarget({
       pendingTurn: pendingTurn({
@@ -309,12 +284,7 @@ describe('desktopStopTurnRuntime', () => {
         turnRef: ' turn-pending ',
       }),
       conversationRef: 'conv-session',
-    })).toEqual({
-      source: 'idle',
-      conversationRef: 'conv-session',
-      turnRef: null,
-      canStop: false,
-    });
+    })).toBeNull();
 
     expect(buildStopTurnExecutionPlan({
       source: 'pending-turn',
@@ -329,7 +299,7 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
-  test('does not repair padded idle stop conversation refs', () => {
+  test('does not publish padded idle stop conversation refs', () => {
     expect(resolveStopTurnTarget({
       conversationView: conversationView({
         conversationRef: ' conv-view ',
@@ -337,21 +307,11 @@ describe('desktopStopTurnRuntime', () => {
         canStop: false,
       }),
       conversationRef: ' conv-session ',
-    })).toEqual({
-      source: 'idle',
-      conversationRef: null,
-      turnRef: null,
-      canStop: false,
-    });
+    })).toBeNull();
 
     expect(resolveStopTurnTarget({
       conversationRef: ' conv-session ',
-    })).toEqual({
-      source: 'idle',
-      conversationRef: null,
-      turnRef: null,
-      canStop: false,
-    });
+    })).toBeNull();
   });
 
   test('executes pending stop plans inside runtime with bridge cleanup', () => {

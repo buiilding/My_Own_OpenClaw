@@ -2448,6 +2448,8 @@ describe('renderer chat runtime boundary', () => {
     expect(stopRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
     expect(stopRuntimeSource).not.toContain('function hasConversationView');
     expect(stopRuntimeSource).not.toContain('hasConversationView(currentWorkspace.conversationView)');
+    expect(stopTargetResolverSource).not.toContain("source: 'idle'");
+    expect(stopTargetResolverSource).not.toContain('conversationRef = null');
     expect(stopRuntimeSource).toContain('const hasSdkConversationView = hasWorkspaceConversationView(currentWorkspace);');
     expect(stopRuntimeSource).toContain('const workspaceSdkLiveTurn = hasSdkConversationView');
     expect(stopRuntimeSource).toContain('readNoViewSdkLiveTurnStorage(currentWorkspace)');

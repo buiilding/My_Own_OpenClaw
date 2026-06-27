@@ -637,11 +637,9 @@ Owns Electron-main cached SDK live-turn and pending-turn state:
 Owns main-process stop target resolution and stop execution:
 
 - `createMainStopTargetRuntime`: composes live current-turn reads, pending-turn
-  reads, active conversation-ref reads, SDK stop execution, and overlay phase
-  completion for `ipc.cjs`
-- chooses stoppable SDK current turns before renderer pending turns
-- falls back to the active conversation only when no current or pending turn is
-  available
+  reads, SDK stop execution, and overlay phase completion for `ipc.cjs`
+- chooses stoppable SDK `ConversationView` turns before renderer pending turns
+- returns no target when neither a stoppable SDK view nor pending bridge exists
 - sends SDK-shaped `conversation_ref` / `turn_ref` stop payloads through the
   injected Agent SDK stop function
 - completes the response overlay phase only after a successful stop result
@@ -952,8 +950,8 @@ registration helper stay private to the runtime helper:
 - SDK query command send
 - send-failure recovery
 - stop-query phase completion
-- global stop target resolution: latest SDK current turn first, latest pending
-  turn second, active conversation fallback last
+- global stop target resolution: stoppable SDK `ConversationView` first,
+  latest pending turn second, and no target otherwise
 - pending-turn relay: renderer sends `windie:pending-turn` with
   `{ type: "pending", pendingTurn }`; main stores the latest normalized
   pending turn with only identity, text, and timestamp, broadcasts it to

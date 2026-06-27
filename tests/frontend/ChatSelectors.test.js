@@ -374,12 +374,7 @@ describe('chatSelectors', () => {
       tokenCounts: { total_tokens: 42 },
       activeRevisionId: null,
       renderedMessages: messages,
-      stopTurnTarget: {
-        source: 'idle',
-        conversationRef: null,
-        turnRef: null,
-        canStop: false,
-      },
+      stopTurnTarget: null,
       chatSurfaceState: {
         messages,
         conversationView: null,
@@ -700,12 +695,7 @@ describe('chatSelectors', () => {
       conversationView: view,
       pendingTurn: null,
       sdkLiveTurn: null,
-      stopTurnTarget: {
-        source: 'idle',
-        conversationRef: 'conv-view',
-        turnRef: null,
-        canStop: false,
-      },
+      stopTurnTarget: null,
     });
   });
 
@@ -790,12 +780,7 @@ describe('chatSelectors', () => {
       tokenCounts: null,
       activeRevisionId: null,
       renderedMessages: [],
-      stopTurnTarget: {
-        source: 'idle',
-        conversationRef: null,
-        turnRef: null,
-        canStop: false,
-      },
+      stopTurnTarget: null,
     }));
     expect(selected).not.toHaveProperty('messages');
     expect(selected).not.toHaveProperty('currentTurnProjection');
