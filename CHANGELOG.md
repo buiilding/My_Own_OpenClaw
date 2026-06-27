@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: route sanitized workspace read-model projection through
+  the SDK ConversationView shape predicate before hiding raw no-view messages,
+  live-turn fallback, thinking, compaction, token, or annotation state. No
+  migration required.
 - frontend/chat-store: require cached ConversationView workspace authority to
   have SDK `displayRows`, `liveTurn`, `surfaces`, and `actions` shape, so
   display-timeline `rows` payloads or partial objects cannot suppress no-view

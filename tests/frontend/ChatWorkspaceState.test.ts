@@ -3,6 +3,7 @@
  */
 
 import type { StreamTracking } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import type { ConversationView } from '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeContracts';
 import {
   buildActiveConversationWorkspaceUpdate,
   buildNoViewSdkLiveTurnStorageUpdate,
@@ -37,6 +38,54 @@ function createStreamTracking(overrides: Partial<StreamTracking> = {}): StreamTr
     lastChunkSize: 0,
     lastError: null,
     ...overrides,
+  };
+}
+
+function buildConversationView(
+  conversationRef: string,
+  overrides: Partial<ConversationView> = {},
+): ConversationView {
+  const base: ConversationView = {
+    conversationRef,
+    revisionId: null,
+    displayRows: [],
+    liveTurn: {
+      turnRef: null,
+      phase: 'idle',
+      entries: [],
+      isBusy: false,
+      isTerminal: true,
+      canStop: false,
+    },
+    surfaces: {
+      pill: { mode: 'idle' },
+      dashboard: { mode: 'idle' },
+      responseOverlay: {
+        mode: 'hidden',
+        visible: false,
+        guardRef: null,
+        ownerConversationRef: conversationRef,
+        turnRef: null,
+      },
+    },
+    actions: {
+      canEdit: false,
+      canRetry: false,
+      canFork: false,
+    },
+  };
+  return {
+    ...base,
+    ...overrides,
+    liveTurn: overrides.liveTurn ?? base.liveTurn,
+    surfaces: {
+      ...base.surfaces,
+      ...overrides.surfaces,
+    },
+    actions: {
+      ...base.actions,
+      ...overrides.actions,
+    },
   };
 }
 
@@ -190,14 +239,9 @@ describe('chatWorkspaceState', () => {
   });
 
   test('projects ConversationView workspace read model without raw fallback authorities', () => {
-    const conversationView = {
-      conversationRef: 'thread-1',
+    const conversationView = buildConversationView('thread-1', {
       displayRows: [{ id: 'sdk-row', role: 'assistant' }],
-      liveTurn: null,
-      surfaces: {
-        pill: { mode: 'idle' },
-      },
-    };
+    } as never);
     const pendingTurn = {
       conversationRef: 'thread-1',
       turnRef: 'turn-pending',
@@ -254,11 +298,9 @@ describe('chatWorkspaceState', () => {
   });
 
   test('keeps empty renderer annotations stable across raw message churn with ConversationView', () => {
-    const conversationView = {
-      conversationRef: 'thread-1',
+    const conversationView = buildConversationView('thread-1', {
       displayRows: [{ id: 'sdk-row', role: 'assistant' }],
-      liveTurn: null,
-    };
+    } as never);
     const firstWorkspace = {
       ...createInitialWorkspaceState(),
       conversationView,
@@ -285,6 +327,24 @@ describe('chatWorkspaceState', () => {
     expect(secondReadModel.messages).toEqual([]);
     expect(firstReadModel.rendererAnnotations).toEqual([]);
     expect(secondReadModel.rendererAnnotations).toBe(firstReadModel.rendererAnnotations);
+  });
+
+  test('does not let display timeline rows claim ConversationView read-model authority', () => {
+    const workspace = {
+      ...createInitialWorkspaceState(),
+      messages: [{ id: 'raw-row', text: 'raw fallback', sender: 'assistant' as const }],
+      sdkLiveTurn: { turnRef: 'turn-raw' } as never,
+      conversationView: {
+        conversationRef: 'thread-1',
+        rows: [],
+      } as never,
+    };
+
+    const readModel = projectWorkspaceReadModelState(workspace);
+
+    expect(readModel.messages).toBe(workspace.messages);
+    expect(readModel.sdkLiveTurn).toBe(workspace.sdkLiveTurn);
+    expect(readModel.rendererAnnotations).toEqual([]);
   });
 
   test('builds workspace updates without projecting inactive workspace fields', () => {
@@ -362,17 +422,7 @@ describe('chatWorkspaceState', () => {
     const nextWorkspace = {
       ...createInitialWorkspaceState(),
       messages: [{ id: 'next', text: 'next', sender: 'assistant' as const }],
-      conversationView: {
-        conversationRef: 'next-thread',
-        rows: [],
-        actions: {
-          canEdit: false,
-          canRetry: false,
-        },
-        revisions: [],
-        activeRevisionId: null,
-        liveTurn: null,
-      },
+      conversationView: buildConversationView('next-thread'),
     };
     const state = {
       activeConversationRef: 'active-thread',

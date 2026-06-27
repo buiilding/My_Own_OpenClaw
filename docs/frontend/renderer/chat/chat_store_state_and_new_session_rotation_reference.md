@@ -172,6 +172,11 @@ trimmed into no-view/pending routing state.
   SDK view. That predicate requires the SDK view shape (`displayRows`,
   `liveTurn`, `surfaces`, and `actions`); display-timeline `rows` payloads or
   other partial objects do not become chat read-model authority.
+- Active workspace read-model projection uses the same SDK view-shape predicate
+  before suppressing raw `messages`, no-view `sdkLiveTurn`, thinking status,
+  compaction debug info, token counts, or exposing `rendererAnnotations`. A
+  partial object under `conversationView` remains on the no-view fallback path
+  instead of becoming a second chat read model.
 - `setMessagesInChatStore(...)` no-ops when array reference is unchanged; when hydrating a concrete
   conversation workspace, it records message `turnRef` values through the
   app-runtime turn-routing registry so later turn-scoped stream events can

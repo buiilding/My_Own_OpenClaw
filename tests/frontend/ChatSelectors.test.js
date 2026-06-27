@@ -39,6 +39,51 @@ function createWorkspace(overrides = {}) {
   };
 }
 
+function buildConversationView(conversationRef, overrides = {}) {
+  const base = {
+    conversationRef,
+    revisionId: null,
+    displayRows: [],
+    liveTurn: {
+      turnRef: null,
+      phase: 'idle',
+      entries: [],
+      isBusy: false,
+      isTerminal: true,
+      canStop: false,
+    },
+    surfaces: {
+      pill: { mode: 'idle' },
+      dashboard: { mode: 'idle' },
+      responseOverlay: {
+        mode: 'hidden',
+        visible: false,
+        guardRef: null,
+        ownerConversationRef: conversationRef,
+        turnRef: null,
+      },
+    },
+    actions: {
+      canEdit: false,
+      canRetry: false,
+      canFork: false,
+    },
+  };
+  return {
+    ...base,
+    ...overrides,
+    liveTurn: overrides.liveTurn ?? base.liveTurn,
+    surfaces: {
+      ...base.surfaces,
+      ...overrides.surfaces,
+    },
+    actions: {
+      ...base.actions,
+      ...overrides.actions,
+    },
+  };
+}
+
 function createStateWithActiveWorkspace(overrides = {}) {
   const workspace = createWorkspace(overrides);
   return {
@@ -104,14 +149,9 @@ describe('chatSelectors', () => {
   });
 
   test('projects only renderer annotations beside ConversationView interface state', () => {
-    const conversationView = {
-      conversationRef: 'conv-view',
+    const conversationView = buildConversationView('conv-view', {
       displayRows: [{ id: 'sdk-row', role: 'assistant' }],
-      liveTurn: null,
-      surfaces: {
-        pill: { mode: 'idle' },
-      },
-    };
+    });
     const activeWorkspace = {
       messages: [{
         id: 'sdk-row',
@@ -154,23 +194,24 @@ describe('chatSelectors', () => {
   });
 
   test('drops raw surface messages once ConversationView owns the live surface', () => {
+    const conversationView = buildConversationView('conv-view', {
+      liveTurn: {
+        turnRef: 'view-turn',
+        phase: 'complete',
+        entries: [{ id: 'view-entry', text: 'done', sender: 'assistant' }],
+        isBusy: false,
+        isTerminal: true,
+        canStop: false,
+      },
+      surfaces: {
+        pill: { mode: 'idle' },
+        responseOverlay: { mode: 'response', visible: true },
+      },
+    });
     const activeWorkspace = {
       messages: [{ id: 'stale-user', text: 'stale', sender: 'user' }],
       sdkLiveTurn: { turnRef: 'raw-turn', phase: 'streaming' },
-      conversationView: {
-        conversationRef: 'conv-view',
-        liveTurn: {
-          turnRef: 'view-turn',
-          phase: 'complete',
-          entries: [{ id: 'view-entry', text: 'done', sender: 'assistant' }],
-          isBusy: false,
-          isTerminal: true,
-        },
-        surfaces: {
-          pill: { mode: 'idle' },
-          responseOverlay: { mode: 'response', visible: true },
-        },
-      },
+      conversationView,
       pendingTurn: null,
     };
 
@@ -183,7 +224,7 @@ describe('chatSelectors', () => {
     });
     expect(firstSurfaceState).toEqual(expect.objectContaining({
       messages: [],
-      conversationView: activeWorkspace.conversationView,
+      conversationView,
       sdkLiveTurn: null,
     }));
     expect(firstSurfaceState).not.toHaveProperty('currentTurnProjection');
@@ -191,13 +232,16 @@ describe('chatSelectors', () => {
   });
 
   test('surface selector consumes the sanitized ConversationView read model', () => {
-    const conversationView = {
-      conversationRef: 'conv-view',
+    const conversationView = buildConversationView('conv-view', {
       liveTurn: {
         turnRef: 'turn-view',
         phase: 'streaming',
+        entries: [],
+        isBusy: true,
+        isTerminal: false,
+        canStop: true,
       },
-    };
+    });
     const selected = projectDesktopChatSurfaceState({
       activeWorkspace: projectWorkspaceReadModelState({
         messages: [{ id: 'stale-user', text: 'stale', sender: 'user' }],
@@ -226,13 +270,16 @@ describe('chatSelectors', () => {
   });
 
   test('surface selector rejects raw messages under direct ConversationView input', () => {
-    const conversationView = {
-      conversationRef: 'conv-direct',
+    const conversationView = buildConversationView('conv-direct', {
       liveTurn: {
         turnRef: 'turn-direct',
         phase: 'streaming',
+        entries: [],
+        isBusy: true,
+        isTerminal: false,
+        canStop: true,
       },
-    };
+    });
 
     expect(projectDesktopChatSurfaceState({
       activeWorkspace: {
@@ -256,16 +303,11 @@ describe('chatSelectors', () => {
   });
 
   test('drops raw surface messages while carrying the pending bridge under ConversationView', () => {
+    const conversationView = buildConversationView('conv-view');
     const activeWorkspace = {
       messages: [{ id: 'pending-user', text: 'pending', sender: 'user' }],
       sdkLiveTurn: null,
-      conversationView: {
-        conversationRef: 'conv-view',
-        liveTurn: null,
-        surfaces: {
-          pill: { mode: 'idle' },
-        },
-      },
+      conversationView,
       pendingTurn: {
         conversationRef: 'conv-view',
         turnRef: 'turn-pending',
@@ -277,7 +319,7 @@ describe('chatSelectors', () => {
       activeWorkspace: projectWorkspaceReadModelState(activeWorkspace),
     })).toEqual(expect.objectContaining({
       messages: [],
-      conversationView: activeWorkspace.conversationView,
+      conversationView,
       pendingTurn: activeWorkspace.pendingTurn,
       sdkLiveTurn: null,
     }));
@@ -482,10 +524,9 @@ describe('chatSelectors', () => {
 
   test('selects send read model separately from chat interface presentation state', () => {
     const messages = [{ id: 'user-1', text: 'question', sender: 'user' }];
-    const conversationView = {
-      conversationRef: 'conv-send',
+    const conversationView = buildConversationView('conv-send', {
       displayRows: [{ id: 'row-user', role: 'user' }],
-    };
+    });
     const state = createStateWithActiveWorkspace({
       messages,
       conversationView,
@@ -504,10 +545,9 @@ describe('chatSelectors', () => {
   });
 
   test('send read model helper does not expose raw messages under ConversationView', () => {
-    const conversationView = {
-      conversationRef: 'conv-send',
+    const conversationView = buildConversationView('conv-send', {
       displayRows: [{ id: 'row-user', role: 'user' }],
-    };
+    });
 
     expect(buildChatSendReadModelSelectorState({
       activeWorkspace: projectWorkspaceReadModelState(createWorkspace({
@@ -521,10 +561,9 @@ describe('chatSelectors', () => {
   });
 
   test('send read model helper rejects raw messages under direct ConversationView input', () => {
-    const conversationView = {
-      conversationRef: 'conv-direct',
+    const conversationView = buildConversationView('conv-direct', {
       displayRows: [{ id: 'row-user', role: 'user' }],
-    };
+    });
 
     expect(buildChatSendReadModelSelectorState({
       activeWorkspace: createWorkspace({
@@ -593,8 +632,7 @@ describe('chatSelectors', () => {
       turnRef: 'turn-dashboard',
       phase: 'streaming',
     };
-    const view = {
-      conversationRef: 'conv-view',
+    const view = buildConversationView('conv-view', {
       liveTurn: {
         turnRef: 'turn-view',
         phase: 'complete',
@@ -614,7 +652,7 @@ describe('chatSelectors', () => {
           turnRef: 'turn-view',
         },
       },
-    };
+    });
 
     const selected = selectLiveTurnSurfaceState({
       ...createStateWithActiveWorkspace({
@@ -650,8 +688,7 @@ describe('chatSelectors', () => {
       phase: 'streaming',
       assistantText: 'stale raw current turn',
     };
-    const view = {
-      conversationRef: 'conv-dashboard',
+    const view = buildConversationView('conv-dashboard', {
       revisionId: 'rev-view',
       displayRows: [{ id: 'display-user-1', role: 'user' }],
       liveTurn: {
@@ -673,7 +710,7 @@ describe('chatSelectors', () => {
           turnRef: 'turn-view',
         },
       },
-    };
+    });
 
     const selected = selectChatInterfaceState({
       ...createStateWithActiveWorkspace({

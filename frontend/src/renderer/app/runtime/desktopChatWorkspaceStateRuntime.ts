@@ -18,6 +18,9 @@ import type {
 import {
   DesktopChatStreamTrackingRuntime,
 } from './desktopChatStreamTrackingRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 import type {
   ChatMessage,
   TokenCounts,
@@ -26,6 +29,9 @@ import type {
 const {
   createInitialStreamTracking,
 } = DesktopChatStreamTrackingRuntime;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 type RendererMessageAnnotation = {
   feedback?: ChatMessage['feedback'];
@@ -230,7 +236,7 @@ export function projectWorkspaceReadModelState(
   if (cachedReadModel) {
     return cachedReadModel;
   }
-  const hasConversationView = Boolean(workspace.conversationView);
+  const hasConversationView = hasWorkspaceConversationView(workspace);
   const readModelWorkspace = {
     ...workspace,
     messages: hasConversationView ? emptyChatMessages : workspace.messages,

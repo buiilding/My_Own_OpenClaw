@@ -4346,6 +4346,9 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateRuntimeSource).toContain('CompactionDebugInfo');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('replacementHistoryPreview: Array');
     expect(chatWorkspaceStateRuntimeSource).toContain('DesktopChatStreamTrackingRuntime');
+    expect(chatWorkspaceStateRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(chatWorkspaceStateRuntimeSource).toContain('hasWorkspaceConversationView(workspace)');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('Boolean(workspace.conversationView)');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildConversationViewWorkspaceMutation');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildSetConversationViewStateUpdate');
     expect(conversationViewWorkspaceRuntimeSource).toContain('hasWorkspaceConversationView');
