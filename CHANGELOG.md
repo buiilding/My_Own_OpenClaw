@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display-rows: allowlist exact SDK row replay action props when
+  projecting display rows so renderer chat messages no longer receive raw
+  `row.actions` metadata or repaired edit/retry target ids. No migration
+  required.
 - frontend/replay: resolve transcript session and deferred model selection
   inside the replay executor instead of passing them as internal caller
   context, keeping replay actions scoped to row intent plus SDK/runtime-owned

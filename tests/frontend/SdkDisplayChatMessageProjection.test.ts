@@ -436,7 +436,7 @@ describe('sdkDisplayChatMessageProjection', () => {
     expect(messages[0]).not.toEqual(expect.objectContaining({ toolName: 'read_file' }));
   });
 
-  test('passes through SDK row action metadata and replay target ids', () => {
+  test('allowlists exact SDK row replay actions without repairing target ids', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {
         id: 'visible-user-row',
@@ -448,7 +448,10 @@ describe('sdkDisplayChatMessageProjection', () => {
         content: 'edited prompt',
         actions: {
           canEdit: true,
-          editTargetRowId: ' original-user-row ',
+          editTargetRowId: 'original-user-row',
+          canRetry: true,
+          retryTargetRowId: ' original-assistant-row ',
+          modelFacingPayload: { ignored: true },
         },
       },
       {
@@ -461,7 +464,23 @@ describe('sdkDisplayChatMessageProjection', () => {
         content: 'final answer',
         actions: {
           canRetry: true,
-          retryTargetRowId: ' original-assistant-row ',
+          retryTargetRowId: 'original-assistant-row',
+          canEdit: true,
+          editTargetRowId: ' original-user-row ',
+          raw: { ignored: true },
+        },
+      },
+      {
+        id: 'padded-action-row',
+        conversationRef: 'conv-sdk',
+        turnRef: 'turn-visible',
+        index: 2,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'padded target',
+        actions: {
+          canRetry: true,
+          retryTargetRowId: ' padded-assistant-row ',
         },
       },
     ])).toEqual([
@@ -469,15 +488,18 @@ describe('sdkDisplayChatMessageProjection', () => {
         id: 'visible-user-row',
         actions: {
           canEdit: true,
-          editTargetRowId: ' original-user-row ',
+          editTargetRowId: 'original-user-row',
         },
       }),
       expect.objectContaining({
         id: 'visible-assistant-row',
         actions: {
           canRetry: true,
-          retryTargetRowId: ' original-assistant-row ',
+          retryTargetRowId: 'original-assistant-row',
         },
+      }),
+      expect.not.objectContaining({
+        actions: expect.anything(),
       }),
     ]);
   });

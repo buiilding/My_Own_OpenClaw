@@ -4007,12 +4007,15 @@ describe('renderer chat runtime boundary', () => {
 
     expect(projectionRuntimeSource).toContain('sourceEventType');
     expect(projectionRuntimeSource).toContain('withRowActions');
-    expect(projectionRuntimeSource).toContain('actions: row.actions');
+    expect(projectionRuntimeSource).toContain('function rowReplayActions(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('const actions = rowReplayActions(row);');
+    expect(projectionRuntimeSource).toContain('actionRecord.canEdit === true && editTargetRowId');
+    expect(projectionRuntimeSource).toContain('actionRecord.canRetry === true && retryTargetRowId');
+    expect(projectionRuntimeSource).not.toContain('actions: row.actions');
     expect(projectionRuntimeSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
-    expect(projectionRuntimeSource).not.toContain('function rowActions');
     expect(projectionRuntimeSource).not.toContain('optionalTrimmedString');
-    expect(projectionRuntimeSource).not.toContain('editTargetRowId');
-    expect(projectionRuntimeSource).not.toContain('retryTargetRowId');
+    expect(projectionRuntimeSource).not.toContain('editTargetRowId: row.actions');
+    expect(projectionRuntimeSource).not.toContain('retryTargetRowId: row.actions');
     expect(projectionRuntimeSource).toContain('desktopChatMessageTypes');
     expect(projectionRuntimeSource).toContain('desktopPresentationSourceChannels');
     expect(projectionRuntimeSource).toContain('desktopSdkDisplayAttachmentProjection');

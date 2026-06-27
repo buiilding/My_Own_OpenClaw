@@ -70,8 +70,29 @@ function isSdkDisplayRowStreaming(row: SdkDisplayRow): boolean {
   return 'isStreaming' in row && row.isStreaming === true;
 }
 
+function rowReplayActions(row: SdkDisplayRow): ChatMessage['actions'] | null {
+  const source = row.actions;
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    return null;
+  }
+  const actionRecord = source as Record<string, unknown>;
+  const actions: NonNullable<ChatMessage['actions']> = {};
+  const editTargetRowId = exactNonEmptyString(actionRecord.editTargetRowId);
+  const retryTargetRowId = exactNonEmptyString(actionRecord.retryTargetRowId);
+  if (actionRecord.canEdit === true && editTargetRowId) {
+    actions.canEdit = true;
+    actions.editTargetRowId = editTargetRowId;
+  }
+  if (actionRecord.canRetry === true && retryTargetRowId) {
+    actions.canRetry = true;
+    actions.retryTargetRowId = retryTargetRowId;
+  }
+  return Object.keys(actions).length > 0 ? actions : null;
+}
+
 function withRowActions(message: ChatMessage, row: SdkDisplayRow): ChatMessage {
-  return row.actions ? { ...message, actions: row.actions } : message;
+  const actions = rowReplayActions(row);
+  return actions ? { ...message, actions } : message;
 }
 
 function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
