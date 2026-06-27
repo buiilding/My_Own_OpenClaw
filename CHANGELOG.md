@@ -53,6 +53,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/lifecycle: reject repaired SDK live-turn and ConversationView
   identity during visible-lifecycle handoff, keeping padded refs from replacing
   renderer pending sends. No migration required.
+- frontend/surfaces: reject padded SDK overlay and ConversationView surface
+  refs instead of trimming them into response-overlay turn, conversation, or
+  guard identity. No migration required.
 - frontend/projection: reject malformed SDK display-row `toolName` metadata
   instead of passing padded or non-string tool labels into renderer tool rows.
   No migration required.

@@ -265,6 +265,11 @@ The pill response-overlay `turnId` is also resolved inside the app runtime from
 SDK response rows, SDK overlay intent, visible lifecycle, or the pending bridge;
 React hooks pass those inputs through instead of composing renderer-owned
 turn-ref fallbacks.
+Desktop live-surface overlay identity accepts only exact SDK refs from
+`snapshot.view.liveTurn`, `snapshot.view.surfaces.responseOverlay`, or
+`snapshot.currentTurn.presentation.overlayIntent`; padded refs are ignored
+instead of being trimmed into response-overlay turn, conversation, or guard
+identity.
 Renderer pending-turn state remains a short pre-view bridge immediately after
 send acceptance; raw current-turn snapshots and idle conversation refs must not
 enable Stop or become the main-process stop target, even before a view arrives.

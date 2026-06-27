@@ -224,6 +224,91 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
+  test('does not repair padded SDK presentation overlay refs', () => {
+    const state = resolveLiveTurnPresentationInput({
+      sdkLiveTurn: {
+        phase: 'streaming',
+        conversationRef: ' conv-1 ',
+        turnRef: ' turn-2 ',
+        presentation: {
+          entries: [
+            {
+              id: 'assistant-entry',
+              sender: 'assistant',
+              text: 'Visible response',
+              type: 'llm-text',
+            },
+          ],
+          overlayIntent: {
+            visible: true,
+            mode: 'response',
+            turnRef: ' turn-2 ',
+            conversationRef: ' conv-1 ',
+            staleGuardRef: ' turn-2 ',
+          },
+        },
+      },
+    });
+
+    expect(state).toMatchObject({
+      source: 'sdk-current-turn',
+      useSdkLiveTurnPresentation: true,
+      overlayIntent: expect.objectContaining({
+        mode: 'response',
+        turnRef: null,
+        conversationRef: null,
+        staleGuardRef: null,
+      }),
+      turnRef: null,
+      conversationRef: null,
+      guardRef: null,
+    });
+  });
+
+  test('does not repair padded ConversationView surface refs', () => {
+    const state = resolveLiveTurnPresentationInput({
+      conversationView: {
+        conversationRef: ' conv-1 ',
+        liveTurn: {
+          turnRef: ' turn-view ',
+          phase: 'streaming',
+          isBusy: true,
+          entries: [
+            {
+              id: 'assistant-entry',
+              sender: 'assistant',
+              text: 'Visible response',
+              type: 'llm-text',
+            },
+          ],
+        },
+        surfaces: {
+          responseOverlay: {
+            visible: true,
+            mode: 'response',
+            turnRef: ' turn-view ',
+            guardRef: ' guard-view ',
+            ownerConversationRef: ' conv-1 ',
+          },
+        },
+      },
+    });
+
+    expect(state).toMatchObject({
+      source: 'conversation-view',
+      useSdkLiveTurnPresentation: true,
+      overlayIntent: expect.objectContaining({
+        mode: 'response',
+        turnRef: null,
+        conversationRef: null,
+        staleGuardRef: null,
+      }),
+      turnRef: null,
+      conversationRef: null,
+      guardRef: null,
+    });
+  });
+
   test('keeps visible SDK content in response mode while phase is still awaiting', () => {
     const state = resolveLiveTurnPresentationInput({
       sdkLiveTurn: {

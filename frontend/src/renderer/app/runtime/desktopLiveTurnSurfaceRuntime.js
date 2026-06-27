@@ -49,11 +49,15 @@ function normalizePhase(value) {
 }
 
 function normalizeTurnRef(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
 function normalizeConversationRef(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
 function normalizeString(value) {
@@ -265,6 +269,8 @@ function resolveLiveTurnPresentationInput({
     const liveTurn = conversationView.liveTurn || {};
     const overlayIntent = resolveConversationViewOverlayIntent(conversationView);
     const entries = Array.isArray(liveTurn.entries) ? liveTurn.entries : [];
+    const liveTurnRef = normalizeTurnRef(liveTurn.turnRef);
+    const conversationRef = normalizeConversationRef(conversationView.conversationRef);
     return {
       phase: resolveConversationViewSurfacePhase(conversationView),
       isBusy: liveTurn.isBusy === true,
@@ -273,9 +279,9 @@ function resolveLiveTurnPresentationInput({
       useSdkLiveTurnPresentation: entries.length > 0,
       overlayIntent,
       entries,
-      turnRef: overlayIntent.turnRef || liveTurn.turnRef || null,
-      conversationRef: overlayIntent.conversationRef || conversationView.conversationRef || null,
-      guardRef: overlayIntent.staleGuardRef || overlayIntent.turnRef || liveTurn.turnRef || null,
+      turnRef: overlayIntent.turnRef || liveTurnRef,
+      conversationRef: overlayIntent.conversationRef || conversationRef,
+      guardRef: overlayIntent.staleGuardRef || overlayIntent.turnRef || liveTurnRef,
     };
   }
 
@@ -304,6 +310,8 @@ function resolveLiveTurnPresentationInput({
   if (useSdkLiveTurnPresentation) {
     const presentation = sdkLiveTurn.presentation;
     const overlayIntent = resolveSdkOverlayIntent(presentation, sdkLiveTurn);
+    const sdkLiveTurnRef = normalizeTurnRef(sdkLiveTurn?.turnRef);
+    const sdkConversationRef = normalizeConversationRef(sdkLiveTurn?.conversationRef);
     return {
       phase: visibleLifecyclePhase,
       isBusy: lifecycleIsBusy,
@@ -312,9 +320,9 @@ function resolveLiveTurnPresentationInput({
       useSdkLiveTurnPresentation: true,
       overlayIntent,
       entries: Array.isArray(presentation.entries) ? presentation.entries : [],
-      turnRef: overlayIntent.turnRef || sdkLiveTurn?.turnRef || null,
-      conversationRef: overlayIntent.conversationRef || sdkLiveTurn?.conversationRef || null,
-      guardRef: overlayIntent.staleGuardRef || overlayIntent.turnRef || sdkLiveTurn?.turnRef || null,
+      turnRef: overlayIntent.turnRef || sdkLiveTurnRef,
+      conversationRef: overlayIntent.conversationRef || sdkConversationRef,
+      guardRef: overlayIntent.staleGuardRef || overlayIntent.turnRef || sdkLiveTurnRef,
     };
   }
 
@@ -324,6 +332,8 @@ function resolveLiveTurnPresentationInput({
       sdkLiveTurn?.presentation,
       sdkLiveTurn,
     );
+    const sdkLiveTurnRef = normalizeTurnRef(sdkLiveTurn?.turnRef);
+    const sdkConversationRef = normalizeConversationRef(sdkLiveTurn?.conversationRef);
     return {
       phase: visibleLifecyclePhase,
       isBusy: lifecycleIsBusy,
@@ -332,9 +342,9 @@ function resolveLiveTurnPresentationInput({
       useSdkLiveTurnPresentation: false,
       overlayIntent,
       entries: [],
-      turnRef: overlayIntent.turnRef || sdkLiveTurn?.turnRef || null,
-      conversationRef: overlayIntent.conversationRef || sdkLiveTurn?.conversationRef || null,
-      guardRef: overlayIntent.staleGuardRef || overlayIntent.turnRef || sdkLiveTurn?.turnRef || null,
+      turnRef: overlayIntent.turnRef || sdkLiveTurnRef,
+      conversationRef: overlayIntent.conversationRef || sdkConversationRef,
+      guardRef: overlayIntent.staleGuardRef || overlayIntent.turnRef || sdkLiveTurnRef,
     };
   }
 

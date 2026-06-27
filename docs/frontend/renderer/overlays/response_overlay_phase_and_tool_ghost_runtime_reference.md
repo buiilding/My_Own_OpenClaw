@@ -115,7 +115,10 @@ Phase ownership boundary:
   feature hooks consume that facade instead of importing standalone live-turn
   helpers. Its phase, busy, awaiting, and response flags are mapped from
   `DesktopVisibleTurnLifecycleRuntime`; SDK overlay intent remains rendering
-  metadata for refs, stale guards, dismissal, and trace context.
+  metadata for refs, stale guards, dismissal, and trace context. Overlay refs
+  are accepted only when exact; padded SDK current-turn, `ConversationView`, or
+  overlay-intent refs are ignored instead of repaired into response-overlay
+  turn, conversation, or guard identity.
 - React chat surfaces do not subscribe to generic `response-overlay-phase`
   changes for runtime state. Renderer send preflight is represented as a
   pending user turn in chat state and over `windie:pending-turn`; this keeps the

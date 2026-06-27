@@ -207,7 +207,10 @@ rather than legacy SDK visibility booleans or overlay intent mode. Overlay
 intent remains guard/window metadata; its mode is derived from SDK phase and
 actual entries, text, error, or tool-progress evidence instead of copied as
 lifecycle authority. SDK `presentation.hasVisibleContent` is also not lifecycle
-evidence by itself. Raw current-turn `assistantText`, `reasoningText`, and
+evidence by itself. Live-surface overlay refs are exact metadata: padded SDK
+current-turn refs, `ConversationView` refs, or overlay intent refs are ignored
+instead of being trimmed into response-overlay turn, conversation, or guard
+identity. Raw current-turn `assistantText`, `reasoningText`, and
 `toolEvents` are not lifecycle evidence; live-turn text/tool rendering must
 arrive through SDK presentation entries or `ConversationView.liveTurn.entries`.
 `selectLiveTurnSurfaceState(...)` likewise omits raw `isSending`, and minimal

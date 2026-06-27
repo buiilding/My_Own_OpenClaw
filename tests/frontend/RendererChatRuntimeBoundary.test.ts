@@ -174,6 +174,32 @@ describe('renderer chat runtime boundary', () => {
     expect(minimalPillSource).not.toContain('liveTurnSource');
   });
 
+  test('live surface runtime rejects repaired overlay refs', async () => {
+    const surfaceRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js'),
+      'utf8',
+    );
+    const turnRefNormalizer = surfaceRuntimeSource.match(
+      /function normalizeTurnRef\(value\) \{[\s\S]*?\n\}/,
+    )?.[0] ?? '';
+    const conversationRefNormalizer = surfaceRuntimeSource.match(
+      /function normalizeConversationRef\(value\) \{[\s\S]*?\n\}/,
+    )?.[0] ?? '';
+
+    expect(turnRefNormalizer).toContain('value.length > 0 && value === value.trim()');
+    expect(turnRefNormalizer).not.toContain('value.trim() ? value.trim() : null');
+    expect(conversationRefNormalizer).toContain('value.length > 0 && value === value.trim()');
+    expect(conversationRefNormalizer).not.toContain('value.trim() ? value.trim() : null');
+    expect(surfaceRuntimeSource).toContain('const liveTurnRef = normalizeTurnRef(liveTurn.turnRef)');
+    expect(surfaceRuntimeSource).toContain('const sdkLiveTurnRef = normalizeTurnRef(sdkLiveTurn?.turnRef)');
+    expect(surfaceRuntimeSource).toContain('const conversationRef = normalizeConversationRef(conversationView.conversationRef)');
+    expect(surfaceRuntimeSource).toContain('const sdkConversationRef = normalizeConversationRef(sdkLiveTurn?.conversationRef)');
+    expect(surfaceRuntimeSource).not.toContain('turnRef: overlayIntent.turnRef || liveTurn.turnRef');
+    expect(surfaceRuntimeSource).not.toContain('conversationRef: overlayIntent.conversationRef || conversationView.conversationRef');
+    expect(surfaceRuntimeSource).not.toContain('turnRef: overlayIntent.turnRef || sdkLiveTurn?.turnRef');
+    expect(surfaceRuntimeSource).not.toContain('conversationRef: overlayIntent.conversationRef || sdkLiveTurn?.conversationRef');
+  });
+
   test('chat runtime hooks read app config through renderer config runtime facade', async () => {
     const hookFiles = [
       'components/ChatInterface.jsx',
