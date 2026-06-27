@@ -393,7 +393,11 @@ awaiting/busy view snapshot cannot render an empty transcript between user
 send acceptance and the first display-row/live-entry projection. That same-turn
 SDK user row check goes through
 `DesktopConversationDisplayRowLookupRuntime.findConversationViewUserDisplayRowForTurn(...)`
-instead of inferring SDK row presence from already-projected chat messages.
+instead of inferring SDK row presence from already-projected chat messages. The
+lookup compares SDK row `turnRef` and requested pending-turn refs exactly;
+padded display-row refs do not suppress the pending bridge or enter
+turn-specific ConversationView projections by being trimmed into same-turn
+matches.
 Send-read-model helpers follow the same rule: once a `ConversationView` object
 is present, first-user-message decisions ask
 `DesktopConversationDisplayRowLookupRuntime` whether SDK user display rows

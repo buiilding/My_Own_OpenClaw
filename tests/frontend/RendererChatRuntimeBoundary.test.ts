@@ -4161,6 +4161,9 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationDisplayProjectionSource).toContain('DesktopConversationDisplayRowLookupRuntime');
     expect(conversationDisplayRowLookupSource).toContain('findConversationViewUserDisplayRowForTurn');
     expect(conversationDisplayRowLookupSource).toContain('ConversationView display-row lookup');
+    expect(conversationDisplayRowLookupSource).toContain('exactNonEmptyString');
+    expect(conversationDisplayRowLookupSource).not.toContain('value.trim() ? value.trim()');
+    expect(conversationDisplayProjectionSource).not.toContain('function normalizeTurnRef');
     expect(conversationViewWorkspaceRuntimeSource).toContain('findConversationViewUserDisplayRowForTurn');
     expect(conversationViewWorkspaceRuntimeSource).toContain('DesktopConversationDisplayRowLookupRuntime');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('const hasSameTurnUserDisplayRow = displayRows.some');

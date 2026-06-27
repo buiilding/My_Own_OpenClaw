@@ -78,9 +78,9 @@ type ConversationViewTraceSource = {
   } | null;
 } | null | undefined;
 
-function normalizeTurnRef(turnRef: string | null | undefined): string | null {
-  return typeof turnRef === 'string' && turnRef.trim()
-    ? turnRef.trim()
+function exactTurnRef(turnRef: string | null | undefined): string | null {
+  return typeof turnRef === 'string' && turnRef.length > 0 && turnRef === turnRef.trim()
+    ? turnRef
     : null;
 }
 
@@ -103,13 +103,13 @@ function buildConversationViewTraceSummary(
   return {
     displayRowCount: displayRows.length,
     liveTurnPhase: normalizeTraceString(conversationView?.liveTurn?.phase),
-    liveTurnRef: normalizeTurnRef(conversationView?.liveTurn?.turnRef),
+    liveTurnRef: exactTurnRef(conversationView?.liveTurn?.turnRef),
     lastMessage: latestRecord
       ? {
         sender: normalizeTraceString(latestRecord.role) || normalizeTraceString(latestRecord.sender),
         sourceEventType: normalizeTraceString(latestRecord.sourceEventType),
         textLength: resolveTraceTextLength(latestRecord.content ?? latestRecord.text),
-        turnRef: normalizeTurnRef(latestRecord.turnRef as string | null | undefined),
+        turnRef: exactTurnRef(latestRecord.turnRef as string | null | undefined),
         type: normalizeTraceString(latestRecord.type),
       }
       : null,
@@ -120,12 +120,12 @@ function buildConversationViewTurnChatMessages({
   conversationView = null,
   turnRef = null,
 }: BuildConversationViewTurnMessagesInput): ChatMessage[] {
-  const normalizedTurnRef = normalizeTurnRef(turnRef);
-  if (!conversationView || !normalizedTurnRef || typeof conversationView !== 'object') {
+  const targetTurnRef = exactTurnRef(turnRef);
+  if (!conversationView || !targetTurnRef || typeof conversationView !== 'object') {
     return [];
   }
   const displayRows = Array.isArray(conversationView.displayRows)
-    ? conversationView.displayRows.filter((row) => normalizeTurnRef(row.turnRef) === normalizedTurnRef)
+    ? conversationView.displayRows.filter((row) => exactTurnRef(row.turnRef) === targetTurnRef)
     : [];
   if (displayRows.length === 0) {
     return [];
@@ -139,7 +139,7 @@ function chatMessageUserTurnRefs(messages: ChatMessage[]): Set<string> {
     if (message.sender !== 'user') {
       continue;
     }
-    const turnRef = normalizeTurnRef(message.turnRef);
+    const turnRef = exactTurnRef(message.turnRef);
     if (turnRef) {
       turnRefs.add(turnRef);
     }
@@ -148,7 +148,7 @@ function chatMessageUserTurnRefs(messages: ChatMessage[]): Set<string> {
 }
 
 function normalizePendingTurnRef(pendingTurn: PendingTurnLike): string | null {
-  return normalizeTurnRef(pendingTurn?.turnRef);
+  return exactTurnRef(pendingTurn?.turnRef);
 }
 
 function pendingBridgeUserMessages(
@@ -158,7 +158,7 @@ function pendingBridgeUserMessages(
 ): ChatMessage[] {
   const baseMessageIds = new Set(baseMessages.map((message) => message.id));
   const pendingMessage = buildPendingTurnUserMessage(pendingTurn) as ChatMessage | null;
-  const pendingTurnRef = normalizeTurnRef(pendingMessage?.turnRef);
+  const pendingTurnRef = exactTurnRef(pendingMessage?.turnRef);
   if (
     pendingMessage
     && pendingTurnRef
@@ -179,9 +179,9 @@ function mergePendingBridgeUserMessages(
   }
   const merged = [...sdkMessages];
   for (const pendingMessage of pendingMessages) {
-    const turnRef = normalizeTurnRef(pendingMessage.turnRef);
+    const turnRef = exactTurnRef(pendingMessage.turnRef);
     const sameTurnIndex = turnRef
-      ? merged.findIndex((message) => normalizeTurnRef(message.turnRef) === turnRef)
+      ? merged.findIndex((message) => exactTurnRef(message.turnRef) === turnRef)
       : -1;
     if (sameTurnIndex >= 0) {
       merged.splice(sameTurnIndex, 0, pendingMessage);

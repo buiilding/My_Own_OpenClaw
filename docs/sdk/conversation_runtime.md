@@ -421,7 +421,11 @@ comes from the SDK row's `isStreaming` flag, not from relabeling the row as an
 exactness rule: `turnRef`, `metadata.displayCorrelationId`, and
 `metadata.toolName` become renderer message identity or tool metadata only when
 they are exact non-empty SDK strings; padded values are ignored instead of being
-trimmed into duplicate-detection keys or visible tool labels.
+trimmed into duplicate-detection keys or visible tool labels. ConversationView
+display-row lookup also compares SDK row `turnRef` values exactly when filtering
+a requested turn or deciding whether a SDK user row can replace the renderer
+pending bridge; padded row refs do not suppress the pending bridge by being
+repaired into same-turn matches.
 Renderer display-row and live-turn adapters also keep SDK attachment
 descriptors on the typed `attachments[]` prop only. Renderer attachment helpers
 may perform narrow component checks such as artifact image-source resolution,

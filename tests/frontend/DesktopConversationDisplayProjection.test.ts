@@ -147,6 +147,33 @@ describe('desktopConversationDisplayProjection', () => {
     })).toEqual([]);
   });
 
+  test('does not repair padded turn refs when projecting a ConversationView turn', () => {
+    expect(buildConversationViewTurnChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'row-user-turn-1',
+        conversationRef: 'conv-1',
+        turnRef: ' turn-1 ',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'first turn',
+      }]),
+      turnRef: 'turn-1',
+    })).toEqual([]);
+    expect(buildConversationViewTurnChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'row-user-turn-1',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'first turn',
+      }]),
+      turnRef: ' turn-1 ',
+    })).toEqual([]);
+  });
+
   test('finds the last same-turn SDK user display row with a stable row id', () => {
     const conversationView = conversationViewWithRows([
       {
@@ -177,22 +204,43 @@ describe('desktopConversationDisplayProjection', () => {
         content: 'invalid duplicate prompt',
       },
       {
-        id: 'last-user-turn-1',
+        id: 'padded-user-turn-1',
         conversationRef: 'conv-1',
         turnRef: ' turn-1 ',
         index: 3,
-        role: 'assistant',
+        role: 'user',
         type: 'user_message',
-        content: 'last valid prompt',
+        content: 'padded prompt',
       },
     ]);
 
     expect(findConversationViewUserDisplayRowForTurn(conversationView, 'turn-1')).toEqual(
       expect.objectContaining({
-        id: 'last-user-turn-1',
-        content: 'last valid prompt',
+        id: 'first-user-turn-1',
+        content: 'first prompt',
       }),
     );
+  });
+
+  test('rejects padded turn refs in ConversationView user row lookup', () => {
+    expect(findConversationViewUserDisplayRowForTurn(conversationViewWithRows([{
+      id: 'padded-user-turn-1',
+      conversationRef: 'conv-1',
+      turnRef: ' turn-1 ',
+      index: 0,
+      role: 'user',
+      type: 'user_message',
+      content: 'padded prompt',
+    }]), 'turn-1')).toBeNull();
+    expect(findConversationViewUserDisplayRowForTurn(conversationViewWithRows([{
+      id: 'user-turn-1',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      index: 0,
+      role: 'user',
+      type: 'user_message',
+      content: 'prompt',
+    }]), ' turn-1 ')).toBeNull();
   });
 
   test('does not find assistant, missing-id, or wrong-turn display rows as SDK user rows', () => {
@@ -282,12 +330,12 @@ describe('desktopConversationDisplayProjection', () => {
     } as never)).toEqual({
       displayRowCount: 2,
       liveTurnPhase: 'complete',
-      liveTurnRef: 'turn-view',
+      liveTurnRef: null,
       lastMessage: {
         sender: 'assistant',
         sourceEventType: 'assistant-message-full',
         textLength: 'visible answer'.length,
-        turnRef: 'turn-view',
+        turnRef: null,
         type: 'assistant_message',
       },
     });
@@ -561,6 +609,39 @@ describe('desktopConversationDisplayProjection', () => {
       },
       preserveRendererAnnotations: true,
     })).toEqual([expect.objectContaining(sdkUserSameTurn)]);
+  });
+
+  test('keeps pending bridge when SDK user row has repaired turn identity', () => {
+    expect(buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'sdk-user-edit',
+        conversationRef: 'conv-1',
+        turnRef: ' turn-edit ',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'edited prompt',
+      }]),
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-edit',
+        userMessageId: 'renderer-user-edit',
+        text: 'edited prompt',
+        timestamp: '2026-06-25T12:00:00.000Z',
+      },
+      preserveRendererAnnotations: true,
+    })).toEqual([
+      expect.objectContaining({
+        id: 'sdk-user-edit',
+        sender: 'user',
+        turnRef: null,
+      }),
+      expect.objectContaining({
+        id: 'renderer-user-edit',
+        sender: 'user',
+        turnRef: 'turn-edit',
+      }),
+    ]);
   });
 
   test('builds conversation-view messages without replacing SDK user rows with pending bridge rows', () => {

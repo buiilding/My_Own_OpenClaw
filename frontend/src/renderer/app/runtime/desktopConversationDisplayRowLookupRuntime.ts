@@ -5,12 +5,14 @@
 import type { ConversationView } from './desktopConversationRuntimeContracts';
 
 type ConversationViewDisplayRow = ConversationView['displayRows'][number];
-function normalizeString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+function exactNonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
-function normalizeTurnRef(turnRef: string | null | undefined): string | null {
-  return normalizeString(turnRef);
+function exactTurnRef(turnRef: string | null | undefined): string | null {
+  return exactNonEmptyString(turnRef);
 }
 
 function isConversationViewUserDisplayRow(row: unknown): row is ConversationViewDisplayRow {
@@ -28,16 +30,16 @@ function findConversationViewUserDisplayRowForTurn(
   conversationView: ConversationView | null | undefined,
   turnRef: string | null | undefined,
 ): ConversationViewDisplayRow | null {
-  const normalizedTurnRef = normalizeTurnRef(turnRef);
-  if (!normalizedTurnRef || !Array.isArray(conversationView?.displayRows)) {
+  const targetTurnRef = exactTurnRef(turnRef);
+  if (!targetTurnRef || !Array.isArray(conversationView?.displayRows)) {
     return null;
   }
   for (let index = conversationView.displayRows.length - 1; index >= 0; index -= 1) {
     const row = conversationView.displayRows[index];
     if (
       isConversationViewUserDisplayRow(row)
-      && normalizeTurnRef(row.turnRef) === normalizedTurnRef
-      && normalizeString(row.id)
+      && exactTurnRef(row.turnRef) === targetTurnRef
+      && exactNonEmptyString(row.id)
     ) {
       return row;
     }
