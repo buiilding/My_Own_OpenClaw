@@ -48,7 +48,6 @@ Delegated runtime modules:
 - global wakeword hotkey registration and toggle behavior (non-VM mode only)
 - app activation behavior (`create*Window` path when all windows closed, else `showMainWindow`)
 - app quit lifecycle:
-  - `before-quit`: mark `app.isQuitting=true`, stop the SDK local runtime bridge, stop VM worker runtime
   - `will-quit`: unregister shortcuts
 - `window-all-closed`: prevent app quit only in non-VM mode
 

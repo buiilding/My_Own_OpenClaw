@@ -73,7 +73,7 @@ Canonical schema and runtime action coverage are shared through:
 - `frontend/src/main/python/windie_shared/browser_contract_catalog.py`
 - `frontend/src/main/python/windie_shared/browser_contract_schema.py`
 - `frontend/src/main/python/windie_shared/browser_contract.py`
-- `backend/src/tools/browser/**`
+- private backend implementation
 
 When adding/removing actions, update the shared contract, backend schema wrappers, local-runtime validation entrypoint, local-runtime Python Browser Use handler bindings, and parity tests together.
 

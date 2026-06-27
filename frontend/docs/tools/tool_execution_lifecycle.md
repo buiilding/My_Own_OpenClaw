@@ -22,7 +22,7 @@ event router.
 
 ## Lifecycle
 
-1. Backend builds canonical tool specs from `backend/src/tools/tool_catalog.py`.
+1. Backend builds canonical tool specs from private backend implementation.
 2. Backend `ToolPolicy` filters specs by interaction mode, agent profile, client capabilities, provider health, disabled tools, and agent capability policy.
 3. Prompt construction includes the filtered model-facing tools.
 4. The model emits one or more tool calls.
@@ -45,16 +45,16 @@ event router.
 
 | Stage | Owner | Primary files |
 | --- | --- | --- |
-| Tool catalog and schema build | Backend | `backend/src/tools/tool_catalog.py`, `backend/src/tools/registry.py`, `backend/src/tools/schema_registry.py`, `backend/src/tools/remote_tools/*` |
-| Policy filtering | Backend | `backend/src/tools/tool_policy.py`, `backend/src/tools/agent_capability_policy.py`, `backend/src/tools/tool_selection.py`, `backend/src/tools/provider_health.py` |
-| Provider call normalization | Backend | `backend/src/agent/execution/tool_call_bridge.py`, provider modules under `backend/src/llm/providers` |
-| Preparation and coordinate resolution | Backend | `backend/src/agent/tools/preparation/**`, `backend/src/services/screen_grounding/**` |
-| Local-runtime dispatch event | Backend API | `backend/src/api/processing/formatters/actions/*`, `backend/src/api/schemas/outgoing.py` |
+| Tool catalog and schema build | Backend | private backend implementation |
+| Policy filtering | Backend | private backend implementation |
+| Provider call normalization | Backend | private backend implementation, provider modules under private backend implementation |
+| Preparation and coordinate resolution | Backend | private backend implementation |
+| Local-runtime dispatch event | Backend API | private backend implementation |
 | SDK runtime execution | SDK runtime | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts` |
 | Electron host bridge | Electron main | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs` |
 | Local execution | Local runtime, currently backed by local-runtime Python tool implementations | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/**` |
-| Result ingress | Backend API | `backend/src/api/handlers/tool_result.py`, `backend/src/agent/tools/waiting/**` |
-| Result formatting/history | Backend agent | `backend/src/agent/tools/processing/**`, `backend/src/agent/history/**` |
+| Result ingress | Backend API | private backend implementation |
+| Result formatting/history | Backend agent | private backend implementation |
 
 ## Request IDs and Bundles
 

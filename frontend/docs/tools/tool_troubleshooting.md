@@ -15,12 +15,12 @@ Use this page for symptom-to-owner routing. After identifying the owner, switch 
 | Symptom | Likely owner | First check |
 | --- | --- | --- |
 | Tool not shown to model | backend tool policy/profile/provider health | [Tool Policy Profiles](tool_policy_profiles_and_capabilities.md) |
-| Tool schema missing fields | owning schema source or provider projection | client manifest source, `backend/src/tools/{computer,filesystem,system}/schemas.py`, browser `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/provider_projection.py` |
+| Tool schema missing fields | owning schema source or provider projection | client manifest source, `private backend implementation,filesystem,system}/schemas.py`, browser `frontend/src/main/python/windie_shared/browser_contract*.py`, private backend implementation |
 | Model calls disabled coordinate method | backend method validation | `ToolPolicy.get_method_validation_errors()` |
 | Backend logs tool call but local runtime never runs it | websocket formatter/outgoing event or SDK/main local-runtime tool router | backend formatter tests, SDK/main local-runtime dispatch tests |
 | SDK/main says unknown tool | local-runtime registry parity or SDK dispatch map | `frontend/src/main/python/tools/registry.py`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
 | Local runtime returns `Tool not found` | local-runtime implementation registration/import failure | local-runtime executable registry logs backed by local-runtime Python modules and `tests/sidecar/test_tool_registry.py` |
-| Tool succeeds but no model continuation | backend waiting storage/result receiver | `backend/src/agent/tools/waiting/**` |
+| Tool succeeds but no model continuation | backend waiting storage/result receiver | private backend implementation |
 | Tool result visible but future replay breaks | SDK projection, transcript adapter, or backend history shape | SDK conversation runtime docs, transcript adapter docs, and backend history docs |
 | Screenshot or artifact missing | renderer upload path, backend artifact route, endpoint resolution | [Artifacts and Attachments](../desktop/artifacts_and_attachments.md) |
 | Browser action rejected | Local-runtime Python browser validation for local execution, backend validation for backend-owned browser capabilities | [Browser Action Surface](../browser/browser_action_surface.md) |
@@ -29,7 +29,7 @@ Use this page for symptom-to-owner routing. After identifying the owner, switch 
 
 Questions to answer:
 
-1. Is the tool in `backend/src/tools/tool_catalog.py`?
+1. Is the tool in private backend implementation?
 2. Does `ToolPolicy.filter_tool_schemas()` remove it?
 3. Is the current `agent_tool_profile` expected to include it?
 4. Did the client provide `agent_available_tools` that excludes it?
@@ -98,8 +98,8 @@ Read:
 | computer | [Computer Tools](computer.md), [Local-Runtime Computer Implementation](../frontend/sidecar/tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md) | `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_screenshot_tool.py`, `tests/sidecar/test_scroll_tool.py` |
 | shell/process | [Filesystem and Shell Tools](filesystem_shell.md), [Shell Runtime](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md) | `tests/sidecar/test_shell_process_tool.py`, `tests/sidecar/test_shell_process_registry.py` |
 | filesystem | [Filesystem and Shell Tools](filesystem_shell.md), [Read File Runtime](../frontend/sidecar/tools/filesystem/read_file_window_pagination_binary_guard_and_truncation_contract_reference.md), [Replace Runtime](../frontend/sidecar/tools/filesystem/replace_engine_match_modes_patch_chunks_and_atomic_write_contract_reference.md) | `tests/sidecar/test_read_file_tool.py`, `tests/sidecar/test_replace_tool.py` |
-| browser | [Browser Tool](browser.md), [Browser Hub](../browser/README.md) | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_tool.py`, `tests/sidecar/tools/test_browser_schemas.py` |
-| web search | [Providers Hub](../providers/README.md), [OpenAI Provider](../providers/openai.md), [Gemini Provider](../providers/gemini.md) | `tests/backend/test_web_search_tool.py` |
+| browser | [Browser Tool](browser.md), [Browser Hub](../browser/README.md) | private backend tests, `tests/sidecar/tools/test_browser_tool.py`, `tests/sidecar/tools/test_browser_schemas.py` |
+| web search | [Providers Hub](../providers/README.md), [OpenAI Provider](../providers/openai.md), [Gemini Provider](../providers/gemini.md) | private backend tests |
 
 ## Minimum Regression Coverage
 

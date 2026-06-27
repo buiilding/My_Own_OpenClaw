@@ -74,7 +74,7 @@ export OPENAI_API_KEY="your-api-key"
 # Note: The backend can start without a key, but requests to that provider will fail.
 
 # Run the backend from the project root (auto-uses `jarvis` env if present)
-<windie> start backend
+private backend start command
 ```
 
 **Terminal 2: Start the Desktop Dev Loop**
@@ -107,7 +107,7 @@ When available, you will:
 
 There is no YAML config file. Configuration is split between:
 
-- **Backend**: `backend/src/core/config/app_config.py` (requires restart)
+- **Backend**: private backend implementation (requires restart)
 - **Frontend**: Local JSON settings stored in Electron user data (`frontend-config.json`)
 
 ### Setting Up Your LLM Provider
@@ -237,7 +237,7 @@ Read the file README.md
 
 1. **Check Which Backend Mode You Expect**:
    - Hosted mode: verify the app can reach `https://api.windieos.com` / `wss://api.windieos.com/ws`
-   - Local/self-hosted mode: verify your backend process is running and reachable
+   - Local/custom hosted deploymented mode: verify your backend process is running and reachable
 
 2. **Check WebSocket Connection**:
    - Look for connection status in UI
@@ -251,7 +251,7 @@ Read the file README.md
 
 - **Read the Documentation**: See [Documentation Index](../README.md)
 - **Configure Settings**: See Configuration Guide (private backend docs)
-- **Develop Tools**: See [Tool Development Guide](../development/tool_development.md)
+- **Develop Tools**: See Backend Tool Development (private backend docs)
 - **Understand Architecture**: See [Architecture Overview](../architecture/architecture.md)
 
 ## Getting Help

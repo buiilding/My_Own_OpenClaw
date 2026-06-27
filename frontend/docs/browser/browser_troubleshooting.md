@@ -131,8 +131,8 @@ Focused tests:
 
 Inspect in order:
 
-1. `backend/src/tools/remote_tools/browser.py`
-2. `backend/src/tools/tool_policy.py`
+1. private backend implementation
+2. private backend implementation
 3. `packages/windie-sdk-js/src/runtime/Agent.ts`
 4. `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`
 5. `frontend/src/main/python/tools/browser/browser_tool.py`
@@ -141,7 +141,7 @@ Inspect in order:
 Focused tests:
 
 ```bash
-<windie> test backend tests/backend/test_browser_remote_tool.py -q
+private backend tests private backend tests -q
 <windie> test frontend -- AgentSdkClient AgentSdkConversationRuntime
 ./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_tool.py -q
 ```

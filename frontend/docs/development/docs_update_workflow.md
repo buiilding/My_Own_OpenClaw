@@ -36,7 +36,7 @@ For targeted orientation, use docs search before broad file scans:
 | explain operational/debug procedure | `docs/operations`, `docs/debug`, `docs/help`, or `docs/install` |
 | describe future work | `docs/planning` |
 | capture durable decision | `docs/adr` |
-| compare docs organization | `docs/reference/openclaw_docs_structure_reference.md` |
+| compare docs organization | OpenClaw Docs Structure Reference (private backend docs) |
 
 ## Required Front Matter
 
@@ -68,7 +68,7 @@ When adding a page, consider:
 - owner domain hub
 - `docs/README.md`
 - `docs/getting-started/docs_hub.md`
-- `docs/reference/openclaw_docs_structure_reference.md` for docs-organization changes
+- OpenClaw Docs Structure Reference (private backend docs) for docs-organization changes
 - neighboring troubleshooting/runbook pages
 
 Do not add every deep implementation page to every hub. Add pages that materially improve routing.

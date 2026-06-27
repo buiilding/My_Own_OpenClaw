@@ -9,14 +9,14 @@ read_when:
 
 ## Overview
 
-The agent system orchestrates each user session: it builds prompts, streams LLM output, prepares tool calls, and commits results to history. The implementation lives under `backend/src/agent/`.
+The agent system orchestrates each user session: it builds prompts, streams LLM output, prepares tool calls, and commits results to history. The implementation lives under private backend implementation.
 
 Key entry points:
 
-- `backend/src/agent/session/session.py` — `AgentSession`
-- `backend/src/agent/session/manager.py` — `SessionManager`
-- `backend/src/agent/execution/executor.py` — `AgentExecutor`
-- `backend/src/agent/execution/interaction_loop.py` — `InteractionLoop`
+- private backend implementation — `AgentSession`
+- private backend implementation — `SessionManager`
+- private backend implementation — `AgentExecutor`
+- private backend implementation — `InteractionLoop`
 
 ## Core Responsibilities
 
@@ -51,18 +51,18 @@ Workspace prompt context:
 
 Recent backend-agent refactors split mutable session/runtime concerns into focused modules:
 
-- `backend/src/agent/session/session_registry.py` — `SessionRegistry` owns conversation-keyed active-session maps, latest-conversation tracking, and per-user locks.
-- `backend/src/agent/session/session_config_service.py` — `SessionConfigService` owns user config overrides, client-supplied operating-system prompt rewrites, and effective session-config assembly.
-- `backend/src/agent/session/active_query_tracker.py` — `ActiveQueryTracker` owns active query task registration/cancellation plus pending stop-query race guards.
-- `backend/src/agent/session/runtime_state.py` — `SessionRuntimeState` owns screenshot state, resolved-call storage, tool-result storage, current `system_state`, and OCR completion signaling.
-- `backend/src/agent/session/runtime_state.py` also tracks session-scoped background tasks for deterministic shutdown.
-- `backend/src/agent/session/config_runtime.py` — `SessionConfigRuntime` applies live config updates (LLM client, prompt constructor, parser, and loop dependencies) in one place.
-- `backend/src/agent/session/lifecycle.py` — `SessionLifecycle` centralizes best-effort cleanup for runtime stores and background tasks.
-- `backend/src/agent/execution/interaction_loop.py` owns parse recovery, bundle-vs-single staging, and loop termination policy directly.
+- private backend implementation — `SessionRegistry` owns conversation-keyed active-session maps, latest-conversation tracking, and per-user locks.
+- private backend implementation — `SessionConfigService` owns user config overrides, client-supplied operating-system prompt rewrites, and effective session-config assembly.
+- private backend implementation — `ActiveQueryTracker` owns active query task registration/cancellation plus pending stop-query race guards.
+- private backend implementation — `SessionRuntimeState` owns screenshot state, resolved-call storage, tool-result storage, current `system_state`, and OCR completion signaling.
+- private backend implementation also tracks session-scoped background tasks for deterministic shutdown.
+- private backend implementation — `SessionConfigRuntime` applies live config updates (LLM client, prompt constructor, parser, and loop dependencies) in one place.
+- private backend implementation — `SessionLifecycle` centralizes best-effort cleanup for runtime stores and background tasks.
+- private backend implementation owns parse recovery, bundle-vs-single staging, and loop termination policy directly.
 
 Tool preparation metadata now uses a typed execution reference:
 
-- `backend/src/agent/tools/preparation/types/execution_ref.py` (`ExecutionRef`) to normalize `request_id`/`bundle_id` handling.
+- private backend implementation (`ExecutionRef`) to normalize `request_id`/`bundle_id` handling.
 - Bundle detection and result processing now consume that shared type to reduce ad-hoc metadata branching.
 
 ## Tool Lifecycle (Backend)

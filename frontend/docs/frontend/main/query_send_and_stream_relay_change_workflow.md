@@ -49,7 +49,7 @@ chat component until the producer and relay contracts are identified.
 | Optimistic user message appears twice, missing, or has wrong metadata | `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc/ipc_event_replay_state.cjs`, `frontend/src/renderer/features/chat/hooks/useChatStream.ts` | `tests/frontend/IpcQueryRuntime.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/DesktopChatStreamEventRuntime.test.ts` |
 | Stuck awaiting, wrong overlay phase, or response overlay does not clear | `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`, `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`, `frontend/src/renderer/app/runtime/desktopStreamPhaseRuntime.js`, `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`, `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js` | `tests/frontend/IpcOverlayPhaseState.test.cjs`, `tests/frontend/IpcOverlayPhaseEvents.test.cjs`, `tests/frontend/StreamPhaseState.test.js` |
 | Stream events mutate the wrong conversation or old turn | `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/*`, `frontend/src/renderer/app/runtime/desktopChatStream*.ts`, `frontend/src/renderer/features/chat/stores/chatStore.ts` | `tests/frontend/DesktopChatStreamIngressRuntime.test.ts`, `tests/frontend/DesktopChatStreamTurnGuardRuntime.test.ts`, `tests/frontend/DesktopChatStreamTerminalHandoffRuntime.test.ts` |
-| Backend receives query but emits missing or malformed stream events | `backend/src/api/handlers/query.py`, `backend/src/api/services/query_execution.py`, `backend/src/api/processing/*`, `backend/src/api/routes/websocket/*` | `tests/backend/test_query_execution_*`, `tests/backend/test_stream_pipeline.py`, `tests/backend/test_websocket_message_handler.py` |
+| Backend receives query but emits missing or malformed stream events | private backend implementation | private backend tests |
 | Send fails while disconnected or websocket is not ready | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts` | `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/DesktopStopTurnRuntime.test.js`, websocket reconnect tests |
 
 ## Runtime Flow
@@ -195,12 +195,12 @@ Main relay invariants:
 Read backend code when payload fields, stream events, completion behavior, or
 handler routing changes:
 
-- `backend/src/api/schemas/incoming.py`
-- `backend/src/api/handlers/query.py`
-- `backend/src/api/services/query_execution.py`
-- `backend/src/api/services/query_execution_support/*`
-- `backend/src/api/processing/*`
-- `backend/src/api/routes/websocket/message_handler.py`
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
 
 Backend invariants:
 
@@ -266,7 +266,7 @@ Renderer stream invariants:
 | Response streams into old dashboard conversation | Check `conversation_ref` creation, transcript-session sync, event `conversation_ref`, and `turn_ref` mapping. | renderer session runtime, `ipc_transcript_session_sync.cjs`, chat stream conversation gate |
 | Minimal pill stuck awaiting | Check SDK `user_message`, first stream chunk, terminal/error event, overlay phase transitions, and disconnect watchdog. | overlay phase state, stream phase state, `useChatLoopUiState` |
 | Duplicate local user rows | Check renderer optimistic row plus SDK `user_message` projection replacement and replay dedupe behavior. | `useChatMessageSender`, `useChatStream`, `ipc_event_replay_state.cjs` |
-| Backend rejects query payload | Compare `DesktopLiveTurnRuntimeClient.sendQuery`, `desktopRuntimeTransport.sendQuery`, and main-filtered payload against `backend/src/api/schemas/incoming.py`. | renderer SDK transport, main query runtime, backend incoming schema |
+| Backend rejects query payload | Compare `DesktopLiveTurnRuntimeClient.sendQuery`, `desktopRuntimeTransport.sendQuery`, and main-filtered payload against private backend implementation. | renderer SDK transport, main query runtime, backend incoming schema |
 
 ## Validation Matrix
 
@@ -297,9 +297,9 @@ Renderer stream state change:
 
 Backend query schema or stream event change:
 
-- `./scripts/python-in-env backend pytest tests/backend/test_websocket_message_handler.py`
-- `./scripts/python-in-env backend pytest tests/backend/test_query_execution_service_helpers.py`
-- `./scripts/python-in-env backend pytest tests/backend/test_stream_pipeline.py`
+- private backend test runner
+- private backend test runner
+- private backend test runner
 
 Local-runtime memory/system-state enrichment change:
 

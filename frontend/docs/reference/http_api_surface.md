@@ -16,18 +16,17 @@ For gateway-level route assembly, auth, health checks, and hosted troubleshootin
 
 | Surface | Routes | Code owner |
 | --- | --- | --- |
-| Main agent websocket | `GET /ws` | `backend/src/api/routes/websocket/*` |
-| Transcription websocket | `GET /ws/transcription` | `backend/src/api/routes/transcription/router.py`, `backend/src/api/services/transcription/*` |
+| Main agent websocket | `GET /ws` | private backend implementation |
+| Transcription websocket | `GET /ws/transcription` | private backend implementation |
 | Install registration | `POST /api/install/register` | backend install-auth routes/services |
-| Artifacts | `/api/artifacts/*` | `backend/src/api/routes/artifacts/*`, `backend/src/services/artifacts/*` |
-| Memory embeddings | `/api/embeddings/*` | `backend/src/api/routes/memory/embeddings/*` |
-| Semantic summarize/title | `/api/semantic/*` | `backend/src/api/routes/memory/semantic/*` |
-| SDK OCR/vision/debug | `/api/sdk/*` | `backend/src/api/routes/sdk/*` |
-| VM run control | `/api/runs/*` | `backend/src/api/routes/runs/*`, `backend/src/services/vm_run_control.py` |
+| Artifacts | `/api/artifacts/*` | private backend implementation |
+| Memory embeddings | `/api/embeddings/*` | private backend implementation |
+| Semantic summarize/title | `/api/semantic/*` | private backend implementation |
+| SDK OCR/vision/debug | `/api/sdk/*` | private backend implementation |
 
 ## SDK Route Families
 
-`backend/src/api/routes/sdk/router.py` exposes developer-facing routes for:
+private backend implementation exposes developer-facing routes for:
 
 - OCR run, inspect, text search, candidate ranking, and candidate resolution
 - OCR/vision overlays
@@ -40,7 +39,6 @@ requiring SDK consumers to start the desktop app or local-runtime process.
 
 ## Runs API
 
-`backend/src/api/routes/runs/router.py` supports hosted VM run orchestration:
 
 - create run
 - get run
@@ -54,7 +52,6 @@ Runs routes require the runs API key dependency. Do not route normal desktop app
 Detailed run orchestration docs:
 
 - Automation Hub (private backend docs)
-- VM Runs and Workers (private backend docs)
 - Runs API Runbook (private backend docs)
 
 ## Auth Rules

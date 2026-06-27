@@ -14,12 +14,12 @@ WindieOS routes Gemini through the shared online provider path with Gemini-speci
 
 | Concern | Files |
 | --- | --- |
-| Provider class | `backend/src/llm/providers/gemini.py` |
-| Native thinking/text helpers | `backend/src/llm/providers/provider_native_reasoning.py` |
-| Streamed tool-call aggregation | `backend/src/llm/providers/streaming_tool_call_aggregation.py` |
-| Gemini web-search source extraction | `backend/src/tools/web_search/source_normalization.py` |
-| Model catalog/capabilities | `backend/src/llm/models/models_config.py` |
-| Credential loading | `backend/src/core/config/loader.py`, `backend/src/core/config/models.py` |
+| Provider class | private backend implementation |
+| Native thinking/text helpers | private backend implementation |
+| Streamed tool-call aggregation | private backend implementation |
+| Gemini web-search source extraction | private backend implementation |
+| Model catalog/capabilities | private backend implementation |
+| Credential loading | private backend implementation |
 
 ## Runtime Behavior
 
@@ -63,9 +63,9 @@ Gemini uses `StreamingToolCallAggregationMixin` because stream payloads can incl
 Focused backend tests:
 
 ```bash
-<windie> test backend tests/backend/test_gemini_provider.py tests/backend/test_models_config.py -q
-<windie> test backend tests/backend/test_llm_provider_utils.py tests/backend/test_llm_provider_stream_event_pipeline.py -q
-<windie> test backend tests/backend/test_web_search_capabilities.py tests/backend/test_web_search_tool.py -q
+private backend tests private backend tests -q
+private backend tests private backend tests -q
+private backend tests private backend tests -q
 ```
 
 Focused frontend tests:

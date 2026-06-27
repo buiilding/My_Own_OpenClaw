@@ -14,8 +14,8 @@ WindieOS failures are easiest to debug by locating the runtime boundary first.
 
 | Symptom | First place to inspect |
 | --- | --- |
-| No backend response | Electron main agent host, SDK backend transport traces, backend websocket logs, `backend/src/api/routes/websocket/*` |
-| Model list missing or stale | settings ACK path, `backend/src/llm/models/model_service.py`, `backend/src/llm/models/models_config.py` |
+| No backend response | Electron main agent host, SDK backend transport traces, backend websocket logs, private backend implementation |
+| Model list missing or stale | settings ACK path, private backend implementation |
 | Tool call appears but does not execute | SDK runtime tool router, main local-runtime bridge, `frontend/src/main/python/tools/registry.py` |
 | Tool result reaches SDK/main but model does not continue | SDK tool-result relay plus backend tool-result ingestion/waiting/processing modules |
 | Screenshot includes overlay | platform screenshot guard and overlay visibility docs |
@@ -28,7 +28,7 @@ WindieOS failures are easiest to debug by locating the runtime boundary first.
 ```bash
 <windie> docs list
 git status --short --branch
-<windie> test backend
+private backend tests
 <windie> test local-runtime
 <windie> test frontend
 cd frontend && npm run lint
@@ -47,7 +47,7 @@ one conversation turn:
 <windie> diagnostics list --path wakeword.lifecycle --limit 50
 ```
 
-For a report that is not yet tied to a subsystem, start with [Triage Routes](triage_routes.md), then use [Doctor Checklist](doctor_checklist.md) and [Evidence Packet](evidence_packet.md) to collect only the evidence the owner runtime needs.
+For a report that is not yet tied to a subsystem, start with [Triage Routes](triage_routes.md), then use Doctor Checklist (private backend docs) and [Evidence Packet](evidence_packet.md) to collect only the evidence the owner runtime needs.
 
 ## Diagnostic Rule
 

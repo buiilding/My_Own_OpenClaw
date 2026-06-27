@@ -12,7 +12,7 @@ SDK OCR and vision routes expose backend-owned perception capabilities for devel
 
 ## Route Families
 
-`backend/src/api/routes/sdk/router.py` exposes:
+private backend implementation exposes:
 
 - OCR run
 - OCR inspect
@@ -53,10 +53,10 @@ normalized to `x=0, y=0`.
 
 ## Owner Modules
 
-- SDK route models: `backend/src/api/routes/sdk/models.py`
-- SDK services: `backend/src/api/routes/sdk/service.py`
-- OCR coordinate resolver: `backend/src/agent/tools/preparation/coordinate_resolution/resolvers.py`
-- OCR/vision services: `backend/src/services/screen_grounding/*`
+- SDK route models: private backend implementation
+- SDK services: private backend implementation
+- OCR coordinate resolver: private backend implementation
+- OCR/vision services: private backend implementation
 
 ## Validation
 

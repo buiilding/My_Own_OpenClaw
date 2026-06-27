@@ -27,7 +27,7 @@ Do not immediately change production code after a test fails. First identify whe
 Use the repo launchers:
 
 ```bash
-./scripts/python-in-env backend python --version
+private backend test runner
 ./scripts/python-in-env local-runtime python --version
 cd frontend && node --version
 ```
@@ -66,5 +66,5 @@ When a command fails and cannot be fixed in the current slice, report:
 ## Related Docs
 
 - [Validation Matrix](validation_matrix.md)
-- [Doctor Checklist](../help/doctor_checklist.md)
-- [Process Health Checklist](../debug/process_health_checklist.md)
+- Doctor Checklist (private backend docs)
+- Process Health Checklist (private backend docs)

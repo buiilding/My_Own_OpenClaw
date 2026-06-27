@@ -255,7 +255,7 @@ When changing this surface, keep aligned:
 | State control path | Runtime owner | State contract |
 |---|---|---|
 | handshake identity caching and snapshot fan-out | `frontend/src/main/ipc.cjs` | stable client identity/session endpoint snapshot exposed via `get-client-user-id` and `ipc-status` |
-| backend context-field cache updates | `frontend/src/main/ipc.cjs` | inbound `session_id`/`user_id`/`conversation_ref` cache fields track latest backend correlation context |
+| backend context-field cache updates | `frontend/src/main/ipc.cjs` | inbound `session_id`/`user_id`/`conversation_ref` cache fields track latest server correlation context |
 | conversation_ref fallback for query/user projection | `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts` | query payload and SDK `user_message` projection share the same resolved conversation reference |
 | dashboard conversation open/delete session transitions | `useDashboardConversations`, SDK transcript session runtime | active conversation + transcript session identity stay in sync during rehydrate/delete flows |
 | renderer stale-event gating | `desktopChatStreamIngressRuntime.ts` + `useChatStream.ts` | active conversation mismatch rules prevent cross-conversation stream pollution while preserving identity-less lifecycle events |

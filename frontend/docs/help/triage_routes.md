@@ -15,7 +15,7 @@ Use this page before editing code when a bug report starts with a visible sympto
 
 | Symptom | Likely owner | First check | Deep docs |
 | --- | --- | --- | --- |
-| app opens but messages do not send | SDK runtime adapter, Electron query preparation, or backend websocket | connection logs and settings ACK | [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md) |
+| app opens but messages do not send | SDK runtime adapter, Electron query preparation, or backend websocket | connection logs and settings ACK | Endpoint and Network Debugging (private backend docs) |
 | backend responds but model output never appears | backend event stream or renderer event consumer | stream trace and stale-turn filters | [Runtime Traces](../debug/runtime_traces.md), [Streaming and Events](../concepts/streaming_and_events.md) |
 | model list is empty or wrong | backend provider/model catalog or renderer settings ACK | provider factory, catalog, credentials | [Models and LLM Providers](../providers/models.md) |
 | tool call appears but no local action happens | SDK runtime tool router, Electron bridge, or local-runtime registry | backend tool event, SDK router handoff, and local-runtime request | [Tool Troubleshooting](../tools/tool_troubleshooting.md) |
@@ -23,7 +23,6 @@ Use this page before editing code when a bug report starts with a visible sympto
 | permission is stuck | Electron permission service or stored permission state | platform probe and onboarding visibility | [Platform Permission Matrix](../platforms/permission_matrix.md) |
 | browser action fails | local-runtime browser adapter/runtime | browser session state and local-runtime browser logs | [Browser Troubleshooting](../browser/browser_troubleshooting.md) |
 | packaged app works differently than source | bundled runtime, endpoint env, installed app state, or package dependency | installed app logs and `resources/python-runtime` | [Install Troubleshooting](../install/install_troubleshooting.md) |
-| hosted API returns `401`, `502`, or websocket `1008` | hosted auth, Cloudflare tunnel, or websocket handshake | concrete route health and auth headers | Gateway Troubleshooting (private backend docs) |
 | voice or wakeword does not trigger | renderer audio, Electron wakeword bridge, local-runtime wakeword helper, or transcription route | mic permission, bridge logs, transcription websocket | [Voice and Wakeword](../desktop/voice_and_wakeword.md) |
 | transcript, replay, or memory is stale | renderer transcript queue, local-runtime memory store, backend history, or semantic routes | identify visible transcript vs backend history vs semantic memory | [Memory Troubleshooting](../memory/memory_troubleshooting.md) |
 
@@ -52,6 +51,6 @@ Ask these in order:
 ## Related Docs
 
 - [Diagnostics](diagnostics.md)
-- [Doctor Checklist](doctor_checklist.md)
+- Doctor Checklist (private backend docs)
 - [Evidence Packet](evidence_packet.md)
 - [Symptom Playbooks](../debug/symptom_playbooks.md)

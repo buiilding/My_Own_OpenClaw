@@ -1,7 +1,6 @@
 ---
 summary: "Reference map for WindieOS user, session, conversation, turn, transcript, replay, and rehydrate identifiers across backend, Electron main, renderer, and local runtime."
 read_when:
-  - When changing identifier fields, transcript persistence, backend rehydrate payloads, conversation resume, event filtering, or VM run conversation routing.
   - When debugging wrong-conversation, stale-turn, orphan tool-row, or replay/rehydrate issues.
 title: "Session and Transcript Reference"
 ---
@@ -28,14 +27,12 @@ Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_d
 | --- | --- | --- | --- | --- | --- |
 | `user_id` / `userId` | string | install auth and Electron main session snapshot | backend connection/session context | backend sessions, local-runtime memory rows, settings, transcript search | memory and conversations can cross users, backend session lookup fails, or local-runtime memory calls store under fallback users |
 | `session_id` / `sessionId` | string | hosted backend websocket/session runtime | hosted backend session manager | stream events, live runtime diagnostics | events can be impossible to join to a hosted backend runtime, but `conversation_ref` routes user-visible state |
-| `conversation_ref` / `conversationRef` | string | SDK conversation runtime, renderer send path, or VM run metadata | SDK conversation runtime plus backend session registry | active conversation filtering, backend history, transcript persistence, rehydrate, VM run metadata | wrong chat resumes, stale events land in the visible thread, or backend history is created under a new conversation |
 | `turn_ref` | string | SDK conversation runtime for chat turns; backend compaction control path for compaction operations | SDK runtime and backend stream event correlation | stale-turn filtering, SDK user row, overlay intent traces; compaction operation diagnostics | late turn-stream events can update the wrong active turn or leave the UI awaiting forever; treating compaction operation ids as active chat turns can drop durable checkpoints |
 | `request_id` | string | backend tool-call dispatch | backend session pending-tool registry | SDK result relay, `tool-result` ingress, backend waiter cleanup | local runtime may execute, but backend never resumes the agent loop |
 | `bundle_id` | string | backend bundled-tool dispatch | backend session pending-bundle registry | SDK bundle execution, `tool-bundle-result` ingress, bundle history | partial bundle results cannot be matched and backend may keep waiting |
 | `tool_call_id` | string | provider/tool parser or backend history staging | backend provider-history builder | provider replay, tool-output linkage, rehydrate repair | provider history can reject replay or attach output to the wrong assistant call |
 | `correlation_id` | string | SDK runtime, Electron bridge, or transcript writer | renderer transcript/tool UI projection | UI/tool execution correlation across live and stored rows | visible tool-call and tool-output rows become orphaned even if backend history is correct |
 | `message_index` | integer | SDK local-runtime conversation store | local-runtime transcript store backed by local-runtime Python modules | ordered replay, dashboard pagination, semantic candidate windows | replay order, dashboard paging, and semantic windows become unstable |
-| `run_id` | string | `/api/runs/*` control plane | backend VM run control service | VM run status, assignment, event timeline, controls | hosted run state cannot be controlled or audited |
 
 ## Alias Policy
 
@@ -52,7 +49,7 @@ Current boundary examples:
 
 - Renderer transcript and settings calls use camelCase values such as `userId`, `conversationRef`, `messageIndex`, and `structuredPayload`.
 - SDK local-runtime store code maps those values into local-runtime JSON-RPC params such as `user_id`, `conversation_ref`, `message_index`, and `structured_payload`.
-- Query websocket payloads are validated by `backend/src/api/schemas/incoming.py` as snake_case payload fields, including required `conversation_ref`.
+- Query websocket payloads are validated by private backend implementation as snake_case payload fields, including required `conversation_ref`.
 - Tool-result websocket payloads are validated as `request_id`, `success`, `data`, and `error`; bundle results use `bundle_id`, `status`, `step_results`, and optional capture fields.
 - Backend outgoing events may carry tool call payloads without the same names the local-runtime executable action uses. The renderer must preserve backend correlation keys instead of manufacturing replacement IDs.
 
@@ -78,8 +75,8 @@ sequenceDiagram
 | --- | --- | --- | --- |
 | Renderer send | `conversationRef`, SDK `query_message_id`, attachment refs, workspace binding | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/features/chat/session`, `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts` | The user row should be recorded with the same conversation and websocket envelope id used by backend stream events. |
 | Main query prep | `conversation_ref`, `content`, `system_state_internal`, attachment filenames | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | Main should not create a second conversation if renderer already provided one. |
-| Backend validation | required `conversation_ref`, optional screenshots, workspace, repo instructions | `backend/src/api/schemas/incoming.py`, `backend/src/api/services/query_execution_support/query_execution_inputs.py` | Reject empty refs at the boundary instead of allowing a fallback session. |
-| Session routing | `user_id` plus `conversation_ref` | `backend/src/agent/session`, `backend/src/api/services/query_execution.py` | Wrong-user and wrong-conversation bugs usually start here or in the renderer active-conversation gate. |
+| Backend validation | required `conversation_ref`, optional screenshots, workspace, repo instructions | private backend implementation | Reject empty refs at the boundary instead of allowing a fallback session. |
+| Session routing | `user_id` plus `conversation_ref` | private backend implementation | Wrong-user and wrong-conversation bugs usually start here or in the renderer active-conversation gate. |
 
 ## Tool Correlation Path
 
@@ -101,9 +98,9 @@ sequenceDiagram
 
 | Field | Live transport | Stored or replay shape | Owner files | Failure signal |
 | --- | --- | --- | --- | --- |
-| `request_id` | backend `tool-call` to SDK conversation/tool runtime, then SDK `tool-result` back to backend | may appear as transcript `correlation_id` or structured payload linkage | `backend/src/api/schemas/incoming.py`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `backend/src/api/handlers/tool_result.py` | local result appears in UI but backend loop does not continue |
-| `bundle_id` | backend `tool-bundle`, SDK bundle execution, backend `tool-bundle-result` | transcript bundle row plus step results | `backend/src/api/schemas/outgoing.py`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `backend/src/api/handlers/tool_result.py` | bundle hangs, partial results are lost, or failure is not model-visible |
-| `tool_call_id` | provider-native assistant/tool history | backend history and rehydrate entries | `backend/src/agent/history`, `backend/src/llm/parser_types.py` | provider rejects replay or tool output is detached from assistant tool call |
+| `request_id` | backend `tool-call` to SDK conversation/tool runtime, then SDK `tool-result` back to backend | may appear as transcript `correlation_id` or structured payload linkage | private backend implementation, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, private backend implementation | local result appears in UI but backend loop does not continue |
+| `bundle_id` | backend `tool-bundle`, SDK bundle execution, backend `tool-bundle-result` | transcript bundle row plus step results | private backend implementation, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, private backend implementation | bundle hangs, partial results are lost, or failure is not model-visible |
+| `tool_call_id` | provider-native assistant/tool history | backend history and rehydrate entries | private backend implementation | provider rejects replay or tool output is detached from assistant tool call |
 | `correlation_id` | SDK/display projection local key | transcript rows and tool output display | `packages/windie-sdk-js/src/index.ts`, SDK local-runtime store code | visible transcript has orphan tool rows even when backend request IDs are valid |
 
 Do not replace a missing backend `request_id` with a newly generated renderer `correlation_id`. That makes the UI look consistent while guaranteeing the backend waiter cannot match the result.
@@ -152,7 +149,6 @@ the provider-safe `tool_call_id` for each step.
 
 ## Debug Checklist
 
-1. Pick the failed join: query routing, event filtering, tool result, transcript replay, backend history, or VM run.
 2. Identify the canonical ID for that join. Use `conversation_ref` for chat ownership, `turn_ref` for active-turn UI, `request_id` or `bundle_id` for tool waiters, and `tool_call_id` for provider history.
 3. Find the first producer of the ID before reading consumers.
 4. Confirm the boundary mapper normalizes aliases once.
@@ -167,7 +163,6 @@ the provider-safe `tool_call_id` for each step.
 | renderer transcript identity | renderer transcript/session tests and dashboard resume tests |
 | main-process identity sync | IPC transcript-session-sync tests |
 | tool-call/tool-output linkage | backend conversation history and rehydrate repair tests |
-| VM run conversation routing | runs route/service tests and VM worker tests |
 
 ## Deep Docs
 

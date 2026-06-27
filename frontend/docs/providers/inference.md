@@ -15,7 +15,7 @@ start with [Inference Capability Change Workflow](inference_capability_change_wo
 
 ## Configured Backends
 
-`backend/src/core/config/app_config.py` and `backend/src/core/config/models.py` define provider mode fields:
+private backend implementation and private backend implementation define provider mode fields:
 
 | Capability | Config fields | Modes |
 | --- | --- | --- |
@@ -29,11 +29,11 @@ Provider health and circuit breakers should hide or fail capabilities predictabl
 
 ## Owner Modules
 
-- Provider health/capability policy: `backend/src/tools/provider_health.py`
-- OCR/vision services: `backend/src/services/screen_grounding/*`
-- Embedding routes/services: `backend/src/api/routes/memory/embeddings/*`, `backend/src/services/embedding*`
-- STT gateway: `backend/src/api/routes/transcription/*`, `backend/src/api/services/transcription/*`
-- TTS stream processing: `backend/src/api/processing/tts/*`, `backend/src/api/services/tts_session.py`
+- Provider health/capability policy: private backend implementation
+- OCR/vision services: private backend implementation
+- Embedding routes/services: private backend implementation
+- STT gateway: private backend implementation
+- TTS stream processing: private backend implementation
 - Sidecar remote clients: `frontend/src/main/python/core/remote_*_client.py`
 
 ## Implementation Rules
@@ -52,6 +52,6 @@ Provider health and circuit breakers should hide or fail capabilities predictabl
 ## Deep Docs
 
 - [Inference Capability Change Workflow](inference_capability_change_workflow.md)
-- Backend Services Screen-Grounding Docs Hub (private backend docs)
+- Backend Screen-Grounding Docs Hub (private backend docs)
 - Backend Embedding + Semantic Memory Runtime Reference (private backend docs)
 - Backend TTS + Wakeword Audio Runtime Reference (private backend docs)

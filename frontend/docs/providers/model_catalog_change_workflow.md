@@ -15,17 +15,17 @@ The model catalog is not just display text. It controls provider routing, visibl
 
 | Surface | Owner | Rule |
 | --- | --- | --- |
-| Catalog definitions | `backend/src/llm/models/models_config.py` | Source of truth for model metadata and capability flags. |
-| Model listing service | `backend/src/llm/models/model_service.py` | Converts catalog/config/provider availability into model-list responses. |
-| Provider runtime routing | `backend/src/llm/providers/factory.py` and provider modules | Provider id must resolve to a concrete runtime provider. |
-| Default selected model | `backend/src/core/config/app_config.py`, config docs | Defaults must be valid catalog ids. |
+| Catalog definitions | private backend implementation | Source of truth for model metadata and capability flags. |
+| Model listing service | private backend implementation | Converts catalog/config/provider availability into model-list responses. |
+| Provider runtime routing | private backend implementation and provider modules | Provider id must resolve to a concrete runtime provider. |
+| Default selected model | private backend implementation, config docs | Defaults must be valid catalog ids. |
 | Frontend selected model state | Renderer settings/app config providers | Should consume backend metadata and persist user choice. |
 | Model picker rendering | `frontend/src/renderer/features/settings`, chat model controls | Should not invent capabilities missing from backend metadata. |
 
 ## Add a Model
 
 1. Confirm the provider runtime already exists and can route the runtime model id.
-2. Add the catalog entry in `backend/src/llm/models/models_config.py`.
+2. Add the catalog entry in private backend implementation.
 3. Set capability flags explicitly: reasoning/thinking, multimodal support, tool support, native web search, OAuth support, and latency/strength labels.
 4. Add or update default config only if the new model should become the default.
 5. Update provider-specific docs if the model is part of a provider page.
@@ -71,10 +71,10 @@ Do not remove a model id without checking persisted renderer config and backend 
 
 | Behavior | Tests |
 | --- | --- |
-| Catalog shape and ids | `tests/backend/test_models_config.py` |
-| Model list service | `tests/backend/test_model_service.py` |
-| Provider routing | `tests/backend/test_provider_factory_helpers.py`, provider-specific tests |
-| Reasoning/native capability flags | `tests/backend/test_provider_native_reasoning.py`, `tests/frontend/ModelThinkingCapabilities.test.ts` |
+| Catalog shape and ids | private backend tests |
+| Model list service | private backend tests |
+| Provider routing | private backend tests, provider-specific tests |
+| Reasoning/native capability flags | private backend tests, `tests/frontend/ModelThinkingCapabilities.test.ts` |
 | Frontend model picker | `tests/frontend/DesktopModelCardPresentationRuntime.test.js`, `tests/frontend/ModelSelectionUtils.test.js`, `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/DesktopChatModelOptionsRuntime.test.js` |
 | Settings persistence/sync | `tests/frontend/AppConfigProvider.models.test.tsx`, `tests/frontend/IpcSettingsSync.test.cjs` |
 

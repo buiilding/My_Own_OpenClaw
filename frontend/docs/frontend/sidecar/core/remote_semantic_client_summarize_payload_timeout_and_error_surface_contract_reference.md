@@ -12,7 +12,7 @@ title: "Remote Semantic Client Summarize Payload, Timeout, and Error-Surface Con
 
 - `frontend/src/main/python/core/remote_semantic_client.py`
 - `frontend/src/main/python/windie/_remote_api_client_base.py`
-- `backend/src/api/routes/memory/semantic/router.py`
+- private backend implementation
 - `tests/sidecar/test_remote_semantic_client.py`
 - `tests/sidecar/remote_client_test_utils.py`
 

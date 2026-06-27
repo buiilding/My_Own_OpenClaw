@@ -1,5 +1,5 @@
 ---
-summary: "WindieOS data-flow and state-ownership map for queries, streams, tool results, settings, transcripts, memory, artifacts, permissions, providers, and VM runs."
+summary: "WindieOS data-flow and state-ownership map for queries, streams, tool results, settings, transcripts, memory, artifacts, permissions, providers, and"
 read_when:
   - When changing state that crosses backend, Electron main, renderer,
     preload, local runtime, or hosted API boundaries.
@@ -31,7 +31,6 @@ For durable or semi-durable storage changes, migrations, reset behavior, and dat
 | semantic/episodic memory | local-runtime memory store plus backend embedding/semantic APIs | prompt context, dashboard memory, search | embeddings may degrade without blocking SQLite storage |
 | artifacts | backend artifact service/API plus Electron upload bridge | renderer image display, tool results, SDK clients | artifact refs should survive transcript replay |
 | permissions | Electron main permission services plus stored permission state | renderer onboarding/settings, local-runtime path/tool decisions | renderer displays normalized state |
-| VM run status/events | backend run control service | hosted dashboard/API callers, VM worker runtime | normal desktop chat should not route through runs API |
 
 ## Query Flow
 

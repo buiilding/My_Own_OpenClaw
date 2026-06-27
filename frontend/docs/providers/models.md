@@ -12,7 +12,7 @@ WindieOS separates provider runtime classes from model catalog metadata.
 
 ## Runtime Providers
 
-Provider instances are created in `backend/src/llm/providers/factory.py`. Cloud providers require API keys; local providers are always registered but can fail at runtime if their local server is not running.
+Provider instances are created in private backend implementation. Cloud providers require API keys; local providers are always registered but can fail at runtime if their local server is not running.
 
 | Provider | Runtime class | Default credential/config |
 | --- | --- | --- |
@@ -28,7 +28,7 @@ Provider instances are created in `backend/src/llm/providers/factory.py`. Cloud 
 
 ## Model Catalog
 
-`backend/src/llm/models/models_config.py` owns display metadata and capability flags such as:
+private backend implementation owns display metadata and capability flags such as:
 
 - runtime model id
 - display name
@@ -84,9 +84,9 @@ reasoning presets; the provider request path reads the explicit
 
 ## Change Path
 
-1. Add or update provider implementation in `backend/src/llm/providers/*` only if runtime behavior changes.
-2. Add or update catalog metadata in `backend/src/llm/models/models_config.py`.
-3. Update config defaults in `backend/src/core/config/app_config.py` or provider models in `backend/src/core/config/models.py` if needed.
+1. Add or update provider implementation in private backend implementation only if runtime behavior changes.
+2. Add or update catalog metadata in private backend implementation.
+3. Update config defaults in private backend implementation or provider models in private backend implementation if needed.
 4. Update docs and tests covering model list, capability flags, provider request kwargs, streaming, and tool-call behavior.
 
 ## Deep Docs

@@ -43,10 +43,10 @@ can actually see.
 
 | Stage | Model-visible shape | Owner files | Drift check |
 | --- | --- | --- | --- |
-| system prompt | rendered system prompt text after OS/coordinate-method filtering | `backend/src/llm/prompts/prompts.py`, `backend/src/llm/prompts/system_prompt.txt` | If prompt text mentions a capability, prove the tool/policy/provider path supports it. |
-| repo instructions | `agent_definition.agents_md` entries resolved by the client, or backend lookup fallback | `frontend/src/main/app/repo_instruction_runtime.cjs`, `backend/src/api/schemas/agent_definition.py`, `backend/src/llm/prompts/repo_instructions.py` | Do not reconstruct local `AGENTS.md` in renderer UI as if that were backend truth. |
-| client prompt layers | user-role messages wrapped in `<CLIENT_PROMPT_LAYER type="...">` after priority sort | `backend/src/llm/prompts/prompt_constructor.py`, session config runtime | Do not add a layer unless it needs priority, provenance, and transparency metadata. |
-| stored history | backend-rendered message history from `ConversationHistory.get_history()` | `backend/src/agent/session/state.py`, `backend/src/agent/history` | Visible transcript can differ, but backend history must remain provider-replay-safe. |
+| system prompt | rendered system prompt text after OS/coordinate-method filtering | private backend implementation | If prompt text mentions a capability, prove the tool/policy/provider path supports it. |
+| repo instructions | `agent_definition.agents_md` entries resolved by the client, or backend lookup fallback | `frontend/src/main/app/repo_instruction_runtime.cjs`, private backend implementation | Do not reconstruct local `AGENTS.md` in renderer UI as if that were backend truth. |
+| client prompt layers | user-role messages wrapped in `<CLIENT_PROMPT_LAYER type="...">` after priority sort | private backend implementation, session config runtime | Do not add a layer unless it needs priority, provenance, and transparency metadata. |
+| stored history | backend-rendered message history from `ConversationHistory.get_history()` | private backend implementation | Visible transcript can differ, but backend history must remain provider-replay-safe. |
 | current user content | XML-like memory, attachment, system-state, and `<user_query>` sections inside the latest user message | `frontend/src/main/ipc/ipc_query_runtime.cjs`, backend query execution inputs | Hidden context should be intentional and visible through transparency metadata. |
 
 ## Tool Visibility Rule
@@ -76,10 +76,10 @@ Tool schemas are not copied directly from the registry into the model request. T
 
 | Boundary | Shape | Owner files | Question before adding another adapter |
 | --- | --- | --- | --- |
-| registry -> policy | canonical backend tool declarations | `backend/src/tools`, `backend/src/tools/tool_policy.py` | Is this a model-facing capability, or only a local-runtime executable helper? |
-| policy -> provider projection | policy-filtered function/computer schemas; direct projection calls reapply `ToolPolicy.from_config(...)` so config availability and disabled-tool gates are still enforced | `backend/src/tools/provider_projection.py`, provider adapters | Does the provider require this dialect, or are we working around a local parser bug? |
-| provider request -> parser | provider-native tool call chunks | `backend/src/agent/llm`, `backend/src/llm/parser_types.py` | Can the parser preserve the original model intent and IDs? |
-| backend event -> SDK/main execution | executable tool event payload | `backend/src/api/processing/formatters`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts` | Are model-facing args and executable args being confused? |
+| registry -> policy | canonical backend tool declarations | private backend implementation | Is this a model-facing capability, or only a local-runtime executable helper? |
+| policy -> provider projection | policy-filtered function/computer schemas; direct projection calls reapply `ToolPolicy.from_config(...)` so config availability and disabled-tool gates are still enforced | private backend implementation, provider adapters | Does the provider require this dialect, or are we working around a local parser bug? |
+| provider request -> parser | provider-native tool call chunks | private backend implementation | Can the parser preserve the original model intent and IDs? |
+| backend event -> SDK/main execution | executable tool event payload | private backend implementation, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts` | Are model-facing args and executable args being confused? |
 | SDK/main -> local runtime | IPC/JSON-RPC executable params | `frontend/src/main/sidecar/local_runtime*.cjs`, `frontend/src/main/python/tools` | Is this the single JS/Python boundary mapper, or duplicated fallback logic? |
 
 ## Transparency Events

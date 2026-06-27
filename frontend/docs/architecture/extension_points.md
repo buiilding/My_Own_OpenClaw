@@ -12,14 +12,14 @@ This document lists the current, concrete extension points in the codebase.
 
 Back-end tools can be built using the SDK in:
 
-- `backend/src/sdk/tool.py`
-- `backend/src/sdk/context.py`
+- private backend implementation
+- private backend implementation
 
-Tools are registered by the backend tool registry (`backend/src/tools/registry.py`).
+Tools are registered by the backend tool registry (private backend implementation).
 
 Model-visible tool exposure is narrowed after registration by typed agent
-capability policy in `backend/src/tools/agent_capability_policy.py` and
-`backend/src/tools/tool_policy.py`. Add new production profiles or capability
+capability policy in private backend implementation and
+private backend implementation. Add new production profiles or capability
 gates there.
 
 ## 2) Local-Runtime Python Tools
@@ -40,21 +40,21 @@ implementation behavior.
 
 Add a new provider by implementing `LLMProvider` in:
 
-- `backend/src/llm/providers/`
+- private backend implementation
 
-and wiring it into the provider factory in `backend/src/llm/providers/factory.py`.
+and wiring it into the provider factory in private backend implementation.
 
 ## 4) Inference Capability Providers
 
 Add or swap OCR, vision, or embedding inference backends through the capability boundaries:
 
-- Contracts: `backend/src/core/interfaces/`
-- Routers: `backend/src/core/inference/`
-- Local OCR provider adapter: `backend/src/services/ocr/provider.py`
-- Remote OCR provider adapter: `backend/src/services/ocr/remote_provider.py`
-- Local vision provider adapter: `backend/src/services/vision/provider.py`
-- Remote vision provider adapter: `backend/src/services/vision/remote_provider.py`
-- Local vision model hosts: `backend/src/services/vision/providers/`
+- Contracts: private backend implementation
+- Routers: private backend implementation
+- Local OCR provider adapter: private backend implementation
+- Remote OCR provider adapter: private backend implementation
+- Local vision provider adapter: private backend implementation
+- Remote vision provider adapter: private backend implementation
+- Local vision model hosts: private backend implementation
 
 The backend orchestration/runtime layers should depend on these capability contracts and routers rather than on concrete singleton model hosts.
 

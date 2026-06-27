@@ -200,7 +200,6 @@ Surface rules:
 | --- | --- | --- |
 | Onboarding flashes for completed users | `DesktopStartupRuntimeClient.selectStartupSurface(...)`, `bootstrapped`, persisted onboarding completion. | Renderer startup selector |
 | Onboarding never reappears after manifest change | permission manifest version, `completedForManifest`, `needsOnboarding`. | Permission store |
-| VM worker opens chat pill or tray | main process VM mode branch and renderer `vm_mode=1` query. | Electron main VM worker runtime |
 | Wakeword prompts before onboarding completion | `WakewordController` placement in `App.jsx`. | Renderer app startup |
 | Settings "Open onboarding" does not route | main-window open-target emission and `OnboardingSettingsTab`. | Settings plus surface runtime |
 | Overlay window renders full dashboard | renderer URL `view` query, `DesktopStartupRuntimeClient`, and `main.jsx` root selection. | Window loader/root routing |

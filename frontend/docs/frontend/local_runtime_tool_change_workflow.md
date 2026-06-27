@@ -22,17 +22,17 @@ Do not make local-runtime Python import backend schemas. Keep parity in explicit
 
 | Layer | Code roots | Owns |
 | --- | --- | --- |
-| Backend schema and policy | `backend/src/tools`, `backend/src/agent/tools`, `backend/src/tools/tool_selection.py` | Model-visible tool names, descriptions, JSON schema, policy/profile filtering, tool-call history. |
+| Backend schema and policy | private backend implementation | Model-visible tool names, descriptions, JSON schema, policy/profile filtering, tool-call history. |
 | SDK runtime dispatch | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts` | Tool-call event consumption, bundle/single orchestration, backend result envelope, normalized tool-output events. |
 | Electron main bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/sidecar/local_runtime*.cjs`, `packages/windie-sdk-js/src/runtime/Agent.ts` | SDK local-runtime host context, payload mapping, timeouts, display/window context. |
 | Local runtime implementation | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools` | Local-runtime JSON-RPC handlers backed by local-runtime Python modules, local tool registry, filesystem/shell/computer/browser/system execution, and local memory RPCs. |
-| Tests | `tests/backend`, `tests/frontend`, `tests/sidecar` | Contract, dispatch, execution, and result parity. |
+| Tests | private backend tests, `tests/frontend`, `tests/sidecar` | Contract, dispatch, execution, and result parity. |
 
 ## Add or Change a Tool
 
 | Step | What to inspect | Why |
 | --- | --- | --- |
-| 1. Decide model-facing behavior | `backend/src/tools` and [Tool Catalog Matrix](../tools/tool_catalog_matrix.md) | The backend owns what the model can request. |
+| 1. Decide model-facing behavior | private backend implementation and [Tool Catalog Matrix](../tools/tool_catalog_matrix.md) | The backend owns what the model can request. |
 | 2. Decide executable payload | `frontend/src/main/python/tools` and local-runtime executable registry docs | The local runtime owns what can actually run locally; the executable registry documents the current local-runtime Python implementation. |
 | 3. Map backend call to local execution | SDK `ToolExecutionCoordinator`, Electron SDK tool router, and Electron local-runtime bridge | Tool-call shape must become a local-runtime executable action without losing ids, artifacts, or display context. |
 | 4. Normalize result envelope | SDK result envelope builder, backend tool-result handler, local-runtime Python tool result models | Backend history needs consistent success/error output. |
@@ -43,11 +43,11 @@ Do not make local-runtime Python import backend schemas. Keep parity in explicit
 
 | Family | Backend schema roots | Local-runtime implementation roots | Focused tests |
 | --- | --- | --- | --- |
-| Computer/mouse/keyboard/screenshot/window | `backend/src/tools/computer`, `backend/src/tools/remote_tools` | `frontend/src/main/python/tools/computer`, platform adapters | `tests/backend/test_computer_use_schema_contract.py`, `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_screenshot_tool.py` |
-| Browser | `backend/src/tools/browser` | `frontend/src/main/python/tools/browser` | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_tool.py`, browser schema/runtime tests |
-| Filesystem and shell | `backend/src/tools/filesystem`, `backend/src/tools/system` | `frontend/src/main/python/tools/filesystem`, `frontend/src/main/python/tools/system` | Start with [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md); then inspect `tests/sidecar/test_read_file_tool.py`, `tests/sidecar/test_replace_tool.py`, `tests/sidecar/test_shell_process_tool.py`, bridge tests, and SDK/main tool-dispatch tests. |
+| Computer/mouse/keyboard/screenshot/window | private backend implementation | `frontend/src/main/python/tools/computer`, platform adapters | private backend tests, `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_screenshot_tool.py` |
+| Browser | private backend implementation | `frontend/src/main/python/tools/browser` | private backend tests, `tests/sidecar/tools/test_browser_tool.py`, browser schema/runtime tests |
+| Filesystem and shell | private backend implementation | `frontend/src/main/python/tools/filesystem`, `frontend/src/main/python/tools/system` | Start with [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md); then inspect `tests/sidecar/test_read_file_tool.py`, `tests/sidecar/test_replace_tool.py`, `tests/sidecar/test_shell_process_tool.py`, bridge tests, and SDK/main tool-dispatch tests. |
 | Memory | Backend memory routes and prompt context | `frontend/src/main/python/memory`, `frontend/src/main/python/local_backend_memory_handlers.py` | `tests/sidecar/test_memory_*.py`, memory route and transcript tests |
-| System state and app/window helpers | `backend/src/tools/system`, prompt/tool context | `frontend/src/main/python/tools/system`, Electron window/display bridge | `tests/sidecar/test_system_tools.py`, frontend display/window tests |
+| System state and app/window helpers | private backend implementation, prompt/tool context | `frontend/src/main/python/tools/system`, Electron window/display bridge | `tests/sidecar/test_system_tools.py`, frontend display/window tests |
 
 ## Result Contract
 

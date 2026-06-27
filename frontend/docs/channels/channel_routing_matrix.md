@@ -1,7 +1,6 @@
 ---
 summary: "Matrix mapping WindieOS user/developer channels to transports, payload owners, code roots, docs, and validation targets."
 read_when:
-  - When changing how a request enters WindieOS or deciding whether a behavior belongs to IPC, websocket, HTTP, local-runtime JSON-RPC, SDK, voice, or VM runs.
   - When debugging why a query, control message, tool result, voice event, or SDK request reached the wrong owner.
 title: "Channel Routing Matrix"
 ---
@@ -14,10 +13,9 @@ This matrix maps entry channels to the transport and code that own them. Start h
 
 | Channel | Primary input | Transport path | Backend owner | Desktop/local owner | Validate |
 | --- | --- | --- | --- | --- | --- |
-| Dashboard chat query | dashboard composer submit | renderer `windie:invoke` command `conversation.send` -> Electron main agent host -> Agent SDK backend transport -> `/ws` `query` | `backend/src/api/handlers/query.py`, `backend/src/api/services/query_execution.py` | `frontend/src/renderer/features/chat/**`, `frontend/src/main/ipc.cjs`, Electron agent host | backend query tests, frontend chat/IPC tests |
+| Dashboard chat query | dashboard composer submit | renderer `windie:invoke` command `conversation.send` -> Electron main agent host -> Agent SDK backend transport -> `/ws` `query` | private backend implementation | `frontend/src/renderer/features/chat/**`, `frontend/src/main/ipc.cjs`, Electron agent host | backend query tests, frontend chat/IPC tests |
 | Minimal pill query | overlay composer submit | overlay renderer `windie:invoke` command `conversation.send` -> Electron main agent host -> Agent SDK backend transport -> `/ws` `query` | same backend query path | `frontend/src/renderer/app/ChatBox*.jsx`, overlay IPC/window runtime, Electron agent host | overlay/main-process tests, query-send tests |
-| Settings/model messages | dashboard settings or startup sync | renderer `windie:invoke` commands `settings.update` / `models.list` -> Electron main agent host -> Agent SDK backend transport -> `/ws` non-query handlers | `backend/src/api/handlers/settings.py`, model/list handlers | settings provider, `ipc_settings_sync.cjs`, Electron agent host | settings ACK and model-list tests |
-| Stop query | user stop, VM stop control | renderer `windie:invoke` command `conversation.stop` or VM worker -> Agent SDK backend transport -> `/ws` `stop-query` | `backend/src/api/handlers/stop_query.py` | renderer controls, SDK backend transport adapter, `vm_worker_runtime.cjs` | stop/cancellation tests, VM worker tests |
+| Settings/model messages | dashboard settings or startup sync | renderer `windie:invoke` commands `settings.update` / `models.list` -> Electron main agent host -> Agent SDK backend transport -> `/ws` non-query handlers | private backend implementation, model/list handlers | settings provider, `ipc_settings_sync.cjs`, Electron agent host | settings ACK and model-list tests |
 | Tool result ingress | SDK/main local execution completion | SDK/main local runtime -> Electron local adapter -> local-runtime Python executor -> SDK/main local runtime -> `/ws` `tool-result` or `tool-bundle-result` | backend tool-result receiver/router/history commit | SDK/main local runtime, local-runtime Python executor, renderer SDK display rows | backend tool-result tests, SDK/IPC router tests, local-runtime Python tests |
 | Backend stream events | agent loop output | backend `/ws` outgoing event -> SDK normalization/projection -> Electron main -> renderer `windie:conversation-event`, `windie:rows`, `windie:current-turn` | formatter registry, outgoing schemas, SafeWebSocket sender | SDK conversation runtime, main event fan-out, renderer stream consumers | formatter/schema tests, renderer event guards |
 | Voice dictation | voice-mode microphone capture | renderer audio -> `/ws/transcription` | transcription route/services/providers | voice hooks/utils | STT gateway tests, voice hook tests |
@@ -26,7 +24,6 @@ This matrix maps entry channels to the transport and code that own them. Start h
 | Local-runtime tool | model-visible tool call | backend emits tool-call -> SDK/main local runtime executes via the local-runtime Python executor and fans out display-only renderer event | backend schema/preparation/waiting/history | SDK/main local runtime, `local_runtime_bridge.cjs`, local-runtime Python executors | schema parity, local-runtime tool, SDK/IPC router tests |
 | SDK hosted query | external SDK client | direct WebSocket `/ws` | same websocket query path | TypeScript/Python SDK clients | SDK client and backend route tests |
 | SDK HTTP routes | external SDK client | direct `/api/sdk/*`, `/api/artifacts/*` | SDK/artifact routes/services | SDK client wrappers | SDK route/client tests |
-| VM run control | dashboard/API caller + VM worker | `/api/runs/*` HTTP plus worker-dispatched `/ws` query | runs router/service | `vm_worker_runtime.cjs` | runs route tests, VM worker tests |
 
 ## Payload Ownership
 
@@ -35,7 +32,6 @@ Backend-owned payloads:
 - `/ws` incoming/outgoing Pydantic schemas
 - formatter output envelopes
 - model-facing tool schemas
-- `/api/sdk/*`, `/api/artifacts/*`, `/api/runs/*`, `/api/embeddings/*`, and `/api/semantic/*` request/response models
 - transcription websocket provider protocol normalization
 
 Electron client-owned payloads:
@@ -71,11 +67,7 @@ Use `/ws/transcription` when:
 - voice-mode control messages such as language reset/start-over are sent
 - STT provider changes must be hidden behind one renderer protocol
 
-Use `/api/runs/*` when:
 
-- a hosted dashboard or API caller creates/controls/observes a VM run
-- an Electron VM worker polls for assignments
-- a VM worker relays stream events into a run timeline
 
 Use local-runtime JSON-RPC when:
 
@@ -99,7 +91,6 @@ Use `/api/sdk/*` when:
 | Voice text does not appear | `/ws/transcription` or voice renderer state | [Voice and Audio Channels](voice_and_audio_channels.md) |
 | Wakeword fires repeatedly or not at all | wakeword bridge/subprocess | [Voice and Audio Channels](voice_and_audio_channels.md) |
 | SDK route works but desktop action fails | hosted SDK vs local-runtime split | [SDK Hub](../sdk/README.md), [Local Tool Channels](sidecar_and_tool_channels.md) |
-| VM run is created but not executed | `/api/runs/*` or VM worker loop | Automation Hub (private backend docs), VM Runs and Workers (private backend docs) |
 
 ## Validation Checklist
 

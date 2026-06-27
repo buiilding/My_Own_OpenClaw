@@ -70,7 +70,7 @@ Prefer fast local searches:
 
 ```bash
 rg "symbol_or_event_name"
-rg --files backend/src frontend/src tests docs
+rg --files frontend/src packages tests docs
 ```
 
 Read the immediate owner files and the tests around them. When possible, inspect current tests before changing behavior so new coverage matches the local style.
@@ -91,7 +91,7 @@ Widen only when the boundary requires it, for example a tool schema change that 
 
 Choose the narrowest meaningful command first, then widen if the change has broad impact:
 
-- backend: `./scripts/python-in-env backend python -m pytest <backend-test-or-path>`
+- backend: private backend test runner
 - local-runtime Python: `./scripts/python-in-env local-runtime python -m pytest <sidecar-test-or-path>`
 - frontend: `<windie> test frontend -- path/to/test`
 - docs: `<windie> docs list`
@@ -107,7 +107,7 @@ Preferred doc targets:
 - domain hub for discoverability
 - deep reference for exact behavior
 - [Documentation Hub](../getting-started/docs_hub.md) when the new page materially improves routing
-- [OpenClaw Docs Structure Reference](../reference/openclaw_docs_structure_reference.md) for docs-organization changes
+- OpenClaw Docs Structure Reference (private backend docs) for docs-organization changes
 - `CHANGELOG.md` under `Unreleased`
 
 ## 8. Commit

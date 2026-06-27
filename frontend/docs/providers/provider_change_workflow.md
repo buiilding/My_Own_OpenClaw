@@ -15,20 +15,20 @@ WindieOS provider work is backend-owned first. The renderer can display provider
 
 | Layer | Code roots | Owns |
 | --- | --- | --- |
-| Provider factory | `backend/src/llm/providers/factory.py` | Provider registration, provider id routing, local/cloud provider construction. |
-| Provider base/runtime | `backend/src/llm/providers/base.py`, `online.py`, provider-specific modules | Common request/stream contract, API key handling, tool-call streaming, response parsing. |
+| Provider factory | private backend implementation | Provider registration, provider id routing, local/cloud provider construction. |
+| Provider base/runtime | private backend implementation, `online.py`, provider-specific modules | Common request/stream contract, API key handling, tool-call streaming, response parsing. |
 | Provider utilities | `message_normalization.py`, `stream_event_pipeline.py`, `streaming_tool_call_aggregation.py`, `provider_native_reasoning.py`, `usage_diagnostics.py`, `error_mapping.py` | Shared normalization and cross-provider behavior. |
-| Model catalog | `backend/src/llm/models/models_config.py`, `model_service.py` | Display metadata, runtime ids, capabilities, thinking/reasoning variants, model-list output. |
-| Config and credentials | `backend/src/core/config/app_config.py`, `models.py`, `loader.py` | Env var names, default URLs, credential loading, renderer-managed client settings fields. |
+| Model catalog | private backend implementation, `model_service.py` | Display metadata, runtime ids, capabilities, thinking/reasoning variants, model-list output. |
+| Config and credentials | private backend implementation, `models.py`, `loader.py` | Env var names, default URLs, credential loading, renderer-managed client settings fields. |
 | Renderer settings | `frontend/src/renderer/features/settings`, app config providers | Displaying and persisting model/provider choices and credential overrides. |
 
 ## Add a New Cloud Provider
 
 1. Decide provider id, env var names, base URL defaults, and whether the provider is generic OpenAI-compatible or needs custom request/stream behavior.
-2. Add the provider runtime class under `backend/src/llm/providers/`.
-3. Register provider construction in `backend/src/llm/providers/factory.py`.
-4. Add credential/config fields in `backend/src/core/config/models.py`, `app_config.py`, and `loader.py` when the provider needs new env vars or renderer-managed settings.
-5. Add model catalog entries in `backend/src/llm/models/models_config.py`.
+2. Add the provider runtime class under private backend implementation.
+3. Register provider construction in private backend implementation.
+4. Add credential/config fields in private backend implementation, `app_config.py`, and `loader.py` when the provider needs new env vars or renderer-managed settings.
+5. Add model catalog entries in private backend implementation.
 6. Add provider docs, credentials docs, model docs, and renderer settings docs if the user can select or configure the provider.
 7. Add backend tests for factory registration, config loading, request kwargs, streaming/tool-call behavior, error mapping, and model-list output.
 8. Add frontend tests only when the settings/model picker surface changes.
@@ -39,12 +39,12 @@ Prefer the generic online provider path when the provider is plain text/multimod
 
 | Change type | Primary files | Tests |
 | --- | --- | --- |
-| API key/env var name | `backend/src/core/config/*`, provider constructor | `tests/backend/test_config_loader.py`, `tests/backend/test_config_models.py`, provider factory tests |
-| Base URL or local server default | provider module, config defaults, local provider docs | `tests/backend/test_local_llm_providers.py`, provider-specific tests |
-| Request payload shape | provider module, `request_kwargs.py`, provider helpers | Provider-specific tests and `tests/backend/test_llm_request_kwargs.py` |
-| Streaming chunks | provider module, stream pipeline helpers | `tests/backend/test_llm_provider_stream_event_pipeline.py`, provider-specific streaming tests |
+| API key/env var name | private backend implementation, provider constructor | private backend tests, provider factory tests |
+| Base URL or local server default | provider module, config defaults, local provider docs | private backend tests, provider-specific tests |
+| Request payload shape | provider module, `request_kwargs.py`, provider helpers | Provider-specific tests and private backend tests |
+| Streaming chunks | provider module, stream pipeline helpers | private backend tests, provider-specific streaming tests |
 | Tool-call aggregation | provider module, `streaming_tool_call_aggregation.py` | Provider-specific tool-call tests |
-| Native reasoning/search | provider module, `provider_native_reasoning.py`, model catalog flags | `tests/backend/test_provider_native_reasoning.py`, `tests/backend/test_web_search_capabilities.py` |
+| Native reasoning/search | provider module, `provider_native_reasoning.py`, model catalog flags | private backend tests |
 | Usage diagnostics | provider module, `usage_diagnostics.py` | Provider-specific usage tests and token-count event tests |
 | Error mapping | provider module, `error_mapping.py` | Provider-specific failure tests |
 
@@ -64,9 +64,9 @@ Do not hard-code provider capability only in the renderer. The frontend should r
 
 | Scope | Minimum validation |
 | --- | --- |
-| Provider factory registration | `./scripts/python-in-env backend pytest tests/backend/test_provider_factory_helpers.py` |
-| Model catalog change | `./scripts/python-in-env backend pytest tests/backend/test_models_config.py tests/backend/test_model_service.py` |
-| Config/credential change | `./scripts/python-in-env backend pytest tests/backend/test_config_loader.py tests/backend/test_config_models.py` |
+| Provider factory registration | private backend test runner |
+| Model catalog change | private backend test runner |
+| Config/credential change | private backend test runner |
 | OpenAI-like provider change | Provider-specific tests plus `test_llm_request_kwargs.py` and stream/tool-call tests if streaming changed. |
 | Renderer settings/model UI change | `cd frontend && npm run test -- AppConfigProvider.models ModelSelectionUtils ModelsSection SettingsSection` |
 | Docs-only provider update | `<windie> docs list`, `git diff --check`, and focused Markdown link checks. |

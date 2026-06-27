@@ -100,7 +100,7 @@ that tool.
 
 | Contract family | Model can see it? | Executed by | Producer | Backend responsibility | Drift check |
 | --- | --- | --- | --- | --- | --- |
-| backend remote tool | yes | backend service or remote route | backend tool catalog | schema, policy, parser, result/history conversion | No local-runtime executable parity is needed, but provider projection and policy still apply. |
+| backend remote tool | yes | Private hosted service or remote route | backend tool catalog | schema, policy, parser, result/history conversion | No local-runtime executable parity is needed, but provider projection and policy still apply. |
 | client/local-runtime manifest tool | yes, after validation | local runtime executor or declared backend target for reserved tools | Electron/local-runtime `agent_definition.tools.client_manifest` | validation, accept/reject transparency, policy, provider projection | Built-in tool names use backend catalog specs for provider-visible schemas; the local-runtime manifest only proves executable capability and argument-resolution metadata. Dynamic tools use their client manifest schema. |
 | provider-native declaration | yes, provider-specific | provider/runtime adapter | backend provider projection | provider dialect, parser compatibility, policy pruning | Projection may change dialect, not semantics. |
 | local-executor-only helper | no until exposed | local executor | local-runtime executable registry backed by local-runtime Python modules | none unless promoted | Do not add prompt/schema visibility just because helper code exists. |
@@ -133,7 +133,7 @@ Client/local-runtime schemas are merged with backend registry schemas before pol
 3. Client sends `agent_definition.tools.client_manifest` during websocket
    handshake.
 4. Backend validates accepted/rejected manifest entries.
-5. Backend builds backend remote tool schemas from `backend/src/tools/tool_catalog.py` and remote tool classes.
+5. Backend builds backend remote tool schemas from private backend implementation and remote tool classes.
 6. Prompt construction merges accepted dynamic client/local-runtime schemas with backend remote schemas; accepted built-in local tool names keep backend catalog specs.
 7. Tool policy and provider/capability health narrow the exposed schema for the current session.
 8. Backend emits transparency for accepted/rejected manifest entries, final tool schemas, and active `client_prompt_layers`.
@@ -183,14 +183,14 @@ Client/local-runtime schemas are merged with backend registry schemas before pol
 | --- | --- |
 | Built-in local manifest source | `frontend/src/main/python/tools/manifest.py`, `frontend/src/main/python/tools/schemas.py`, `frontend/src/main/python/windie_shared/browser_contract*` |
 | Generated Electron manifest artifact | `frontend/src/main/generated/builtin_tool_manifest.json`, `scripts/generate-builtin-tool-manifest` |
-| Client manifest validation | `backend/src/tools/client_manifest.py` |
+| Client manifest validation | private backend implementation |
 | Client manifest agent definition | `frontend/src/main/agent/electron_agent_definition_inputs.cjs`, `frontend/src/main/extensions/tool_manifest.cjs`, `packages/windie-sdk-js/src/runtime/AgentDefinition.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts` |
-| Backend tool catalog | `backend/src/tools/tool_catalog.py` |
-| Backend schemas and remote tools | `backend/src/tools/remote_tools/*`, `backend/src/tools/*schema*` |
-| Tool policy and capability filters | `backend/src/tools/tool_policy.py`, `backend/src/tools/provider_health.py` |
-| Prompt merge and projection | `backend/src/llm/prompts/prompt_constructor.py`, `backend/src/tools/provider_projection.py` |
-| Preparation and coordinate resolution | `backend/src/agent/tools/preparation/*` |
-| Sending/waiting/processing | `backend/src/agent/tools/sending/*`, `backend/src/agent/tools/waiting/*`, `backend/src/agent/tools/processing/*` |
+| Backend tool catalog | private backend implementation |
+| Backend schemas and remote tools | private backend implementation |
+| Tool policy and capability filters | private backend implementation |
+| Prompt merge and projection | private backend implementation |
+| Preparation and coordinate resolution | private backend implementation |
+| Sending/waiting/processing | private backend implementation |
 | SDK/local execution | `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
 | Main local-runtime bridge | `frontend/src/main/sidecar/local_runtime*.cjs` |
 | Local-runtime executable registry | `frontend/src/main/python/tools/registry.py` |

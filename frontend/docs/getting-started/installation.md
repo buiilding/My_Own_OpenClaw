@@ -74,7 +74,6 @@ pip install -r requirements.txt
 
 ```bash
 cd ..
-./scripts/python-in-env backend python -m backend.src.main --help
 ```
 
 ### 3. Frontend Installation
@@ -143,7 +142,7 @@ Default endpoint behavior:
 
 There is no YAML config file. Configuration is split between:
 
-- **Backend**: `backend/src/core/config/app_config.py` (edit + restart)
+- **Backend**: private backend implementation (edit + restart)
 - **Frontend**: `frontend-config.json` stored in Electron user data (saved by the UI)
 
 ## Hosted Backend
@@ -185,7 +184,7 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 
 **Terminal 1: Backend**
 ```bash
-<windie> start backend
+private backend start command
 ```
 
 **Terminal 2: Desktop Dev Loop**
@@ -203,7 +202,7 @@ npm run build
 
 **Run Backend**:
 ```bash
-<windie> start backend
+private backend start command
 ```
 
 **Launch Electron**:
@@ -340,7 +339,7 @@ see `docs/operations/sidecar_runtime_packaging.md`.
 **Import Errors**:
 ```bash
 # Run from the repository root so the `backend` package is importable
-<windie> start backend
+private backend start command
 ```
 
 **Missing Dependencies**:
@@ -391,8 +390,8 @@ node --version  # Should be 18+
 **Fallback to CPU**:
 - Some components (OCR/TTS/Vision) can fall back to CPU if CUDA is unavailable.
 - The embedding provider is configured to use CUDA by default. If you do not have CUDA,
-  change `device="cuda"` to `device="cpu"` in `backend/src/core/container/factories.py`
-  or disable memory in `backend/src/core/config/app_config.py`.
+  change `device="cuda"` to `device="cpu"` in private backend implementation
+  or disable memory in private backend implementation.
 
 ## Platform-Specific Notes
 

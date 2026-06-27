@@ -14,7 +14,7 @@ Use this before touching code when ownership is ambiguous.
 
 1. Does the behavior change what the model sees or how the agent loop reasons?
    - Yes: backend agent/tools/LLM ownership.
-   - Read [Agent System](agent_system.md), [Tool System](tool_system.md), and [LLM Integration](llm_integration.md).
+   - Read [Agent System](agent_system.md), Backend Tool System (private backend docs), and [LLM Integration](llm_integration.md).
 2. Does it require local machine authority such as screenshot, mouse, keyboard, file, shell, browser, window state, or local memory?
    - Yes: local-runtime Python/Electron main ownership.
    - Read [Local-Runtime Python Implementation](python_sidecar.md), [Tools Hub](../tools/README.md), and [Platform Permission Matrix](../platforms/permission_matrix.md).

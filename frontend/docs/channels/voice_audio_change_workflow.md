@@ -26,9 +26,9 @@ Do not route live dictation through wakeword. Do not route wakeword chunks to tr
 | wakeword chunks do not reach the local-runtime wakeword helper | Electron wakeword bridge | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`, `frontend/src/main/wakeword/wakeword_supervisor.cjs` | [Electron Wakeword Bridge and Audio Framing Reference](../frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md) | `tests/frontend/WakewordBridge.test.cjs`, `tests/frontend/WakewordBridgeRuntime.test.cjs`, `tests/frontend/WakewordSupervisor.test.cjs` |
 | wakeword model fails to load or detection output is malformed | Local-runtime wakeword helper backed by the local-runtime Python wakeword service | `frontend/src/main/python/wakeword_service.py` | [Wakeword Service Model Bootstrap and Binary Framing Reference](../frontend/sidecar/services/wakeword_service_model_bootstrap_and_binary_framing_reference.md) | `tests/sidecar/test_wakeword_service.py` |
 | voice dictation connects but no text appears | renderer voice mode and transcription region state | `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`, `frontend/src/renderer/features/chat/hooks/useTranscription.ts`, `frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime.ts` | [Frontend Voice Mode Gateway and Transcription Region Reference](../frontend/renderer/voice/voice_mode_gateway_connection_and_transcription_region_reference.md) | `tests/frontend/VoiceModeHook.test.ts`, `tests/frontend/TranscriptionHook.test.ts`, `tests/frontend/DesktopTranscriptionRegionRuntime.test.ts` |
-| `/ws/transcription` rejects or disconnects | backend transcription gateway | `backend/src/api/routes/transcription`, `backend/src/api/services/transcription` | [Voice and Audio Channels](voice_and_audio_channels.md), HTTP and WebSocket Endpoint Reference (private backend docs) | `tests/backend/test_transcription_gateway.py`, provider-specific transcription tests |
-| STT provider events map incorrectly | backend transcription provider adapter | `backend/src/api/services/transcription/openai_realtime.py`, `backend/src/api/services/transcription/nova_proxy.py`, `backend/src/api/services/transcription/protocol.py` | [Voice and Audio Channels](voice_and_audio_channels.md) | `tests/backend/test_openai_realtime_transcription.py`, `tests/backend/test_transcription_gateway.py` |
-| backend response has no TTS audio | backend TTS session, manager, processor, provider | `backend/src/api/processing/tts`, `backend/src/api/services/tts_session.py`, `backend/src/core/services/*tts*` | Backend TTS Manager Audio Stream and Cleanup Reference (private backend docs), Backend TTS and Wakeword Audio Runtime Reference (private backend docs) | `tests/backend/test_tts_manager.py`, `tests/backend/test_tts_session.py`, `tests/backend/test_tts_buffer.py` |
+| `/ws/transcription` rejects or disconnects | backend transcription gateway | private backend implementation | [Voice and Audio Channels](voice_and_audio_channels.md), HTTP and WebSocket Endpoint Reference (private backend docs) | private backend tests, provider-specific transcription tests |
+| STT provider events map incorrectly | backend transcription provider adapter | private backend implementation | [Voice and Audio Channels](voice_and_audio_channels.md) | private backend tests |
+| backend response has no TTS audio | backend TTS session, manager, processor, provider | private backend implementation | Backend TTS Manager Audio Stream and Cleanup Reference (private backend docs), Backend TTS and Wakeword Audio Runtime Reference (private backend docs) | private backend tests |
 | audio chunks arrive but do not play or overlap after stop | renderer app-runtime audio parser and player service | `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`, `frontend/src/renderer/infrastructure/audio/PlayerService.ts`, chat stop/new-query handlers | [Audio Chunk Playback and Stop Semantics Reference](../frontend/runtime/audio_chunk_playback_and_stop_semantics_reference.md) | `tests/frontend/AudioChunkEvents.test.js`, audio player tests, stop/new-query tests |
 
 ## Ownership Rules
@@ -98,8 +98,8 @@ Primary files:
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioInputDeviceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime.ts`
-- `backend/src/api/routes/transcription/router.py`
-- `backend/src/api/services/transcription/**`
+- private backend implementation
+- private backend implementation
 
 Validation:
 
@@ -108,7 +108,7 @@ Validation:
 - `tests/frontend/DesktopTranscriptionRegionRuntime.test.ts`
 - `tests/frontend/VoiceAudioEncoding.test.ts`
 - `tests/frontend/VoiceAudioCleanup.test.ts`
-- `tests/backend/test_transcription_gateway.py`
+- private backend tests
 - STT provider tests for changed adapters.
 
 Rules:
@@ -127,22 +127,22 @@ Use this path for backend speech generation, `audio-chunk` event payloads, rende
 
 Primary files:
 
-- `backend/src/api/processing/tts/manager.py`
-- `backend/src/api/processing/tts/processor.py`
-- `backend/src/api/services/tts_session.py`
-- `backend/src/core/services/tts_service.py`
-- `backend/src/core/services/elevenlabs_tts_service.py`
-- `backend/src/core/services/tts_buffer.py`
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
 - `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 
 Validation:
 
-- `tests/backend/test_tts_manager.py`
-- `tests/backend/test_tts_session.py`
-- `tests/backend/test_tts_buffer.py`
-- `tests/backend/test_elevenlabs_tts_service.py`
+- private backend tests
+- private backend tests
+- private backend tests
+- private backend tests
 - `tests/frontend/AudioChunkEvents.test.js`
 - renderer audio player tests.
 

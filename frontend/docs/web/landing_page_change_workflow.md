@@ -139,7 +139,6 @@ For available/planned capability claims, cross-check:
 - tools: `docs/tools`
 - memory/transcript: `docs/memory`
 - providers/model support: `docs/providers`
-- automation/VM runs: `docs/automation`
 - hosted APIs/SDK: `docs/web`, `docs/sdk`
 
 Rules:

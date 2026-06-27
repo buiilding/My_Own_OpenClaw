@@ -19,7 +19,7 @@ cd /path/to/WindieOS
 
 ```bash
 cd /path/to/WindieOS
-<windie> test backend
+private backend tests
 ```
 
 ### Local-Runtime Python Tests
@@ -54,7 +54,7 @@ npm run audit:knip
 ## Notes
 
 - Python tests are split by env automatically:
-  - `tests/backend` runs with `jarvis`
+  - private backend tests runs with `jarvis`
   - `tests/sidecar` runs with `frontend_jarvis`
 - `scripts\python-in-env.cmd` on Windows and `scripts/python-in-env.sh` on Unix-like shells use `conda run` when envs exist, otherwise fall back to the current shell env (CI-friendly).
 - Local-runtime protocol output normalization is covered by `tests/sidecar/test_stdout_json.py` (shared JSON-line writer).

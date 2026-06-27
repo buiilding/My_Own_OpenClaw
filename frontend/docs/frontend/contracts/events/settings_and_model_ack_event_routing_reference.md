@@ -18,7 +18,7 @@ title: "Settings and Model ACK Event Routing Reference"
 - `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - `frontend/src/main/ipc.cjs`
-- `backend/src/api/handlers/settings.py`
+- private backend implementation
 
 ## Event Family Boundary
 

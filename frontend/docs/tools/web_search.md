@@ -14,7 +14,7 @@ executable tool and does not go through Electron main or local-runtime Python.
 
 ## Execution Modes
 
-`backend/src/tools/web_search/capabilities.py` chooses one execution mode per
+private backend implementation chooses one execution mode per
 session config:
 
 | Mode | When selected | Model-visible surface |
@@ -43,7 +43,7 @@ backend logical `web_search` tool is not exposed as a function declaration.
 
 ## Runtime Behavior
 
-`backend/src/tools/web_search/tool.py` owns backend logical tool fulfillment:
+private backend implementation owns backend logical tool fulfillment:
 
 - validates `query`, `count`, `domains`, and `recency_days` through
   `WebSearchArgs`
@@ -81,17 +81,17 @@ credentials.
 
 Focused tests:
 
-- `tests/backend/test_web_search_capabilities.py`
-- `tests/backend/test_web_search_tool.py`
-- `tests/backend/test_tool_policy.py`
-- `tests/backend/test_tool_registry_schema.py`
-- provider-specific tests such as `tests/backend/test_openai_provider.py` and
-  `tests/backend/test_gemini_provider.py` when native request payloads change
+- private backend tests
+- private backend tests
+- private backend tests
+- private backend tests
+- provider-specific tests such as private backend tests and
+  private backend tests when native request payloads change
 
 Useful focused command:
 
 ```bash
-<windie> test backend tests/backend/test_web_search_capabilities.py tests/backend/test_web_search_tool.py -q
+private backend tests private backend tests -q
 ```
 
 ## Related Docs

@@ -19,9 +19,9 @@ Inspect:
 - `frontend/src/main/ipc.cjs`
 - `packages/windie-sdk-js/src/runtime/Agent.ts`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
-- `backend/src/api/routes/websocket/router.py`
-- `backend/src/api/routes/websocket/task_manager.py`
-- `backend/src/api/services/query_execution.py`
+- private backend implementation
+- private backend implementation
+- private backend implementation
 
 Docs:
 
@@ -32,7 +32,7 @@ Docs:
 Validate:
 
 ```bash
-<windie> test backend tests/backend/test_websocket_route.py tests/backend/test_websocket_task_manager.py -q
+private backend tests private backend tests -q
 <windie> test frontend -- IpcQueryRuntime.test.cjs IpcSettingsSync.test.cjs
 ```
 
@@ -42,10 +42,10 @@ Likely boundary: backend provider registration, model catalog, credentials, or r
 
 Inspect:
 
-- `backend/src/llm/providers/factory.py`
-- `backend/src/llm/models/models_config.py`
-- `backend/src/llm/models/model_service.py`
-- `backend/src/core/config/loader.py`
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
 - `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
 
 Docs:
@@ -57,7 +57,7 @@ Docs:
 Validate:
 
 ```bash
-<windie> test backend tests/backend/test_model_service.py tests/backend/test_models_config.py tests/backend/test_provider_factory_helpers.py -q
+private backend tests private backend tests -q
 <windie> test frontend -- ModelSelectionUtils.test.js ModelsSection.test.jsx
 ```
 
@@ -67,8 +67,8 @@ Likely boundary: backend tool event, Agent SDK tool routing, Electron main bridg
 
 Inspect:
 
-- `backend/src/tools/tool_catalog.py`
-- `backend/src/agent/tools`
+- private backend implementation
+- private backend implementation
 - `packages/windie-sdk-js/src/runtime`
 - `packages/windie-sdk-js/src/runtime/Agent.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
@@ -84,7 +84,7 @@ Docs:
 Validate:
 
 ```bash
-<windie> test backend tests/backend/test_remote_tool_contract.py tests/backend/test_tool_result_handler.py -q
+private backend tests private backend tests -q
 <windie> test frontend -- AgentSdkConversationRuntime AgentSdkClient RendererToolResultBoundary ToolOutputContent
 <windie> test local-runtime tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q
 ```
@@ -99,9 +99,9 @@ Inspect:
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs`
 - `frontend/src/main/python/tools/computer/screenshot_tool.py`
-- `backend/src/services/ocr`
-- `backend/src/services/vision`
-- `backend/src/agent/tools/preparation/coordinate_resolution`
+- private backend implementation
+- private backend implementation
+- private backend implementation
 
 Docs:
 
@@ -113,7 +113,7 @@ Docs:
 Validate:
 
 ```bash
-<windie> test backend tests/backend/test_coordinate_scaling.py tests/backend/test_ocr_coordinate_resolver.py tests/backend/test_vision_coordinates.py -q
+private backend tests private backend tests -q
 <windie> test frontend -- LocalRuntimeWindowVisibility.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx AgentSdkConversationRuntime.test.ts
 <windie> test local-runtime tests/sidecar/test_screenshot_tool.py -q
 ```
@@ -184,8 +184,8 @@ Inspect:
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/wakeword/wakeword_supervisor.cjs`
 - `frontend/src/main/python/wakeword_service.py`
-- `backend/src/api/routes/transcription/router.py`
-- `backend/src/api/services/transcription`
+- private backend implementation
+- private backend implementation
 
 Docs:
 
@@ -196,7 +196,7 @@ Validate:
 
 ```bash
 <windie> test frontend -- WakewordBridge.test.cjs WakewordSupervisor.test.cjs VoiceModeHook.test.ts TranscriptionHook.test.ts
-<windie> test backend tests/backend/test_transcription_gateway.py tests/backend/test_openai_realtime_transcription.py -q
+private backend tests private backend tests -q
 <windie> test local-runtime tests/sidecar/test_wakeword_service.py -q
 ```
 
@@ -206,8 +206,8 @@ Likely boundary: backend schema, local-runtime browser adapter backed by the Bro
 
 Inspect:
 
-- `backend/src/tools/tool_catalog.py`
-- `backend/src/tools/remote_tools/browser.py`
+- private backend implementation
+- private backend implementation
 - `frontend/src/main/python/tools/browser/browser_use_engine.py`
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
 - `frontend/src/main/permissions/permission_service_browser.cjs`
@@ -221,7 +221,7 @@ Docs:
 Validate:
 
 ```bash
-<windie> test backend tests/backend/test_browser_remote_tool.py -q
+private backend tests private backend tests -q
 <windie> test local-runtime tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine_runtime.py -q
 <windie> test frontend -- ChatBrowserSessionControl.test.jsx PermissionService.test.cjs
 ```

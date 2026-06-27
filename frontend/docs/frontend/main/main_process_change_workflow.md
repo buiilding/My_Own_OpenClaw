@@ -1,14 +1,12 @@
 ---
-summary: "Workflow for changing desktop Electron main-process behavior across IPC registration, windows, overlays, backend endpoint forwarding, permissions, local-runtime bridge, wakeword, and VM worker lifecycle."
+summary: "Workflow for changing desktop Electron main-process behavior across IPC registration, windows, overlays, backend endpoint forwarding, permissions, local-runtime bridge, wakeword, and private automation lifecycle."
 read_when:
-  - When changing Electron main-process startup, IPC handlers, preload channel exposure, window visibility, overlays, endpoint routing, SDK local-runtime host wiring, permission probes, wakeword bridge behavior, or VM worker mode.
   - When a renderer symptom may actually belong to Electron main orchestration, IPC transport, local-runtime host context, or platform window policy.
 title: "Main Process Change Workflow"
 ---
 
 # Main Process Change Workflow
 
-Use this workflow when the change belongs to Electron main, not React renderer and not Python local-runtime implementation code. Electron main owns native desktop process orchestration: windows, overlays, tray/hotkeys, preload channel registration, renderer IPC handlers, SDK-runtime adaptation, endpoint defaults, SDK local-runtime launch facts/status consumers, platform permission probes, wakeword bridge startup, and VM worker polling.
 
 Main process code is a trust boundary. It receives renderer requests through preload, talks to the hosted backend through SDK adapters, supplies local-runtime launch/context facts to the SDK, and calls platform APIs. Keep each of those responsibilities explicit instead of pushing native concerns into components or hiding malformed local-runtime/backend payloads in the UI.
 
@@ -26,7 +24,6 @@ Main process code is a trust boundary. It receives renderer requests through pre
 | Permission probe/request or onboarding permission status changes | Permission service and permission IPC runtime | `frontend/src/main/permissions/permission_service*.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`, `frontend/src/shared/permissions/permission_manifest.json` | `tests/frontend/PermissionService.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/permissionGrantEffects.test.js` | [Permission Manifest and IPC Contract](permission_manifest_probe_and_request_ipc_reference.md), [Permissions and Local Authority Workflow](../../security/permissions_and_local_authority_workflow.md) |
 | Screenshot capture hides the wrong surfaces or platform capture differs | Screenshot/window visibility seam | `frontend/src/main/sidecar/local_runtime_window_visibility.cjs`, SDK/main screenshot resource handling | `tests/frontend/LocalRuntimeWindowVisibility.test.cjs`, `tests/frontend/OverlayVisibilityHandler.test.cjs`, platform tests | [Linux Screenshot Hide/Restore Guard](overlays/linux_screenshot_window_hide_and_restore_guard_reference.md), [Screenshot and Overlay Policy](../../platforms/screenshot_overlay_policy.md) |
 | Wakeword startup, status, or bridge lifecycle changes | Wakeword bridge and supervisor | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`, `frontend/src/main/wakeword/wakeword_supervisor.cjs`, `frontend/src/main/python/wakeword_service.py` | `tests/frontend/WakewordBridge*.test.cjs`, `tests/frontend/WakewordSupervisor.test.cjs`, sidecar wakeword tests | [Wakeword Bridge Runtime Helper](wakeword_bridge_runtime_helper_reference.md), [Voice Audio Change Workflow](../../channels/voice_audio_change_workflow.md) |
-| Hosted VM worker mode, run polling, or dashboard-only startup changes | Runtime mode and VM worker runtime | `frontend/src/main/app/runtime_mode.cjs`, `frontend/src/main/app/vm_worker_runtime.cjs`, `frontend/src/main/app/main_process_lifecycle_runtime.cjs` | `tests/frontend/RuntimeMode.test.cjs`, `tests/frontend/VmWorkerRuntime.test.cjs` | [VM Worker Runs Bridge](vm_worker_runs_bridge_runtime_reference.md), Automation Hub (private backend docs) |
 | Packaged app resolves Python/script/resource path incorrectly | Runtime path resolver | `frontend/src/main/app/runtime_paths.cjs`, `frontend/electron-builder.bundled-python.yml`, `scripts/build-sidecar-runtime` | `tests/frontend/RuntimePaths.test.cjs`, package smoke checks | [Runtime Paths and Endpoints](runtime_paths_and_endpoints.md), [Release and Packaging Workflow](../../operations/release_packaging_change_workflow.md) |
 
 ## Boundary Rules
@@ -37,7 +34,6 @@ Main process code is a trust boundary. It receives renderer requests through pre
 - Main process should not execute local tools directly. It should adapt host context and transport executable requests through the SDK local-runtime bridge, with local-runtime Python code remaining the concrete local executor.
 - Main process owns native windows and platform side effects. Renderer should consume normalized state/events, not decide window flags, display placement, capture-time hiding, or OS permissions.
 - Packaged mode must not fall back to source-only paths for local-runtime Python code or runtime.
-- VM worker mode should not accidentally create overlay windows, tray icons, or hotkeys meant for the interactive desktop app.
 
 ## Change Sequence
 

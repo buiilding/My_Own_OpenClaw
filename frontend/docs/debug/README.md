@@ -14,26 +14,24 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 
 | Boundary | Owns | First files |
 | --- | --- | --- |
-| Hosted backend | Agent loop, providers, tool schemas, websocket events, SDK routes, OCR/vision/TTS/STT | `backend/src/api`, `backend/src/agent`, `backend/src/llm`, `backend/src/tools`, `backend/src/services` |
+| Hosted backend | Agent loop, providers, tool schemas, websocket events, SDK routes, OCR/vision/TTS/STT | private backend implementation |
 | Electron main | Windows, overlay orchestration, IPC relay, local config, permission probes, SDK local-runtime host/status context | `frontend/src/main` |
 | React renderer | Dashboard, chat UI, response overlay UI, permissions UI, voice controls, projected tool state | `frontend/src/renderer` |
 | local-runtime implementation | Local executable tools, memory store, browser runtime, screenshots, shell/process execution backed by local-runtime Python | `frontend/src/main/python` |
-| Tests | Contract drift and runtime regressions | `tests/backend`, `tests/frontend`, `tests/sidecar` |
+| Tests | Contract drift and runtime regressions | private backend tests, `tests/frontend`, `tests/sidecar` |
 
 ## Debug Pages
 
 - [Logging](logging.md) maps backend, Electron, renderer, local-runtime Python, and packaged app log controls.
 - [Observability Change Workflow](observability_change_workflow.md) routes new logs, traces, metrics, diagnostic flags, and evidence signals to the right runtime.
 - [Error and Failure Change Workflow](error_failure_change_workflow.md) routes exception mapping, websocket/HTTP errors, IPC failures, local-runtime ToolResult failures, renderer error UI, retries, and sanitized logs.
-- [Diagnostic Flags](diagnostic_flags.md) maps backend, Electron, renderer, local-runtime Python, VM worker, and packaged-app debug flags.
 - [Runtime Traces](runtime_traces.md) covers stream, chat pill, screenshot, overlay, and local-runtime trace paths.
 - [Invariants](invariants.md) is the central ledger for durable product,
   runtime, tool, and extension invariants, with routes to owner docs and
   regression packs.
 - [User-Facing Regression Pack](user_facing_regression_pack.md) is the product-level umbrella for discovered user-visible behavior invariants.
 - [Core Loop Regression Pack](core_loop_regression_pack.md) is the focused suite for chat pill, dashboard, overlay, SDK projection, conversation runtime, IPC, replay, stop, tool-row, and surface-lease invariants.
-- [Endpoint and Network Debugging](endpoint_and_network_debugging.md) routes hosted/local endpoint, websocket, install auth, Cloudflare, and local-runtime backend URL failures.
-- [Process Health Checklist](process_health_checklist.md) maps backend, Electron, renderer, local-runtime Python process, wakeword, VM worker, and Cloudflare process health checks.
+- Endpoint and Network Debugging (private backend docs) routes hosted/local endpoint, websocket, install auth, private deployment, and local-runtime backend URL failures.
 - [Symptom Playbooks](symptom_playbooks.md) maps common failures to code roots and validation.
 - [Test Selection](test_selection.md) maps changed subsystems to focused tests and full-suite commands.
 

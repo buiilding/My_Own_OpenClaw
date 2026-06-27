@@ -90,6 +90,6 @@ Future subscription/usage metering belongs in planning or hosted operations unti
 
 - Token Count Event and Usage Diagnostics Reference (private backend docs)
 - Backend Agent LLM Docs Hub (private backend docs)
-- Backend Services Token Docs Hub (private backend docs)
+- Private hosted services Token Docs Hub (private backend docs)
 - [Frontend Backend Event Consumer Matrix](../frontend/contracts/backend_event_consumer_matrix_reference.md)
 - [Dashboard Usage Section Runtime Reference](../frontend/renderer/dashboard/sections/usage_section_placeholder_panel_and_modal_contract_reference.md)

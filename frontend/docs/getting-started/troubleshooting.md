@@ -57,7 +57,7 @@ read_when:
 1. **Run from Correct Directory**:
    ```bash
    cd /path/to/WindieOS
-   <windie> start backend
+   private backend start command
    ```
 
 2. **Check PYTHONPATH**:
@@ -96,8 +96,8 @@ read_when:
    ```
 
 3. **Check Backend Config**:
-   - Verify `backend/src/core/config/app_config.py` uses the provider you expect
-   - Confirm the provider’s API key environment variable is set (see `backend/src/core/config/models.py`)
+   - Verify private backend implementation uses the provider you expect
+   - Confirm the provider’s API key environment variable is set (see private backend implementation)
 
 ### Frontend Issues
 
@@ -340,7 +340,7 @@ read_when:
 
 **Solutions**:
 1. **Check Memory Enabled**:
-   - Backend embedding API depends on `memory_enabled` in `backend/src/core/config/app_config.py`
+   - Backend embedding API depends on `memory_enabled` in private backend implementation
    - If disabled, `/api/embeddings` returns 503 and memory search/store will fail
 
 2. **Check Database**:
@@ -351,7 +351,7 @@ read_when:
 
 3. **Check Embeddings**:
    - Verify the backend is running and `/api/embeddings/health` is healthy
-   - If you don’t have CUDA, set `device="cpu"` in `backend/src/core/container/factories.py`
+   - If you don’t have CUDA, set `device="cpu"` in private backend implementation
 
 #### Continue Conversation Fails on Missing Screenshot Artifact
 
@@ -363,8 +363,8 @@ read_when:
 - Conversation resume should continue instead of failing the whole restore.
 
 **If You Still See Hard Failures**:
-1. Ensure backend includes current rehydrate artifact handling in `backend/src/api/services/rehydrate_execution.py`.
-2. Restart backend after pulling latest changes.
+1. Ensure backend includes current rehydrate artifact handling in private backend implementation.
+2. Restart the private backend after pulling latest changes.
 
 #### Slow Memory Search
 
@@ -447,7 +447,7 @@ read_when:
 **Enable Debug Logging**:
 ```bash
 export DESKTOP_ASSISTANT_LOG_LEVEL=DEBUG
-<windie> start backend
+private backend start command
 ```
 
 ### Common Error Messages

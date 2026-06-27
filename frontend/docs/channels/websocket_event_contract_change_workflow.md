@@ -17,15 +17,15 @@ The core rule is: update the producer, formatter, outgoing schema, SDK transport
 
 | Change or symptom | First owner | Code roots | Start docs | Focused tests |
 | --- | --- | --- | --- | --- |
-| add or rename a backend streamed event | backend event contract | `backend/src/core/events/streaming_events.py`, `backend/src/core/types/enums.py`, `backend/src/api/contracts/formatter_specs.py` | [Streaming and Events](../concepts/streaming_and_events.md), Streaming Event to Formatter and Outgoing Contract Alignment Reference (private backend docs) | `tests/backend/test_events.py`, `tests/backend/test_formatter_specs_contract.py`, `tests/backend/test_api_contract_registry.py` |
-| change outgoing payload shape | backend formatter and outgoing schema | `backend/src/api/processing/formatters/*`, `backend/src/api/schemas/outgoing.py`, `backend/src/api/contracts/message_types.py` | Formatter Dispatch and Schema Alignment Reference (private backend docs), Formatter Validation and Contract-Test Matrix Reference (private backend docs) | `tests/backend/test_formatters.py`, `tests/backend/test_response_formatter.py`, `tests/backend/test_outgoing_schema_contract.py` |
+| add or rename a backend streamed event | backend event contract | private backend implementation | [Streaming and Events](../concepts/streaming_and_events.md), Streaming Event to Formatter and Outgoing Contract Alignment Reference (private backend docs) | private backend tests |
+| change outgoing payload shape | backend formatter and outgoing schema | private backend implementation | Formatter Dispatch and Schema Alignment Reference (private backend docs), Formatter Validation and Contract-Test Matrix Reference (private backend docs) | private backend tests |
 | event is produced but websocket sends nothing | backend formatter required-field guard or spec registration | formatter spec, formatter class, event dataclass | Base Formatter Guard Utilities and Skip Semantics Reference (private backend docs) | formatter tests for skipped vs emitted cases |
 | event reaches the Electron agent host but renderer ignores it | renderer typed event guard, SDK normalizer/projection, typed fan-out channel, or dedicated parser | `packages/windie-sdk-js/src/events/backendEvents.ts`, `packages/windie-sdk-js/src/transport/backendEventNormalizer.ts`, `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`, audio parser when relevant | [From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Reference](../frontend/contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md) | `tests/frontend/DesktopChatStreamIngressRuntime.test.ts`, `tests/frontend/AgentSdkConversationRuntime.test.ts`, event-specific frontend tests |
 | chat text, thinking, terminal, or error state behaves wrong | renderer chat stream handlers | `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/*`, `frontend/src/renderer/app/runtime/desktopChatStream*.ts` | [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md), [Frontend Chat Stream and Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md) | `tests/frontend/ChatStream*.test.ts`, `tests/frontend/StreamPhaseState.test.js` |
 | tool-call, tool-output, or tool-bundle event changes | backend tool formatter plus SDK conversation/tool runtime and renderer display consumers | backend tool formatters, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, renderer tool message utilities | [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) | backend tool formatter/result tests plus SDK conversation-runtime and renderer display tests |
-| prompt transparency event changes | backend prompt/event presenter plus SDK display/rehydrate projection consumers | `backend/src/agent/llm/event_presenter.py`, prompt events/formatters, SDK conversation projections, backend rehydrate transparency resolution | Prompt Context Change Workflow (private backend docs) | prompt/event tests plus SDK projection and backend rehydrate transparency tests |
+| prompt transparency event changes | backend prompt/event presenter plus SDK display/rehydrate projection consumers | private backend implementation, prompt events/formatters, SDK conversation projections, backend rehydrate transparency resolution | Prompt Context Change Workflow (private backend docs) | prompt/event tests plus SDK projection and backend rehydrate transparency tests |
 | token-count, usage, cache, or thinking status changes | backend token usage event plus renderer token/thinking handlers | token-count formatter, stream processor, renderer thinking/token utilities | [Usage and Token Accounting](../concepts/usage_and_token_accounting.md), Token Count Event and Usage Diagnostics Reference (private backend docs) | backend token/usage tests plus frontend token/thinking tests |
-| `audio-chunk` or TTS stream changes | backend TTS/audio path and renderer app-runtime audio parser | `backend/src/api/processing/tts`, `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts` | [Voice Audio Change Workflow](voice_audio_change_workflow.md), Backend TTS Manager (private backend docs) | backend TTS tests plus `tests/frontend/AudioChunkEvents.test.js` |
+| `audio-chunk` or TTS stream changes | backend TTS/audio path and renderer app-runtime audio parser | private backend implementation, `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts` | [Voice Audio Change Workflow](voice_audio_change_workflow.md), Backend TTS Manager (private backend docs) | backend TTS tests plus `tests/frontend/AudioChunkEvents.test.js` |
 | settings/model ACK event changes | non-query websocket handlers and app config listeners | backend settings/model handlers, renderer app config event listeners | [Settings and Model ACK Event Routing Reference](../frontend/contracts/events/settings_and_model_ack_event_routing_reference.md), [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md) | backend handler tests plus app config/status frontend tests |
 
 ## Boundary Rules
@@ -52,11 +52,11 @@ The core rule is: update the producer, formatter, outgoing schema, SDK transport
 
 ## Add a New Backend Chat Event
 
-1. Define or update the backend event dataclass in `backend/src/core/events/streaming_events.py`.
+1. Define or update the backend event dataclass in private backend implementation.
 2. Add the canonical literal to `StreamingEventType` only if this is a backend streaming event.
-3. Add formatter registration in `backend/src/api/contracts/formatter_specs.py`.
-4. Add a formatter class under `backend/src/api/processing/formatters`.
-5. Add outgoing type constant and schema model in `backend/src/api/contracts/message_types.py` and `backend/src/api/schemas/outgoing.py`.
+3. Add formatter registration in private backend implementation.
+4. Add a formatter class under private backend implementation.
+5. Add outgoing type constant and schema model in private backend implementation and private backend implementation.
 6. Add schema/registry/formatter tests.
 7. Add the renderer TypeScript event type in `packages/windie-sdk-js/src/events/backendEvents.ts`.
 8. Add SDK backend-event normalization and renderer consumer logic under chat stream utilities.
@@ -142,9 +142,9 @@ Tool events are both UI state and SDK runtime execution requests.
 
 | Changed surface | Minimum checks |
 | --- | --- |
-| backend event dataclass/type/spec | `./scripts/python-in-env backend pytest tests/backend/test_events.py tests/backend/test_formatter_specs_contract.py tests/backend/test_api_contract_registry.py` |
-| formatter/outgoing schema | `./scripts/python-in-env backend pytest tests/backend/test_formatters.py tests/backend/test_response_formatter.py tests/backend/test_outgoing_schema_contract.py` |
-| query stream pipeline | `./scripts/python-in-env backend pytest tests/backend/test_stream_pipeline.py tests/backend/test_query_execution_pipeline_events.py tests/backend/test_query_execution_stream_state.py` |
+| backend event dataclass/type/spec | private backend test runner |
+| formatter/outgoing schema | private backend test runner |
+| query stream pipeline | private backend test runner |
 | renderer typed guard/SDK dispatch | `cd frontend && npm run test -- DesktopChatStreamIngressRuntime DesktopChatStreamEventRuntime AgentSdkConversationRuntime` |
 | renderer stream state/terminal behavior | focused `ChatStream*`, `StreamPhaseState`, and terminal handoff tests |
 | tool event changes | backend tool formatter/result tests plus SDK/local-runtime and renderer display tests (`AgentSdkConversationRuntime`, `LocalRuntimeExecuteToolRuntime`, `ToolOutputMessageState`) |

@@ -8,7 +8,7 @@ read_when:
 
 ## Requirements
 
-- **Python** 3.11 (backend + local-runtime Python)
+- **Python** 3.11 (local-runtime Python)
 - **Node.js** 18+ (frontend)
 - **npm** (included with Node)
 
@@ -19,31 +19,16 @@ You can use either `venv` or conda. The Electron local runtime resolves Python u
 - `CONDA_PREFIX` if set
 - otherwise `python3` (Linux/macOS) or `py` (Windows) from `PATH`
 
-### Option A: `venv` (single env)
+### Option A: `venv`
 
 ```bash
-cd backend
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
-pip install -r requirements.txt
-```
-
-Install local-runtime Python deps into the same env you will use to launch Electron:
-
-```bash
 cd frontend/src/main/python
 pip install -r requirements.txt
 ```
 
 ### Option B: conda
-
-```bash
-conda create -n jarvis python=3.11
-conda activate jarvis
-pip install -r backend/requirements.txt
-```
-
-If you want a separate env for the local-runtime Python implementation:
 
 ```bash
 conda create -n frontend_jarvis python=3.11
@@ -53,21 +38,19 @@ pip install -r frontend/src/main/python/requirements.txt
 
 ## Environment-Aware Helper Scripts
 
-Repo scripts can route commands into the canonical conda envs when present:
+Repo scripts can route commands into the canonical conda env when present:
 
-- `jarvis` for backend commands
 - `frontend_jarvis` for local-runtime/frontend commands
 
 Use:
 
 ```bash
-./scripts/python-in-env.sh <backend|local-runtime|frontend> <cmd...>
+./scripts/python-in-env.sh <local-runtime|frontend> <cmd...>
 ```
 
 If conda or the target env is unavailable, this script falls back to your current shell environment.
 
-Optional overrides:
-- `WINDIE_BACKEND_ENV`: override backend env name (default `jarvis`)
+Optional override:
 - `WINDIE_FRONTEND_ENV`: override local-runtime/frontend env name (default `frontend_jarvis`)
 
 ## Frontend Environment
@@ -85,4 +68,4 @@ Set API keys in your shell (example for OpenAI):
 export OPENAI_API_KEY="your-key"
 ```
 
-See `backend/src/core/config/models.py` for provider env variable names.
+Provider-specific hosted API keys are documented in private backend docs.

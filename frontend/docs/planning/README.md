@@ -11,9 +11,9 @@ Single entrypoint for active future work. Use this page first.
 
 ## Canonical Roadmap
 
-- Company future framing: `windieos_company_future_overview.md`
+- Company future framing: `WindieOS Company Future Overview (private backend docs)`
 - Product roadmap and sequencing: `future_plan.md`
-- Deployment and hosting rollout: `../operations/deployment.md`
+- Deployment and hosting rollout: Deployment Guide (private backend docs)
 - Plan tiers and limits:
   - `plan_matrix.md`
 
@@ -22,8 +22,8 @@ Single entrypoint for active future work. Use this page first.
 - `windieos_mobile_app_plan.md`
 - `windieos_self_edit_config_plan.md`
 - `windieos_cli_os_control_plan.md`
-- `windieos_agent_to_agent_communication_plan.md`
-- `windieos_vm_multi_agent_plan.md`
+- `WindieOS Agent-to-Agent Communication Plan (private backend docs)`
+- `WindieOS VM Multi-Agent Plan (private backend docs)`
 
 ## Scope Rules
 

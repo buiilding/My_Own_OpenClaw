@@ -56,7 +56,6 @@ main process, React renderer, and the local-runtime Python implementation.
 - [Query Payload and Relay Reference](main/query_payload_and_relay_reference.md)
 - [WebSocket Handshake and Settings Sync Reference](main/websocket_handshake_and_settings_sync_reference.md)
 - [Wakeword Bridge Runtime Helper Reference](main/wakeword_bridge_runtime_helper_reference.md)
-- [VM Worker Runs Bridge Runtime Reference](main/vm_worker_runs_bridge_runtime_reference.md)
 - [IPC Helper Module Split and Runtime Boundary Reference](main/ipc_helper_module_split_and_runtime_boundary_reference.md)
 - [IPC Query Runtime and Transcript Sync Helper Reference](main/ipc_query_runtime_and_transcript_sync_helper_reference.md)
 - [Main Local-Runtime Docs Hub](main/local_backend/README.md)
@@ -160,7 +159,6 @@ main process, React renderer, and the local-runtime Python implementation.
 - [Stream Event State Machine](runtime/stream_event_state_machine.md)
 - [Overlay Phase and Surface Change Workflow](runtime/overlay_phase_and_surface_change_workflow.md)
 - [Workspace Context Change Workflow](runtime/workspace_context_change_workflow.md)
-- [Frontend Runtime Surface: Main, Renderer, Local Runtime, and VM Worker](runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
 - [Config Sync and Settings Lifecycle Reference](runtime/config_sync_and_settings_lifecycle_reference.md)
 - [Audio Chunk Playback and Stop Semantics Reference](runtime/audio_chunk_playback_and_stop_semantics_reference.md)
 

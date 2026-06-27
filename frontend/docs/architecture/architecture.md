@@ -21,12 +21,9 @@ The intended product boundary is:
 Current runtime topology includes both:
 
 - a primary chat stream plane (`/ws`) for query/tool-turn orchestration, and
-- an HTTP control plane (`/api/runs/*`) for VM worker assignment, heartbeat, control commands, and event relay.
 
 See:
 
-- Backend Runtime Surface: Query, Tool Loop, and VM Runs (private backend docs)
-- [Frontend Runtime Surface: Main, Renderer, Local Runtime, and VM Worker](../frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
 
 ## Future: Hosted Multi-Tenant Architecture (Planned)
 
@@ -63,11 +60,11 @@ Data Plane
 - **Graceful limit UX**: soft warnings + hard blocking with upgrade flow.
 
 ### Local-Only / Self-Hosted Mode
-Local-only or self-hosted mode remains available for privacy-first users or internal deployments:
+Local-only or custom hosted deploymented mode remains available for privacy-first users or internal deployments:
 - No cloud sync
 - Local memory + local storage
 - Local model execution when configured
-- Optional local backend deployment when explicitly provisioned
+- Optional custom hosted deployment when explicitly provisioned
 
 This is not the primary open-source SDK contract. The default client contract is hosted backend plus SDK local runtime.
 
@@ -135,7 +132,6 @@ This is not the primary open-source SDK contract. The default client contract is
 - **Electron Agent Host**: Starts and adapts the SDK runtime that owns hosted
   backend websocket transport, conversation projection, and local-runtime
   coordination
-- **VM Worker Runtime**: Optional heartbeat/assignment relay loop for `/api/runs/*` when `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE` are enabled
 - **Wakeword Bridge**: Python subprocess management for wakeword detection
 - **Local Runtime Daemon**: SDK-owned local-runtime daemon for tool execution,
   system state capture, and local memory
@@ -180,7 +176,7 @@ This is not the primary open-source SDK contract. The default client contract is
    ↓
 6. Agent SDK runtime -> WebSocket -> Backend
    ↓
-7. Backend validates message (`backend/src/api/schemas/incoming.py`)
+7. Backend validates message (private backend implementation)
    ↓
 8. Message routed to QueryHandler
    ↓
@@ -368,7 +364,7 @@ ApplicationContainer
 
 ## Service Layer
 
-Core runtime services live under `backend/src/services/`:
+Core runtime services live under private backend implementation:
 
 - `vision/` for UI grounding models
 - `ocr/` for RapidOCR-backed text detection
@@ -438,7 +434,7 @@ BaseException
 - Register in tool registry
 
 ### Vision Provider
-- Implement a provider under `backend/src/services/vision/providers/`
+- Implement a provider under private backend implementation
 - Select in `services/vision/vision_service.py`
 
 ### Custom LLM Provider
@@ -457,7 +453,7 @@ BaseException
 
 > **Note**: The capabilities described below are **planned features** that have not yet been implemented. They represent our strategic vision for future architectural enhancements.
 >
-> Detailed sequencing and delivery plan: `../planning/future_plan.md` and `../operations/deployment.md`.
+> Detailed sequencing and delivery plan: `../planning/future_plan.md` and Deployment Guide (private backend docs).
 
 #### Multi-Agent Orchestration (Planned - Strategic Priority)
 The future architecture would be designed to support **multi-agent orchestration across machines** - a capability that would be extremely difficult to replicate and represents a core competitive advantage:

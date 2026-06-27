@@ -1,5 +1,5 @@
 ---
-summary: "Local development setup for WindieOS backend, frontend, Electron app, local-runtime implementation, tests, and environment launcher."
+summary: "Local development setup for the public WindieOS frontend, Electron app, local-runtime implementation, tests, and environment launcher."
 read_when:
   - When setting up WindieOS for source development.
   - When changing developer commands or environment assumptions.
@@ -15,21 +15,20 @@ conda environments or invoking lower-level launch scripts directly.
 environment adapters for
 focused Python commands.
 
-Use [Install Decision Matrix](install_decision_matrix.md) first when you are not sure whether source mode is sufficient. Source mode is the right loop for backend, renderer, and local-runtime implementation, but not for bundled runtime, installed app path, signing, or OS permission validation.
+Use [Install Decision Matrix](install_decision_matrix.md) first when you are not sure whether source mode is sufficient. Source mode is the right loop for renderer and local-runtime implementation, but not for bundled runtime, installed app path, signing, private hosted services, or OS permission validation.
 
 ## Prerequisites
 
 - Python 3.11
 - Node 18+
-- Backend conda env name: `jarvis`
 - Frontend/local-runtime implementation conda env name: `frontend_jarvis`
 
 ## Install
 
 ```bash
-pip install -r backend/requirements.txt
 (cd frontend && npm install)
 (cd packages/windie-sdk-js && npm install)
+(cd frontend/src/main/python && pip install -r requirements.txt)
 ```
 
 Windows PowerShell may resolve `npm` to `npm.ps1`, which can fail under the
@@ -43,7 +42,6 @@ npm.cmd install
 ## Run
 
 ```bash
-<windie> start backend
 <windie> start dev
 ```
 
@@ -55,7 +53,6 @@ new worktree is missing `frontend/node_modules` or the SDK-owned
 Windows PowerShell equivalents:
 
 ```powershell
-<windie> start backend
 <windie> start dev
 ```
 
@@ -77,7 +74,6 @@ $env:BACKEND_WS_URL = "ws://127.0.0.1:8765/ws"
 
 Convenience scripts also exist:
 
-- `<windie> start backend`
 - `<windie> start frontend`
 - `<windie> start desktop`
 - `<windie> start dev`
@@ -85,7 +81,6 @@ Convenience scripts also exist:
 ## Test
 
 ```bash
-<windie> test backend
 <windie> test local-runtime
 <windie> test frontend
 cd frontend && npm run lint
@@ -94,7 +89,6 @@ cd frontend && npm run lint
 Windows PowerShell:
 
 ```powershell
-<windie> test backend
 <windie> test local-runtime
 <windie> test frontend
 cd frontend; npm.cmd run lint

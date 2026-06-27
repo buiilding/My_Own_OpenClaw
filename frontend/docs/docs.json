@@ -143,7 +143,6 @@
             "group": "Debug and security",
             "pages": [
               "debug/README",
-              "debug/process_health_checklist",
               "debug/symptom_playbooks",
               "debug/invariants",
               "debug/user_facing_regression_pack",
@@ -175,7 +174,6 @@
             "group": "Docs policy",
             "pages": [
               "development/docs_update_workflow",
-              "reference/openclaw_docs_structure_reference",
               "adr/README"
             ]
           }

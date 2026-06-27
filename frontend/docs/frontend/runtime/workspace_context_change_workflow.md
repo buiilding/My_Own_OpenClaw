@@ -41,9 +41,9 @@ execution, and backend prompt construction.
 | Per-conversation workspace binding is missing or stale | `frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts`, `frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js`, `useChatMessageSender.ts`, `useDashboardConversations.js`, transcript snapshot loader | `tests/frontend/ChatWorkspaceState.test.ts`, dashboard conversation tests, transcript snapshot tests |
 | Query payload has missing or wrong `workspace_path` | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`, `frontend/src/main/ipc/ipc_workspace_path_runtime.cjs`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | `tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`, `tests/frontend/IpcWorkspacePathRuntime.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/IpcQueryRuntime.test.cjs` |
 | Electron main AGENTS.md injection changes | `frontend/src/main/app/repo_instruction_runtime.cjs`, `frontend/src/main/ipc.cjs` | `tests/frontend/RepoInstructionRuntime.test.cjs`, query relay tests |
-| Backend query execution does not pass workspace into agent session | `backend/src/api/services/query_execution_support/query_execution_inputs.py`, `backend/src/api/services/query_execution.py`, `backend/src/agent/session/manager.py` | `tests/backend/test_query_execution_inputs.py`, `tests/backend/test_api_handlers.py`, `tests/backend/test_session_manager.py` |
-| Backend prompt misses AGENTS.md or uses stale repo instructions | `backend/src/llm/prompts/repo_instructions.py`, prompt constructor/manager modules | `tests/backend/test_repo_instructions.py`, `tests/backend/test_prompt_constructor_utils.py`, `tests/backend/test_prompt_manager.py` |
-| Rehydrated conversation resumes with wrong workspace | `backend/src/api/services/rehydrate_execution.py`, renderer rehydrate payload builders, conversation workspace binding helpers | backend rehydrate tests, frontend conversation replay/resume tests |
+| Backend query execution does not pass workspace into agent session | private backend implementation | private backend tests |
+| Backend prompt misses AGENTS.md or uses stale repo instructions | private backend implementation, prompt constructor/manager modules | private backend tests |
+| Rehydrated conversation resumes with wrong workspace | private backend implementation, renderer rehydrate payload builders, conversation workspace binding helpers | backend rehydrate tests, frontend conversation replay/resume tests |
 
 ## Runtime Flow
 
@@ -171,9 +171,9 @@ Read these files when `workspace_path` is missing on the backend:
 - `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/app/repo_instruction_runtime.cjs`
-- `backend/src/api/services/query_execution_support/query_execution_inputs.py`
-- `backend/src/api/services/query_execution.py`
-- `backend/src/api/services/rehydrate_execution.py`
+- private backend implementation
+- private backend implementation
+- private backend implementation
 
 Forwarding rules:
 
@@ -197,8 +197,8 @@ Electron main path:
 
 Backend path:
 
-- `backend/src/llm/prompts/repo_instructions.py`
-- `tests/backend/test_repo_instructions.py`
+- private backend implementation
+- private backend tests
 
 Instruction rules:
 
@@ -220,10 +220,10 @@ Instruction rules:
 
 Read these files when the model does not see workspace context:
 
-- `backend/src/llm/prompts/repo_instructions.py`
-- prompt constructor/manager modules under `backend/src/llm/prompts`
-- `backend/src/agent/session/manager.py`
-- `backend/src/agent/session/config_runtime.py`
+- private backend implementation
+- prompt constructor/manager modules under private backend implementation
+- private backend implementation
+- private backend implementation
 
 Prompt rules:
 
@@ -271,14 +271,14 @@ Query forwarding or repo instruction injection change:
 - `cd frontend && npm run test -- DesktopLiveTurnRuntimeClient`
 - `cd frontend && npm run test -- IpcMainBridge.query`
 - `cd frontend && npm run test -- RepoInstructionRuntime`
-- `./scripts/python-in-env backend pytest tests/backend/test_query_execution_inputs.py`
-- `./scripts/python-in-env backend pytest tests/backend/test_repo_instructions.py`
+- private backend test runner
+- private backend test runner
 
 Backend prompt/session change:
 
-- `./scripts/python-in-env backend pytest tests/backend/test_prompt_constructor_utils.py`
-- `./scripts/python-in-env backend pytest tests/backend/test_prompt_manager.py`
-- `./scripts/python-in-env backend pytest tests/backend/test_session_manager.py`
+- private backend test runner
+- private backend test runner
+- private backend test runner
 
 ## Docs to Sync
 

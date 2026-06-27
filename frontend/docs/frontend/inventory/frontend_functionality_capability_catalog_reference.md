@@ -51,7 +51,6 @@ Capabilities:
 - Maintains overlay bounds, top-most order, click-through policy, and fallback positioning.
 - Supports wakeword hotkey toggle and wakeword STT trigger relays.
 - Uses blur-only overlay query-capture prep instead of cross-app focus restoration.
-- Gates VM mode/worker mode from env and starts an automated VM worker runtime loop when enabled.
 
 ## 2) Main IPC + Backend Relay
 
@@ -107,7 +106,6 @@ Capabilities:
 - Screenshot tool execution currently calls the local-runtime screenshot task directly; Linux hide/show ownership is SDK/main surface prep and renderer attachment capture orchestration.
 - Wakeword bridge uses length-prefixed binary frame protocol for audio/result streams and clears stale stdout/stderr buffers on restart/exit.
 
-## 3.5) VM Worker and Hosted Runs Bridge
 
 Primary files:
 
@@ -118,9 +116,6 @@ Primary files:
 Capabilities:
 
 - Resolves worker-mode activation from `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE`.
-- Polls backend `/api/runs/workers/heartbeat` on interval for assignments and control commands.
-- Dispatches assigned runs through existing websocket query path and acknowledges `/api/runs/{run_id}/worker-dispatched`.
-- Relays backend stream events into run timelines (`/api/runs/{run_id}/events`) with run/conversation correlation.
 - Applies stop controls via websocket `stop-query` for mapped run conversations.
 
 ## 4) Preload Boundary

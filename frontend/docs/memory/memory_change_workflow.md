@@ -20,11 +20,11 @@ identifying which memory layer owns the symptom.
 | Visible chat row is missing or duplicated | SDK projection store plus renderer display handlers | `packages/windie-sdk-js/src/projections`, `packages/windie-sdk-js/src/runtime/Agent.ts`, chat stream handlers | SDK/main projection tests, `ChatStream*.test.ts` |
 | Conversation list/search is wrong | Local-runtime memory plus dashboard renderer | `frontend/src/main/python/memory/conversation_*`, dashboard hooks | `tests/sidecar/test_conversation_*.py`, `tests/frontend/DashboardConversationLoad.test.js` |
 | Replay displays wrong messages | SDK replay/display projection | `packages/windie-sdk-js/src/projections`, desktop conversation store adapter, replay hooks | SDK projection tests, rehydrate projection tests |
-| Backend forgets prior transcript after reopen | SDK rehydrate projection plus backend rehydrate path | `packages/windie-sdk-js/src/projections`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `tests/backend/test_rehydrate_*.py`, SDK rehydrate tests |
+| Backend forgets prior transcript after reopen | SDK rehydrate projection plus backend rehydrate path | `packages/windie-sdk-js/src/projections`, private backend implementation | private backend tests, SDK rehydrate tests |
 | Tool-call/tool-output linkage breaks after replay | SDK tool projection plus backend rehydrate linkage validation | SDK tool projection files, `rehydrate_tool_call_normalization.py`, `rehydrate_tool_linkage.py` | SDK tool projection tests, backend rehydrate linkage tests |
-| Semantic memory is stale or noisy | Local-runtime semanticization and backend semantic routes | `frontend/src/main/python/memory/conversation_semanticization_runtime.py`, `summarizer.py`, `backend/src/api/routes/memory/semantic` | `tests/sidecar/test_memory_summarizer.py`, `test_conversation_semanticization_runtime.py`, `tests/backend/test_memory_routes.py` |
+| Semantic memory is stale or noisy | Local-runtime semanticization and backend semantic routes | `frontend/src/main/python/memory/conversation_semanticization_runtime.py`, `summarizer.py`, private backend implementation | `tests/sidecar/test_memory_summarizer.py`, `test_conversation_semanticization_runtime.py`, private backend tests |
 | Embedding/search fails but transcript should still save | SDK embedding orchestration plus local-runtime memory store | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`, `local_store.py`, `faiss_index.py` | SDK memory tests, `tests/sidecar/test_local_store_*.py` |
-| Backend model context is too long or compaction output is wrong | Backend active history/compaction | `backend/src/agent/compaction`, `backend/src/agent/history`, executor/interaction loop | `tests/backend/test_history_compaction_engine.py`, `test_compaction_prompt.py`, `test_interaction_loop_compaction.py` |
+| Backend model context is too long or compaction output is wrong | Backend active history/compaction | private backend implementation, executor/interaction loop | private backend tests, `test_compaction_prompt.py`, `test_interaction_loop_compaction.py` |
 | Memory RPC result is wrong | Local-runtime memory handlers and memory store | `frontend/src/main/python/local_backend_memory_handlers.py`, `frontend/src/main/python/memory/*` | `tests/sidecar/test_memory_*.py`, `tests/sidecar/test_memory_operations.py` |
 
 ## Layer Contracts
@@ -86,8 +86,8 @@ Likely code:
 - desktop conversation store adapter
 - `packages/windie-sdk-js/src/projections/conversationProjections.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`
-- `backend/src/api/handlers/rehydrate.py`
-- `backend/src/api/services/rehydrate_*`
+- private backend implementation
+- private backend implementation
 
 Validation:
 
@@ -125,9 +125,9 @@ Read:
 
 Likely code:
 
-- `backend/src/agent/compaction/engine.py`
-- `backend/src/agent/compaction/prompt.py`
-- `backend/src/agent/compaction/strategies/*`
+- private backend implementation
+- private backend implementation
+- private backend implementation
 - executor and interaction loop compaction call sites
 - history admission/committer helpers
 

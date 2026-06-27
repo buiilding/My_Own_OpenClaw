@@ -16,18 +16,18 @@ Core rule: preserve the failure boundary. Backend errors should stay sanitized b
 
 | Failure surface | First owner | Code roots | Tests to inspect or add | Start docs |
 | --- | --- | --- | --- | --- |
-| Backend exception hierarchy and metadata | Backend core infrastructure | `backend/src/core/infrastructure/error_types/**`, `backend/src/core/infrastructure/user_facing_errors.py` | `tests/backend/test_exceptions.py`, `tests/backend/test_api_errors.py` | Backend Exception Hierarchy (private backend docs) |
-| Websocket incoming validation and sanitized error envelope | Backend API/websocket | `backend/src/api/infrastructure/errors.py`, `backend/src/api/routes/websocket/message_handler.py`, `backend/src/api/transport/sender.py`, `backend/src/api/processing/formatters/error.py` | websocket/API error tests, formatter tests | Handler Registry and Error Envelope Reference (private backend docs) |
-| HTTP route errors | Owning backend route/service | `backend/src/api/routes/**`, `backend/src/api/infrastructure/errors.py`, service helpers | route-specific backend tests | API Route Change Workflow (private backend docs) |
-| Model/tool parse recovery | Backend agent runtime | `backend/src/agent/recovery/**`, `backend/src/llm/parser_validation.py`, `backend/src/agent/execution/**` | parser validation, recovery, interaction-loop tests | Tool-Call Error Recovery Reference (private backend docs) |
-| Tool result failure ingestion | Backend tool waiting/processing | `backend/src/api/handlers/tool_result.py`, `backend/src/agent/tools/waiting/**`, `backend/src/agent/tools/processing/**` | `tests/backend/test_tool_result_*.py`, `test_incoming_tool_result_schemas.py` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
+| Backend exception hierarchy and metadata | Backend core infrastructure | private backend implementation | private backend tests | Backend Exception Hierarchy (private backend docs) |
+| Websocket incoming validation and sanitized error envelope | Backend API/websocket | private backend implementation | websocket/API error tests, formatter tests | Handler Registry and Error Envelope Reference (private backend docs) |
+| HTTP route errors | Owning backend route/service | private backend implementation, service helpers | route-specific backend tests | API Route Change Workflow (private backend docs) |
+| Model/tool parse recovery | Backend agent runtime | private backend implementation | parser validation, recovery, interaction-loop tests | Tool-Call Error Recovery Reference (private backend docs) |
+| Tool result failure ingestion | Backend tool waiting/processing | private backend implementation | private backend tests, `test_incoming_tool_result_schemas.py` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 | Electron websocket send/reconnect failure | Electron main IPC bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs` | `tests/frontend/IpcMainBridge*.test.cjs` | [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md) |
 | Preload IPC validation errors | Preload bridge and renderer IPC wrapper | `frontend/src/preload.js`, `frontend/src/renderer/infrastructure/ipc/**` | `tests/frontend/IpcBridgeValidation.test.ts` | [IPC Change Workflow](../frontend/ipc_change_workflow.md) |
 | Local runtime JSON-RPC/process failure | Electron local runtime bridge | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs`, local-runtime Python process launch helpers | `tests/frontend/LocalRuntimeBridge*.test.cjs` | [Local Runtime Process Lifecycle Change Workflow](../frontend/main/local_backend/process_lifecycle_change_workflow.md) |
 | Local-runtime tool result failures | local-runtime executable registry/tool implementation backed by local-runtime Python modules | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/result.py`, concrete tool module | `tests/sidecar/test_tool_result.py`, tool-specific local-runtime Python tests | [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
 | SDK/main tool-dispatch failure and display projection | SDK tool coordinator plus renderer projection | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts` | SDK tool/runtime tests, `ChatStreamToolHandlers.test.ts` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 | Renderer component crash boundary | Renderer components | `frontend/src/renderer/components/ErrorBoundary.jsx`, `frontend/src/renderer/styles/ErrorBoundary.css` | focused renderer component tests if behavior changes | [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) |
-| Provider/inference error mapping | Backend provider/inference layer | `backend/src/llm/providers/error_mapping.py`, `backend/src/core/inference/errors.py`, provider modules | provider/inference backend tests | [Provider Change Workflow](../providers/provider_change_workflow.md) |
+| Provider/inference error mapping | Backend provider/inference layer | private backend implementation, provider modules | provider/inference backend tests | [Provider Change Workflow](../providers/provider_change_workflow.md) |
 | Secret-safe logging of errors | Producing runtime | backend logging, Electron logs, renderer logs, local-runtime logs | focused tests or fixture scans | [Observability Change Workflow](observability_change_workflow.md) |
 
 ## Failure Boundary Rules
@@ -155,7 +155,7 @@ Read:
 
 - [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md)
 - [Main Process Change Workflow](../frontend/main/main_process_change_workflow.md)
-- [Process Health Checklist](process_health_checklist.md)
+- Process Health Checklist (private backend docs)
 
 Edit:
 
@@ -227,9 +227,9 @@ Validate:
 | --- | --- |
 | Backend websocket error envelope | backend API/websocket error tests plus formatter/schema tests |
 | Backend HTTP route error | focused route tests for status/detail/auth/validation/internal errors |
-| Backend exception hierarchy | `./scripts/python-in-env backend pytest tests/backend/test_exceptions.py tests/backend/test_api_errors.py` |
+| Backend exception hierarchy | private backend test runner |
 | Parser/tool-call recovery | parser validation and interaction-loop recovery tests |
-| Tool result ingestion | `./scripts/python-in-env backend pytest tests/backend/test_tool_result_receiver.py tests/backend/test_tool_result_router.py tests/backend/test_incoming_tool_result_schemas.py` |
+| Tool result ingestion | private backend test runner |
 | Electron websocket/settings/local-runtime failures | `<windie> test frontend -- IpcMainBridge LocalRuntimeBridge` |
 | Preload/IPC validation | `<windie> test frontend -- IpcBridgeValidation` |
 | Local-runtime ToolResult/registry | `./scripts/python-in-env local-runtime python -m pytest tests/sidecar/test_tool_result.py tests/sidecar/test_tool_registry.py` |

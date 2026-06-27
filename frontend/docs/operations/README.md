@@ -11,7 +11,7 @@ title: "Frontend Operations Hub"
 # Frontend Operations Hub
 
 Public operations docs cover contributor-facing desktop packaging and local
-validation workflows. Private backend deployment, hosted auth, Cloudflare,
+validation workflows. Private deployment, hosted auth, private deployment,
 incident, runtime-config, and VM-runs operations live in private backend docs.
 
 ## Public Frontend Operations
@@ -28,10 +28,8 @@ incident, runtime-config, and VM-runs operations live in private backend docs.
 
 These topics are intentionally not public frontend docs:
 
-- hosted backend deployment and Cloudflare tunnel runbooks
 - backend runtime configuration and provider environment policy
 - hosted install auth operations
-- VM runs control-plane operations
 - backend incident triage and production evidence collection
 - backend operational troubleshooting
 

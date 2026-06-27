@@ -13,7 +13,7 @@ WindieOS has four practical log streams: backend Python logs, Electron main stdo
 
 ## Backend Logs
 
-Backend logging is configured in `backend/src/core/logging_setup.py`.
+Backend logging is configured in private backend implementation.
 
 Use [Observability Change Workflow](observability_change_workflow.md) before adding new log streams, trace flags, metrics, or evidence collection paths.
 
@@ -29,8 +29,8 @@ Backend logger names matter because the important profile demotes several noisy 
 Useful backend commands:
 
 ```bash
-LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose <windie> start backend
-LOG_LEVEL=DEBUG <windie> test backend tests/backend/test_websocket_route.py -q
+LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose private backend start command
+LOG_LEVEL=DEBUG private backend tests private backend tests -q
 ```
 
 ## Electron Main Logs

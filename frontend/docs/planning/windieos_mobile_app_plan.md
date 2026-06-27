@@ -30,7 +30,7 @@ WindieOS is currently desktop-first and Electron-coupled:
 - Wakeword is a dedicated Python subprocess bridge in `frontend/src/main/wakeword/wakeword_bridge.cjs`.
 - Tool schemas are backend-defined remote stubs and currently must match the
   local-runtime exposed set backed by local-runtime Python implementation tests (see
-  `tests/backend/test_remote_tool_contract.py`).
+  private backend tests).
 - Query payload normalization happens in Electron main (`frontend/src/main/ipc/ipc_query_runtime.cjs`); SDK context enrichment renders memory/attachment/user-query content before `query` is sent.
 
 Mobile blockers from this baseline:
@@ -38,7 +38,7 @@ Mobile blockers from this baseline:
 - No Electron main/preload/IPC layer on mobile.
 - No portable way to run the current local-runtime Python subprocess model on iOS/Android.
 - No desktop window overlay/hotkey model on mobile.
-- Current backend CORS defaults only allow `http://localhost:5173` (`backend/src/main.py`).
+- Current backend CORS defaults only allow `http://localhost:5173` (private backend implementation).
 - Memory browsing/deletion UI currently depends on SDK local-runtime-backed
   commands that assume desktop local storage.
 
@@ -137,11 +137,11 @@ Implementation steps:
 4. Update CORS/config to allow mobile origins and production domains.
 
 Suggested files to extend:
-- `backend/src/api/schemas/common.py`
-- `backend/src/api/schemas/incoming.py`
-- `backend/src/api/contracts/message_types.py`
-- `backend/src/tools/tool_policy.py`
-- `backend/src/main.py` (CORS policy)
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation (CORS policy)
 
 Acceptance criteria:
 - Mobile clients can connect without local-runtime execution assumptions.
@@ -236,7 +236,7 @@ Acceptance criteria:
 ### Automated
 
 - Shared app-core unit tests for stream/tool/message reducers.
-- Desktop regression tests remain green (`tests/frontend`, `tests/sidecar`, `tests/backend`).
+- Desktop regression tests remain green (`tests/frontend`, `tests/sidecar`, private backend tests).
 - New mobile integration tests for:
   - connect/handshake
   - query streaming lifecycle

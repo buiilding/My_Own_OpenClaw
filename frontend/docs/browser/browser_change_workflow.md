@@ -37,8 +37,8 @@ separate design boundary covered by [ADR 004](../adr/004-browser-extension-auto-
 
 | Change shape | First owner | Code roots | Tests to inspect or add | Start docs |
 | --- | --- | --- | --- | --- |
-| Browser tool visible/missing from model | Backend tool catalog/policy | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/browser.py`, `backend/src/tools/tool_policy.py`, `backend/src/tools/browser/**` | `tests/backend/test_browser_remote_tool.py`, tool policy/schema tests | [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) |
-| Browser action schema, fields, or action literals | Shared browser contract plus backend remote tool | `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/browser/shared_contract_loader.py`, `backend/src/tools/remote_tools/browser.py`, `frontend/src/main/python/tools/browser/browser_tool.py` | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_schemas.py`, Browser Use engine tests | [Browser Action Surface](browser_action_surface.md) |
+| Browser tool visible/missing from model | Backend tool catalog/policy | private backend implementation | private backend tests, tool policy/schema tests | [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) |
+| Browser action schema, fields, or action literals | Shared browser contract plus backend remote tool | `frontend/src/main/python/windie_shared/browser_contract*.py`, private backend implementation, `frontend/src/main/python/tools/browser/browser_tool.py` | private backend tests, `tests/sidecar/tools/test_browser_schemas.py`, Browser Use engine tests | [Browser Action Surface](browser_action_surface.md) |
 | Browser action runtime behavior | Local runtime browser adapter backed by local-runtime Python Browser Use engine | `frontend/src/main/python/tools/browser/browser_use_engine.py`, `browser_tool.py` | `tests/sidecar/tools/test_browser_tool.py`, `test_browser_use_engine.py` | [Browser Control](browser_control.md) |
 | CDP launch, executable detection, or profile path | Local runtime browser launcher backed by local-runtime Python Chrome detection | `frontend/src/main/python/tools/browser/chrome_launcher.py`, `chrome_detection.py`, `browser_use_engine.py` | `tests/sidecar/tools/test_chrome_launcher.py`, `test_chrome_detection.py`, `test_browser_use_engine.py` | [Dedicated Browser Runtime](dedicated_browser_runtime.md) |
 | Snapshot text and Browser Use element indexes | Local runtime browser adapter backed by local-runtime Python Browser Use engine | `frontend/src/main/python/tools/browser/browser_use_engine.py` | `tests/sidecar/tools/test_browser_use_engine.py` | [Browser Action Surface](browser_action_surface.md) |
@@ -79,7 +79,7 @@ Edit:
 - `frontend/src/main/python/windie_shared/browser_contract_models.py` for action literals and pydantic argument model shape.
 - `frontend/src/main/python/windie_shared/browser_contract_catalog.py` for action contract registration.
 - `frontend/src/main/python/windie_shared/browser_contract_schema.py` if grouped schema emission needs new field handling.
-- `backend/src/tools/browser/**` wrappers only if backend-specific adaptation changes.
+- private backend implementation wrappers only if backend-specific adaptation changes.
 - `frontend/src/main/python/tools/browser/browser_use_engine.py` for runtime handlers and normalized browser tool results.
 - `frontend/src/main/python/tools/browser/browser_tool.py` only if validation or error mapping changes.
 - renderer browser session controls only if users need a visible control for the action.
@@ -267,7 +267,7 @@ Validate:
 
 | Changed boundary | Minimum focused validation |
 | --- | --- |
-| Backend browser schema/tool exposure | `./scripts/python-in-env backend pytest tests/backend/test_browser_remote_tool.py` |
+| Backend browser schema/tool exposure | private backend test runner |
 | Shared browser contract or local-runtime validation | `./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_schemas.py tests/sidecar/tools/test_browser_use_engine_runtime.py` |
 | Local-runtime Python browser action | `./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py` |
 | CDP launch/session lifecycle | `./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_chrome_launcher.py tests/sidecar/tools/test_chrome_detection.py tests/sidecar/tools/test_browser_use_engine.py` |

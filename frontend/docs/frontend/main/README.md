@@ -25,7 +25,6 @@ title: "Frontend Main Docs Hub"
 - [WebSocket Handshake and Settings Sync Reference](websocket_handshake_and_settings_sync_reference.md)
 - [Wakeword Bridge Runtime Helper Reference](wakeword_bridge_runtime_helper_reference.md)
 - [Global Stop Shortcut Runtime Reference](global_stop_shortcut_runtime_reference.md)
-- [VM Worker Runs Bridge Runtime Reference](vm_worker_runs_bridge_runtime_reference.md)
 - [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md)
 - [IPC Event Replay and Transcript Session Sync Reference](ipc_event_replay_and_transcript_session_sync_reference.md)
 - [IPC Query Runtime and Transcript Sync Helper Reference](ipc_query_runtime_and_transcript_sync_helper_reference.md)

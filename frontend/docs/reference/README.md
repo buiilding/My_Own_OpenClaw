@@ -23,7 +23,7 @@ Use this section for stable lookup material: route maps, event vocabularies, con
 | Concrete feature request to source roots, tests, and docs | [Code Change Surface Index](code_change_surface_index.md) |
 | Canonical docs navigation | [`docs/docs.json`](../docs.json) |
 | Compact docs directory | [Docs Directory](../getting-started/docs_directory.md) |
-| OpenClaw docs structure benchmark | [OpenClaw Docs Structure Reference](openclaw_docs_structure_reference.md) |
+| OpenClaw docs structure benchmark | OpenClaw Docs Structure Reference (private backend docs) |
 
 ## Reference Rules
 

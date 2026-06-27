@@ -23,19 +23,13 @@ contracts.
 - [**Debug Hub**](debug/README.md) - Logs, diagnostic flags, endpoint/network checks, process health, runtime traces, symptom playbooks, and test selection
 - [**Observability Change Workflow**](debug/observability_change_workflow.md) - Owner routing for logs, trace flags, metrics, diagnostic events, evidence collection, and debug gates
 - [**Error and Failure Change Workflow**](debug/error_failure_change_workflow.md) - Owner routing for backend exceptions, websocket/HTTP errors, IPC failures, local-runtime ToolResult failures, renderer error UI, retries, and sanitized logs
-- [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, local-runtime, VM worker, and packaged-app debug flags
-- [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and local-runtime URL drift checks
-- [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, local-runtime, wakeword, VM worker, and Cloudflare process triage
+- Endpoint and Network Debugging (private backend docs) - Hosted/local backend endpoint resolution, auth, websocket, private deployment, and local-runtime URL drift checks
 - [**Channels Hub**](channels/README.md) - Desktop, websocket, voice, sidecar, SDK, and VM-run communication paths
 - **Gateway Hub** (private backend docs) - Hosted backend ingress, FastAPI route assembly, websocket protocols, auth, health, and troubleshooting
 - **WebSocket Connection Change Workflow** (private backend docs) - Owner routing for main `/ws` handshake auth, identity binding, message validation, task limits, timeouts, handler dispatch, transport sends, and cleanup
-- **REST Route Auth Matrix** (private backend docs) - Hosted `/api/*` route owners, install-token rules, runs key behavior, failure signals, and tests
+- **REST Route Auth Matrix** (private backend docs) - Hosted `/api/*` route owners, install-token rules, private automation auth behavior, failure signals, and tests
 - **WebSocket Connection Lifecycle** (private backend docs) - Main `/ws` accept, handshake, auth, message validation, task scheduling, timeout, and cleanup flow
-- [**Runtime Nodes Hub**](nodes/README.md) - Runtime process and service boundaries for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
-- **Automation Hub** (private backend docs) - VM run orchestration, worker polling, run-control APIs, and future scheduler boundaries
-- **VM Run Control Change Workflow** (private backend docs) - Owner routing for `/api/runs/*`, VM worker heartbeats, event timelines, controls, runs keys, and Electron worker dispatch
 - [**Security Hub**](security/README.md) - Hosted auth, IPC isolation, schema validation, credentials, tool execution, and local-runtime boundaries
-- **Credential and Token Change Workflow** (private backend docs) - Owner routing for install auth, bearer tokens, runs keys, provider credentials, OAuth state, local-runtime remote-client auth headers, and secret logging
 - [**Plugins and Extensions Hub**](plugins/README.md) - Current extension points for tools, providers, SDK routes, local-runtime actions, and future plugin boundaries
 - [**Tools Hub**](tools/README.md) - Tool contracts, computer tools, browser automation, filesystem, and shell execution
 - [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Owner routing for model-visible tool schemas, policy gates, provider projection, local-runtime executable parity, SDK/main dispatch, and tool-result contracts
@@ -45,7 +39,7 @@ contracts.
 - [**Install Hub**](install/README.md) - Local development, packaging, endpoint setup, bundled local-runtime Python, reinstall/reset loops, and install troubleshooting
 - [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, deployment, packaging, release, security, and troubleshooting runbooks
 - [**Release and Packaging Change Workflow**](operations/release_packaging_change_workflow.md) - Owner routing for Electron Builder targets, bundled local-runtime Python, local reinstall helpers, smoke checks, and release workflow behavior
-- [**Commands and Scripts**](cli/README.md) - Windie CLI command hub for developer, operator, docs, tests, packaging, backend, endpoint, and self-host workflows
+- [**Commands and Scripts**](cli/README.md) - Windie CLI command hub for developer, operator, docs, tests, packaging, backend, endpoint, and custom hosted deployment workflows
 - [**Command Matrix**](cli/command_matrix.md) - Full `<windie>` command surface and command groups
 - [**Validation Commands**](cli/validation_commands.md) - Focused docs, backend, sidecar, frontend, lint, typecheck, packaging, and config validation commands
 - [**Packaging and Release Commands**](cli/packaging_and_release_commands.md) - Bundled local-runtime Python build, Electron package, smoke, reinstall, and release guardrail commands
@@ -58,7 +52,7 @@ contracts.
 - [**Packaging Runtime Matrix**](platforms/packaging_runtime_matrix.md) - Platform package targets, bundled runtime rules, local reinstall helpers, and smoke checks
 - [**Help Hub**](help/README.md) - Diagnostics, troubleshooting, triage routes, doctor-style checks, evidence packets, and FAQ routes by runtime boundary
 - [**Triage Routes**](help/triage_routes.md) - Symptom-to-owner routing before code edits
-- [**Doctor Checklist**](help/doctor_checklist.md) - Manual environment, endpoint, local-runtime Python, permission, packaging, and hosted checks
+- Doctor Checklist (private backend docs) - Manual environment, endpoint, local-runtime Python, permission, packaging, and hosted checks
 - [**Evidence Packet**](help/evidence_packet.md) - Debugging report template for cross-boundary failures
 - [**FAQ**](help/faq.md) - Short routes for recurring source, packaged, endpoint, provider, tool, browser, and memory issues
 - [**Web Surfaces**](web/README.md) - Landing page, hosted backend APIs, auth, SDK routes, client integration, artifacts, and websocket surfaces
@@ -69,7 +63,7 @@ contracts.
 - [**Web Client Integration**](web/web_client_integration.md) - Hosted TypeScript/Python client and non-Electron integration boundaries
 - [**Reference Hub**](reference/README.md) - Stable API, websocket event, configuration, session/transcript, and docs-organization lookup maps
 - [**Code Change Surface Index**](reference/code_change_surface_index.md) - Feature-request to source-root, test, docs, and validation routing map
-- [**OpenClaw Docs Structure Reference**](reference/openclaw_docs_structure_reference.md) - Structure benchmark and WindieOS mapping
+- OpenClaw Docs Structure Reference (private backend docs) - Structure benchmark and WindieOS mapping
 - [**Canonical Docs Navigation**](docs.json) - Machine-readable local docs navigation map validated by `<windie> docs list`
 - **Backend Bootstrap/API/Contracts Hubs** (private backend docs) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
 - [**Frontend Main/Renderer/Contracts/Local-Runtime Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
@@ -88,7 +82,7 @@ contracts.
 - [**Install Decision Matrix**](install/install_decision_matrix.md) - Choose source, packaged, reinstall, endpoint, or release validation paths by change type
 - [**Local Development**](install/local_development.md) - Source setup, run commands, tests, and environment launcher usage
 - [**Packaged Desktop Builds**](install/packaged_desktop.md) - Electron Builder targets and bundled local-runtime Python packaging
-- **Backend Endpoint Setup** (private backend docs) - Hosted, local, packaged-default, and self-host backend endpoint setup
+- **Backend Endpoint Setup** (private backend docs) - Hosted, local, packaged-default, and custom hosted backend endpoint setup
 - [**Uninstall, Reinstall, and Reset**](install/uninstall_reinstall_reset.md) - OS-specific packaged app reinstall helpers and reset scope
 - [**Install Troubleshooting**](install/install_troubleshooting.md) - Source setup, package build, packaged local-runtime Python, endpoint, permission, and signing failure routes
 - [**Packaging and Reinstall Runbooks**](operations/packaging_and_reinstall_runbooks.md) - OS-specific packaged-app reinstall and smoke-check workflows
@@ -107,7 +101,6 @@ contracts.
 - [**Prompt and Tool Context**](concepts/prompt_and_tool_context.md) - Prompt inputs, repo instruction forwarding, model-visible tool schemas, provider/capability gates, and transparency events
 - [**Model Provider Selection**](concepts/model_provider_selection.md) - Provider runtime selection, catalog metadata, credential gates, local providers, web-search fallback, and failover boundaries
 - [**Usage and Token Accounting**](concepts/usage_and_token_accounting.md) - Token-count events, provider diagnostics, estimates, cache metrics, dashboard usage, and billing boundaries
-- [**Channels Hub**](channels/README.md) - Entry-channel routing for desktop chat, backend websocket, voice, local-runtime tools, SDK, and VM runs
 - [**WebSocket Event Contract Change Workflow**](channels/websocket_event_contract_change_workflow.md) - Change workflow for websocket event names, payloads, formatters, renderer consumers, stream filtering, and terminal/audio event behavior
 - [**Channel Routing Matrix**](channels/channel_routing_matrix.md) - Channel-to-transport, owner, code-root, and validation map
 - [**Voice Audio Change Workflow**](channels/voice_audio_change_workflow.md) - Owner routing for wakeword, microphone permissions, transcription websocket, STT providers, TTS chunks, and renderer playback
@@ -116,14 +109,12 @@ contracts.
 - **Gateway Hub** (private backend docs) - FastAPI gateway boundary for hosted HTTP/websocket ingress
 - **WebSocket Connection Change Workflow** (private backend docs) - Change workflow for main websocket handshake, install auth, message validation, task scheduling, timeout, and cleanup behavior
 - **Gateway Protocol Map** (private backend docs) - App assembly, router registration, websocket, REST, CORS, and protocol families
-- **Gateway Auth and Health Runbook** (private backend docs) - Install auth, websocket auth, runs key, and health endpoints
+- **Gateway Auth and Health Runbook** (private backend docs) - Install auth, websocket auth, private automation key, and health endpoints
 - **REST Route Auth Matrix** (private backend docs) - Hosted REST route ownership, identity source, auth failure routing, and focused route tests
 - **WebSocket Connection Lifecycle** (private backend docs) - `/ws` handshake, install auth, message parse, task limit, timeout, and cleanup internals
-- **Gateway Troubleshooting** (private backend docs) - Hosted route, websocket, auth, Cloudflare, health, and endpoint-resolution failures
-- [**Runtime Nodes Hub**](nodes/README.md) - Process/service ownership map for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
+- **Gateway Troubleshooting** (private backend docs) - Hosted route, websocket, auth, private deployment, health, and endpoint-resolution failures
 - [**Runtime Node Matrix**](nodes/runtime_node_matrix.md) - Node-to-code-root, protocol, lifecycle, failure-signal, and validation matrix
 - [**Desktop and Local Runtime Node**](nodes/desktop_and_sidecar_node.md) - Electron main, renderer, preload, local-runtime JSON-RPC, local tools, and wakeword ownership
-- **VM Worker Node** (private backend docs) - `/api/runs/*` heartbeat, assignment, dispatch, event relay, and stop-control worker behavior
 - [**Current vs Future Nodes**](nodes/current_vs_future_nodes.md) - Implemented nodes versus planned mobile, edge, scheduler, and multi-agent VM node work
 - [**Memory Hub**](memory/README.md) - Transcript persistence, replay, local-runtime memory, semantic routes, and troubleshooting
 - [**Memory Change Workflow**](memory/memory_change_workflow.md) - Route transcript, replay, local-runtime memory, semanticization, backend history, and compaction changes
@@ -133,16 +124,9 @@ contracts.
 - **Security Boundary Matrix** (private backend docs) - Trust-boundary owner, code-root, failure-signal, and validation matrix
 - **Security Change Playbook** (private backend docs) - Focused implementation checklist for security-sensitive changes
 - [**Permissions and Local Authority Workflow**](security/permissions_and_local_authority_workflow.md) - Screen/input/microphone/browser/workspace/sudo authority routing
-- **Credentials and Tokens Matrix** (private backend docs) - Install tokens, runs keys, provider keys, OAuth state, and local-runtime remote-client auth
-- **Credential and Token Change Workflow** (private backend docs) - Change workflow for install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, local-runtime remote-client auth headers, and secret logging
 - [**Plugins and Extensions Hub**](plugins/README.md) - Current extension surfaces and plugin-marketplace boundaries
 - [**Extension Surface Matrix**](plugins/extension_surface_matrix.md) - Registration points, owner files, docs, and validation targets for extensibility work
 - [**Provider Extension Guide**](plugins/provider_extension_guide.md) - LLM/inference provider extension paths, credentials, product rules, and tests
-- **Automation Hub** (private backend docs) - VM run orchestration, worker polling, run-control APIs, and scheduling boundaries
-- **VM Run Control Change Workflow** (private backend docs) - Change workflow for route models, `VmRunControlService`, assignment, event timelines, pending controls, stop-all, runs API keys, and worker dispatch
-- **VM Runs and Workers** (private backend docs) - Run lifecycle from creation through worker dispatch, event relay, and controls
-- **Runs API Runbook** (private backend docs) - `/api/runs/*` endpoint behavior, auth, payloads, statuses, and tests
-- **Automation Boundaries** (private backend docs) - Current VM runs versus future cron, webhook, durable queue, and scheduler work
 - [**Safety Boundaries**](concepts/safety_boundaries.md) - Permissions, schema validation, provider health, and trust boundaries
 - [**Dashboard**](desktop/dashboard.md) - Dashboard shell, sidebar, chat history, settings, memory, and model section routing
 - [**Minimal Chat Pill**](desktop/minimal_chat_pill.md) - Floating command pill behavior, capture timing, drag, anchor, and Linux flicker contract
@@ -153,10 +137,8 @@ contracts.
 - [**Artifacts and Attachments**](desktop/artifacts_and_attachments.md) - Screenshot artifact refs, upload/fetch paths, image rendering, and replay preservation
 - [**Logging**](debug/logging.md) - Backend, Electron, renderer, local-runtime, and packaged app log controls
 - [**Observability Change Workflow**](debug/observability_change_workflow.md) - Add or change logs, traces, metrics, and evidence without noisy defaults or secret leakage
-- [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, local-runtime, VM worker, and packaged-app debug flags
 - [**Runtime Traces**](debug/runtime_traces.md) - Stream, chat pill, screenshot, local-runtime, and websocket trace routes
-- [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and local-runtime URL drift checks
-- [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, local-runtime, wakeword, VM worker, and Cloudflare process triage
+- Endpoint and Network Debugging (private backend docs) - Hosted/local backend endpoint resolution, auth, websocket, private deployment, and local-runtime URL drift checks
 - [**Symptom Playbooks**](debug/symptom_playbooks.md) - Failure-to-owner maps for backend, tools, screenshots, overlays, permissions, voice, and browser
 - [**Test Selection**](debug/test_selection.md) - Focused pytest/Jest commands by runtime and contract boundary
 - [**Tool Contracts**](tools/tool_contracts.md) - Backend model-facing schema vs local-runtime executable tool contract
@@ -184,7 +166,6 @@ contracts.
 - [**Code Change Surface Index**](reference/code_change_surface_index.md) - Concrete code-change routing by feature, runtime owner, source root, test path, and docs path
 - [**WebSocket Event Reference**](reference/websocket_event_reference.md) - Canonical backend event families, renderer consumers, correlation fields, and validation docs
 - [**Configuration Reference**](reference/configuration_reference.md) - Runtime config owners, high-touch env vars, credential rules, and add-a-config checklist
-- [**Session and Transcript Reference**](reference/session_and_transcript_reference.md) - User/session/conversation, turn, tool, transcript, replay, and VM run identifier map
 - [**Hosted Backend Clients**](sdk/hosted_backend_clients.md) - TypeScript and Python SDK client boundaries for backend APIs
 - [**SDK Route Change Workflow**](sdk/sdk_route_change_workflow.md) - Change `/api/sdk/*` routes, models, service helpers, hosted clients, artifacts, OCR, vision, and tests
 - [**SDK Auth and Error Handling**](sdk/sdk_auth_and_error_handling.md) - Hosted SDK auth headers, endpoints, status routing, websocket close handling, and client error rules
@@ -197,11 +178,9 @@ contracts.
 - **Hosted Backend Auth** (private backend docs) - Install registration, bearer-token REST auth, websocket identity, and hosted-auth debugging
 - **Evidence Collection Runbook** (private backend docs) - Operations evidence packet for hosted, tunnel, Electron, renderer, sidecar, packaged, VM, provider, and permission failures
 - **Incident Triage Runbook** (private backend docs) - Severity, owner, mitigation, validation, and closure flow for operational incidents
-- **Operational Troubleshooting** (private backend docs) - Symptom-to-owner routing for hosted, tunnel, packaged-app, sidecar, and VM worker failures
 
 ### Architecture & Design
 - [**Architecture Hub**](architecture/README.md) - Runtime boundaries, ownership decision tree, state flow, failure domains, and subsystem architecture routes
-- [**Runtime Boundary Matrix**](architecture/runtime_boundary_matrix.md) - Architecture-level ownership map for backend, Electron main, renderer, preload, local runtime, wakeword, VM worker, and gateway services
 - [**Agent-Visible Data Pipeline**](architecture/agent_visible_data_pipeline.md) - Trace what the model sees, what transports carry, what local execution runs, and what transcript/history preserve
 - [**Data Flow and State Ownership**](architecture/data_flow_and_state_ownership.md) - Query, stream, tool-result, settings, transcript, memory, artifact, permission, provider, and VM-run state ownership
 - [**Storage and Persistence Change Workflow**](architecture/storage_persistence_change_workflow.md) - Owner routing for renderer storage, Electron user-data files, local-runtime SQLite/FAISS, backend artifacts, install-auth SQLite, caches, and restart durability
@@ -210,7 +189,6 @@ contracts.
 - [**Frontend Functionality Map**](frontend/README.md) - Detailed module-level renderer, electron-main, and local-runtime Python maps
 - [**Renderer State Change Workflow**](frontend/renderer/renderer_state_change_workflow.md) - Owner routing for chat state, dashboard panels, settings, transcript projection, stream presentation, tool results, and provider contexts
 - [**Frontend App Startup + Onboarding Workflow**](frontend/renderer/app_startup_onboarding_change_workflow.md) - Change workflow for renderer root selection, VM mode, permission onboarding, wakeword placement, and startup surface handoff
-- [**Main Process Change Workflow**](frontend/main/main_process_change_workflow.md) - Owner routing for Electron startup, IPC, windows, overlays, endpoints, permissions, local-runtime bridge, wakeword, and VM worker behavior
 - [**Local Runtime Process Lifecycle Workflow**](frontend/main/local_backend/process_lifecycle_change_workflow.md) - Change workflow for SDK local-runtime process launch, readiness, status propagation, JSON-RPC request correlation, and packaged runtime failures
 - [**Local-Runtime Python Implementation Change Workflow**](frontend/sidecar/local_runtime_python_change_workflow.md) - Owner routing for Python JSON-RPC, local tools, memory, browser automation, system state, platform adapters, backend config, and wakeword service behavior behind the local-runtime boundary
 - [**Local Runtime JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Change workflow for Python JSON-RPC method registration, Electron mapper payloads, readiness, request transport, and JSON-RPC protocol errors
@@ -225,7 +203,6 @@ contracts.
 - [**Frontend Landing Section Content Contracts**](frontend/landing/sections/hero_how_available_and_roadmap_section_content_contract_reference.md) - Hero/How/Available/Roadmap source arrays, CTA anchor semantics, and status-label behavior for public capability messaging
 - **Backend Functionality Map** (private backend docs) - Detailed module-level backend runtime and API maps
 - **API Route Change Workflow** (private backend docs) - Owner routing for backend HTTP routes, websocket messages, handlers, formatters, auth gates, route models, and package exports
-- **Backend Service Change Workflow** (private backend docs) - Owner routing for artifacts, OCR, vision, embeddings, semantic memory, TTS/wakeword audio, token counting, and VM run-control services
 - **Prompt Context Change Workflow** (private backend docs) - Owner routing for system prompt text, repo instructions, memory and attachment context, model-visible tool schemas, transparency events, and generated prompt/schema artifacts
 - **Backend Config and Container Change Workflow** (private backend docs) - Owner routing for `AppConfig`, runtime normalization, client settings patches, DI rebinding, provider refresh, and session config propagation
 - **Backend Inventory Docs Hub** (private backend docs) - Subfolder inventory hub for exhaustive backend runtime coverage, flow matrices, and file ownership indexes
@@ -320,7 +297,6 @@ contracts.
 - [**Frontend Wakeword IPC Capture + Cooldown Runtime**](frontend/renderer/voice/wakeword_detection_ipc_capture_and_cooldown_reference.md) - Readiness-gated wakeword capture, generation-guarded start/stop flow, threshold/cooldown filtering, and retrigger-prevention disable sequence
 - [**Architecture Hub**](architecture/README.md) - Runtime boundaries, ownership decision tree, state flow, and failure-domain maps
 - [**System Architecture**](architecture/architecture.md) - High-level system design and components
-- [**Runtime Boundary Matrix**](architecture/runtime_boundary_matrix.md) - Runtime ownership across backend, Electron main, renderer, preload, local runtime, wakeword, VM worker, and gateway services
 - [**Data Flow and State Ownership**](architecture/data_flow_and_state_ownership.md) - State owners and duplication risks for core runtime flows
 - [**Change Ownership Decision Tree**](architecture/change_ownership_decision_tree.md) - Subsystem routing before code changes
 - [**Failure Domain Map**](architecture/failure_domain_map.md) - Architecture-level failure routing
@@ -330,7 +306,7 @@ contracts.
 
 ### Core Systems
 - [**Agent System**](architecture/agent_system.md) - Agent orchestrator and execution flow
-- [**Tool System**](architecture/tool_system.md) - Tool execution architecture and development
+- Backend Tool System (private backend docs) - Tool execution architecture and development
 - **Backend Tools Docs Hub** (private backend docs) - Backend schema bridge, policy filtering, and wait/ingress runtime docs for SDK/main local-runtime tools
 - **Backend Tools Registry Docs Hub** (private backend docs) - Sub-hub for remote tool registration, canonical schema caching, and backend/local-runtime tool-name parity contracts
 - **Backend Browser Tools Docs Hub** (private backend docs) - Sub-hub for browser remote schema surface and OpenClaw compatibility-field boundaries
@@ -414,7 +390,7 @@ contracts.
 - **Backend Artifact + Screenshot Flow** (private backend docs) - Artifact upload/load rules and screenshot/system-state propagation across query, tool-result, OCR refresh, and rehydrate flows
 - **Backend Embedding + Semantic Memory Runtime** (private backend docs) - Embedder DI/startup lifecycle, `/api/embeddings` and `/api/semantic` contracts, parser fallback semantics, and sidecar consumption path impacts
 - **Backend TTS + Wakeword Audio Runtime** (private backend docs) - Query-time speech pipeline and wakeword greeting flow: runtime config gates, TTS filtering/queueing internals, chunk streaming, and cleanup semantics
-- **Backend Services Screen-Grounding Hub** (private backend docs) - Sub-hub for OCR state machine and vision provider/runtime details used by coordinate preparation
+- **Backend Screen-Grounding Hub** (private backend docs) - Sub-hub for OCR state machine and vision provider/runtime details used by coordinate preparation
 - **Backend OCR + Vision Coordinate Runtime Overview** (private backend docs) - Overview index linking focused OCR-state and vision-provider deep references
 - **Backend OCR Service + Screenshot State Machine Runtime** (private backend docs) - Startup OCR policy gate, screenshot-ID/task race guards, proactive/on-demand OCR coordination, and CUDA->CPU OCR fallback semantics
 - **Backend OCR Helper Utility Contracts** (private backend docs) - CUDA error classification, strict screenshot payload decode rules, and OCR field normalization behavior used by OCR service internals
@@ -470,8 +446,8 @@ contracts.
 - [**Commit and Changelog Workflow**](development/commit_and_changelog_workflow.md) - Commit scope, Conventional Commit subjects, changelog entries, and validation reporting
 - [**Validation Commands**](cli/validation_commands.md) - Command-focused validation guide for docs, backend, sidecar, frontend, IPC, provider, packaging, and config changes
 - [**Developer Guide**](development/developer_guide.md) - Comprehensive development guide
-- Developer Guide includes current Windie CLI automation (`<windie> docs list`, `<windie> test all`, `<windie> test backend`, `<windie> test local-runtime`) and frontend audit commands (`npm run lint:audit`, `npm run audit:jscpd`, `npm run audit:knip`).
-- [**Tool Development Guide**](development/tool_development.md) - Creating custom tools
+- Developer Guide includes current Windie CLI automation (`<windie> docs list`, `<windie> test all`, private backend tests, `<windie> test local-runtime`) and frontend audit commands (`npm run lint:audit`, `npm run audit:jscpd`, `npm run audit:knip`).
+- Backend Tool Development (private backend docs) - Creating custom tools
 - [**API Reference**](reference/api_reference.md) - Complete API documentation
 - [**Extension Points**](architecture/extension_points.md) - How to extend the system
 - [**Architecture Decision Records**](adr/README.md) - Durable technical decisions, ADR status, and when to create/update decision records
@@ -510,7 +486,7 @@ contracts.
 Start with:
 1. [Developer Guide](development/developer_guide.md) - Understand the codebase structure
 2. [Architecture Overview](architecture/architecture.md) - Learn the system design
-3. [Tool Development Guide](development/tool_development.md) - Create custom tools
+3. Backend Tool Development (private backend docs) - Create custom tools
 
 ### For System Administrators
 Start with:

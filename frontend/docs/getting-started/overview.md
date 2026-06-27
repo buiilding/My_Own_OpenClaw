@@ -176,5 +176,5 @@ WindieOS emphasizes local control of user data.
 - Installation: `installation.md`
 - Architecture: `../architecture/architecture.md`
 - Developer guide: `../development/developer_guide.md`
-- Tool development: `../development/tool_development.md`
+- Tool development: `../development/Backend Tool Development (private backend docs)`
 - API reference: `../reference/api_reference.md`

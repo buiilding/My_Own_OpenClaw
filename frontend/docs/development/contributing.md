@@ -29,7 +29,7 @@ feat(frontend-dashboard): delete semantic memory entries
 
 ## Where to Edit
 
-- Backend: `backend/src/`
+- Backend: private backend implementation
 - Frontend: `frontend/src/`
 - Local-runtime tool implementations: `frontend/src/main/python/`
 - Docs: `docs/`

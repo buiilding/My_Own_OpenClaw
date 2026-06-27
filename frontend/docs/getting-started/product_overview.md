@@ -108,8 +108,8 @@ WindieOS is the local operating environment for personal AI.
 ## Related Docs
 
 - `README.md`
-- `docs/planning/windieos_company_future_overview.md`
+- `docs/planning/WindieOS Company Future Overview (private backend docs)`
 - `docs/planning/future_plan.md`
-- `docs/planning/windieos_vm_multi_agent_plan.md`
-- `docs/planning/windieos_agent_to_agent_communication_plan.md`
+- `docs/planning/WindieOS VM Multi-Agent Plan (private backend docs)`
+- `docs/planning/WindieOS Agent-to-Agent Communication Plan (private backend docs)`
 - `docs/planning/windieos_mobile_app_plan.md`

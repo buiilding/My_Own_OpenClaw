@@ -32,7 +32,7 @@ cd WindieOS
 **Terminal 1 - Backend:**
 ```bash
 cd WindieOS
-<windie> start backend
+private backend start command
 ```
 
 **Terminal 2 - Frontend:**
@@ -73,7 +73,7 @@ daemon session:
 ```bash
 cd WindieOS
 export OPENAI_API_KEY="your-key"  # Optional, for real LLM
-<windie> start backend
+private backend start command
 ```
 
 **Terminal 2 - Frontend:**
@@ -95,7 +95,7 @@ Use the mock LLM client to see browser control in action without spending API cr
 
 **1. Configure the backend to use the mock browser client:**
 
-Edit `backend/src/core/config/app_config.py`:
+Edit private backend implementation:
 ```python
 # Add to your config
 LLM_CLIENT = "mock_browser"  # Use this instead of real LLM
@@ -109,7 +109,7 @@ export WINDIEOS_LLM_CLIENT="mock_browser"
 **2. Run backend:**
 ```bash
 cd WindieOS
-<windie> start backend
+private backend start command
 ```
 
 The mock client will automatically:
@@ -126,7 +126,7 @@ For the original mouse/keyboard simulation:
 
 ```bash
 export WINDIEOS_LLM_CLIENT="mock"
-<windie> start backend
+private backend start command
 ```
 
 This opens Chrome and uses OCR/vision to navigate Amazon.
@@ -228,13 +228,13 @@ cd WindieOS
 ./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_tool.py -v
 
 # Backend browser tests
-./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -v
+private backend test runner
 
 # Mock browser client tests
-./scripts/python-in-env backend python -m pytest tests/backend/test_mock_llm_browser_client.py -v
+private backend test runner
 
 # All browser tests
-./scripts/python-in-env backend python -m pytest tests/backend -k browser -v
+private backend test runner
 ./scripts/python-in-env local-runtime python -m pytest tests/sidecar -k browser -v
 ```
 
@@ -431,4 +431,4 @@ export AGENT_BROWSER_USE_SESSION=desktop-agent
 
 - Read the full [Browser Control Documentation](browser_control.md)
 - Check ADR 004 (`docs/adr/004-browser-extension-auto-attach.md`) for future extension mode
-- See [Tool Development Guide](../development/tool_development.md) to extend browser capabilities
+- See Backend Tool Development (private backend docs) to extend browser capabilities

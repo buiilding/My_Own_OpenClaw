@@ -39,13 +39,13 @@ header controls, and persisted selected model config.
 
 | Change or symptom | Primary owner files | Tests to inspect or add |
 | --- | --- | --- |
-| Add, remove, rename, or regroup a backend model | `backend/src/llm/models/models_config.py`, `backend/src/llm/models/model_service.py`, provider modules under `backend/src/llm/providers` | `tests/backend/test_models_config.py`, `tests/backend/test_model_service.py`, provider factory/provider tests |
+| Add, remove, rename, or regroup a backend model | private backend implementation, provider modules under private backend implementation | private backend tests, provider factory/provider tests |
 | Dashboard Models section cards, provider drilldown, or API-key controls change | `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`, `frontend/src/renderer/app/runtime/desktopModelCardPresentationRuntime.js`, `frontend/src/renderer/app/runtime/desktopProviderCredentialRuntime.js`, `modelCards.jsx`, `frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js`, `ApiKeysSection.jsx` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/DesktopModelCardPresentationRuntime.test.js`, `tests/frontend/DesktopProviderCredentialRuntime.test.js`, `tests/frontend/ModelSelectionUtils.test.js` |
 | Chat header provider/model/reasoning selector changes | `frontend/src/renderer/features/chat/components/ChatInterface.jsx`, `frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime.js`, `frontend/src/renderer/app/runtime/desktopModelThinkingRuntime.ts` | `tests/frontend/ChatInterfaceWiring.test.jsx`, `tests/frontend/DesktopChatModelOptionsRuntime.test.js`, `tests/frontend/ModelThinkingCapabilities.test.ts` |
 | Selected model resets after reload or across windows | `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`, `desktopRendererConfigFilterRuntime.js`, `app/providers/AppConfigProvider.jsx`, `app/providers/appConfigPersistence.js` | `tests/frontend/configStorage.test.js`, `tests/frontend/configFilter.test.js`, `tests/frontend/AppConfigProvider.models.test.tsx`, `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx` |
-| Model list is stale or missing in renderer | `frontend/src/renderer/app/providers/AppConfigProvider.jsx`, `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`, `frontend/src/main/ipc.cjs`, `backend/src/api/handlers/settings.py` | `tests/frontend/AppConfigProvider.models.test.tsx`, `tests/frontend/DesktopSettingsEventRuntimeClient.test.ts`, `tests/backend/test_api_handlers.py` |
-| Backend ignores selected provider/model after save | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_agent_sdk_runtime_commands.cjs`, `frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient.ts`, `backend/src/api/handlers/settings.py`, `backend/src/core/validation/validators.py`, `backend/src/agent/session/session_config_service.py` | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/frontend/IpcAgentSdkRuntimeCommands.test.cjs`, `tests/frontend/DesktopSettingsRuntimeClient.test.ts`, `tests/frontend/ChatMessageSender.test.tsx`, `tests/backend/test_settings_update_rules.py`, `tests/backend/test_session_config_service.py` |
-| Provider key toggle saves but provider cannot call model | `desktopProviderCredentialRuntime.js`, `desktopRendererConfigStorageRuntime.js`, `backend/src/core/config/loader.py`, provider config/factory modules | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/DesktopProviderCredentialRuntime.test.js`, `tests/frontend/configStorage.test.js`, backend provider key/config tests |
+| Model list is stale or missing in renderer | `frontend/src/renderer/app/providers/AppConfigProvider.jsx`, `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`, `frontend/src/main/ipc.cjs`, private backend implementation | `tests/frontend/AppConfigProvider.models.test.tsx`, `tests/frontend/DesktopSettingsEventRuntimeClient.test.ts`, private backend tests |
+| Backend ignores selected provider/model after save | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_agent_sdk_runtime_commands.cjs`, `frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient.ts`, private backend implementation | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/frontend/IpcAgentSdkRuntimeCommands.test.cjs`, `tests/frontend/DesktopSettingsRuntimeClient.test.ts`, `tests/frontend/ChatMessageSender.test.tsx`, private backend tests |
+| Provider key toggle saves but provider cannot call model | `desktopProviderCredentialRuntime.js`, `desktopRendererConfigStorageRuntime.js`, private backend implementation, provider config/factory modules | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/DesktopProviderCredentialRuntime.test.js`, `tests/frontend/configStorage.test.js`, backend provider key/config tests |
 
 ## Runtime Flow
 
@@ -91,10 +91,10 @@ accepts or transforms the payload.
 
 Read:
 
-- `backend/src/llm/models/models_config.py`
-- `backend/src/llm/models/model_service.py`
-- `backend/src/llm/providers/factory.py`
-- provider implementation under `backend/src/llm/providers`
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- provider implementation under private backend implementation
 
 Catalog rules:
 
@@ -166,8 +166,8 @@ Read:
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
-- `backend/src/api/handlers/settings.py`
-- `backend/src/core/validation/validators.py`
+- private backend implementation
+- private backend implementation
 
 Persistence rules:
 
@@ -217,12 +217,12 @@ Config persistence or settings sync change:
 - `cd frontend && npm run test -- AppConfigProvider.storageAndIpc`
 - `cd frontend && npm run test -- configStorage`
 - `cd frontend && npm run test -- IpcSettingsSync`
-- `./scripts/python-in-env backend pytest tests/backend/test_settings_update_rules.py`
+- private backend test runner
 
 Backend model catalog/provider change:
 
-- `./scripts/python-in-env backend pytest tests/backend/test_models_config.py`
-- `./scripts/python-in-env backend pytest tests/backend/test_model_service.py`
+- private backend test runner
+- private backend test runner
 - provider factory/provider-specific tests for the changed provider
 
 ## Docs to Sync

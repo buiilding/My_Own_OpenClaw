@@ -22,8 +22,8 @@ If the owner is still unclear, use [Triage Routes](triage_routes.md). If the iss
 ## Model or Provider Is Missing
 
 - Check the relevant API key env var or frontend override.
-- Check provider factory registration in `backend/src/llm/providers/factory.py`.
-- Check model metadata in `backend/src/llm/models/models_config.py`.
+- Check provider factory registration in private backend implementation.
+- Check model metadata in private backend implementation.
 - Read [Models and LLM Providers](../providers/models.md).
 
 ## Local Tool Fails
@@ -56,6 +56,6 @@ If the owner is still unclear, use [Triage Routes](triage_routes.md). If the iss
 
 ## Related Help
 
-- [Doctor Checklist](doctor_checklist.md)
+- Doctor Checklist (private backend docs)
 - [FAQ](faq.md)
 - [Symptom Playbooks](../debug/symptom_playbooks.md)

@@ -18,7 +18,6 @@ server-owned while machine control stays local to the user's computer.
 
 | Runtime | Owns | Main code |
 | --- | --- | --- |
-| Hosted FastAPI backend | Agent loop, prompt construction, LLM providers, model-facing tool schema, websocket/REST contracts, OCR/vision/embedding/TTS services, SDK and run-control APIs | `backend/src` |
 | Electron main process | Window lifecycle, overlay surfaces, SDK-runtime adaptation, local config, permission probes, SDK local-runtime host/status context | `frontend/src/main` |
 | React renderer | Dashboard, chat UI, minimal pill, response overlay, settings, permissions, voice controls, and tool-result projections | `frontend/src/renderer` |
 | Preload | Strict renderer IPC exposure and channel allowlist | `frontend/src/preload.js` |

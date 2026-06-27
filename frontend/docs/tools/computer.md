@@ -35,9 +35,9 @@ This is the canonical computer use screenshot guide.
 
 ## Files to Inspect
 
-- Backend coordinate prep: `backend/src/agent/tools/preparation/*`
-- Backend grounding contracts: `backend/src/tools/computer/*`
-- OCR/vision services: `backend/src/services/screen_grounding/*`
+- Backend coordinate prep: private backend implementation
+- Backend grounding contracts: private backend implementation
+- OCR/vision services: private backend implementation
 - Query screenshot resource resolver: `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - Main overlay capture guards: `frontend/src/main/overlays/*`
 - Local-runtime Python computer implementations: `frontend/src/main/python/tools/computer/*`

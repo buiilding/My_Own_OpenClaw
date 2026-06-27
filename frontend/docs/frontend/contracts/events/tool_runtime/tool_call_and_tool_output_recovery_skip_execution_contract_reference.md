@@ -15,9 +15,9 @@ title: "Tool-Call and Tool-Output Recovery/Skip-Execution Contract Reference"
 - `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `packages/windie-sdk-js/src/runtime/Agent.ts`
-- `backend/src/agent/execution/interaction_loop.py`
-- `backend/src/api/processing/formatters/tool_call.py`
-- `backend/src/api/processing/formatters/tool_output.py`
+- private backend implementation
+- private backend implementation
+- private backend implementation
 
 ## Event Contract Surface (Backend Wire)
 

@@ -15,8 +15,8 @@ WindieOS has three first-class repo-level contribution roots:
 | A local Python tool exposed to the model | `plugins/<id>/plugin.json`, `schemas/`, `python/` | [Extension Convention](../development/extensions.md#local-runtime-plugin-tool-registration) |
 | Instructions only | `skills/<id>/SKILL.md` | [Skills](../development/extensions.md#skills) |
 | An MCP server | `mcps/<id>/mcp.json` | [MCP Runtime](../development/mcp.md) |
-| A built-in local-runtime tool | Core backend, desktop local-runtime, and local-runtime Python implementation files | [Tool Development](../development/tool_development.md) |
-| A provider | `backend/src/llm/providers`, model catalog/config | [Providers Hub](../providers/README.md) |
+| A built-in local-runtime tool | Core backend, desktop local-runtime, and local-runtime Python implementation files | Backend Tool Development (private backend docs) |
+| A provider | private backend implementation, model catalog/config | [Providers Hub](../providers/README.md) |
 
 Plugin tools execute through the local-runtime Python implementation. Electron
 main only discovers plugin schemas for the client manifest and routes local
@@ -30,8 +30,8 @@ calls through SDK/main local-runtime dispatch. Do not add Electron-main
 | Local-runtime plugins | `plugins/<id>/plugin.json` | [Extension Convention](../development/extensions.md) |
 | Prompt skills | `skills/<id>/SKILL.md` | [Extension Convention](../development/extensions.md#skills) |
 | MCP integrations | `mcps/<id>/mcp.json` | [MCP Runtime](../development/mcp.md) |
-| Backend model-facing tools | `backend/src/tools`, `backend/src/sdk` | [Extension Surface Matrix](extension_surface_matrix.md), [Tool Authoring](../sdk/tool_authoring.md) |
-| Local-runtime built-in tools | `frontend/src/main/python/tools` | [Local Tool Channels](../channels/sidecar_and_tool_channels.md), [Tool Development](../development/tool_development.md) |
+| Backend model-facing tools | private backend implementation | [Extension Surface Matrix](extension_surface_matrix.md), [Tool Authoring](../sdk/tool_authoring.md) |
+| Local-runtime built-in tools | `frontend/src/main/python/tools` | [Local Tool Channels](../channels/sidecar_and_tool_channels.md), Backend Tool Development (private backend docs) |
 | Renderer feature modules | `frontend/src/renderer/features` | [Frontend Renderer Docs Hub](../frontend/renderer/README.md) |
 
 ## Rules
@@ -109,9 +109,9 @@ Read:
 
 Likely code:
 
-- `backend/src/llm/providers/**`
-- `backend/src/llm/models/models_config.py`
-- `backend/src/core/config/**`
+- private backend implementation
+- private backend implementation
+- private backend implementation
 
 Validate provider factory/config/model-list tests and any stream/tool-call
 parsing tests.

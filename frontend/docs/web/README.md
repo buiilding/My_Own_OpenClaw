@@ -22,10 +22,10 @@ WindieOS is primarily a desktop app, but it has web-facing surfaces:
 | Surface | Owner | Code |
 | --- | --- | --- |
 | Landing page | Frontend Vite/Electron repo | `frontend/src/landing` |
-| WebSocket query transport | Backend API | `backend/src/api/routes/websocket/*` |
-| Artifacts HTTP API | Backend API/services | `backend/src/api/routes/artifacts/*`, `backend/src/services/artifacts/*` |
-| SDK/introspection routes | Backend API | `backend/src/api/routes/sdk/*` |
-| Runs/VM control API | Backend API/services | `backend/src/api/routes/runs/*` |
+| WebSocket query transport | Backend API | private backend implementation |
+| Artifacts HTTP API | Backend API/services | private backend implementation |
+| SDK/introspection routes | Backend API | private backend implementation |
+| Runs/VM control API | Backend API/services | private backend implementation |
 
 ## Web Pages
 

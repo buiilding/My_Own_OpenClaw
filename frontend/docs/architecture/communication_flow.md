@@ -33,11 +33,10 @@ Electron Main / Agent Host
   |   Local-runtime Python implementation
   |   - Local tools, memory, browser/system state, wakeword helpers
   |
-  `-- Hosted/self-hosted backend WebSocket + HTTP
+  `-- Hosted/custom hosted backend WebSocket + HTTP
       v
       Backend control plane (FastAPI)
       - WebSocket routes, agent loop, provider/tool policy
-      - `/api/runs/*` HTTP control plane when VM worker mode is active
 ```
 
 ## IPC Communication (Electron)
@@ -152,13 +151,8 @@ Electron Main / Agent Host
    - Unexpected disconnects only auto-reconnect while a live loop or that grace window still owns the connection; idle intentional closes do not immediately reconnect
    - If the socket drops during an active query before `streaming-complete` or `error`, Electron emits a normal `error` event for that turn instead of returning the UI to an indefinite waiting state. The user can retry after reconnect; the bridge does not auto-resend accepted turns because tool actions may already have executed.
 
-### Parallel HTTP Control Plane (`/api/runs/*`)
 
-In VM worker mode, Electron main also uses backend HTTP routes for run orchestration:
 
-1. worker heartbeat poll (`POST /api/runs/workers/heartbeat`)
-2. run assignment dispatch and ack (`POST /api/runs/{run_id}/worker-dispatched`)
-3. backend stream event relay to run timelines (`POST /api/runs/{run_id}/events`)
 4. worker-scoped control command application (`stop` currently mapped to websocket `stop-query`)
 
 This control plane is separate from the `/ws` streaming channel and exists to coordinate worker assignment/control state for hosted VM scenarios.
@@ -171,7 +165,7 @@ This control plane is separate from the `/ws` streaming channel and exists to co
 2. `BACKEND_HOST` + `BACKEND_PORT`
 3. Hosted default candidate:
    - `wss://api.windieos.com/ws` and `https://api.windieos.com`
-4. Source and packaged runs do not silently switch to a local backend when the hosted default is unreachable; local/self-hosted backends require explicit `BACKEND_*` or host/port overrides.
+4. Source and packaged runs do not silently switch to a local backend when the hosted default is unreachable; local/custom hosted backends require explicit `BACKEND_*` or host/port overrides.
 
 The resolved HTTP URL is also passed to the local-runtime Python process as
 `WINDIE_BACKEND_HTTP_URL`. The local-runtime Python implementation consumes
@@ -427,7 +421,7 @@ Identity notes:
 
 ## Memory HTTP Flow (Local Runtime <-> Backend)
 
-The local-runtime memory implementation uses REST endpoints on the same FastAPI server for embeddings, semantic summaries, and conversation titles. In the product default this is the hosted backend `https://api.windieos.com`; local/self-hosted setups may instead point at `http://127.0.0.1:8765` or another explicit backend override. This is separate from the WebSocket stream and inherits Electron's resolved backend HTTP URL.
+The local-runtime memory implementation uses REST endpoints on the same FastAPI server for embeddings, semantic summaries, and conversation titles. In the product default this is the hosted backend `https://api.windieos.com`; local/custom hosted deploymented setups may instead point at `http://127.0.0.1:8765` or another explicit backend override. This is separate from the WebSocket stream and inherits Electron's resolved backend HTTP URL.
 
 ```
 Local-runtime Python memory implementation
@@ -475,7 +469,7 @@ Backend API (FastAPI)
 6. Electron main receives the SDK-shaped IPC command
 7. Electron main resolves system state, artifacts, and local-runtime memory context
 8. SDK runtime sends the backend WebSocket `query` message
-9. Backend validates the message (`backend/src/api/schemas/incoming.py`)
+9. Backend validates the message (private backend implementation)
 10. QueryHandler processes the message
 11. AgentSession.process_query() runs the agent loop
 12. LLM/provider produces response chunks and tool calls
@@ -602,7 +596,7 @@ Settings are persisted locally and synced to the backend session:
 
 ### Secure Communication
 
-- **Explicit Endpoints**: Hosted and self-hosted backend URLs come from the
+- **Explicit Endpoints**: Hosted and custom hosted backend URLs come from the
   Electron/SDK endpoint policy
 - **Local Execution Boundary**: Machine actions stay on the SDK local runtime
 - **IPC Security**: Whitelisted channels only

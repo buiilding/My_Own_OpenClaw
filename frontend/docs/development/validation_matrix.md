@@ -15,7 +15,7 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 | Scope | Command |
 | --- | --- |
 | docs listing/front matter | `<windie> docs list` |
-| all Python backend tests | `<windie> test backend` |
+| all Python backend tests | private backend tests |
 | all local-runtime Python tests | `<windie> test local-runtime` |
 | backend + local-runtime Python + frontend CI tests when `frontend/node_modules` exists | `<windie> test all` |
 | frontend Jest CI | `<windie> test frontend` |
@@ -30,9 +30,9 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 
 | Change | First command | Widen when |
 | --- | --- | --- |
-| backend route/handler/schema | `./scripts/python-in-env backend python -m pytest tests/backend/<focused_test>.py` | run `<windie> test backend` for shared API or session behavior |
-| backend agent loop/history/tool processing | focused backend test under `tests/backend` | run `<windie> test backend` for loop or history contract changes |
-| LLM provider/model catalog | focused provider/model tests under `tests/backend` | run backend provider/model suite and `<windie> docs list` |
+| backend route/handler/schema | private backend test runner | run private backend tests for shared API or session behavior |
+| backend agent loop/history/tool processing | focused backend test under private backend tests | run private backend tests for loop or history contract changes |
+| LLM provider/model catalog | focused provider/model tests under private backend tests | run backend provider/model suite and `<windie> docs list` |
 | local-runtime tool implementation | `./scripts/python-in-env local-runtime python -m pytest tests/sidecar/<focused_test>.py` | run `<windie> test local-runtime` for registry or shared result changes |
 | frontend renderer state/UI | `<windie> test frontend -- <test_file>` | run `cd frontend && npm run lint && <windie> test frontend` for broader UI changes |
 | Electron main/IPC | focused `tests/frontend/*.test.cjs` or related Jest test | run `<windie> test frontend` for shared bridge changes |
@@ -47,13 +47,13 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 
 Backend:
 
-- `tests/backend/test_tool_policy.py`
-- `tests/backend/test_tool_registry_schema.py`
-- `tests/backend/test_tool_result_receiver.py`
-- `tests/backend/test_tool_result_storage.py`
-- `tests/backend/test_web_search_tool.py`
-- `tests/backend/test_browser_remote_tool.py`
-- `tests/backend/test_rehydrate_execution_service.py`
+- private backend tests
+- private backend tests
+- private backend tests
+- private backend tests
+- private backend tests
+- private backend tests
+- private backend tests
 
 Local runtime / local-runtime Python implementation:
 

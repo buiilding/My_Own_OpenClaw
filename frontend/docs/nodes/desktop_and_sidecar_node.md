@@ -44,7 +44,6 @@ Start with these files when local orchestration changes:
 - `frontend/src/main/app/backend_endpoints.cjs`: hosted backend endpoint selection.
 - `frontend/src/main/permission_*`: OS permission probes and grant effects.
 - `frontend/src/main/wakeword/wakeword_bridge*.cjs`: wakeword subprocess bridge.
-- `frontend/src/main/app/vm_worker_runtime.cjs`: optional VM worker node layered on main.
 
 ## Renderer Code Roots
 

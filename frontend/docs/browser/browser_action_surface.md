@@ -14,8 +14,8 @@ The browser action surface starts at the backend model-facing `browser` tool and
 
 | Concern | Files |
 | --- | --- |
-| Backend tool catalog | `backend/src/tools/tool_catalog.py` |
-| Backend remote browser tool | `backend/src/tools/remote_tools/browser.py` |
+| Backend tool catalog | private backend implementation |
+| Backend remote browser tool | private backend implementation |
 | Shared browser contract | `frontend/src/main/python/windie_shared/browser_contract.py` |
 | Local-runtime Python entrypoint | `frontend/src/main/python/tools/browser/browser_tool.py` |
 | Runtime dispatch | `frontend/src/main/python/tools/browser/browser_use_engine.py` |
@@ -84,7 +84,7 @@ code should not invoke the generic `execute-tool` bridge directly.
 ## Tests
 
 ```bash
-<windie> test backend tests/backend/test_browser_remote_tool.py -q
+private backend tests private backend tests -q
 ./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_schemas.py tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
 <windie> test frontend -- ChatBrowserSessionControl.test.jsx
 ```

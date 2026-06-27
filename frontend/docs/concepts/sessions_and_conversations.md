@@ -14,7 +14,6 @@ WindieOS uses several related identifiers. Do not collapse them into one concept
 | --- | --- | --- |
 | `user_id` | hosted backend identity plus Electron main/renderer snapshots | scopes backend sessions, local transcript rows, memory search, settings, and install auth state |
 | `session_id` | hosted backend runtime session and websocket events | identifies a live hosted backend runtime session and stream context |
-| `conversation_ref` | renderer transcript runtime and backend session registry | stable conversation/thread key for transcript replay, backend history, VM runs, and stale-turn filtering |
 | transcript row id/index | local-runtime memory store and renderer transcript queue | persists visible chat rows, replay state, and dashboard conversation lists |
 | turn/message id | renderer send path and backend stream events | correlates one user turn, local optimistic row, stream events, and tool execution |
 
@@ -56,7 +55,6 @@ Replay displays stored transcript rows in the UI. Rehydrate converts stored tran
 | backend continues old context after opening a past chat | dashboard resume rehydrate payload and backend rehydrate services |
 | tool output appears but model does not continue | backend session lookup, tool-result ingress, request/tool-call id linkage |
 | deleting a chat leaves it searchable or resumable | local-runtime transcript/replay deletion paths and dashboard refresh |
-| VM run starts a new thread unexpectedly | `/api/runs/*` metadata `conversation_ref` defaulting and VM worker dispatch payload |
 
 ## Deep Docs
 
@@ -67,7 +65,6 @@ Replay displays stored transcript rows in the UI. Rehydrate converts stored tran
 - Backend Session Runtime and Config Rewire Reference (private backend docs)
 - [Frontend Transcript Session and Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md)
 - [IPC Query Runtime and Transcript Sync Helper Reference](../frontend/main/ipc_query_runtime_and_transcript_sync_helper_reference.md)
-- VM Worker Node (private backend docs)
 
 ## Evidence Notes
 

@@ -18,8 +18,8 @@ memory-like systems. They must not be treated as one store.
 | Renderer transcript | `frontend/src/renderer/infrastructure/transcript` | Persist visible user, assistant, tool-call, and tool-output entries through Electron IPC. |
 | Dashboard conversation views | `frontend/src/renderer/features/dashboard`, `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js` | List, search, group, and replay stored conversations. |
 | Local-runtime memory | `frontend/src/main/python/memory`, `local_backend_memory_handlers.py` | Store transcript rows, episodic memories, semantic memories, conversation titles, and local search indexes. |
-| Backend active history | `backend/src/agent/history`, `backend/src/agent/llm/conversation_context.py` | Maintain model-facing history and tool-call/tool-output linkage during active sessions. |
-| Backend rehydrate/semantic routes | `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*`, `backend/src/api/routes/memory` | Install model-history checkpoints for backend sessions and generate embeddings/summaries/titles. |
+| Backend active history | private backend implementation | Maintain model-facing history and tool-call/tool-output linkage during active sessions. |
+| Backend rehydrate/semantic routes | private backend implementation | Install model-history checkpoints for backend sessions and generate embeddings/summaries/titles. |
 
 ## Memory Pages
 

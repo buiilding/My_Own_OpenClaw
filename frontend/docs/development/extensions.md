@@ -226,5 +226,5 @@ cd ..
 Run backend client-manifest tests if the manifest shape changes:
 
 ```bash
-./scripts/python-in-env backend python -m pytest tests/backend/test_client_tool_manifest.py -q
+private backend test runner
 ```

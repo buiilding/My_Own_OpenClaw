@@ -44,7 +44,7 @@ flowchart LR
 | Uploaded image has wrong content type or URL | SDK artifact resolver | `DefaultTurnResourceResolvers.ts`, `ArtifactImageUtils.ts` | `AgentSdkConversationRuntime.test.ts`, artifact tests |
 | Query sends only one of multiple images | SDK clipboard image resources | `desktopChatSendPreparationRuntime.ts`, `DefaultTurnResourceResolvers.ts` | `ChatMessageSender.test.tsx`, SDK runtime tests |
 | Electron query payload drops attachment resources | Main query IPC runtime and SDK enrichment | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | `IpcQueryRuntime.test.cjs`, `AgentSdkContextEnrichment.test.ts` |
-| Backend receives refs but model gets no image | Backend query input resolution | `backend/src/api/services/query_execution_support/query_execution_inputs.py` | `tests/backend/test_query_execution_inputs.py`, artifact route/store tests |
+| Backend receives refs but model gets no image | Backend query input resolution | private backend implementation | private backend tests, artifact route/store tests |
 | Replayed message loses images | SDK replay adapter, typed attachment projection, and artifact image resolver | `legacyVisualAttachmentReplayAdapter.ts`, `desktopSdkDisplayAttachmentProjection.ts`, `desktopSdkDisplayChatMessageProjectionRuntime.ts`, `desktopAttachmentImageRuntime.js`, transcript replay state | `AgentSdkConversationRuntime.test.ts`, `DesktopSdkDisplayAttachmentProjection.test.ts`, `SdkDisplayChatMessageProjection.test.ts`, `MessageContent.test.jsx`, SDK rehydrate projection tests, transcript tests |
 | Artifact image fails once and never recovers | App-runtime-backed attachment image cache | `desktopArtifactRuntimeClient.ts`, `desktopAttachmentImageRuntime.js` | `MessageContent.test.jsx` retry-after-failure coverage |
 | Copy image to clipboard fails | Electron image interaction IPC | `frontend/src/main/ipc/ipc_image_interaction_handlers.cjs`, `frontend/src/main/ipc/ipc_clipboard_image.cjs` | `IpcImageInteractionHandlers.test.cjs`, `IpcClipboardImageHandler.test.cjs` |
@@ -113,8 +113,8 @@ Clipboard image IPC trust boundary:
 | Sender payload normalization | `cd frontend && npm run test -- DesktopChatSendPayloadRuntime DesktopChatSendStateRuntime` |
 | Sender upload/query payload path | `cd frontend && npm run test -- ChatMessageSender AgentSdkConversationRuntime RuntimeEndpointStore ArtifactImageUtils` |
 | Main-process query payload normalization | `cd frontend && npm run test -- IpcQueryRuntime` |
-| Backend screenshot/query input resolution | `./scripts/python-in-env backend pytest tests/backend/test_query_execution_inputs.py` |
-| Artifact route/store behavior | `./scripts/python-in-env backend pytest tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py` |
+| Backend screenshot/query input resolution | private backend test runner |
+| Artifact route/store behavior | private backend test runner |
 | Replay/message image rendering | `<windie> test frontend -- AgentSdkConversationRuntime SdkDisplayChatMessageProjection MessageContent DesktopAttachmentImageRuntime` |
 | Clipboard copy IPC | `cd frontend && npm run test -- IpcClipboardImageHandler` |
 | Docs-only attachment workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |

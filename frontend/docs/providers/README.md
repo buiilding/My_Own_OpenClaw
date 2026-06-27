@@ -49,21 +49,21 @@ The backend provider factory registers:
 
 | Provider | Read first | Primary tests |
 | --- | --- | --- |
-| OpenAI | [OpenAI Provider](openai.md) | `tests/backend/test_openai_provider.py`, `tests/backend/test_web_search_capabilities.py` |
-| Anthropic | [Anthropic Provider](anthropic.md) | `tests/backend/test_anthropic_provider.py`, `tests/backend/test_provider_native_reasoning.py` |
-| Gemini | [Gemini Provider](gemini.md) | `tests/backend/test_gemini_provider.py`, `tests/backend/test_web_search_capabilities.py` |
-| OpenRouter | [OpenRouter Provider](openrouter.md) | `tests/backend/test_openrouter_provider.py`, `tests/backend/test_models_config.py` |
-| Kimi Coding | [Kimi Coding Provider](kimi_coding.md) | `tests/backend/test_kimi_coding_provider.py`, `tests/backend/test_provider_factory_helpers.py` |
-| Mistral | [Mistral Provider](mistral.md) | `tests/backend/test_models_config.py`, `tests/backend/test_provider_factory_helpers.py` |
-| Ollama/LM Studio | [Local Providers](local.md) | `tests/backend/test_local_llm_providers.py`, `tests/backend/test_model_service.py` |
+| OpenAI | [OpenAI Provider](openai.md) | private backend tests |
+| Anthropic | [Anthropic Provider](anthropic.md) | private backend tests |
+| Gemini | [Gemini Provider](gemini.md) | private backend tests |
+| OpenRouter | [OpenRouter Provider](openrouter.md) | private backend tests |
+| Kimi Coding | [Kimi Coding Provider](kimi_coding.md) | private backend tests |
+| Mistral | [Mistral Provider](mistral.md) | private backend tests |
+| Ollama/LM Studio | [Local Providers](local.md) | private backend tests |
 
 Primary files:
 
-- `backend/src/llm/providers/factory.py`
-- `backend/src/llm/providers/*`
-- `backend/src/llm/models/models_config.py`
-- `backend/src/core/config/models.py`
-- `backend/src/core/config/app_config.py`
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
 
 ## Deep Docs
 

@@ -16,7 +16,6 @@ Use this template when a failure is not solved by one local observation. Keep th
 Symptom:
 Expected:
 Actual:
-Mode: source | packaged | hosted | VM worker
 OS:
 Backend endpoint:
 Model/provider:
@@ -39,7 +38,7 @@ Docs read:
 | preload | channel name and whether it is allowed in preload/channel constants |
 | sidecar | JSON-RPC method, tool name, stderr log, registry entry, result/error payload |
 | platform | OS, permission probe result, package type, window/input dependency such as `xdotool` |
-| hosted/tunnel | local origin status, hosted route status, Cloudflare/backend service status |
+| hosted/tunnel | local origin status, hosted route status, private deployment and hosted service status |
 
 ## Trace Flags
 
@@ -84,7 +83,7 @@ Next step should be <specific read/test/edit>.
 
 ## Related Docs
 
-- [Doctor Checklist](doctor_checklist.md)
+- Doctor Checklist (private backend docs)
 - [Triage Routes](triage_routes.md)
 - [Runtime Traces](../debug/runtime_traces.md)
 - [Test Selection](../debug/test_selection.md)

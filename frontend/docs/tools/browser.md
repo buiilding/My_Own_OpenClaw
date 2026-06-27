@@ -29,8 +29,8 @@ For browser changes that can cross schema, local-runtime execution, local-runtim
 
 ## Files to Inspect
 
-- Backend schema: `backend/src/tools/browser/*`
-- Backend remote tool: `backend/src/tools/remote_tools/browser.py`
+- Backend schema: private backend implementation
+- Backend remote tool: private backend implementation
 - local-runtime Python browser adapter: `frontend/src/main/python/tools/browser/browser_use_engine.py`
 - local-runtime Python tool entrypoint: `frontend/src/main/python/tools/browser/browser_tool.py`
 - Shared browser contract: `frontend/src/main/python/windie_shared/browser_contract*`

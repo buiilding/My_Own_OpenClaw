@@ -44,7 +44,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | Add, remove, rename, or reorder a settings tab | Renderer settings shell | `desktopSettingsTabRuntime.js`, `SettingsSection.jsx`, `renderTabContent()` | `tests/frontend/DesktopSettingsTabRuntime.test.js`, `tests/frontend/SettingsSection.test.jsx`, settings docs |
 | Toggle emits config but value disappears after reload | Renderer config allowlist/storage | `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`, `desktopRendererConfigStorageRuntime.js`, `appConfigPersistence.js` | [Settings Sync Change Workflow](../../runtime/settings_sync_change_workflow.md) |
-| Setting saves locally but backend ignores it | Backend patch validation or main sync | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `backend/src/api/handlers/settings.py`, backend validation docs | backend settings/update tests |
+| Setting saves locally but backend ignores it | Backend patch validation or main sync | `frontend/src/main/ipc/ipc_settings_sync.cjs`, private backend implementation, backend validation docs | backend settings/update tests |
 | General wakeword listening toggle is wrong | AppConfig context wakeword state | `GeneralSettingsTab.jsx`, `AppConfigProvider.jsx`, wakeword bridge/runtime docs | wakeword/voice tests |
 | Wakeword STT toggle is wrong | Renderer config patch path | `GeneralSettingsTab.jsx`, config filter/storage, settings sync | `GeneralSettingsTab.test.jsx`, config tests |
 | View tool logs changes execution instead of presentation | Renderer transcript/display settings | `GeneralSettingsTab.jsx`, chat message rendering, transcript display filtering | chat/message display tests |
@@ -118,7 +118,7 @@ flowchart LR
 | General tab config/authority controls | `cd frontend && npm run test -- GeneralSettingsTab SettingsSection` |
 | Config allowlist/storage/provider merge | `cd frontend && npm run test -- configFilter configStorage AppConfigProvider.storageAndIpc AppConfigPersistence DesktopSettingsEventRuntimeClient` |
 | Settings ACK/main sync | `cd frontend && npm run test -- IpcSettingsSync AppConfigEvents` plus backend settings tests when payload shape changes |
-| Backend settings validation/session rewire | `./scripts/python-in-env backend pytest tests/backend/test_settings_update_rules.py tests/backend/test_session_config_service.py` |
+| Backend settings validation/session rewire | private backend test runner |
 | Permission/onboarding controls | `cd frontend && npm run test -- AppPermissionGate PermissionStorage PermissionIpcRuntime PermissionService useOnboardingPermissionActions DesktopOnboardingSlideshow` |
 | Workspace controls | `cd frontend && npm run test -- ChatWorkspaceState` plus workspace IPC/permission tests if main-process behavior changes |
 | Browser controls | `cd frontend && npm run test -- ChatBrowserSessionControl PermissionService PermissionIpcRuntime` plus browser workflow tests if runtime changes |

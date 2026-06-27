@@ -14,11 +14,11 @@ WindieOS supports local LLM providers for Ollama and LM Studio. They are registe
 
 | Concern | Files |
 | --- | --- |
-| Local provider base class | `backend/src/llm/providers/local.py` |
-| Provider factory registration | `backend/src/llm/providers/factory.py` |
-| Config defaults | `backend/src/core/config/models.py` |
-| Runtime API key policy | `backend/src/core/config/loader.py` |
-| Model listing service | `backend/src/llm/models/model_service.py` |
+| Local provider base class | private backend implementation |
+| Provider factory registration | private backend implementation |
+| Config defaults | private backend implementation |
+| Runtime API key policy | private backend implementation |
+| Model listing service | private backend implementation |
 | Dashboard model UI | `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx` |
 
 ## Providers
@@ -54,8 +54,8 @@ If local models are missing:
 Focused backend tests:
 
 ```bash
-<windie> test backend tests/backend/test_local_llm_providers.py tests/backend/test_model_service.py -q
-<windie> test backend tests/backend/test_config_loader.py tests/backend/test_provider_factory_helpers.py -q
+private backend tests private backend tests -q
+private backend tests private backend tests -q
 ```
 
 Focused frontend tests:

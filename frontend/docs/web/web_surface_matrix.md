@@ -1,27 +1,32 @@
 ---
-summary: "Web-facing surface matrix for WindieOS landing page, hosted backend APIs, websockets, SDK routes, artifacts, VM runs, and future dashboard/control surfaces."
+summary: "Public web-facing surface matrix for WindieOS landing page, hosted API contracts, websocket clients, SDK routes, artifacts, and future dashboard surfaces."
 read_when:
-  - When deciding whether a change belongs to the landing page, hosted backend API, websocket protocol, SDK client, Electron renderer, or future dashboard surface.
-  - When adding public web/API docs or exposing a backend route to non-Electron clients.
+  - When deciding whether a change belongs to the landing page, hosted API
+    contract docs, websocket protocol, SDK client, Electron renderer, or future
+    dashboard surface.
+  - When adding public web/API docs or exposing a public backend contract to
+    non-Electron clients.
 title: "Web Surface Matrix"
 ---
 
 # Web Surface Matrix
 
-WindieOS is desktop-first. Web-facing surfaces are either the public landing page or hosted backend APIs used by the desktop app, SDK clients, and VM workers. Do not assume the Electron renderer dashboard is safe to host in a normal browser without checking Electron IPC and local runtime assumptions.
+WindieOS is desktop-first. Public web-facing surfaces are either the landing page
+or stable API/SDK contracts consumed by the desktop app and SDK clients. Backend
+implementation, hosted operations, auth internals, and VM-runs control-plane
+docs live in private backend docs.
 
 ## Surface Map
 
 | Surface | Current state | Owner | Public contract |
 | --- | --- | --- | --- |
 | landing page | implemented | `frontend/landing.html`, `frontend/src/landing/*` | static/product web surface |
-| main agent websocket | implemented | `backend/src/api/routes/websocket/*` | `/ws` stream protocol |
-| transcription websocket | implemented | `backend/src/api/routes/transcription/router.py` | `/ws/transcription` audio transcription gateway |
-| install registration | implemented | backend install-auth routes/services | `POST /api/install/register` |
-| artifacts API | implemented | `backend/src/api/routes/artifacts/*`, `backend/src/services/artifacts/*` | upload/fetch artifact files |
-| SDK/introspection API | implemented | `backend/src/api/routes/sdk/*`, `backend/src/sdk` | OCR, vision, prompt preview, query plan, debug introspection |
-| memory/inference API | implemented | `backend/src/api/routes/memory/*` | embeddings, semantic summarize/title, health |
-| VM runs API | implemented | `backend/src/api/routes/runs/*`, `backend/src/services/vm_run_control.py` | hosted VM run control plane |
+| main agent websocket | implemented | private backend route owner | `/ws` stream protocol |
+| transcription websocket | implemented | private backend route owner | `/ws/transcription` audio transcription gateway |
+| install registration | implemented | private backend route owner | `POST /api/install/register` |
+| artifacts API | implemented | private backend route owner | upload/fetch artifact files |
+| SDK/introspection API | implemented | private backend route owner plus public SDK clients | OCR, vision, prompt preview, query plan, debug introspection |
+| memory/inference API | implemented | private backend route owner | embeddings, semantic summarize/title, health contracts |
 | hosted web dashboard | future/planned | not a standalone web app today | do not document as current product behavior |
 
 ## Change Routing
@@ -29,22 +34,24 @@ WindieOS is desktop-first. Web-facing surfaces are either the public landing pag
 | Change | Start docs | Code roots |
 | --- | --- | --- |
 | update public landing copy/sections | [Landing Page Change Workflow](landing_page_change_workflow.md), [Landing Page](landing_page.md) | `frontend/src/landing/*` |
-| add/change hosted REST route | Hosted API and Auth (private backend docs), Gateway Protocol Map (private backend docs) | `backend/src/api/routes/*` |
-| add/change websocket event | [HTTP and WebSocket API Surface](../reference/http_api_surface.md), [WebSocket Event Reference](../reference/websocket_event_reference.md) | `backend/src/api/routes/websocket/*`, renderer event consumers |
-| expose SDK/client helper | [Web Client Integration](web_client_integration.md), [SDK Hub](../sdk/README.md) | `backend/src/api/routes/sdk/*`, `packages/windie-sdk-js`, `frontend/src/main/python/core` |
-| add VM run control feature | Automation Hub (private backend docs) | `backend/src/api/routes/runs/*`, `frontend/src/main/app/vm_worker_runtime.cjs` |
+| add/change public hosted API contract docs | [HTTP and WebSocket API Surface](../reference/http_api_surface.md), [WebSocket Event Reference](../reference/websocket_event_reference.md) | public SDK/client docs plus private backend implementation docs |
+| add/change websocket event consumer behavior | [HTTP and WebSocket API Surface](../reference/http_api_surface.md), [WebSocket Event Reference](../reference/websocket_event_reference.md) | SDK event guards, renderer event consumers |
+| expose SDK/client helper | [Web Client Integration](web_client_integration.md), [SDK Hub](../sdk/README.md) | `packages/windie-sdk-js`, `frontend/src/main/python/core` |
 | make a browser-hosted dashboard | planning first | identify Electron IPC, local runtime, auth, and filesystem assumptions before implementation |
 
 ## Rules
 
-- Hosted backend APIs should be documented in route-level reference docs, not only in frontend code comments.
-- SDK consumers should not need Electron IPC or local-runtime Python for hosted API calls.
-- Local desktop tools remain local-runtime executed; do not expose local filesystem/shell/computer control as generic hosted web endpoints.
-- New public routes need auth, CORS, payload, client, and test coverage decisions.
+- Public hosted API docs describe contracts, not private route implementation or
+  operator runbooks.
+- SDK consumers should not need Electron IPC or local-runtime Python for hosted
+  API calls.
+- Local desktop tools remain local-runtime executed; do not expose local
+  filesystem/shell/computer control as generic hosted web endpoints.
+- New public routes need auth, CORS, payload, client, and test coverage
+  decisions in private backend docs before being advertised publicly.
 
 ## Related Docs
 
 - [Web Surfaces Hub](README.md)
-- Hosted API and Auth (private backend docs)
 - [Web Client Integration](web_client_integration.md)
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)

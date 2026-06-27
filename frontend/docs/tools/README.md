@@ -64,7 +64,7 @@ Local-runtime executable tools are registered in `frontend/src/main/python/tools
 
 ## Deep Docs
 
-- [Tool System](../architecture/tool_system.md)
+- Backend Tool System (private backend docs)
 - [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md)
 - [Tool Catalog Matrix](tool_catalog_matrix.md)
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md)

@@ -168,7 +168,6 @@ Owner: backend auth and config for hosted tokens, Electron/renderer for user-ent
 
 Start with Credential and Token Change Workflow (private backend docs), Credentials and Tokens Matrix (private backend docs), and Hosted Backend Auth (private backend docs).
 
-Validate environment-variable loading, install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, redaction, and logs. Use placeholders in docs and tests.
 
 Avoid: writing real credentials, user data, or machine-specific paths into docs, fixtures, logs, or snapshots.
 
@@ -192,15 +191,10 @@ Validate server enablement, stdio launch args, discovery diagnostics, schema pro
 
 Avoid: treating MCP tools as backend built-ins when the active local tool surface comes from the client manifest.
 
-## VM Run Or Worker Control
 
-Owner: backend runs API and run-control service, with Electron VM worker dispatch as the local executor path.
 
-Start with Automation Hub (private backend docs), VM Run Control Change Workflow (private backend docs), and Runs API Runbook (private backend docs).
 
-Validate run creation, worker heartbeat assignment, event timelines, pending controls, stop behavior, runs API keys, and Electron worker dispatch. Keep `/api/runs/*` as the control plane; normal desktop chat stays on `/ws`.
 
-Avoid: reusing chat websocket assumptions for VM worker polling or run-control state.
 
 ## Voice, Wakeword, STT, Or TTS
 
@@ -266,7 +260,7 @@ Avoid: adding always-on verbose logs or raw payload dumps for cross-runtime fail
 
 Owner: docs and tests, with runtime docs consulted when the doc describes behavior owned by a runtime.
 
-Start with [Docs Update Workflow](docs_update_workflow.md), [Documentation Hub](../getting-started/docs_hub.md), and [OpenClaw Docs Structure Reference](../reference/openclaw_docs_structure_reference.md).
+Start with [Docs Update Workflow](docs_update_workflow.md), [Documentation Hub](../getting-started/docs_hub.md), and OpenClaw Docs Structure Reference (private backend docs).
 
 Validate front matter, `read_when` routing, hub wiring, canonical navigation, relative links, changelog coverage, `<windie> docs list`, and `git diff --check`. Docs-only changes usually do not need code tests unless a generator, schema snapshot, or script changed.
 

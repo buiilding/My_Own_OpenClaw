@@ -1,7 +1,6 @@
 ---
 summary: "Workflow for changing WindieOS storage and persistence across renderer transcript/session storage, Electron user-data files, local-runtime SQLite/FAISS memory, backend artifacts, install-auth SQLite, caches, and in-memory services."
 read_when:
-  - When adding, removing, migrating, or debugging durable or semi-durable data in renderer storage, Electron user-data files, local-runtime memory SQLite/FAISS, backend artifact storage, install auth SQLite, local config, caches, or VM run state.
   - When debugging missing chats, stale dashboard data, corrupted memory indexes, artifact 404s, install-token persistence, config values that reappear after reload, or data that disappears after restart.
 title: "Storage and Persistence Change Workflow"
 ---
@@ -20,7 +19,6 @@ Use this workflow for storage shape, migration, retention, reset, and data-loss 
 | Electron user-data files | Electron main | `frontend-config.json`, `install-auth.json`, permission state, endpoint-derived local config | survives app restart until user-data reset |
 | Local-runtime memory DB/index files | SDK local-runtime memory boundary, currently backed by local-runtime Python storage | transcript rows, episodic/semantic memories, conversation titles, FAISS indexes, semanticization watermark | survives app restart, must migrate defensively |
 | Backend disk stores | Hosted backend | artifacts, install-auth SQLite | survives backend process restart if path is persistent |
-| Backend process memory | Hosted backend | active sessions/history, tool futures, VM run registry, cache entries, OCR/vision loaded models | lost on process restart |
 | Packaged resource/runtime files | Electron package and build scripts | bundled Python runtime, feature-pack state, app resources | replaced by reinstall/package update |
 
 Do not promote ephemeral state to durable storage unless the product needs it across restart and the reset/migration behavior is clear.
@@ -36,12 +34,11 @@ Do not promote ephemeral state to durable storage unless the product needs it ac
 | Local-runtime transcript/memory SQLite | Local-runtime memory store, currently backed by local-runtime Python modules | `frontend/src/main/python/memory/local_store.py`, `sqlite_store.py`, `operations.py`, `local_backend_memory_handlers.py` | `tests/sidecar/test_local_store*.py`, `test_local_backend.py`, `test_memory_operations.py` | [Local Runtime Memory](../memory/sidecar_local_memory.md) |
 | Local-runtime FAISS indexes and vector mappings | Local-runtime memory store, currently backed by local-runtime Python modules | `frontend/src/main/python/memory/faiss_index.py`, `sqlite_store.py`, `local_store.py` | `tests/sidecar/test_local_store_init.py`, `test_local_store_delete_cleanup.py`, storage tests | [SQLite/FAISS/Watermark Reference](../frontend/sidecar/memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md) |
 | Semanticization watermark | Local-runtime memory summarizer, currently backed by local-runtime Python modules | `frontend/src/main/python/memory/watermark_state.py`, `summarizer.py`, `conversation_semanticization_runtime.py` | `tests/sidecar/test_memory_summarizer.py`, semanticization tests | [Local Runtime Memory Hub](../frontend/sidecar/memory/README.md) |
-| Backend artifacts | Backend artifact service | `backend/src/services/artifacts/store.py`, `backend/src/api/routes/artifacts/**` | `tests/backend/test_artifacts_store.py`, artifact route tests | [Artifact Change Workflow](../desktop/artifact_change_workflow.md) |
-| Backend install-auth DB | Backend auth service | `backend/src/api/auth/service.py` | `tests/backend/test_install_auth.py` | Hosted Backend Auth (private backend docs) |
-| Backend active history and compaction state | Backend agent runtime | `backend/src/agent/history/**`, `backend/src/agent/compaction/**` | backend history/compaction/interaction-loop tests | Backend History and Semantic Routes (private backend docs) |
-| Tool result futures and resolved-call storage | Backend tool runtime | `backend/src/agent/tools/waiting/storage/result_storage.py`, `backend/src/agent/tools/preparation/storage/resolved_call_storage.py` | `tests/backend/test_tool_result_storage.py`, `test_resolved_tool_call_storage.py` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
-| Backend caches | Backend core infrastructure | `backend/src/core/infrastructure/cache*.py` | `tests/backend/test_cache_layer.py`, `test_cache_entry.py` | Backend Core Cache Hub (private backend docs) |
-| VM run control registry | Backend runs service | `backend/src/services/vm_run_control.py`, `backend/src/api/routes/runs/**` | `tests/backend/test_run_control_routes.py` | VM Runs and Workers (private backend docs) |
+| Backend artifacts | Backend artifact service | private backend implementation | private backend tests, artifact route tests | [Artifact Change Workflow](../desktop/artifact_change_workflow.md) |
+| Backend install-auth DB | Backend auth service | private backend implementation | private backend tests | Hosted Backend Auth (private backend docs) |
+| Backend active history and compaction state | Backend agent runtime | private backend implementation | backend history/compaction/interaction-loop tests | Backend History and Semantic Routes (private backend docs) |
+| Tool result futures and resolved-call storage | Backend tool runtime | private backend implementation | private backend tests, `test_resolved_tool_call_storage.py` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
+| Backend caches | Backend core infrastructure | private backend implementation | private backend tests, `test_cache_entry.py` | Backend Core Cache Hub (private backend docs) |
 | Browser-local files | Local-runtime Python Browser Use engine adapter | `frontend/src/main/python/tools/browser/file_store.py`, `browser_use_engine.py` | local-runtime Python browser tool/action tests | [Browser Change Workflow](../browser/browser_change_workflow.md) |
 | Permission state | Electron main and renderer permission store | `frontend/src/main/permissions/permission_state_store.cjs`, `frontend/src/renderer/features/permissions/**` | frontend permission tests | [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
 
@@ -207,8 +204,8 @@ Read:
 
 Edit:
 
-- `backend/src/services/artifacts/store.py` for artifact id validation, content-type allowlist, size limits, metadata, and disk paths.
-- `backend/src/api/routes/artifacts/**` for upload/fetch route behavior.
+- private backend implementation for artifact id validation, content-type allowlist, size limits, metadata, and disk paths.
+- private backend implementation for upload/fetch route behavior.
 - Electron artifact upload/fetch bridge only if client route shape changes.
 - renderer image resolution only if artifact URLs/refs change.
 
@@ -228,8 +225,8 @@ Read:
 
 Edit:
 
-- `backend/src/api/auth/service.py` for install table schema, token hash, registration, and `last_seen_at` updates.
-- `backend/src/api/auth/router.py` only when registration request/response changes.
+- private backend implementation for install table schema, token hash, registration, and `last_seen_at` updates.
+- private backend implementation only when registration request/response changes.
 - Electron install auth persistence only if the returned field shape changes.
 
 Validate:
@@ -244,7 +241,6 @@ Validate:
 Read:
 
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
-- VM Runs and Workers (private backend docs)
 - Backend Core Cache Hub (private backend docs)
 
 Edit:
@@ -252,7 +248,6 @@ Edit:
 - tool future/result stores for request-id lifecycle and cleanup.
 - resolved-call storage for prepared tool-call metadata.
 - cache store/manager for TTL, LRU, negative cache, and singleton behavior.
-- VM run control service for run status/event/control state.
 
 Validate:
 
@@ -271,7 +266,6 @@ Validate:
 | App forgets model/settings after restart | renderer local storage, Electron config file, config filter | renderer/Electron config persistence |
 | Install auth works once then disappears | `install-auth.json` read/write, user-data reset, registration response normalization | Electron install auth persistence |
 | Artifact 404 after upload | artifact id, base dir, owner metadata | backend artifact store or Electron upload bridge |
-| VM run vanishes after backend restart | expected: VM run service is in-memory | backend run-control design, not renderer bug |
 | Tool wait hangs or leaks futures | result storage cleanup, request-id mismatch, bundle result handling | backend tool waiting storage |
 | Cache serves stale value | cache key namespace/TTL/negative cache behavior | backend cache store/manager |
 | Browser file lands outside expected root | browser file store env/root resolution | local-runtime Python browser file store |
@@ -286,10 +280,9 @@ Validate:
 | Local-runtime SQLite/memory schema | `./scripts/python-in-env local-runtime python -m pytest tests/sidecar/test_local_store_init.py tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py` |
 | Local-runtime FAISS/vector mapping | local-runtime memory delete/search/init tests and corrupted-index coverage |
 | Semanticization/watermark | `./scripts/python-in-env local-runtime python -m pytest tests/sidecar/test_memory_summarizer.py` plus semanticization tests |
-| Backend artifacts | `./scripts/python-in-env backend pytest tests/backend/test_artifacts_store.py` plus artifact route tests |
-| Backend install-auth DB | `./scripts/python-in-env backend pytest tests/backend/test_install_auth.py` |
-| Backend tool/result caches | `./scripts/python-in-env backend pytest tests/backend/test_tool_result_storage.py tests/backend/test_resolved_tool_call_storage.py tests/backend/test_cache_layer.py` |
-| VM run state | `./scripts/python-in-env backend pytest tests/backend/test_run_control_routes.py` |
+| Backend artifacts | private backend test runner plus artifact route tests |
+| Backend install-auth DB | private backend test runner |
+| Backend tool/result caches | private backend test runner |
 | Docs-only storage changes | `<windie> docs list`, `git diff --check`, and a focused Markdown link check over touched docs |
 
 ## Review Checklist

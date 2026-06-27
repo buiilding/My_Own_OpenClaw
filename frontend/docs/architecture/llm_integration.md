@@ -11,7 +11,7 @@ read_when:
 WindieOS supports multiple LLM providers through a unified interface. The system uses LiteLLM for provider abstraction and supports both cloud and local models.
 
 System prompt note:
-- `backend/src/llm/prompts/system_prompt.txt` now carries a fuller Codex-style execution scaffold adapted for WindieOS, including Codex-like repo-instruction scope, preamble/response discipline, final-answer formatting rules, and coding workflow guidance, with WindieOS-specific browser-use, desktop-use, process, and validation rules layered on top.
+- private backend implementation now carries a fuller Codex-style execution scaffold adapted for WindieOS, including Codex-like repo-instruction scope, preamble/response discipline, final-answer formatting rules, and coding workflow guidance, with WindieOS-specific browser-use, desktop-use, process, and validation rules layered on top.
 - Applicable `AGENTS.md` files are injected as separate contextual `user` messages during prompt assembly, following Codex's `# AGENTS.md instructions for ...` wrapper format instead of being inlined into the system prompt.
 - In hosted-backend mode, the desktop app resolves `AGENTS.md` locally from the selected workspace and sends those rendered messages with the query payload, because the remote backend cannot read the user's local filesystem path directly.
 - The backend still keeps a workspace-path fallback resolver for local/backend-cohosted development flows, so both hosted and local runtimes share one prompt-construction surface.
@@ -32,7 +32,7 @@ System prompt note:
 - **Ollama**: Local model execution
 - **LM Studio**: Local model server
 
-Curated online model IDs live in `backend/src/llm/models/models_config.py` and are returned by `list-models`. The backend catalog is the source of truth for family labels, reasoning modes/defaults, dashboard card metadata, and provider capability flags such as native web-search or Codex OAuth support. Local model lists come from the running Ollama/LM Studio servers.
+Curated online model IDs live in private backend implementation and are returned by `list-models`. The backend catalog is the source of truth for family labels, reasoning modes/defaults, dashboard card metadata, and provider capability flags such as native web-search or Codex OAuth support. Local model lists come from the running Ollama/LM Studio servers.
 
 ## LLM Client Architecture
 
@@ -72,7 +72,7 @@ Curated online model IDs live in `backend/src/llm/models/models_config.py` and a
 
 ### Provider Configuration
 
-Configure providers in `backend/src/core/config/app_config.py` (AppConfig) and set API keys via environment variables:
+Configure providers in private backend implementation (AppConfig) and set API keys via environment variables:
 
 **Runtime updates**: The frontend sends `update-settings` to update the session’s model/provider. Changes apply on the next query.
 

@@ -3,7 +3,6 @@ summary: "Channel hub for WindieOS desktop, websocket, voice, local-runtime, SDK
 read_when:
   - When deciding which WindieOS transport or entry channel owns a behavior.
   - When changing desktop chat, overlay chat, voice/STT/TTS, SDK clients,
-    local-runtime tools, or VM run control flows.
 title: "Channels Hub"
 ---
 
@@ -26,13 +25,11 @@ patching the wrong consumer.
 | TTS playback | Backend audio response | backend `/ws` `audio-chunk` events -> renderer playback queue | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Audio Channels](voice_and_audio_channels.md), Backend TTS Manager (private backend docs) |
 | Local tools | Computer, browser, filesystem, shell, memory | SDK/main local runtime -> local-runtime Python executor | [Local Tool Channels](sidecar_and_tool_channels.md), [Tools Hub](../tools/README.md) |
 | SDK clients | External programmatic clients | direct hosted HTTP + WebSocket | [Channel Routing Matrix](channel_routing_matrix.md), [SDK Hub](../sdk/README.md) |
-| VM runs | Hosted dashboard or worker execution | `/api/runs/*` HTTP control plane + backend `/ws` dispatch | Automation Hub (private backend docs), VM Runs and Workers (private backend docs) |
 
 ## Rules
 
 - Use `/ws` for normal agent queries, settings/model messages, tool-result ingress, rehydrate, stop-query, wakeword activation, and stream events.
 - Use `/ws/transcription` only for voice-mode STT audio/control messages.
-- Use `/api/runs/*` only for VM worker assignment, run control, and run timeline events.
 - Use `/api/sdk/*` for hosted developer introspection and perception routes, not SDK local-runtime execution.
 - Use the SDK local-runtime path for local desktop control, browser actions, shell/filesystem tools, local memory, and system state.
 - Do not make Electron client or local-runtime Python implementation code import
@@ -103,8 +100,8 @@ Likely code:
 - `frontend/src/renderer/features/voice/**`
 - `frontend/src/main/wakeword/wakeword_bridge*.cjs`
 - `frontend/src/main/python/wakeword_service.py`
-- `backend/src/api/routes/transcription/**`
-- `backend/src/api/processing/tts/**`
+- private backend implementation
+- private backend implementation
 
 Validate voice hook, wakeword bridge, STT gateway, and TTS stream tests.
 
@@ -118,7 +115,7 @@ Read:
 
 Likely code:
 
-- backend model-facing schema under `backend/src/tools`
+- backend model-facing schema under private backend implementation
 - SDK runtime under `packages/windie-sdk-js/src/runtime/AgentClient.ts`,
   `packages/windie-sdk-js/src/runtime/Agent.ts`,
   `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, and

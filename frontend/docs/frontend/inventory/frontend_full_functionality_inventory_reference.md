@@ -63,7 +63,6 @@ Functionality:
 - Keeps overlay query-capture prep blur-only and avoids cross-app focus restoration.
 - Routes screenshot tool execution through the SDK/main local-runtime bridge, while computer-use dashboard-to-pill prep happens before local execution in Electron main.
 - Registers global wakeword hotkey and open-target window routing.
-- Enables VM-mode renderer query-flag boot and optional VM worker runtime startup from env-gated mode helpers.
 
 ### 1.2 Backend WebSocket + IPC Orchestration
 
@@ -139,7 +138,6 @@ Functionality:
   - Runs per-permission probe/check/request handlers for onboarding/data controls.
   - Normalizes status payloads consumed by renderer permission store.
 
-### 1.5 VM Worker Bridge Runtime
 
 Primary files:
 
@@ -149,10 +147,6 @@ Primary files:
 
 Functionality:
 
-- Resolves VM mode and VM worker mode from `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE`.
-- Polls backend `/api/runs/workers/heartbeat` for worker registration, run assignment, and queued control commands.
-- Dispatches assigned runs through existing websocket query path (`sendAutomatedQuery`) and acknowledges with `/api/runs/{run_id}/worker-dispatched`.
-- Relays backend stream events into run timelines via `/api/runs/{run_id}/events`.
 - Applies stop controls by issuing websocket `stop-query` with mapped `conversation_ref`.
   - Backend `StopQueryHandler` currently cancels per-user active tasks and does not forward payload `conversation_ref` into cancellation filtering.
 

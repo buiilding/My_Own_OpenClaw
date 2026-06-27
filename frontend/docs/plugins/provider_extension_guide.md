@@ -14,11 +14,11 @@ Use this page when a plugin-like request is actually a provider integration.
 
 Core files:
 
-- `backend/src/llm/providers/factory.py`
-- `backend/src/llm/providers/*`
-- `backend/src/llm/models/models_config.py`
-- `backend/src/core/config/models.py`
-- `backend/src/core/config/loader.py`
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
 
 Docs:
 
@@ -41,13 +41,13 @@ Use this for OCR, vision, embeddings, STT, TTS, or capability health.
 
 Core files:
 
-- `backend/src/core/interfaces/*`
-- `backend/src/core/inference/*`
-- `backend/src/services/ocr/*`
-- `backend/src/services/vision/*`
-- `backend/src/services/embedding*`
-- `backend/src/api/services/transcription/*`
-- `backend/src/api/processing/tts/*`
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
 
 Docs:
 

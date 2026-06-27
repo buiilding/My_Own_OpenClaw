@@ -30,7 +30,7 @@ This guide describes a safe, repeatable release process for WindieOS.
 
 From the repo root:
 
-- Backend tests: `<windie> test backend`
+- Backend tests: private backend tests
 - Local-runtime Python tests: `<windie> test local-runtime`
 - Frontend tests: `<windie> test frontend`
 - Frontend lint: `cd frontend && npm run lint`
@@ -38,7 +38,7 @@ From the repo root:
 
 If you changed backend runtime behavior, also run the backend with:
 
-- `<windie> start backend`
+- private backend start command
 
 ## Release Steps
 

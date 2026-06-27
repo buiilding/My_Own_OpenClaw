@@ -45,15 +45,15 @@ cd frontend
 
 Inspect:
 
-- `backend/src/api/services/rehydrate_tool_call_normalization.py`
-- `backend/src/api/services/rehydrate_tool_linkage.py`
+- private backend implementation
+- private backend implementation
 - `frontend/src/renderer/infrastructure/transcript/toolCallMessageState.js`
 - `frontend/src/renderer/infrastructure/transcript/toolOutputChatMessageState.ts`
 
 Validate:
 
 ```bash
-<windie> test backend tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage.py -q
+private backend tests private backend tests -q
 <windie> test frontend -- AgentSdkConversationRuntime.test.ts DesktopConversationReplayRuntime.test.js
 ```
 
@@ -79,13 +79,13 @@ Inspect:
 - `frontend/src/main/python/memory/summarizer.py`
 - `frontend/src/main/python/memory/conversation_semanticization_runtime.py`
 - `frontend/src/main/python/core/remote_semantic_client.py`
-- `backend/src/api/routes/memory`
+- private backend implementation
 
 Validate:
 
 ```bash
 <windie> test local-runtime tests/sidecar/test_memory_summarizer.py tests/sidecar/test_conversation_semanticization_runtime.py tests/sidecar/test_remote_semantic_client.py -q
-<windie> test backend tests/backend/test_memory_routes.py tests/backend/test_semantic_parser_service.py -q
+private backend tests private backend tests -q
 ```
 
 ## Conversation Title Stays Generic
@@ -94,11 +94,11 @@ Inspect:
 
 - `frontend/src/main/python/memory/conversation_title_store.py`
 - `frontend/src/main/python/local_backend_memory_handlers.py`
-- backend semantic/title route tests under `tests/backend/test_memory_routes.py`
+- backend semantic/title route tests under private backend tests
 
 Validate:
 
 ```bash
 <windie> test local-runtime tests/sidecar/test_local_backend.py tests/sidecar/test_chat_event_store.py -q
-<windie> test backend tests/backend/test_memory_routes.py -q
+private backend tests private backend tests -q
 ```

@@ -36,7 +36,6 @@ frontend/src/
 ├── main/
 │   ├── index.cjs                          # Electron main composition root (wires runtime modules)
 │   ├── ipc.cjs                            # Renderer <-> SDK/Electron IPC composition root and event fan-out
-│   ├── app/                               # app lifecycle, menus, runtime mode, GPU, VM worker, endpoint/runtime helpers
 │   ├── debug/                             # gated main-process trace helpers
 │   ├── extensions/                        # extension manifest, MCP runtime, tool manifest helpers
 │   ├── ipc/                               # focused IPC helper runtimes and channel contracts
@@ -101,7 +100,6 @@ Current runtime behavior also relies on these explicit seams:
 - **Local-runtime Python now has a matching hosted SDK transport client**: `frontend/src/main/python/windie/sdk.py` mirrors the same public backend boundary for Python-side developer tools and local runtime integrations that need `/api/sdk/*`, `/api/artifacts/*`, or `/ws` access without importing backend code.
 - **Permission runtime is split by capability domain**: `permissions/permission_service.cjs` remains the public API surface, while focused domain modules own screen capture, accessibility/input control, microphone, automation/app-management, workspace/shell, and browser setup flows.
 - **Global stop shortcut is a dedicated runtime**: `frontend/src/main/shortcuts/agent_stop_shortcut_runtime.cjs` owns per-platform accelerator normalization, fallback registration, and phase gating; `ipc.cjs` projects runtime status back to renderer config/status flows.
-- **VM worker mode is runtime-flagged and run-API backed**: `app/runtime_mode.cjs` controls `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE` behavior, while `app/vm_worker_runtime.cjs` polls and relays `/api/runs/*` assignments/events over backend HTTP + existing websocket event observer hooks.
 - **Local-runtime browser implementation is feature-pack aware**: `frontend/src/main/python/local_backend.py` and `core/feature_pack_installer.py` support on-demand local-runtime Python dependency install into user-writable site-packages with packaged-app specific failure messaging.
 - **Local-runtime tool contract is direct-name based**: `frontend/src/main/python/tools/registry.py` exposes concrete tool names from its local `TOOL_CATALOG` plus `switch_window` and `get_open_windows`; parity with backend remote schemas is tracked through `frontend/src/main/python/tools/manifest.py`.
 - **Wrapper artifacts are not live local-runtime tool names**: repo-local `model-facing/tool_schema.txt` still contains unified `computer_use` and `system_use` schemas, but the current local-runtime implementation does not register or dispatch those names.
@@ -318,7 +316,6 @@ Primary modules:
 - `main/surface_runtime.cjs`:
   - Single owner for `mainWindow` / `chatWindow` / `responseWindow` refs plus response-overlay visibility + phase state.
   - Composes overlay positioning, wakeword visibility fan-out, blur-only capture prep, and one-time main-process IPC initialization behind one surface lifecycle boundary.
-  - Exposes the window operations consumed by bootstrap/lifecycle modules (`showChatWindow`, `hideChatWindow`, `showMainWindow`, `applyResponseOverlayPhase`, `syncWindowDisplayAffinity`, VM worker shutdown).
 - `main/response_overlay_visibility_policy.cjs`:
   - Pure shared policy for response-overlay window mode resolution, terminal restore eligibility, and chat-pill response-shell restore rules.
   - Keeps `response_overlay_phase_handler.cjs` and `window_visibility_runtime.cjs` on one shared policy contract instead of duplicating phase/restore branching.

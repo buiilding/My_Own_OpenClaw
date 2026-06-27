@@ -192,7 +192,6 @@ Current durable traced paths:
 - `install.auth`: SDK install identity helper records identity lookup spans
   with install-id presence and response key count without install ids, user ids,
   tokens, or credentials.
-- `run.control`: backend VM run-control service appends sanitized
   `trace_event` entries to the existing per-run event timeline for create,
   control, dispatch, and worker stream events. Rows include run id as request
   id, action/status/control mode, counts, assignment booleans, and payload key
@@ -214,8 +213,7 @@ events without renderer health. Add `--path <path>` to filter a runtime path and
 
 Some producer-owned feature traces live on their existing non-conversation
 timeline because that runtime has no conversation writer. `voice.transcription`
-is emitted on `/ws/transcription`; `run.control` is appended to the VM run
-event timeline, which has the same lifetime as the run-control service.
+event timeline, which has the same lifetime as the private automation service.
 
 ## Persistent App Diagnostics
 
@@ -392,8 +390,8 @@ Use this when the backend sends events but the UI displays stale, missing, or du
 
 | Layer | Code root | What to inspect |
 | --- | --- | --- |
-| Backend formatter | `backend/src/api/processing/formatters`, `backend/src/api/contracts` | Event type and payload shape. |
-| Websocket route | `backend/src/api/routes/websocket` | Incoming query, task ownership, outgoing event stream. |
+| Backend formatter | private backend implementation | Event type and payload shape. |
+| Websocket route | private backend implementation | Incoming query, task ownership, outgoing event stream. |
 | SDK backend-event handling and main fan-out | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/main/ipc/ipc_agent_backend_event_runtime.cjs`, `frontend/src/main/ipc/ipc_renderer_windows.cjs` | SDK-normalized conversation events, current-turn projections, and main renderer-window fan-out. |
 | Renderer SDK conversation-event consumption | `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`, `frontend/src/renderer/features/chat/hooks/useChatStream.ts` | SDK conversation-event dispatch, stale-turn filtering, stream tracking, and workspace state. |
 
@@ -557,7 +555,7 @@ Use this when screenshots are missing, stale, include overlays, or do not attach
 | SDK/main tool screenshot | `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs` | Tool screenshot stage and payload. |
 | Main screenshot bridge | `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs` | Upload/fetch path for screenshot artifacts. |
 | Sidecar screenshot tool | `frontend/src/main/python/tools/computer/screenshot_tool.py` | Platform capture path and cursor/overlay behavior. |
-| Backend artifact load | `backend/src/services/artifacts/store.py`, `backend/src/api/routes/artifacts` | Artifact lookup and binary response. |
+| Backend artifact load | private backend implementation | Artifact lookup and binary response. |
 
 Enable:
 

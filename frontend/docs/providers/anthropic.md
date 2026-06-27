@@ -14,11 +14,11 @@ WindieOS routes Anthropic through the shared online provider path with provider-
 
 | Concern | Files |
 | --- | --- |
-| Provider class | `backend/src/llm/providers/anthropic.py` |
-| Native thinking helpers | `backend/src/llm/providers/provider_native_reasoning.py` |
-| Shared online provider | `backend/src/llm/providers/online.py` |
-| Model catalog/variants | `backend/src/llm/models/models_config.py` |
-| Credential loading | `backend/src/core/config/loader.py`, `backend/src/core/config/models.py` |
+| Provider class | private backend implementation |
+| Native thinking helpers | private backend implementation |
+| Shared online provider | private backend implementation |
+| Model catalog/variants | private backend implementation |
+| Credential loading | private backend implementation |
 | Dashboard model UI | `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx` |
 
 ## Runtime Behavior
@@ -42,7 +42,7 @@ Provider code should not read env vars directly.
 
 ## Model Catalog
 
-Anthropic model entries and reasoning variants live in `backend/src/llm/models/models_config.py`. The frontend receives model-list output from backend model service; do not duplicate Anthropic reasoning-mode logic in the renderer.
+Anthropic model entries and reasoning variants live in private backend implementation. The frontend receives model-list output from backend model service; do not duplicate Anthropic reasoning-mode logic in the renderer.
 
 When adding an Anthropic model:
 
@@ -56,8 +56,8 @@ When adding an Anthropic model:
 Focused backend tests:
 
 ```bash
-<windie> test backend tests/backend/test_anthropic_provider.py tests/backend/test_models_config.py -q
-<windie> test backend tests/backend/test_provider_native_reasoning.py tests/backend/test_llm_thinking_extraction.py -q
+private backend tests private backend tests -q
+private backend tests private backend tests -q
 ```
 
 Focused frontend tests:

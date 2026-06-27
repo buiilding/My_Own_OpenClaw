@@ -4,14 +4,12 @@ read_when:
   - When making cross-cutting backend, Electron main, renderer, local-runtime, or
     SDK changes or deciding which runtime owns a behavior.
   - When adding architecture docs or routing a feature through backend,
-    Electron main, renderer, preload, local-runtime, hosted APIs, or VM worker
     surfaces.
 title: "Architecture Hub"
 ---
 
 # Architecture Hub
 
-Start here for system-level design work. WindieOS is split across a hosted backend, Electron main process, React renderer, preload bridge, local-runtime Python implementation, wakeword subprocess, VM worker mode, and hosted gateway/origin services.
 
 ## Architecture Pages
 
@@ -27,7 +25,7 @@ Start here for system-level design work. WindieOS is split across a hosted backe
 - [Frontend Architecture](frontend_architecture.md)
 - [Local-Runtime Python Implementation](python_sidecar.md)
 - [Agent System](agent_system.md)
-- [Tool System](tool_system.md)
+- Backend Tool System (private backend docs)
 - [LLM Integration](llm_integration.md)
 - [Memory System](memory_system.md)
 - [Extension Points](extension_points.md)
@@ -41,7 +39,6 @@ Start here for system-level design work. WindieOS is split across a hosted backe
 | React renderer | dashboard/chat UI, stream presentation, settings UI, onboarding, transcript queue, SDK projection rendering | OS permission probing, backend route auth, local-runtime lifecycle, tool execution orchestration |
 | preload | constrained renderer IPC exposure and channel allowlist | business logic, backend transport, local execution |
 | local-runtime implementation | local tool execution, browser automation runtime, local memory storage, system state, wakeword service process | backend agent loop, model provider selection, renderer UI |
-| VM worker mode | hosted run polling and dispatch into normal query path | normal desktop user interaction model |
 
 ## Architecture Rules
 

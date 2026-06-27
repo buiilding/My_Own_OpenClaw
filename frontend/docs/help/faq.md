@@ -69,5 +69,5 @@ Read [Memory Troubleshooting](../memory/memory_troubleshooting.md) and [Session 
 
 - [Diagnostics](diagnostics.md)
 - [Triage Routes](triage_routes.md)
-- [Doctor Checklist](doctor_checklist.md)
+- Doctor Checklist (private backend docs)
 - [Evidence Packet](evidence_packet.md)

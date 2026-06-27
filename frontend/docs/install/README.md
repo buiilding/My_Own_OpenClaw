@@ -12,7 +12,7 @@ WindieOS install docs cover source-mode development, packaged desktop validation
 
 - source development, where backend, renderer, and the local-runtime implementation run from the checkout
 - packaged desktop builds, where Electron bundles the frontend and bundled Python runtime
-- endpoint setup, where the app targets Peter-hosted, local, staging, or self-hosted backend routes
+- endpoint setup, where the app targets Peter-hosted, local, staging, or custom hosted backend routes
 - reinstall/reset loops, where installed app state and packaged resource paths matter
 
 ## Install Pages
@@ -28,8 +28,7 @@ WindieOS install docs cover source-mode development, packaged desktop validation
 
 ## Main Commands
 
-- Backend dev server: `<windie> start backend`
-- Desktop dev loop: `<windie> start dev`
+- - Desktop dev loop: `<windie> start dev`
 - Customer-mode desktop loop: `<windie> start customer`
 - Focused Vite dev server: `<windie> start frontend`
 - Focused Electron dev app: `<windie> start desktop`
@@ -46,7 +45,7 @@ surface.
 
 - Platform Setup: Backend + Frontend (private backend docs)
 - [Installation Guide](../getting-started/installation.md)
-- [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md)
+- Endpoint and Network Debugging (private backend docs)
 - [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md)
 - [Bundled Python Runtime Packaging](../operations/sidecar_runtime_packaging.md)
 - Runtime Configuration Matrix (private backend docs)

@@ -27,6 +27,6 @@ WindieOS concepts are product and system explanations that sit above implementat
 - [System Architecture](../architecture/architecture.md)
 - Backend Functionality Map (private backend docs)
 - [Frontend Functionality Map](../frontend/README.md)
-- [Tool System](../architecture/tool_system.md)
+- Backend Tool System (private backend docs)
 - [Memory System](../architecture/memory_system.md)
 - Configuration (private backend docs)

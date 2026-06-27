@@ -23,7 +23,6 @@ This is the compact local docs directory. For the complete canonical navigation 
 ## Architecture
 
 - [Runtime Model](../concepts/runtime_model.md) - backend, Electron main, renderer, preload, and local-runtime boundaries.
-- [Runtime Nodes Hub](../nodes/README.md) - process and service ownership across backend, desktop, local runtime, wakeword, VM worker, and hosted ingress.
 - [Channels Hub](../channels/README.md) - desktop, websocket, local-runtime JSON-RPC, voice, SDK, and VM-run communication paths.
 - Gateway Hub (private backend docs) - hosted backend ingress, app assembly, websocket handshake, auth, health, and troubleshooting.
 - [Agent Runtime Ownership and Change Routing](../development/agent_runtime_ownership_and_change_routing.md) - owner responsibilities and first docs for common change types.
@@ -71,13 +70,12 @@ This is the compact local docs directory. For the complete canonical navigation 
 ## Debug, Install, and Operations
 
 - [Debug Hub](../debug/README.md) - logs, flags, process health, traces, symptom playbooks, and test selection.
-- [Process Health Checklist](../debug/process_health_checklist.md) - prove which process is dead, stuck, disconnected, or healthy.
+- Process Health Checklist (private backend docs) - prove which process is dead, stuck, disconnected, or healthy.
 - [Triage Routes](../help/triage_routes.md) - symptom to owner before code edits.
 - [Help Hub](../help/README.md) - diagnostics, triage, doctor checklist, evidence packets, FAQ, and troubleshooting routes.
 - [Install Hub](../install/README.md) - local development, packaged builds, endpoint setup, and reset loops.
 - [Local Development](../install/local_development.md) - source setup, run commands, tests, and environment launcher.
 - [Operations Hub](../operations/README.md) - runtime config, hosted auth, packaging, release, deployment, and troubleshooting.
-- Automation Hub (private backend docs) - VM run orchestration, worker polling, run-control APIs, and scheduler boundaries.
 - Runtime Configuration Matrix (private backend docs) - config ownership, defaults, propagation, and validation.
 - Remote Backend Auto Deploy (private backend docs) - GitHub push-to-host checkout updates, systemd restarts, and deploy health checks.
 - [Web Surfaces](../web/README.md) - landing page, hosted APIs/auth, SDK clients, artifacts, websockets, and dashboard-adjacent web behavior.
@@ -91,4 +89,4 @@ This is the compact local docs directory. For the complete canonical navigation 
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md) - route-level hosted API map.
 - [WebSocket Event Reference](../reference/websocket_event_reference.md) - backend event families and renderer consumers.
 - [Commands and Scripts](../cli/README.md) - first-class `<windie>` command groups, diagnostics, docs search, tests, build, package, and deploy helpers.
-- [OpenClaw Docs Structure Reference](../reference/openclaw_docs_structure_reference.md) - docs organization benchmark.
+- OpenClaw Docs Structure Reference (private backend docs) - docs organization benchmark.

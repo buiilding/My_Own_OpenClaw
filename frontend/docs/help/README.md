@@ -15,7 +15,7 @@ Start here for user-visible failures. If the issue is implementation-specific, f
 - [Diagnostics](diagnostics.md)
 - [Troubleshooting](troubleshooting.md)
 - [Triage Routes](triage_routes.md)
-- [Doctor Checklist](doctor_checklist.md)
+- Doctor Checklist (private backend docs)
 - [Evidence Packet](evidence_packet.md)
 - [FAQ](faq.md)
 

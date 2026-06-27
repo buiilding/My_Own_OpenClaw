@@ -17,16 +17,16 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 
 | Change or symptom | First owner | Code roots | Start docs | Focused tests |
 | --- | --- | --- | --- | --- |
-| add or change a client/local-runtime tool schema | Agent SDK/local-runtime manifest, then backend manifest envelope/policy checks | public `frontend/src/main/extensions/tool_manifest.cjs`; backend `backend/src/tools/client_manifest.py` | [Tool Contracts](tool_contracts.md) | manifest builder tests, backend manifest validation tests |
-| add, remove, or rename a model-visible remote tool | backend tool catalog | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/*` | [Tool Catalog Matrix](tool_catalog_matrix.md), Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference (private backend docs) | `tests/backend/test_remote_tool_contract.py`, `tests/backend/test_tool_registry_schema.py` |
-| change a tool argument schema or description | backend schema model and remote stub | `backend/src/tools/{computer,system,filesystem}/schemas.py`, browser `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/remote_tools/*`, `backend/src/tools/schema_fields.py` | [Tool Contracts](tool_contracts.md), Backend Tools Contracts Hub (private backend docs) | backend schema tests plus `tests/sidecar/test_shared_tool_schema_parity.py` when executable fields should match |
-| hide or expose tools by profile, interaction mode, disabled tools, capabilities, provider health, or browser toggle | backend policy | `backend/src/tools/tool_policy.py`, `backend/src/tools/agent_capability_policy.py`, `backend/src/tools/provider_health.py`, `backend/src/tools/tool_selection.py` | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md), Tool Policy and Agent Capability Runtime Reference (private backend docs) | `tests/backend/test_tool_policy.py`, `tests/backend/test_tool_selection.py`, `tests/backend/test_provider_health_policy.py` |
-| change OCR, vision, manual coordinate method availability or validation | backend tool policy and preparation | `backend/src/tools/tool_policy.py`, `backend/src/tools/computer/schemas.py`, `backend/src/agent/tools/preparation/*` | [Computer Tools](computer.md), Tool Preparation and Coordinate Resolution Reference (private backend docs) | `tests/backend/test_tool_policy.py`, `tests/backend/test_tool_preparer.py`, `tests/backend/test_computer_use_schema_contract.py` |
-| backend rejects a backend-executed tool call before execution | backend parser/preparation validation | `backend/src/agent/tools/preparation/validation.py`, backend tool `args_model`, parser tests | Tool Turn Change Workflow (private backend docs), [Tool Troubleshooting](tool_troubleshooting.md) | `tests/backend/test_interaction_tool_call_bridge.py`, backend-tool validation tests |
+| add or change a client/local-runtime tool schema | Agent SDK/local-runtime manifest, then backend manifest envelope/policy checks | public `frontend/src/main/extensions/tool_manifest.cjs`; backend private backend implementation | [Tool Contracts](tool_contracts.md) | manifest builder tests, backend manifest validation tests |
+| add, remove, or rename a model-visible remote tool | backend tool catalog | private backend implementation | [Tool Catalog Matrix](tool_catalog_matrix.md), Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference (private backend docs) | private backend tests |
+| change a tool argument schema or description | backend schema model and remote stub | `private backend implementation,system,filesystem}/schemas.py`, browser `frontend/src/main/python/windie_shared/browser_contract*.py`, private backend implementation | [Tool Contracts](tool_contracts.md), Backend Tools Contracts Hub (private backend docs) | backend schema tests plus `tests/sidecar/test_shared_tool_schema_parity.py` when executable fields should match |
+| hide or expose tools by profile, interaction mode, disabled tools, capabilities, provider health, or browser toggle | backend policy | private backend implementation | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md), Tool Policy and Agent Capability Runtime Reference (private backend docs) | private backend tests |
+| change OCR, vision, manual coordinate method availability or validation | backend tool policy and preparation | private backend implementation | [Computer Tools](computer.md), Tool Preparation and Coordinate Resolution Reference (private backend docs) | private backend tests |
+| backend rejects a backend-executed tool call before execution | backend parser/preparation validation | private backend implementation, backend tool `args_model`, parser tests | Tool Turn Change Workflow (private backend docs), [Tool Troubleshooting](tool_troubleshooting.md) | private backend tests, backend-tool validation tests |
 | Local runtime says tool not found or rejects executable args | Local-runtime registry/schema implementation | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/manifest.py`, `frontend/src/main/python/tools/**` | [Local-Runtime Tool Change Workflow](../frontend/local_runtime_tool_change_workflow.md), [Local-Runtime Tool Catalog and Execution Model](../frontend/sidecar/tool_catalog_and_execution_model.md) | `tests/sidecar/test_tool_registry.py`, `tests/sidecar/test_tool_schemas.py`, tool-specific local-runtime Python tests |
 | SDK/main drops fields, result ids, artifacts, screenshots, or bundle metadata | SDK conversation/tool runtime and SDK local-runtime bridge | `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | [Tool Execution Lifecycle](tool_execution_lifecycle.md), [Local Tool Channels](../channels/sidecar_and_tool_channels.md) | SDK conversation/tool-runtime tests and backend tool-result tests |
-| provider-specific tool payload differs from canonical function schemas | backend provider projection/provider adapter | `backend/src/tools/provider_projection.py`, `backend/src/llm/providers/*`, `backend/src/llm/prompts/*` | [Provider Change Workflow](../providers/provider_change_workflow.md), Prompt Context Change Workflow (private backend docs) | provider tests plus prompt/schema tests |
-| tool-result history, request ids, bundle output, or cleanup changes | backend agent tool-turn runtime | `backend/src/agent/tools/sending`, `backend/src/agent/tools/waiting`, `backend/src/agent/tools/processing`, `backend/src/agent/history` | Tool Turn Change Workflow (private backend docs), [Tool Execution Lifecycle](tool_execution_lifecycle.md) | `tests/backend/test_tool_result_*`, `tests/backend/test_bundle_execution.py`, frontend bundle/result tests |
+| provider-specific tool payload differs from canonical function schemas | backend provider projection/provider adapter | private backend implementation | [Provider Change Workflow](../providers/provider_change_workflow.md), Prompt Context Change Workflow (private backend docs) | provider tests plus prompt/schema tests |
+| tool-result history, request ids, bundle output, or cleanup changes | backend agent tool-turn runtime | private backend implementation | Tool Turn Change Workflow (private backend docs), [Tool Execution Lifecycle](tool_execution_lifecycle.md) | private backend tests, frontend bundle/result tests |
 
 ## Boundary Rules
 
@@ -50,7 +50,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 
 ## Model-Facing Tool Schema Path
 
-1. `backend/src/tools/tool_catalog.py` lists catalog entries and resolves remote tool classes.
+1. private backend implementation lists catalog entries and resolves remote tool classes.
 2. Each remote tool class exposes a class-level `build_tool_spec()` through its SDK `Tool` base.
 3. `ToolRegistry` registers catalog entries, stores prebuilt canonical tool specs, and registers backend-only tools such as `web_search`.
 4. `SchemaRegistry` validates and caches canonical function tool schemas.
@@ -87,7 +87,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 
 1. Decide whether the tool should be model-visible, internal-only, or future-only.
 2. Add or update the Agent SDK/local-runtime manifest entry that defines the model-facing local schema.
-3. Add a fallback `ToolCatalogEntry` in `backend/src/tools/tool_catalog.py` only when hosted/default backend exposure still needs one.
+3. Add a fallback `ToolCatalogEntry` in private backend implementation only when hosted/default backend exposure still needs one.
 4. Add policy gates when the tool depends on permissions, browser runtime, provider health, workspace state, local authority, or a capability family.
 5. Add or update backend preparation only if model-facing fields must be grounded or translated before local execution.
 6. Add the local-runtime Python implementation and register it in `frontend/src/main/python/tools/registry.py`.
@@ -108,7 +108,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
    - exact parity local tools: update the client manifest and local-runtime executable schema together
    - grounded tools: update backend preparation so model-facing fields are stripped or resolved before dispatch
    - backend-only tools: update backend parser/provider tests only
-4. Update shared field factories in `backend/src/tools/schema_fields.py` when multiple tools need the same wording or validation field.
+4. Update shared field factories in private backend implementation when multiple tools need the same wording or validation field.
 5. Update `tests/sidecar/test_shared_tool_schema_parity.py` for exact-parity coverage or intentional exceptions.
 6. Update SDK/main and renderer display tests if streamed payload fields, request ids, artifacts, screenshots, or bundle result fields change.
 7. Regenerate or refresh any prompt/schema artifacts only through the live prompt path when the model-visible schema snapshot changes.
@@ -147,7 +147,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 
 ### Tool Is Missing from the Prompt
 
-- Confirm it exists in `backend/src/tools/tool_catalog.py` or is a backend-owned tool registered by `ToolRegistry`.
+- Confirm it exists in private backend implementation or is a backend-owned tool registered by `ToolRegistry`.
 - If it is a client/local-runtime tool, confirm the websocket handshake supplied
   `agent_definition.tools.client_manifest` and backend validation accepted the
   entry.
@@ -159,7 +159,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 
 ### Tool Is Visible but Local Runtime Cannot Execute It
 
-- Confirm `tests/backend/test_remote_tool_contract.py` covers the tool name parity with local-runtime executable exposure.
+- Confirm private backend tests covers the tool name parity with local-runtime executable exposure.
 - Confirm `frontend/src/main/python/tools/manifest.py` includes the tool if it is local-runtime executed.
 - Confirm `frontend/src/main/python/tools/registry.py` actually registers an implementation.
 - Confirm SDK/main tool dispatch recognizes the tool and preserves request ids.
@@ -192,12 +192,11 @@ Provider projection should happen after canonical schema filtering. Do not make 
 
 | Changed surface | Minimum checks |
 | --- | --- |
-| backend catalog/name registration | `./scripts/python-in-env backend pytest tests/backend/test_remote_tool_contract.py tests/backend/test_tool_registry_schema.py tests/backend/test_remote_tools.py` |
-| client manifest validation | `./scripts/python-in-env backend pytest tests/backend/test_client_tool_manifest.py` plus Electron client manifest builder tests when client payload generation changes |
+| backend catalog/name registration | private backend test runner |
+| client manifest validation | private backend test runner plus Electron client manifest builder tests when client payload generation changes |
 | backend tool schema fields | tool-specific backend schema tests plus `./scripts/python-in-env local-runtime pytest tests/sidecar/test_shared_tool_schema_parity.py` when parity applies |
-| policy/profile/capability visibility | `./scripts/python-in-env backend pytest tests/backend/test_tool_policy.py tests/backend/test_tool_selection.py tests/backend/test_provider_health_policy.py` |
-| parser/preparation validation | `./scripts/python-in-env backend pytest tests/backend/test_tool_preparer.py tests/backend/test_interaction_tool_call_bridge.py` plus backend-tool validation tests |
-| local-runtime executable tool | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_schemas.py` plus tool-specific local-runtime Python tests |
+| policy/profile/capability visibility | private backend test runner |
+| parser/preparation validation | private backend test runner./scripts/python-in-env local-runtime pytest tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_schemas.py` plus tool-specific local-runtime Python tests |
 | SDK/main dispatch/result envelope | focused `cd frontend && npm run test -- AgentSdkClient AgentSdkConversationRuntime RendererToolResultBoundary ToolOutputContent` tests |
 | bundle/result/history | backend result/bundle/history tests plus SDK/main bundle execution tests |
 | docs-only tool workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |

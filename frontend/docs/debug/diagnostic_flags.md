@@ -1,5 +1,5 @@
 ---
-summary: "Diagnostic flag reference for WindieOS backend logs, Electron main traces, renderer URL traces, local-runtime Python stderr, VM worker mode, and packaged reinstall logging."
+summary: "Diagnostic flag reference for WindieOS backend logs, Electron main traces, renderer URL traces, local-runtime Python stderr"
 read_when:
   - When enabling the smallest useful debug signal for a backend, Electron, renderer, local-runtime Python process, overlay, stream, screenshot, or packaged-app failure.
   - When adding, removing, or renaming diagnostic environment flags.
@@ -22,7 +22,7 @@ Enable the narrowest flag that proves which boundary broke. Do not leave verbose
 Example:
 
 ```sh
-LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose <windie> start backend
+LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose private backend start command
 ```
 
 ## Electron Main and Renderer
@@ -69,16 +69,13 @@ WINDIE_DEBUG_TOOL_SCREENSHOT=1 <windie> start desktop
 
 Local-runtime Python stdout is protocol traffic. Never log debug text to stdout.
 
-## VM Worker and Runs
 
 | Flag | Effect |
 | --- | --- |
 | `WINDIE_VM_MODE=1` | Enables hosted VM/dashboard-oriented app mode. |
 | `WINDIE_VM_WORKER_MODE=1` | Explicitly enables worker heartbeat/polling mode. |
 | `WINDIE_VM_WORKER_HEARTBEAT_MS=<ms>` | Worker heartbeat interval as a strict integer; minimum is 1000ms. |
-| `WINDIE_VM_RUNS_API_KEY=<key>` | Worker-specific runs API key override. |
 
-Use VM Worker Node (private backend docs) and Runs API Runbook (private backend docs) for the full control-plane flow.
 
 ## Packaged Reinstall
 

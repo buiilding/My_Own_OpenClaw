@@ -31,7 +31,7 @@ Relevant files:
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
 - `frontend/src/main/ipc.cjs`
-- `backend/src/api/schemas/incoming.py`
+- private backend implementation
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
 
 ## Scope

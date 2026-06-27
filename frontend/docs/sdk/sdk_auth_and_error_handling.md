@@ -18,7 +18,6 @@ SDK clients use hosted backend auth rules. They do not bypass install auth, prov
 | `/api/sdk/*` | `Authorization: Bearer <install_token>` when install auth is enabled | Includes OCR, vision, debug, and prompt-preview routes. `POST /api/sdk/ocr/run`, `POST /api/sdk/ocr/find-text`, `POST /api/sdk/ocr/overlay`, and `POST /api/sdk/vision/locate-all` reject missing authenticated identity before image resolution/provider work. Models, system-prompt, prompt-preview, and query-plan debug routes require authenticated identity and reject cross-user context; query-plan also rejects payload-selected workspace context. Debug helpers ignore payload or query `user_id` for session lookup unless an authenticated install identity is present. |
 | `/api/artifacts/*` | Install bearer token | Artifact owner derives from authenticated identity; anonymous artifact access is rejected. |
 | `/ws` | Bearer token in websocket headers plus handshake message | Authenticated identity overrides claimed `user_id`. |
-| `/api/runs/*` | Install auth plus required `x-windie-runs-key` | VM worker/control plane, not normal SDK client path. |
 
 ## Endpoint Rules
 
@@ -35,7 +34,7 @@ Keep HTTP and websocket base URLs paired. A client using hosted HTTP and local w
 
 | Status/signal | Meaning | First owner |
 | --- | --- | --- |
-| HTTP `401` | Missing or invalid install bearer token, or runs key mismatch for runs routes | Client auth header or backend auth middleware |
+| HTTP `401` | Missing or invalid install bearer token | Client auth header or backend auth middleware |
 | HTTP `404` | Route path mismatch, missing artifact, missing tool/candidate, or router not registered | Route family owner |
 | HTTP `422` | Pydantic request validation, invalid image base64, invalid region, or payload shape mismatch | SDK route models/service validation |
 | HTTP `503` | Provider/service unavailable, install auth service unavailable, OCR/vision disabled/unhealthy | Backend provider/router/container readiness |
@@ -57,8 +56,8 @@ Do not collapse all SDK failures into `Error: request failed`. Preserve status, 
 
 | Behavior | Tests |
 | --- | --- |
-| Backend SDK route validation and provider errors | `tests/backend/test_sdk_routes.py` |
-| Artifact route auth/fetch/upload | `tests/backend/test_artifact_routes.py`, `tests/backend/test_artifacts_store.py` |
+| Backend SDK route validation and provider errors | private backend tests |
+| Artifact route auth/fetch/upload | private backend tests |
 | TypeScript client request/error behavior | `tests/frontend/AgentSdkClient.test.ts` |
 | Python SDK package client behavior | `tests/sidecar/test_windie_sdk_client.py` |
 | Python SDK remote auth/error wrappers | `tests/sidecar/test_remote_api_client_base.py`, `tests/sidecar/test_remote_semantic_client.py` |

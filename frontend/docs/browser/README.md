@@ -27,7 +27,7 @@ adapter. Browser Use owns browser automation mechanics.
 
 | Layer | Owns | Files |
 | --- | --- | --- |
-| Backend | Model-facing `browser` tool schema and provider health/tool policy | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/browser.py`, `backend/src/tools/tool_policy.py` |
+| Backend | Model-facing `browser` tool schema and provider health/tool policy | private backend implementation |
 | Renderer | Header/session controls and polling store | `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx`, `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js` |
 | Electron main | Tool execution bridge and browser automation permission/install IPC | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/permissions/permission_service_browser.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs` |
 | Local runtime implementation | Browser Use engine adapter, action dispatch, result normalization, browser-local file helpers | `frontend/src/main/python/tools/browser/browser_use_engine.py`, `frontend/src/main/python/tools/browser/browser_tool.py` |
@@ -41,7 +41,7 @@ Do not edit the renderer to compensate for local-runtime browser payload bugs. S
 ## Focused Validation
 
 ```bash
-<windie> test backend tests/backend/test_browser_remote_tool.py -q
+private backend tests private backend tests -q
 <windie> test local-runtime tests/sidecar/test_browser_registry.py tests/sidecar/test_feature_pack_installer.py -q
 ./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
 <windie> test frontend -- ChatBrowserSessionControl.test.jsx

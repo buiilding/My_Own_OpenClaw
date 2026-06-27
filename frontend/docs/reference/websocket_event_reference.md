@@ -14,7 +14,7 @@ WindieOS uses one canonical streamed-event vocabulary for backend formatter outp
 
 | Family | Event names | Backend owner | Renderer owner |
 | --- | --- | --- | --- |
-| assistant stream | `llm-thought`, `streaming-response`, `streaming-complete`, `error` | `backend/src/core/events/streaming_events.py`, backend formatter specs | SDK backend-event normalizer, `useChatStream.ts` |
+| assistant stream | `llm-thought`, `streaming-response`, `streaming-complete`, `error` | private backend implementation, backend formatter specs | SDK backend-event normalizer, `useChatStream.ts` |
 | tool turns | `tool-call`, `tool-bundle`, `tool-output` | backend tool orchestration, formatter specs, outgoing schemas | `useChatStream.ts`, Agent SDK display projection, transcript tool persistence |
 | transparency | `system-prompt`, `user-message-full`, `assistant-message-full`, `tool-schemas` | prompt metadata/event presenter and formatter specs | message transparency sections |
 | compaction | `context-compaction-started`, `context-compaction-completed`, `context-compaction-failed` | backend history compaction events and formatter specs | chat stream compaction/thinking state |

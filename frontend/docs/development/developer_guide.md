@@ -17,7 +17,7 @@ guidelines.
 ### Backend Structure
 
 ```
-backend/src/
+private backend implementation/
 ├── agent/              # Agent domain
 │   ├── session/        # AgentSession, SessionManager, ConversationHistory
 │   ├── execution/      # AgentExecutor, InteractionLoop
@@ -123,7 +123,7 @@ frontend/src/
 
 1. **Start Backend**:
    ```bash
-   <windie> start backend
+   private backend start command
    ```
 
 2. **Start Frontend Dev Server**:
@@ -155,7 +155,7 @@ for the boundary you changed.
 ## Future: Productization Checklist (Planned)
 
 To ship to end users with subscriptions and usage limits, plan for:
-See `../planning/future_plan.md` and `../operations/deployment.md` for sequencing and deployment tracks.
+See `../planning/future_plan.md` and Deployment Guide (private backend docs) for sequencing and deployment tracks.
 
 ### Backend
 - Multi-tenant auth + session management
@@ -240,12 +240,12 @@ const sendMessage = async (text, screenshotRef = null) => {
 
 **Run Tests**:
 ```bash
-<windie> test backend
+private backend tests
 ```
 
 **Test Structure**:
 ```
-tests/backend/
+private backend tests
 ├── test_llm_client.py
 ├── test_interaction_loop.py
 ├── test_tool_result_orchestrator.py
@@ -326,7 +326,7 @@ logger.error("Error message")
 **Debug Mode**:
 ```bash
 export DESKTOP_ASSISTANT_LOG_LEVEL=DEBUG
-<windie> start backend
+private backend start command
 ```
 
 ### Frontend Debugging
@@ -435,8 +435,8 @@ const addMessage = useChatStore((state) => state.addMessage);
 2. **Wire Tool**:
    ```python
    # LLM-callable remote tools:
-   # - add backend stub in backend/src/tools/remote_tools/
-   # - add a catalog entry in backend/src/tools/tool_catalog.py
+   # - add backend stub in private backend implementation
+   # - add a catalog entry in private backend implementation
    # - add local-runtime Python implementation + frontend/src/main/python/tools/registry.py entry
    # - keep EXPOSED_TO_BACKEND_TOOLS in sync
 
@@ -472,7 +472,7 @@ const addMessage = useChatStore((state) => state.addMessage);
    ```
 
 2. **Wire Selection**:
-   - Import the concrete provider module in `backend/src/services/vision/vision_service.py`
+   - Import the concrete provider module in private backend implementation
    - Select it in the service model selection path
 
 ## Performance Optimization
@@ -569,7 +569,7 @@ test: Add tests for tool execution
 
 - [Architecture Overview](../architecture/architecture.md)
 - [API Reference](../reference/api_reference.md)
-- [Tool Development Guide](tool_development.md)
+- Backend Tool Development (private backend docs)
 
 ### External Resources
 
@@ -580,6 +580,6 @@ test: Add tests for tool execution
 ---
 
 For more information, see:
-- [Tool Development Guide](tool_development.md)
+- Backend Tool Development (private backend docs)
 - [API Reference](../reference/api_reference.md)
 - [Contributing Guide](contributing.md)

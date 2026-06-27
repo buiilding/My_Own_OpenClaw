@@ -14,16 +14,16 @@ Hosted backend SDK tool authoring is separate from local runtime tool implementa
 
 The backend tool template lives at:
 
-- `backend/src/tools/templates/sdk_tool_template/tool.py`
-- `backend/src/tools/templates/sdk_tool_template/manifest.json`
-- `backend/src/tools/templates/sdk_tool_template/README.md`
+- private backend implementation
+- private backend implementation
+- private backend implementation
 
 ## Core Contract
 
 The SDK `Tool` base and `ToolContext` live under:
 
-- `backend/src/sdk/tool.py`
-- `backend/src/sdk/context.py`
+- private backend implementation
+- private backend implementation
 
 Tool implementations should define:
 

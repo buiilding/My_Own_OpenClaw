@@ -34,7 +34,7 @@ sequenceDiagram
 
 | Layer | Owns | Code roots |
 | --- | --- | --- |
-| Backend | model-facing tool schema, policy filtering, parser validation, tool-call events, result waiting, history commit | `backend/src/tools`, `backend/src/agent/tools`, `backend/src/api/processing/formatters`, `backend/src/api/handlers/tool_result.py` |
+| Backend | model-facing tool schema, policy filtering, parser validation, tool-call events, result waiting, history commit | private backend implementation |
 | SDK/main local runtime | backend websocket ownership, local runtime startup/reuse, local tool-call routing, display-row projection, `tool-result` / `tool-bundle-result` return | `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts` |
 | Renderer | projected tool-call display, transcript/chat state, and stale-turn display guards; no local execution for backend tool events | `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`, `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`, `frontend/src/renderer/infrastructure/transcript/*` |
 | Electron main | renderer IPC, direct `AgentClient.wakeUp(...)` customer wiring, desktop local-runtime launch option assembly, screenshot artifact upload, system-state bridge, SDK event fan-out | `frontend/src/main/ipc.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs` |

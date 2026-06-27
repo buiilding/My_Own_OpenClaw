@@ -19,8 +19,8 @@ WindieOS uses artifacts to avoid passing large binary screenshots directly throu
 - Attachment image async resolution: `frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js`
 - Renderer attachment components: `frontend/src/renderer/features/chat/components/message/content/AttachmentList.jsx` and `frontend/src/renderer/features/chat/components/message/content/AttachmentRendererRegistry.jsx`
 - Main screenshot artifact bridge: `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs`
-- Backend routes: `backend/src/api/routes/artifacts/*`
-- Backend store: `backend/src/services/artifacts/store.py`
+- Backend routes: private backend implementation
+- Backend store: private backend implementation
 
 ## Payload Concepts
 

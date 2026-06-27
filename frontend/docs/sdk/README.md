@@ -69,10 +69,10 @@ standalone SDK package instead of depending on Electron's `frontend/node_modules
 
 ## API Owners
 
-- SDK routes: `backend/src/api/routes/sdk/*`
-- Artifact routes: `backend/src/api/routes/artifacts/*`
-- Websocket: `backend/src/api/routes/websocket/*`
-- Agent definition schema: `backend/src/api/schemas/agent_definition.py`
+- SDK routes: private backend implementation
+- Artifact routes: private backend implementation
+- Websocket: private backend implementation
+- Agent definition schema: private backend implementation
 
 ## Rule
 

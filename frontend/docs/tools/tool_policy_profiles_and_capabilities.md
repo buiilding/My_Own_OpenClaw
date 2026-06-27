@@ -26,11 +26,11 @@ Tool visibility is not just the static catalog. Backend `ToolPolicy` narrows too
 
 Primary files:
 
-- `backend/src/tools/tool_policy.py`
-- `backend/src/tools/agent_capability_policy.py`
-- `backend/src/tools/tool_selection.py`
-- `backend/src/tools/provider_health.py`
-- `backend/src/tools/provider_projection.py`
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
+- private backend implementation
 
 ## Built-In Profiles
 
@@ -116,7 +116,7 @@ If the model asks for a disabled coordinate method, backend returns a method-pol
 
 Use this order:
 
-1. Confirm the tool exists in `backend/src/tools/tool_catalog.py`.
+1. Confirm the tool exists in private backend implementation.
 2. Confirm the tool is model-visible in the catalog.
 3. Check `ToolPolicy.filter_tool_names()` for disabled tools and interaction allowlist.
 4. Check `agent_tool_profile`.
@@ -141,10 +141,10 @@ Use this order:
 
 Backend:
 
-- `tests/backend/test_tool_policy.py`
-- `tests/backend/test_tool_selection.py`
-- `tests/backend/test_tool_registry_schema.py`
-- `tests/backend/test_web_search_tool.py`
+- private backend tests
+- private backend tests
+- private backend tests
+- private backend tests
 
 Local runtime / local-runtime Python implementation:
 

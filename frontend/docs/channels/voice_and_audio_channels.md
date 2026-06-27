@@ -40,8 +40,8 @@ Key files:
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/python/wakeword_service.py`
-- `backend/src/api/services/rehydrate_execution.py`
-- `backend/src/api/services/wakeword_execution.py`
+- private backend implementation
+- private backend implementation
 
 Read next:
 
@@ -70,8 +70,8 @@ Key files:
 - `frontend/src/renderer/app/runtime/desktopVoiceAudio*Runtime.ts`
 - `frontend/src/renderer/app/runtime/desktopWakeword*Runtime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceDebugTraceRuntime.ts`
-- `backend/src/api/routes/transcription/router.py`
-- `backend/src/api/services/transcription/*`
+- private backend implementation
+- private backend implementation
 
 Provider notes:
 
@@ -104,8 +104,8 @@ Main flow:
 
 Key files:
 
-- `backend/src/api/processing/tts/*`
-- `backend/src/api/services/tts_session.py`
+- private backend implementation
+- private backend implementation
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `frontend/src/renderer/features/voice/**`

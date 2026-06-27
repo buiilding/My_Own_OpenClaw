@@ -159,7 +159,6 @@ Owns Agent SDK runtime workspace-path fallback resolution:
 
 Owns VM automated-query dispatch orchestration:
 
-- exposes `createAutomatedQueryRuntime(...)` so `ipc.cjs` composes VM worker
   query dispatch dependencies once and exports `sendAutomatedQuery(...)` as a
   thin runtime call
 - keeps the lower-level automated-query dispatcher private to the runtime
@@ -399,7 +398,7 @@ Owns active query context state for Electron main query/close coordination:
 
 Owns Electron-main cached backend session identity:
 
-- stores the latest backend `session_id`, server-echoed `user_id`, and
+- stores the latest server `session_id`, server-echoed `user_id`, and
   `conversation_ref`
 - exposes individual getters/setters for connection, backend-event, close,
   query, stop-target, status, install-auth, and renderer-window replay wiring

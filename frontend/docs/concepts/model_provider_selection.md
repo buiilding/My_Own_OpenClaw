@@ -46,8 +46,8 @@ Do not imply that a failed LLM request automatically retries on another provider
 
 ## Change Rules
 
-- Add provider runtime behavior in `backend/src/llm/providers/**`, not only in frontend model lists.
-- Add model metadata in `backend/src/llm/models/models_config.py`.
+- Add provider runtime behavior in private backend implementation, not only in frontend model lists.
+- Add model metadata in private backend implementation.
 - Update config loading and credential docs when a provider gets new env vars.
 - Keep provider-specific response normalization inside provider/client layers before events reach the agent loop.
 - Keep the scripted provider dev-only in the model picker. It may be routable in

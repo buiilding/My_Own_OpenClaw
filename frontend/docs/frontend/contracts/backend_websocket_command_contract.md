@@ -10,8 +10,8 @@ title: "Backend WebSocket Command Contract"
 
 ## Canonical Files
 
-- `backend/src/api/schemas/incoming.py`
-- `backend/src/api/contracts/incoming_message_contract.json`
+- private backend implementation
+- private backend implementation
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `packages/windie-sdk-js/src/transport/ManagedWebSocketSession.ts`

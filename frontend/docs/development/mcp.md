@@ -293,5 +293,5 @@ Also run backend client manifest tests when changing the shape sent to the
 backend:
 
 ```bash
-./scripts/python-in-env backend python -m pytest tests/backend/test_client_tool_manifest.py -q
+private backend test runner
 ```

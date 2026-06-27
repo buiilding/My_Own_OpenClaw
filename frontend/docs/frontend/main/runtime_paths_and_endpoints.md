@@ -85,19 +85,11 @@ used by the IPC websocket bridge:
 - WindieOS packaged runs: hosted default only
 - explicit `BACKEND_*` or host/port overrides collapse the list to the explicit target
 
-## VM Worker Endpoint Consumption
 
-When VM worker mode is enabled (`WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE`), main-process worker runtime calls:
 
-- `POST {backendHttpUrl}/api/runs/workers/heartbeat`
-- `POST {backendHttpUrl}/api/runs/{run_id}/worker-dispatched`
-- `POST {backendHttpUrl}/api/runs/{run_id}/events`
 
 Optional runs auth header:
 
-- if any are set, first non-empty value is used for `x-windie-runs-key`:
-  - `WINDIE_VM_RUNS_API_KEY`
-  - `WINDIE_RUNS_API_KEY`
 
 ## Python Runtime and Script Resolution
 
@@ -177,7 +169,6 @@ Read behavior (`loadDesktopUiConfigFromDisk`):
 - `BACKEND_HTTP_URL` for artifact upload route
 - `load-frontend-config` / `save-frontend-config` invoke handlers preserve
   their legacy wire names
-- VM worker HTTP calls to `/api/runs/*` consume resolved `backendHttpUrl`
 - local-runtime and wakeword bridges consume `resolveLocalRuntimeLaunchTarget(...)`
 
 ## Operational Debug Checklist

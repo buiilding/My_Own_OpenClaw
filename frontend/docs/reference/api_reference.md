@@ -38,7 +38,7 @@ app-runtime facades, while the Python package exports `AgentSdkClient` from
 first-party Electron renderer app-runtime facades, which adapt SDK and hosted
 transport contracts for the desktop UI and IPC boundary.
 
-Backend message dispatch is handled by `MessageHandlerRegistry` in `backend/src/api/infrastructure/registry.py`.
+Backend message dispatch is handled by `MessageHandlerRegistry` in private backend implementation.
 
 ## WebSocket Endpoint
 
@@ -49,7 +49,7 @@ Electron clients may override this via:
 - `BACKEND_HTTP_URL` (WebSocket derived as `/ws`)
 - `BACKEND_HOST` + `BACKEND_PORT`
 
-Local development or self-hosted deployments may use `ws://127.0.0.1:8765/ws`.
+Local development or custom hosted deploymented deployments may use `ws://127.0.0.1:8765/ws`.
 
 **Protocol**: WebSocket (RFC 6455)
 
@@ -62,7 +62,7 @@ This message does **not** use the base message envelope.
 For hosted deployments, the socket must also include
 `Authorization: Bearer <install_token>`. The backend authenticates that token,
 derives the real `user_id` server-side, and ignores any mismatched client-claimed
-`user_id` in the handshake payload. Local/self-hosted deployments may still run
+`user_id` in the handshake payload. Local/custom hosted deploymented deployments may still run
 without install auth when explicitly configured that way.
 
 Handshake validation behavior:
@@ -145,7 +145,7 @@ Local STT capture uses a separate websocket with a smaller protocol than the mai
 
 Electron clients derive this from the active backend HTTP endpoint (`BACKEND_HTTP_URL`) by replacing the path with `/ws/transcription`.
 
-Local development or self-hosted deployments may use `ws://127.0.0.1:8765/ws/transcription`.
+Local development or custom hosted deploymented deployments may use `ws://127.0.0.1:8765/ws/transcription`.
 
 **Protocol**: WebSocket (RFC 6455)
 
@@ -187,7 +187,7 @@ Provider note:
 
 ## HTTP Endpoints (Memory)
 
-These REST endpoints live on the same FastAPI server as the WebSocket. In the default product topology that means the hosted backend at `https://api.windieos.com`; local or self-hosted deployments may instead use `http://127.0.0.1:8765`.
+These REST endpoints live on the same FastAPI server as the WebSocket. In the default product topology that means the hosted backend at `https://api.windieos.com`; local or custom hosted deploymented deployments may instead use `http://127.0.0.1:8765`.
 
 They are used by local-runtime Python for embeddings, semantic summarization, and async conversation-title generation.
 
@@ -852,186 +852,6 @@ Notes:
 - `transparency_events` uses the same event types and payload shape the backend emits on the first agent iteration.
 - `tool-schemas` in `transparency_events` is the canonical transparency payload, while `provider_tool_schemas` remains the provider-projected model-facing tool list.
 
-## HTTP Endpoints (Runs / VM Control)
-
-These endpoints provide a hosted control-plane contract for web dashboards that drive VM-backed Windie execution.
-Current implementation is an in-memory backend registry designed for demo/runtime integration.
-
-Every runs endpoint requires a configured backend key and matching request header:
-
-```http
-x-windie-runs-key: <shared-key>
-```
-
-If `WINDIE_RUNS_API_KEY` is not configured, the runs API returns HTTP `503`.
-
-### POST `/api/runs/`
-
-Create a new run request for a workspace/agent.
-
-**Request**:
-```json
-{
-  "workspace_id": "workspace-demo",
-  "agent_id": "agent-alpha",
-  "query": "apply this internship job for me",
-  "requested_by": "user_123",
-  "files": [
-    {
-      "artifact_id": "resume-uuid.pdf",
-      "filename": "resume.pdf",
-      "content_type": "application/pdf"
-    }
-  ],
-  "metadata": {}
-}
-```
-
-**Response**:
-- `run`: run state (`status`, `control_mode`, `conversation_ref`, worker binding fields)
-- `events`: initial event list (includes `run-created`)
-
-If workspace active-run cap is reached (`WINDIE_VM_MAX_ACTIVE_RUNS_PER_WORKSPACE`, default `1`), returns `409`.
-
-### GET `/api/runs/{run_id}`
-
-Fetch latest run state by ID.
-
-### GET `/api/runs/{run_id}/events?after_seq=0&limit=200`
-
-Poll incremental run events.
-
-**Response**:
-```json
-{
-  "run_id": "run-uuid",
-  "events": [
-    {
-      "seq": 2,
-      "timestamp": "2026-03-03T16:00:00Z",
-      "event_type": "worker-heartbeat",
-      "source": "worker",
-      "payload": {}
-    }
-  ],
-  "next_after_seq": 2
-}
-```
-
-### POST `/api/runs/workers/heartbeat`
-
-Worker registration + heartbeat polling endpoint.
-Returns one assigned run (if available) and any queued control commands for that worker.
-
-**Request**:
-```json
-{
-  "workspace_id": "workspace-demo",
-  "worker_id": "worker-1",
-  "vm_id": "vm-1",
-  "user_id": "vm-user-1",
-  "session_id": "session-1",
-  "status": "ready",
-  "metadata": {}
-}
-```
-
-**Response**:
-```json
-{
-  "worker": {
-    "worker_id": "worker-1",
-    "workspace_id": "workspace-demo",
-    "vm_id": "vm-1",
-    "user_id": "vm-user-1",
-    "session_id": "session-1",
-    "status": "ready",
-    "metadata": {},
-    "last_heartbeat_at": "2026-03-03T16:00:00Z"
-  },
-  "assigned_run": {
-    "run_id": "run-uuid",
-    "workspace_id": "workspace-demo",
-    "conversation_ref": "run-run-uuid",
-    "query": "apply this internship job for me",
-    "files": [],
-    "metadata": {},
-    "control_mode": "agent_only"
-  },
-  "control_commands": []
-}
-```
-
-### POST `/api/runs/{run_id}/control`
-
-Apply run control actions.
-
-**Request**:
-```json
-{
-  "action": "pause",
-  "requested_by": "user_123"
-}
-```
-
-Supported `action` values:
-- `pause`
-- `resume`
-- `stop`
-- `set-control-mode` (requires `control_mode`: `agent_only | shared_control | human_override`)
-
-### POST `/api/runs/stop-all`
-
-Emergency stop for all active runs (optionally workspace-scoped).
-
-**Request**:
-```json
-{
-  "workspace_id": "workspace-demo",
-  "requested_by": "operator"
-}
-```
-
-**Response**:
-```json
-{
-  "workspace_id": "workspace-demo",
-  "stopped_run_ids": ["run-1", "run-2"],
-  "count": 2
-}
-```
-
-### POST `/api/runs/{run_id}/worker-dispatched`
-
-Worker acknowledges query dispatch for an assigned run and records `turn_ref`.
-
-**Request**:
-```json
-{
-  "worker_id": "worker-1",
-  "user_id": "vm-user-1",
-  "turn_ref": "turn-uuid",
-  "conversation_ref": "run-run-uuid"
-}
-```
-
-### POST `/api/runs/{run_id}/events`
-
-Worker relays backend stream events into run timeline.
-
-**Request**:
-```json
-{
-  "event_type": "tool-call",
-  "source": "worker-stream",
-  "payload": {
-    "payload": {},
-    "conversation_ref": "run-run-uuid",
-    "turn_ref": "turn-uuid"
-  }
-}
-```
-
 ## Message Format
 
 ### Base Message Structure
@@ -1057,7 +877,7 @@ All messages follow this structure:
 - `user_id` is injected server-side from the handshake connection context (client-provided, validated at handshake).
 - `timestamp` is optional and ignored by the backend if present.
 - Unknown top-level envelope fields are rejected.
-- Incoming schema source lives in `backend/src/api/schemas/` (`common.py`, `incoming.py`, `outgoing.py`) and production code imports that package directly.
+- Incoming schema source lives in private backend implementation (`common.py`, `incoming.py`, `outgoing.py`) and production code imports that package directly.
 
 ## Client Messages (SDK/Main -> Backend)
 

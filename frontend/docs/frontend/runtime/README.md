@@ -17,7 +17,6 @@ title: "Frontend Runtime Docs Hub"
 - [Workspace Context Change Workflow](workspace_context_change_workflow.md)
 - [Tool Execution and Streaming](tool_execution_and_streaming.md)
 - [Stream Event State Machine](stream_event_state_machine.md)
-- [Frontend Runtime Surface: Main, Renderer, Local Runtime, and VM Worker](frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
 - [Historical Surface Orchestration Refactor Design Package (2026-02-28)](surface_orchestration_refactor_design_package_2026-02-28.md)
 - [Settings Sync Change Workflow](settings_sync_change_workflow.md)
 - [Config Sync and Settings Lifecycle Reference](config_sync_and_settings_lifecycle_reference.md)

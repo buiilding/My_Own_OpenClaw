@@ -13,13 +13,13 @@ Use focused tests while iterating, then run the broad suite for the touched runt
 ## Baseline Commands
 
 ```bash
-<windie> test backend
+private backend tests
 <windie> test local-runtime
 <windie> test frontend
 cd frontend && npm run lint
 ```
 
-`<windie> test backend` and `<windie> test local-runtime` use
+private backend tests and `<windie> test local-runtime` use
 the platform `scripts/python-in-env` wrapper, so do not manually activate conda environments. Use
 `<windie> test pick <area>` to find common focused validation commands.
 
@@ -27,14 +27,13 @@ the platform `scripts/python-in-env` wrapper, so do not manually activate conda 
 
 | Change area | Focused validation |
 | --- | --- |
-| Backend websocket/API | `<windie> test backend -- tests/backend/test_websocket_route.py tests/backend/test_api_handlers.py -q` |
-| Backend agent loop | `<windie> test backend -- tests/backend/test_interaction_loop.py tests/backend/test_query_execution_pipeline_events.py -q` |
-| Backend providers/models | `<windie> test backend -- tests/backend/test_model_service.py tests/backend/test_models_config.py tests/backend/test_provider_factory_helpers.py -q` |
-| Backend tool schemas | `<windie> test backend -- tests/backend/test_remote_tool_contract.py tests/backend/test_tool_registry_schema.py -q` |
-| Backend OCR/vision | `<windie> test backend -- tests/backend/test_ocr_service.py tests/backend/test_vision_service.py tests/backend/test_coordinate_scaling.py -q` |
-| Backend SDK routes | `<windie> test backend -- tests/backend/test_sdk_routes.py -q` |
+| Backend websocket/API | private backend tests |
+| Backend agent loop | private backend tests |
+| Backend providers/models | private backend tests |
+| Backend tool schemas | private backend tests |
+| Backend OCR/vision | private backend tests |
+| Backend SDK routes | private backend tests |
 | Electron main IPC | `<windie> test frontend -- IpcMainBridge.query.test.cjs IpcQueryRuntime.test.cjs PreloadIpcChannels.test.cjs` |
-| Electron main SDK query controls and VM worker | `<windie> test frontend -- IpcAutomatedQueryDispatcher.test.cjs IpcMainConversationRuntimeRegistry.test.cjs IpcMainSdkRuntimeBoundary.test.cjs MainProcessBootstrapRuntime.test.cjs VmWorkerRuntime.test.cjs` |
 | Frontend CLI and layer logs | `<windie> test frontend -- WindieCli.test.cjs LayerLogSink.test.cjs WindieRunLayerLog.test.cjs ElectronLauncher.test.cjs IpcDiagnosticsRuntime.test.cjs` |
 | User-facing regression pack | `<windie> test user-facing` |
 | Core-loop UI regression pack | `<windie> test core-loop` |
@@ -57,13 +56,13 @@ Run tests on both sides of the boundary when a payload crosses processes.
 
 | Contract | Run |
 | --- | --- |
-| Backend model-facing tool schema and local-runtime executable tools | `<windie> test backend -- tests/backend/test_remote_tool_contract.py -q` plus `<windie> test local-runtime -- tests/sidecar/test_shared_tool_schema_parity.py -q` |
-| SDK result envelope and renderer tool display | `<windie> test backend -- tests/backend/test_incoming_tool_result_schemas.py -q` plus `<windie> test frontend -- AgentSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState ToolOutputContent` |
+| Backend model-facing tool schema and local-runtime executable tools | private backend tests |
+| SDK result envelope and renderer tool display | private backend tests plus `<windie> test frontend -- AgentSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState ToolOutputContent` |
 | Response overlay phase names | `<windie> test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js IpcOverlayPhaseContract.test.cjs` |
 | Transcript/replay/display rows | `<windie> test frontend -- DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts ConversationRuntimeProjectionStream.test.ts SdkDisplayChatMessageProjection.test.ts` |
-| Artifact refs and URLs | `<windie> test backend -- tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py -q` plus `<windie> test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs` |
-| SDK HTTP/trace helpers | `<windie> test backend -- tests/backend/test_sdk_routes.py -q` plus `<windie> test frontend -- AgentSdkClient.test.ts` |
-| Frontend CLI command routing and formatter contracts | `<windie> test frontend -- WindieCli.test.cjs` plus `<windie> test backend -- tests/backend/test_formatter_specs_contract.py -q` |
+| Artifact refs and URLs | private backend tests plus `<windie> test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs` |
+| SDK HTTP/trace helpers | private backend tests plus `<windie> test frontend -- AgentSdkClient.test.ts` |
+| Frontend CLI command routing and formatter contracts | `<windie> test frontend -- WindieCli.test.cjs` plus private backend tests |
 
 ## When To Run Full Suites
 

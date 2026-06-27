@@ -108,8 +108,8 @@ Reuse and extend existing backend contracts:
 - Query execution pipeline (`/ws` + current message routes).
 - Agent lifecycle and tool orchestration internals.
 - Future alignment with:
-  - `windieos_agent_to_agent_communication_plan.md`
-  - `windieos_vm_multi_agent_plan.md`
+  - `WindieOS Agent-to-Agent Communication Plan (private backend docs)`
+  - `WindieOS VM Multi-Agent Plan (private backend docs)`
 
 ### 4. UI Control Bridge
 

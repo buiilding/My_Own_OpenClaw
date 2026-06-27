@@ -110,7 +110,7 @@ Key files:
   `DesktopConversationReplayRuntime` in `desktopConversationReplayRuntime.js`,
 - edit/resend and try-again replay row-index selection:
   `DesktopConversationReplayRuntime` in `desktopConversationReplayRuntime.js`,
-- backend rehydrate services: `backend/src/api/services/rehydrate_*`.
+- backend rehydrate services: private backend implementation.
 
 ## Tests
 

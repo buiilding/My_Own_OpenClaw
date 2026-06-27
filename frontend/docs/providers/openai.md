@@ -14,12 +14,12 @@ WindieOS treats OpenAI as an online LLM provider with extra routing for native r
 
 | Concern | Files |
 | --- | --- |
-| Provider class | `backend/src/llm/providers/openai.py` |
-| Responses runtime | `backend/src/llm/providers/openai_responses_runtime.py` |
-| Responses input/payload helpers | `backend/src/llm/providers/openai_responses_input.py`, `backend/src/llm/providers/openai_responses_payload.py` |
-| Chat tool compatibility | `backend/src/llm/providers/openai_tool_prep.py` |
-| Model catalog/capabilities | `backend/src/llm/models/models_config.py` |
-| Credential loading | `backend/src/core/config/loader.py`, `backend/src/core/config/models.py` |
+| Provider class | private backend implementation |
+| Responses runtime | private backend implementation |
+| Responses input/payload helpers | private backend implementation |
+| Chat tool compatibility | private backend implementation |
+| Model catalog/capabilities | private backend implementation |
+| Credential loading | private backend implementation |
 | Dashboard model/API key UI | `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`, `ApiKeysSection.jsx` |
 
 ## Runtime Selection
@@ -94,9 +94,9 @@ If search results disappear:
 Focused backend tests:
 
 ```bash
-<windie> test backend tests/backend/test_openai_provider.py tests/backend/test_openai_embedding_provider.py -q
-<windie> test backend tests/backend/test_web_search_capabilities.py tests/backend/test_prompt_constructor_utils.py -q
-<windie> test backend tests/backend/test_llm_provider_base.py tests/backend/test_llm_provider_stream_event_pipeline.py -q
+private backend tests private backend tests -q
+private backend tests private backend tests -q
+private backend tests private backend tests -q
 ```
 
 Focused frontend tests:

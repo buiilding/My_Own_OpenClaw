@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/public: move remaining backend/private planning, tool-system, run-control,
+  endpoint, process-health, and doctor docs out of `frontend/docs`, and scrub
+  public docs of backend source paths, private commands, VM-runs endpoints, and
+  deployment runbooks. No migration required.
 - docs/agents: replace the public frontend subtree's copied private-root agent
   instructions with a public agent policy that keeps commands, tests, commit
   search, and backend boundaries scoped to the public repo root. No migration

@@ -8,7 +8,7 @@ read_when:
 
 ## Getting Started
 
-1. Start the backend: `<windie> start backend`
+1. Start the backend: private backend start command
 2. Start the desktop dev loop: `<windie> start dev`
 
 ## First-Run Onboarding

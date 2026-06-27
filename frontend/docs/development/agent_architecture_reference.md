@@ -28,7 +28,6 @@ WindieOS/
 │       ├── agent/                 # AgentSession, AgentExecutor, InteractionLoop, history
 │       ├── llm/                   # prompt construction, provider adapters, model routing
 │       ├── tools/                 # model-visible schema registry, policy, projection
-│       ├── services/              # OCR, vision, artifacts, token, TTS, VM run services
 │       ├── sdk/                   # backend SDK route/tool context helpers
 │       └── core/                  # config, validation, logging, events, interfaces
 ├── frontend/                      # Electron desktop app, React renderer, local-runtime Python implementation
@@ -66,7 +65,7 @@ Renderer feature code
   -> preload allowlisted IPC
   -> Electron main IPC/runtime modules
   -> AgentClient.wakeUp(...) + agent.conversation(...) SDK runtime
-  -> hosted/self-hosted backend HTTP/WebSocket
+  -> hosted/custom hosted backend HTTP/WebSocket
   -> backend agent loop and provider/tool policy
 ```
 
@@ -99,14 +98,14 @@ and tests to understand client/local-runtime capability.
 WindieOS does not have a single Hermes-style `AIAgent` class. The equivalent
 backend agent surface is deliberately split:
 
-- `backend/src/agent/session/session.py::AgentSession` owns per-user/session
+- `private backend implementation::AgentSession` owns per-user/session
   identity, conversation history, runtime state, compaction engine, current
   screenshot/system state, LLM client config, and the executor instance.
-- `backend/src/agent/execution/executor.py::AgentExecutor` owns the per-query
+- `private backend implementation::AgentExecutor` owns the per-query
   pipeline setup: prompt formatting, user-history append, screenshot/OCR setup,
   tool preparation/sending/result processing components, completion side
   effects, and delegation into the interaction loop.
-- `backend/src/agent/execution/interaction_loop.py::InteractionLoop` owns the
+- `private backend implementation::InteractionLoop` owns the
   model/tool iteration loop: build prompt/tool schemas, call the provider,
   parse stream/tool calls, branch between final answer and tool execution, emit
   streaming events, and stop on completion or hard limits.
@@ -161,10 +160,10 @@ history during a live turn.
 
 Key entry points:
 
-- Backend: `backend/src/main.py`, `backend/src/api/app_assembly.py`,
-  `backend/src/api/routes/__init__.py`, `backend/src/api/handlers/query.py`,
-  `backend/src/agent/execution/interaction_loop.py`,
-  `backend/src/llm/providers/`, `backend/src/tools/registry.py`.
+- Backend: private backend implementation,
+  private backend implementation,
+  private backend implementation,
+  private backend implementation.
 - SDK: `packages/windie-sdk-js/src/index.ts`,
   `packages/windie-sdk-js/src/runtime/AgentClient.ts`,
   `packages/windie-sdk-js/src/runtime/Agent.ts`,

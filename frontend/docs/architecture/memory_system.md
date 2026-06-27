@@ -14,8 +14,8 @@ Memory is owned by the **SDK local-runtime memory boundary**, not the backend. T
 - Local-runtime memory implementation (local-runtime Python-backed): `frontend/src/main/python/memory/`
 - Bulk destructive maintenance ops: `frontend/src/main/python/memory/admin.py`
 - Local-runtime JSON-RPC orchestration: `frontend/src/main/python/local_backend.py`
-- Embeddings API (backend): `backend/src/api/routes/memory/embeddings/router.py`
-- Semantic summary API (backend): `backend/src/api/routes/memory/semantic/router.py`
+- Embeddings API (backend): private backend implementation
+- Semantic summary API (backend): private backend implementation
 
 ## Architecture
 

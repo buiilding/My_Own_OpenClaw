@@ -24,10 +24,10 @@ than a single function call.
 
 ## Owner Modules
 
-- Query handlers and service: `backend/src/api/handlers/query.py`, `backend/src/api/services/query_execution.py`
-- Agent loop: `backend/src/agent/execution/*`
-- Prompt and LLM stream processing: `backend/src/llm/*`, `backend/src/agent/llm/*`
-- Tool orchestration: `backend/src/agent/tools/*`, `backend/src/tools/*`
+- Query handlers and service: private backend implementation
+- Agent loop: private backend implementation
+- Prompt and LLM stream processing: private backend implementation
+- Tool orchestration: private backend implementation
 - Renderer stream consumption: `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - SDK/main tool dispatch: `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`
 - Main relay and websocket lifecycle: `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`

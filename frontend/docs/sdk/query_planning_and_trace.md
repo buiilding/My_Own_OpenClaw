@@ -20,8 +20,8 @@ Hosted SDK routes and clients let developer tools inspect backend prompt/tool be
 
 ## Owners
 
-- Backend route: `backend/src/api/routes/sdk/router.py`
-- Backend service helpers: `backend/src/api/routes/sdk/service.py`
+- Backend route: private backend implementation
+- Private hosted service helpers: private backend implementation
 - TypeScript trace helper: `packages/windie-sdk-js`
 - Python trace helper: `frontend/src/main/python/windie/sdk.py`
 

@@ -24,13 +24,13 @@ Use this hub when you are about to edit code. It routes a change to the right su
 - [Environment Setup](environment_setup.md)
 - [Testing Guide](testing.md)
 - [Contributing](contributing.md)
-- [Tool Development](tool_development.md)
+- Backend Tool Development (private backend docs)
 
 ## Runtime Boundaries
 
 | Boundary | Owns | Start docs | Typical validation |
 | --- | --- | --- | --- |
-| Backend | FastAPI routes, websocket messages, agent loop, LLM providers, model-facing tools, inference routes, artifacts, memory APIs | Backend Hub (private backend docs), [Agent Development Workflow](agent_development_workflow.md) | `<windie> test backend` or focused `./scripts/python-in-env backend python -m pytest tests/backend/...` |
+| Backend | FastAPI routes, websocket messages, agent loop, LLM providers, model-facing tools, inference routes, artifacts, memory APIs | Backend Hub (private backend docs), [Agent Development Workflow](agent_development_workflow.md) | private backend tests or focused private backend test runner |
 | Electron main | windows, overlays, IPC handlers, SDK-runtime adapter, local-runtime host/status context, permissions, packaged runtime env | [Frontend Main Hub](../frontend/main/README.md), [Frontend Runtime Hub](../frontend/runtime/README.md) | focused frontend Jest tests under `tests/frontend`, `<windie> test frontend` |
 | Renderer | React UI, chat/dashboard/settings/memory/model surfaces, transcript queue, projected tool state, audio playback | [Frontend Renderer Hub](../frontend/renderer/README.md) | focused frontend Jest tests, `cd frontend && npm run lint` for touched UI code |
 | Local runtime implementation | local JSON-RPC, computer/filesystem/system/browser tools, local memory, wakeword services, backend HTTP clients | [Local Runtime Python Implementation Docs Hub](../frontend/sidecar/README.md) | `<windie> test local-runtime` or focused `./scripts/python-in-env local-runtime python -m pytest tests/sidecar/...` |
@@ -42,12 +42,12 @@ Use this hub when you are about to edit code. It routes a change to the right su
 Repo-root scripts:
 
 - `<windie> docs list` or `<windie> docs list`
-- Windows PowerShell: `scripts\python-in-env.cmd <backend|local-runtime|sidecar|frontend> <cmd...>`
-- Unix-like shells: `./scripts/python-in-env.sh <backend|local-runtime|sidecar|frontend> <cmd...>`
+- Windows PowerShell: `scripts\python-in-env.cmd <local-runtime|sidecar|frontend> <cmd...>`
+- Unix-like shells: `./scripts/python-in-env.sh <local-runtime|sidecar|frontend> <cmd...>`
 - `<windie> test all`
-- `<windie> test backend`
+- private backend tests
 - `<windie> test local-runtime`
-- `<windie> start backend`
+- private backend start command
 - `<windie> start frontend`
 - `<windie> start desktop`
 - `./scripts/build-sidecar-runtime.sh`

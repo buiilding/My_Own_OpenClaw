@@ -96,7 +96,7 @@ Suggested broader checks:
 
 - `<windie> test frontend`
 - `<windie> test local-runtime`
-- `<windie> test backend` when backend tool schemas, OCR/vision, or hosted route payloads changed
+- private backend tests when backend tool schemas, OCR/vision, or hosted route payloads changed
 - target OS package build and smoke helper when installed-app behavior changed
 
 ## Related Docs
@@ -106,5 +106,5 @@ Suggested broader checks:
 - [Screenshot and Overlay Policy](screenshot_overlay_policy.md)
 - [Window and Input Matrix](window_input_matrix.md)
 - [Packaging Runtime Matrix](packaging_runtime_matrix.md)
-- [Doctor Checklist](../help/doctor_checklist.md)
+- Doctor Checklist (private backend docs)
 - Evidence Collection Runbook (private backend docs)

@@ -14,11 +14,11 @@ WindieOS treats Kimi Coding as an Anthropic-compatible online provider with Kimi
 
 | Concern | Files |
 | --- | --- |
-| Provider class | `backend/src/llm/providers/kimi_coding.py` |
-| Provider factory routing | `backend/src/llm/providers/factory.py` |
-| Config provider fields and env fallback | `backend/src/core/config/models.py`, `backend/src/core/config/loader.py` |
-| Model catalog/variants | `backend/src/llm/models/models_config.py` |
-| Streamed tool-call aggregation | `backend/src/llm/providers/streaming_tool_call_aggregation.py` |
+| Provider class | private backend implementation |
+| Provider factory routing | private backend implementation |
+| Config provider fields and env fallback | private backend implementation |
+| Model catalog/variants | private backend implementation |
+| Streamed tool-call aggregation | private backend implementation |
 
 ## Runtime Behavior
 
@@ -63,8 +63,8 @@ When changing Kimi behavior:
 Focused backend tests:
 
 ```bash
-<windie> test backend tests/backend/test_kimi_coding_provider.py tests/backend/test_models_config.py -q
-<windie> test backend tests/backend/test_provider_factory_helpers.py tests/backend/test_config_loader.py -q
+private backend tests private backend tests -q
+private backend tests private backend tests -q
 ```
 
 Focused frontend tests:

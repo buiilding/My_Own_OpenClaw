@@ -32,12 +32,12 @@ Prefer artifact refs over passing raw base64 through long-lived state.
 | --- | --- | --- | --- | --- |
 | pasted/selected image preview is wrong | renderer message input and attachment presentation | `frontend/src/renderer/features/chat/components/MessageInput.jsx`, `frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime.js`, `frontend/src/renderer/app/runtime/desktopAttachmentPresentationRuntime.js` | [Message Send Surface Policy and Screenshot Capture Reference](../frontend/renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md) | `tests/frontend/MessageInput.test.jsx`, `tests/frontend/DesktopComposerAttachmentRuntime.test.js`, `tests/frontend/AttachmentPresentationRuntime.test.js` |
 | query screenshot capture does not materialize or loses ref | renderer send resource request, SDK resource resolver, and main screenshot artifact bridge | `frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts`, `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`, `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs` | [Frontend Capture, Artifact URL, and Payload Normalization Reference](../frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md) | `tests/frontend/ChatMessageSender.test.tsx`, `tests/frontend/AgentSdkConversationRuntime.test.ts`, `tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs` |
-| artifact URL points at wrong runtime endpoint | renderer artifact URL builder and main endpoint status | `frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient.ts`, `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`, `frontend/src/renderer/infrastructure/services/RuntimeEndpointStore.ts`, `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/ipc/ipc_artifact_fetch.cjs` | [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md), Configuration Change Workflow (private backend docs) | `tests/frontend/RuntimeEndpointStore.test.ts`, `tests/frontend/IpcArtifactFetch.test.cjs`, endpoint tests |
-| backend upload/fetch route fails | backend artifact route and store | `backend/src/api/routes/artifacts`, `backend/src/services/artifacts` | Backend Artifact Service Docs Hub (private backend docs) | `tests/backend/test_artifact_routes.py`, `tests/backend/test_artifacts_store.py` |
-| query payload lacks image context | renderer sender and backend query input resolver | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts`, `backend/src/api/services/query_execution_support/query_execution_inputs.py` | Query Lifecycle Change Workflow (private backend docs) | `tests/frontend/ChatMessageSender.test.tsx`, `tests/backend/test_query_execution_inputs.py` |
-| tool-result screenshot is stripped or not stored | SDK/main result envelope and backend tool-result router | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `backend/src/agent/tools/waiting/router.py` | Tool Turn Change Workflow (private backend docs), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) | SDK/main result-envelope tests, backend tool-result tests |
+| artifact URL points at wrong runtime endpoint | renderer artifact URL builder and main endpoint status | `frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient.ts`, `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`, `frontend/src/renderer/infrastructure/services/RuntimeEndpointStore.ts`, `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/ipc/ipc_artifact_fetch.cjs` | Endpoint and Network Debugging (private backend docs), Configuration Change Workflow (private backend docs) | `tests/frontend/RuntimeEndpointStore.test.ts`, `tests/frontend/IpcArtifactFetch.test.cjs`, endpoint tests |
+| backend upload/fetch route fails | backend artifact route and store | private backend implementation | Backend Artifact Service Docs Hub (private backend docs) | private backend tests |
+| query payload lacks image context | renderer sender and backend query input resolver | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts`, private backend implementation | Query Lifecycle Change Workflow (private backend docs) | `tests/frontend/ChatMessageSender.test.tsx`, private backend tests |
+| tool-result screenshot is stripped or not stored | SDK/main result envelope and backend tool-result router | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, private backend implementation | Tool Turn Change Workflow (private backend docs), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) | SDK/main result-envelope tests, backend tool-result tests |
 | replayed chat image is missing | SDK replay adapter, renderer transcript projection, and attachment image resolver | `packages/windie-sdk-js/src/projections/legacyVisualAttachmentReplayAdapter.ts`, `frontend/src/renderer/infrastructure/transcript`, `frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js`, SDK/local-runtime transcript store backed by local-runtime Python modules | [Memory Change Workflow](../memory/memory_change_workflow.md), [Transcript and Replay](../memory/transcript_and_replay.md) | frontend transcript/message attachment tests, SDK/local-runtime transcript tests |
-| SDK or web client cannot fetch artifact | hosted artifact routes and SDK client wrappers | `backend/src/api/routes/artifacts`, `backend/src/sdk`, `packages/windie-sdk-js` | [SDK Route Change Workflow](../sdk/sdk_route_change_workflow.md), [Web Client Integration](../web/web_client_integration.md) | backend artifact route tests, SDK client tests |
+| SDK or web client cannot fetch artifact | hosted artifact routes and SDK client wrappers | private backend implementation, `packages/windie-sdk-js` | [SDK Route Change Workflow](../sdk/sdk_route_change_workflow.md), [Web Client Integration](../web/web_client_integration.md) | backend artifact route tests, SDK client tests |
 
 ## Ownership Rules
 
@@ -140,14 +140,14 @@ Use this path when upload/fetch HTTP behavior, validation, size limits, or stora
 
 Primary files:
 
-- `backend/src/api/routes/artifacts/router.py`
-- `backend/src/api/routes/artifacts/models.py`
-- `backend/src/services/artifacts/store.py`
+- private backend implementation
+- private backend implementation
+- private backend implementation
 
 Validation:
 
-- `tests/backend/test_artifact_routes.py`
-- `tests/backend/test_artifacts_store.py`
+- private backend tests
+- private backend tests
 - auth/hosted route tests if access policy changes.
 
 Rules:
@@ -166,16 +166,16 @@ Primary files:
 - `frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`
-- `backend/src/api/services/query_execution_support/query_execution_inputs.py`
-- `backend/src/agent/tools/waiting/router.py`
-- `backend/src/agent/tools/processing/**`
+- private backend implementation
+- private backend implementation
+- private backend implementation
 
 Validation:
 
 - `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/AgentSdkConversationRuntime.test.ts`
 - `tests/frontend/BackendSdkWebsocketContract.test.cjs`
-- `tests/backend/test_query_execution_inputs.py`
+- private backend tests
 - backend tool-result router/receiver/storage tests.
 
 Rules:

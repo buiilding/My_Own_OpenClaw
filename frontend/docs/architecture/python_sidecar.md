@@ -22,7 +22,7 @@ product boundary is:
 - call the hosted backend only for local-runtime hosted helper services such as semantic summarization
 - call the hosted backend through transport-only clients instead of importing backend Python packages
 
-The intended open-source distribution is UI + local-runtime Python + SDK. Users should not need to run backend services locally in order to use hosted OCR, prediction, or agent APIs.
+The intended open-source distribution is UI + local-runtime Python + SDK. Users should not need to run Private hosted services locally in order to use hosted OCR, prediction, or agent APIs.
 
 Release contract:
 - End users do not need Python preinstalled.

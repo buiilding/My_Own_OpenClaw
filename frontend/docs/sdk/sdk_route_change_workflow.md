@@ -15,18 +15,18 @@ SDK routes are hosted backend APIs. They are not Electron IPC, and they do not d
 
 | Surface | Code roots | Owns |
 | --- | --- | --- |
-| Backend route registration | `backend/src/api/routes/sdk/router.py` | `/api/sdk/*` endpoint paths, HTTP method, response model wiring, and concrete router import surface. |
-| Backend request/response models | `backend/src/api/routes/sdk/models.py` | Pydantic payload validation and typed response shapes. |
-| Backend service helpers | `backend/src/api/routes/sdk/service.py` | OCR/vision execution, artifact source resolution, overlay rendering, prompt preview, query plan. |
-| Backend SDK helpers | `backend/src/sdk` | Tool/context helpers and sub-agent helper utilities. |
+| Backend route registration | private backend implementation | `/api/sdk/*` endpoint paths, HTTP method, response model wiring, and concrete router import surface. |
+| Backend request/response models | private backend implementation | Pydantic payload validation and typed response shapes. |
+| Private hosted service helpers | private backend implementation | OCR/vision execution, artifact source resolution, overlay rendering, prompt preview, query plan. |
+| Backend SDK helpers | private backend implementation | Tool/context helpers and sub-agent helper utilities. |
 | TypeScript hosted client | `packages/windie-sdk-js` | Public TS route methods, request typing, artifact helpers, and `AgentClient.wakeUp` agent runtime. |
 | Python SDK/developer client | `frontend/src/main/python/windie/sdk.py` | Python hosted client behavior. |
 
 ## Add or Change a Route
 
-1. Add or update Pydantic request/response models in `backend/src/api/routes/sdk/models.py`.
-2. Add or update service behavior in `backend/src/api/routes/sdk/service.py`.
-3. Register the route in `backend/src/api/routes/sdk/router.py`.
+1. Add or update Pydantic request/response models in private backend implementation.
+2. Add or update service behavior in private backend implementation.
+3. Register the route in private backend implementation.
 4. Keep route registration pointed at `backend.src.api.routes.sdk.router`.
 5. Update [HTTP and WebSocket API Surface](../reference/http_api_surface.md) if the public route surface changes.
 6. Add or update TypeScript client types and methods in `packages/windie-sdk-js`.
@@ -39,10 +39,10 @@ Do not add a hosted SDK route just to reach local machine state. Local screensho
 
 | Family | Backend owner | Client methods | Tests |
 | --- | --- | --- | --- |
-| OCR | `/api/sdk/ocr/*`, `run_ocr`, OCR ranking/overlay helpers | `client.ocr.*` | `tests/backend/test_sdk_routes.py`, OCR service tests, `tests/frontend/AgentSdkClient.test.ts` |
+| OCR | `/api/sdk/ocr/*`, `run_ocr`, OCR ranking/overlay helpers | `client.ocr.*` | private backend tests, OCR service tests, `tests/frontend/AgentSdkClient.test.ts` |
 | Vision | `/api/sdk/vision/*`, vision locate/describe/overlay helpers | `client.vision.*` | SDK route tests, vision provider/service tests, client tests |
 | Prompt/debug | `/api/sdk/models`, `/tool-schemas`, `/tool-capabilities`, `/system-prompt`, `/prompt-preview`, `/query-plan` | `client.introspection.*`, `promptPreview`, `queryPlan` | SDK route tests, prompt/tool schema tests, client tests |
-| Artifacts | `/api/artifacts/*`, artifact source resolution, overlay upload | `client.artifacts.*`, `artifactUrl`, `uploadArtifact` | `tests/backend/test_artifact_routes.py`, `tests/frontend/RuntimeEndpointStore.test.ts`, client tests |
+| Artifacts | `/api/artifacts/*`, artifact source resolution, overlay upload | `client.artifacts.*`, `artifactUrl`, `uploadArtifact` | private backend tests, `tests/frontend/RuntimeEndpointStore.test.ts`, client tests |
 | Agent runtime | `/ws` and hosted event stream | `AgentClient.wakeUp`, `agent.ask`, `agent.run`, `agent.stream` | websocket backend tests and TS `AgentClient` runtime tests |
 
 ## Payload Rules
@@ -62,11 +62,11 @@ Do not add a hosted SDK route just to reach local machine state. Local screensho
 
 | Change | Minimum validation |
 | --- | --- |
-| SDK model/route/service change | `./scripts/python-in-env backend pytest tests/backend/test_sdk_routes.py -q` |
+| SDK model/route/service change | private backend test runner |
 | Artifact source or overlay change | Backend SDK route tests plus artifact route/store tests |
 | OCR route behavior | SDK route tests plus focused OCR service/provider tests |
 | Vision route behavior | SDK route tests plus focused vision service/provider tests |
-| SDK/backend wire contract | `./scripts/python-in-env backend pytest tests/backend/test_sdk_runtime_backend_contract.py -q`; skips only when Node/npm or `packages/windie-sdk-js/node_modules` are unavailable |
+| SDK/backend wire contract | private backend test runner; skips only when Node/npm or `packages/windie-sdk-js/node_modules` are unavailable |
 | TypeScript client change | `<windie> test frontend -- AgentSdkClient` |
 | Python SDK package client change | `<windie> test local-runtime -- tests/sidecar/test_windie_sdk_client.py -q` |
 | Public route surface change | Docs-list plus focused Markdown link check for SDK/web/reference docs |

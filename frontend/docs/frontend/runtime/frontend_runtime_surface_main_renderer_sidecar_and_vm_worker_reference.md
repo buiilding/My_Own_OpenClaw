@@ -1,12 +1,9 @@
 ---
-summary: "Frontend runtime surface reference across Electron main composition, renderer send/stream UI consumption, SDK/app-runtime contracts, Python local-runtime feature-pack behavior, and VM worker run relay."
+summary: "Frontend runtime surface reference across Electron main composition, renderer send/stream UI consumption, SDK/app-runtime contracts, Python local-runtime feature-pack behavior, and"
 read_when:
   - When changing frontend runtime boundaries across main, renderer, and the Python local runtime.
-  - When modifying VM worker orchestration (`WINDIE_VM_*`), global stop shortcut runtime, or local-runtime browser feature-pack install behavior.
-title: "Frontend Runtime Surface: Main, Renderer, Local Runtime, and VM Worker"
 ---
 
-# Frontend Runtime Surface: Main, Renderer, Local Runtime, and VM Worker
 
 ## Scope
 
@@ -41,7 +38,6 @@ Key split modules:
 - shared window/surface owner: `surface_runtime.cjs`
 - IPC bridge/runtime: `ipc.cjs` plus `main/ipc/*`
 - stop shortcut runtime: `agent_stop_shortcut_runtime.cjs`
-- optional VM worker runtime: `vm_worker_runtime.cjs`
 
 This split keeps lifecycle/window policy/IPC concerns separate while preserving a single composition root.
 
@@ -85,7 +81,6 @@ even when the requested and resolved accelerator strings are unchanged.
 
 Main process can enable/disable this runtime based on agent loop phase without mutating renderer state directly.
 
-## VM Worker Mode Runtime
 
 `vm_worker_runtime.cjs` is a polling/relay runtime for hosted VM operation.
 
@@ -97,11 +92,9 @@ Mode flags:
 
 Worker behavior:
 
-- polls heartbeat + assignment endpoints under `/api/runs/*`
 - dispatches assigned run queries via `sendAutomatedQuery(...)`
 - relays backend stream events back to run-event API (`worker-stream` source)
 - applies queued stop controls by sending backend stop messages
-- supports API key headers (`WINDIE_VM_RUNS_API_KEY`, fallback `WINDIE_RUNS_API_KEY`)
 
 ## Renderer Send and Stream UI Boundary
 
@@ -165,6 +158,5 @@ Recent runtime changes are about explicit ownership:
 - SDK and renderer app-runtime facades own reusable send/stream contracts,
   event normalization, stale-turn predicates, and display projections
 - Python local runtime owns local execution and memory/runtime dependency bootstrap
-- VM worker mode is an optional polling/relay runtime layered on top of the same backend transport and run APIs
 
 Keeping these boundaries explicit reduces cross-process drift and makes docs, tests, and runtime behavior easier to keep aligned.
