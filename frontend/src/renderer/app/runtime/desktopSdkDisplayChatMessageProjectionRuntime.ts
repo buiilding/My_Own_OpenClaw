@@ -6,9 +6,6 @@ import type { ChatMessage } from './desktopChatMessageTypes';
 import type {
   SdkDisplayRow,
 } from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
-import { buildAssistantTextChatMessageState } from '../../infrastructure/transcript/assistantTextChatMessageState';
-import { buildToolCallChatMessageState } from '../../infrastructure/transcript/toolCallChatMessageState';
-import { buildToolOutputChatMessageState } from '../../infrastructure/transcript/toolOutputChatMessageState';
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
 import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
 import { DesktopSdkToolDetailProjection } from './desktopSdkToolDetailProjection';
@@ -134,18 +131,20 @@ function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
 function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
   const thinkingText = rowReasoningText(row);
   const sourceEventType = rowSourceEventType(row);
-  const base = buildAssistantTextChatMessageState({
+  const turnRef = rowTurnRef(row);
+  return withRowActions({
     id: row.id,
     text: displayTextFromStringRowContent(row.content),
+    sender: 'assistant',
+    type: 'llm-text',
     sourceEventType,
     sourceChannel: sdkDisplayRowsSourceChannel,
-    turnRef: rowTurnRef(row),
+    ...(turnRef ? { turnRef } : {}),
     isComplete: !isSdkDisplayRowStreaming(row),
-    thinkingText,
-    thinkingSourceEventType: thinkingText ? 'reasoning_delta' : null,
-  }) as ChatMessage;
-  return withRowActions({
-    ...base,
+    ...(thinkingText ? {
+      thinkingText,
+      thinkingSourceEventType: 'reasoning_delta',
+    } : {}),
     timestamp: rowTimestamp(row),
   }, row);
 }
@@ -153,19 +152,20 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
 function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
   const text = displayTextFromStringRowContent(row.content);
   const toolCallDetails = sanitizeSdkToolDetailRecord(row.metadata?.toolCallDetails);
-  const base = buildToolCallChatMessageState({
+  const correlationId = rowCorrelationId(row);
+  const turnRef = rowTurnRef(row);
+  return withRowActions({
     id: row.id,
     text,
-    toolCallDisplayText: text,
-    toolCallDetails,
-    correlationId: rowCorrelationId(row),
+    sender: 'assistant',
+    type: 'tool-call',
     sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
-    turnRef: rowTurnRef(row),
     isComplete: true,
-  }) as ChatMessage;
-  return withRowActions({
-    ...base,
+    ...(text ? { toolCallDisplayText: text } : {}),
+    ...(toolCallDetails ? { toolCallDetails } : {}),
+    ...(correlationId ? { correlationId } : {}),
+    ...(turnRef ? { turnRef } : {}),
     timestamp: rowTimestamp(row),
   }, row);
 }
@@ -173,20 +173,22 @@ function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
 function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
   const attachments = readSdkDisplayAttachments(row.metadata?.attachments);
   const toolOutputDetails = sanitizeSdkToolDetailRecord(row.metadata?.toolOutputDetails);
-  const base = buildToolOutputChatMessageState({
+  const text = displayTextFromStringRowContent(row.content);
+  const correlationId = rowCorrelationId(row);
+  const turnRef = rowTurnRef(row);
+  return withRowActions({
     id: row.id,
-    outputText: displayTextFromStringRowContent(row.content),
+    text,
+    sender: 'assistant',
+    type: 'tool-output',
     sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
-    attachments,
-    correlationId: rowCorrelationId(row),
-    toolOutputDetails,
-    turnRef: rowTurnRef(row),
     isComplete: true,
-    preserveNullToolOutputDetails: false,
-  }) as ChatMessage;
-  return withRowActions({
-    ...base,
+    modelFacingToolOutput: text,
+    ...(toolOutputDetails ? { toolOutputDetails } : {}),
+    ...(attachments.length > 0 ? { attachments } : {}),
+    ...(correlationId ? { correlationId } : {}),
+    ...(turnRef ? { turnRef } : {}),
     timestamp: rowTimestamp(row),
   }, row);
 }

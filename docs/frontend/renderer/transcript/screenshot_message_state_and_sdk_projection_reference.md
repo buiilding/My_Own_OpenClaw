@@ -83,8 +83,9 @@ typed attachments and any legacy screenshot refs.
 ## SDK Display Projection
 
 `DesktopSdkDisplayChatMessageProjectionRuntime` maps SDK display rows directly
-to renderer chat-message props and reads typed attachment descriptors from SDK
-display row metadata. The legacy `sdkDisplayChatMessageProjection.ts`
+to renderer chat-message props without routing through legacy transcript
+message-state builders, and reads typed attachment descriptors from SDK display
+row metadata. The legacy `sdkDisplayChatMessageProjection.ts`
 compatibility re-export has been deleted; callers use the app-runtime owner
 directly. The runtime does not build an
 intermediate `DisplayMessage` model or adapt legacy screenshot aliases for

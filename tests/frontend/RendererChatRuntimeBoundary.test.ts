@@ -4252,6 +4252,9 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).toContain('desktopPresentationSourceChannels');
     expect(projectionRuntimeSource).toContain('desktopSdkDisplayAttachmentProjection');
     expect(projectionRuntimeSource).toContain('desktopSdkToolDetailProjection');
+    expect(projectionRuntimeSource).not.toContain('assistantTextChatMessageState');
+    expect(projectionRuntimeSource).not.toContain('toolCallChatMessageState');
+    expect(projectionRuntimeSource).not.toContain('toolOutputChatMessageState');
     expect(projectionRuntimeSource).toContain('sanitizeSdkToolDetailRecord(row.metadata?.toolCallDetails)');
     expect(projectionRuntimeSource).toContain('sanitizeSdkToolDetailRecord(row.metadata?.toolOutputDetails)');
     expect(projectionRuntimeSource).not.toContain('DisplayMessage');

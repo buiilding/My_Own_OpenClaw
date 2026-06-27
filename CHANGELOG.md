@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: map SDK display rows directly to renderer chat-message
+  props instead of routing through legacy transcript message-state builders, so
+  the display-row adapter stays a narrow SDK row-to-component-props bridge. No
+  migration required.
 - frontend/send: shrink the prepared chat-send handoff so dispatch no longer
   carries transcript session snapshots, pending-row timestamps, or a duplicate
   `turnRef`; SDK dispatch still receives typed resources plus the pending
