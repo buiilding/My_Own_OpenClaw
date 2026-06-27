@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: suppress renderer stream-tracking phase and counters from
+  the projected chat read model once SDK `ConversationView` is authoritative,
+  leaving view-backed selectors with a stable idle fallback only. No migration
+  required.
 - sdk/attachments: make display attachment ids SDK-owned for turn resources;
   `conversation.send` now ignores caller-supplied `displayAttachmentId` values
   and assigns stable per-turn ids before live visual projection. No migration

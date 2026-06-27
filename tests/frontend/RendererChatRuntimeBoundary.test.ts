@@ -4473,6 +4473,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateRuntimeSource).toContain('thinkingSourceEventType: hasConversationView ? null : workspace.thinkingSourceEventType');
     expect(chatWorkspaceStateRuntimeSource).toContain('compactionDebugInfo: hasConversationView ? null : workspace.compactionDebugInfo');
     expect(chatWorkspaceStateRuntimeSource).toContain('tokenCounts: hasConversationView ? null : workspace.tokenCounts');
+    expect(chatWorkspaceStateRuntimeSource).toContain('streamTracking: hasConversationView ? emptyStreamTracking : workspace.streamTracking');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('currentTurnProjection: CurrentTurnProjection | null;');
     expect(chatWorkspaceStateRuntimeSource).not.toContain("Omit<ChatWorkspaceState, 'currentTurnProjection'>");
     expect(chatWorkspaceStateRuntimeSource).not.toContain('workspaceWithoutNoViewSdkLiveTurn');

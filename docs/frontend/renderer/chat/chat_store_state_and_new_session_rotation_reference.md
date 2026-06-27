@@ -185,9 +185,9 @@ trimmed into no-view/pending routing state.
   other partial objects do not become chat read-model authority.
 - Active workspace read-model projection uses the same SDK view-shape predicate
   before suppressing raw `messages`, no-view `sdkLiveTurn`, thinking status,
-  compaction debug info, token counts, or exposing `rendererAnnotations`. A
-  partial object under `conversationView` remains on the no-view fallback path
-  instead of becoming a second chat read model.
+  compaction debug info, token counts, stream tracking, or exposing
+  `rendererAnnotations`. A partial object under `conversationView` remains on
+  the no-view fallback path instead of becoming a second chat read model.
 - Shared chat surface selectors use that same predicate before replacing raw
   surface messages with the empty view-owned list or nulling the no-view
   `sdkLiveTurn`, so direct selector callers cannot make partial
@@ -417,11 +417,12 @@ workspace selector remains private to the workspace runtime. While no SDK
 `ConversationView` exists, raw stored messages remain available and the
 temporary live fallback is exposed as `sdkLiveTurn`.
 Once `ConversationView` exists, raw `messages` are replaced by the
-stable empty list and `sdkLiveTurn` is also `null`. The short `pendingTurn`
-bridge remains available, and renderer-only assistant feedback is carried
-separately as `rendererAnnotations` for display-row annotation merge. Those
-annotation records are not a generic message overlay channel and must not
-modify SDK user rows.
+stable empty list, `sdkLiveTurn` is `null`, and renderer stream tracking is
+projected as a stable idle snapshot instead of stale turn phase/counters. The
+short `pendingTurn` bridge remains available, and renderer-only assistant
+feedback is carried separately as `rendererAnnotations` for display-row
+annotation merge. Those annotation records are not a generic message overlay
+channel and must not modify SDK user rows.
 Dashboard-loaded `ConversationView` snapshots must include an exact
 `view.conversationRef` matching the requested conversation before they enter
 the chat store; the renderer library facade rejects missing, padded, or

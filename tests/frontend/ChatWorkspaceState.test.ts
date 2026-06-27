@@ -292,6 +292,12 @@ describe('chatWorkspaceState', () => {
     expect(readModel.thinkingSourceEventType).toBeNull();
     expect(readModel.compactionDebugInfo).toBeNull();
     expect(readModel.tokenCounts).toBeNull();
+    expect(readModel.streamTracking).toEqual(expect.objectContaining({
+      phase: 'idle',
+      activeTurnRef: null,
+      eventCount: 0,
+    }));
+    expect(readModel.streamTracking).not.toBe(workspace.streamTracking);
     expect(readModel.conversationView).toBe(conversationView);
     expect(readModel.pendingTurn).toBe(pendingTurn);
     expect(readModel.rendererAnnotations).toEqual([{
@@ -332,6 +338,7 @@ describe('chatWorkspaceState', () => {
     expect(secondReadModel.messages).toEqual([]);
     expect(firstReadModel.rendererAnnotations).toEqual([]);
     expect(secondReadModel.rendererAnnotations).toBe(firstReadModel.rendererAnnotations);
+    expect(secondReadModel.streamTracking).toBe(firstReadModel.streamTracking);
   });
 
   test('does not let display timeline rows claim ConversationView read-model authority', () => {

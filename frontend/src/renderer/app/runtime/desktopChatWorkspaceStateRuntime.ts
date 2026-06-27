@@ -68,6 +68,7 @@ export type NoViewSdkLiveTurnStorage = {
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 const emptyChatMessages: ChatMessage[] = [];
 const emptyRendererAnnotations: RendererMessageAnnotation[] = [];
+const emptyStreamTracking: StreamTracking = createInitialStreamTracking();
 const workspaceReadModelCache = new WeakMap<ChatWorkspaceState, ChatWorkspaceReadModelState>();
 
 export function normalizeConversationRef(value: string | null | undefined): string | null {
@@ -243,6 +244,7 @@ export function projectWorkspaceReadModelState(
     thinkingSourceEventType: hasConversationView ? null : workspace.thinkingSourceEventType,
     compactionDebugInfo: hasConversationView ? null : workspace.compactionDebugInfo,
     tokenCounts: hasConversationView ? null : workspace.tokenCounts,
+    streamTracking: hasConversationView ? emptyStreamTracking : workspace.streamTracking,
     sdkLiveTurn: hasConversationView
       ? null
       : readNoViewSdkLiveTurnStorage(workspace),
