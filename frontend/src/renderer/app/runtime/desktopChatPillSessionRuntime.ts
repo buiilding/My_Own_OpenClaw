@@ -31,6 +31,9 @@ type ChatPillCurrentTurnProjection = {
 } | null | undefined;
 
 type ChatPillConversationView = {
+  actions?: Record<string, unknown> | null;
+  conversationRef?: string | null;
+  displayRows?: unknown[] | null;
   liveTurn?: {
     canStop?: boolean | null;
     phase?: string | null;
@@ -86,6 +89,23 @@ function normalizeOptionalTurnRef(value: unknown): string | null {
 
 function normalizeOptionalString(value: unknown): string | null {
   return readExactNonEmptyString(value);
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function isConversationView(value: ChatPillConversationView): value is NonNullable<ChatPillConversationView> {
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+  return Boolean(
+    readExactNonEmptyString(value.conversationRef)
+      && Array.isArray(value.displayRows)
+      && isObjectRecord(value.liveTurn)
+      && isObjectRecord(value.surfaces)
+      && isObjectRecord(value.actions),
+  );
 }
 
 function resolveViewLiveTurnRef(conversationView: ChatPillConversationView): string | null {
@@ -202,9 +222,12 @@ function buildChatPillLifecycleTraceSnapshot({
   sessionConversationRef?: string | null;
 }) {
   const sdkLiveTurn = chatSurfaceState?.sdkLiveTurn ?? null;
-  const conversationView = chatSurfaceState?.conversationView ?? null;
+  const candidateConversationView = chatSurfaceState?.conversationView ?? null;
+  const conversationView = isConversationView(candidateConversationView)
+    ? candidateConversationView
+    : null;
   const viewTurnRef = resolveViewLiveTurnRef(conversationView);
-  const hasConversationView = Boolean(conversationView && typeof conversationView === 'object');
+  const hasConversationView = Boolean(conversationView);
   return {
     conversationRef: normalizeOptionalString(sessionConversationRef),
     turnRef: hasConversationView
@@ -258,8 +281,11 @@ function buildChatPillStateTraceSnapshot({
   stopAvailable: boolean;
 }) {
   const sdkLiveTurn = chatSurfaceState?.sdkLiveTurn ?? null;
-  const conversationView = chatSurfaceState?.conversationView ?? null;
-  const hasConversationView = Boolean(conversationView && typeof conversationView === 'object');
+  const candidateConversationView = chatSurfaceState?.conversationView ?? null;
+  const conversationView = isConversationView(candidateConversationView)
+    ? candidateConversationView
+    : null;
+  const hasConversationView = Boolean(conversationView);
   const currentTurnPhase = hasConversationView
     ? resolveViewLiveTurnPhase(conversationView)
     : normalizeOptionalString(sdkLiveTurn?.phase);

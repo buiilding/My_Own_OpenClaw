@@ -114,7 +114,10 @@ compaction behind its loop lock.
 - `DesktopChatPillSessionRuntime` owns the current-turn and `ConversationView`
   snapshot projection and lifecycle/reset trace value construction passed into
   those trace calls, so the component does not branch over SDK surface fields or
-  unpack turn identity just to log pill lifecycle/state diagnostics.
+  unpack turn identity just to log pill lifecycle/state diagnostics. It treats
+  `conversationView` as SDK-owned trace input only when the full SDK view shape
+  is present (`conversationRef`, `displayRows`, `liveTurn`, `surfaces`, and
+  `actions`); partial objects stay on the no-view SDK live-turn fallback path.
 - The same runtime owns response-overlay `turnId` precedence for the pill:
   visible SDK response rows win, then SDK overlay intent/visible lifecycle, then
   the short pending-send bridge. `useResponseOverlayViewModel(...)` passes those

@@ -267,7 +267,11 @@ React hooks pass those inputs through instead of composing renderer-owned
 turn-ref fallbacks. The same resolver and chat-pill trace snapshots accept only
 exact conversation refs, turn refs, lifecycle phases, and pill surface modes;
 padded SDK values are ignored instead of being trimmed into pill visibility,
-trace, or reset identity.
+trace, or reset identity. Chat-pill trace snapshots treat `conversationView` as
+view-owned input only when the complete SDK view envelope is present
+(`conversationRef`, `displayRows`, `liveTurn`, `surfaces`, and `actions`);
+partial objects stay on the no-view SDK live-turn fallback path instead of
+suppressing fallback identity.
 Desktop live-surface overlay identity accepts only exact SDK refs from
 `snapshot.view.liveTurn`, `snapshot.view.surfaces.responseOverlay`, or
 `snapshot.currentTurn.presentation.overlayIntent`; padded refs are ignored

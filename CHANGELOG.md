@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pill: require the full SDK `ConversationView` envelope before chat
+  pill trace snapshots use view live-turn or pill-surface identity, keeping
+  partial `conversationView` objects on the no-view SDK live-turn fallback path.
+  No migration required.
 - frontend/projection: require ConversationView user-row lookup to see both
   SDK `role: "user"` and `type: "user_message"` before replacing the pending
   bridge or answering first-message send-state checks. Malformed display rows no

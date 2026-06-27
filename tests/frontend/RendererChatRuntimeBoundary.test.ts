@@ -174,6 +174,21 @@ describe('renderer chat runtime boundary', () => {
     expect(minimalPillSource).not.toContain('liveTurnSource');
   });
 
+  test('chat pill session traces require SDK ConversationView shape', async () => {
+    const pillSessionRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts'),
+      'utf8',
+    );
+
+    expect(pillSessionRuntimeSource).toContain('function isConversationView');
+    expect(pillSessionRuntimeSource).toContain('readExactNonEmptyString(value.conversationRef)');
+    expect(pillSessionRuntimeSource).toContain('Array.isArray(value.displayRows)');
+    expect(pillSessionRuntimeSource).toContain('isObjectRecord(value.liveTurn)');
+    expect(pillSessionRuntimeSource).toContain('isObjectRecord(value.surfaces)');
+    expect(pillSessionRuntimeSource).toContain('isObjectRecord(value.actions)');
+    expect(pillSessionRuntimeSource).not.toContain('Boolean(conversationView && typeof conversationView === \'object\')');
+  });
+
   test('live surface runtime rejects repaired overlay refs', async () => {
     const surfaceRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js'),

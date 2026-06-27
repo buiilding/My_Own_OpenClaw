@@ -4,6 +4,17 @@
 
 import { DesktopChatPillSessionRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime';
 
+function conversationView(overrides = {}) {
+  return {
+    actions: {},
+    conversationRef: 'conv-1',
+    displayRows: [],
+    liveTurn: {},
+    surfaces: {},
+    ...overrides,
+  };
+}
+
 describe('desktopChatPillSessionRuntime', () => {
   const {
     buildChatPillLifecycleTraceValues,
@@ -308,12 +319,12 @@ describe('desktopChatPillSessionRuntime', () => {
           turnRef: ' stale-current ',
           phase: ' awaiting ',
         },
-        conversationView: {
+        conversationView: conversationView({
           liveTurn: {
             phase: 'streaming',
             turnRef: 'view-turn',
           },
-        },
+        }),
       },
     })).toEqual({
       conversationRef: 'conv-1',
@@ -340,7 +351,7 @@ describe('desktopChatPillSessionRuntime', () => {
     const snapshot = buildChatPillStateTraceSnapshot({
       busy: true,
       chatSurfaceState: {
-        conversationView: {
+        conversationView: conversationView({
           liveTurn: {
             canStop: true,
             phase: ' streaming ',
@@ -351,7 +362,7 @@ describe('desktopChatPillSessionRuntime', () => {
               mode: ' busy ',
             },
           },
-        },
+        }),
       },
       surfacePhase: ' streaming ',
       surfaceSource: ' conversation-view ',
@@ -387,9 +398,9 @@ describe('desktopChatPillSessionRuntime', () => {
           turnRef: ' stale-current ',
           phase: ' stale-awaiting ',
         },
-        conversationView: {
+        conversationView: conversationView({
           liveTurn: {},
-        },
+        }),
       },
     })).toEqual({
       conversationRef: 'conv-1',
@@ -404,11 +415,11 @@ describe('desktopChatPillSessionRuntime', () => {
           turnRef: ' stale-current ',
           phase: ' stale-awaiting ',
         },
-        conversationView: {
+        conversationView: conversationView({
           liveTurn: {
             canStop: true,
           },
-        },
+        }),
       },
       surfacePhase: 'streaming',
       surfaceSource: 'conversation-view',
@@ -425,6 +436,66 @@ describe('desktopChatPillSessionRuntime', () => {
     expect(snapshot.trace.currentTurnPhase).toBeNull();
   });
 
+  test('ignores partial ConversationView objects in chat pill trace snapshots', () => {
+    expect(buildChatPillLifecycleTraceSnapshot({
+      sessionConversationRef: 'conv-1',
+      chatSurfaceState: {
+        sdkLiveTurn: {
+          turnRef: 'fallback-turn',
+          phase: 'awaiting',
+        },
+        conversationView: {
+          liveTurn: {
+            phase: 'streaming',
+            turnRef: 'partial-view-turn',
+          },
+        },
+      },
+    })).toEqual({
+      conversationRef: 'conv-1',
+      turnRef: 'fallback-turn',
+      phase: 'awaiting',
+    });
+
+    const snapshot = buildChatPillStateTraceSnapshot({
+      busy: true,
+      chatSurfaceState: {
+        sdkLiveTurn: {
+          turnRef: 'fallback-turn',
+          phase: 'awaiting',
+        },
+        conversationView: {
+          liveTurn: {
+            canStop: true,
+            phase: 'streaming',
+            turnRef: 'partial-view-turn',
+          },
+          surfaces: {
+            pill: {
+              mode: 'busy',
+            },
+          },
+        },
+      },
+      surfacePhase: 'awaiting',
+      surfaceSource: 'sdk-current-turn',
+      sessionConversationRef: 'conv-1',
+      stopAvailable: false,
+    });
+
+    expect(JSON.parse(snapshot.signature)).toEqual(expect.objectContaining({
+      currentTurnPhase: 'awaiting',
+      currentTurnRef: 'fallback-turn',
+      viewCanStop: false,
+      viewPillMode: null,
+      viewTurnRef: null,
+    }));
+    expect(snapshot.trace).toEqual(expect.objectContaining({
+      turnRef: 'fallback-turn',
+      currentTurnPhase: 'awaiting',
+    }));
+  });
+
   test('projects chat pill state trace payload from surface state', () => {
     const snapshot = buildChatPillStateTraceSnapshot({
       busy: true,
@@ -434,7 +505,7 @@ describe('desktopChatPillSessionRuntime', () => {
           turnRef: 'turn-current',
           phase: 'awaiting',
         },
-        conversationView: {
+        conversationView: conversationView({
           liveTurn: {
             canStop: true,
             phase: 'streaming',
@@ -445,7 +516,7 @@ describe('desktopChatPillSessionRuntime', () => {
               mode: 'busy',
             },
           },
-        },
+        }),
       },
       surfacePhase: 'streaming',
       surfaceSource: 'conversation-view',
