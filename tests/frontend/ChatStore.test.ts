@@ -138,18 +138,18 @@ describe('chatStore', () => {
     expect(getActiveWorkspace().messages).toBe(before);
   });
 
-  test('setMessages indexes hydrated turn refs for targeted conversations', () => {
+  test('setMessages indexes exact hydrated turn refs for targeted conversations', () => {
     setMessagesInChatStore([
       {
         id: 'assistant-turn-message',
         text: 'streamed elsewhere',
         sender: 'assistant',
-        turnRef: ' turn-elsewhere ',
+        turnRef: 'turn-elsewhere',
       },
     ], 'conv-other');
 
     expect(resolveRendererConversationRefForTurn('turn-elsewhere')).toBe('conv-other');
-    expect(resolveRendererConversationRefForTurn(' turn-elsewhere ')).toBe('conv-other');
+    expect(resolveRendererConversationRefForTurn(' turn-elsewhere ')).toBeNull();
     expect(getActiveWorkspace().messages).toEqual([
       expect.objectContaining({
         id: 'init-message',
@@ -159,9 +159,9 @@ describe('chatStore', () => {
 
   test('persists response overlay dismissal by conversation, turn, and entry', () => {
     const dismissalTarget = {
-      conversationRef: ' conv-overlay ',
-      turnRef: ' turn-overlay ',
-      responseEntryId: ' assistant-entry ',
+      conversationRef: 'conv-overlay',
+      turnRef: 'turn-overlay',
+      responseEntryId: 'assistant-entry',
     };
     const dismissalKey = 'conv-overlay\u0001turn-overlay\u0001assistant-entry';
 
@@ -371,7 +371,8 @@ describe('chatStore', () => {
     expect(activeWorkspace.messages).toEqual([]);
   });
 
-  test('applyPendingTurnBroadcast replays pending state without raw message rows', () => {
+  test('applyPendingTurnBroadcast rejects attachment-bearing pending state', () => {
+    const beforeState = useChatStore.getState();
     applyPendingTurnBroadcastToChatStore({
       kind: 'pending',
       pendingTurn: {
@@ -391,21 +392,19 @@ describe('chatStore', () => {
       },
     });
 
-    const state = useChatStore.getState();
-    const activeWorkspace = state.getWorkspaceState();
-    expect(state.activeConversationRef).toBe('conv-replay');
-    expect(activeWorkspace.isSending).toBe(true);
-    expect(activeWorkspace.pendingTurn?.turnRef).toBe('turn-replay');
-    expect(activeWorkspace.messages).toEqual([]);
+    expect(useChatStore.getState()).toBe(beforeState);
   });
 
-  test('applyPendingTurnBroadcast is a no-op for an echoed pending turn with ignored attachments', () => {
+  test('applyPendingTurnBroadcast is a no-op for an echoed pending turn with forbidden attachments', () => {
     const pendingTurn = {
       conversationRef: 'conv-echo',
       turnRef: 'turn-echo',
       userMessageId: 'user-echo',
       text: 'keep this bubble stable',
       timestamp: '2026-06-16T00:00:00.000Z',
+    };
+    const attachmentBearingBroadcast = {
+      ...pendingTurn,
       attachments: [{
         id: 'turn-echo:attachment:000',
         kind: 'image' as const,
@@ -422,7 +421,7 @@ describe('chatStore', () => {
 
     applyPendingTurnBroadcastToChatStore({
       kind: 'pending',
-      pendingTurn: JSON.parse(JSON.stringify(pendingTurn)),
+      pendingTurn: JSON.parse(JSON.stringify(attachmentBearingBroadcast)),
     });
 
     const afterState = useChatStore.getState();

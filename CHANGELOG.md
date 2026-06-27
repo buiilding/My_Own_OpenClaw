@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pending-turn: reject pending-turn bridge payloads that carry
+  attachment descriptors, screenshot refs, or filename aliases instead of
+  silently stripping them. No migration required.
 - frontend/attachments: route `AttachmentList` inputs through the SDK display
   attachment projection helper so malformed component-level descriptors cannot
   render or infer screenshot visuals. No migration required.

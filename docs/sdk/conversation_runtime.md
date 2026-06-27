@@ -295,7 +295,11 @@ scan prior `renderer-compose` chat messages and carry them forward as visible
 user rows.
 Pending bridge identity fields are exact non-empty values. Renderer and main
 pending-turn adapters reject padded conversation refs, turn refs, and pending
-user-row ids instead of trimming them into bridge or Stop targets.
+user-row ids instead of trimming them into bridge or Stop targets. Pending-turn
+payloads are a positive contract: only conversation ref, turn ref, pending user
+row id, text, and timestamp may cross the bridge. Payloads carrying attachment
+descriptors, screenshot refs, filename aliases, or other lifecycle fields are
+rejected rather than accepted and stripped.
 The renderer turn-to-conversation fallback map uses that same exact rule for
 its turn-ref keys and conversation-ref values, ignoring padded refs instead of
 repairing them into no-view/pending routing state.

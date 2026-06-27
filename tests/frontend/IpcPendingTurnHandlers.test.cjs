@@ -43,8 +43,8 @@ function createHarness() {
 }
 
 describe('pending turn IPC handlers', () => {
-  test('normalizes pending-turn envelopes and drops visual payload fields through the runtime', () => {
-    const { getLatestPendingTurn, listeners } = createHarness();
+  test('rejects pending-turn envelopes with visual payload fields through the runtime', () => {
+    const { broadcastToRenderers, getLatestPendingTurn, liveTurnState, listeners } = createHarness();
 
     listeners['windie:pending-turn']({}, {
       type: 'pending',
@@ -84,14 +84,9 @@ describe('pending turn IPC handlers', () => {
       },
     });
 
-    expect(getLatestPendingTurn()).toEqual({
-      conversationRef: 'conv-1',
-      turnRef: 'turn-1',
-      userMessageId: 'user-1',
-      text: '',
-      timestamp: ' 2026-06-19T00:00:00.000Z ',
-    });
-    expect(getLatestPendingTurn()).not.toHaveProperty('attachmentFilenames');
+    expect(getLatestPendingTurn()).toBeNull();
+    expect(liveTurnState.setLatestPendingTurn).not.toHaveBeenCalled();
+    expect(broadcastToRenderers).not.toHaveBeenCalled();
   });
 
   test('rejects padded pending-turn identity fields through the runtime', () => {

@@ -72,6 +72,11 @@ Clipboard image IPC trust boundary:
      `clipboardImages[]`, and `readableFiles[]`; extra fields are rejected
      without naming removed screenshot or attachment aliases in the send
      runtime.
+   - Pending-turn broadcasts are a separate identity/text bridge. They accept
+     only conversation ref, turn ref, pending user-row id, text, and timestamp;
+     any attachment descriptors, screenshot refs, filename aliases, or
+     lifecycle fields reject the pending-turn payload instead of being
+     stripped.
    - Attachment-only sends should use the existing fallback text rather than blocking submission.
    - Clear the composer draft immediately after local send acceptance so renderer
      inputs do not wait on SDK resource preparation; rejected async sends must

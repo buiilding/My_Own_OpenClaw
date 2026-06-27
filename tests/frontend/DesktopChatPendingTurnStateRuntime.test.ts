@@ -65,11 +65,6 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
       userMessageId: 'user-row-1',
       text: '',
       timestamp: '2026-06-25T12:00:00.000Z',
-      attachments: [{
-        id: 'attachment-1',
-        kind: 'image',
-        status: 'ready',
-      }],
     })).toEqual({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
@@ -77,6 +72,33 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
       text: '',
       timestamp: '2026-06-25T12:00:00.000Z',
     });
+  });
+
+  test('rejects pending turns that carry visual attachment fields', () => {
+    const basePendingTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      userMessageId: 'user-row-1',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    };
+
+    expect(normalizePendingTurn({
+      ...basePendingTurn,
+      attachments: [{
+        id: 'attachment-1',
+        kind: 'image',
+        status: 'ready',
+      }],
+    })).toBeNull();
+    expect(normalizePendingTurn({
+      ...basePendingTurn,
+      attachmentFilenames: ['image.png'],
+    })).toBeNull();
+    expect(normalizePendingTurn({
+      ...basePendingTurn,
+      screenshotRef: 'artifact-1',
+    })).toBeNull();
   });
 
   test('rejects pending turns missing or repairing identity fields', () => {

@@ -122,11 +122,26 @@ function readExactIdentityString(value?: string | null): string | null {
     : null;
 }
 
+const PENDING_TURN_FIELDS = new Set([
+  'conversationRef',
+  'text',
+  'timestamp',
+  'turnRef',
+  'userMessageId',
+]);
+
+function hasOnlyPendingTurnFields(source: Record<string, unknown>): boolean {
+  return Object.keys(source).every((key) => PENDING_TURN_FIELDS.has(key));
+}
+
 function normalizePendingTurn(value: unknown): DesktopPendingTurnState | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return null;
   }
   const source = value as Record<string, unknown>;
+  if (!hasOnlyPendingTurnFields(source)) {
+    return null;
+  }
   const conversationRef = readExactIdentityString(source.conversationRef as string | null | undefined);
   const turnRef = readExactIdentityString(source.turnRef as string | null | undefined);
   const userMessageId = readExactIdentityString(source.userMessageId as string | null | undefined);

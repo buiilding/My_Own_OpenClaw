@@ -13,6 +13,18 @@ function readExactOptionalString(value) {
     : null;
 }
 
+const PENDING_TURN_FIELDS = new Set([
+  'conversationRef',
+  'text',
+  'timestamp',
+  'turnRef',
+  'userMessageId',
+]);
+
+function hasOnlyPendingTurnFields(source) {
+  return Object.keys(source).every((key) => PENDING_TURN_FIELDS.has(key));
+}
+
 function normalizePendingTurnPayload(value) {
   const source = value && typeof value === 'object' && !Array.isArray(value)
     ? value
@@ -20,6 +32,9 @@ function normalizePendingTurnPayload(value) {
   const pendingTurn = source.pendingTurn && typeof source.pendingTurn === 'object'
     ? source.pendingTurn
     : source;
+  if (!hasOnlyPendingTurnFields(pendingTurn)) {
+    return null;
+  }
   const conversationRef = readExactOptionalString(pendingTurn.conversationRef);
   const turnRef = readExactOptionalString(pendingTurn.turnRef);
   const userMessageId = readExactOptionalString(pendingTurn.userMessageId);
