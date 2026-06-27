@@ -1,5 +1,5 @@
 /**
- * Normalizes renderer chat send payloads into SDK turn input resources.
+ * Normalizes renderer chat send payloads into SDK turn resource handles.
  */
 
 export type ClipboardImagePayload = {
@@ -18,6 +18,24 @@ export type OutgoingUserMessagePayload = string | {
   clipboardImages?: ClipboardImagePayload[] | null;
   readableFiles?: ReadableFilePayload[] | null;
 };
+
+const REMOVED_RENDERER_ATTACHMENT_PAYLOAD_FIELDS = Object.freeze([
+  'attachmentContext',
+  'attachmentFilenames',
+  'attachments',
+  'captureMeta',
+  'displayAttachments',
+  'screenshot',
+  'screenshotRef',
+  'screenshotRefs',
+  'screenshotUrl',
+]);
+
+function hasRemovedRendererAttachmentPayloadField(payload: Record<string, unknown>): boolean {
+  return REMOVED_RENDERER_ATTACHMENT_PAYLOAD_FIELDS.some((field) => (
+    Object.prototype.hasOwnProperty.call(payload, field)
+  ));
+}
 
 function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
   text: string;
@@ -44,6 +62,9 @@ function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
   }
 
   if (Object.prototype.hasOwnProperty.call(payload, 'clipboardImage')) {
+    return null;
+  }
+  if (hasRemovedRendererAttachmentPayloadField(payload as Record<string, unknown>)) {
     return null;
   }
 

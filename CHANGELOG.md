@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: reject removed renderer-owned attachment and screenshot alias
+  fields in normal send payload normalization, so composer sends can only pass
+  text plus typed SDK resource handles while SDK resource resolution owns
+  durable attachment metadata. No migration required.
 - frontend/presentation: key no-view SDK live-turn presentation caching by
   `presentation.entries` and live-turn refs, leaving raw
   `assistantText`/`reasoningText`/`toolEvents` in an explicit legacy

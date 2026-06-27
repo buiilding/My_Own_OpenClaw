@@ -17,7 +17,7 @@ describe('desktopChatSendPayloadRuntime', () => {
     jest.restoreAllMocks();
   });
 
-  test('normalizes string payload and attachment metadata payloads', () => {
+  test('normalizes string payload and typed resource payloads', () => {
     expect(normalizeOutgoingPayload('hello')).toEqual({
       text: 'hello',
       clipboardImages: [],
@@ -44,5 +44,24 @@ describe('desktopChatSendPayloadRuntime', () => {
       // @ts-expect-error singular clipboardImage is no longer part of the send contract
       clipboardImage: { base64: 'abc', filename: 'shot.png' },
     })).toBeNull();
+  });
+
+  test.each([
+    'attachmentContext',
+    'attachmentFilenames',
+    'attachments',
+    'captureMeta',
+    'displayAttachments',
+    'screenshot',
+    'screenshotRef',
+    'screenshotRefs',
+    'screenshotUrl',
+  ])('rejects removed renderer attachment alias field %s', (field) => {
+    expect(normalizeOutgoingPayload({
+      text: 'hello',
+      [field]: field === 'attachmentFilenames' || field === 'screenshotRefs'
+        ? ['artifact-1']
+        : 'artifact-1',
+    } as any)).toBeNull();
   });
 });

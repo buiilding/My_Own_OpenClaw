@@ -80,13 +80,19 @@ Normalized shape:
 - `clipboardImages[]`: accepted only when each image has non-empty `base64`
 - `readableFiles[]`: accepted only when each file has non-empty absolute-ish `filePath` + `filename`
 - singular `clipboardImage` rejects the object payload; all image attachments must use the canonical `clipboardImages[]` array.
+- removed renderer-owned attachment/screenshot aliases such as
+  `attachmentContext`, `attachmentFilenames`, `attachments`,
+  `displayAttachments`, `screenshotRef`, `screenshotRefs`, and `screenshotUrl`
+  reject the object payload instead of being ignored or copied forward.
 
 Invalid object payloads are ignored (no send side effect).
 
 `DesktopChatSendPayloadRuntime.normalizeOutgoingPayload(...)` owns renderer
 payload shape normalization. The renderer does not project attachment filenames
 for normal sends; filenames travel only as fields on typed SDK resources and are
-resolved into visible metadata by SDK resource handling.
+resolved into visible metadata by SDK resource handling. Normal send payloads
+therefore carry only composer text plus typed SDK resource handles; replay and
+SDK resource resolution own durable screenshot aliases and attachment metadata.
 
 `clipboardImages[]` metadata fields:
 

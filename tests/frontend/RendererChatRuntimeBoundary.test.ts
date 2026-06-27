@@ -2528,6 +2528,12 @@ describe('renderer chat runtime boundary', () => {
     expect(traceRuntimeSource).toContain('logRendererChatSendLifecycleTrace');
     expect(traceRuntimeSource).toContain('include_query_screenshot');
     expect(payloadRuntimeSource).toContain('export const DesktopChatSendPayloadRuntime = Object.freeze');
+    expect(payloadRuntimeSource).toContain('REMOVED_RENDERER_ATTACHMENT_PAYLOAD_FIELDS');
+    expect(payloadRuntimeSource).toContain('hasRemovedRendererAttachmentPayloadField');
+    expect(payloadRuntimeSource).toContain("'attachmentFilenames'");
+    expect(payloadRuntimeSource).toContain("'screenshotRef'");
+    expect(payloadRuntimeSource).toContain("'screenshotRefs'");
+    expect(payloadRuntimeSource).toContain("'displayAttachments'");
     expect(payloadRuntimeSource).not.toContain('export function normalizeOutgoingPayload');
     expect(payloadRuntimeSource).not.toContain('export function normalizeAttachmentFilenames');
     expect(payloadRuntimeSource).not.toContain('normalizeAttachmentFilenames');

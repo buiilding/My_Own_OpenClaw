@@ -582,6 +582,19 @@ describe('useChatMessageSender', () => {
     expectPendingBridgeUserMessage('hello auto screenshot');
   });
 
+  test('ignores removed renderer attachment alias payloads before accepting a pending turn', async () => {
+    const { result } = renderSender({ senderSurface: 'main-window' });
+
+    await sendPayload(result, {
+      text: 'legacy screenshot payload',
+      screenshotRef: 'artifact-legacy',
+    });
+
+    expect(mockSendQuery).not.toHaveBeenCalled();
+    expect(getActiveWorkspace().pendingTurn).toBeNull();
+    expect(getActiveWorkspace().messages).toEqual([]);
+  });
+
   test('sends pasted clipboard image as a SDK resource handle', async () => {
     const { result } = renderSender({ senderSurface: 'main-window' });
 
