@@ -4197,6 +4197,8 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnMessageRuntimeSource).toContain('const liveConversationRef = readExactSdkString(conversationRef);');
     expect(currentTurnMessageRuntimeSource).toContain('if (!liveConversationRef) {');
     expect(currentTurnMessageRuntimeSource).toContain('const liveTurnRef = readExactSdkString(turnRef);');
+    expect(currentTurnMessageRuntimeSource).toContain('if (!liveTurnRef) {');
+    expect(currentTurnMessageRuntimeSource).not.toContain("liveTurnRef || 'turn'");
     expect(currentTurnMessageRuntimeSource).toContain('readExactSdkString(entry.requestId)');
     expect(currentTurnMessageRuntimeSource).toContain('readExactSdkString(toolEvent.requestId)');
     expect(currentTurnMessageRuntimeSource).toContain('readExactSdkString(toolEvent.bundleId)');

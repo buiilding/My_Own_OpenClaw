@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: require exact no-view SDK `turnRef` values before the
+  legacy no-presentation fallback projects rows, removing the synthetic
+  `conversation:turn:*` live-row id path. No migration required.
 - frontend/live-turn: require exact non-empty legacy no-presentation
   `toolEvents[].id` before projecting fallback tool rows, removing the renderer
   index-based id synthesis path. No migration required.

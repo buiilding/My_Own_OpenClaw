@@ -198,7 +198,10 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
     return [];
   }
   const liveTurnRef = readExactSdkString(turnRef);
-  const baseId = `${liveConversationRef}:${liveTurnRef || 'turn'}`;
+  if (!liveTurnRef) {
+    return [];
+  }
+  const baseId = `${liveConversationRef}:${liveTurnRef}`;
   const messages = [{
     id: `${baseId}:user-marker`,
     text: '',

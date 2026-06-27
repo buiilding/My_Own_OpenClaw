@@ -291,21 +291,7 @@ describe('desktopCurrentTurnMessageRuntime', () => {
       }],
     });
 
-    expect(messages).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: 'conv-1:turn:user-marker',
-        turnRef: undefined,
-      }),
-      expect.objectContaining({
-        id: 'conv-1:turn:tool:tool-call-1',
-        type: 'tool-call',
-      }),
-      expect.objectContaining({
-        id: 'conv-1:turn:assistant',
-        text: 'Projected response',
-        turnRef: undefined,
-      }),
-    ]));
+    expect(messages).toEqual([]);
     expect(messages.some(message => message.id.includes(' conv-1 '))).toBe(false);
     expect(messages.some(message => message.id.includes(' turn-1 '))).toBe(false);
     expect(messages.map(message => message.turnRef)).not.toContain(' turn-1 ');

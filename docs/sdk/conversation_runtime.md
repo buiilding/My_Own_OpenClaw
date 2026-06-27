@@ -484,8 +484,9 @@ Projected live rows take `turnRef` only from the containing SDK live-turn
 context and ignore entry-level `turnRef` fields, so stale entry payload identity
 cannot move a current live row onto an older turn. No-view SDK current-turn
 `conversationRef` and `turnRef` values are exact in renderer fallback
-projection; padded refs are not exposed through generated live row ids or row
-`turnRef` props. The
+projection; missing or padded refs leave the legacy no-presentation fallback
+inert instead of being exposed through generated live row ids or row `turnRef`
+props. The
 `ConversationView.liveTurn.turnRef` context follows the same exact rule before
 renderer adapters copy it into live row props, so padded view-level live-turn
 refs cannot become visible component identity.

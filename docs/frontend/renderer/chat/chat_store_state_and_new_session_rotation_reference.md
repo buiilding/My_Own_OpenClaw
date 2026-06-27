@@ -118,8 +118,8 @@ entry index/type key instead of being trimmed into SDK identity. Renderer presen
 visibility gating. Live row `turnRef` projection similarly uses only the
 containing SDK live turn's `turnRef` and ignores entry-level payload refs.
 No-view SDK current-turn `conversationRef` and `turnRef` values are exact;
-padded refs are not exposed through fallback live row ids or row `turnRef`
-props.
+padded or missing refs leave the legacy no-presentation fallback inert instead
+of being exposed through fallback live row ids or row `turnRef` props.
 `ConversationView.liveTurn.turnRef` uses the same exact gate before the
 renderer copies it into live row props, so padded view-level live-turn refs stay
 out of component identity. The live-surface adapter also requires the shared
