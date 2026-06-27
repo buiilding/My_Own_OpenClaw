@@ -21,6 +21,13 @@ function isConversationView(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
+function readExactIdentityString(value) {
+  if (typeof value !== 'string' || value.length === 0 || value !== value.trim()) {
+    return null;
+  }
+  return value;
+}
+
 let chatInterfacePresentationCache = {
   activeConversationRef: null,
   conversationView: null,
@@ -189,11 +196,28 @@ function resolveConversationViewStoreRef({
   if (!isConversationView(view)) {
     return null;
   }
-  const conversationRef = targetConversationRef || view.conversationRef || activeConversationRef;
-  if (!conversationRef) {
+  const viewConversationRef = readExactIdentityString(view.conversationRef);
+  if (!viewConversationRef) {
     return null;
   }
-  return conversationRef;
+  const targetRef = readExactIdentityString(targetConversationRef);
+  if (
+    targetConversationRef !== null
+    && targetConversationRef !== undefined
+    && targetRef !== viewConversationRef
+  ) {
+    return null;
+  }
+  const activeRef = readExactIdentityString(activeConversationRef);
+  if (
+    !targetRef
+    && activeConversationRef !== null
+    && activeConversationRef !== undefined
+    && activeRef !== viewConversationRef
+  ) {
+    return null;
+  }
+  return viewConversationRef;
 }
 
 export const DesktopChatInterfacePresentationRuntime = Object.freeze({

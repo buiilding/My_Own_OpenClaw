@@ -611,7 +611,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     ]);
   });
 
-  test('resolves a conversation view store target ref', () => {
+  test('resolves a conversation view store ref from exact SDK view identity', () => {
     expect(resolveConversationViewStoreRef({
       activeConversationRef: 'conv-1',
       view: {
@@ -630,12 +630,40 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
 
     expect(resolveConversationViewStoreRef({
       activeConversationRef: 'conv-active',
+      targetConversationRef: 'conv-view',
+      view: {
+        conversationRef: 'conv-view',
+        displayRows: [],
+      },
+    })).toBe('conv-view');
+  });
+
+  test('rejects repaired conversation view store refs', () => {
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: 'conv-view',
+      targetConversationRef: 'conv-view',
+      view: {
+        conversationRef: ' conv-view ',
+        displayRows: [],
+      },
+    })).toBeNull();
+
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: 'conv-view',
       targetConversationRef: 'conv-target',
       view: {
         conversationRef: 'conv-view',
         displayRows: [],
       },
-    })).toBe('conv-target');
+    })).toBeNull();
+
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: 'conv-active',
+      view: {
+        conversationRef: 'conv-view',
+        displayRows: [],
+      },
+    })).toBeNull();
   });
 
   test('returns null when a view has no resolvable conversation ref', () => {

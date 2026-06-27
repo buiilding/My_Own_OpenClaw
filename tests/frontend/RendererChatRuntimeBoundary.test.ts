@@ -4029,6 +4029,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSelectorRuntimeSource).toContain('messages: presentationMessages');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('currentMessages: messages');
     expect(chatInterfacePresentationRuntimeSource).toContain('resolveConversationViewStoreRef');
+    expect(chatInterfacePresentationRuntimeSource).toContain('readExactIdentityString(view.conversationRef)');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('targetConversationRef || view.conversationRef || activeConversationRef');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('buildConversationViewStoreProjection');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('canEditMessages');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('canRetryMessages');

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: reject `ConversationView` store writes whose
+  `view.conversationRef` is missing, padded, or mismatched instead of repairing
+  SDK view identity from the active or requested chat conversation ref. No
+  migration required.
 - frontend/dashboard: reject loaded `ConversationView` snapshots whose
   `view.conversationRef` is missing, padded, or mismatched instead of repairing
   SDK view identity from the requested dashboard conversation ref. No migration

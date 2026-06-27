@@ -230,7 +230,11 @@ trimmed into no-view/pending routing state.
   ConversationView handoff uses the same exact identity rule for
   `conversationRef`, `liveTurn.turnRef`, response-overlay turn refs, and SDK
   user-row anchors; malformed padded refs keep the renderer pending bridge
-  visible instead of being repaired into lifecycle authority.
+  visible instead of being repaired into lifecycle authority. ChatInterface
+  store writes also use `view.conversationRef` as the only store identity; an
+  explicit requested conversation ref must match exactly, and the active
+  conversation ref only guards the write when no explicit target was supplied.
+  Neither ref can replace, trim, or repair the SDK view identity.
   Minimal-pill turn-id resolution and lifecycle/reset trace snapshots follow
   that exact-only rule for refs, phases, and pill surface modes, so padded SDK
   surface values cannot become visible pill identity or diagnostic handoff
@@ -384,6 +388,11 @@ Dashboard-loaded `ConversationView` snapshots must include an exact
 `view.conversationRef` matching the requested conversation before they enter
 the chat store; the renderer library facade rejects missing, padded, or
 mismatched view identity instead of repairing it from dashboard selection state.
+ChatInterface applies the same exact guard before delegating to
+`setConversationViewInChatStore(...)`, so active chat session state cannot store
+a malformed or mismatched SDK view under a renderer-selected conversation ref.
+Revision fork results may target the newly forked conversation explicitly, but
+that target still has to match the returned SDK `view.conversationRef` exactly.
 
 Surface, response-overlay, interface presentation, and send-read-model selector
 adapters consume that read model as their input contract. They should not
