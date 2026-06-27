@@ -54,6 +54,13 @@ WindieOS uses artifacts to avoid passing large binary screenshots directly throu
   descriptors. Backend/provider payload compatibility may still carry
   `screenshot_ref` or `screenshot_refs` until those durable contracts emit
   ordered `attachments[]`/`display_attachments` directly.
+- Local tool results that include inline image bytes, including `read_file`
+  image outputs with `screenshot` or `image_data`, must be materialized to
+  artifact refs before SDK persistence. The model/backend delivery path may
+  receive the visual through the normal tool-result contract, but persisted
+  conversation events and replay/display metadata must store only
+  `screenshot_ref`/`screenshot_url`, MIME metadata, and typed
+  `attachments[]`/`display_attachments`, not raw base64.
 - Backend websocket boundaries accept backend-safe `display_attachments`
   descriptors for tool-result, tool-bundle-result, rehydrate, and outgoing
   tool-output payloads. These descriptors are display/replay metadata only:

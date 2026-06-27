@@ -22,6 +22,7 @@ import type {
   ToolResultPayload,
   TraceRuntime,
   TraceStatus,
+  SdkDisplayAttachment,
 } from '../conversation/types.js';
 import { resolveModelFacingToolCallId } from './toolCorrelationIds.js';
 import { normalizeLocalToolResultData } from './toolOutputContent.js';
@@ -190,6 +191,49 @@ function extractScreenshotDataFromData(data: unknown): JsonRecord | null {
   } catch (_error) {
     throw new Error('Local tool results must use screenshot_ref and screenshot_url; camelCase screenshot fields are not supported.');
   }
+}
+
+function toolResultDisplayAttachments(
+  screenshotData: JsonRecord | null,
+  requestId: string | null | undefined,
+): SdkDisplayAttachment[] | null {
+  if (!screenshotData) {
+    return null;
+  }
+  const screenshotRef = stringPayloadField(screenshotData, 'screenshot_ref');
+  const screenshotUrl = stringPayloadField(screenshotData, 'screenshot_url');
+  if (!screenshotRef && !screenshotUrl) {
+    return null;
+  }
+  const idPrefix = requestId && requestId.trim() ? requestId.trim() : 'tool-result';
+  return [{
+    id: `${idPrefix}:attachment:000`,
+    kind: 'image',
+    source: 'tool_result',
+    status: 'ready',
+    ...(stringPayloadField(screenshotData, 'screenshot_content_type') ? {
+      contentType: stringPayloadField(screenshotData, 'screenshot_content_type'),
+    } : {}),
+    ...(screenshotRef ? { screenshotRef } : {}),
+    ...(screenshotUrl ? { screenshotUrl } : {}),
+  }];
+}
+
+function backendDisplayAttachments(attachments: SdkDisplayAttachment[] | null): JsonRecord[] | null {
+  if (!attachments || attachments.length === 0) {
+    return null;
+  }
+  return attachments.map(attachment => ({
+    id: attachment.id,
+    kind: attachment.kind,
+    source: attachment.source,
+    status: attachment.status,
+    ...(attachment.filename ? { filename: attachment.filename } : {}),
+    ...(attachment.contentType ? { content_type: attachment.contentType } : {}),
+    ...(attachment.screenshotRef ? { screenshot_ref: attachment.screenshotRef } : {}),
+    ...(attachment.screenshotUrl ? { screenshot_url: attachment.screenshotUrl } : {}),
+    ...(attachment.errorCode ? { error_code: attachment.errorCode } : {}),
+  }));
 }
 
 function mergePostActionScreenshot(data: JsonRecord, screenshotData: JsonRecord | null, sourceToolName: string): JsonRecord {
@@ -568,10 +612,20 @@ export class ToolExecutionCoordinator {
         ? await this.attachSinglePostActionScreenshot(call, result)
         : normalizeLocalToolResultData(result.data, result.error || 'Tool execution failed');
       const materializedData = await this.materializeScreenshotArtifact(data);
+      const displayAttachments = toolResultDisplayAttachments(
+        extractScreenshotDataFromData(materializedData),
+        call.requestId,
+      );
+      const backendAttachments = backendDisplayAttachments(displayAttachments);
       payload = {
         request_id: call.requestId,
         success,
-        data: materializedData,
+        data: backendAttachments
+          ? {
+            ...materializedData,
+            display_attachments: backendAttachments,
+          }
+          : materializedData,
       };
       screenshotData = extractScreenshotDataFromData(payload.data);
       await this.options.sendToolResult(payload);
@@ -582,6 +636,7 @@ export class ToolExecutionCoordinator {
         ? `Tool result delivery failed: ${errorMessage(deliveryError)}`
         : null;
       const eventResult = payload?.data ?? { output: deliveryErrorMessage ?? 'Tool result delivery failed' };
+      const attachments = toolResultDisplayAttachments(screenshotData, call.requestId);
       await this.options.store?.appendEvent(createConversationEvent({
         eventId: `${event.turnRef ?? event.conversationRef}-local-tool-output-${call.requestId}`,
         type: 'tool_output',
@@ -597,6 +652,7 @@ export class ToolExecutionCoordinator {
           success: deliveryError ? false : success,
           result: eventResult,
           ...(screenshotData ?? {}),
+          ...(attachments ? { attachments } : {}),
           error: deliveryErrorMessage ?? (success ? null : result.error || 'Tool execution failed'),
           deliveryFailed: Boolean(deliveryError),
           elapsedMs: Date.now() - startedAt,
