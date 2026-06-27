@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/lifecycle: drop `ConversationView.liveTurn.turnRef` from idle
+  visible lifecycle output, so stale SDK live-turn identity does not leak
+  through idle renderer surface state. No migration required.
 - frontend/stop: reject padded idle stop conversation refs instead of trimming
   malformed `ConversationView` or active conversation identity into disabled
   stop state. No migration required.

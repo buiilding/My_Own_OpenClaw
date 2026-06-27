@@ -213,6 +213,9 @@ instead of being trimmed into response-overlay turn, conversation, or guard
 identity. Raw current-turn `assistantText`, `reasoningText`, and
 `toolEvents` are not lifecycle evidence; live-turn text/tool rendering must
 arrive through SDK presentation entries or `ConversationView.liveTurn.entries`.
+When the `ConversationView` lifecycle resolves idle, the visible lifecycle
+output also drops `ConversationView.liveTurn.turnRef` instead of surfacing stale
+SDK live-turn identity through idle UI state.
 `selectLiveTurnSurfaceState(...)` likewise omits raw `isSending`, and minimal
 surface trace payloads name the renderer-local path `useLocalPendingTurn`
 instead of a send-latch alias.

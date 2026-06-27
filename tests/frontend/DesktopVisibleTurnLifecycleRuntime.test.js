@@ -638,7 +638,42 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       status: 'idle',
       source: 'conversation-view',
       conversationRef: 'conv-1',
-      turnRef: 'turn-view',
+      turnRef: null,
+      awaitingAnchor: null,
+      entries: [],
+      terminalReason: null,
+      isBusy: false,
+      showTyping: false,
+    });
+  });
+
+  test('does not expose ConversationView live-turn refs while view lifecycle is idle', () => {
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [],
+        liveTurn: {
+          turnRef: 'turn-idle',
+          phase: 'idle',
+          isBusy: false,
+          entries: [],
+        },
+        surfaces: {
+          responseOverlay: {
+            mode: 'hidden',
+            visible: false,
+            turnRef: 'turn-idle',
+            guardRef: 'turn-idle',
+            ownerConversationRef: 'conv-1',
+          },
+        },
+      },
+    })).toEqual({
+      status: 'idle',
+      source: 'conversation-view',
+      conversationRef: 'conv-1',
+      turnRef: null,
       awaitingAnchor: null,
       entries: [],
       terminalReason: null,

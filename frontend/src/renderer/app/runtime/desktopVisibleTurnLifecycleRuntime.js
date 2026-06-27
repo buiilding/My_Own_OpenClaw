@@ -346,7 +346,7 @@ function resolveVisibleTurnLifecycle({
       status: 'idle',
       source: 'conversation-view',
       conversationRef: normalizeConversationRef(conversationView.conversationRef) || normalizedActiveConversationRef,
-      turnRef: normalizeTurnRef(conversationView.liveTurn?.turnRef),
+      turnRef: null,
       awaitingAnchor: null,
       entries: [],
       terminalReason: null,

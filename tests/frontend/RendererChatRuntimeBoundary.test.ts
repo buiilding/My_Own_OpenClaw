@@ -4284,6 +4284,8 @@ describe('renderer chat runtime boundary', () => {
       'const responseOverlayMode = readExactLifecycleString(conversationView?.surfaces?.responseOverlay?.mode);',
     );
     expect(visibleLifecycleRuntimeSource).toContain('readExactIdentityString(presentationAnchor.rowId)');
+    expect(visibleLifecycleRuntimeSource).toContain("status: 'idle',\n      source: 'conversation-view',");
+    expect(visibleLifecycleRuntimeSource).not.toContain('turnRef: normalizeTurnRef(conversationView.liveTurn?.turnRef)');
     expect(visibleLifecycleRuntimeSource).not.toContain('return normalizeString(sdkLiveTurn?.phase);');
     expect(visibleLifecycleRuntimeSource).not.toContain(
       'const responseOverlayMode = normalizeString(conversationView?.surfaces?.responseOverlay?.mode);',

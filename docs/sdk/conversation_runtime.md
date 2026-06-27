@@ -349,7 +349,9 @@ overlay do not run a separate "latest current turn wins" decision beside the
 SDK view. Dashboard chat selectors apply the same rule for the active
 conversation: once `conversationView` is present, dashboard live rows, busy/Stop
 state, and action wiring receive `currentTurnProjection: null` and use the SDK
-view as the only normal UI authority.
+view as the only normal UI authority. Idle `ConversationView` lifecycle output
+does not expose `ConversationView.liveTurn.turnRef`; live-turn identity is
+presented only for active, awaiting, or terminal view lifecycle states.
 Renderer no longer retains a global raw `latestCurrentTurnProjection` in the
 chat store or consumes it as a normal UI authority; cross-surface live state
 comes from `latestConversationView`, while per-workspace current-turn
