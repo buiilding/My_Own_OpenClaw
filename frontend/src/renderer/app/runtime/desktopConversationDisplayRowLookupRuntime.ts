@@ -19,6 +19,7 @@ function isConversationViewUserDisplayRow(row: unknown): row is ConversationView
   return Boolean(
     row
       && typeof row === 'object'
+      && exactNonEmptyString((row as Record<string, unknown>).id)
       && (row as Record<string, unknown>).role === 'user'
       && (row as Record<string, unknown>).type === 'user_message',
   );
@@ -37,7 +38,6 @@ function findConversationViewUserDisplayRowForTurn(
     if (
       isConversationViewUserDisplayRow(row)
       && exactTurnRef(row.turnRef) === targetTurnRef
-      && exactNonEmptyString(row.id)
     ) {
       return row;
     }

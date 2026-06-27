@@ -583,11 +583,12 @@ labels, thinking text, row ids, or message timestamps. ConversationView
 display-row lookup also compares SDK row `turnRef` values exactly when filtering
 a requested turn or deciding whether a SDK user row can replace the renderer
 pending bridge; padded row refs do not suppress the pending bridge by being
-repaired into same-turn matches. A row must also have the canonical SDK user
-display shape (`role: "user"` and `type: "user_message"`) before it can count as
-a user row for pending-bridge replacement or first-message send-state checks;
-malformed role/type combinations remain inert instead of claiming SDK row
-authority. Renderer display-row projection applies that same canonical
+repaired into same-turn matches. A row must also have an exact non-empty
+`row.id` and the canonical SDK user display shape (`role: "user"` and
+`type: "user_message"`) before it can count as a user row for pending-bridge
+replacement or first-message send-state checks; missing-id and malformed
+role/type combinations remain inert instead of claiming SDK row authority.
+Renderer display-row projection applies that same canonical
 role/type gate to visible rows too: assistant text, tool-call/progress, and
 tool-output rows are mapped only when the SDK-authored role matches the row
 type, so the renderer does not assign sender or tool semantics from `type`

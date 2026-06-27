@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: require SDK ConversationView user display rows to carry an
+  exact row id before they can satisfy first-message send-state checks, keeping
+  malformed view rows from replacing no-view fallback policy. No migration
+  required.
 - frontend/projection: scope SDK display-row replay action metadata to the row
   kinds that own it, so user rows project edit targets, assistant message rows
   project retry targets, and tool rows drop misplaced replay actions. No

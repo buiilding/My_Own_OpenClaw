@@ -358,6 +358,15 @@ describe('desktopConversationDisplayProjection', () => {
         role: 'assistant',
         type: 'user_message',
       },
+      {
+        id: '',
+        role: 'user',
+        type: 'user_message',
+      },
+      {
+        role: 'user',
+        type: 'user_message',
+      },
     ]))).toBe(false);
     expect(hasConversationViewUserDisplayRows({})).toBe(false);
   });

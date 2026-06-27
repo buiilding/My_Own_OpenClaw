@@ -38,6 +38,13 @@ describe('desktopChatSendStateRuntime', () => {
       ]),
       messages: [{ sender: 'user' }],
     })).toBe(false);
+    expect(hasPriorUserMessages({
+      conversationView: conversationViewWithRows([
+        { id: '', role: 'user', type: 'user_message' },
+        { role: 'user', type: 'user_message' },
+      ]),
+      messages: [{ sender: 'user' }],
+    })).toBe(false);
   });
 
   test('hasPriorUserMessages falls back to raw messages under a partial ConversationView', () => {
