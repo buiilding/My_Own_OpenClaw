@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tool-output: narrow the ToolOutputMessage component contract to the
+  fields it renders, so legacy `toolName`, `executionTime`, and `success`
+  props cannot act as alternate detail inputs. No migration required.
 - frontend/live-turn: stop projecting SDK live-entry `toolMetadata` into
   current-turn tool rows; live rows now keep explicit `toolCallDetails` and
   `toolOutputDetails` as the only SDK-authored detail payloads. No migration

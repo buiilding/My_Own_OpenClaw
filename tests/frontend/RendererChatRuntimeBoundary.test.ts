@@ -2976,6 +2976,9 @@ describe('renderer chat runtime boundary', () => {
     expect(toolOutputSource).not.toContain('tool_name: message.toolName');
     expect(toolOutputSource).not.toContain('execution_time: message.executionTime');
     expect(toolOutputSource).not.toContain('success: message.success');
+    expect(toolOutputSource).not.toContain('toolName: PropTypes');
+    expect(toolOutputSource).not.toContain('executionTime: PropTypes');
+    expect(toolOutputSource).not.toContain('success: PropTypes');
     expect(toolOutputSource).not.toContain('metadata: message.toolMetadata || null');
     expect(toolOutputSource).toContain('AttachmentList');
     expect(attachmentListSource).toContain('headerText');
