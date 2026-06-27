@@ -106,7 +106,7 @@ function mergePendingBridgeUserMessages(
 
 function mergeRendererAnnotationsIntoSdkMessages(
   sdkMessages: ChatMessage[],
-  rendererAnnotations: Array<ChatMessage | RendererMessageAnnotation>,
+  rendererAnnotations: RendererMessageAnnotation[],
 ): ChatMessage[] {
   if (rendererAnnotations.length === 0) {
     return sdkMessages;
@@ -116,7 +116,9 @@ function mergeRendererAnnotationsIntoSdkMessages(
     const annotation = annotationsById.get(message.id);
     return {
       ...message,
-      ...(annotation && Object.prototype.hasOwnProperty.call(annotation, 'feedback')
+      ...(message.sender === 'assistant'
+        && annotation
+        && Object.prototype.hasOwnProperty.call(annotation, 'feedback')
         ? { feedback: annotation.feedback }
         : {}),
     };
@@ -142,7 +144,8 @@ function buildPendingBridgeChatMessages({
 }
 
 function hasRendererMessageAnnotations(message: ChatMessage): boolean {
-  return Object.prototype.hasOwnProperty.call(message, 'feedback');
+  return message.sender === 'assistant'
+    && Object.prototype.hasOwnProperty.call(message, 'feedback');
 }
 
 function selectRendererMessageAnnotations(messages: ChatMessage[] = []): RendererMessageAnnotation[] {

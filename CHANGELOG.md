@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/conversation-view: narrow renderer annotation merging to assistant
+  feedback records only, so local feedback cannot mutate SDK user display rows
+  or act as a generic message overlay. No migration required.
 - frontend/conversation-view: key main chat presentation memoization from the
   effective SDK live-turn input, so raw no-view live-turn fallback changes do
   not invalidate `ConversationView` rendering. No migration required.

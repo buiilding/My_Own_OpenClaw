@@ -194,6 +194,12 @@ describe('desktopConversationDisplayProjection', () => {
         turnRef: 'turn-stale',
         sourceEventType: 'assistant_message',
       }),
+      message({
+        id: 'user-1',
+        sender: 'user',
+        text: 'not an assistant feedback row',
+        feedback: 'dislike',
+      }),
     ]);
 
     expect(annotations).toEqual([{
@@ -204,6 +210,32 @@ describe('desktopConversationDisplayProjection', () => {
     expect(annotations[0]).not.toHaveProperty('turnRef');
     expect(annotations[0]).not.toHaveProperty('sourceEventType');
     expect(annotations[0]).not.toHaveProperty('tokenCounts');
+  });
+
+  test('does not merge renderer feedback annotations into SDK user rows', () => {
+    const projected = buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'user-1',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'user prompt',
+      }]),
+      preserveRendererAnnotations: true,
+      rendererAnnotations: [{
+        id: 'user-1',
+        feedback: 'like',
+      }],
+    })[0];
+
+    expect(projected).toEqual(expect.objectContaining({
+      id: 'user-1',
+      sender: 'user',
+      text: 'user prompt',
+    }));
+    expect(projected).not.toHaveProperty('feedback');
   });
 
   test('preserves explicit feedback clears for ConversationView merges', () => {

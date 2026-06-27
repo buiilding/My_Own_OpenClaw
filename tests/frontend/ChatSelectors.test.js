@@ -106,7 +106,7 @@ describe('chatSelectors', () => {
   test('projects only renderer annotations beside ConversationView interface state', () => {
     const conversationView = {
       conversationRef: 'conv-view',
-      displayRows: [{ id: 'sdk-row', role: 'user' }],
+      displayRows: [{ id: 'sdk-row', role: 'assistant' }],
       liveTurn: null,
       surfaces: {
         pill: { mode: 'idle' },
@@ -116,8 +116,8 @@ describe('chatSelectors', () => {
       messages: [{
         id: 'sdk-row',
         text: 'raw fallback',
-        sender: 'user',
-        fullUserMessage: 'full prompt',
+        sender: 'assistant',
+        fullAssistantMessage: 'full response',
         feedback: 'like',
       }],
       thinkingStatus: 'Compacting conversation history...',

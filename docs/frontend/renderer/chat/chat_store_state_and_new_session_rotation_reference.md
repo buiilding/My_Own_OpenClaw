@@ -136,8 +136,8 @@ current-turn row construction on typed SDK presentation fields.
   dependency adapters.
   Once a workspace has a `ConversationView`, raw message add/set/stream-target
   writes no-op because SDK display rows are authoritative. Direct id updates
-  under a view are narrowed to renderer-local feedback, stored only so
-  `rendererAnnotations` can merge them back onto SDK rows.
+  under a view are narrowed to renderer-local assistant feedback, stored only so
+  `rendererAnnotations` can merge them back onto SDK assistant rows.
 - Scalar workspace-field writes enter through the module-level
   `setIsSendingInChatStore(...)`, `setThinkingStatusInChatStore(...)`,
   `setThinkingSourceEventTypeInChatStore(...)`,
@@ -300,8 +300,10 @@ selector read model rather than the raw workspace object. While no SDK
 temporary live fallback is exposed as `sdkLiveTurn`.
 Once `ConversationView` exists, raw `messages` are replaced by the
 stable empty list and `sdkLiveTurn` is also `null`. The short `pendingTurn`
-bridge remains available, and renderer-only feedback is carried separately as
-`rendererAnnotations` for display-row annotation merge.
+bridge remains available, and renderer-only assistant feedback is carried
+separately as `rendererAnnotations` for display-row annotation merge. Those
+annotation records are not a generic message overlay channel and must not
+modify SDK user rows.
 
 Surface, response-overlay, interface presentation, and send-read-model selector
 adapters consume that read model as their input contract. They should not
@@ -425,7 +427,7 @@ active revision id. When a view exists, it builds base thread messages from
 `ConversationView.displayRows` through
 `DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`
 and passes only renderer annotation records selected by the surface/interface
-selector boundary for feedback. The
+selector boundary for assistant feedback. The
 pending bridge is projected from `pendingTurn` through
 `DesktopConversationDisplayProjection.buildPendingBridgeChatMessages(...)` for
 the no-view path and

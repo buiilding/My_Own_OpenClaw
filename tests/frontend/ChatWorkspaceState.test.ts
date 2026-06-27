@@ -222,7 +222,7 @@ describe('chatWorkspaceState', () => {
   test('projects ConversationView workspace read model without raw fallback authorities', () => {
     const conversationView = {
       conversationRef: 'thread-1',
-      displayRows: [{ id: 'sdk-row', role: 'user' }],
+      displayRows: [{ id: 'sdk-row', role: 'assistant' }],
       liveTurn: null,
       surfaces: {
         pill: { mode: 'idle' },
@@ -238,8 +238,8 @@ describe('chatWorkspaceState', () => {
       messages: [{
         id: 'sdk-row',
         text: 'raw fallback',
-        sender: 'user' as const,
-        fullUserMessage: 'full prompt',
+        sender: 'assistant' as const,
+        fullAssistantMessage: 'full response',
         feedback: 'like',
       }],
       thinkingStatus: 'Compacting conversation history...',
