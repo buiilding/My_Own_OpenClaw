@@ -303,6 +303,9 @@ function displayAttachmentFromRecord(record: JsonRecord): SdkDisplayAttachment |
     ...(stringField(record, 'screenshotUrl', 'screenshot_url') ? {
       screenshotUrl: stringField(record, 'screenshotUrl', 'screenshot_url'),
     } : {}),
+    ...(stringField(record, 'previewSrc', 'preview_src') ? {
+      previewSrc: stringField(record, 'previewSrc', 'preview_src'),
+    } : {}),
     ...(stringField(record, 'errorCode', 'error_code') ? { errorCode: stringField(record, 'errorCode', 'error_code') } : {}),
   };
 }

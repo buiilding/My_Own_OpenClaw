@@ -814,6 +814,44 @@ describe('Agent SDK conversation runtime core', () => {
     ]);
   });
 
+  test('SDK display rows preserve SDK-authored materializing attachment previews', () => {
+    const user = createConversationEvent({
+      eventId: 'evt-user-preview',
+      type: 'user_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-preview',
+      source: 'ui',
+      payload: {
+        text: 'review this image',
+        attachments: [
+          {
+            id: 'turn-preview:attachment:000',
+            kind: 'image',
+            source: 'user_included',
+            status: 'materializing',
+            filename: 'preview.png',
+            content_type: 'image/png',
+            preview_src: 'data:image/png;base64,preview',
+          },
+        ],
+      },
+    });
+
+    const rows = buildDisplayRows([user]);
+
+    expect(rows[0].metadata?.attachments).toEqual([
+      expect.objectContaining({
+        id: 'turn-preview:attachment:000',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        contentType: 'image/png',
+        previewSrc: 'data:image/png;base64,preview',
+      }),
+    ]);
+  });
+
   test('SDK display rows replace live previews with ready descriptors without carrying preview bytes', () => {
     const user = createConversationEvent({
       eventId: 'evt-user',

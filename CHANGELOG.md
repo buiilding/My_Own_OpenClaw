@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/conversation-view: preserve SDK-authored materializing attachment
+  `previewSrc` fields in display-row projection state while backend-origin
+  attachment normalization continues to strip preview/data URL fields. No
+  migration required.
 - frontend/conversation-view: preserve the current-turn envelope
   `conversationRef` when Electron main hydrates a newly tracked renderer with a
   cached `ConversationView` but no raw current-turn projection, so renderer

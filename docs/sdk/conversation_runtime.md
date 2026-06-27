@@ -270,9 +270,13 @@ That bridge may carry turn identity, text, and timestamps, but it must not
 carry filename metadata, visual attachment lifecycle descriptors, screenshots,
 preview bytes, or ready artifact refs. SDK display rows and
 `ConversationView` own user-included image, camera screenshot, and replay
-attachment presentation. Renderer display projection may synthesize only this
-explicit `pendingTurn` bridge beside SDK display rows; it must not scan prior
-`renderer-compose` chat messages and carry them forward as visible user rows.
+attachment presentation. SDK-shaped materializing display attachments may carry
+volatile `previewSrc` only inside display-row/UI projection state; backend-origin
+attachment normalization strips preview/data URL fields before they become
+durable or backend-owned descriptors. Renderer display projection may synthesize
+only this explicit `pendingTurn` bridge beside SDK display rows; it must not
+scan prior `renderer-compose` chat messages and carry them forward as visible
+user rows.
 Conversation-view chat projection receives renderer annotation records, not raw
 current chat messages, when copying local feedback state onto SDK rows.
 Raw current-turn snapshots remain live context for migrated display/surface

@@ -256,6 +256,9 @@ function displayAttachmentFromRecord(record) {
         ...((0, toolOutputContent_js_1.stringField)(record, 'screenshotUrl', 'screenshot_url') ? {
             screenshotUrl: (0, toolOutputContent_js_1.stringField)(record, 'screenshotUrl', 'screenshot_url'),
         } : {}),
+        ...((0, toolOutputContent_js_1.stringField)(record, 'previewSrc', 'preview_src') ? {
+            previewSrc: (0, toolOutputContent_js_1.stringField)(record, 'previewSrc', 'preview_src'),
+        } : {}),
         ...((0, toolOutputContent_js_1.stringField)(record, 'errorCode', 'error_code') ? { errorCode: (0, toolOutputContent_js_1.stringField)(record, 'errorCode', 'error_code') } : {}),
     };
 }
