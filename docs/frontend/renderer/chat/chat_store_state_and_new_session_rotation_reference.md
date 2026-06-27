@@ -98,9 +98,10 @@ fields from `DesktopSdkDisplayAttachmentProjection.readSdkImageAttachmentSource(
 instead of validating attachment lifecycle fields in the React hook.
 SDK current-turn presentation entries provide narrow `toolCallDetails` and
 `toolOutputDetails` records instead of raw payload mirrors. Renderer current-
-turn row construction consumes those SDK-authored details and typed
+turn row construction passes those SDK-authored details through with typed
 `attachments[]`; `DesktopSdkToolDetailProjection.sanitizeSdkToolDetailRecord(...)`
-remains a compatibility guard for legacy/no-presentation tool detail shapes.
+remains a compatibility guard only for legacy/no-presentation tool detail
+shapes.
 
 `streamTracking` fields capture turn identity, phase, counters, and timestamps per workspace:
 

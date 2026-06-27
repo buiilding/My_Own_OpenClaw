@@ -304,15 +304,13 @@ function buildErrorMessage(entry, liveTurnContext) {
 function buildToolCallMessage(entry, liveTurnContext) {
   const toolName = normalizeOptionalText(entry.toolName);
   const text = normalizeText(entry.text);
-  const toolDetails = asRecord(entry.toolCallDetails);
-  const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);
   const displayText = text || (toolName ? `Using ${toolName}` : 'Using tool');
 
   return buildToolCallChatMessageState({
     ...buildBaseMessageFields(entry, liveTurnContext),
     text: displayText,
     toolCallDisplayText: displayText,
-    toolCallDetails: displayToolDetails,
+    toolCallDetails: asRecord(entry.toolCallDetails),
     correlationId: normalizeOptionalText(entry.correlationId),
   });
 }
@@ -333,8 +331,6 @@ function buildToolProgressMessage(entry, liveTurnContext) {
 }
 
 function buildToolOutputMessage(entry, liveTurnContext) {
-  const toolDetails = asRecord(entry.toolOutputDetails);
-  const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);
   const toolName = normalizeOptionalText(entry.toolName);
   const text = normalizeText(entry.text) || (toolName ? `${toolName} completed` : 'Tool completed');
   const attachments = readSdkDisplayAttachments(entry.attachments);
@@ -349,7 +345,7 @@ function buildToolOutputMessage(entry, liveTurnContext) {
     executionTime: typeof entry.executionTime === 'number' ? entry.executionTime : null,
     success: typeof entry.success === 'boolean' ? entry.success : null,
     correlationId: normalizeOptionalText(entry.correlationId),
-    toolOutputDetails: displayToolDetails,
+    toolOutputDetails: asRecord(entry.toolOutputDetails),
     turnRef: entry.turnRef || liveTurnContext?.turnRef || null,
     modelId: entry.modelId || null,
     modelProvider: entry.modelProvider || null,

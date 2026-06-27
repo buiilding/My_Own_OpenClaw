@@ -250,6 +250,9 @@ All notable changes to WindieOS will be documented in this file.
   from SDK-authored display detail fields instead of raw event payloads, leaving
   attachments and screenshot refs on their typed channels. No migration
   required.
+- frontend/live-turn: pass SDK presentation-entry tool details through directly
+  in the normal current-turn renderer adapter, keeping detail sanitization only
+  for legacy no-presentation tool-event fallback. No migration required.
 - sdk/frontend: add SDK-authored `displayCorrelationId` on display-row
   metadata and make the renderer display-row adapter read only that field for
   component correlation identity, removing request/bundle/tool-call fallback

@@ -3563,6 +3563,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('toolCallDetails');
     expect(source).toContain('toolOutputDetails');
     expect(source).toContain('sanitizeSdkToolDetailRecord');
+    expect(source).toContain('const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);');
+    expect(source).toContain('const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);');
+    expect(source).not.toContain('const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);');
     expect(source).toContain('buildLegacyNoPresentationCurrentTurnMessages');
     expect(source).toContain('buildNoViewSdkLiveTurnMessages');
     expect(source).toContain('buildSdkLiveTurnMessages');
