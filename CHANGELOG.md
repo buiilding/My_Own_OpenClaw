@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stop: reject padded idle stop conversation refs instead of trimming
+  malformed `ConversationView` or active conversation identity into disabled
+  stop state. No migration required.
 - frontend/replay: stop replay command tracing from reading projected workspace
   state; edit/retry actions now pass only active conversation scope plus target
   row intent to the replay runtime. No migration required.

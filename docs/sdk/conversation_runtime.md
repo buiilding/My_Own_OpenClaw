@@ -282,6 +282,9 @@ repairing them into persisted dismissal state or IPC payloads.
 Renderer pending-turn state remains a short pre-view bridge immediately after
 send acceptance; raw current-turn snapshots and idle conversation refs must not
 enable Stop or become the main-process stop target, even before a view arrives.
+Renderer idle stop state also keeps conversation refs exact-only and does not
+trim malformed `ConversationView` or active-conversation refs into disabled
+targets.
 That bridge may carry turn identity, text, and timestamps, but it must not
 carry filename metadata, visual attachment lifecycle descriptors, screenshots,
 preview bytes, or ready artifact refs. SDK display rows and

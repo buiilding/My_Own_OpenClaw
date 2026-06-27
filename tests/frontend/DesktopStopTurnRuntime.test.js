@@ -230,7 +230,7 @@ describe('desktopStopTurnRuntime', () => {
       conversationRef: 'conv-session',
     })).toEqual({
       source: 'idle',
-      conversationRef: 'conv-view',
+      conversationRef: 'conv-session',
       turnRef: null,
       canStop: false,
     });
@@ -258,6 +258,31 @@ describe('desktopStopTurnRuntime', () => {
       conversationRef: 'conv-pending',
       turnRef: null,
       shouldClearPendingBridge: false,
+    });
+  });
+
+  test('does not repair padded idle stop conversation refs', () => {
+    expect(resolveStopTurnTarget({
+      conversationView: conversationView({
+        conversationRef: ' conv-view ',
+        turnRef: 'turn-view',
+        canStop: false,
+      }),
+      conversationRef: ' conv-session ',
+    })).toEqual({
+      source: 'idle',
+      conversationRef: null,
+      turnRef: null,
+      canStop: false,
+    });
+
+    expect(resolveStopTurnTarget({
+      conversationRef: ' conv-session ',
+    })).toEqual({
+      source: 'idle',
+      conversationRef: null,
+      turnRef: null,
+      canStop: false,
     });
   });
 

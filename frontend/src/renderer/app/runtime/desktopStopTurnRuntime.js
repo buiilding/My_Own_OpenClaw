@@ -11,10 +11,6 @@ const {
   readNoViewSdkLiveTurnStorage,
 } = DesktopChatWorkspaceStateRuntime;
 
-function normalizeRef(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
 function readExactNonEmptyRef(value) {
   return typeof value === 'string' && value && value.trim() === value ? value : null;
 }
@@ -295,7 +291,8 @@ function resolveStopTurnTarget({
     }
     return {
       source: 'idle',
-      conversationRef: normalizeRef(conversationView.conversationRef) || normalizeRef(conversationRef),
+      conversationRef: readExactNonEmptyRef(conversationView.conversationRef)
+        || readExactNonEmptyRef(conversationRef),
       turnRef: null,
       canStop: false,
     };
@@ -310,7 +307,7 @@ function resolveStopTurnTarget({
     };
   }
 
-  const fallbackConversationRef = normalizeRef(conversationRef);
+  const fallbackConversationRef = readExactNonEmptyRef(conversationRef);
   return {
     source: 'idle',
     conversationRef: fallbackConversationRef,

@@ -2382,6 +2382,10 @@ describe('renderer chat runtime boundary', () => {
     expect(stopRuntimeSource).toContain('executeStopTurnExecutionPlan');
     expect(stopRuntimeSource).toContain('buildStoppedSdkLiveTurn');
     expect(stopRuntimeSource).toContain('doesSdkLiveTurnMatch');
+    expect(stopRuntimeSource).toContain('function readExactNonEmptyRef(value)');
+    expect(stopRuntimeSource).not.toContain('function normalizeRef(value)');
+    expect(stopRuntimeSource).not.toContain('normalizeRef(conversationView.conversationRef)');
+    expect(stopRuntimeSource).not.toContain('normalizeRef(conversationRef)');
     expect(stopRuntimeSource).toContain('const hasWorkspaceConversationView = hasConversationView(currentWorkspace.conversationView);');
     expect(stopRuntimeSource).toContain('const workspaceSdkLiveTurn = hasWorkspaceConversationView');
     expect(stopRuntimeSource).toContain('readNoViewSdkLiveTurnStorage(currentWorkspace)');
