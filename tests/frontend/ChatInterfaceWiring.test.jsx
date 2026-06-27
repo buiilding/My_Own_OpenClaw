@@ -824,7 +824,6 @@ describe('ChatInterface wiring', () => {
       userMessageId: 'user-2',
       text: 'Summarize it now',
       timestamp: '2026-06-21T00:00:00.000Z',
-      attachmentFilenames: null,
     };
 
     render(<ChatInterface />);
@@ -1954,7 +1953,6 @@ describe('ChatInterface wiring', () => {
       userMessageId: 'user_pending',
       text: 'pending',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     };
 
     render(<ChatInterface />);
@@ -2174,7 +2172,6 @@ describe('ChatInterface wiring', () => {
       userMessageId: 'user-1',
       text: 'hello',
       timestamp: '2026-06-21T00:00:00.000Z',
-      attachmentFilenames: null,
     };
 
     render(<ChatInterface />);
@@ -2213,7 +2210,6 @@ describe('ChatInterface wiring', () => {
       userMessageId: 'user-2',
       text: 'second task',
       timestamp: '2026-06-21T00:00:00.000Z',
-      attachmentFilenames: null,
     };
 
     render(<ChatInterface />);
@@ -2236,7 +2232,6 @@ describe('ChatInterface wiring', () => {
       userMessageId: 'user-2',
       text: 'second task',
       timestamp: '2026-06-21T00:00:00.000Z',
-      attachmentFilenames: null,
     };
 
     render(<ChatInterface />);

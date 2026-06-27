@@ -335,10 +335,10 @@ describe('ChatBoxResponse state behavior', () => {
       text: 'README contents',
       correlationId: 'corr-read',
       toolOutputDetails: {
-        output: 'README contents',
         success: true,
       },
     }));
+    expect(toolMessage.toolOutputDetails).not.toHaveProperty('output');
     expect(toolMessage.text).not.toContain('wrong output');
     expect(toolMessage.text).not.toContain('wrong step');
   });

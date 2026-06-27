@@ -165,10 +165,6 @@ function buildToolEventsFromMessages(messages) {
             output: message.text || '',
           },
           toolMetadata: message.toolMetadata || null,
-          screenshot: message.screenshot || null,
-          screenshotRef: message.screenshotRef || null,
-          screenshotUrl: message.screenshotUrl || null,
-          screenshotContentType: message.screenshotContentType || null,
           executionTime: message.executionTime ?? null,
           success: message.success ?? (message.status === 'error' ? false : true),
           payload: {

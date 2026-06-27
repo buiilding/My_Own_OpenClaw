@@ -1435,6 +1435,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/message/content/AttachmentRendererRegistry.jsx'),
       'utf8',
     );
+    const chatBoxResponseTestUtilsSource = await fs.readFile(
+      path.resolve(__dirname, './ChatBoxResponse.testUtils.jsx'),
+      'utf8',
+    );
     const messageTypeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatMessageTypes.ts'),
       'utf8',
@@ -1453,6 +1457,10 @@ describe('renderer chat runtime boundary', () => {
     expect(toolCallMessageStateSource).not.toContain('modelFacingToolCall');
     expect(attachmentRendererRegistrySource).not.toContain('screenshotRef: PropTypes');
     expect(attachmentRendererRegistrySource).not.toContain('screenshotUrl: PropTypes');
+    expect(chatBoxResponseTestUtilsSource).not.toContain('screenshotRef: message.screenshotRef');
+    expect(chatBoxResponseTestUtilsSource).not.toContain('screenshotUrl: message.screenshotUrl');
+    expect(chatBoxResponseTestUtilsSource).not.toContain('screenshot: message.screenshot');
+    expect(chatBoxResponseTestUtilsSource).not.toContain('screenshotContentType: message.screenshotContentType');
     expect(messageTypeSource).toContain('attachments?: SdkDisplayAttachment[] | null');
     expect(messageTypeSource).not.toContain('modelFacingToolCall?:');
     expect(messageTypeSource).not.toContain('attachmentFilenames?:');

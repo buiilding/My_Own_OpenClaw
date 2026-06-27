@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tests: remove legacy screenshot-alias projection from no-view overlay
+  test utilities and keep pending-turn fixtures attachment-free, matching the
+  SDK-owned attachment display boundary. No migration required.
 - frontend/current-turn: omit even empty attachment props from the legacy
   no-view tool-output fallback so only SDK presentation/display `attachments[]`
   can publish visual attachment state. No migration required.
