@@ -58,6 +58,10 @@ except `user_message`:
 The pure active-turn comparison is exposed through
 `DesktopChatStreamTurnGuardRuntime.isStaleTurnForActiveStream(...)`; the raw
 predicate stays private to `desktopChatStreamTurnGuardRuntime.ts`.
+Conversation-event `conversationRef`/`turnRef`, pending-handoff `turnRef`, and
+active-stream `turnRef` comparisons are exact-only. Padded refs are treated as
+absent instead of being trimmed into stale-turn matches or pending-turn handoff
+authority.
 
 Pending-next-turn exception:
 

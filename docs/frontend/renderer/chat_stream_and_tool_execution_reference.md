@@ -177,6 +177,9 @@ Conversation-stream sub-handlers resolve event identity through
 The dispatcher, ingress runtime, compaction, local-user, metadata, and terminal
 handlers consume that runtime-built conversation ref, turn ref, and update-target
 turn ref object instead of unpacking SDK event identity fields independently.
+The runtime accepts only exact non-empty `conversationRef` and `turnRef` values;
+padded refs are dropped so malformed SDK event identity cannot route workspace
+updates, stale-turn checks, or metadata row targeting.
 Low-level conversation-ref and turn-ref helpers stay internal to
 `DesktopChatStreamEventRuntime`; renderer consumers should not import or
 destructure them from the facade.
@@ -248,6 +251,8 @@ SDK conversation-event stale-turn gating also belongs to
 the no-view fallback so stale renderer stream tracking cannot reject the
 SDK-owned live turn. Terminal completion tracking uses the same view-first
 turn identity before falling back to raw complete-state/pending-bridge checks.
+Those comparisons use exact refs only; padded view, event, pending, or
+stream-tracking refs are not repaired into a match.
 
 ### Removed Chat Stream Transparency and Thinking Helper Paths
 

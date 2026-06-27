@@ -84,11 +84,13 @@ The same runtime facade owns local-user and terminal telemetry predicates for
 strings directly; they map runtime predicates to renderer side effects and let
 the SDK current-turn projection own live response state.
 
-`DesktopChatStreamEventRuntime` also owns normalized SDK conversation-event
+`DesktopChatStreamEventRuntime` also owns exact SDK conversation-event
 identity values. Chat stream hooks resolve `conversationRef` and `turnRef`
 through runtime helpers before routing workspace side effects, stale-turn
 checks, row targeting, and tracking updates; feature hooks should not read raw
-event identity fields directly.
+event identity fields directly. Padded conversation or turn refs are treated as
+missing rather than being trimmed into workspace routing, stale-turn, terminal
+handoff, or tracking-update identity.
 
 `DesktopChatStreamEventPayloadRuntime.resolveConversationStreamEventPayload(...)`
 owns record-safe payload access for SDK conversation events. Compaction,
@@ -105,7 +107,7 @@ keep side effects without reading raw `event.payload` directly.
 3. call `DesktopChatStreamIngressRuntime.handleConversationEventIngress(...)` to:
   - sync active conversation projection after resolving conversation identity
     through `DesktopChatStreamEventRuntime`
-  - register `turn_ref -> conversation_ref` mapping from the normalized SDK turn
+  - register `turn_ref -> conversation_ref` mapping from the exact SDK turn
     identity helper
   - refresh transcript session binding (`activeConversationRef || resolvedConversationRef`)
     with transcript user id read through `DesktopChatStreamEventPayloadRuntime`
@@ -114,7 +116,7 @@ keep side effects without reading raw `event.payload` directly.
 
 Conversation resolution order:
 
-1. normalized explicit SDK conversation identity from `DesktopChatStreamEventRuntime`
+1. exact explicit SDK conversation identity from `DesktopChatStreamEventRuntime`
 2. quarantine when no conversation identity exists
 
 This is workspace routing, not active-chat filtering. Background conversations keep receiving their own events.

@@ -229,7 +229,7 @@ describe('DesktopChatStreamEventRuntime', () => {
     } as any, 'turn-old')).toBe(false);
   });
 
-  test('terminal completion tracking records matching ConversationView live turn over stale complete stream state', () => {
+  test('terminal completion tracking rejects padded ConversationView live turn refs', () => {
     expect(shouldRecordTerminalCompletionTracking({
       messages: [],
       pendingTurn: null,
@@ -247,8 +247,29 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
       thinkingStatus: null,
       thinkingSourceEventType: null,
-    } as any, 'turn-view')).toBe(true);
+    } as any, 'turn-view')).toBe(false);
 
+    expect(shouldRecordTerminalCompletionTracking({
+      messages: [],
+      pendingTurn: null,
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: {
+          turnRef: ' turn-view ',
+          phase: 'streaming',
+        },
+        displayRows: [],
+      },
+      streamTracking: {
+        activeTurnRef: 'turn-stale',
+        phase: 'complete',
+      },
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+    } as any, ' turn-view ')).toBe(false);
+  });
+
+  test('terminal completion tracking records matching exact ConversationView live turn over stale complete stream state', () => {
     expect(shouldRecordTerminalCompletionTracking({
       messages: [],
       pendingTurn: null,
@@ -442,31 +463,39 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(isUsageUpdatedConversationStreamEvent(null)).toBe(false);
   });
 
-  test('normalizes SDK conversation stream event identity fields', () => {
+  test('resolves exact SDK conversation stream event identity fields', () => {
     expect(resolveConversationStreamEventIdentity({
-      conversationRef: ' conversation-1 ',
-      turnRef: ' turn-1 ',
+      conversationRef: 'conversation-1',
+      turnRef: 'turn-1',
     })).toEqual({
       conversationRef: 'conversation-1',
       turnRef: 'turn-1',
       turnRefForUpdate: 'turn-1',
     });
     expect(resolveConversationStreamEventIdentity({
-      turnRef: ' turn-1 ',
+      turnRef: 'turn-1',
     })).toEqual({
       conversationRef: null,
       turnRef: 'turn-1',
       turnRefForUpdate: 'turn-1',
     });
     expect(resolveConversationStreamEventIdentity({
-      conversationRef: ' conversation-1 ',
-      turnRef: ' turn-1 ',
-    }, ' fallback-conversation ')).toEqual({
+      conversationRef: 'conversation-1',
+      turnRef: 'turn-1',
+    }, 'fallback-conversation')).toEqual({
       conversationRef: 'fallback-conversation',
       turnRef: 'turn-1',
       turnRefForUpdate: 'turn-1',
     });
 
+    expect(resolveConversationStreamEventIdentity({
+      conversationRef: ' conversation-1 ',
+      turnRef: ' turn-1 ',
+    }, ' fallback-conversation ')).toEqual({
+      conversationRef: null,
+      turnRef: null,
+      turnRefForUpdate: undefined,
+    });
     expect(resolveConversationStreamEventIdentity({
       conversationRef: '   ',
       turnRef: '   ',
@@ -776,7 +805,7 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(shouldIgnore(createEvent({ turnRef: '   ' }), null)).toBe(false);
   });
 
-  test('stale turn guard compares normalized turn refs', () => {
+  test('stale turn guard does not repair padded turn refs before comparison', () => {
     useChatStore.setState((state) => ({
       ...state,
       streamTracking: {
@@ -798,10 +827,10 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnore(createEvent({ turnRef: ' turn-1 ' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: ' turn-old ' }), null)).toBe(false);
   });
 
-  test('stale turn guard prefers ConversationView live turn over stale stream tracking', () => {
+  test('stale turn guard rejects padded ConversationView live turn refs before preferring view state', () => {
     useChatStore.setState((state) => ({
       ...state,
       streamTracking: {
@@ -818,6 +847,41 @@ describe('DesktopChatStreamEventRuntime', () => {
             displayRows: [],
             liveTurn: {
               turnRef: ' turn-view ',
+              phase: 'streaming',
+              entries: [],
+              canStop: true,
+            },
+          },
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-stale',
+            phase: 'streaming',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-view' }), null)).toBe(true);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-stale' }), null)).toBe(false);
+  });
+
+  test('stale turn guard prefers exact ConversationView live turn over stale stream tracking', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-stale',
+        phase: 'streaming',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          conversationView: {
+            conversationRef: 'conv-view',
+            displayRows: [],
+            liveTurn: {
+              turnRef: 'turn-view',
               phase: 'streaming',
               entries: [],
               canStop: true,

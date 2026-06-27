@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stream: reject padded SDK conversation-event conversation and turn
+  refs before stream workspace routing, stale-turn checks, terminal pending
+  handoff, metadata row targeting, or completion tracking. No migration
+  required.
 - frontend/pill: reject padded chat-pill turn refs, conversation refs,
   lifecycle phases, and SDK pill surface modes in the app-runtime session
   helper instead of trimming them into overlay turn identity or trace/reset

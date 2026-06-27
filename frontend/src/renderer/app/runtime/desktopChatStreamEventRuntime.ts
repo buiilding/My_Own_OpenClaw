@@ -55,16 +55,22 @@ function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
+function readExactIdentityString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function resolveConversationStreamEventConversationRef(
   event: ConversationStreamEventIdentityEvent | null | undefined,
 ): string | null {
-  return optionalString(event?.conversationRef);
+  return readExactIdentityString(event?.conversationRef);
 }
 
 function resolveConversationStreamEventTurnRef(
   event: ConversationStreamEventIdentityEvent | null | undefined,
 ): string | null {
-  return optionalString(event?.turnRef);
+  return readExactIdentityString(event?.turnRef);
 }
 
 function resolveConversationStreamEventIdentity(
@@ -77,7 +83,7 @@ function resolveConversationStreamEventIdentity(
 } {
   const turnRef = resolveConversationStreamEventTurnRef(event);
   return {
-    conversationRef: optionalString(fallbackConversationRef)
+    conversationRef: readExactIdentityString(fallbackConversationRef)
       ?? resolveConversationStreamEventConversationRef(event),
     turnRef,
     turnRefForUpdate: turnRef ?? undefined,

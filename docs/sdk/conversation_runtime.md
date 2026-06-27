@@ -1002,6 +1002,10 @@ Desktop completion projection consumes SDK `turn_completed` identity directly.
 The SDK event carries `conversationRef`, `turnRef`, and `payload.userId` for
 renderer transcript writes, so the completion handler should not unwrap
 `payload.sourceEvent` to recover backend `conversation_ref` or `user_id`.
+Renderer conversation-event identity helpers treat SDK conversation refs and
+turn refs as exact values; padded refs are ignored instead of being trimmed into
+workspace routing, stale-turn guards, terminal pending handoff, or completion
+tracking.
 Completed-turn model metadata is normalized onto `payload.modelId` and
 `payload.modelProvider` before runtime title generation, so runtime code does
 not unwrap backend-wire payloads to recover model identity.

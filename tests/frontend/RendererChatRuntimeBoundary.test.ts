@@ -506,6 +506,8 @@ describe('renderer chat runtime boundary', () => {
     expect(runtimeSource).toContain('resolveConversationStreamEventIdentity');
     expect(runtimeSource).toContain('resolveConversationStreamEventConversationRef');
     expect(runtimeSource).toContain('resolveConversationStreamEventTurnRef');
+    expect(runtimeSource).toContain('function readExactIdentityString');
+    expect(runtimeSource).toContain('value.length > 0 && value === value.trim()');
     expect(runtimeSource).not.toContain('\n  resolveConversationStreamEventConversationRef,');
     expect(runtimeSource).not.toContain('\n  resolveConversationStreamEventTurnRef,');
     expect(runtimeSource).not.toContain('resolveConversationStreamEventTurnRefForUpdate');
@@ -825,6 +827,8 @@ describe('renderer chat runtime boundary', () => {
     expect(terminalHandoffRuntimeSource).not.toContain('workspace.messages');
     expect(terminalHandoffRuntimeSource).not.toContain('lastMessage');
     expect(terminalHandoffRuntimeSource).not.toContain('isSending');
+    expect(terminalHandoffRuntimeSource).toContain('turnRef.length > 0 && turnRef === turnRef.trim()');
+    expect(terminalHandoffRuntimeSource).not.toContain('return typeof turnRef === \'string\' ? turnRef.trim() : \'\';');
     expect(terminalHandoffRuntimeSource).not.toContain('export function normalizeTurnRef');
     expect(terminalHandoffRuntimeSource).not.toContain('export function isAwaitingFirstChunkMismatch');
     expect(terminalHandoffRuntimeSource).not.toContain('export function hasTerminalPendingHandoff');
