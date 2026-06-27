@@ -222,6 +222,16 @@ describe('ChatProvider', () => {
             liveTurn: {
               turnRef: 'turn-view',
             },
+            surfaces: {
+              dashboard: { mode: 'normal', visible: true },
+              pill: { mode: 'normal', visible: true },
+              responseOverlay: { mode: 'hidden', visible: false },
+            },
+            actions: {
+              canEdit: false,
+              canRetry: false,
+              canFork: false,
+            },
             displayRows: [{
               id: 'view-row',
               role: 'assistant',

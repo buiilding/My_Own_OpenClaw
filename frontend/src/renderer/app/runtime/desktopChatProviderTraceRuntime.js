@@ -22,36 +22,38 @@ function normalizeTraceString(value) {
     : null;
 }
 
+function traceLastMessageFromReadModel(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  return {
+    sender: value.sender ?? null,
+    type: value.type || null,
+    textLength: typeof value.textLength === 'number' ? value.textLength : 0,
+    turnRef: normalizeTraceString(value.turnRef),
+    sourceEventType: normalizeTraceString(value.sourceEventType),
+  };
+}
+
 function resolveTraceLastMessage(workspace) {
   if (hasWorkspaceConversationView(workspace)) {
     return buildConversationViewTraceSummary(workspace.conversationView).lastMessage;
   }
-  const messages = Array.isArray(workspace?.messages) ? workspace.messages : [];
-  const lastMessage = messages[messages.length - 1] || null;
-  return lastMessage ? {
-    sender: lastMessage.sender,
-    type: lastMessage.type || null,
-    textLength: typeof lastMessage.text === 'string' ? lastMessage.text.length : 0,
-    turnRef: normalizeTraceString(lastMessage.turnRef),
-    sourceEventType: normalizeTraceString(lastMessage.sourceEventType),
-  } : null;
+  return traceLastMessageFromReadModel(workspace?.lastMessage);
 }
 
 function resolveTraceActiveTurnRef(workspace) {
   if (hasWorkspaceConversationView(workspace)) {
     return buildConversationViewTraceSummary(workspace.conversationView).liveTurnRef;
   }
-  return (
-    normalizeTraceString(workspace?.streamTracking?.activeTurnRef)
-  );
+  return normalizeTraceString(workspace?.activeTurnRef);
 }
 
 function resolveTraceMessageCount(workspace) {
   if (hasWorkspaceConversationView(workspace)) {
     return buildConversationViewTraceSummary(workspace.conversationView).displayRowCount;
   }
-  const messages = Array.isArray(workspace?.messages) ? workspace.messages : [];
-  return messages.length;
+  return typeof workspace?.messageCount === 'number' ? workspace.messageCount : 0;
 }
 
 function buildChatProviderTraceWorkspaceSnapshot({

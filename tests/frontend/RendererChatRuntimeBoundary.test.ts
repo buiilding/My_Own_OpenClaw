@@ -2711,6 +2711,11 @@ describe('renderer chat runtime boundary', () => {
     expect(providerTraceRuntimeSource).toContain('hasWorkspaceConversationView(workspace)');
     expect(providerTraceRuntimeSource).toContain('buildConversationViewTraceSummary');
     expect(providerTraceRuntimeSource).toContain('value.length > 0 && value === value.trim()');
+    expect(providerTraceRuntimeSource).toContain('traceLastMessageFromReadModel(workspace?.lastMessage)');
+    expect(providerTraceRuntimeSource).toContain('normalizeTraceString(workspace?.activeTurnRef)');
+    expect(providerTraceRuntimeSource).toContain("typeof workspace?.messageCount === 'number'");
+    expect(providerTraceRuntimeSource).not.toContain('workspace?.messages');
+    expect(providerTraceRuntimeSource).not.toContain('streamTracking');
     expect(providerTraceRuntimeSource).not.toContain("value.trim() ? value.trim() : null");
     expect(providerTraceRuntimeSource).not.toContain("Boolean(workspace?.conversationView && typeof workspace.conversationView === 'object')");
     expect(providerTraceRuntimeSource).not.toContain('turnRef: lastMessage.turnRef || null');
@@ -2725,6 +2730,9 @@ describe('renderer chat runtime boundary', () => {
     );
     expect(chatStoreAdaptersSource).toContain('getChatProviderTraceWorkspaceSnapshotFromChatStore');
     expect(chatStoreAdaptersSource).toContain('buildChatProviderTraceWorkspaceSnapshot');
+    expect(chatStoreAdaptersSource).toContain('function buildChatProviderTraceWorkspaceReadModel');
+    expect(chatStoreAdaptersSource).toContain('workspace: buildChatProviderTraceWorkspaceReadModel(');
+    expect(chatStoreAdaptersSource).toContain('messageCount: workspace.messages.length');
     expect(clientSource).toContain('SEND_CHANNELS.LIVE_SURFACE_TRACE');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/chatStream/chatStreamDebugTrace.ts'),

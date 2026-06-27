@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: narrow ChatProvider trace workspace reads to a
+  purpose-shaped provider trace read model so the provider trace runtime no
+  longer scans raw no-view message arrays or stream tracking state. No
+  migration required.
 - frontend/chat-store: narrow the current-turn projection workspace read adapter
   to message count, view trace envelope, turn identities, stream tracking, and
   thinking status instead of exposing raw messages to projection side effects.

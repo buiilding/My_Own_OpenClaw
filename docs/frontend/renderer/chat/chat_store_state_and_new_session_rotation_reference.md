@@ -76,7 +76,10 @@ projected read-model, send read-model, or chat-provider trace snapshots use
 named `chatStoreAdapters.ts` getters instead of calling
 `useChatStore.getState()` directly. The ChatProvider trace resolver uses the
 purpose-built provider trace snapshot getter rather than importing the broad
-projected workspace read-model helper. Chat stream and SDK current-turn
+projected workspace read-model helper. That getter maps no-view fallback rows
+to message count, active turn ref, and last-message trace metadata before
+calling the provider trace runtime; the trace runtime no longer scans raw
+workspace messages itself. Chat stream and SDK current-turn
 projection hooks likewise use purpose-named projected workspace getters; the
 generic projected workspace read helper remains private to
 `chatStoreAdapters.ts`. Those public projected getters return

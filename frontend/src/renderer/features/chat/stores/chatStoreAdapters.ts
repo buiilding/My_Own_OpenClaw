@@ -245,6 +245,26 @@ function buildCurrentTurnProjectionWorkspaceReadModel(
   };
 }
 
+function buildChatProviderTraceWorkspaceReadModel(
+  workspace: ChatWorkspaceReadModelState,
+) {
+  const lastMessage = workspace.messages[workspace.messages.length - 1] ?? null;
+  return {
+    conversationView: workspace.conversationView,
+    messageCount: workspace.messages.length,
+    activeTurnRef: workspace.streamTracking.activeTurnRef,
+    lastMessage: lastMessage
+      ? {
+        sender: lastMessage.sender,
+        type: lastMessage.type ?? null,
+        textLength: typeof lastMessage.text === 'string' ? lastMessage.text.length : 0,
+        turnRef: lastMessage.turnRef ?? null,
+        sourceEventType: lastMessage.sourceEventType ?? null,
+      }
+      : null,
+  };
+}
+
 export function getChatStreamWorkspaceReadModelFromChatStore(
   conversationRef?: string | null,
 ): ChatStreamWorkspaceReadModel {
@@ -270,7 +290,9 @@ export function getChatProviderTraceWorkspaceSnapshotFromChatStore(
 ): ReturnType<typeof buildChatProviderTraceWorkspaceSnapshot> {
   return buildChatProviderTraceWorkspaceSnapshot({
     activeConversationRef: getActiveConversationRefFromChatStore(),
-    workspace: getProjectedWorkspaceReadModelFromChatStore(conversationRef),
+    workspace: buildChatProviderTraceWorkspaceReadModel(
+      getProjectedWorkspaceReadModelFromChatStore(conversationRef),
+    ),
   });
 }
 
