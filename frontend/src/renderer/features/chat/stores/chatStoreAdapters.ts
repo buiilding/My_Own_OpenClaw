@@ -23,9 +23,6 @@ import {
   DesktopStopTurnRuntime,
 } from '../../../app/runtime/desktopStopTurnRuntime';
 import {
-  DesktopConversationReplayRuntime,
-} from '../../../app/runtime/desktopConversationReplayRuntime';
-import {
   DesktopChatPendingTurnStateRuntime,
 } from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
 import type {
@@ -87,13 +84,6 @@ const {
     } | null;
     state: TState;
   }) => Partial<TState> | TState | null;
-};
-const {
-  executeReplayAction,
-} = DesktopConversationReplayRuntime as {
-  executeReplayAction: (input: ReplayActionRuntimeInput & {
-    chatStore: typeof useChatStore;
-  }) => Promise<boolean | undefined>;
 };
 const {
   buildAcceptPendingTurnStateUpdate,
@@ -312,54 +302,6 @@ export function clearPendingTurnInChatStore(
       state,
     }) ?? state
   ));
-}
-
-type ReplayActionFromChatStoreBaseInput = {
-  activeConversationRef?: string | null;
-  config?: Record<string, unknown> | null;
-  deferredQueryModelSelection?: unknown;
-  sessionInfo?: {
-    conversationRef?: string | null;
-    userId?: string | null;
-  } | null;
-};
-
-type ReplayEditUserMessageFromChatStoreInput = ReplayActionFromChatStoreBaseInput & {
-  editedText?: string | null;
-  userMessageId?: string | null;
-};
-
-type ReplayRetryAssistantMessageFromChatStoreInput = ReplayActionFromChatStoreBaseInput & {
-  assistantMessageId?: string | null;
-};
-
-type ReplayActionFromChatStoreInput = (
-  ReplayEditUserMessageFromChatStoreInput
-  | ReplayRetryAssistantMessageFromChatStoreInput
-);
-
-type ReplayActionRuntimeInput = ReplayActionFromChatStoreInput & {
-  action: 'edit_resend' | 'retry';
-};
-
-export function editUserMessageReplayFromChatStore(
-  input: ReplayEditUserMessageFromChatStoreInput,
-): Promise<boolean | undefined> {
-  return executeReplayAction({
-    ...input,
-    action: 'edit_resend',
-    chatStore: useChatStore,
-  });
-}
-
-export function retryAssistantMessageReplayFromChatStore(
-  input: ReplayRetryAssistantMessageFromChatStoreInput,
-): Promise<boolean | undefined> {
-  return executeReplayAction({
-    ...input,
-    action: 'retry',
-    chatStore: useChatStore,
-  });
 }
 
 export function acceptStoppedTurnInChatStore(

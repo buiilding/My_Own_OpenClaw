@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: remove chat-store replay wrapper exports; the replay hook
+  now calls the renderer replay runtime entrypoint directly and passes the chat
+  store only as an injected UI-state dependency. No migration required.
 - frontend/current-turn: keep the raw no-presentation current-turn fallback
   builder private to the message runtime; tests and callers now use the public
   no-view SDK live-turn facade. No migration required.

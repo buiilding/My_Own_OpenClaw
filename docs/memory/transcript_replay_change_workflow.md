@@ -143,6 +143,9 @@ flowchart LR
      not call the renderer settings facade to apply the model before dispatch;
      SDK replay commands apply model selection through their normal `send()`
      path.
+     Chat-store adapters should not export replay wrapper commands; the store
+     may be passed into the replay runtime only as an injected UI-state
+     dependency.
    - Renderer app-runtime facades should not expose direct display timeline
      load/replace helpers to React. Low-level display timeline operations remain
      SDK/main-owner diagnostics and command-handler concerns; normal UI paths

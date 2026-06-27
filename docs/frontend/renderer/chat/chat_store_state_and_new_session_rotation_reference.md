@@ -207,13 +207,14 @@ current-turn row construction on typed SDK presentation fields.
   reducer and renderer superseded-turn ledger have been removed; renderer
   pending state is now only the normal post-send bridge.
   `useConversationReplayActions(...)` passes replay intent plus renderer config
-  into `executeReplayActionFromChatStore(...)`; the chat-store adapter supplies
-  the store bridge and the replay runtime derives the deferred SDK model
-  selection as command data before dispatching SDK commands. It must not call
-  the renderer settings facade to apply the model directly. Replay requires an
-  existing conversation ref from the transcript session or chat-store active
-  workspace; it must not create a fresh conversation for a row id the SDK cannot
-  resolve.
+  to `DesktopConversationReplayRuntime.executeReplayAction(...)` with the chat
+  store supplied only as an injected UI-state dependency. `chatStoreAdapters.ts`
+  does not expose replay wrapper commands. The replay runtime derives deferred
+  SDK model selection as command data before dispatching SDK commands. It must
+  not call the renderer settings facade to apply the model directly. Replay
+  requires an existing conversation ref from the transcript session or
+  chat-store active workspace; it must not create a fresh conversation for a
+  row id the SDK cannot resolve.
 - `clearPendingTurnInChatStore(...)` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn.
   Pending-turn clear matching, broadcast action branching, and workspace
@@ -447,8 +448,9 @@ only that SDK view for the target conversation; it does not project
 `displayRows` back into active workspace messages.
 Replay actions do not consume selector row models. The hook passes only row
 ids/text plus UI dependencies to `DesktopConversationReplayRuntime`, which
-forwards intent to SDK command APIs. SDK runtime resolves display rows and
-resources from its canonical `ConversationView`/display timeline state.
+forwards intent to SDK command APIs. The chat-store adapter surface does not
+publish replay actions. SDK runtime resolves display rows and resources from
+its canonical `ConversationView`/display timeline state.
 
 `DesktopChatRevisionActionRuntime` owns checkout/fork command input shaping for
 the revision menu: revision id normalization, action ids, default user id, and
