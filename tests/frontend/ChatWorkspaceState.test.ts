@@ -357,6 +357,7 @@ describe('chatWorkspaceState', () => {
 
     expect(readModel.messages).toBe(workspace.messages);
     expect(readModel.sdkLiveTurn).toBe(workspace.sdkLiveTurn);
+    expect(readModel.conversationView).toBeNull();
     expect(readModel.rendererAnnotations).toEqual([]);
   });
 

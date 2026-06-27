@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: publish `conversationView: null` from projected
+  workspace read models unless the full SDK ConversationView envelope is
+  present, keeping partial SDK-looking objects off stream/current-turn read
+  paths. No migration required.
 - frontend/send: require SDK ConversationView user display rows to carry an
   exact row id before they can satisfy first-message send-state checks, keeping
   malformed view rows from replacing no-view fallback policy. No migration

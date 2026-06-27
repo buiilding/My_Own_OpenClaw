@@ -286,14 +286,16 @@ trace, or reset identity. Chat-pill trace snapshots treat `conversationView` as
 view-owned input only when the complete SDK view envelope is present
 (`conversationRef`, `displayRows`, `liveTurn`, `surfaces`, and `actions`);
 partial objects stay on the no-view SDK live-turn fallback path instead of
-suppressing fallback identity. ChatInterface presentation uses the same
-envelope before choosing SDK view rows, active revision, or view cache identity,
-and passes `null` downstream for partial objects so no-view messages and
-`sdkLiveTurn` remain the only fallback inputs. Thread presentation,
-chat-surface, live-turn surface, visible-lifecycle helpers, and no-view
-live-turn workspace storage now require that same complete envelope before a
-value can suppress raw fallback messages, `sdkLiveTurn`, or pending bridge
-state.
+suppressing fallback identity. The shared renderer workspace read model also
+publishes `conversationView: null` for partial objects, so stream/current-turn
+adapters cannot see partial view data beside no-view fallback state.
+ChatInterface presentation uses the same envelope before choosing SDK view
+rows, active revision, or view cache identity, and passes `null` downstream for
+partial objects so no-view messages and `sdkLiveTurn` remain the only fallback
+inputs. Thread presentation, chat-surface, live-turn surface,
+visible-lifecycle helpers, and no-view live-turn workspace storage now require
+that same complete envelope before a value can suppress raw fallback messages,
+`sdkLiveTurn`, or pending bridge state.
 Desktop live-surface overlay identity accepts only exact SDK refs from
 `snapshot.view.liveTurn`, `snapshot.view.surfaces.responseOverlay`, or
 `snapshot.currentTurn.presentation.overlayIntent`; padded refs are ignored

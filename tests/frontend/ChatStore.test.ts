@@ -329,6 +329,52 @@ describe('chatStore', () => {
     expect(readModel).not.toHaveProperty('sdkLiveTurn');
   });
 
+  test('projected chat-store read models do not expose partial ConversationView objects', () => {
+    setMessagesInChatStore([
+      {
+        id: 'raw-message',
+        sender: 'assistant',
+        text: 'raw answer',
+        turnRef: 'turn-raw',
+      },
+    ], 'conv-partial-view');
+    setNoViewSdkLiveTurnInChatStore({
+      conversationRef: 'conv-partial-view',
+      turnRef: 'turn-live',
+      phase: 'streaming',
+      assistantText: 'raw answer',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    }, 'conv-partial-view');
+    setConversationViewInChatStore({
+      conversationRef: 'conv-partial-view',
+      displayRows: [{
+        id: 'view-row',
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'partial view answer',
+        turnRef: 'turn-view',
+      }],
+    } as never, 'conv-partial-view');
+
+    const streamReadModel = getChatStreamWorkspaceReadModelFromChatStore('conv-partial-view') as Record<string, unknown>;
+    const currentTurnReadModel = getCurrentTurnProjectionWorkspaceReadModelFromChatStore('conv-partial-view') as Record<string, unknown>;
+
+    expect(streamReadModel.conversationView).toBeNull();
+    expect(streamReadModel.streamTracking).toEqual(expect.objectContaining({
+      phase: 'idle',
+    }));
+    expect(currentTurnReadModel).toEqual(expect.objectContaining({
+      conversationView: null,
+      sdkLiveTurn: {
+        phase: 'streaming',
+        turnRef: 'turn-live',
+      },
+    }));
+    expect(currentTurnReadModel).not.toHaveProperty('messages');
+  });
+
   test('current-turn projection read model omits raw message state', () => {
     setMessagesInChatStore([
       {

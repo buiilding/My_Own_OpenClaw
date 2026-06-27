@@ -255,7 +255,7 @@ export function projectWorkspaceReadModelState(
     rendererAnnotations: hasConversationView
       ? readRendererAnnotations(workspace)
       : emptyRendererAnnotations,
-    conversationView: workspace.conversationView,
+    conversationView: hasConversationView ? workspace.conversationView : null,
     pendingTurn: workspace.pendingTurn,
   };
   workspaceReadModelCache.set(workspace, readModelWorkspace);

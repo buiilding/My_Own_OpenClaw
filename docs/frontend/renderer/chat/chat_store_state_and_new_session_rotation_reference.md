@@ -218,8 +218,10 @@ trimmed into no-view/pending routing state.
 - Active workspace read-model projection uses the same SDK view-shape predicate
   before suppressing raw `messages`, no-view `sdkLiveTurn`, thinking status,
   compaction debug info, token counts, stream tracking, or exposing
-  `rendererAnnotations`. A partial object under `conversationView` remains on
-  the no-view fallback path instead of becoming a second chat read model.
+  `rendererAnnotations`, and it publishes `conversationView: null` unless the
+  complete SDK envelope is present. A partial object under `conversationView`
+  remains on the no-view fallback path instead of becoming a second chat read
+  model.
 - Shared chat surface selectors use that same predicate before replacing raw
   surface messages with the empty view-owned list or nulling the no-view
   `sdkLiveTurn`. Interface selectors also null no-view thinking status,
