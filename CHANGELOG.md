@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: replace the public frontend subtree's copied private-root agent
+  instructions with a public agent policy that keeps commands, tests, commit
+  search, and backend boundaries scoped to the public repo root. No migration
+  required.
 - cli/public: scope `<windie> commits search` Git scans to the public repo
   root pathspec, so running the public frontend CLI inside the private monorepo
   cannot surface backend-only commit history. No migration required.
