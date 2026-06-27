@@ -706,7 +706,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         isComplete: false,
         thinkingText: 'Thinking through it.',
         thinkingSourceEventType: 'reasoning_delta',
-        sourceEventType: 'assistant_delta',
+        sourceEventType: 'assistant_message',
       }),
     ]);
   });
@@ -734,7 +734,7 @@ describe('sdkDisplayChatMessageProjection', () => {
       type: 'llm-text',
       text: 'Partial answer',
       isComplete: false,
-      sourceEventType: 'assistant_delta',
+      sourceEventType: 'assistant_message',
     }));
     expect(message).not.toHaveProperty('thinkingText');
     expect(message).not.toHaveProperty('thinkingSourceEventType');

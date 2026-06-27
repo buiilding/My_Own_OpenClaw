@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: stop relabeling streaming SDK assistant display rows as
+  `assistant_delta`; the display adapter now preserves SDK-authored
+  `metadata.sourceEventType` or the generic row type while deriving completion
+  only from `row.isStreaming`. No migration required.
 - frontend/projection: make ConversationView pending-bridge suppression ask the
   shared SDK display-row lookup helper instead of inferring same-turn user rows
   from projected chat messages. No migration required.

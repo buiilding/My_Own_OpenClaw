@@ -75,7 +75,11 @@ intermediate `DisplayMessage` model or adapt legacy screenshot aliases for
 primary renderer display; old rows must be adapted earlier by
 `legacyVisualAttachmentReplayAdapter`.
 Streaming assistant rows read SDK `reasoningText` only; the renderer adapter
-does not recover old snake-case reasoning aliases.
+does not recover old snake-case reasoning aliases. The adapter also does not
+relabel streaming SDK assistant display rows as `assistant_delta`: it preserves
+SDK-authored `metadata.sourceEventType` when present, otherwise uses the
+generic display row type, and derives renderer completion only from
+`row.isStreaming`.
 It also must not synthesize missing model-facing tool-call objects from
 metadata-only rows; SDK display rows should provide that semantic object when
 it is part of the row contract, and renderer projection keeps metadata as

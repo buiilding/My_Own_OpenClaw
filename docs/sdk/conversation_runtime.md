@@ -368,6 +368,10 @@ tool-output, and progress rows. Producers must normalize those rows before they
 reach `ConversationView`; the renderer may only stringify SDK-declared
 structured tool rows such as tool calls and bundle outputs for component
 compatibility.
+Streaming assistant display rows keep SDK-authored `metadata.sourceEventType`
+when present and otherwise use the generic `assistant_message` display-row type;
+renderer completion state comes from the SDK row's `isStreaming` flag, not from
+relabeling the row as an `assistant_delta` event.
 Renderer display-row and live-turn adapters also keep SDK attachment
 descriptors on the typed `attachments[]` prop only. Renderer attachment helpers
 may perform narrow component checks such as artifact image-source resolution,

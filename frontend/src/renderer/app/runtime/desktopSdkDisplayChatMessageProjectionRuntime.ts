@@ -43,11 +43,15 @@ function rowSourceEventType(row: SdkDisplayRow): string {
   if (typeof sourceEventType === 'string' && sourceEventType.trim()) {
     return sourceEventType;
   }
-  return row.type === 'assistant_message' && row.isStreaming ? 'assistant_delta' : row.type;
+  return row.type;
 }
 
 function rowCorrelationId(row: SdkDisplayRow): string | null {
   return row.metadata?.displayCorrelationId ?? null;
+}
+
+function isSdkDisplayRowStreaming(row: SdkDisplayRow): boolean {
+  return 'isStreaming' in row && row.isStreaming === true;
 }
 
 function withRowActions(message: ChatMessage, row: SdkDisplayRow): ChatMessage {
@@ -81,7 +85,7 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
     sourceEventType,
     sourceChannel: sdkDisplayRowsSourceChannel,
     turnRef: row.turnRef ?? null,
-    isComplete: sourceEventType !== 'assistant_delta',
+    isComplete: !isSdkDisplayRowStreaming(row),
     thinkingText,
     thinkingSourceEventType: thinkingText ? 'reasoning_delta' : null,
   }) as ChatMessage;
