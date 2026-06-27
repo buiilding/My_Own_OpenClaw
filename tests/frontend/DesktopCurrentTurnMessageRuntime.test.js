@@ -245,6 +245,51 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     expect(toolMessage).not.toHaveProperty('attachments');
   });
 
+  test('keeps legacy no-presentation tool-event detail payloads out of live rows', () => {
+    const messages = buildNoViewSdkLiveTurnMessages({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_output',
+      toolEvents: [{
+        id: 'tool-call-1',
+        kind: 'tool_call',
+        toolName: 'read_file',
+        text: 'Using read_file',
+        toolCallDetails: {
+          toolName: 'read_file',
+          requestId: 'req-1',
+        },
+      }, {
+        id: 'tool-output-1',
+        kind: 'tool_output',
+        toolName: 'read_file',
+        text: 'done',
+        toolMetadata: {
+          requestId: 'req-1',
+        },
+        toolOutputDetails: {
+          toolName: 'read_file',
+          requestId: 'req-1',
+        },
+      }, {
+        id: 'tool-progress-1',
+        kind: 'tool_progress',
+        text: 'Reading',
+        toolMetadata: {
+          requestId: 'req-1',
+        },
+      }],
+    });
+
+    expect(messages.find(message => message.id.endsWith(':tool:tool-call-1')))
+      .not.toHaveProperty('toolCallDetails');
+    const toolOutputMessage = messages.find(message => message.id.endsWith(':tool:tool-output-1'));
+    expect(toolOutputMessage).not.toHaveProperty('toolMetadata');
+    expect(toolOutputMessage).not.toHaveProperty('toolOutputDetails');
+    expect(messages.find(message => message.id.endsWith(':tool:tool-progress-1')))
+      .not.toHaveProperty('toolMetadata');
+  });
+
   test('buildSdkLiveTurnMessages falls back to no-view live turn for partial ConversationView input', () => {
     const messages = buildSdkLiveTurnMessages({
       conversationView: {

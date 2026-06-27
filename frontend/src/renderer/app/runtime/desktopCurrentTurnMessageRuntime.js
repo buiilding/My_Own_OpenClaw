@@ -28,10 +28,6 @@ const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurr
 const sdkConversationViewSourceChannel = DesktopPresentationSourceChannels
   .getSdkConversationViewSourceChannel();
 
-function asObject(value) {
-  return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
-}
-
 function asRecord(value) {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value
@@ -84,8 +80,6 @@ function buildProjectedToolCallMessage({
   toolEvent,
 }) {
   const toolName = resolveToolName(toolEvent.toolName) || '';
-  const toolCallDetails = asObject(toolEvent.toolCallDetails);
-  const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);
   const correlationId = resolveToolEventCorrelationId(toolEvent);
   const text = normalizeText(toolEvent.text) || (toolName ? `Using ${toolName}` : 'Using tool');
 
@@ -93,7 +87,6 @@ function buildProjectedToolCallMessage({
     id: `${baseId}:tool:${toolEvent.id}`,
     text,
     toolCallDisplayText: text,
-    toolCallDetails: displayToolCallDetails,
     correlationId: correlationId ?? null,
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
@@ -106,8 +99,6 @@ function buildProjectedToolOutputMessage({
   liveTurnRef,
   toolEvent,
 }) {
-  const toolOutputDetails = asObject(toolEvent.toolOutputDetails);
-  const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);
   const toolName = resolveToolName(toolEvent.toolName);
   const correlationId = resolveToolEventCorrelationId(toolEvent);
   const outputText = normalizeText(toolEvent.text)
@@ -117,15 +108,15 @@ function buildProjectedToolOutputMessage({
     outputText,
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
-    toolMetadata: asObject(toolEvent.toolMetadata),
     toolName,
     executionTime: typeof toolEvent.executionTime === 'number' ? toolEvent.executionTime : null,
     success: typeof toolEvent.success === 'boolean' ? toolEvent.success : null,
     correlationId,
-    toolOutputDetails: displayToolOutputDetails,
     turnRef: liveTurnRef || null,
     modelId: null,
     modelProvider: null,
+    preserveNullToolMetadata: false,
+    preserveNullToolOutputDetails: false,
   });
 }
 
@@ -150,7 +141,6 @@ function buildProjectedToolProgressMessage({
     turnRef: liveTurnRef || undefined,
     toolName: resolveToolName(toolEvent.toolName) || undefined,
     success: toolEvent.status === 'success' ? true : undefined,
-    toolMetadata: toolEvent.toolMetadata || null,
   };
 }
 

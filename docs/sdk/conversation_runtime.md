@@ -227,7 +227,10 @@ UI adapters:
 - Legacy no-view current-turn fallback rows are text/status continuity only for
   renderer migration. Attachment display for live tool output must come from
   SDK presentation entries or `ConversationView.liveTurn.entries`, not raw
-  `currentTurn.toolEvents`.
+  `currentTurn.toolEvents`. The legacy fallback also must not forward raw
+  `toolCallDetails`, `toolOutputDetails`, or `toolMetadata`; those display
+  details are owned by SDK presentation entries and `ConversationView` live-turn
+  entries.
 
 Runtime snapshots also expose `snapshot.view`, and callers may use
 `conversation.getView()` or `conversation.subscribeView(...)` for the Phase 0

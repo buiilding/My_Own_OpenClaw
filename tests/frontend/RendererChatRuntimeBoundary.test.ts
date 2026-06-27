@@ -3888,8 +3888,10 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('toolOutputDetails');
     expect(source).toContain('sanitizeSdkToolDetailRecord');
     expect(source).not.toContain('toolName ? { toolName }');
-    expect(source).toContain('const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);');
-    expect(source).toContain('const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);');
+    expect(source).not.toContain('const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);');
+    expect(source).not.toContain('const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);');
+    expect(source).not.toContain('toolCallDetails: displayToolCallDetails');
+    expect(source).not.toContain('toolOutputDetails: displayToolOutputDetails');
     expect(source).toContain('toolCallDetails: sanitizeSdkToolDetailRecord(asRecord(entry.toolCallDetails))');
     expect(source).toContain('toolOutputDetails: sanitizeSdkToolDetailRecord(asRecord(entry.toolOutputDetails))');
     expect(source).toContain('function readExactSdkString(value)');

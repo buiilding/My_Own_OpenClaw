@@ -10,6 +10,10 @@ All notable changes to WindieOS will be documented in this file.
   renderer feedback annotations beside an authoritative `ConversationView`, so
   padded row ids cannot create renderer-owned annotation records. No migration
   required.
+- frontend/live-turn: keep raw legacy no-presentation tool-event detail payloads
+  out of renderer live rows; SDK presentation entries and `ConversationView`
+  live-turn entries remain the owner for tool detail display. No migration
+  required.
 - frontend/revisions: require exact conversation refs, revision ids, optional
   fork cut row ids, and explicit fork conversation refs inside the desktop
   continuity facade before invoking SDK revision commands, so direct facade
