@@ -60,9 +60,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/send: require exact renderer workspace paths at the SDK
   `conversation.send` command boundary, omitting padded values instead of
   trimming them into SDK command data. No migration required.
-- frontend/replay: keep SDK row replay metadata scoped to matching row kinds
-  during display projection, so edit actions only survive on user rows and
-  retry actions only survive on assistant rows. No migration required.
+- frontend/replay: stop re-deriving SDK row replay action eligibility from row
+  role/type during display projection; the renderer now allowlists exact row
+  action fields and leaves availability to SDK-authored metadata plus
+  message-kind-specific action components. No migration required.
 - frontend/stop: require pending-turn stop fallback to match the active SDK
   `ConversationView` conversation when view state exists, preventing stale
   cross-conversation pending bridges from becoming Stop targets. No migration

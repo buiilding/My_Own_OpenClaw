@@ -4210,6 +4210,8 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).toContain('function isToolProgressDisplayRow(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain('actionRecord.canEdit === true && editTargetRowId');
     expect(projectionRuntimeSource).toContain('actionRecord.canRetry === true && retryTargetRowId');
+    expect(projectionRuntimeSource).not.toContain('isUserDisplayRow(row) && actionRecord.canEdit');
+    expect(projectionRuntimeSource).not.toContain('isAssistantDisplayRow(row) && actionRecord.canRetry');
     expect(projectionRuntimeSource).not.toContain('actions: row.actions');
     expect(projectionRuntimeSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
     expect(projectionRuntimeSource).not.toContain('optionalTrimmedString');

@@ -100,11 +100,11 @@ function rowReplayActions(row: SdkDisplayRow): ChatMessage['actions'] | null {
   const actions: NonNullable<ChatMessage['actions']> = {};
   const editTargetRowId = exactNonEmptyString(actionRecord.editTargetRowId);
   const retryTargetRowId = exactNonEmptyString(actionRecord.retryTargetRowId);
-  if (isUserDisplayRow(row) && actionRecord.canEdit === true && editTargetRowId) {
+  if (actionRecord.canEdit === true && editTargetRowId) {
     actions.canEdit = true;
     actions.editTargetRowId = editTargetRowId;
   }
-  if (isAssistantDisplayRow(row) && actionRecord.canRetry === true && retryTargetRowId) {
+  if (actionRecord.canRetry === true && retryTargetRowId) {
     actions.canRetry = true;
     actions.retryTargetRowId = retryTargetRowId;
   }
