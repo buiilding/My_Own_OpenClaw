@@ -524,6 +524,12 @@ the canonical backend-transport command contract. `conversation.send` accepts:
 - `workspace_path`
 - `memory_retrieval_enabled`
 
+The renderer transport forwards SDK-owned resource metadata only when those
+optional fields are exact non-empty strings. Padded `screenshot_ref`,
+`screenshot_url`, `screenshot_refs[]`, and `attachment_filenames[]` values are
+omitted instead of being trimmed into backend query payloads; resource
+resolution belongs to the SDK before this adapter boundary.
+
 The transport and Electron main query command boundary reject removed aliases such as
 `conversationRef`, `screenshotRef`, `screenshotUrl`, `screenshotRefs`,
 `attachmentContext`, `attachmentFilenames`, `workspacePath`, `turnRef`,

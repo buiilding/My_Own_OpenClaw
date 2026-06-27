@@ -21,14 +21,22 @@ function optionalString(value: unknown): string | null {
   return normalizeNonEmptyString(value);
 }
 
-function optionalStringArray(value: unknown): string[] | null {
+function optionalExactString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
+function optionalExactStringArray(value: unknown): string[] | null {
   if (!Array.isArray(value)) {
     return null;
   }
-  const normalized = value
-    .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
-    .map((entry) => entry.trim());
-  return normalized.length > 0 ? normalized : null;
+  const exact = value.filter((entry): entry is string => (
+    typeof entry === 'string'
+    && entry.length > 0
+    && entry === entry.trim()
+  ));
+  return exact.length > 0 ? exact : null;
 }
 
 function rejectRemovedCamelCaseFields(
@@ -85,12 +93,12 @@ async function sendQuery(
       text: optionalString(payload.text) ?? '',
       conversation_ref: optionalString(payload.conversation_ref) ?? '',
       query_message_id: messageId,
-      screenshot_ref: optionalString(payload.screenshot_ref) ?? null,
-      screenshot_url: optionalString(payload.screenshot_url) ?? null,
-      screenshot_refs: optionalStringArray(payload.screenshot_refs) ?? null,
+      screenshot_ref: optionalExactString(payload.screenshot_ref),
+      screenshot_url: optionalExactString(payload.screenshot_url),
+      screenshot_refs: optionalExactStringArray(payload.screenshot_refs),
       capture_meta: payload.capture_meta ?? null,
       attachment_context: optionalString(payload.attachment_context) ?? null,
-      attachment_filenames: optionalStringArray(payload.attachment_filenames) ?? null,
+      attachment_filenames: optionalExactStringArray(payload.attachment_filenames),
       workspace_path: optionalString(payload.workspace_path) ?? workspacePath ?? null,
       memory_retrieval_enabled: DesktopMemoryRetrievalPreferenceRuntime.getMemoryRetrievalInjectionEnabled(),
     },

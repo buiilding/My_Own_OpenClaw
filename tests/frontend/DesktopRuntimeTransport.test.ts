@@ -66,6 +66,31 @@ describe('desktopRuntimeTransport', () => {
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('turn_ref');
   });
 
+  test('forwards only exact SDK send resource metadata fields', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: true,
+      messageId: 'msg-resource',
+    });
+
+    const transport = createDesktopRuntimeTransport(null);
+
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      screenshot_ref: ' artifact-padded ',
+      screenshot_url: ' https://cdn.example/padded.png ',
+      screenshot_refs: ['artifact-one', ' artifact-two ', '', 42],
+      attachment_filenames: ['one.png', ' two.png ', '', null],
+    })).resolves.toBe('msg-resource');
+
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
+      screenshot_ref: null,
+      screenshot_url: null,
+      screenshot_refs: ['artifact-one'],
+      attachment_filenames: ['one.png'],
+    }));
+  });
+
   test('rejects removed camelCase query payload aliases', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({
       ok: true,

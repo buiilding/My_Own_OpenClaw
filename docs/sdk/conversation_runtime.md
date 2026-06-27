@@ -299,6 +299,11 @@ such as clipboard `base64`, readable-file `filePath`, and readable-file
 attachment items rather than trimming them into SDK resources. Optional
 clipboard metadata such as `contentType` and `filename` is forwarded only when
 exact, leaving SDK resource resolution to choose fallback metadata when omitted.
+The renderer desktop transport applies the same exactness rule to SDK-owned
+backend resource metadata that passes through `conversation.send`: padded
+`screenshot_ref`, `screenshot_url`, `screenshot_refs[]`, and
+`attachment_filenames[]` values are omitted instead of being repaired after SDK
+resource resolution.
 Conversation-view chat projection receives explicit renderer annotation records,
 not raw current chat messages, when copying local assistant feedback state onto
 SDK assistant rows. The renderer stores those annotations beside the
