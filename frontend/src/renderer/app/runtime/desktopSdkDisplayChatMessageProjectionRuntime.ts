@@ -26,7 +26,7 @@ function displayTextFromStringRowContent(content: unknown): string {
 }
 
 function rowTimestamp(row: SdkDisplayRow): string {
-  return typeof row.metadata?.timestamp === 'string' ? row.metadata.timestamp : '';
+  return exactNonEmptyString(row.metadata?.timestamp) ?? '';
 }
 
 function rowSourceEventType(row: SdkDisplayRow): string {

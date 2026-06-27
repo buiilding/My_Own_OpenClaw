@@ -4123,6 +4123,9 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain("sourceEventType !== 'assistant_delta'");
     expect(projectionRuntimeSource).toContain('isComplete: !isSdkDisplayRowStreaming(row)');
     expect(projectionRuntimeSource).toContain('function exactNonEmptyString(value: unknown)');
+    expect(projectionRuntimeSource).toContain('function rowTimestamp(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.timestamp) ?? \'\';');
+    expect(projectionRuntimeSource).not.toContain("typeof row.metadata?.timestamp === 'string' ? row.metadata.timestamp : ''");
     expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.displayCorrelationId);');
     expect(projectionRuntimeSource).toContain('function rowTurnRef(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.turnRef);');

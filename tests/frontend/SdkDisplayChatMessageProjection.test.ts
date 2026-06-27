@@ -274,6 +274,80 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
+  test('does not expose padded display row timestamps as renderer metadata', () => {
+    const messages = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-user-padded-timestamp',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'hello',
+        metadata: {
+          timestamp: ' 2026-05-15T12:00:00.000Z ',
+        },
+      },
+      {
+        id: 'msg-assistant-padded-timestamp',
+        conversationRef: 'conv-sdk',
+        index: 1,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'hi',
+        metadata: {
+          timestamp: ' 2026-05-15T12:00:00.000Z ',
+        },
+      },
+      {
+        id: 'msg-tool-call-padded-timestamp',
+        conversationRef: 'conv-sdk',
+        index: 2,
+        role: 'assistant',
+        type: 'tool_call',
+        content: 'read_file {"path":"package.json"}',
+        metadata: {
+          timestamp: ' 2026-05-15T12:00:00.000Z ',
+        },
+      },
+      {
+        id: 'msg-tool-output-padded-timestamp',
+        conversationRef: 'conv-sdk',
+        index: 3,
+        role: 'tool',
+        type: 'tool_output',
+        content: 'done',
+        metadata: {
+          timestamp: ' 2026-05-15T12:00:00.000Z ',
+        },
+      },
+      {
+        id: 'msg-tool-progress-exact-timestamp',
+        conversationRef: 'conv-sdk',
+        index: 4,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Working',
+        metadata: {
+          timestamp: '2026-05-15T12:00:00.000Z',
+        },
+      },
+    ]);
+
+    expect(messages).toEqual([
+      expect.not.objectContaining({ timestamp: ' 2026-05-15T12:00:00.000Z ' }),
+      expect.not.objectContaining({ timestamp: ' 2026-05-15T12:00:00.000Z ' }),
+      expect.not.objectContaining({ timestamp: ' 2026-05-15T12:00:00.000Z ' }),
+      expect.not.objectContaining({ timestamp: ' 2026-05-15T12:00:00.000Z ' }),
+      expect.objectContaining({ timestamp: '2026-05-15T12:00:00.000Z' }),
+    ]);
+    expect(messages.slice(0, 4)).toEqual([
+      expect.not.objectContaining({ timestamp: '2026-05-15T12:00:00.000Z' }),
+      expect.not.objectContaining({ timestamp: '2026-05-15T12:00:00.000Z' }),
+      expect.not.objectContaining({ timestamp: '2026-05-15T12:00:00.000Z' }),
+      expect.not.objectContaining({ timestamp: '2026-05-15T12:00:00.000Z' }),
+    ]);
+  });
+
   test('does not expose padded display correlation ids as renderer tool identity', () => {
     const messages = buildChatMessagesFromSdkDisplayRows([
       {

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display-rows: require exact non-empty SDK display-row timestamps
+  before copying them into renderer chat-message metadata, keeping padded
+  timestamp strings from becoming a repaired renderer display value. No
+  migration required.
 - frontend/actions: route direct assistant/user edit-retry button target checks
   through `DesktopMessageActionRuntime.resolveReplayTargetRowId`, so replay
   controls fail closed for missing or padded SDK row targets even outside the
