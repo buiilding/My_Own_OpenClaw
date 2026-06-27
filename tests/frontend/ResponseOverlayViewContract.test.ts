@@ -11,6 +11,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
     buildResponseOverlayEntrySignature,
     buildResponseOverlayDismissalKey,
     buildResponseOverlayTraceSummary,
+    buildResponseOverlayTypingRenderedTraceValues,
     buildResponseOverlayWindowLifecycleTraceValues,
     buildResponseOverlayWindowSizeTraceValues,
     buildResponseOverlayWindowSizeValues,
@@ -380,6 +381,41 @@ describe('desktopResponseOverlayViewRuntime', () => {
       conversationRef: null,
       turnRef: 'turn-active',
       staleGuardRef: 'turn-active',
+    });
+  });
+
+  test('builds rendered-typing trace values without caller turn-ref shaping', () => {
+    expect(buildResponseOverlayTypingRenderedTraceValues({
+      awaitingVisible: true,
+      currentTurnPhase: ' awaiting ',
+      isVisible: true,
+      overlayIntent: {
+        conversationRef: 'conv-overlay',
+        mode: 'awaiting-typing',
+        turnRef: 'turn-intent',
+        staleGuardRef: 'guard-intent',
+      },
+      overlayLayoutMode: ' awaiting-typing ',
+      responseOverlayEntryCount: 2,
+      responseVisible: false,
+      turnId: ' turn-rendered ',
+      typingRendered: true,
+    })).toEqual({
+      typingRendered: true,
+      turnRef: 'turn-rendered',
+      currentTurnId: 'turn-rendered',
+      phase: 'awaiting',
+      overlayIntent: {
+        conversationRef: 'conv-overlay',
+        mode: 'awaiting-typing',
+        turnRef: 'turn-intent',
+        staleGuardRef: 'guard-intent',
+      },
+      overlayLayoutMode: 'awaiting-typing',
+      isVisible: true,
+      awaitingVisible: true,
+      responseVisible: false,
+      responseOverlayEntryCount: 2,
     });
   });
 

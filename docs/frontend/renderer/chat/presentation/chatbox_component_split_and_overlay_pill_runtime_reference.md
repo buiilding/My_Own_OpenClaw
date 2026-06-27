@@ -118,6 +118,10 @@ compaction behind its loop lock.
   `conversationView` as SDK-owned trace input only through the shared workspace
   `ConversationView` gate; partial objects stay on the no-view SDK live-turn
   fallback path.
+- `DesktopResponseOverlayViewRuntime` owns response-overlay rendered-typing
+  trace value construction, including the view-model turn id to trace turn-ref
+  mapping, so `MinimalResponseOverlay.jsx` does not publish SDK identity fields
+  directly.
 - The same runtime owns response-overlay `turnId` precedence for the pill:
   visible SDK response rows win, then SDK overlay intent/visible lifecycle, then
   the short pending-send bridge. `useResponseOverlayViewModel(...)` passes those

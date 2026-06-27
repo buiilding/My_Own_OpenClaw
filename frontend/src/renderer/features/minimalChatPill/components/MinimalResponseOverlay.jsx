@@ -29,6 +29,7 @@ const {
 } = DesktopRendererTraceRuntime;
 const {
   buildResponseOverlayTraceSummary,
+  buildResponseOverlayTypingRenderedTraceValues,
 } = DesktopResponseOverlayViewRuntime;
 
 function MinimalResponseOverlay() {
@@ -115,18 +116,17 @@ function MinimalResponseOverlay() {
       return;
     }
     lastRenderedTypingVisibleRef.current = typingRendered;
-    logRendererResponseOverlayTypingRenderedTrace({
+    logRendererResponseOverlayTypingRenderedTrace(buildResponseOverlayTypingRenderedTraceValues({
       typingRendered,
-      turnRef: currentTurnId,
-      phase: currentTurnPhase,
-      currentTurnId,
+      turnId: currentTurnId,
+      currentTurnPhase,
       overlayIntent,
       overlayLayoutMode,
       isVisible,
       awaitingVisible,
       responseVisible,
       responseOverlayEntryCount,
-    });
+    }));
   }, [
     currentTurnId,
     currentTurnPhase,

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: move response-overlay rendered-typing trace value shaping
+  into `DesktopResponseOverlayViewRuntime`, so `MinimalResponseOverlay` no
+  longer maps view-model turn ids into trace `turnRef` fields directly. No
+  migration required.
 - frontend/docs: keep the dashboard recent-conversation open-flow reference on
   `DesktopConversationLibraryClient.loadConversationView(...)` and guard it in
   the dashboard boundary test so resume docs cannot reintroduce display-row to

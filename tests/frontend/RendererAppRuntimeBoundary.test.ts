@@ -462,6 +462,7 @@ describe('renderer app runtime boundary', () => {
     expect(traceRuntimeSource).toContain('logRendererOverlayViewModelResolvedTrace');
     expect(responseOverlaySource).toContain('DesktopResponseOverlayViewRuntime');
     expect(responseOverlaySource).toContain('buildResponseOverlayTraceSummary');
+    expect(responseOverlaySource).toContain('buildResponseOverlayTypingRenderedTraceValues');
     expect(traceRuntimeSource).not.toContain('export function logRendererResponseOverlayStateTrace');
     expect(traceRuntimeSource).not.toContain('export function buildRendererOverlayViewModelTracePayload');
     expect(responseOverlaySource).toContain('DesktopRendererTraceRuntime');
@@ -481,6 +482,7 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlaySource).not.toContain('overlayIntent?.conversationRef');
     expect(responseOverlaySource).not.toContain('overlayIntent?.turnRef');
     expect(responseOverlaySource).not.toContain('overlayIntent?.staleGuardRef');
+    expect(responseOverlaySource).not.toContain('turnRef: currentTurnId');
     expect(responseOverlaySource).not.toContain('JSON.stringify({');
     expect(responseOverlaySource).not.toContain('activeResponseTextLength');
     expect(responseOverlaySource).not.toContain('thinkingText.length');

@@ -121,6 +121,23 @@ type ResponseOverlayTraceSummaryInput = {
   turnId?: string | null;
 };
 
+type ResponseOverlayTypingRenderedTraceInput = {
+  awaitingVisible?: boolean;
+  currentTurnPhase?: string | null;
+  isVisible?: boolean;
+  overlayIntent?: {
+    conversationRef?: unknown;
+    mode?: unknown;
+    staleGuardRef?: unknown;
+    turnRef?: unknown;
+  } | null;
+  overlayLayoutMode?: string | null;
+  responseOverlayEntryCount?: number | null;
+  responseVisible?: boolean;
+  turnId?: string | null;
+  typingRendered?: boolean;
+};
+
 function normalizeString(value: string | null | undefined): string | null {
   if (typeof value !== 'string') {
     return null;
@@ -531,6 +548,32 @@ function buildResponseOverlayTraceSummary({
   };
 }
 
+function buildResponseOverlayTypingRenderedTraceValues({
+  awaitingVisible = false,
+  currentTurnPhase = null,
+  isVisible = false,
+  overlayIntent = null,
+  overlayLayoutMode = null,
+  responseOverlayEntryCount = 0,
+  responseVisible = false,
+  turnId = null,
+  typingRendered = false,
+}: ResponseOverlayTypingRenderedTraceInput = {}) {
+  const normalizedTurnId = normalizeString(turnId);
+  return {
+    typingRendered: typingRendered === true,
+    turnRef: normalizedTurnId,
+    currentTurnId: normalizedTurnId,
+    phase: normalizeString(currentTurnPhase) || 'idle',
+    overlayIntent,
+    overlayLayoutMode: normalizeString(overlayLayoutMode) || null,
+    isVisible: isVisible === true,
+    awaitingVisible: awaitingVisible === true,
+    responseVisible: responseVisible === true,
+    responseOverlayEntryCount: normalizeCount(responseOverlayEntryCount),
+  };
+}
+
 function createResponseOverlayWindowGuardSnapshot(): ResponseOverlayWindowGuardSnapshot {
   return {
     conversationRef: null,
@@ -892,6 +935,7 @@ export const DesktopResponseOverlayViewRuntime = Object.freeze({
   buildResponseOverlayEntrySignature,
   buildResponseOverlayDismissalKey,
   buildResponseOverlayTraceSummary,
+  buildResponseOverlayTypingRenderedTraceValues,
   buildResponseOverlayWindowLifecycleTraceValues,
   buildResponseOverlayWindowSizeTraceValues,
   buildResponseOverlayWindowSizeValues,
