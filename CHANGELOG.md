@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display-rows: require exact non-empty SDK display-row ids before
+  projecting renderer chat messages, leaving rows with padded, empty, or
+  malformed ids inert instead of turning them into renderer message identity.
+  No migration required.
 - frontend/display-rows: require exact non-empty SDK display-row
   `metadata.reasoningText` before projecting renderer thinking text, keeping
   padded reasoning metadata from becoming a repaired thinking row. No migration

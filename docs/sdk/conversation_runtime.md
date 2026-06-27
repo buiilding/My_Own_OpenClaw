@@ -521,13 +521,15 @@ comes from the SDK row's `isStreaming` flag, not from relabeling the row as an
 `assistant_delta` event. Display-row reasoning metadata also follows the exact
 SDK string rule: `metadata.reasoningText` becomes renderer thinking text only
 when it is exact and non-empty; padded values are ignored instead of being
-trimmed into thinking rows. Display-row turn and tool metadata follow the same
+trimmed into thinking rows. SDK display row identity follows the same rule:
+`row.id` must be exact and non-empty before the renderer projects a chat
+message from the row. Display-row turn and tool metadata follow the same
 exactness rule: `turnRef`, `metadata.displayCorrelationId`, and
 `metadata.toolName` become renderer message identity or tool metadata only when
 they are exact non-empty SDK strings, and `metadata.timestamp` is copied to
 renderer message metadata only when it is exact and non-empty; padded values are
 ignored instead of being trimmed into duplicate-detection keys, visible tool
-labels, thinking text, or message timestamps. ConversationView
+labels, thinking text, row ids, or message timestamps. ConversationView
 display-row lookup also compares SDK row `turnRef` values exactly when filtering
 a requested turn or deciding whether a SDK user row can replace the renderer
 pending bridge; padded row refs do not suppress the pending bridge by being

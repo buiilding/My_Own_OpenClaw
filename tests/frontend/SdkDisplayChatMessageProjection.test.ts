@@ -348,6 +348,45 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
+  test('drops display rows with malformed SDK row ids', () => {
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: ' msg-user-padded-id ',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'hello',
+      },
+      {
+        id: '',
+        conversationRef: 'conv-sdk',
+        index: 1,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'hi',
+      },
+      {
+        id: { value: 'msg-tool-call-object-id' },
+        conversationRef: 'conv-sdk',
+        index: 2,
+        role: 'assistant',
+        type: 'tool_call',
+        content: 'read_file {"path":"package.json"}',
+      },
+      {
+        id: 'msg-tool-output-exact-id',
+        conversationRef: 'conv-sdk',
+        index: 3,
+        role: 'tool',
+        type: 'tool_output',
+        content: 'done',
+      },
+    ] as any)).toEqual([
+      expect.objectContaining({ id: 'msg-tool-output-exact-id' }),
+    ]);
+  });
+
   test('does not expose padded display correlation ids as renderer tool identity', () => {
     const messages = buildChatMessagesFromSdkDisplayRows([
       {

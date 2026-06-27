@@ -51,6 +51,10 @@ function rowCorrelationId(row: SdkDisplayRow): string | null {
   return exactNonEmptyString(row.metadata?.displayCorrelationId);
 }
 
+function rowId(row: SdkDisplayRow): string | null {
+  return exactNonEmptyString(row.id);
+}
+
 function rowTurnRef(row: SdkDisplayRow): string | null {
   return exactNonEmptyString(row.turnRef);
 }
@@ -190,6 +194,9 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
 }
 
 function buildChatMessagesFromSdkDisplayRow(row: SdkDisplayRow): ChatMessage[] {
+  if (!rowId(row)) {
+    return [];
+  }
   if (row.type === 'reasoning' || row.type === 'error') {
     return [];
   }
