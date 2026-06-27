@@ -4185,6 +4185,7 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('features/chat');
     expect(pendingStateRuntimeSource).toContain('normalizePendingTurn');
     expect(pendingStateRuntimeSource).toContain('doesPendingTurnMatch');
+    expect(pendingStateRuntimeSource).toContain('readExactIdentityString');
     expect(pendingStateRuntimeSource).toContain('buildAcceptPendingTurnStateUpdate');
     expect(pendingStateRuntimeSource).not.toContain('buildAcceptReplayPendingTurnStateUpdate');
     expect(pendingStateRuntimeSource).toContain('buildClearPendingTurnStateUpdate');
@@ -4204,6 +4205,8 @@ describe('renderer chat runtime boundary', () => {
     expect(pendingStateRuntimeSource).not.toContain('attachmentFilenames');
     expect(pendingStateRuntimeSource).not.toContain('addSupersededTurnRef');
     expect(pendingStateRuntimeSource).not.toContain('removeSupersededTurnRef');
+    expect(pendingStateRuntimeSource).not.toContain('normalizeConversationRef');
+    expect(pendingStateRuntimeSource).not.toContain('normalizeTurnRef');
     expect(clearMessagesRuntimeSource).toContain('buildClearMessagesStateUpdate');
     expect(clearMessagesRuntimeSource).toContain('createInitialStreamTracking');
     expect(clearMessagesRuntimeSource).toContain('buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace, null)');

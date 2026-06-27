@@ -9,8 +9,8 @@ import {
 describe('DesktopPendingTurnBridgeRuntime', () => {
   test('builds pending turn bridge payloads with stable SDK user row ids', () => {
     expect(DesktopPendingTurnBridgeRuntime.buildPendingTurn({
-      conversationRef: ' conv-pending ',
-      turnRef: ' turn-pending ',
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
       text: '',
       timestamp: '2026-06-25T12:00:00.000Z',
     })).toEqual({
@@ -32,7 +32,7 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
     }));
   });
 
-  test('rejects invalid pending turn bridge payload inputs', () => {
+  test('rejects invalid or padded pending turn bridge identity inputs', () => {
     expect(DesktopPendingTurnBridgeRuntime.buildPendingTurn({
       conversationRef: '',
       turnRef: 'turn-pending',
@@ -43,6 +43,25 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
       conversationRef: 'conv-pending',
       turnRef: 'turn-pending',
       text: null,
+      timestamp: '2026-06-25T12:00:00.000Z',
+    })).toBeNull();
+    expect(DesktopPendingTurnBridgeRuntime.buildPendingTurn({
+      conversationRef: ' conv-pending ',
+      turnRef: 'turn-pending',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    })).toBeNull();
+    expect(DesktopPendingTurnBridgeRuntime.buildPendingTurn({
+      conversationRef: 'conv-pending',
+      turnRef: ' turn-pending ',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    })).toBeNull();
+    expect(DesktopPendingTurnBridgeRuntime.buildPendingTurn({
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+      userMessageId: ' user-pending ',
+      text: 'hello',
       timestamp: '2026-06-25T12:00:00.000Z',
     })).toBeNull();
     expect(DesktopPendingTurnBridgeRuntime.buildPendingTurnUserMessage({

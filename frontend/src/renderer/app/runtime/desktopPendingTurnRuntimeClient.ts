@@ -35,9 +35,9 @@ function recordOrEmpty(value: unknown): Record<string, unknown> {
     : {};
 }
 
-function normalizeOptionalString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim()
-    ? value.trim()
+function readExactOptionalString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
     : null;
 }
 
@@ -48,8 +48,8 @@ function resolveDesktopPendingTurnBroadcastAction(
   if (source.type === 'clear') {
     return {
       kind: 'clear',
-      conversationRef: normalizeOptionalString(source.conversationRef),
-      turnRef: normalizeOptionalString(source.turnRef),
+      conversationRef: readExactOptionalString(source.conversationRef),
+      turnRef: readExactOptionalString(source.turnRef),
     };
   }
   return {

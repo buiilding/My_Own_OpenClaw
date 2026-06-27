@@ -37,15 +37,27 @@ describe('DesktopPendingTurnRuntimeClient', () => {
     });
   });
 
-  test('classifies clear broadcasts with normalized filters', () => {
+  test('classifies clear broadcasts with exact filters', () => {
+    expect(DesktopPendingTurnRuntimeClient.resolveBroadcastAction({
+      type: 'clear',
+      conversationRef: 'conv-clear',
+      turnRef: 'turn-clear',
+    })).toEqual({
+      kind: 'clear',
+      conversationRef: 'conv-clear',
+      turnRef: 'turn-clear',
+    });
+  });
+
+  test('does not repair padded clear broadcast filters', () => {
     expect(DesktopPendingTurnRuntimeClient.resolveBroadcastAction({
       type: 'clear',
       conversationRef: ' conv-clear ',
       turnRef: ' turn-clear ',
     })).toEqual({
       kind: 'clear',
-      conversationRef: 'conv-clear',
-      turnRef: 'turn-clear',
+      conversationRef: null,
+      turnRef: null,
     });
   });
 

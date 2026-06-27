@@ -2,8 +2,10 @@
  * Builds the renderer-local pending-turn bridge row.
  */
 
-function normalizeString(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+function readExactIdentityString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
 function buildPendingTurn({
@@ -13,8 +15,8 @@ function buildPendingTurn({
   turnRef,
   userMessageId = null,
 }) {
-  const normalizedConversationRef = normalizeString(conversationRef);
-  const normalizedTurnRef = normalizeString(turnRef);
+  const normalizedConversationRef = readExactIdentityString(conversationRef);
+  const normalizedTurnRef = readExactIdentityString(turnRef);
   const normalizedText = typeof text === 'string' ? text : null;
   const normalizedTimestamp = typeof timestamp === 'string' && timestamp.trim()
     ? timestamp
@@ -22,8 +24,13 @@ function buildPendingTurn({
   if (!normalizedConversationRef || !normalizedTurnRef || normalizedText === null || !normalizedTimestamp) {
     return null;
   }
-  const normalizedUserMessageId = normalizeString(userMessageId)
-    || `${normalizedTurnRef}-sdk-evt-000002-user_message`;
+  const hasExplicitUserMessageId = userMessageId !== null && userMessageId !== undefined;
+  const normalizedUserMessageId = hasExplicitUserMessageId
+    ? readExactIdentityString(userMessageId)
+    : `${normalizedTurnRef}-sdk-evt-000002-user_message`;
+  if (!normalizedUserMessageId) {
+    return null;
+  }
   return {
     conversationRef: normalizedConversationRef,
     turnRef: normalizedTurnRef,

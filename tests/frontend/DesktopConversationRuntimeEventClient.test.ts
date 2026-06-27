@@ -180,8 +180,8 @@ describe('DesktopConversationRuntimeEventClient', () => {
     });
     mockChannelListeners.get('windie:pending-turn')?.({
       type: 'clear',
-      conversationRef: ' conv-1 ',
-      turnRef: ' turn-1 ',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
     });
     mockChannelListeners.get('windie:pending-turn')?.(null);
 

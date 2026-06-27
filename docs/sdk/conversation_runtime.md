@@ -279,6 +279,9 @@ durable or backend-owned descriptors. Renderer display projection may synthesize
 only this explicit `pendingTurn` bridge beside SDK display rows; it must not
 scan prior `renderer-compose` chat messages and carry them forward as visible
 user rows.
+Pending bridge identity fields are exact non-empty values. Renderer and main
+pending-turn adapters reject padded conversation refs, turn refs, and pending
+user-row ids instead of trimming them into bridge or Stop targets.
 Normal renderer send payload normalization is a positive contract: object
 payloads may contain only `text`, `clipboardImages[]`, and `readableFiles[]`.
 Any extra renderer field is rejected generically, so send prep does not carry
