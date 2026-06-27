@@ -163,7 +163,7 @@ describe('AttachmentList', () => {
     expect(screen.getByRole('img').closest('.message-attachment-image-container--tool-output')).toBeTruthy();
   });
 
-  test('keeps preview visible while ready artifact source resolves', () => {
+  test('does not keep renderer preview state after SDK marks an attachment ready', () => {
     mockUseResolvedAttachmentImageSrc.mockReturnValue(null);
 
     const { rerender } = render(
@@ -196,7 +196,7 @@ describe('AttachmentList', () => {
       />,
     );
 
-    expect(screen.getByRole('img')).toHaveAttribute('src', 'data:image/png;base64,preview');
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
 
     mockUseResolvedAttachmentImageSrc.mockReturnValue('resolved://artifact-ready');
     rerender(

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: stop carrying a renderer-local last image source across
+  SDK attachment lifecycle changes; materializing previews now render only while
+  the SDK descriptor is materializing, and ready images wait for the artifact
+  resolver. No migration required.
 - frontend/stop: route stop-target and stopped-turn workspace ConversationView
   checks through the shared SDK view-shape predicate, so display-timeline
   `rows` payloads cannot claim stop authority or suppress no-view live-turn

@@ -2697,6 +2697,9 @@ describe('renderer chat runtime boundary', () => {
     expect(attachmentListSource).toContain('readSdkDisplayAttachments(attachments)');
     expect(attachmentListSource).not.toContain('typeof attachment.id === \'string\'');
     expect(attachmentRegistrySource).toContain('DesktopArtifactRuntimeClient.showImageContextMenu');
+    expect(attachmentRegistrySource).not.toContain('lastVisibleSrc');
+    expect(attachmentRegistrySource).not.toContain('useState');
+    expect(attachmentRegistrySource).not.toContain('setLastVisibleSrc');
     expect(toolOutputSource).toContain('AttachmentList');
     expect(toolOutputSource).not.toContain('useResolvedMessageScreenshotSrc');
     expect(toolOutputStateSource).not.toContain('screenshotMessageState');

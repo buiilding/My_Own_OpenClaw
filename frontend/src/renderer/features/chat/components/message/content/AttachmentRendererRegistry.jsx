@@ -2,7 +2,7 @@
  * Routes SDK display attachments to focused user-message attachment renderers.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { DesktopArtifactRuntimeClient } from '../../../../../app/runtime/desktopArtifactRuntimeClient';
 import {
@@ -17,17 +17,10 @@ function normalizeSurfaceClass(surface) {
 
 function ImageAttachment({ attachment, surface = 'dashboard' }) {
   const resolvedArtifactSrc = DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc(attachment);
-  const [lastVisibleSrc, setLastVisibleSrc] = useState(null);
   const src = attachment.status === 'materializing'
     ? attachment.previewSrc
-    : resolvedArtifactSrc ?? lastVisibleSrc;
+    : resolvedArtifactSrc;
   const surfaceClass = normalizeSurfaceClass(surface);
-
-  useEffect(() => {
-    if (typeof src === 'string' && src.trim().length > 0) {
-      setLastVisibleSrc(src);
-    }
-  }, [src]);
 
   const handleContextMenu = useCallback((event) => {
     if (typeof src !== 'string' || src.trim().length === 0) {

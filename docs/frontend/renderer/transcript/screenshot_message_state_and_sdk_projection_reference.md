@@ -59,6 +59,11 @@ row provides typed `attachments[]`.
 There is no renderer `buildMessageScreenshotState(...)` whole-message facade.
 Renderer chat rows should receive typed `attachments[]`; artifact-backed image
 resolution stays behind attachment descriptors.
+`AttachmentRendererRegistry` does not keep a renderer-side last image source
+while SDK attachment lifecycle changes. A materializing preview renders only
+while the descriptor remains `status: "materializing"`, and a ready image
+renders only after the artifact/image resolver returns a source for the current
+SDK descriptor.
 
 There is no renderer `resolveReplayScreenshotState(...)` facade. React replay
 actions dispatch SDK retry/edit intent only; SDK target-row resolution preserves
