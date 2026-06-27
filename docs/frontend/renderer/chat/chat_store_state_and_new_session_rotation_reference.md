@@ -97,6 +97,9 @@ current-turn projection does not keep a separate attachment descriptor
 validator. Artifact image rendering also receives normalized SDK image source
 fields from `DesktopSdkDisplayAttachmentProjection.readSdkImageAttachmentSource(...)`
 instead of validating attachment lifecycle fields in the React hook.
+SDK live-turn `phase` values and `ConversationView` response-overlay surface
+`mode` values are exact lifecycle labels; renderer visible-lifecycle projection
+does not trim padded labels into busy, awaiting, terminal, or response state.
 SDK current-turn presentation entries provide narrow `toolCallDetails` and
 `toolOutputDetails` records instead of raw payload mirrors. Renderer current-
 turn row construction passes those SDK-authored details through with typed

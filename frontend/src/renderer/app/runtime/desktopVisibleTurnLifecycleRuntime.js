@@ -24,6 +24,12 @@ function readExactIdentityString(value) {
     : null;
 }
 
+function readExactLifecycleString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function normalizeConversationRef(value) {
   return readExactIdentityString(value);
 }
@@ -49,7 +55,7 @@ function normalizePendingTurn(value) {
 }
 
 function normalizeSdkLiveTurnPhase(sdkLiveTurn) {
-  return normalizeString(sdkLiveTurn?.phase);
+  return readExactLifecycleString(sdkLiveTurn?.phase);
 }
 
 function sdkLiveTurnMatchesPendingTurn(pendingTurn, sdkLiveTurn) {
@@ -252,7 +258,7 @@ function resolveSdkLifecycleStatus(sdkLiveTurn) {
 
 function resolveConversationViewLifecycleStatus(conversationView) {
   const liveTurn = conversationView?.liveTurn;
-  const responseOverlayMode = normalizeString(conversationView?.surfaces?.responseOverlay?.mode);
+  const responseOverlayMode = readExactLifecycleString(conversationView?.surfaces?.responseOverlay?.mode);
   if (!liveTurn && !responseOverlayMode) {
     return 'idle';
   }

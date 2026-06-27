@@ -373,6 +373,57 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     })).toBe(pending);
   });
 
+  test('does not repair padded SDK live-turn phases before lifecycle projection', () => {
+    const pending = pendingTurn();
+
+    expect(resolvePendingTurnForSdkLiveTurn({
+      pendingTurn: pending,
+      sdkLiveTurn: projection({
+        phase: ' complete ',
+        presentation: {
+          isTerminal: false,
+          entries: [],
+        },
+      }),
+    })).toBe(pending);
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      sdkLiveTurn: projection({
+        phase: ' streaming ',
+        presentation: {
+          entries: [],
+        },
+      }),
+    })).toMatchObject({
+      status: 'local_pending',
+      source: 'local',
+      turnRef: 'turn-1',
+      isBusy: true,
+      showTyping: true,
+    });
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      sdkLiveTurn: projection({
+        phase: ' awaiting ',
+        presentation: {
+          isBusy: false,
+          entries: [],
+        },
+      }),
+    })).toEqual({
+      status: 'idle',
+      source: 'sdk',
+      conversationRef: 'conv-1',
+      turnRef: null,
+      awaitingAnchor: null,
+      entries: [],
+      terminalReason: null,
+      isBusy: false,
+      showTyping: false,
+    });
+  });
+
   test('does not repair padded SDK awaiting anchors before lifecycle projection', () => {
     const pending = pendingTurn({
       userMessageId: 'pending-user',
@@ -558,6 +609,41 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         rowId: 'pending-user',
       },
       showTyping: true,
+    });
+  });
+
+  test('does not repair padded ConversationView surface modes into lifecycle state', () => {
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'idle',
+          isBusy: false,
+          entries: [],
+        },
+        surfaces: {
+          responseOverlay: {
+            mode: ' response ',
+            visible: true,
+            turnRef: 'turn-view',
+            guardRef: 'turn-view',
+            ownerConversationRef: 'conv-1',
+          },
+        },
+      },
+    })).toEqual({
+      status: 'idle',
+      source: 'conversation-view',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-view',
+      awaitingAnchor: null,
+      entries: [],
+      terminalReason: null,
+      isBusy: false,
+      showTyping: false,
     });
   });
 

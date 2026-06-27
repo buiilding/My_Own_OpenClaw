@@ -4246,8 +4246,17 @@ describe('renderer chat runtime boundary', () => {
     expect(visibleLifecycleRuntimeSource).toContain('findConversationViewUserDisplayRowForTurn');
     expect(visibleLifecycleRuntimeSource).toContain('DesktopConversationDisplayRowLookupRuntime');
     expect(visibleLifecycleRuntimeSource).toContain('function readExactIdentityString');
+    expect(visibleLifecycleRuntimeSource).toContain('function readExactLifecycleString');
     expect(visibleLifecycleRuntimeSource).toContain('return readExactIdentityString(value);');
+    expect(visibleLifecycleRuntimeSource).toContain('return readExactLifecycleString(sdkLiveTurn?.phase);');
+    expect(visibleLifecycleRuntimeSource).toContain(
+      'const responseOverlayMode = readExactLifecycleString(conversationView?.surfaces?.responseOverlay?.mode);',
+    );
     expect(visibleLifecycleRuntimeSource).toContain('readExactIdentityString(presentationAnchor.rowId)');
+    expect(visibleLifecycleRuntimeSource).not.toContain('return normalizeString(sdkLiveTurn?.phase);');
+    expect(visibleLifecycleRuntimeSource).not.toContain(
+      'const responseOverlayMode = normalizeString(conversationView?.surfaces?.responseOverlay?.mode);',
+    );
     expect(visibleLifecycleRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
     expect(visibleLifecycleRuntimeSource).not.toContain('function isConversationViewUserDisplayRow');
     expect(visibleLifecycleRuntimeSource).not.toContain('conversationView.displayRows.length - 1');

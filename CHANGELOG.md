@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/lifecycle: reject repaired SDK live-turn phase and ConversationView
+  response-overlay mode labels instead of trimming padded lifecycle strings
+  into busy, awaiting, terminal, or response state. No migration required.
 - frontend/attachments: drop incomplete SDK attachment lifecycle descriptors in
   the renderer projection adapter instead of letting malformed ready,
   materializing, or screenshot-request records become display state. No

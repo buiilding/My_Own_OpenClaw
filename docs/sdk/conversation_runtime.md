@@ -370,6 +370,10 @@ only a last-resort fallback when no SDK identity is available. Raw
 `snapshot.currentTurn.presentation.entries` and phase-derived current-turn rows
 remain only as the no-view bridge and must not append visible rows beside the
 SDK view.
+Renderer visible-lifecycle projection treats SDK live-turn `phase` and
+`ConversationView` response-overlay surface `mode` as exact SDK labels; padded
+labels are ignored instead of being trimmed into busy, awaiting, terminal, or
+response state.
 The `conversation.loadDisplay` command also carries `snapshot.view`, and
 desktop renderer display-row facades consume `snapshot.view.displayRows`
 without falling back to legacy `snapshot.displayRows`. SDK snapshots may still
