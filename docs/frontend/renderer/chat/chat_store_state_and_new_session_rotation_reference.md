@@ -108,7 +108,9 @@ projection side effects. That read model is typed against the SDK
 stream code cannot publish or depend on a renderer-local partial view shape. The
 display projection trace helper and send-read-model user-row predicate use the
 same narrowed SDK view before reading `displayRows`; partial view-like objects
-stay on no-view fallback paths. The projected workspace read model is
+stay on no-view fallback paths. The trace helper reads canonical SDK
+display-row fields only and does not recover legacy `sender`, `text`, or
+top-level source-event aliases from view rows. The projected workspace read model is
 assembled from an allowlist of fields and
 does not expose the raw `isSending` storage latch; visible busy/typing state is
 derived by lifecycle/surface runtimes from the pending bridge and SDK view/live

@@ -106,15 +106,16 @@ function buildConversationViewTraceSummary(
     : [];
   const latestRow = displayRows[displayRows.length - 1] ?? null;
   const latestRecord = latestRow as Record<string, unknown> | null;
+  const latestMetadata = latestRecord?.metadata as Record<string, unknown> | null | undefined;
   return {
     displayRowCount: displayRows.length,
     liveTurnPhase: exactTraceString(view?.liveTurn?.phase),
     liveTurnRef: exactTurnRef(view?.liveTurn?.turnRef),
     lastMessage: latestRecord
       ? {
-        sender: exactTraceString(latestRecord.role) || exactTraceString(latestRecord.sender),
-        sourceEventType: exactTraceString(latestRecord.sourceEventType),
-        textLength: resolveTraceTextLength(latestRecord.content ?? latestRecord.text),
+        sender: exactTraceString(latestRecord.role),
+        sourceEventType: exactTraceString(latestMetadata?.sourceEventType),
+        textLength: resolveTraceTextLength(latestRecord.content),
         turnRef: exactTurnRef(latestRecord.turnRef as string | null | undefined),
         type: exactTraceString(latestRecord.type),
       }

@@ -391,7 +391,9 @@ describe('desktopConversationDisplayProjection', () => {
           role: 'assistant',
           type: 'assistant_message',
           content: 'visible answer',
-          sourceEventType: 'assistant-message-full',
+          metadata: {
+            sourceEventType: 'assistant-message-full',
+          },
         },
       ]),
       liveTurn: {
@@ -431,7 +433,11 @@ describe('desktopConversationDisplayProjection', () => {
           sender: ' sdk-assistant ',
           type: ' assistant_message ',
           content: 'visible answer',
-          sourceEventType: ' assistant-message-full ',
+          text: 'legacy answer',
+          sourceEventType: 'assistant-message-full',
+          metadata: {
+            sourceEventType: ' assistant-message-full ',
+          },
         },
       ]),
       liveTurn: {
@@ -448,6 +454,38 @@ describe('desktopConversationDisplayProjection', () => {
         textLength: 'visible answer'.length,
         turnRef: null,
         type: null,
+      },
+    });
+  });
+
+  test('does not recover ConversationView trace fields from legacy row aliases', () => {
+    expect(buildConversationViewTraceSummary({
+      ...conversationViewWithRows([
+        {
+          id: 'view-legacy-like-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-view',
+          index: 0,
+          sender: 'assistant',
+          type: 'assistant_message',
+          text: 'legacy answer',
+          sourceEventType: 'assistant-message-full',
+        },
+      ]),
+      liveTurn: {
+        turnRef: 'turn-view',
+        phase: 'complete',
+      },
+    } as never)).toEqual({
+      displayRowCount: 1,
+      liveTurnPhase: 'complete',
+      liveTurnRef: 'turn-view',
+      lastMessage: {
+        sender: null,
+        sourceEventType: null,
+        textLength: 0,
+        turnRef: 'turn-view',
+        type: 'assistant_message',
       },
     });
   });

@@ -1254,9 +1254,14 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).toContain('function sdkConversationViewEnvelope');
     expect(displayProjectionSource).toContain('function exactTraceString(value: unknown)');
     expect(displayProjectionSource).toContain('liveTurnPhase: exactTraceString');
+    expect(displayProjectionSource).toContain('sourceEventType: exactTraceString(latestMetadata?.sourceEventType)');
+    expect(displayProjectionSource).toContain('textLength: resolveTraceTextLength(latestRecord.content)');
     expect(displayProjectionSource).toContain('const view = sdkConversationViewEnvelope(conversationView)');
     expect(displayProjectionSource).not.toContain('type ConversationViewTraceSource');
     expect(displayProjectionSource).not.toContain('displayRows?: unknown[] | null');
+    expect(displayProjectionSource).not.toContain('exactTraceString(latestRecord.sender)');
+    expect(displayProjectionSource).not.toContain('latestRecord.sourceEventType');
+    expect(displayProjectionSource).not.toContain('latestRecord.content ?? latestRecord.text');
     expect(displayProjectionSource).not.toContain('function normalizeTraceString');
     expect(displayProjectionSource).not.toContain('value.trim() ? value.trim() : null');
     expect(displayProjectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');

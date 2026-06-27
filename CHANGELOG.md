@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: make ConversationView trace summaries read only
+  canonical SDK display-row fields, so legacy `sender`, `text`, and top-level
+  source-event aliases on view rows no longer become provider diagnostics. No
+  migration required.
 - frontend/send: require SDK/main send-command error text to be exact before it
   becomes a thrown renderer error, so padded command failures fall back to the
   generic send failure instead of being trimmed into repaired diagnostics. No
