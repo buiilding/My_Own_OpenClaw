@@ -120,7 +120,10 @@ describe('chatSelectors', () => {
         fullUserMessage: 'full prompt',
         feedback: 'like',
       }],
-      thinkingStatus: null,
+      thinkingStatus: 'Compacting conversation history...',
+      thinkingSourceEventType: 'compaction_started',
+      compactionDebugInfo: { strategy: 'summarize' },
+      tokenCounts: { total_tokens: 42 },
       sdkLiveTurn: { turnRef: 'raw-turn' },
       conversationView,
       pendingTurn: null,
@@ -138,6 +141,10 @@ describe('chatSelectors', () => {
       }],
       conversationView,
       sdkLiveTurn: null,
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+      compactionDebugInfo: null,
+      tokenCounts: null,
     }));
     expect(interfaceState).not.toHaveProperty('currentTurnProjection');
   });

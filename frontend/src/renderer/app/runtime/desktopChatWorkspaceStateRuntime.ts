@@ -223,6 +223,10 @@ export function projectWorkspaceReadModelState(
   const readModelWorkspace = {
     ...workspace,
     messages: hasConversationView ? emptyChatMessages : workspace.messages,
+    thinkingStatus: hasConversationView ? null : workspace.thinkingStatus,
+    thinkingSourceEventType: hasConversationView ? null : workspace.thinkingSourceEventType,
+    compactionDebugInfo: hasConversationView ? null : workspace.compactionDebugInfo,
+    tokenCounts: hasConversationView ? null : workspace.tokenCounts,
     sdkLiveTurn: hasConversationView
       ? null
       : readNoViewSdkLiveTurnStorage(workspace),

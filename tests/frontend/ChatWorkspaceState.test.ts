@@ -242,6 +242,11 @@ describe('chatWorkspaceState', () => {
         fullUserMessage: 'full prompt',
         feedback: 'like',
       }],
+      thinkingStatus: 'Compacting conversation history...',
+      thinkingSourceEventType: 'compaction_started',
+      compactionDebugInfo: { strategy: 'summarize' } as never,
+      tokenCounts: { total_tokens: 42 },
+      streamTracking: createStreamTracking({ phase: 'streaming' }),
       sdkLiveTurn: { turnRef: 'turn-raw' } as never,
       conversationView,
       pendingTurn: pendingTurn as never,
@@ -260,6 +265,10 @@ describe('chatWorkspaceState', () => {
     expect(readModel.messages).toEqual([]);
     expect(readModel).not.toHaveProperty('currentTurnProjection');
     expect(readModel.sdkLiveTurn).toBeNull();
+    expect(readModel.thinkingStatus).toBeNull();
+    expect(readModel.thinkingSourceEventType).toBeNull();
+    expect(readModel.compactionDebugInfo).toBeNull();
+    expect(readModel.tokenCounts).toBeNull();
     expect(readModel.conversationView).toBe(conversationView);
     expect(readModel.pendingTurn).toBe(pendingTurn);
     expect(readModel.rendererAnnotations).toEqual([{

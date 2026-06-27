@@ -23,6 +23,10 @@ All notable changes to WindieOS will be documented in this file.
   overlay lifecycle inputs to their SDK-owned read-model contracts, clearing
   pending sends from user display rows by `role` and keeping overlay visible
   lifecycle calls free of unused raw message input. No migration required.
+- frontend/conversation-view: clear legacy renderer thinking, compaction, and
+  token readouts from the sanitized workspace read model whenever a
+  `ConversationView` is present, so SDK-rendered rows do not carry stale
+  renderer loop state beside the SDK-owned view. No migration required.
 - cli/test: update the core-loop regression preset to run the renamed
   `DesktopSdkLiveTurnEffectsRuntime` and `DesktopAttachmentImageRuntime`
   coverage instead of stale pre-boundary filenames, keeping SDK live-turn and
