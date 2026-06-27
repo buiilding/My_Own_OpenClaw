@@ -51,6 +51,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/stop: reject padded `ConversationView` and pending bridge stop
   target refs instead of trimming them into SDK stop commands or
   pending-bridge cleanup. No migration required.
+- frontend/stop: reject repaired no-view live-turn and pending bridge refs
+  during stopped-turn cleanup, keeping malformed stop targets from terminalizing
+  workspace state. No migration required.
 - frontend/pending-turn: reject padded pending bridge identity fields instead
   of trimming them into visible bridge rows or Stop targets. No migration
   required.

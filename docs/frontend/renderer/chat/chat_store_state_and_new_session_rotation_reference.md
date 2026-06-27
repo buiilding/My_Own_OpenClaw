@@ -281,6 +281,9 @@ exposed as turn, tool, or visible label identity.
   Stop-target refs from SDK `ConversationView` and the pending bridge must be
   exact non-empty strings; the runtime rejects padded stoppable refs instead of
   trimming them into stop commands or pending-bridge cleanup.
+  Stopped-turn mutation uses the same exact match for incoming targets and
+  stored no-view SDK live turns or pending bridge records, so malformed refs do
+  not get repaired into terminal workspace cleanup.
   When a workspace already has a `ConversationView`, stopped-turn mutation
   ignores the raw no-view live-turn fallback, clears it to `null`, and only
   applies renderer-local cleanup for a matching pending bridge.

@@ -72,13 +72,14 @@ function doesSdkLiveTurnMatch(sdkLiveTurn, input = null) {
   if (!sdkLiveTurn || !input) {
     return false;
   }
-  const conversationRef = normalizeRef(input.conversationRef);
-  const turnRef = normalizeRef(input.turnRef);
-  const sdkLiveTurnConversationRef = normalizeRef(sdkLiveTurn.conversationRef);
-  const sdkLiveTurnRef = normalizeRef(sdkLiveTurn.turnRef);
+  const conversationRef = readExactNonEmptyRef(input.conversationRef);
+  const turnRef = readExactNonEmptyRef(input.turnRef);
+  const sdkLiveTurnConversationRef = readExactNonEmptyRef(sdkLiveTurn.conversationRef);
+  const sdkLiveTurnRef = readExactNonEmptyRef(sdkLiveTurn.turnRef);
   return (
-    (!conversationRef || sdkLiveTurnConversationRef === conversationRef)
-    && (!turnRef || sdkLiveTurnRef === turnRef)
+    Boolean(conversationRef && turnRef)
+    && sdkLiveTurnConversationRef === conversationRef
+    && sdkLiveTurnRef === turnRef
   );
 }
 
@@ -89,11 +90,12 @@ function doesPendingTurnMatch(pendingTurn, input = null) {
   if (!input) {
     return true;
   }
-  const conversationRef = normalizeRef(input.conversationRef);
-  const turnRef = normalizeRef(input.turnRef);
+  const conversationRef = readExactNonEmptyRef(input.conversationRef);
+  const turnRef = readExactNonEmptyRef(input.turnRef);
   return (
-    (!conversationRef || normalizeRef(pendingTurn.conversationRef) === conversationRef)
-    && (!turnRef || normalizeRef(pendingTurn.turnRef) === turnRef)
+    Boolean(conversationRef && turnRef)
+    && readExactNonEmptyRef(pendingTurn.conversationRef) === conversationRef
+    && readExactNonEmptyRef(pendingTurn.turnRef) === turnRef
   );
 }
 
@@ -118,9 +120,12 @@ function buildStoppedTurnWorkspaceMutation({
     return null;
   }
   const target = {
-    conversationRef: normalizeRef(conversationRef),
-    turnRef: normalizeRef(turnRef),
+    conversationRef: readExactNonEmptyRef(conversationRef),
+    turnRef: readExactNonEmptyRef(turnRef),
   };
+  if (!target.conversationRef || !target.turnRef) {
+    return null;
+  }
   const hasWorkspaceConversationView = hasConversationView(currentWorkspace.conversationView);
   const workspaceSdkLiveTurn = hasWorkspaceConversationView
     ? null
@@ -165,8 +170,11 @@ function buildAcceptStoppedTurnStateUpdate({
   if (!deps || !state) {
     return null;
   }
-  const conversationRef = normalizeRef(input?.conversationRef);
-  const turnRef = normalizeRef(input?.turnRef);
+  const conversationRef = readExactNonEmptyRef(input?.conversationRef);
+  const turnRef = readExactNonEmptyRef(input?.turnRef);
+  if (!conversationRef || !turnRef) {
+    return null;
+  }
   const workspaceRef = deps.resolveWorkspaceKey(conversationRef, state.activeConversationRef);
   const currentWorkspace = deps.readWorkspaceState(state, workspaceRef);
   const nextWorkspace = buildStoppedTurnWorkspaceMutation({

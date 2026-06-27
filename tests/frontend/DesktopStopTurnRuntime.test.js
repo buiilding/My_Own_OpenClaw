@@ -484,6 +484,42 @@ describe('desktopStopTurnRuntime', () => {
     }));
   });
 
+  test('buildStoppedTurnWorkspaceMutation rejects repaired live and pending refs', () => {
+    expect(buildStoppedTurnWorkspaceMutation({
+      conversationRef: ' conv-stop ',
+      currentWorkspace: workspace(),
+      stoppedAt: '2026-06-25T12:01:00.000Z',
+      turnRef: 'turn-stop',
+    })).toBeNull();
+
+    expect(buildStoppedTurnWorkspaceMutation({
+      conversationRef: 'conv-stop',
+      currentWorkspace: workspace({
+        sdkLiveTurn: {
+          conversationRef: ' conv-stop ',
+          turnRef: 'turn-stop',
+          phase: 'streaming',
+        },
+        pendingTurn: null,
+      }),
+      stoppedAt: '2026-06-25T12:01:00.000Z',
+      turnRef: 'turn-stop',
+    })).toBeNull();
+
+    expect(buildStoppedTurnWorkspaceMutation({
+      conversationRef: 'conv-stop',
+      currentWorkspace: workspace({
+        sdkLiveTurn: null,
+        pendingTurn: {
+          conversationRef: 'conv-stop',
+          turnRef: ' turn-stop ',
+        },
+      }),
+      stoppedAt: '2026-06-25T12:01:00.000Z',
+      turnRef: 'turn-stop',
+    })).toBeNull();
+  });
+
   test('buildStoppedTurnWorkspaceMutation ignores raw live-turn fallback when ConversationView exists', () => {
     expect(buildStoppedTurnWorkspaceMutation({
       conversationRef: 'conv-stop',
@@ -556,9 +592,9 @@ describe('desktopStopTurnRuntime', () => {
     const nextState = buildAcceptStoppedTurnStateUpdate({
       deps,
       input: {
-        conversationRef: ' conv-stop ',
+        conversationRef: 'conv-stop',
         stoppedAt: '2026-06-25T12:01:00.000Z',
-        turnRef: ' turn-stop ',
+        turnRef: 'turn-stop',
       },
       state,
     });
@@ -582,6 +618,42 @@ describe('desktopStopTurnRuntime', () => {
       pendingTurn: null,
       isSending: false,
     }));
+  });
+
+  test('buildAcceptStoppedTurnStateUpdate rejects padded stopped-turn input', () => {
+    const state = {
+      activeConversationRef: 'conv-active',
+      workspaces: {
+        'conversation:conv-active': workspace(),
+      },
+    };
+    const deps = {
+      buildWorkspaceUpdate: jest.fn(),
+      readWorkspaceState: jest.fn(),
+      resolveWorkspaceKey: jest.fn(),
+    };
+
+    expect(buildAcceptStoppedTurnStateUpdate({
+      deps,
+      input: {
+        conversationRef: ' conv-stop ',
+        stoppedAt: '2026-06-25T12:01:00.000Z',
+        turnRef: 'turn-stop',
+      },
+      state,
+    })).toBeNull();
+    expect(buildAcceptStoppedTurnStateUpdate({
+      deps,
+      input: {
+        conversationRef: 'conv-stop',
+        stoppedAt: '2026-06-25T12:01:00.000Z',
+        turnRef: ' turn-stop ',
+      },
+      state,
+    })).toBeNull();
+    expect(deps.resolveWorkspaceKey).not.toHaveBeenCalled();
+    expect(deps.readWorkspaceState).not.toHaveBeenCalled();
+    expect(deps.buildWorkspaceUpdate).not.toHaveBeenCalled();
   });
 
   test('buildStoppedSdkLiveTurn does not use SDK visible-content flag as overlay evidence', () => {
