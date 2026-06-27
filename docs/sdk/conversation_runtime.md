@@ -484,7 +484,11 @@ trimmed into duplicate-detection keys or visible tool labels. ConversationView
 display-row lookup also compares SDK row `turnRef` values exactly when filtering
 a requested turn or deciding whether a SDK user row can replace the renderer
 pending bridge; padded row refs do not suppress the pending bridge by being
-repaired into same-turn matches.
+repaired into same-turn matches. A row must also have the canonical SDK user
+display shape (`role: "user"` and `type: "user_message"`) before it can count as
+a user row for pending-bridge replacement or first-message send-state checks;
+malformed role/type combinations remain inert instead of claiming SDK row
+authority.
 Renderer display-row and live-turn adapters also keep SDK attachment
 descriptors on the typed `attachments[]` prop only. Renderer attachment helpers
 may perform narrow component checks such as artifact image-source resolution,

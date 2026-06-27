@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: require ConversationView user-row lookup to see both
+  SDK `role: "user"` and `type: "user_message"` before replacing the pending
+  bridge or answering first-message send-state checks. Malformed display rows no
+  longer claim user-row authority. No migration required.
 - frontend/tool-details: sanitize `ToolOutputMessage` fallback `toolMetadata`
   before rendering details, so raw payloads, model metadata, screenshot aliases,
   and attachment lifecycle descriptors cannot leak through component-level

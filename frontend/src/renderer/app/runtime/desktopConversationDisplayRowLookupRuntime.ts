@@ -19,10 +19,8 @@ function isConversationViewUserDisplayRow(row: unknown): row is ConversationView
   return Boolean(
     row
       && typeof row === 'object'
-      && (
-        (row as Record<string, unknown>).role === 'user'
-        || (row as Record<string, unknown>).type === 'user_message'
-      ),
+      && (row as Record<string, unknown>).role === 'user'
+      && (row as Record<string, unknown>).type === 'user_message',
   );
 }
 

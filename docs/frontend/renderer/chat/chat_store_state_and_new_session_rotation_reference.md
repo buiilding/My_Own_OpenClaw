@@ -464,7 +464,10 @@ instead of inferring SDK row presence from already-projected chat messages. The
 lookup compares SDK row `turnRef` and requested pending-turn refs exactly;
 padded display-row refs do not suppress the pending bridge or enter
 turn-specific ConversationView projections by being trimmed into same-turn
-matches.
+matches. The same lookup treats only canonical SDK user rows
+(`role: "user"` plus `type: "user_message"`) as user rows, so mismatched
+role/type rows cannot claim pending-bridge replacement or first-message
+send-state authority.
 Send-read-model helpers follow the same rule: once a `ConversationView` object
 is present, first-user-message decisions ask
 `DesktopConversationDisplayRowLookupRuntime` whether SDK user display rows

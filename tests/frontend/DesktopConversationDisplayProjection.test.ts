@@ -264,10 +264,28 @@ describe('desktopConversationDisplayProjection', () => {
         content: 'missing id',
       },
       {
+        id: 'mismatched-type-turn-1',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 2,
+        role: 'user',
+        type: 'assistant_message',
+        content: 'mismatched row type',
+      },
+      {
+        id: 'mismatched-role-turn-1',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 3,
+        role: 'assistant',
+        type: 'user_message',
+        content: 'mismatched row role',
+      },
+      {
         id: 'wrong-turn-user',
         conversationRef: 'conv-1',
         turnRef: 'turn-2',
-        index: 2,
+        index: 4,
         role: 'user',
         type: 'user_message',
         content: 'wrong turn',
@@ -286,7 +304,7 @@ describe('desktopConversationDisplayProjection', () => {
       },
       {
         id: 'typed-user-row',
-        role: 'assistant',
+        role: 'user',
         type: 'user_message',
       },
     ]))).toBe(true);
@@ -295,6 +313,16 @@ describe('desktopConversationDisplayProjection', () => {
         id: 'assistant-row',
         role: 'assistant',
         type: 'assistant_message',
+      },
+      {
+        id: 'mismatched-type-row',
+        role: 'user',
+        type: 'assistant_message',
+      },
+      {
+        id: 'mismatched-role-row',
+        role: 'assistant',
+        type: 'user_message',
       },
     ]))).toBe(false);
     expect(hasConversationViewUserDisplayRows({})).toBe(false);

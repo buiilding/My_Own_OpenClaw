@@ -4299,6 +4299,9 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationDisplayRowLookupSource).toContain('findConversationViewUserDisplayRowForTurn');
     expect(conversationDisplayRowLookupSource).toContain('ConversationView display-row lookup');
     expect(conversationDisplayRowLookupSource).toContain('exactNonEmptyString');
+    expect(conversationDisplayRowLookupSource).toContain("(row as Record<string, unknown>).role === 'user'");
+    expect(conversationDisplayRowLookupSource).toContain("(row as Record<string, unknown>).type === 'user_message'");
+    expect(conversationDisplayRowLookupSource).not.toContain("(row as Record<string, unknown>).role === 'user'\n        ||");
     expect(conversationDisplayRowLookupSource).not.toContain('value.trim() ? value.trim()');
     expect(conversationDisplayProjectionSource).not.toContain('function normalizeTurnRef');
     expect(conversationViewWorkspaceRuntimeSource).toContain('findConversationViewUserDisplayRowForTurn');
