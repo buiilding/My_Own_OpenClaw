@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: centralize React attachment descriptor gating in
+  `AttachmentList`; user and tool-output message components now pass SDK row
+  `attachments[]` through without importing the SDK attachment projection
+  runtime themselves. No migration required.
 - frontend/stream: route stale-turn guards, compaction thinking-source reads,
   and terminal-completion state through the projected chat workspace read model
   so SDK `ConversationView` suppresses raw stream-tracking fallback before

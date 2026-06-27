@@ -168,6 +168,46 @@ describe('AttachmentList', () => {
     expect(screen.getByRole('img').closest('.message-attachment-image-container--tool-output')).toBeTruthy();
   });
 
+  test('owns optional attachment chrome after descriptor validation', () => {
+    const { container, rerender } = render(
+      <AttachmentList
+        containerClassName="tool-attachment-container"
+        headerClassName="tool-attachment-header"
+        headerText="Visual Output"
+        surface="tool-output"
+        attachments={[{
+          id: 'missing-ready-source',
+          kind: 'image',
+          source: 'tool_result',
+          status: 'ready',
+        }]}
+      />,
+    );
+
+    expect(container.querySelector('.tool-attachment-container')).toBeNull();
+    expect(screen.queryByText('Visual Output')).not.toBeInTheDocument();
+
+    rerender(
+      <AttachmentList
+        containerClassName="tool-attachment-container"
+        headerClassName="tool-attachment-header"
+        headerText="Visual Output"
+        surface="tool-output"
+        attachments={[{
+          id: 'attachment-tool-output',
+          kind: 'image',
+          source: 'tool_result',
+          status: 'ready',
+          screenshotRef: 'artifact-tool-output',
+        }]}
+      />,
+    );
+
+    expect(container.querySelector('.tool-attachment-container')).toBeTruthy();
+    expect(screen.getByText('Visual Output')).toHaveClass('tool-attachment-header');
+    expect(screen.getByRole('img')).toHaveAttribute('src', 'resolved://artifact-tool-output');
+  });
+
   test('does not keep renderer preview state after SDK marks an attachment ready', () => {
     mockUseResolvedAttachmentImageSrc.mockReturnValue(null);
 

@@ -4,15 +4,8 @@
 
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import {
-  DesktopSdkDisplayAttachmentProjection,
-} from '../../../../../app/runtime/desktopSdkDisplayAttachmentProjection';
 import AttachmentList from './AttachmentList';
 import HighlightedPlainText from './HighlightedPlainText';
-
-const {
-  readSdkDisplayAttachments,
-} = DesktopSdkDisplayAttachmentProjection;
 
 export default function ToolOutputMessage({
   message,
@@ -21,7 +14,6 @@ export default function ToolOutputMessage({
   activeFindMatchIndex = null,
 }) {
   const [showDetails, setShowDetails] = useState(false);
-  const displayAttachments = readSdkDisplayAttachments(message.attachments);
   const modelFacingOutput = (
     typeof message.modelFacingToolOutput === 'string'
       ? message.modelFacingToolOutput
@@ -55,12 +47,13 @@ export default function ToolOutputMessage({
         findMatchIndexes={findMatchIndexes}
         activeFindMatchIndex={activeFindMatchIndex}
       />
-      {displayAttachments.length > 0 ? (
-        <div className="tool-attachment-container">
-          <div className="tool-attachment-header">Visual Output</div>
-          <AttachmentList attachments={displayAttachments} surface="tool-output" />
-        </div>
-      ) : null}
+      <AttachmentList
+        attachments={message.attachments}
+        containerClassName="tool-attachment-container"
+        headerClassName="tool-attachment-header"
+        headerText="Visual Output"
+        surface="tool-output"
+      />
       {showDetails ? (
         <div className="tool-details-panel">
           <div className="tool-details-block">

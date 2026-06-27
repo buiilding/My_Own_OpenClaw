@@ -67,13 +67,14 @@ SDK descriptor. Materializing previews are rendered directly from the SDK
 descriptor's exact `previewSrc`; they do not enter
 `DesktopAttachmentImageRuntime`, whose artifact/image source reader is limited
 to ready SDK image descriptors.
-Tool-output attachment chrome is also gated on
-`DesktopSdkDisplayAttachmentProjection.readSdkDisplayAttachments(...)`; raw
-`message.attachments` arrays that contain only malformed descriptors must not
-show screenshot headers or other lifecycle UI.
-`UserMessage` applies the same SDK descriptor gate before rendering
-`AttachmentList`, so loose component inputs cannot make malformed user
-attachments reach the attachment renderer path.
+`AttachmentList` is the React attachment gate for both user rows and
+tool-output rows. Message components pass SDK row `attachments[]` into that
+entrypoint instead of importing
+`DesktopSdkDisplayAttachmentProjection.readSdkDisplayAttachments(...)`
+themselves. Raw `message.attachments` arrays that contain only malformed
+descriptors must not show screenshot headers or other lifecycle UI, and loose
+component inputs cannot make malformed user attachments reach the attachment
+renderer path.
 
 There is no renderer `resolveReplayScreenshotState(...)` facade. React replay
 actions dispatch SDK retry/edit intent only; SDK target-row resolution preserves

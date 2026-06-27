@@ -2812,9 +2812,10 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
     expect(userMessageSource).not.toContain('SHOW_IMAGE_CONTEXT_MENU');
     expect(userMessageSource).not.toContain('IpcBridge.invoke');
-    expect(userMessageSource).toContain('DesktopSdkDisplayAttachmentProjection');
-    expect(userMessageSource).toContain('readSdkDisplayAttachments(message.attachments)');
-    expect(userMessageSource).toContain('displayAttachments.length > 0');
+    expect(userMessageSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(userMessageSource).not.toContain('readSdkDisplayAttachments');
+    expect(userMessageSource).not.toContain('displayAttachments');
+    expect(userMessageSource).toContain('attachments={message.attachments}');
     expect(userMessageSource).not.toContain('Array.isArray(message.attachments)');
     expect(userMessageSource).toContain('AttachmentList');
     expect(userMessageSource).not.toContain('attachmentFilenames');
@@ -2829,9 +2830,10 @@ describe('renderer chat runtime boundary', () => {
     expect(attachmentRegistrySource).not.toContain('lastVisibleSrc');
     expect(attachmentRegistrySource).not.toContain('useState');
     expect(attachmentRegistrySource).not.toContain('setLastVisibleSrc');
-    expect(toolOutputSource).toContain('DesktopSdkDisplayAttachmentProjection');
-    expect(toolOutputSource).toContain('readSdkDisplayAttachments(message.attachments)');
-    expect(toolOutputSource).toContain('displayAttachments.length > 0');
+    expect(toolOutputSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(toolOutputSource).not.toContain('readSdkDisplayAttachments');
+    expect(toolOutputSource).not.toContain('displayAttachments');
+    expect(toolOutputSource).toContain('attachments={message.attachments}');
     expect(toolOutputSource).toContain('tool-attachment-container');
     expect(toolOutputSource).not.toContain('tool-screenshot');
     expect(toolOutputSource).not.toContain('Screenshot After Action');
@@ -2844,6 +2846,8 @@ describe('renderer chat runtime boundary', () => {
     expect(toolOutputSource).not.toContain('success: message.success');
     expect(toolOutputSource).not.toContain('metadata: message.toolMetadata || null');
     expect(toolOutputSource).toContain('AttachmentList');
+    expect(attachmentListSource).toContain('headerText');
+    expect(attachmentListSource).toContain('visibleAttachments.length === 0');
     expect(toolOutputSource).not.toContain('useResolvedMessageScreenshotSrc');
     expect(toolOutputStateSource).not.toContain('screenshotMessageState');
     expect(toolOutputStateSource).not.toContain('screenshotRef');

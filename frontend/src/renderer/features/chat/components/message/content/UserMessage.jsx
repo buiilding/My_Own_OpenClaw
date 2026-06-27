@@ -3,15 +3,8 @@
  */
 
 import PropTypes from 'prop-types';
-import {
-  DesktopSdkDisplayAttachmentProjection,
-} from '../../../../../app/runtime/desktopSdkDisplayAttachmentProjection';
 import AttachmentList from './AttachmentList';
 import MarkdownMessage from './MarkdownMessage';
-
-const {
-  readSdkDisplayAttachments,
-} = DesktopSdkDisplayAttachmentProjection;
 
 export default function UserMessage({
   message,
@@ -19,14 +12,9 @@ export default function UserMessage({
   findMatchIndexes = [],
   activeFindMatchIndex = null,
 }) {
-  const displayAttachments = readSdkDisplayAttachments(message.attachments);
-  const hasDisplayAttachments = displayAttachments.length > 0;
-
   return (
     <div className="user-message-container">
-      {hasDisplayAttachments ? (
-        <AttachmentList attachments={displayAttachments} />
-      ) : null}
+      <AttachmentList attachments={message.attachments} />
       <MarkdownMessage
         text={message.text}
         sender="user"

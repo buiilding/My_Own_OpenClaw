@@ -131,6 +131,10 @@ Attachment presence for row classes follows the already-projected typed
 `attachments[]` list; the class helper does not classify SDK attachment
 lifecycle state. User-message and tool-output visual routing use SDK-owned
 descriptors through `AttachmentList` / `AttachmentRendererRegistry`.
+`AttachmentList` is the only React message-content component that imports the
+SDK display attachment projection helper; `UserMessage` and `ToolOutputMessage`
+pass row `attachments[]` through so they do not duplicate descriptor validation
+or attachment lifecycle gating.
 The React-only async artifact image fetch/cache hook remains in
 `frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js`.
 

@@ -18,14 +18,28 @@ function normalizeSurfaceClass(surface) {
     : 'dashboard';
 }
 
-export default function AttachmentList({ attachments = [], surface = 'dashboard' }) {
+export default function AttachmentList({
+  attachments = [],
+  containerClassName = '',
+  headerClassName = '',
+  headerText = '',
+  surface = 'dashboard',
+}) {
   const visibleAttachments = readSdkDisplayAttachments(attachments);
   if (visibleAttachments.length === 0) {
     return null;
   }
   const surfaceClass = normalizeSurfaceClass(surface);
-
-  return (
+  const normalizedContainerClassName = typeof containerClassName === 'string'
+    ? containerClassName.trim()
+    : '';
+  const normalizedHeaderText = typeof headerText === 'string'
+    ? headerText.trim()
+    : '';
+  const normalizedHeaderClassName = typeof headerClassName === 'string' && headerClassName.trim()
+    ? headerClassName.trim()
+    : 'message-attachment-header';
+  const gallery = (
     <div className={`message-attachment-gallery message-attachment-gallery--${surfaceClass}`}>
       {visibleAttachments.map((attachment) => (
         <AttachmentRendererRegistry
@@ -36,9 +50,27 @@ export default function AttachmentList({ attachments = [], surface = 'dashboard'
       ))}
     </div>
   );
+
+  if (normalizedContainerClassName || normalizedHeaderText) {
+    return (
+      <div className={normalizedContainerClassName || `message-attachment-container message-attachment-container--${surfaceClass}`}>
+        {normalizedHeaderText ? (
+          <div className={normalizedHeaderClassName}>{normalizedHeaderText}</div>
+        ) : null}
+        {gallery}
+      </div>
+    );
+  }
+
+  return (
+    gallery
+  );
 }
 
 AttachmentList.propTypes = {
   attachments: PropTypes.arrayOf(PropTypes.object),
+  containerClassName: PropTypes.string,
+  headerClassName: PropTypes.string,
+  headerText: PropTypes.string,
   surface: PropTypes.string,
 };
