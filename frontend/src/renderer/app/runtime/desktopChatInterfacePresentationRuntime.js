@@ -143,6 +143,7 @@ function buildChatInterfacePresentationState({
       conversationView: effectiveConversationView,
       sdkLiveTurn: effectiveSdkLiveTurn,
       activeConversationRef,
+      allowPendingBridgeMessages: hasConversationView,
     }),
     activeRevisionId: hasConversationView
       ? effectiveConversationView?.revisionId || null

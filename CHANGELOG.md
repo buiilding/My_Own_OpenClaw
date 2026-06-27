@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/thread: require ConversationView-mode renderer pending rows to be
+  explicitly allowed by the ChatInterface projection adapter, so arbitrary
+  `renderer-compose` rows cannot bypass SDK display-row authority. No migration
+  required.
 - frontend/pending-turn: require renderer pending-bridge payloads to use only
   the small identity/text field set, so display-lifecycle data cannot be
   stripped into a local pending user row. No migration required.

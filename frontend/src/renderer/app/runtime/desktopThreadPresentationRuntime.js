@@ -55,10 +55,12 @@ function isRendererPendingBridgeMessage(message) {
   );
 }
 
-function isConversationViewBaseMessage(message) {
+function isConversationViewBaseMessage(message, {
+  allowPendingBridgeMessages = false,
+} = {}) {
   return (
     isSdkDisplayRowsSourceChannel(message?.sourceChannel)
-    || isRendererPendingBridgeMessage(message)
+    || (allowPendingBridgeMessages && isRendererPendingBridgeMessage(message))
   );
 }
 
@@ -293,13 +295,16 @@ function buildThreadPresentationMessages(
     sdkLiveTurn = null,
     conversationView = null,
     activeConversationRef = null,
+    allowPendingBridgeMessages = false,
   } = {},
 ) {
   const hasConversationView = hasWorkspaceConversationView({ conversationView });
   const effectiveConversationView = hasConversationView ? conversationView : null;
   const inputMessages = Array.isArray(messages) ? messages : [];
   const baseMessages = hasConversationView
-    ? inputMessages.filter(isConversationViewBaseMessage)
+    ? inputMessages.filter((message) => isConversationViewBaseMessage(message, {
+      allowPendingBridgeMessages,
+    }))
     : inputMessages;
   const resolvedCurrentTurnMessages = resolveCurrentTurnMessages({
     sdkLiveTurn,

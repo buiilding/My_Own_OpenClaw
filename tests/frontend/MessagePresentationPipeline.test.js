@@ -489,7 +489,7 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
-  test('buildThreadPresentationMessages keeps pending bridge rows with ConversationView', () => {
+  test('buildThreadPresentationMessages requires explicit pending bridge authority with ConversationView', () => {
     const rawRow = {
       id: 'raw-user-row',
       sender: 'user',
@@ -517,6 +517,15 @@ describe('desktopThreadPresentationRuntime', () => {
     ], {
       conversationView,
       activeConversationRef: 'conv-1',
+    })).toEqual([]);
+
+    expect(buildThreadPresentationMessages([
+      rawRow,
+      pendingBridgeRow,
+    ], {
+      conversationView,
+      activeConversationRef: 'conv-1',
+      allowPendingBridgeMessages: true,
     })).toEqual([
       pendingBridgeRow,
     ]);
