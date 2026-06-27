@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: add an app-runtime attachment presentation facade for
+  message row classes and content-kind routing, keeping SDK attachment
+  descriptor validation out of those helpers. No migration required.
 - frontend/attachments: centralize React attachment descriptor gating in
   `AttachmentList`; user and tool-output message components now pass SDK row
   `attachments[]` through without importing the SDK attachment projection

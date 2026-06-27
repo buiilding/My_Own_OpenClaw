@@ -14,6 +14,7 @@ title: "Thinking Display Overflow, Message Content/Class Assembly, and Stream To
 - `frontend/src/renderer/features/chat/components/MessageList.jsx`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/app/runtime/desktopMessageAttachmentPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageContentRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`
@@ -23,6 +24,7 @@ title: "Thinking Display Overflow, Message Content/Class Assembly, and Stream To
 - `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`
 - `tests/frontend/ThinkingDisplay.test.jsx`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
+- `tests/frontend/DesktopMessageAttachmentPresentationRuntime.test.js`
 - `tests/frontend/DesktopMessageContentRuntime.test.js`
 - `tests/frontend/DesktopMessageClassRuntime.test.js`
 - `tests/frontend/DesktopMessageListRuntime.test.js`
@@ -135,6 +137,11 @@ descriptors through `AttachmentList` / `AttachmentRendererRegistry`.
 SDK display attachment projection helper; `UserMessage` and `ToolOutputMessage`
 pass row `attachments[]` through so they do not duplicate descriptor validation
 or attachment lifecycle gating.
+`DesktopMessageAttachmentPresentationRuntime` is the app-runtime visibility
+facade for row class and content-kind helpers. It centralizes the single
+`DesktopSdkDisplayAttachmentProjection.readSdkDisplayAttachments(...)` call for
+message presentation classification, so class/content helpers do not duplicate
+SDK descriptor validation or know attachment lifecycle details.
 The React-only async artifact image fetch/cache hook remains in
 `frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js`.
 
