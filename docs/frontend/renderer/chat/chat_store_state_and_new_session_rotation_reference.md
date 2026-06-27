@@ -522,8 +522,10 @@ renderer-local assistant feedback, so no-feedback raw rows are not a cache
 invalidation signal beside the SDK view.
 
 `DesktopChatRevisionActionRuntime` owns checkout/fork command input shaping for
-the revision menu: revision id normalization, action ids, default user id, and
-active row marking after checkout. `ChatInterface` calls the SDK command facade
+the revision menu: exact revision/conversation identity validation, action ids,
+default user id, and active row marking after checkout. Padded revision ids or
+conversation refs disable checkout/fork command construction instead of being
+trimmed into SDK command identity. `ChatInterface` calls the SDK command facade
 with those prepared inputs instead of constructing revision command payloads or
 comparing revision ids inline.
 

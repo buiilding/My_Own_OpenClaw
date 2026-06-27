@@ -5,12 +5,16 @@
 import { DesktopConversationContinuityService } from './desktopConversationContinuityService';
 
 function normalizeRevisionId(revisionId) {
-  return typeof revisionId === 'string' && revisionId.trim() ? revisionId.trim() : null;
+  return typeof revisionId === 'string' && revisionId.length > 0 && revisionId === revisionId.trim()
+    ? revisionId
+    : null;
 }
 
 function normalizeConversationRef(conversationRef) {
-  return typeof conversationRef === 'string' && conversationRef.trim()
-    ? conversationRef.trim()
+  return typeof conversationRef === 'string'
+    && conversationRef.length > 0
+    && conversationRef === conversationRef.trim()
+    ? conversationRef
     : null;
 }
 

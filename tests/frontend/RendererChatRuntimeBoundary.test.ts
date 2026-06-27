@@ -4040,6 +4040,12 @@ describe('renderer chat runtime boundary', () => {
     expect(chatRevisionActionRuntimeSource).toContain('markActiveRevisionInList');
     expect(chatRevisionActionRuntimeSource).toContain('markActiveRevisionFromCheckoutResult');
     expect(chatRevisionActionRuntimeSource).toContain('buildRevisionForkCommand');
+    expect(chatRevisionActionRuntimeSource).toContain('function normalizeRevisionId');
+    expect(chatRevisionActionRuntimeSource).toContain('revisionId.length > 0 && revisionId === revisionId.trim()');
+    expect(chatRevisionActionRuntimeSource).toContain('conversationRef.length > 0');
+    expect(chatRevisionActionRuntimeSource).toContain('conversationRef === conversationRef.trim()');
+    expect(chatRevisionActionRuntimeSource).not.toContain('revisionId.trim() ? revisionId.trim() : null');
+    expect(chatRevisionActionRuntimeSource).not.toContain('conversationRef.trim()\n    ? conversationRef.trim()');
     expect(chatRevisionActionRuntimeSource).not.toContain('buildForkConversationRef');
     expect(chatRevisionActionRuntimeSource).not.toContain('newConversationRef');
     expect(chatRevisionActionRuntimeSource).not.toContain('features/chat');

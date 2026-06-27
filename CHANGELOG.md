@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/revisions: reject padded revision ids and conversation refs in
+  revision menu checkout/fork command shaping instead of trimming them into SDK
+  command identity. No migration required.
 - frontend/projection: stop trimming SDK live-entry `type` values into tool or
   thinking rows; padded or empty live entry types now fall back to assistant
   text. No migration required.
