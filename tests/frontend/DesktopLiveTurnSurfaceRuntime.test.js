@@ -121,6 +121,36 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
+  test('does not borrow live-turn refs for a conflicting ConversationView overlay owner', () => {
+    const view = conversationView({
+      conversationRef: 'conv-view',
+      mode: 'response',
+      turnRef: 'turn-live',
+    });
+    view.surfaces.responseOverlay.ownerConversationRef = 'conv-overlay';
+    delete view.surfaces.responseOverlay.turnRef;
+    delete view.surfaces.responseOverlay.guardRef;
+
+    const result = resolveLiveTurnPresentationInput({
+      conversationView: view,
+    });
+
+    expect(result).toMatchObject({
+      source: 'conversation-view',
+      phase: 'streaming',
+      turnRef: null,
+      conversationRef: 'conv-overlay',
+      guardRef: null,
+      overlayIntent: expect.objectContaining({
+        mode: 'response',
+        visible: true,
+        turnRef: null,
+        conversationRef: 'conv-overlay',
+        staleGuardRef: null,
+      }),
+    });
+  });
+
   test('does not borrow stale current-turn conversation refs for pending surface identity', () => {
     const result = resolveLiveTurnPresentationInput({
       pendingTurn: {

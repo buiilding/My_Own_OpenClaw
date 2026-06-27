@@ -217,7 +217,10 @@ lifecycle authority. SDK `presentation.hasVisibleContent` is also not lifecycle
 evidence by itself. Live-surface overlay refs are exact metadata: padded SDK
 current-turn refs, `ConversationView` refs, or overlay intent refs are ignored
 instead of being trimmed into response-overlay turn, conversation, or guard
-identity. Raw current-turn `assistantText`, `reasoningText`, and
+identity. A `ConversationView.surfaces.responseOverlay` owner that conflicts
+with the view conversation must provide its own exact turn ref; the renderer
+does not borrow `ConversationView.liveTurn.turnRef` to synthesize a mixed owner
+and turn identity. Raw current-turn `assistantText`, `reasoningText`, and
 `toolEvents` are not lifecycle evidence; live-turn text/tool rendering must
 arrive through SDK presentation entries or `ConversationView.liveTurn.entries`.
 When the `ConversationView` lifecycle resolves idle, the visible lifecycle

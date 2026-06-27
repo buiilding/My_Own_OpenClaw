@@ -233,6 +233,8 @@ describe('renderer chat runtime boundary', () => {
     expect(surfaceRuntimeSource).not.toContain('const sdkLiveTurnRef = normalizeTurnRef(sdkLiveTurn?.turnRef)');
     expect(surfaceRuntimeSource).not.toContain('const conversationRef = normalizeConversationRef(conversationView.conversationRef)');
     expect(surfaceRuntimeSource).not.toContain('const sdkConversationRef = normalizeConversationRef(sdkLiveTurn?.conversationRef)');
+    expect(surfaceRuntimeSource).toContain('const canBorrowLiveTurnRef = !surfaceConversationRef || surfaceConversationRef === viewConversationRef;');
+    expect(surfaceRuntimeSource).toContain('|| (canBorrowLiveTurnRef ? normalizeTurnRef(liveTurn?.turnRef) : null)');
     expect(surfaceRuntimeSource).toContain('turnRef: overlayIntent.turnRef');
     expect(surfaceRuntimeSource).toContain('conversationRef: overlayIntent.conversationRef');
     expect(surfaceRuntimeSource).toContain('guardRef: overlayIntent.staleGuardRef');

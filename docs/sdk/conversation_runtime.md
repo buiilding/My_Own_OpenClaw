@@ -301,6 +301,9 @@ of recomposing turn, conversation, or guard fallbacks beside it. The same
 live-surface adapter treats SDK live-turn `phase` and
 response-overlay `mode` labels as exact; padded labels fall back to hidden/idle
 surface state instead of being repaired into awaiting or response overlays.
+When a `ConversationView` overlay surface names an owner conversation different
+from the view conversation, it must also provide its exact surface turn ref; the
+renderer does not pair that owner with `view.liveTurn.turnRef`.
 Renderer response-overlay dismissal keys and native responsebox window
 guard/size values apply that same exact-only rule, rejecting padded
 conversation, turn, guard, stale-guard, and response-entry refs instead of

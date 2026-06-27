@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/surface: stop borrowing `ConversationView.liveTurn.turnRef` for
+  response-overlay surfaces that declare a different owner conversation without
+  their own turn ref, keeping live-surface identity pairs SDK-authored. No
+  migration required.
 - frontend/projection: require canonical SDK display-row role/type pairs before
   mapping rows into renderer chat messages, leaving mismatched rows inert
   instead of assigning renderer sender or tool semantics from `type` alone. No

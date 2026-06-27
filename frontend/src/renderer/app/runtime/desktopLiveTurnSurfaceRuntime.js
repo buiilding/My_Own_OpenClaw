@@ -156,14 +156,20 @@ function resolveConversationViewOverlayIntent(conversationView) {
   const responseOverlaySurface = conversationView?.surfaces?.responseOverlay;
   const liveTurn = conversationView?.liveTurn;
   const mode = normalizeSurfaceOverlayMode(responseOverlaySurface?.mode);
-  const turnRef = (
-    normalizeTurnRef(responseOverlaySurface?.turnRef)
-    || normalizeTurnRef(liveTurn?.turnRef)
-  );
-  const conversationRef = (
+  const surfaceTurnRef = normalizeTurnRef(responseOverlaySurface?.turnRef);
+  const surfaceConversationRef = (
     normalizeConversationRef(responseOverlaySurface?.ownerConversationRef)
     || normalizeConversationRef(responseOverlaySurface?.conversationRef)
-    || normalizeConversationRef(conversationView?.conversationRef)
+  );
+  const viewConversationRef = normalizeConversationRef(conversationView?.conversationRef);
+  const conversationRef = (
+    surfaceConversationRef
+    || viewConversationRef
+  );
+  const canBorrowLiveTurnRef = !surfaceConversationRef || surfaceConversationRef === viewConversationRef;
+  const turnRef = (
+    surfaceTurnRef
+    || (canBorrowLiveTurnRef ? normalizeTurnRef(liveTurn?.turnRef) : null)
   );
   const staleGuardRef = (
     normalizeTurnRef(responseOverlaySurface?.guardRef)
