@@ -371,8 +371,10 @@ React replay hooks do not select store `activeConversationRef`, `addMessage`,
 or skin failure copy for replay orchestration; `desktopConversationReplayRuntime`
 resolves active conversation state from its store dependency and leaves replay
 failure display to SDK/main conversation events rather than publishing a
-renderer-local row. SDK replay commands own the durable child revision and
-provider-safe replacement history.
+renderer-local row. It may pass a model override as command data, but it must
+not call the renderer settings facade to apply that model before dispatch.
+SDK replay commands own the durable child revision, model-selection application
+through `send()`, and provider-safe replacement history.
 Thread presentation no longer accepts caller-built `currentTurnMessages` as an
 alternate live-row input; no-view live rows must come from the SDK current-turn
 projection/presentation adapter, and `ConversationView` remains the normal
@@ -1039,12 +1041,14 @@ must not erase prior resolved resources without an explicit removal operation.
 
 The Electron renderer does not publish a replay-specific pending turn, retained
 display prefix, or separate replacement query. It passes row intent, edited
-text when applicable, workspace context, model override, user id, conversation
-ref, and no renderer-owned replacement turn ref into the SDK command. The SDK
-command chooses the replacement turn ref. If the SDK command cannot resolve
-the stored target row or fails, the renderer records replay diagnostics and
-returns failure without rolling its own display replacement, failure row, or
-resource restoration. Typed
+text when applicable, workspace context, optional model override data, user id,
+conversation ref, and no renderer-owned replacement turn ref into the SDK
+command. It must not call the renderer settings facade to pre-apply the replay
+model; the SDK command applies model selection inside the replacement
+`send()` path. The SDK command chooses the replacement turn ref. If the SDK
+command cannot resolve the stored target row or fails, the renderer records
+replay diagnostics and returns failure without rolling its own display
+replacement, failure row, or resource restoration. Typed
 visual `attachments[]`, screenshot descriptors, preview bytes, ready artifact
 refs, and replacement event ids remain SDK display-row state.
 

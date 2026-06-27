@@ -200,17 +200,20 @@ current-turn row construction on typed SDK presentation fields.
   React components do not select broadcast handling from store state.
 - Replay/edit/retry commands do not use the renderer pending-turn bridge.
   `desktopConversationReplayRuntime` passes only row ids/text, workspace path,
-  model selection, and session identity to SDK command APIs; SDK runtime owns
-  target-row lookup, child display revision cuts, supersession, replacement
+  optional model-selection command data, and session identity to SDK command
+  APIs; SDK runtime owns target-row lookup, child display revision cuts,
+  supersession, applying replay model selection through `send()`, replacement
   display rows, and display-row `attachments[]`. The legacy replay-pending
   reducer and renderer superseded-turn ledger have been removed; renderer
   pending state is now only the normal post-send bridge.
   `useConversationReplayActions(...)` passes replay intent plus renderer config
   into `executeReplayActionFromChatStore(...)`; the chat-store adapter supplies
   the store bridge and the replay runtime derives the deferred SDK model
-  selection before dispatching SDK commands. Replay requires an existing
-  conversation ref from the transcript session or chat-store active workspace;
-  it must not create a fresh conversation for a row id the SDK cannot resolve.
+  selection as command data before dispatching SDK commands. It must not call
+  the renderer settings facade to apply the model directly. Replay requires an
+  existing conversation ref from the transcript session or chat-store active
+  workspace; it must not create a fresh conversation for a row id the SDK cannot
+  resolve.
 - `clearPendingTurnInChatStore(...)` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn.
   Pending-turn clear matching, broadcast action branching, and workspace

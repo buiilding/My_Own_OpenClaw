@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: stop applying selected models through the renderer settings
+  facade before edit/retry dispatch; replay now passes model data to SDK
+  commands and leaves selection application to the SDK `send()` path. No
+  migration required.
 - frontend/conversation-view: narrow renderer annotation merging to assistant
   feedback records only, so local feedback cannot mutate SDK user display rows
   or act as a generic message overlay. No migration required.
@@ -53,11 +57,9 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopSdkLiveTurnEffectsRuntime` and `DesktopAttachmentImageRuntime`
   coverage instead of stale pre-boundary filenames, keeping SDK live-turn and
   attachment invariants in the focused pack. No migration required.
-- frontend/replay: sync the selected model through
-  `DesktopSettingsRuntimeClient.setModel(...)` before SDK retry/edit resend
-  dispatch, while still passing the model into the SDK replay command, so
-  resend follows the same model-selection gate as normal sends. No migration
-  required.
+- frontend/replay: pass selected-model data into SDK retry/edit resend
+  commands so replay follows the SDK `send()` model-selection gate without a
+  renderer settings mutation. No migration required.
 - frontend/presentation: preserve legacy current-turn tool-call `requestId`
   values from the tool event payload as renderer `correlationId`s, so
   materialized display rows and live tool rows reconcile against the same

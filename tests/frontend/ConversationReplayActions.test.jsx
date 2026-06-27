@@ -14,7 +14,6 @@ import {
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
-import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
 
@@ -48,12 +47,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
   },
 }));
 
-jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient', () => ({
-  DesktopSettingsRuntimeClient: {
-    setModel: jest.fn(async () => undefined),
-  },
-}));
-
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
   DesktopTranscriptSessionRuntimeClient: {
     getActiveConversationRef: jest.fn(() => mockConversationRef),
@@ -74,7 +67,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient
 
 const mockEditAndResend = DesktopConversationContinuityService.editAndResend;
 const mockRetryTurn = DesktopConversationContinuityService.retryTurn;
-const mockSetModel = DesktopSettingsRuntimeClient.setModel;
 const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef;
 const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo;
 const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession;
@@ -103,7 +95,6 @@ describe('useConversationReplayActions', () => {
       turnRef: input.turnRef ?? 'sdk-replay-turn',
       queryMessageId: `${input.turnRef ?? 'sdk-replay-turn'}-sdk-evt-000002-user_message`,
     }));
-    mockSetModel.mockResolvedValue(undefined);
     mockGetConversationWorkspaceBinding.mockReturnValue({ workspacePath: null });
     useChatStore.setState({ activeConversationRef: null });
   });
@@ -131,13 +122,6 @@ describe('useConversationReplayActions', () => {
         modelId: 'claude-sonnet-4-5',
       },
     }));
-    expect(mockSetModel).toHaveBeenCalledWith({
-      modelProvider: 'anthropic',
-      modelId: 'claude-sonnet-4-5',
-    });
-    expect(mockSetModel.mock.invocationCallOrder[0]).toBeLessThan(
-      mockRetryTurn.mock.invocationCallOrder[0],
-    );
     expect(mockRetryTurn.mock.calls[0][0]).not.toHaveProperty('turnRef');
     expect(mockRetryTurn).toHaveBeenCalledTimes(1);
     expect(useChatStore.getState().getWorkspaceState('conv-existing').pendingTurn).toBeNull();
@@ -160,13 +144,6 @@ describe('useConversationReplayActions', () => {
         modelId: 'claude-sonnet-4-5',
       },
     }));
-    expect(mockSetModel).toHaveBeenCalledWith({
-      modelProvider: 'anthropic',
-      modelId: 'claude-sonnet-4-5',
-    });
-    expect(mockSetModel.mock.invocationCallOrder[0]).toBeLessThan(
-      mockEditAndResend.mock.invocationCallOrder[0],
-    );
     expect(mockEditAndResend.mock.calls[0][0]).not.toHaveProperty('turnRef');
     expect(mockRetryTurn).not.toHaveBeenCalled();
     expect(useChatStore.getState().getWorkspaceState('conv-existing').pendingTurn).toBeNull();

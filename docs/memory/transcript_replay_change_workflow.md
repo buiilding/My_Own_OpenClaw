@@ -139,7 +139,10 @@ flowchart LR
      renderer-published chat rows. That public facade exports only
      `executeReplayAction`, and hooks do not call replay preparation helpers,
      inspect `ConversationView`/message arrays, or call replay SDK commands
-     directly.
+     directly. Renderer replay may pass selected-model command data, but it must
+     not call the renderer settings facade to apply the model before dispatch;
+     SDK replay commands apply model selection through their normal `send()`
+     path.
    - Renderer app-runtime facades should not expose direct display timeline
      load/replace helpers to React. Low-level display timeline operations remain
      SDK/main-owner diagnostics and command-handler concerns; normal UI paths
