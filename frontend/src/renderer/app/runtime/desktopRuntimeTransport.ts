@@ -125,9 +125,7 @@ async function sendQuery(
     },
   );
   if (result && typeof result === 'object' && result.ok === false) {
-    const message = typeof result.error === 'string' && result.error.trim().length > 0
-      ? result.error
-      : 'Failed to send query through agent runtime';
+    const message = optionalExactString(result.error) ?? 'Failed to send query through agent runtime';
     throw new Error(message);
   }
   if (

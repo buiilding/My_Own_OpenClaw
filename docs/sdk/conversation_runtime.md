@@ -398,7 +398,10 @@ instead of becoming renderer-owned attachment lifecycle blobs. SDK-generated
 metadata, so the renderer/main command bridge preserves non-empty context
 whitespace instead of trimming file-content boundaries. Accepted
 `messageId` results returned from main also remain exact-only; padded results
-are ignored instead of being trimmed into SDK send identity.
+are ignored instead of being trimmed into SDK send identity. Renderer send
+command error text follows the same rule: exact non-empty main/SDK errors may
+surface, while padded error strings fall back to the generic send failure
+instead of being repaired into diagnostics.
 Conversation-view chat projection receives explicit renderer annotation records,
 not raw current chat messages, when copying local assistant feedback state onto
 SDK assistant rows. The renderer stores those annotations beside the

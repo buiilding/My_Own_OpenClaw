@@ -251,6 +251,30 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     })).rejects.toThrow('Failed to send command to the renderer app runtime');
   });
 
+  test('sendQuery accepts only exact command failure error text', async () => {
+    const { DesktopLiveTurnRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
+    );
+
+    mockInvokeAgentSdkCommand.mockResolvedValueOnce({
+      ok: false,
+      error: 'SDK command failed',
+    });
+    await expect(DesktopLiveTurnRuntimeClient.sendQuery({
+      text: 'hello',
+      conversationRef: 'conv-send',
+    })).rejects.toThrow('SDK command failed');
+
+    mockInvokeAgentSdkCommand.mockResolvedValueOnce({
+      ok: false,
+      error: ' SDK command failed ',
+    });
+    await expect(DesktopLiveTurnRuntimeClient.sendQuery({
+      text: 'hello',
+      conversationRef: 'conv-send',
+    })).rejects.toThrow('Failed to send command to the renderer app runtime');
+  });
+
   test('stop routes through SDK-shaped command invoke with exact refs', async () => {
     const { DesktopLiveTurnRuntimeClient } = require(
       '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',

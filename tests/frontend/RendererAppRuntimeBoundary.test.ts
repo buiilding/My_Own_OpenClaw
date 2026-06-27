@@ -1394,6 +1394,8 @@ describe('renderer app runtime boundary', () => {
     expect(liveTurnSource).toContain('function optionalExactField');
     expect(liveTurnSource).toContain('function hasOnlyAllowedResourceKeys');
     expect(liveTurnSource).toContain('Object.keys(resource).every((key) => allowedKeys.includes(key))');
+    expect(liveTurnSource).toContain('optionalExactString(result.error) ?? SEND_COMMAND_FAILURE_FALLBACK');
+    expect(liveTurnSource).not.toContain('result.error.trim()');
     expect(liveTurnSource).toContain('const turnRef = optionalExactString(input.turnRef)');
     expect(liveTurnSource).toContain("...optionalExactField('contentType', resource.contentType)");
     expect(liveTurnSource).toContain("...optionalExactField('filename', resource.filename)");
@@ -1434,6 +1436,8 @@ describe('renderer app runtime boundary', () => {
     expect(agentRuntimeTransportSource).toContain('function optionalAttachmentContext');
     expect(agentRuntimeTransportSource).toContain('attachment_context: optionalAttachmentContext(payload.attachment_context)');
     expect(agentRuntimeTransportSource).toContain('const queryMessageId = optionalExactString(messageId)');
+    expect(agentRuntimeTransportSource).toContain("const message = optionalExactString(result.error) ?? 'Failed to send query through agent runtime'");
+    expect(agentRuntimeTransportSource).not.toContain('result.error.trim()');
     expect(agentRuntimeTransportSource).toContain('result.messageId === result.messageId.trim()');
     expect(agentRuntimeTransportSource).not.toContain('return result.messageId.trim()');
     expect(agentRuntimeTransportSource).toContain('const turnRef = optionalExactString(payload.turn_ref)');

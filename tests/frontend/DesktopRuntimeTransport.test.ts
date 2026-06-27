@@ -44,6 +44,20 @@ describe('desktopRuntimeTransport', () => {
     }));
   });
 
+  test('rejects sendQuery with generic failure for padded main error text', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: false,
+      error: ' Main-specific failure ',
+    });
+
+    const transport = createDesktopRuntimeTransport('/repo');
+
+    await expect(transport.sendQuery({
+      text: 'retry this',
+      conversation_ref: 'conv-1',
+    })).rejects.toThrow('Failed to send query through agent runtime');
+  });
+
   test('resolves sendQuery when main accepts the query dispatch', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({
       ok: true,

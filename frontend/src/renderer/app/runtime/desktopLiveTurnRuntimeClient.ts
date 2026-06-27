@@ -136,8 +136,8 @@ function throwIfFailedIpcResult(result: unknown): void {
   if (!result || typeof result !== 'object' || !('ok' in result) || result.ok !== false) {
     return;
   }
-  const message = 'error' in result && typeof result.error === 'string' && result.error.trim()
-    ? result.error.trim()
+  const message = 'error' in result
+    ? optionalExactString(result.error) ?? SEND_COMMAND_FAILURE_FALLBACK
     : SEND_COMMAND_FAILURE_FALLBACK;
   throw new Error(message);
 }
