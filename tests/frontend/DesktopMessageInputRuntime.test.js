@@ -54,6 +54,31 @@ describe('desktopMessageInputRuntime', () => {
     });
   });
 
+  test('buildOutgoingMessage rejects padded attachment resource handles', () => {
+    expect(buildOutgoingMessage('   ', false, [
+      { base64: ' abc ', contentType: 'image/png', filename: 'shot.png' },
+    ], [
+      { filePath: ' /tmp/a.txt ', filename: 'a.txt' },
+      { filePath: '/tmp/b.txt', filename: ' b.txt ' },
+    ])).toBeNull();
+  });
+
+  test('buildOutgoingMessage omits padded optional clipboard metadata', () => {
+    const result = buildOutgoingMessage('  hello  ', false, [
+      {
+        base64: 'abc',
+        contentType: ' image/png ',
+        filename: ' shot.png ',
+      },
+    ]);
+
+    expect(result).toEqual({
+      text: 'hello',
+      clipboardImages: [{ base64: 'abc' }],
+      readableFiles: [],
+    });
+  });
+
   test('buildOutgoingMessage includes normalized readableFiles payload', () => {
     const result = buildOutgoingMessage('  hello  ', false, [], [
       { id: 'file-preview-id', filePath: '/tmp/a.txt', filename: 'a.txt' },

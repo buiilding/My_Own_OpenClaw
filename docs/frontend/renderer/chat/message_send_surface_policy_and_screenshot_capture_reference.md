@@ -93,6 +93,10 @@ for normal sends; filenames travel only as fields on typed SDK resources and are
 resolved into visible metadata by SDK resource handling. Normal send payloads
 therefore carry only composer text plus typed SDK resource handles; replay and
 SDK resource resolution own durable screenshot aliases and attachment metadata.
+`DesktopMessageInputRuntime.buildOutgoingMessage(...)` applies the same exact
+resource-handle rule before creating composer object payloads, so malformed
+preview rows do not produce an attachment-only default-text send that the SDK
+payload normalizer would later strip to text-only.
 
 `clipboardImages[]` metadata fields:
 
@@ -298,6 +302,7 @@ Fatal failure:
 - voice utterance-end keeps dictated text in the composer until manual send
 - pasted image preview lifecycle + payload shape + remove action
 - file-picker trigger and selected readable-file payload shape
+- exact attachment handle gating before attachment-only default text is created
 
 ## Drift Hotspots
 

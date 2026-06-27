@@ -62,6 +62,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/send: reject padded typed attachment resource handles instead of
   forwarding repaired clipboard image or readable-file values to SDK send.
   Optional clipboard metadata is omitted when malformed. No migration required.
+- frontend/input: reject malformed composer attachment resource handles before
+  creating attachment-only default-text sends, keeping preview-only state out of
+  SDK resource intent. No migration required.
 - frontend/projection: stop relabeling streaming SDK assistant display rows as
   `assistant_delta`; the display adapter now preserves SDK-authored
   `metadata.sourceEventType` or the generic row type while deriving completion

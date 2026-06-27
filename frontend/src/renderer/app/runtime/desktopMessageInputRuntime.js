@@ -7,27 +7,31 @@ function normalizeMessageForSend(inputValue) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function exactNonEmptyString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function isClipboardImage(clipboardImage) {
-  return Boolean(
-    clipboardImage
-    && typeof clipboardImage === 'object'
-    && typeof clipboardImage.base64 === 'string'
-    && clipboardImage.base64.length > 0,
-  );
+  return Boolean(clipboardImage && typeof clipboardImage === 'object' && exactNonEmptyString(clipboardImage.base64));
 }
 
 function normalizeClipboardImage(clipboardImage) {
   if (!isClipboardImage(clipboardImage)) {
     return null;
   }
+  const base64 = exactNonEmptyString(clipboardImage.base64);
+  const contentType = exactNonEmptyString(clipboardImage.contentType);
+  const filename = exactNonEmptyString(clipboardImage.filename);
   const normalizedImage = {
-    base64: clipboardImage.base64,
+    base64,
   };
-  if (typeof clipboardImage.contentType === 'string') {
-    normalizedImage.contentType = clipboardImage.contentType;
+  if (contentType) {
+    normalizedImage.contentType = contentType;
   }
-  if (typeof clipboardImage.filename === 'string') {
-    normalizedImage.filename = clipboardImage.filename;
+  if (filename) {
+    normalizedImage.filename = filename;
   }
   return normalizedImage;
 }
@@ -45,10 +49,8 @@ function isReadableFileAttachment(readableFile) {
   return Boolean(
     readableFile
     && typeof readableFile === 'object'
-    && typeof readableFile.filePath === 'string'
-    && readableFile.filePath.length > 0
-    && typeof readableFile.filename === 'string'
-    && readableFile.filename.length > 0,
+    && exactNonEmptyString(readableFile.filePath)
+    && exactNonEmptyString(readableFile.filename),
   );
 }
 
@@ -59,8 +61,8 @@ function normalizeReadableFiles(readableFiles) {
   return readableFiles
     .filter((readableFile) => isReadableFileAttachment(readableFile))
     .map((readableFile) => ({
-      filePath: readableFile.filePath,
-      filename: readableFile.filename,
+      filePath: exactNonEmptyString(readableFile.filePath),
+      filename: exactNonEmptyString(readableFile.filename),
     }));
 }
 
