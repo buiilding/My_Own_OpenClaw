@@ -614,6 +614,9 @@ describe('useDashboardConversations', () => {
           type: 'user_message',
           content: 'cached',
         }],
+        liveTurn: {},
+        surfaces: {},
+        actions: {},
       },
     }));
 

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tests: make dashboard cached `ConversationView` fixtures use the
+  complete SDK view envelope before asserting open-flow preservation, matching
+  the shared ConversationView gate. No migration required.
 - frontend/pill: keep minimal chat-pill trace message counts on the no-view
   fallback path only, so valid SDK `ConversationView` surfaces cannot reopen
   raw surface messages for diagnostics. No migration required.

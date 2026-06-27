@@ -148,6 +148,9 @@ describe('desktopDashboardConversationLoadRuntime', () => {
           conversationView: {
             conversationRef: 'conv-cached',
             displayRows: [{ id: 'sdk-row' }],
+            liveTurn: {},
+            surfaces: {},
+            actions: {},
           },
         }
         : {
