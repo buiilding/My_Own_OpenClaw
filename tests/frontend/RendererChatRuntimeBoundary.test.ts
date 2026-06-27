@@ -1346,6 +1346,9 @@ describe('renderer chat runtime boundary', () => {
     expect(libraryClientSource).not.toContain('loadForDisplay');
     expect(libraryClientSource).toContain('function readExactIdentityString');
     expect(libraryClientSource).not.toContain('conversationRef: view.conversationRef || conversationRef');
+    expect(libraryClientSource).not.toContain('function readSnapshotDisplayRows');
+    expect(libraryClientSource).not.toContain('row?.conversationRef === normalizedConversationRef');
+    expect(libraryClientSource).not.toContain('displayRows: readSnapshotDisplayRows');
     expect(displayProjectionSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
     expect(displayProjectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(displayProjectionSource).toContain('export const DesktopConversationDisplayProjection = Object.freeze');

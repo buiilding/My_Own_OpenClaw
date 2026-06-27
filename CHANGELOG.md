@@ -33,6 +33,9 @@ All notable changes to WindieOS will be documented in this file.
   sends and the live-turn command facade so normal sends apply model changes
   only through the awaited SDK settings command before dispatch. No migration
   required.
+- frontend/dashboard: stop re-filtering SDK `ConversationView.displayRows` in
+  the renderer conversation library client; dashboard resume now validates the
+  view identity and preserves the SDK-authored row list. No migration required.
 - frontend/revisions: require exact conversation refs, revision ids, optional
   fork cut row ids, and explicit fork conversation refs inside the desktop
   continuity facade before invoking SDK revision commands, so direct facade

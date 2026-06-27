@@ -84,6 +84,9 @@ Resume call chain:
 - `useDashboardConversations` loads the SDK `ConversationView` through
   `DesktopConversationLibraryClient.loadConversationView(...)`, which invokes
   the SDK-shaped `conversation.loadDisplay` command through `windie:invoke`
+- the library client validates the returned view identity against the requested
+  conversation ref, then preserves the SDK-authored `displayRows` list instead
+  of filtering or repairing row-level conversation refs in the renderer
 - shell marks backend inference state as unknown so the continuity runtime can lazily rehydrate before the next backend-dependent action
 - shell synchronizes transcript state and chat store
 

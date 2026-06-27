@@ -216,7 +216,7 @@ describe('DesktopConversationLibraryClient', () => {
     )).toBe(false);
   });
 
-  test('loads ConversationView with rows filtered to the requested conversation', async () => {
+  test('loads matching ConversationView without rewriting SDK display rows', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValueOnce({
       view: {
         conversationRef: 'conv-1',
@@ -232,6 +232,7 @@ describe('DesktopConversationLibraryClient', () => {
       conversationRef: 'conv-1',
       displayRows: [
         { id: 'row-view', conversationRef: 'conv-1', role: 'user', type: 'user_message', content: 'yo from view' },
+        { id: 'row-view-old', conversationRef: 'conv-old', role: 'assistant', type: 'assistant_message', content: 'old view' },
       ],
       actions: { canRetry: true },
     });

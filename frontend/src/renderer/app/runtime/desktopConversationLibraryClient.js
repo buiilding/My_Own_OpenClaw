@@ -100,17 +100,6 @@ function emitConversationListDiagnostic(context, event) {
   void Promise.resolve(invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.DIAGNOSTICS_APPEND, payload)).catch(() => undefined);
 }
 
-function readSnapshotDisplayRows(snapshot, conversationRef) {
-  const normalizedConversationRef = readExactIdentityString(conversationRef);
-  if (!normalizedConversationRef) {
-    return [];
-  }
-  const rows = Array.isArray(snapshot?.view?.displayRows)
-    ? snapshot.view.displayRows
-    : [];
-  return rows.filter((row) => row?.conversationRef === normalizedConversationRef);
-}
-
 function readSnapshotConversationView(snapshot, conversationRef) {
   const view = snapshot?.view && typeof snapshot.view === 'object'
     ? snapshot.view
@@ -126,7 +115,6 @@ function readSnapshotConversationView(snapshot, conversationRef) {
   return {
     ...view,
     conversationRef: viewConversationRef,
-    displayRows: readSnapshotDisplayRows(snapshot, viewConversationRef),
   };
 }
 

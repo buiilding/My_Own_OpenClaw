@@ -103,7 +103,9 @@ Transcript conversation pagination helper:
 
 - dashboard open uses `DesktopConversationLibraryClient.loadConversationView(...)`
   to invoke the SDK-shaped `conversation.loadDisplay` command and then renders
-  the returned `ConversationView.displayRows`.
+  the returned `ConversationView.displayRows`. The renderer library client
+  validates the returned view identity, but it does not filter or repair the
+  SDK-authored display rows inside that view.
 - manual compaction and continuity rehydrate use SDK store load helpers such as
   `conversation.loadRehydrate`; renderer feature code should stay on these
   app-runtime and store facades instead of direct conversation IPC fetches.

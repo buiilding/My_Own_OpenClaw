@@ -169,7 +169,9 @@ visibility.
 Dashboard open keeps normal chat rendering on `ConversationView.displayRows`
 through the shared presentation/view projection path. The hook must not convert
 display rows into chat-store message-list state or revive the removed
-`loadDisplayRows` facade.
+`loadDisplayRows` facade. The library client accepts only an exact returned
+`ConversationView.conversationRef` for the requested conversation, but it does
+not filter or rewrite the view's SDK-authored `displayRows`.
 
 Failure is reported via `recentConversationsError`.
 
