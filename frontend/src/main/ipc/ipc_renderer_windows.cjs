@@ -13,6 +13,29 @@ function isDebugStreamTraceEnabled() {
   return isDebugFlagEnabled('streamEvents');
 }
 
+function readExactNonEmptyString(value) {
+  return typeof value === 'string' && value && value.trim() === value ? value : null;
+}
+
+function isSdkConversationView(conversationView) {
+  return Boolean(
+    conversationView
+      && typeof conversationView === 'object'
+      && !Array.isArray(conversationView)
+      && readExactNonEmptyString(conversationView.conversationRef)
+      && Array.isArray(conversationView.displayRows)
+      && conversationView.liveTurn
+      && typeof conversationView.liveTurn === 'object'
+      && !Array.isArray(conversationView.liveTurn)
+      && conversationView.surfaces
+      && typeof conversationView.surfaces === 'object'
+      && !Array.isArray(conversationView.surfaces)
+      && conversationView.actions
+      && typeof conversationView.actions === 'object'
+      && !Array.isArray(conversationView.actions)
+  );
+}
+
 function trackRendererWindow({
   win,
   rendererWindows,
@@ -53,22 +76,23 @@ function trackRendererWindow({
     const latestConversationView = typeof getLatestConversationView === 'function'
       ? getLatestConversationView()
       : null;
+    const sdkConversationView = isSdkConversationView(latestConversationView)
+      ? latestConversationView
+      : null;
     if (
       (latestCurrentTurn && typeof latestCurrentTurn === 'object')
-      || (latestConversationView && typeof latestConversationView === 'object')
+      || sdkConversationView
     ) {
       webContents.send(DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN, {
         conversationRef: (
-          latestConversationView?.conversationRef
+          sdkConversationView?.conversationRef
           || latestCurrentTurn?.conversationRef
           || null
         ),
         currentTurn: latestCurrentTurn && typeof latestCurrentTurn === 'object'
           ? latestCurrentTurn
           : null,
-        view: latestConversationView && typeof latestConversationView === 'object'
-          ? latestConversationView
-          : null,
+        view: sdkConversationView,
       });
     }
     if (typeof getLatestPendingTurn === 'function') {

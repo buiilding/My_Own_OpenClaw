@@ -805,11 +805,13 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('agent.prepareRetryTurn(');
     expect(source).toContain('readExactOptionalString');
     expect(source).toContain('requireExactCommandConversationRef');
-    expect(source).toContain('optionalExactCommandString');
     expect(source).toContain('requireCommandText');
-    expect(source).toContain('delete basePayload.agent_definition');
     expect(source).toContain("messageId: requireExactCommandString(payload, 'messageId', 'message id')");
-    expect(source).toContain("messageId: optionalExactCommandString(payload, 'messageId', 'message id')");
+    expect(source).not.toContain('optionalExactCommandString');
+    expect(
+      source.match(/messageId: requireExactCommandString\(payload, 'messageId', 'message id'\)/g)
+        || [],
+    ).toHaveLength(2);
     expect(source).not.toContain('runtimePayload.text = text.trim()');
     expect(source).not.toContain("const text = requireCommandString(payload, 'text', 'edited text')");
     expect(source).not.toContain('messageId: normalizeOptionalString(payload.messageId)');

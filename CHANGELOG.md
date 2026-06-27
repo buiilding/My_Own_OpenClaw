@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: require renderer-window SDK view hydration to see the full
+  `ConversationView` envelope before forwarding `latestConversationView`,
+  leaving partial objects on the no-view current-turn fallback path. No
+  migration required.
 - frontend/stop: require the main-process stop target resolver to see a full
   SDK `ConversationView` envelope before it suppresses pending-bridge stop
   fallback. No migration required.

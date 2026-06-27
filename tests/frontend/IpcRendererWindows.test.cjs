@@ -26,6 +26,36 @@ function createWindowMock() {
   };
 }
 
+function conversationViewFixture(overrides = {}) {
+  return {
+    conversationRef: 'conv-view',
+    displayRows: [],
+    liveTurn: {
+      turnRef: 'turn-view',
+      phase: 'streaming',
+      entries: [{ id: 'entry-view' }],
+      isBusy: true,
+      isTerminal: false,
+      canStop: true,
+    },
+    surfaces: {
+      responseOverlay: {
+        mode: 'response',
+        visible: true,
+        ownerConversationRef: 'conv-view',
+        turnRef: 'turn-view',
+        guardRef: 'turn-view',
+      },
+    },
+    actions: {
+      canRetry: false,
+      canEdit: false,
+      canStop: true,
+    },
+    ...overrides,
+  };
+}
+
 describe('ipc_renderer_windows', () => {
   test('syncs latest SDK current turn and ConversationView when a renderer window is tracked', () => {
     const win = createWindowMock();
@@ -38,8 +68,9 @@ describe('ipc_renderer_windows', () => {
       toolEvents: [],
       lastError: null,
     };
-    const conversationView = {
+    const conversationView = conversationViewFixture({
       conversationRef: 'conv-1',
+      displayRows: [],
       liveTurn: {
         turnRef: 'turn-1',
         phase: 'complete',
@@ -57,7 +88,12 @@ describe('ipc_renderer_windows', () => {
           guardRef: 'turn-1',
         },
       },
-    };
+      actions: {
+        canRetry: true,
+        canEdit: true,
+        canStop: false,
+      },
+    });
 
     const runtime = createRendererWindowRuntime({
       getResponseOverlayPhase: () => 'tool-output',
@@ -79,26 +115,9 @@ describe('ipc_renderer_windows', () => {
 
   test('syncs latest ConversationView without raw current turn when a renderer window is tracked', () => {
     const win = createWindowMock();
-    const conversationView = {
+    const conversationView = conversationViewFixture({
       conversationRef: 'conv-view',
-      liveTurn: {
-        turnRef: 'turn-view',
-        phase: 'streaming',
-        entries: [{ id: 'entry-view' }],
-        isBusy: true,
-        isTerminal: false,
-        canStop: true,
-      },
-      surfaces: {
-        responseOverlay: {
-          mode: 'response',
-          visible: true,
-          ownerConversationRef: 'conv-view',
-          turnRef: 'turn-view',
-          guardRef: 'turn-view',
-        },
-      },
-    };
+    });
 
     const runtime = createRendererWindowRuntime({
       getResponseOverlayPhase: () => 'streaming',
@@ -112,6 +131,71 @@ describe('ipc_renderer_windows', () => {
       currentTurn: null,
       view: conversationView,
     });
+  });
+
+  test('keeps partial ConversationView objects off renderer hydration', () => {
+    const win = createWindowMock();
+    const currentTurn = {
+      conversationRef: 'conv-current',
+      turnRef: 'turn-current',
+      phase: 'streaming',
+      assistantText: 'still streaming',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    };
+    const partialConversationView = {
+      conversationRef: 'conv-partial',
+      liveTurn: {
+        turnRef: 'turn-partial',
+        phase: 'streaming',
+      },
+      surfaces: {
+        responseOverlay: {
+          mode: 'response',
+        },
+      },
+    };
+
+    const runtime = createRendererWindowRuntime({
+      getResponseOverlayPhase: () => 'streaming',
+      getLatestCurrentTurn: () => currentTurn,
+      getLatestConversationView: () => partialConversationView,
+    });
+    runtime.track(win);
+
+    expect(win.webContents.send).toHaveBeenCalledWith('windie:current-turn', {
+      conversationRef: 'conv-current',
+      currentTurn,
+      view: null,
+    });
+    expect(win.webContents.send).not.toHaveBeenCalledWith('windie:current-turn', {
+      conversationRef: 'conv-partial',
+      currentTurn,
+      view: partialConversationView,
+    });
+  });
+
+  test('does not hydrate renderer current-turn state from a partial view alone', () => {
+    const win = createWindowMock();
+
+    const runtime = createRendererWindowRuntime({
+      getResponseOverlayPhase: () => 'idle',
+      getLatestCurrentTurn: () => null,
+      getLatestConversationView: () => ({
+        conversationRef: 'conv-partial',
+        liveTurn: {
+          turnRef: 'turn-partial',
+          phase: 'streaming',
+        },
+      }),
+    });
+    runtime.track(win);
+
+    expect(win.webContents.send).not.toHaveBeenCalledWith(
+      'windie:current-turn',
+      expect.anything(),
+    );
   });
 
   test('syncs latest pending turn when a renderer window is tracked', () => {

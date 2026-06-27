@@ -764,6 +764,12 @@ Owns renderer-window lifecycle and generic fan-out:
 - keeps renderer window registry construction private behind the runtime facade
   while preserving track, broadcast, reset, and size accessors
 - runtime track: register + prune windows, sync current overlay phase after load
+- runtime track: hydrates `windie:current-turn` with
+  `latestConversationView` only when it has the full SDK `ConversationView`
+  envelope (`conversationRef`, `displayRows`, `liveTurn`, `surfaces`, and
+  `actions`). Partial objects remain off the view payload so late renderer
+  windows stay on the no-view current-turn fallback path until SDK view
+  authority exists.
 - runtime track: optionally replays buffered in-flight turn events to late windows (`getReplayEvents`)
 - runtime track: replays the latest pending renderer-composed user turn
   through `windie:pending-turn` when a secondary renderer mounts before SDK
