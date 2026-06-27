@@ -181,6 +181,11 @@ trimmed into no-view/pending routing state.
   surface messages with the empty view-owned list or nulling the no-view
   `sdkLiveTurn`, so direct selector callers cannot make partial
   `conversationView` objects suppress no-view state.
+- ChatInterface presentation applies the same full SDK view-envelope predicate
+  before using view display rows, active revision, or view cache identity, and
+  passes `null` to the thread presenter for partial objects. Invalid
+  `conversationView` values stay on the no-view messages/`sdkLiveTurn` fallback
+  path and do not churn the view-owned presentation cache.
 - Stop-target resolution and stopped-turn workspace cleanup also use the shared
   SDK view-shape predicate before treating `conversationView` as stop
   authority or suppressing no-view `sdkLiveTurn`, leaving partial objects on
@@ -431,9 +436,11 @@ calls cannot combine `ConversationView` with raw messages or the no-view
 `sdkLiveTurn` fallback. Response-overlay surface state applies the same guard
 before resolving overlay entries and dismissal targets. The view plus pending
 bridge own visible lifecycle and stop authority.
-The interface presentation adapter also blanks the no-view `sdkLiveTurn`
-fallback before invoking the thread presenter when a `ConversationView` exists,
-so stale raw current-turn rows cannot re-enter through the presentation layer.
+The interface presentation adapter also requires the complete SDK
+`ConversationView` envelope before it blanks the no-view `sdkLiveTurn` fallback
+or passes a view to the thread presenter, so partial objects cannot suppress raw
+fallback rows and stale raw current-turn rows cannot re-enter through the
+presentation layer after a real view exists.
 The thread presenter enforces the same read-model boundary for direct
 app-runtime callers: with `ConversationView` present, its base rows must be
 SDK display-row messages or the explicit renderer pending bridge. Untagged raw
@@ -545,7 +552,9 @@ Workspace-binding invariant:
 presentation view model. It combines SDK `ConversationView`, the no-view
 current-turn bridge, stored messages, the local pending bridge, and
 SDK display-row `actions` into `renderedMessages`, edit/retry availability, and
-active revision id. When a view exists, it builds base thread messages from
+active revision id. It treats `conversationView` as SDK-owned input only after
+the full envelope is present (`conversationRef`, `displayRows`, `liveTurn`,
+`surfaces`, and `actions`). When a view exists, it builds base thread messages from
 `ConversationView.displayRows` through
 `DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`
 and passes only renderer annotation records selected by the surface/interface

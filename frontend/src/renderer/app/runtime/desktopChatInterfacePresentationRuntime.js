@@ -17,8 +17,21 @@ const {
   buildPendingBridgeChatMessages,
 } = DesktopConversationDisplayProjection;
 
-function isConversationView(value) {
+function isObjectRecord(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function isConversationView(value) {
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+  return Boolean(
+    readExactIdentityString(value.conversationRef)
+      && Array.isArray(value.displayRows)
+      && isObjectRecord(value.liveTurn)
+      && isObjectRecord(value.surfaces)
+      && isObjectRecord(value.actions),
+  );
 }
 
 function readExactIdentityString(value) {
@@ -113,16 +126,17 @@ function buildChatInterfacePresentationState({
   sdkLiveTurn = null,
 } = {}) {
   const hasConversationView = isConversationView(conversationView);
+  const effectiveConversationView = hasConversationView ? conversationView : null;
   const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
   const effectiveMessages = hasConversationView ? null : messages;
   const sdkLiveTurnCacheKey = buildSdkLiveTurnCacheKey(effectiveSdkLiveTurn);
   if (
     chatInterfacePresentationCache.state
     && chatInterfacePresentationCache.activeConversationRef === activeConversationRef
-    && chatInterfacePresentationCache.conversationView === conversationView
-    && chatInterfacePresentationCache.conversationViewDisplayRows === conversationView?.displayRows
-    && chatInterfacePresentationCache.conversationViewLiveTurn === conversationView?.liveTurn
-    && chatInterfacePresentationCache.conversationViewLiveEntries === conversationView?.liveTurn?.entries
+    && chatInterfacePresentationCache.conversationView === effectiveConversationView
+    && chatInterfacePresentationCache.conversationViewDisplayRows === effectiveConversationView?.displayRows
+    && chatInterfacePresentationCache.conversationViewLiveTurn === effectiveConversationView?.liveTurn
+    && chatInterfacePresentationCache.conversationViewLiveEntries === effectiveConversationView?.liveTurn?.entries
     && chatInterfacePresentationCache.messages === effectiveMessages
     && chatInterfacePresentationCache.pendingTurn === pendingTurn
     && chatInterfacePresentationCache.rendererAnnotations === rendererAnnotations
@@ -145,7 +159,7 @@ function buildChatInterfacePresentationState({
   }
   const baseMessages = hasConversationView
     ? buildConversationViewChatMessages({
-      conversationView,
+      conversationView: effectiveConversationView,
       pendingTurn,
       rendererAnnotations,
     })
@@ -155,20 +169,20 @@ function buildChatInterfacePresentationState({
     });
   const state = {
     renderedMessages: buildThreadPresentationMessages(baseMessages, {
-      conversationView,
+      conversationView: effectiveConversationView,
       sdkLiveTurn: effectiveSdkLiveTurn,
       activeConversationRef,
     }),
     activeRevisionId: hasConversationView
-      ? conversationView?.revisionId || null
+      ? effectiveConversationView?.revisionId || null
       : null,
   };
   chatInterfacePresentationCache = {
     activeConversationRef,
-    conversationView,
-    conversationViewDisplayRows: conversationView?.displayRows,
-    conversationViewLiveTurn: conversationView?.liveTurn,
-    conversationViewLiveEntries: conversationView?.liveTurn?.entries,
+    conversationView: effectiveConversationView,
+    conversationViewDisplayRows: effectiveConversationView?.displayRows,
+    conversationViewLiveTurn: effectiveConversationView?.liveTurn,
+    conversationViewLiveEntries: effectiveConversationView?.liveTurn?.entries,
     messages: effectiveMessages,
     pendingTurn,
     rendererAnnotations,

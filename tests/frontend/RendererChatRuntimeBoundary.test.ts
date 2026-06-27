@@ -4062,8 +4062,17 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).not.toContain('DesktopPendingTurnBridgeRuntime');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('buildPendingTurnUserMessage');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('function buildNoViewPendingBridgeMessages');
+    expect(chatInterfacePresentationRuntimeSource).toContain('function isObjectRecord(value)');
+    expect(chatInterfacePresentationRuntimeSource).toContain('function isConversationView(value)');
+    expect(chatInterfacePresentationRuntimeSource).toContain('readExactIdentityString(value.conversationRef)');
+    expect(chatInterfacePresentationRuntimeSource).toContain('Array.isArray(value.displayRows)');
+    expect(chatInterfacePresentationRuntimeSource).toContain('isObjectRecord(value.liveTurn)');
+    expect(chatInterfacePresentationRuntimeSource).toContain('isObjectRecord(value.surfaces)');
+    expect(chatInterfacePresentationRuntimeSource).toContain('isObjectRecord(value.actions)');
+    expect(chatInterfacePresentationRuntimeSource).toContain('const effectiveConversationView = hasConversationView ? conversationView : null');
     expect(chatInterfacePresentationRuntimeSource).toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');
     expect(chatInterfacePresentationRuntimeSource).toContain('const effectiveMessages = hasConversationView ? null : messages');
+    expect(chatInterfacePresentationRuntimeSource).toContain('chatInterfacePresentationCache.conversationView === effectiveConversationView');
     expect(chatInterfacePresentationRuntimeSource).toContain('chatInterfacePresentationCache.messages === effectiveMessages');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildSdkLiveTurnCacheKey');
     expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurnPresentationEntries');
@@ -4072,6 +4081,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).not.toContain('sdkLiveTurnReasoningText');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('sdkLiveTurnToolEvents');
     expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurn: effectiveSdkLiveTurn');
+    expect(chatInterfacePresentationRuntimeSource).toContain('conversationView: effectiveConversationView');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('currentTurnProjection = null');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('selectRendererMessageAnnotations');
     expect(chatInterfacePresentationRuntimeSource).toContain('rendererAnnotations = []');

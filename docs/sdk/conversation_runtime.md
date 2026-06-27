@@ -271,7 +271,10 @@ trace, or reset identity. Chat-pill trace snapshots treat `conversationView` as
 view-owned input only when the complete SDK view envelope is present
 (`conversationRef`, `displayRows`, `liveTurn`, `surfaces`, and `actions`);
 partial objects stay on the no-view SDK live-turn fallback path instead of
-suppressing fallback identity.
+suppressing fallback identity. ChatInterface presentation uses the same
+envelope before choosing SDK view rows, active revision, or view cache identity,
+and passes `null` downstream for partial objects so no-view messages and
+`sdkLiveTurn` remain the only fallback inputs.
 Desktop live-surface overlay identity accepts only exact SDK refs from
 `snapshot.view.liveTurn`, `snapshot.view.surfaces.responseOverlay`, or
 `snapshot.currentTurn.presentation.overlayIntent`; padded refs are ignored
@@ -555,8 +558,9 @@ SDK display-row messages plus the explicit renderer pending-send bridge as its
 base rows. Raw renderer transcript rows are ignored in that mode so view-owned
 live rows cannot be positioned, deduped, or suppressed by stale chat-store
 messages. Main chat presentation also ignores raw workspace `messages` for its
-cache identity while a `ConversationView` exists; raw message-array churn is not
-a visible SDK-view invalidation signal. Empty renderer annotation projections
+cache identity while a `ConversationView` exists; it first requires the complete
+SDK view envelope before entering that mode. Raw message-array churn is not a
+visible SDK-view invalidation signal. Empty renderer annotation projections
 are stable; only actual renderer-local assistant feedback creates an annotation
 signal.
 

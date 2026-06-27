@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-interface: require the full SDK `ConversationView` envelope
+  before ChatInterface presentation treats `conversationView` as the normal read
+  model, keeping partial objects on the no-view message/live-turn fallback path.
+  No migration required.
 - frontend/pill: require the full SDK `ConversationView` envelope before chat
   pill trace snapshots use view live-turn or pill-surface identity, keeping
   partial `conversationView` objects on the no-view SDK live-turn fallback path.

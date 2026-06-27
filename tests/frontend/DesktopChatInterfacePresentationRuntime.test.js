@@ -7,6 +7,22 @@ const {
   resolveConversationViewStoreRef,
 } = DesktopChatInterfacePresentationRuntime;
 
+function sdkConversationView(overrides = {}) {
+  return {
+    conversationRef: 'conv-1',
+    displayRows: [],
+    liveTurn: {
+      entries: [],
+    },
+    surfaces: {},
+    actions: {
+      canEdit: true,
+      canRetry: true,
+    },
+    ...overrides,
+  };
+}
+
 describe('DesktopChatInterfacePresentationRuntime', () => {
   test('does not project ConversationView action metadata as a global message gate', () => {
     const state = buildChatInterfacePresentationState({
@@ -18,6 +34,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         liveTurn: {
           entries: [],
         },
+        surfaces: {},
         actions: {
           canEdit: false,
           canRetry: true,
@@ -63,6 +80,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         liveTurn: {
           entries: [],
         },
+        surfaces: {},
         actions: {
           canEdit: true,
           canRetry: true,
@@ -105,6 +123,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         liveTurn: {
           entries: [],
         },
+        surfaces: {},
         actions: {
           canEdit: true,
           canRetry: true,
@@ -149,6 +168,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         liveTurn: {
           entries: [],
         },
+        surfaces: {},
         actions: {
           canEdit: true,
           canRetry: true,
@@ -259,6 +279,59 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     expect(state).not.toHaveProperty('canRetryMessages');
     expect(state.activeRevisionId).toBeNull();
     expect(state).not.toHaveProperty('replayFallbackMessages');
+  });
+
+  test('keeps partial conversation view objects on the no-view fallback path', () => {
+    const messages = [{
+      id: 'raw-user-row',
+      sender: 'user',
+      text: 'raw prompt',
+      turnRef: 'turn-live',
+    }];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-live',
+      phase: 'streaming',
+      assistantText: 'fallback live answer',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    };
+    const rendererAnnotations = [];
+    const firstState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        liveTurn: {
+          entries: [],
+        },
+      },
+      messages,
+      rendererAnnotations,
+      sdkLiveTurn,
+    });
+    const secondState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [],
+      },
+      messages,
+      rendererAnnotations,
+      sdkLiveTurn,
+    });
+
+    expect(secondState).toBe(firstState);
+    expect(secondState.activeRevisionId).toBeNull();
+    expect(secondState.renderedMessages).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'raw-user-row',
+        text: 'raw prompt',
+      }),
+      expect.objectContaining({
+        text: 'fallback live answer',
+      }),
+    ]));
   });
 
   test('keeps no-view SDK presentation cached across ignored raw live-turn changes', () => {
@@ -420,6 +493,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
             text: 'view live answer',
           }],
         },
+        surfaces: {},
         actions: {
           canEdit: true,
           canRetry: true,
@@ -478,6 +552,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
           turnRef: 'turn-view',
           entries: [],
         },
+        surfaces: {},
         actions: {
           canEdit: true,
           canRetry: true,
@@ -526,6 +601,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         turnRef: 'turn-view',
         entries: [],
       },
+      surfaces: {},
       actions: {
         canEdit: true,
         canRetry: true,
@@ -576,6 +652,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         turnRef: 'turn-view',
         entries: [],
       },
+      surfaces: {},
       actions: {
         canEdit: true,
         canRetry: true,
@@ -614,8 +691,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
   test('resolves a conversation view store ref from exact SDK view identity', () => {
     expect(resolveConversationViewStoreRef({
       activeConversationRef: 'conv-1',
-      view: {
-        conversationRef: 'conv-1',
+      view: sdkConversationView({
         displayRows: [{
           id: 'user-row',
           conversationRef: 'conv-1',
@@ -625,16 +701,15 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
           type: 'user_message',
           content: 'new text',
         }],
-      },
+      }),
     })).toBe('conv-1');
 
     expect(resolveConversationViewStoreRef({
       activeConversationRef: 'conv-active',
       targetConversationRef: 'conv-view',
-      view: {
+      view: sdkConversationView({
         conversationRef: 'conv-view',
-        displayRows: [],
-      },
+      }),
     })).toBe('conv-view');
   });
 
@@ -642,27 +717,24 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     expect(resolveConversationViewStoreRef({
       activeConversationRef: 'conv-view',
       targetConversationRef: 'conv-view',
-      view: {
+      view: sdkConversationView({
         conversationRef: ' conv-view ',
-        displayRows: [],
-      },
+      }),
     })).toBeNull();
 
     expect(resolveConversationViewStoreRef({
       activeConversationRef: 'conv-view',
       targetConversationRef: 'conv-target',
-      view: {
+      view: sdkConversationView({
         conversationRef: 'conv-view',
-        displayRows: [],
-      },
+      }),
     })).toBeNull();
 
     expect(resolveConversationViewStoreRef({
       activeConversationRef: 'conv-active',
-      view: {
+      view: sdkConversationView({
         conversationRef: 'conv-view',
-        displayRows: [],
-      },
+      }),
     })).toBeNull();
   });
 
@@ -670,9 +742,9 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     expect(resolveConversationViewStoreRef({
       activeConversationRef: null,
       targetConversationRef: null,
-      view: {
-        displayRows: [],
-      },
+      view: sdkConversationView({
+        conversationRef: undefined,
+      }),
     })).toBeNull();
   });
 });
