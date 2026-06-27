@@ -2079,6 +2079,8 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('chatStore');
     expect(replayRuntimeSource).not.toContain('.getState()');
     expect(replayRuntimeSource).not.toContain('activeConversationRef,');
+    expect(replayRuntimeSource).not.toContain('sessionInfo = null');
+    expect(replayRuntimeSource).not.toContain('deferredQueryModelSelection');
     expect(replayRuntimeSource).not.toContain('DesktopSettingsRuntimeClient');
     expect(replayRuntimeSource).not.toContain('.setModel(');
     expect(replayRuntimeSource).not.toContain('const replayTurnRef = crypto.randomUUID');

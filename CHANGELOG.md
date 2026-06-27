@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: resolve transcript session scope and selected-model replay
+  data inside the replay runtime facade instead of accepting caller-provided
+  overrides, keeping React replay actions to row intent plus active-scope
+  plumbing. No migration required.
 - frontend/transport: drop malformed non-object SDK `capture_meta` at the
   renderer desktop transport boundary, preserving valid SDK resource metadata
   while preventing renderer attachment lifecycle blobs from crossing

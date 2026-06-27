@@ -85,14 +85,9 @@ function replayArgs(overrides = {}) {
   const { chatStore, state } = chatStoreBundle;
   return {
     chatStore,
-    deferredQueryModelSelection: null,
     messages: [],
     replayUiContext: {
       getActiveConversationRef: () => state.activeConversationRef,
-    },
-    sessionInfo: {
-      conversationRef: 'conv-replay',
-      userId: 'user-1',
     },
     ...overrides,
   };
@@ -147,6 +142,10 @@ describe('desktopConversationReplayRuntime', () => {
     const chatStoreBundle = createChatStore();
     chatStoreBundle.state.activeConversationRef = 'conv-store-active';
     DesktopTranscriptSessionRuntimeClient.getActiveConversationRef.mockReturnValue(null);
+    DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo.mockReturnValue({
+      conversationRef: null,
+      userId: 'user-1',
+    });
     const messages = [
       { id: 'user-1', sender: 'user', text: 'retry this', turnRef: 'turn-old' },
       { id: 'assistant-1', sender: 'assistant', text: 'answer', turnRef: 'turn-old' },
@@ -157,10 +156,6 @@ describe('desktopConversationReplayRuntime', () => {
       assistantMessageId: 'assistant-1',
       chatStoreBundle,
       messages,
-      sessionInfo: {
-        conversationRef: null,
-        userId: 'user-1',
-      },
     }))).resolves.toBe(true);
 
     expect(DesktopConversationContinuityService.retryTurn).toHaveBeenCalledWith(expect.objectContaining({
@@ -175,15 +170,15 @@ describe('desktopConversationReplayRuntime', () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     chatStoreBundle.state.activeConversationRef = ' conv-store-active ';
     DesktopTranscriptSessionRuntimeClient.getActiveConversationRef.mockReturnValue(' conv-transcript ');
+    DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo.mockReturnValue({
+      conversationRef: ' conv-session ',
+      userId: 'user-1',
+    });
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
       assistantMessageId: 'assistant-1',
       chatStoreBundle,
-      sessionInfo: {
-        conversationRef: ' conv-session ',
-        userId: 'user-1',
-      },
     }))).resolves.toBe(false);
 
     expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
@@ -202,16 +197,16 @@ describe('desktopConversationReplayRuntime', () => {
     const chatStoreBundle = createChatStore();
     chatStoreBundle.state.activeConversationRef = 'conv-store-active';
     DesktopTranscriptSessionRuntimeClient.getActiveConversationRef.mockReturnValue(null);
+    DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo.mockReturnValue({
+      conversationRef: null,
+      userId: 'user-1',
+    });
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
       assistantMessageId: 'assistant-1',
       chatStoreBundle,
       activeConversationRef: 'conv-caller-override',
-      sessionInfo: {
-        conversationRef: null,
-        userId: 'user-1',
-      },
     }))).resolves.toBe(true);
 
     expect(DesktopConversationContinuityService.retryTurn).toHaveBeenCalledWith(expect.objectContaining({
@@ -316,6 +311,41 @@ describe('desktopConversationReplayRuntime', () => {
     expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
   });
 
+  test('resolves replay session and model selection behind the runtime boundary', async () => {
+    const chatStoreBundle = createChatStore();
+    const callerModel = {
+      modelProvider: 'caller-provider',
+      modelId: 'caller-model',
+    };
+    DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo.mockReturnValue({
+      conversationRef: 'conv-runtime-session',
+      userId: 'user-runtime',
+    });
+
+    await expect(executeReplayAction(replayArgs({
+      action: 'retry',
+      assistantMessageId: 'assistant-runtime',
+      chatStoreBundle,
+      sessionInfo: {
+        conversationRef: 'conv-caller-session',
+        userId: 'user-caller',
+      },
+      deferredQueryModelSelection: callerModel,
+    }))).resolves.toBe(true);
+
+    const replayCommand = DesktopConversationContinuityService.retryTurn.mock.calls[0][0];
+    expect(replayCommand).toEqual(expect.objectContaining({
+      conversationRef: 'conv-replay',
+      userId: 'user-runtime',
+      messageId: 'assistant-runtime',
+    }));
+    expect(replayCommand).not.toEqual(expect.objectContaining({
+      conversationRef: 'conv-caller-session',
+      userId: 'user-caller',
+    }));
+    expect(replayCommand.model).not.toEqual(callerModel);
+  });
+
   test('returns undefined for empty replay targets without dispatching SDK commands', async () => {
     const chatStoreBundle = createChatStore();
 
@@ -353,15 +383,15 @@ describe('desktopConversationReplayRuntime', () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     chatStoreBundle.state.activeConversationRef = null;
     DesktopTranscriptSessionRuntimeClient.getActiveConversationRef.mockReturnValue(null);
+    DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo.mockReturnValue({
+      conversationRef: null,
+      userId: 'user-1',
+    });
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
       assistantMessageId: 'assistant-1',
       chatStoreBundle,
-      sessionInfo: {
-        conversationRef: null,
-        userId: 'user-1',
-      },
     }))).resolves.toBe(false);
 
     expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();

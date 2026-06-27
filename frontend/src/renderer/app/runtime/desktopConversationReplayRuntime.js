@@ -83,8 +83,8 @@ function logReplayTimeline(action, {
 }
 
 async function executeReplayIntent({
-  deferredQueryModelSelection,
   intent,
+  modelSelection,
   sessionInfo,
   storeConversationRef,
 }) {
@@ -138,7 +138,7 @@ async function executeReplayIntent({
           messageId: targetRowId,
           text: queryText,
           payload: sdkReplayPayload,
-          model: deferredQueryModelSelection || undefined,
+          model: modelSelection || undefined,
         });
       } else {
         await DesktopConversationContinuityService.retryTurn({
@@ -146,7 +146,7 @@ async function executeReplayIntent({
           conversationRef,
           messageId: targetRowId,
           payload: sdkReplayPayload,
-          model: deferredQueryModelSelection || undefined,
+          model: modelSelection || undefined,
         });
       }
       logReplayTimeline('sdk_replay_done', {
@@ -195,20 +195,15 @@ function prepareReplayActionIntent({
   return null;
 }
 
-function resolveReplayModelSelection({
-  deferredQueryModelSelection,
-} = {}) {
-  return deferredQueryModelSelection
-    ?? DesktopRendererConfigRuntimeClient.readDeferredQueryModelSelection();
+function resolveReplayModelSelection() {
+  return DesktopRendererConfigRuntimeClient.readDeferredQueryModelSelection();
 }
 
 async function executeReplayAction({
   action,
   assistantMessageId = null,
-  deferredQueryModelSelection,
   editedText = null,
   replayUiContext = null,
-  sessionInfo = null,
   userMessageId = null,
 }) {
   const intent = prepareReplayActionIntent({
@@ -220,16 +215,13 @@ async function executeReplayAction({
   if (!intent) {
     return undefined;
   }
-  const resolvedSessionInfo = sessionInfo
-    || DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
+  const resolvedSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
   const storeConversationRef = typeof replayUiContext?.getActiveConversationRef === 'function'
     ? replayUiContext.getActiveConversationRef()
     : null;
   return executeReplayIntent({
-    deferredQueryModelSelection: resolveReplayModelSelection({
-      deferredQueryModelSelection,
-    }),
     intent,
+    modelSelection: resolveReplayModelSelection(),
     sessionInfo: resolvedSessionInfo,
     storeConversationRef,
   });

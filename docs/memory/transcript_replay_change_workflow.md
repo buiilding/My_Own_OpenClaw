@@ -142,12 +142,12 @@ flowchart LR
      renderer-published chat rows. That public facade exports only
      `executeReplayAction`, and hooks do not call replay preparation helpers,
      inspect `ConversationView`/message arrays, or call replay SDK commands
-     directly. Renderer replay may pass selected-model command data, but the
-     hook must not subscribe to renderer config context or pass config through
-     the UI intent call; the replay runtime facade reads optional model command
-     data behind the app-runtime boundary. It must not call the renderer
-     settings facade to apply the model before dispatch; SDK replay commands
-     apply model selection through their normal `send()` path.
+     directly. The public replay action must not accept caller-provided
+     transcript session or selected-model overrides; the replay runtime facade
+     reads session scope and optional model command data behind the app-runtime
+     boundary. It must not call the renderer settings facade to apply the model
+     before dispatch; SDK replay commands apply model selection through their
+     normal `send()` path.
      Chat-store adapters should not export replay wrapper commands; the store
      shape and `getState()` contract must not be passed into the replay runtime.
    - Renderer app-runtime facades should not expose direct display timeline
