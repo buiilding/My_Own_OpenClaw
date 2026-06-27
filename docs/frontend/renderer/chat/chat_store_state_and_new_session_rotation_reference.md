@@ -226,10 +226,13 @@ trimmed into no-view/pending routing state.
   passes `null` to the thread presenter for partial objects. Invalid
   `conversationView` values stay on the no-view messages/`sdkLiveTurn` fallback
   path and do not churn the view-owned presentation cache. The presentation
-  runtime memoizes legacy no-presentation current turns as opaque live-turn
-  snapshots; raw fallback fields such as `assistantText`, `reasoningText`,
-  `toolEvents`, and `lastError` are interpreted only by the thread presenter
-  fallback path. The current-turn message runtime does not export a standalone
+  runtime builds ConversationView live rows through a separate view-owned
+  thread path, so SDK view live entries do not pass through renderer no-view
+  duplicate or latest-user fallback heuristics. It memoizes legacy
+  no-presentation current turns as opaque live-turn snapshots; raw fallback
+  fields such as `assistantText`, `reasoningText`, `toolEvents`, and
+  `lastError` are interpreted only by the thread presenter fallback path. The
+  current-turn message runtime does not export a standalone
   raw `reasoningText` accessor; the response-overlay runtime owns its temporary
   no-view thinking fallback locally until that surface is fully SDK-view-owned.
 - Stop-target resolution and stopped-turn workspace cleanup also use the shared

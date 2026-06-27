@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/thread: split ConversationView live-row selection from no-view
+  current-turn fallback heuristics so SDK view live entries no longer pass
+  through renderer duplicate/latest-user suppression. No migration required.
 - frontend/live-turn: map SDK current-turn presentation and legacy no-view tool
   rows directly to renderer chat-message props instead of routing through
   legacy transcript message-state builders. No migration required.

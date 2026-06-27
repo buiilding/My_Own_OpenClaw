@@ -629,6 +629,67 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     ]));
   });
 
+  test('does not suppress ConversationView live rows as raw duplicate materialized messages', () => {
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [{
+          id: 'user-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-view',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'view prompt',
+        }, {
+          id: 'assistant-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-view',
+          index: 1,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'view live answer final',
+        }],
+        liveTurn: {
+          turnRef: 'turn-view',
+          entries: [{
+            id: 'view-live',
+            type: 'llm-text',
+            text: 'view live answer',
+          }],
+        },
+        surfaces: {},
+        actions: {
+          canEdit: true,
+          canRetry: true,
+        },
+      },
+      messages: [{
+        id: 'raw-duplicate',
+        sender: 'assistant',
+        type: 'llm-text',
+        text: 'raw duplicate should not decide view live rows',
+        turnRef: 'turn-view',
+      }],
+    });
+
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'user-row',
+      }),
+      expect.objectContaining({
+        id: 'assistant-row',
+        text: 'view live answer final',
+      }),
+      expect.objectContaining({
+        id: 'view-live',
+        text: 'view live answer',
+        turnRef: 'turn-view',
+      }),
+    ]);
+  });
+
   test('does not fall back to raw current-turn rows when ConversationView live rows are empty', () => {
     const state = buildChatInterfacePresentationState({
       activeConversationRef: 'conv-1',

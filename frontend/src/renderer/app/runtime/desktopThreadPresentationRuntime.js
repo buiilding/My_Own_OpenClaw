@@ -230,7 +230,6 @@ function selectVisibleCurrentTurnMessages({
   liveTurnMessages,
   projectionConversationRefValue,
   activeConversationRef,
-  useSdkViewAuthority = false,
 }) {
   if (!Array.isArray(liveTurnMessages) || liveTurnMessages.length === 0) {
     return [];
@@ -256,20 +255,44 @@ function selectVisibleCurrentTurnMessages({
   }
   return liveTurnMessages.filter((message) => (
     isVisibleCurrentTurnMessage(message)
-    && (
-      useSdkViewAuthority
-      || belongsToLatestUserTurn(messages, message)
-    )
+    && belongsToLatestUserTurn(messages, message)
     && !(
-      !useSdkViewAuthority
-      &&
       isTextlessCurrentTurnThinkingMessage(message)
       && hasMaterializedAssistantTextForTurn(messages, message.turnRef)
     )
-    && (
-      useSdkViewAuthority
-      || !hasMaterializedDuplicateForLiveMessage(messages, message)
-    )
+    && !hasMaterializedDuplicateForLiveMessage(messages, message)
+  ));
+}
+
+function selectVisibleConversationViewLiveMessages({
+  liveTurnMessages,
+  projectionConversationRefValue,
+  activeConversationRef,
+}) {
+  if (!Array.isArray(liveTurnMessages) || liveTurnMessages.length === 0) {
+    return [];
+  }
+  const hasProjectionConversationRef = projectionConversationRefValue !== null
+    && projectionConversationRefValue !== undefined;
+  const hasActiveConversationRef = activeConversationRef !== null
+    && activeConversationRef !== undefined;
+  const projectionConversationRef = readExactRef(projectionConversationRefValue);
+  const normalizedActiveConversationRef = readExactRef(activeConversationRef);
+  if (
+    (hasProjectionConversationRef && !projectionConversationRef)
+    || (hasActiveConversationRef && !normalizedActiveConversationRef)
+  ) {
+    return [];
+  }
+  if (
+    projectionConversationRef
+    && normalizedActiveConversationRef
+    && projectionConversationRef !== normalizedActiveConversationRef
+  ) {
+    return [];
+  }
+  return liveTurnMessages.filter((message) => (
+    isVisibleCurrentTurnMessage(message)
   ));
 }
 
@@ -313,21 +336,26 @@ function buildThreadPresentationMessages(
   const projectionConversationRefValue = hasConversationView
     ? effectiveConversationView?.conversationRef
     : sdkLiveTurn?.conversationRef;
-  const liveMessages = selectVisibleCurrentTurnMessages({
-    messages: baseMessages,
-    liveTurnMessages: resolvedCurrentTurnMessages,
-    projectionConversationRefValue,
-    activeConversationRef,
-    useSdkViewAuthority: hasConversationView,
-  });
-  if (liveMessages.length === 0) {
+  const visibleLiveMessages = hasConversationView
+    ? selectVisibleConversationViewLiveMessages({
+      liveTurnMessages: resolvedCurrentTurnMessages,
+      projectionConversationRefValue,
+      activeConversationRef,
+    })
+    : selectVisibleCurrentTurnMessages({
+      messages: baseMessages,
+      liveTurnMessages: resolvedCurrentTurnMessages,
+      projectionConversationRefValue,
+      activeConversationRef,
+    });
+  if (visibleLiveMessages.length === 0) {
     return baseMessages;
   }
 
-  const insertIndex = resolveLiveMessageInsertIndex(baseMessages, liveMessages);
+  const insertIndex = resolveLiveMessageInsertIndex(baseMessages, visibleLiveMessages);
   return [
     ...baseMessages.slice(0, insertIndex),
-    ...liveMessages,
+    ...visibleLiveMessages,
     ...baseMessages.slice(insertIndex),
   ];
 }
