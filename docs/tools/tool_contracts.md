@@ -59,6 +59,10 @@ into the agent definition for the websocket handshake.
   bytes before provider dispatch. Backend shared image normalization detects
   PNG/JPEG/WebP/GIF payloads, repairs stale data-URL MIME, and drops
   unidentified bare image payloads instead of guessing a generic PNG default.
+- SDK-local persistence must not store raw image bytes from local tool results.
+  Inline visual fields such as `screenshot` and `image_data` are materialized
+  into artifacts, replay uses typed display attachments, and persisted
+  tool-output events keep refs plus metadata instead of base64 payloads.
 - Built-in grounded tools should preserve the model-schema vs prepared-argument
   distinction. Use `backend_grounding` only when OCR, vision, or prediction
   prepares executable local-runtime arguments; otherwise use `passthrough`.

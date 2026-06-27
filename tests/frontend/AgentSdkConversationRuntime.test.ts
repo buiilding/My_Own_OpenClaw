@@ -4016,6 +4016,113 @@ describe('Agent SDK conversation runtime core', () => {
     ]);
   });
 
+  test('tool coordinator persists read_file image results as artifact-backed attachments', async () => {
+    const store = new InMemoryConversationStore();
+    const sendToolResult = jest.fn(async () => undefined);
+    const artifactUploader = createMockArtifactUploader({
+      upload: jest.fn(async () => ({
+        artifact_id: 'read-file-image.png',
+        content_type: 'image/png',
+        size_bytes: 15,
+        sha256: 'sha-read-file-image',
+        url: '/api/artifacts/read-file-image.png',
+      })),
+    });
+    const coordinator = new ToolExecutionCoordinator({
+      store,
+      artifactUploader,
+      localRuntime: {
+        executeTool: jest.fn(async () => ({
+          success: true,
+          data: {
+            output: 'Image file loaded (image/png, 15 bytes).',
+            file_path: '/tmp/browser-screenshot.png',
+            image_data: INLINE_JPEG_BASE64,
+            image_content_type: 'image/png',
+            image_size_bytes: 15,
+          },
+        })),
+      },
+      sendToolResult,
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    await coordinator.execute(event('tool_call', {
+      toolName: 'read_file',
+      requestId: 'req-read-image',
+      toolCallId: 'call-read-image',
+      args: { file_path: '/tmp/browser-screenshot.png' },
+    }));
+
+    expect(artifactUploader.upload).toHaveBeenCalledTimes(1);
+    expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
+      request_id: 'req-read-image',
+      success: true,
+      data: expect.objectContaining({
+        output: 'Image file loaded (image/png, 15 bytes).',
+        file_path: '/tmp/browser-screenshot.png',
+        image_size_bytes: 15,
+        screenshot_ref: 'read-file-image.png',
+        screenshot_url: '/api/artifacts/read-file-image.png',
+        screenshot_content_type: 'image/png',
+        display_attachments: [{
+          id: 'req-read-image:attachment:000',
+          kind: 'image',
+          source: 'tool_result',
+          status: 'ready',
+          content_type: 'image/png',
+          screenshot_ref: 'read-file-image.png',
+          screenshot_url: '/api/artifacts/read-file-image.png',
+        }],
+      }),
+    }));
+    expect(sendToolResult.mock.calls[0][0].data).not.toHaveProperty('image_data');
+    expect(sendToolResult.mock.calls[0][0].data).not.toHaveProperty('screenshot');
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual(expect.objectContaining({
+      type: 'tool_output',
+      payload: expect.objectContaining({
+        requestId: 'req-read-image',
+        toolCallId: 'call-read-image',
+        toolName: 'read_file',
+        screenshot_ref: 'read-file-image.png',
+        screenshot_url: '/api/artifacts/read-file-image.png',
+        screenshot_content_type: 'image/png',
+        attachments: [{
+          id: 'req-read-image:attachment:000',
+          kind: 'image',
+          source: 'tool_result',
+          status: 'ready',
+          contentType: 'image/png',
+          screenshotRef: 'read-file-image.png',
+          screenshotUrl: '/api/artifacts/read-file-image.png',
+        }],
+      }),
+    }));
+    expect(events[0]?.payload.result).not.toHaveProperty('image_data');
+    expect(events[0]?.payload.result).not.toHaveProperty('screenshot');
+
+    const rows = buildDisplayRows(events);
+    expect(rows).toEqual([
+      expect.objectContaining({
+        type: 'tool_output',
+        metadata: expect.objectContaining({
+          attachments: [{
+            id: 'req-read-image:attachment:000',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            contentType: 'image/png',
+            screenshotRef: 'read-file-image.png',
+            screenshotUrl: '/api/artifacts/read-file-image.png',
+          }],
+        }),
+      }),
+    ]);
+  });
+
   test('tool coordinator rejects camelCase screenshot aliases before artifact materialization', async () => {
     const store = new InMemoryConversationStore();
     const sendToolResult = jest.fn(async () => undefined);

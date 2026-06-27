@@ -11,6 +11,11 @@ All notable changes to WindieOS will be documented in this file.
   the session lock is free and coalescing deferred active-session rewires
   otherwise, so repeated settings sync cannot fill the websocket task pool and
   reject local `tool-result` messages. No migration required.
+- sdk/tools: materialize inline local-tool image results such as `read_file`
+  `image_data` into artifact-backed screenshot refs and typed display
+  attachments before conversation persistence, so reload/replay can show tool
+  images without storing raw base64 or tripping local request-size limits. No
+  migration required.
 - backend/websocket: attach diagnostic metadata to admitted route-dispatch
   tasks and include rejected message context plus active-task inventories in
   task-limit and cleanup logs, so `"Too many concurrent requests"` incidents can

@@ -77,6 +77,12 @@ For supported image files, `read_file`:
 - includes MIME metadata (`screenshot_content_type`, `image_content_type`) and `image_size_bytes`
 - returns a deterministic `output` note that OCR/text extraction is not performed
 
+The local-runtime execution result remains image-rich so the agent can inspect
+the file. SDK tool-result persistence must materialize those inline bytes to a
+durable artifact ref and typed tool-result display attachment before writing
+conversation replay state, so restarting the app can show the image without
+storing raw base64 in the local conversation event.
+
 ## Encoding Path
 
 `detect_encoding(path)` behavior:

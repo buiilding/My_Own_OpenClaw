@@ -172,17 +172,21 @@ export function extractVisualResourceScreenshotFields(
   if (options.rejectCamelCaseScreenshotAliases) {
     assertNoCamelCaseScreenshotAliases(data);
   }
-  const screenshot = readScreenshotField(data, 'screenshot');
+  const screenshot = readScreenshotField(data, 'screenshot')
+    ?? readScreenshotField(data, 'image_data');
   const screenshotRef = readScreenshotField(data, 'screenshot_ref');
   const screenshotUrl = readScreenshotField(data, 'screenshot_url');
   if (!screenshot && !screenshotRef && !screenshotUrl) {
     return null;
   }
+  const screenshotContentType = typeof data.screenshot_content_type === 'string'
+    ? data.screenshot_content_type
+    : (typeof data.image_content_type === 'string' ? data.image_content_type : null);
   return {
     ...(screenshot ? { screenshot } : {}),
     ...(screenshotRef ? { screenshot_ref: screenshotRef } : {}),
     ...(screenshotUrl ? { screenshot_url: screenshotUrl } : {}),
-    ...(typeof data.screenshot_content_type === 'string' ? { screenshot_content_type: data.screenshot_content_type } : {}),
+    ...(screenshotContentType ? { screenshot_content_type: screenshotContentType } : {}),
     ...(isJsonRecord(data.capture_meta) ? { capture_meta: data.capture_meta } : {}),
   };
 }
@@ -344,14 +348,16 @@ export async function materializeVisualResource(
   if (existing) {
     return existing;
   }
-  const screenshot = readScreenshotField(resource.data, 'screenshot');
+  const screenshot = readScreenshotField(resource.data, 'screenshot')
+    ?? readScreenshotField(resource.data, 'image_data');
   if (!screenshot) {
     return null;
   }
   return uploadBase64Resource({
     artifactUploader: options.artifactUploader,
     screenshot,
-    contentType: readScreenshotField(resource.data, 'screenshot_content_type'),
+    contentType: readScreenshotField(resource.data, 'screenshot_content_type')
+      ?? readScreenshotField(resource.data, 'image_content_type'),
     filename: resource.filename,
     captureMeta: isJsonRecord(resource.data.capture_meta) ? resource.data.capture_meta : null,
   });
@@ -380,5 +386,6 @@ export function applyMaterializedVisualResourceToData(
     normalized.capture_meta = materialized.capture_meta;
   }
   delete normalized.screenshot;
+  delete normalized.image_data;
   return normalized;
 }
