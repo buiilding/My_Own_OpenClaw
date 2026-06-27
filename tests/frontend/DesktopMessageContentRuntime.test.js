@@ -15,7 +15,7 @@ describe('desktopMessageContentRuntime', () => {
     isToolCallMessageContentPresentation,
     isToolExplanationMessageContentPresentation,
     isToolOutputMessageContentPresentation,
-    isUserAttachmentMessageContentPresentation,
+    isUserMessageContentPresentation,
     resolveMessageContentPresentation,
   } = DesktopMessageContentRuntime;
 
@@ -40,13 +40,13 @@ describe('desktopMessageContentRuntime', () => {
     expect(isToolCallMessageContentPresentation({ renderKind: 'tool-call' })).toBe(true);
     expect(isToolExplanationMessageContentPresentation({ renderKind: 'tool-explanation' })).toBe(true);
     expect(isToolActionsSummaryMessageContentPresentation({ renderKind: 'tool-actions-summary' })).toBe(true);
-    expect(isUserAttachmentMessageContentPresentation({ renderKind: 'user-with-attachments' })).toBe(true);
+    expect(isUserMessageContentPresentation({ renderKind: 'user-message' })).toBe(true);
     expect(isAssistantResponseMessageContentPresentation({ renderKind: 'assistant-response' })).toBe(true);
     expect(isMarkdownMessageContentPresentation({ renderKind: 'markdown' })).toBe(true);
     expect(isMarkdownMessageContentPresentation({ renderKind: 'error' })).toBe(false);
   });
 
-  test('classifies user display attachment rows through the SDK attachment contract', () => {
+  test('classifies user rows without consulting attachment visibility', () => {
     expect(resolveMessageContentPresentation({
       sender: 'user',
       text: 'show this',
@@ -57,7 +57,7 @@ describe('desktopMessageContentRuntime', () => {
         status: 'ready',
         screenshotRef: 'artifact-1',
       }],
-    }).renderKind).toBe('user-with-attachments');
+    }).renderKind).toBe('user-message');
 
     expect(resolveMessageContentPresentation({
       sender: 'assistant',
@@ -69,10 +69,10 @@ describe('desktopMessageContentRuntime', () => {
       sender: 'user',
       text: 'legacy user screenshot',
       screenshotRef: 'artifact-1',
-    }).renderKind).toBe('markdown');
+    }).renderKind).toBe('user-message');
   });
 
-  test('does not repair malformed attachment descriptors into attachment rows', () => {
+  test('leaves malformed user attachment descriptors to the attachment rendering gate', () => {
     expect(resolveMessageContentPresentation({
       sender: 'user',
       text: 'malformed attachment',
@@ -89,7 +89,7 @@ describe('desktopMessageContentRuntime', () => {
         status: 'ready',
         screenshotRef: 'artifact-2',
       }],
-    }).renderKind).toBe('markdown');
+    }).renderKind).toBe('user-message');
   });
 
   test('classifies assistant llm text rows and exposes visible text state', () => {
@@ -114,8 +114,9 @@ describe('desktopMessageContentRuntime', () => {
 
   test('uses markdown as the generic fallback kind', () => {
     expect(resolveMessageContentPresentation({
-      sender: 'user',
+      sender: 'assistant',
       text: 'plain text',
+      type: 'custom',
     }).renderKind).toBe('markdown');
 
     expect(resolveMessageContentPresentation(null).renderKind)

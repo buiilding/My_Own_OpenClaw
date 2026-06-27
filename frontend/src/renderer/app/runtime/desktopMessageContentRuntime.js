@@ -2,15 +2,13 @@
  * Resolves renderer message content presentation kinds for chat surfaces.
  */
 
-import { DesktopMessageAttachmentPresentationRuntime } from './desktopMessageAttachmentPresentationRuntime';
-
 const MESSAGE_CONTENT_RENDER_KIND = Object.freeze({
   ERROR: 'error',
   TOOL_OUTPUT: 'tool-output',
   TOOL_CALL: 'tool-call',
   TOOL_EXPLANATION: 'tool-explanation',
   TOOL_ACTIONS_SUMMARY: 'tool-actions-summary',
-  USER_WITH_ATTACHMENTS: 'user-with-attachments',
+  USER_MESSAGE: 'user-message',
   ASSISTANT_RESPONSE: 'assistant-response',
   MARKDOWN: 'markdown',
 });
@@ -24,11 +22,6 @@ function isAssistantLlmTextMessage(message) {
     message?.sender === 'assistant'
     && (!message.type || message.type === 'llm-text')
   );
-}
-
-function hasSdkDisplayAttachments(message) {
-  return message?.sender === 'user'
-    && DesktopMessageAttachmentPresentationRuntime.hasVisibleSdkDisplayAttachments(message);
 }
 
 function resolveMessageContentPresentation(message) {
@@ -52,8 +45,8 @@ function resolveMessageContentPresentation(message) {
     return { renderKind: MESSAGE_CONTENT_RENDER_KIND.TOOL_ACTIONS_SUMMARY };
   }
 
-  if (hasSdkDisplayAttachments(message)) {
-    return { renderKind: MESSAGE_CONTENT_RENDER_KIND.USER_WITH_ATTACHMENTS };
+  if (message?.sender === 'user') {
+    return { renderKind: MESSAGE_CONTENT_RENDER_KIND.USER_MESSAGE };
   }
 
   if (isAssistantLlmTextMessage(message)) {
@@ -90,8 +83,8 @@ function isToolActionsSummaryMessageContentPresentation(contentPresentation) {
   return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.TOOL_ACTIONS_SUMMARY);
 }
 
-function isUserAttachmentMessageContentPresentation(contentPresentation) {
-  return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.USER_WITH_ATTACHMENTS);
+function isUserMessageContentPresentation(contentPresentation) {
+  return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.USER_MESSAGE);
 }
 
 function isAssistantResponseMessageContentPresentation(contentPresentation) {
@@ -110,6 +103,6 @@ export const DesktopMessageContentRuntime = Object.freeze({
   isToolCallMessageContentPresentation,
   isToolExplanationMessageContentPresentation,
   isToolOutputMessageContentPresentation,
-  isUserAttachmentMessageContentPresentation,
+  isUserMessageContentPresentation,
   resolveMessageContentPresentation,
 });

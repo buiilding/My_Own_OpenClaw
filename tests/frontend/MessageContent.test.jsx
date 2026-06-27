@@ -82,6 +82,20 @@ describe('MessageContent', () => {
     expect(screen.getByText('Screenshot pending')).toBeInTheDocument();
   });
 
+  test('renders plain user rows through the user message container', () => {
+    const { container } = render(
+      <MessageContent
+        message={{
+          sender: 'user',
+          text: 'hello',
+        }}
+      />,
+    );
+
+    expect(container.querySelector('.user-message-container')).not.toBeNull();
+    expect(screen.getByText('hello')).toBeInTheDocument();
+  });
+
   test('does not render legacy user screenshot aliases as primary display input', () => {
     render(
       <MessageContent

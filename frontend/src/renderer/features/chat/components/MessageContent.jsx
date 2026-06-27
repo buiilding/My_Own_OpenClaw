@@ -71,7 +71,7 @@ export default function MessageContent({
     return <ToolActionsSummaryMessage message={message} />;
   }
 
-  if (DesktopMessageContentRuntime.isUserAttachmentMessageContentPresentation(contentPresentation)) {
+  if (DesktopMessageContentRuntime.isUserMessageContentPresentation(contentPresentation)) {
     return (
       <UserMessage
         message={message}

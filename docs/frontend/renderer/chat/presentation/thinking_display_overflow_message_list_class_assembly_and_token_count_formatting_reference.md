@@ -102,7 +102,7 @@ The runtime owns row classification for:
 - tool call/output rows
 - tool explanation and search-source rows
 - tool action summaries
-- user rows with SDK display attachments
+- user rows
 - assistant LLM-text rows, including whether visible assistant text should render below thinking
 - generic markdown fallback rows
 
@@ -114,7 +114,7 @@ keeps raw render-kind constants out of the component; callers should use
 `DesktopMessageContentRuntime.isToolCallMessageContentPresentation(...)`,
 `DesktopMessageContentRuntime.isToolExplanationMessageContentPresentation(...)`,
 `DesktopMessageContentRuntime.isToolActionsSummaryMessageContentPresentation(...)`,
-`DesktopMessageContentRuntime.isUserAttachmentMessageContentPresentation(...)`,
+`DesktopMessageContentRuntime.isUserMessageContentPresentation(...)`,
 and `DesktopMessageContentRuntime.isAssistantResponseMessageContentPresentation(...)`
 instead.
 
@@ -138,10 +138,12 @@ SDK display attachment projection helper; `UserMessage` and `ToolOutputMessage`
 pass row `attachments[]` through so they do not duplicate descriptor validation
 or attachment lifecycle gating.
 `DesktopMessageAttachmentPresentationRuntime` is the app-runtime visibility
-facade for row class and content-kind helpers. It centralizes the single
+facade for row class helpers. It centralizes the single
 `DesktopSdkDisplayAttachmentProjection.readSdkDisplayAttachments(...)` call for
-message presentation classification, so class/content helpers do not duplicate
-SDK descriptor validation or know attachment lifecycle details.
+message row presentation classification, so class helpers do not duplicate SDK
+descriptor validation or know attachment lifecycle details. Content-kind
+routing treats every user row as a user message; `AttachmentList` returns null
+when the row has no valid visible descriptors.
 The React-only async artifact image fetch/cache hook remains in
 `frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js`.
 

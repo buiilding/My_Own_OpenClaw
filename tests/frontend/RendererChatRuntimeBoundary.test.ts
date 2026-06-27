@@ -1566,9 +1566,12 @@ describe('renderer chat runtime boundary', () => {
     expect(classRuntimeSource).not.toContain('export function buildMessageClassName');
     expect(classRuntimeSource).not.toContain('features/chat');
     expect(contentRuntimeSource).toContain('DesktopMessageContentRuntime');
-    expect(contentRuntimeSource).toContain('DesktopMessageAttachmentPresentationRuntime');
+    expect(contentRuntimeSource).toContain('isUserMessageContentPresentation');
+    expect(contentRuntimeSource).not.toContain('DesktopMessageAttachmentPresentationRuntime');
     expect(contentRuntimeSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
     expect(contentRuntimeSource).not.toContain('readSdkDisplayAttachments');
+    expect(contentRuntimeSource).not.toContain('hasVisibleSdkDisplayAttachments');
+    expect(contentRuntimeSource).not.toContain('user-with-attachments');
     expect(contentRuntimeSource).toContain('isErrorMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export function resolveMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export function isErrorMessageContentPresentation');
@@ -1576,6 +1579,8 @@ describe('renderer chat runtime boundary', () => {
     expect(contentRuntimeSource).not.toContain('export function isAssistantResponseMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export const MESSAGE_CONTENT_RENDER_KIND');
     expect(contentRuntimeSource).not.toContain('features/chat');
+    expect(messageContentSource).toContain('isUserMessageContentPresentation');
+    expect(messageContentSource).not.toContain('isUserAttachmentMessageContentPresentation');
     expect(attachmentPresentationRuntimeSource).toContain('DesktopSdkDisplayAttachmentProjection');
     expect(attachmentPresentationRuntimeSource).toContain('readSdkDisplayAttachments(message?.attachments)');
     expect(attachmentPresentationRuntimeSource).toContain('hasVisibleSdkDisplayAttachments');
