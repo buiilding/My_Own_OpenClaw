@@ -15,6 +15,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/presentation: route main-thread and chat-interface
   `ConversationView` authority checks through the shared workspace gate instead
   of local renderer predicates. No migration required.
+- frontend/surfaces: route chat surface controller `ConversationView` authority
+  through the shared workspace gate so malformed view envelopes stay on the
+  no-view SDK-live fallback path. No migration required.
 - frontend/attachments: reject inline `data:` URLs on ready SDK image
   attachments, keeping volatile preview bytes on materializing `previewSrc`
   only while ready images resolve through artifact refs or non-inline URLs. No

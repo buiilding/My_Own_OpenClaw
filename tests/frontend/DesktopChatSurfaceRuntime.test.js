@@ -7,11 +7,46 @@ const {
   buildChatSurfaceControllerStateFromSurfaceState,
 } = DesktopChatSurfaceRuntime;
 
+function buildConversationView(overrides = {}) {
+  const conversationRef = overrides.conversationRef ?? 'conv-1';
+  const liveTurn = overrides.liveTurn ?? {
+    turnRef: null,
+    phase: 'idle',
+    canStop: false,
+    isBusy: false,
+    entries: [],
+  };
+  return {
+    conversationRef,
+    revisionId: overrides.revisionId ?? null,
+    displayRows: overrides.displayRows ?? [],
+    liveTurn,
+    surfaces: {
+      dashboard: { mode: 'idle' },
+      pill: { mode: 'idle' },
+      responseOverlay: {
+        mode: 'hidden',
+        visible: false,
+        guardRef: null,
+        ownerConversationRef: conversationRef,
+        turnRef: null,
+      },
+      ...(overrides.surfaces ?? {}),
+    },
+    actions: {
+      canEdit: false,
+      canRetry: false,
+      canFork: false,
+      ...(overrides.actions ?? {}),
+    },
+  };
+}
+
 describe('DesktopChatSurfaceRuntime', () => {
   test('reads busy and stop affordance from ConversationView surface state', () => {
     const state = buildChatSurfaceControllerState({
       conversationViewSurface: 'dashboard',
-      conversationView: {
+      conversationView: buildConversationView({
         conversationRef: 'conv-1',
         liveTurn: {
           turnRef: 'turn-1',
@@ -25,7 +60,7 @@ describe('DesktopChatSurfaceRuntime', () => {
             mode: 'busy',
           },
         },
-      },
+      }),
       sdkLiveTurn: null,
       messages: [],
     });
@@ -85,7 +120,7 @@ describe('DesktopChatSurfaceRuntime', () => {
       conversationViewSurface: 'dashboard',
       sessionConversationRef: 'conv-session',
       chatSurfaceState: {
-        conversationView: {
+        conversationView: buildConversationView({
           conversationRef: 'conv-view',
           liveTurn: {
             turnRef: 'turn-view',
@@ -97,7 +132,7 @@ describe('DesktopChatSurfaceRuntime', () => {
               mode: 'busy',
             },
           },
-        },
+        }),
         sdkLiveTurn: {
           conversationRef: 'conv-raw',
           turnRef: 'turn-raw',
@@ -128,7 +163,7 @@ describe('DesktopChatSurfaceRuntime', () => {
     const state = buildChatSurfaceControllerState({
       conversationViewSurface: 'dashboard',
       sessionConversationRef: 'conv-session',
-      conversationView: {
+      conversationView: buildConversationView({
         conversationRef: 'conv-view',
         liveTurn: null,
         surfaces: {
@@ -136,7 +171,7 @@ describe('DesktopChatSurfaceRuntime', () => {
             mode: 'idle',
           },
         },
-      },
+      }),
       pendingTurn: {
         conversationRef: 'conv-view',
         turnRef: 'turn-pending',
@@ -174,7 +209,7 @@ describe('DesktopChatSurfaceRuntime', () => {
       conversationViewSurface: 'dashboard',
       sessionConversationRef: 'conv-session',
       chatSurfaceState: {
-        conversationView: {
+        conversationView: buildConversationView({
           conversationRef: 'conv-view',
           liveTurn: {
             turnRef: 'turn-view',
@@ -187,7 +222,7 @@ describe('DesktopChatSurfaceRuntime', () => {
               mode: 'idle',
             },
           },
-        },
+        }),
         sdkLiveTurn: null,
         messages: [],
       },
@@ -205,5 +240,48 @@ describe('DesktopChatSurfaceRuntime', () => {
     });
     expect(state.currentTurnPresentationState.activeResponse).toBeNull();
     expect(state.currentTurnPresentationState.visibleResponse).toBeNull();
+  });
+
+  test('keeps malformed ConversationView envelopes on the no-view surface path', () => {
+    const state = buildChatSurfaceControllerState({
+      conversationViewSurface: 'dashboard',
+      sessionConversationRef: 'conv-1',
+      conversationView: buildConversationView({
+        conversationRef: ' conv-1 ',
+        liveTurn: [],
+        displayRows: [{
+          id: 'view-row-ignored',
+        }],
+      }),
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-live',
+        phase: 'streaming',
+        presentation: {
+          entries: [{
+            id: 'live-entry',
+            type: 'llm-text',
+            text: 'live fallback answer',
+          }],
+        },
+      },
+      messages: [{
+        id: 'raw-message',
+        sender: 'user',
+        text: 'raw fallback',
+      }],
+    });
+
+    expect(state).toMatchObject({
+      isBusy: true,
+      canStop: false,
+      liveTurnSource: 'sdk-current-turn',
+    });
+    expect(state.visibleTurnLifecycle).toMatchObject({
+      status: 'active',
+      source: 'sdk',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-live',
+    });
   });
 });

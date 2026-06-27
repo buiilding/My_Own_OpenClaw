@@ -11,6 +11,9 @@ import {
 import {
   DesktopVisibleTurnLifecycleRuntime,
 } from './desktopVisibleTurnLifecycleRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
 const {
   resolveCurrentTurnPresentationState,
@@ -22,26 +25,12 @@ const {
   applyVisibleTurnLifecycleToPresentationState,
   resolveVisibleTurnLifecycle,
 } = DesktopVisibleTurnLifecycleRuntime;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 function isObject(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
-function readExactRef(value) {
-  return typeof value === 'string' && value.length > 0 && value === value.trim()
-    ? value
-    : null;
-}
-
-function isConversationView(value) {
-  return Boolean(
-    isObject(value)
-      && readExactRef(value.conversationRef)
-      && Array.isArray(value.displayRows)
-      && isObject(value.liveTurn)
-      && isObject(value.surfaces)
-      && isObject(value.actions),
-  );
 }
 
 function resolveSurfaceConversationRef({
@@ -72,7 +61,7 @@ function buildChatSurfaceControllerState({
   sdkLiveTurn = null,
   sessionConversationRef = null,
 } = {}) {
-  const hasConversationView = isConversationView(conversationView);
+  const hasConversationView = hasWorkspaceConversationView({ conversationView });
   const effectiveConversationView = hasConversationView ? conversationView : null;
   const rendererFallbackMessages = hasConversationView
     ? []
@@ -136,7 +125,7 @@ function buildChatSurfaceControllerStateFromSurfaceState({
   sessionConversationRef = null,
 } = {}) {
   const surfaceState = isObject(chatSurfaceState) ? chatSurfaceState : {};
-  const conversationView = isConversationView(surfaceState.conversationView)
+  const conversationView = hasWorkspaceConversationView({ conversationView: surfaceState.conversationView })
     ? surfaceState.conversationView
     : null;
   return buildChatSurfaceControllerState({

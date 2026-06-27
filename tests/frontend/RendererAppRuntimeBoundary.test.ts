@@ -804,8 +804,10 @@ describe('renderer app runtime boundary', () => {
     expect(chatSurfaceControllerSource).not.toContain('resolveCurrentTurnPresentationState');
     expect(chatSurfaceRuntimeSource).toContain('DesktopCurrentTurnPresentationRuntime');
     expect(chatSurfaceRuntimeSource).toContain('resolveCurrentTurnPresentationState');
-    expect(chatSurfaceRuntimeSource).toContain('function isConversationView(value)');
-    expect(chatSurfaceRuntimeSource).toContain('const hasConversationView = isConversationView(conversationView)');
+    expect(chatSurfaceRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(chatSurfaceRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(chatSurfaceRuntimeSource).not.toContain('function isConversationView(value)');
+    expect(chatSurfaceRuntimeSource).not.toContain('const hasConversationView = isConversationView(conversationView)');
     expect(chatSurfaceControllerSource).not.toContain('useCurrentTurnPresentationState');
     expect(chatSurfaceControllerSource).not.toContain('resolveSdkCurrentTurnPresentationState');
     expect(chatInterfacePresentationSource).toContain('desktopThreadPresentationRuntime');

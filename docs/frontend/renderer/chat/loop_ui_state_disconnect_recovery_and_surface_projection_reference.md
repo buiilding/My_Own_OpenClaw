@@ -175,7 +175,10 @@ composes `DesktopVisibleTurnLifecycleRuntime`,
 live-turn fallback (`sdkLiveTurn` in selected surface state), and the renderer
 pending bridge, then returns
 dashboard/pill busy state, stop affordance gating, awaiting-dot visibility, and
-chatbox awaiting state. The React hook owns config toggles and manual
+chatbox awaiting state. It accepts SDK `ConversationView` authority only through
+`DesktopConversationViewWorkspaceRuntime.hasWorkspaceConversationView(...)`, so
+partial or malformed view objects remain on the no-view SDK-live fallback path
+instead of suppressing raw surface inputs. The React hook owns config toggles and manual
 compaction callbacks only; it should not branch over SDK view/current-turn
 authorities directly. The response overlay uses
 `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
