@@ -26,6 +26,9 @@
   --chat-awaiting-dot-surface-bg: rgba(255, 255, 255, 0.04);
   --chat-awaiting-dot-border: var(--ui-border-soft);
   --chat-awaiting-dot-bg: var(--ui-text-primary);
+  --chat-markdown-code-block-bg: rgba(11, 14, 20, 0.86);
+  --chat-markdown-code-block-border: rgba(226, 232, 240, 0.16);
+  --chat-markdown-code-block-text: #f8fafc;
   --user-message-editor-bg: rgba(62, 64, 70, 0.95);
   --user-message-editor-border: var(--ui-border-soft);
   --user-message-editor-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
@@ -68,6 +71,9 @@
   --chat-awaiting-dot-surface-bg: color-mix(in srgb, var(--appearance-foreground) 7%, var(--appearance-background) 93%);
   --chat-awaiting-dot-border: color-mix(in srgb, var(--appearance-foreground) 18%, transparent 82%);
   --chat-awaiting-dot-bg: var(--appearance-foreground);
+  --chat-markdown-code-block-bg: rgba(11, 14, 20, 0.86);
+  --chat-markdown-code-block-border: rgba(226, 232, 240, 0.2);
+  --chat-markdown-code-block-text: #f8fafc;
   --user-message-editor-bg: color-mix(in srgb, var(--appearance-background) 94%, var(--appearance-foreground) 6%);
   --user-message-editor-border: color-mix(in srgb, var(--appearance-foreground) 18%, transparent 82%);
   --user-message-editor-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
@@ -1318,17 +1324,18 @@
   margin: 0 0 0.9rem;
   padding: 12px;
   border-radius: 12px;
-  background: rgba(11, 14, 20, 0.75);
-  border: 1px solid var(--border);
+  background: var(--chat-markdown-code-block-bg);
+  border: 1px solid var(--chat-markdown-code-block-border);
   overflow: auto;
   font-size: 0.85rem;
   line-height: 1.6;
-  color: var(--text-primary);
+  color: var(--chat-markdown-code-block-text);
 }
 
 .message-content-markdown pre code {
   background: none;
   border: none;
+  color: inherit;
   padding: 0;
   font-size: 0.85rem;
 }

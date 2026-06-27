@@ -6,6 +6,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidebar: refresh recent chat workspace grouping when
+  `user_message_metadata` arrives, so a new chat sent after selecting a
+  workspace moves out of "No workspace" once its workspace metadata is stored.
+  No migration required.
+- frontend/chat: keep markdown code blocks on an explicit light foreground when
+  rendered on dark panels, so generated diagrams and repository trees remain
+  readable in light appearance. No migration required.
 - local-runtime/memory: make chat-history clear remove SDK display timeline and
   model-history checkpoint rows along with raw events, revisions, titles, turns,
   and conversation metadata, so Memory > Delete chats no longer leaves

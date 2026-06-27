@@ -88,6 +88,9 @@ Light-mode readability:
 - settings schema/debug JSON blocks keep an explicit light foreground on their
   dark diagnostic panels, so MCP server and accepted-tool details remain
   readable in light appearance
+- assistant markdown code blocks keep an explicit light foreground on their
+  dark panels, so generated diagrams, repository trees, and other preformatted
+  output remain readable in light appearance
 
 Motion baseline:
 

@@ -70,6 +70,9 @@ Role-based surface:
 Markdown surface:
 
 - `.message-content-markdown` controls spacing for paragraph/list/code/table/blockquote.
+- fenced markdown code blocks use chat-local `--chat-markdown-code-block-*`
+  variables so their dark panel keeps a light foreground in both dark and light
+  appearance.
 
 ## Tool and Transparency Card Contract
 
