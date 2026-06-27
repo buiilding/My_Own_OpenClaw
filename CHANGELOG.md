@@ -6,6 +6,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/conversation-view: preserve the current-turn envelope
+  `conversationRef` when Electron main hydrates a newly tracked renderer with a
+  cached `ConversationView` but no raw current-turn projection, so renderer
+  reloads restore the SDK-owned chat read model without waiting for another
+  runtime event. No migration required.
+- cli/test: update the core-loop regression preset to run the renamed
+  `DesktopSdkLiveTurnEffectsRuntime` and `DesktopAttachmentImageRuntime`
+  coverage instead of stale pre-boundary filenames, keeping SDK live-turn and
+  attachment invariants in the focused pack. No migration required.
 - frontend/replay: sync the selected model through
   `DesktopSettingsRuntimeClient.setModel(...)` before SDK retry/edit resend
   dispatch, while still passing the model into the SDK replay command, so

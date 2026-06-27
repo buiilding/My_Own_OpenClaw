@@ -137,11 +137,11 @@ const SDK_WS_MODULE_DIR = path.join(SDK_JS_DIR, 'node_modules', 'ws');
 
 const CORE_LOOP_REGRESSION_PACK_TESTS = Object.freeze([
   'DesktopVisibleTurnLifecycleRuntime.test.js',
-  'DesktopCurrentTurnProjectionEffectsRuntime.test.ts',
+  'DesktopSdkLiveTurnEffectsRuntime.test.ts',
   'LiveTurnSurfaceState.test.js',
   'ChatMessageSender.test.tsx',
   'AttachmentDisplayComponents.test.jsx',
-  'DesktopResolvedMessageScreenshotsRuntime.test.jsx',
+  'DesktopAttachmentImageRuntime.test.jsx',
   'DesktopConversationDisplayProjection.test.ts',
   'DesktopConversationRuntimeEventClient.test.ts',
   'SdkDisplayChatMessageProjection.test.ts',

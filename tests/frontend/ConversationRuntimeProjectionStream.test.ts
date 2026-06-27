@@ -110,6 +110,63 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     expect(workspace.sdkLiveTurn).toBeNull();
   });
 
+  test('applies view-only renderer sync without raw current-turn fallback', () => {
+    useChatStore.setState({ activeConversationRef: 'conv-1' });
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
+    const conversationView = {
+      conversationRef: 'conv-1',
+      revisionId: 'rev-loaded',
+      displayRows: [{
+        id: 'loaded-row',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-loaded',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'restored answer',
+      }],
+      liveTurn: {
+        turnRef: null,
+        phase: 'idle',
+        entries: [],
+        isBusy: false,
+        isTerminal: true,
+        canStop: false,
+        lastError: null,
+      },
+      surfaces: {
+        pill: { mode: 'idle' },
+        dashboard: { mode: 'idle' },
+        responseOverlay: {
+          mode: 'hidden',
+          visible: false,
+          guardRef: null,
+          ownerConversationRef: 'conv-1',
+          turnRef: null,
+        },
+      },
+    };
+
+    act(() => {
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-1',
+        currentTurn: null,
+        view: conversationView,
+      });
+    });
+
+    const workspace = useChatStore.getState().getWorkspaceState('conv-1');
+    expect(workspace.conversationView).toBe(conversationView);
+    expect(workspace.sdkLiveTurn).toBeNull();
+    expect(selectChatInterfaceState(useChatStore.getState()).renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'loaded-row',
+        sender: 'assistant',
+        text: 'restored answer',
+      }),
+    ]);
+  });
+
   test('keeps pending user row visible through awaiting current-turn projection without view rows', () => {
     acceptPendingTurnInChatStore({
       conversationRef: 'conv-1',

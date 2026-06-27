@@ -361,10 +361,16 @@ describe('windie CLI', () => {
     ]);
     expect(coreLoopPlan.args).toEqual(expect.arrayContaining([
       'AgentSdkConversationRuntime.test.ts',
+      'DesktopSdkLiveTurnEffectsRuntime.test.ts',
+      'DesktopAttachmentImageRuntime.test.jsx',
       'PendingTurnLiveSurfaceIntegration.test.js',
       'ResponseOverlayPhaseHandler.test.cjs',
       'LocalRuntimeExecuteToolRuntime.test.cjs',
       '--listTests',
+    ]));
+    expect(coreLoopPlan.args).not.toEqual(expect.arrayContaining([
+      'DesktopCurrentTurnProjectionEffectsRuntime.test.ts',
+      'DesktopResolvedMessageScreenshotsRuntime.test.jsx',
     ]));
     const userFacingPlan = getSpawnPlan(['test', 'user-facing']);
     expect(userFacingPlan.concurrent).toHaveLength(7);

@@ -85,16 +85,19 @@ function normalizeCurrentTurnProjectionEvent(
     ? payload
     : source.currentTurn;
   const view = isConversationView(source.view) ? source.view : null;
+  const envelopeConversationRef = normalizeOptionalString(source.conversationRef)
+    ?? view?.conversationRef
+    ?? null;
   if (!isCurrentTurnProjection(currentTurn)) {
     return {
       currentTurn: null,
-      conversationRef: null,
+      conversationRef: envelopeConversationRef,
       view,
     };
   }
   return {
     currentTurn,
-    conversationRef: normalizeOptionalString(source.conversationRef) ?? currentTurn.conversationRef,
+    conversationRef: envelopeConversationRef ?? currentTurn.conversationRef,
     view,
   };
 }
