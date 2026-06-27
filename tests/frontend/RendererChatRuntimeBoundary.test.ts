@@ -2368,10 +2368,17 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
     expect(clientSource).toContain('DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
     expect(clientSource).toContain('function resolveDesktopPendingTurnBroadcastAction');
+    expect(clientSource).toContain('function normalizePendingTurn(value: unknown)');
+    expect(clientSource).toContain('hasOnlyPendingTurnFields(source)');
+    expect(clientSource).toContain('pendingTurn: normalizePendingTurn(source.pendingTurn)');
     expect(clientSource).not.toContain('export function resolveDesktopPendingTurnBroadcastAction');
     expect(clientSource).toContain('resolveBroadcastAction(payload');
     expect(clientSource).not.toContain("attachments?: ChatMessage['attachments']");
     expect(clientSource).not.toContain('attachmentFilenames?:');
+    expect(clientSource).not.toContain('pendingTurn: source.pendingTurn');
+    expect(clientSource).not.toContain("'attachments'");
+    expect(clientSource).not.toContain("'screenshotRef'");
+    expect(clientSource).not.toContain("'screenshot_refs'");
     expect(eventClientSource).toContain('DesktopPendingTurnRuntimeClient.resolveBroadcastAction(payload)');
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBroadcastAction');
     expect(chatStoreAdaptersSource).toContain('DesktopPendingTurnBroadcastAction');

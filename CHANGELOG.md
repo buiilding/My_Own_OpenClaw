@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pending-turn: normalize pending-turn broadcasts at the renderer IPC
+  adapter so partial or attachment-bearing pending payloads no longer reach the
+  chat-store bridge. No migration required.
 - frontend/conversation-view: require the shared complete SDK
   `ConversationView` envelope before display projection helpers render rows or
   trace summaries, preventing partial display-row objects from becoming a

@@ -27,13 +27,46 @@ describe('DesktopPendingTurnRuntimeClient', () => {
       pendingTurn: {
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
+        userMessageId: 'user-pending',
+        text: 'pending prompt',
+        timestamp: '2026-06-27T00:00:00.000Z',
       },
     })).toEqual({
       kind: 'pending',
       pendingTurn: {
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
+        userMessageId: 'user-pending',
+        text: 'pending prompt',
+        timestamp: '2026-06-27T00:00:00.000Z',
       },
+    });
+  });
+
+  test('rejects partial or attachment-bearing pending broadcasts at the IPC adapter', () => {
+    expect(DesktopPendingTurnRuntimeClient.resolveBroadcastAction({
+      type: 'pending',
+      pendingTurn: {
+        conversationRef: 'conv-pending',
+        turnRef: 'turn-pending',
+      },
+    })).toEqual({
+      kind: 'pending',
+      pendingTurn: undefined,
+    });
+    expect(DesktopPendingTurnRuntimeClient.resolveBroadcastAction({
+      type: 'pending',
+      pendingTurn: {
+        conversationRef: 'conv-pending',
+        turnRef: 'turn-pending',
+        userMessageId: 'user-pending',
+        text: 'pending prompt',
+        timestamp: '2026-06-27T00:00:00.000Z',
+        attachments: [{ id: 'attachment-1' }],
+      },
+    })).toEqual({
+      kind: 'pending',
+      pendingTurn: undefined,
     });
   });
 

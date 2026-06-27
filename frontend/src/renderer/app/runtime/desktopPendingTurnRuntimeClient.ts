@@ -6,11 +6,11 @@ import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { DESKTOP_RUNTIME_SEND_CHANNELS } from '../../infrastructure/ipc/channels';
 
 export type DesktopPendingTurn = {
-  conversationRef: string | null;
-  turnRef: string | null;
-  userMessageId?: string | null;
-  text?: string | null;
-  timestamp?: string | null;
+  conversationRef: string;
+  turnRef: string;
+  userMessageId: string;
+  text: string;
+  timestamp: string;
 };
 
 export type DesktopPendingTurnClearInput = {
@@ -41,6 +41,42 @@ function readExactOptionalString(value: unknown): string | null {
     : null;
 }
 
+const PENDING_TURN_FIELDS = new Set([
+  'conversationRef',
+  'text',
+  'timestamp',
+  'turnRef',
+  'userMessageId',
+]);
+
+function hasOnlyPendingTurnFields(source: Record<string, unknown>): boolean {
+  return Object.keys(source).every((key) => PENDING_TURN_FIELDS.has(key));
+}
+
+function normalizePendingTurn(value: unknown): DesktopPendingTurn | undefined {
+  const source = recordOrEmpty(value);
+  if (!hasOnlyPendingTurnFields(source)) {
+    return undefined;
+  }
+  const conversationRef = readExactOptionalString(source.conversationRef);
+  const turnRef = readExactOptionalString(source.turnRef);
+  const userMessageId = readExactOptionalString(source.userMessageId);
+  const text = typeof source.text === 'string' ? source.text : null;
+  const timestamp = typeof source.timestamp === 'string' && source.timestamp.trim()
+    ? source.timestamp
+    : null;
+  if (!conversationRef || !turnRef || !userMessageId || text === null || !timestamp) {
+    return undefined;
+  }
+  return {
+    conversationRef,
+    turnRef,
+    userMessageId,
+    text,
+    timestamp,
+  };
+}
+
 function resolveDesktopPendingTurnBroadcastAction(
   payload: unknown,
 ): DesktopPendingTurnBroadcastAction {
@@ -54,7 +90,7 @@ function resolveDesktopPendingTurnBroadcastAction(
   }
   return {
     kind: 'pending',
-    pendingTurn: source.pendingTurn,
+    pendingTurn: normalizePendingTurn(source.pendingTurn),
   };
 }
 

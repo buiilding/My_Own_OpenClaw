@@ -176,7 +176,13 @@ describe('DesktopConversationRuntimeEventClient', () => {
 
     mockChannelListeners.get('windie:pending-turn')?.({
       type: 'pending',
-      pendingTurn: { conversationRef: 'conv-1', turnRef: 'turn-1' },
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        userMessageId: 'user-1',
+        text: 'pending prompt',
+        timestamp: '2026-06-27T00:00:00.000Z',
+      },
     });
     mockChannelListeners.get('windie:pending-turn')?.({
       type: 'clear',
@@ -189,7 +195,13 @@ describe('DesktopConversationRuntimeEventClient', () => {
     expect(actions).toEqual([
       {
         kind: 'pending',
-        pendingTurn: { conversationRef: 'conv-1', turnRef: 'turn-1' },
+        pendingTurn: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          userMessageId: 'user-1',
+          text: 'pending prompt',
+          timestamp: '2026-06-27T00:00:00.000Z',
+        },
       },
       {
         kind: 'clear',
