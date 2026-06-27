@@ -5,6 +5,13 @@
 import type {
   ChatMessage,
 } from './desktopChatMessageTypes';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
+
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 type MessageWorkspace = {
   conversationView?: unknown | null;
@@ -63,10 +70,6 @@ type MessageStateDependencies<
   ) => WorkspaceMutationTarget<TWorkspace>;
 };
 
-function hasConversationView(value: unknown): boolean {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
 function selectRendererAnnotationUpdates(
   updates: Partial<ChatMessage>,
 ): Partial<RendererAnnotationUpdate> | null {
@@ -121,7 +124,7 @@ function buildAddMessageStateUpdate<
     workspaceRef,
     workspace: currentWorkspace,
   } = deps.resolveWorkspaceMutationTarget(state, conversationRef);
-  if (hasConversationView(currentWorkspace.conversationView)) {
+  if (hasWorkspaceConversationView(currentWorkspace)) {
     return null;
   }
   const existingMessageIndex = currentWorkspace.messages.findIndex(
@@ -164,7 +167,7 @@ function buildUpdateMessageStateUpdate<
     workspaceRef,
     workspace: currentWorkspace,
   } = deps.resolveWorkspaceMutationTarget(state, conversationRef);
-  if (hasConversationView(currentWorkspace.conversationView)) {
+  if (hasWorkspaceConversationView(currentWorkspace)) {
     const annotationUpdates = selectRendererAnnotationUpdates(updates);
     if (!annotationUpdates) {
       return null;
@@ -275,7 +278,7 @@ function buildUpdateStreamTargetMessageStateUpdate<
   const {
     workspace: currentWorkspace,
   } = deps.resolveWorkspaceMutationTarget(state, conversationRef);
-  if (hasConversationView(currentWorkspace.conversationView)) {
+  if (hasWorkspaceConversationView(currentWorkspace)) {
     return null;
   }
   const targetMessageId = resolveStreamMessageTargetId(currentWorkspace.messages, target);
@@ -310,7 +313,7 @@ function buildSetMessagesStateUpdate<
     workspaceRef,
     workspace: currentWorkspace,
   } = deps.resolveWorkspaceMutationTarget(state, conversationRef);
-  if (hasConversationView(currentWorkspace.conversationView)) {
+  if (hasWorkspaceConversationView(currentWorkspace)) {
     return null;
   }
   if (

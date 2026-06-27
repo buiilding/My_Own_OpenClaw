@@ -431,7 +431,7 @@ describe('chatStore', () => {
     expect(afterState.getWorkspaceState().messages).toEqual([]);
   });
 
-  test('setCurrentTurnProjection replaces matching pending turn without clearing busy state first', () => {
+  test('setCurrentTurnProjection keeps matching pending turn until SDK visible content arrives', () => {
     acceptPendingTurnInChatStore({
       conversationRef: 'conv-sdk',
       turnRef: 'turn-sdk',
@@ -459,7 +459,10 @@ describe('chatStore', () => {
 
     const state = useChatStore.getState();
     const activeWorkspace = state.getWorkspaceState();
-    expect(activeWorkspace.pendingTurn).toBeNull();
+    expect(activeWorkspace.pendingTurn).toEqual(expect.objectContaining({
+      conversationRef: 'conv-sdk',
+      turnRef: 'turn-sdk',
+    }));
     expect(activeWorkspace.sdkLiveTurn?.turnRef).toBe('turn-sdk');
     expect(activeWorkspace.isSending).toBe(true);
   });

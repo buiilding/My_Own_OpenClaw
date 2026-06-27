@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: route raw message mutation no-op checks through
+  `DesktopConversationViewWorkspaceRuntime.hasWorkspaceConversationView(...)`,
+  keeping ConversationView authority detection out of the message mutation
+  runtime. No migration required.
 - frontend/overlay: stop using `ConversationView.displayRows` as a response
   overlay view-shape marker; overlay display-row rendering stays behind
   `DesktopConversationDisplayProjection`. No migration required.

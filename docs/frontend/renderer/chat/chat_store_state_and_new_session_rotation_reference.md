@@ -128,6 +128,11 @@ shapes.
   `DesktopChatWorkspaceMessageRuntime.buildUpdateStreamTargetMessageStateUpdate(...)`
   so chat-stream hooks pass target intent instead of reading workspace
   `messages` to choose row ids.
+- Raw message add/update/set helpers ask
+  `DesktopConversationViewWorkspaceRuntime.hasWorkspaceConversationView(...)`
+  before mutating `messages`; when SDK `ConversationView` is present, only
+  renderer-local annotation updates such as feedback may be written beside the
+  SDK view.
 - `setMessagesInChatStore(...)` no-ops when array reference is unchanged; when hydrating a concrete
   conversation workspace, it records message `turnRef` values through the
   app-runtime turn-routing registry so later turn-scoped stream events can
