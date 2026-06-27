@@ -11,7 +11,9 @@ const {
 } = DesktopConversationDisplayProjection;
 
 function normalizeTraceString(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
 function hasConversationView(workspace) {
@@ -28,8 +30,8 @@ function resolveTraceLastMessage(workspace) {
     sender: lastMessage.sender,
     type: lastMessage.type || null,
     textLength: typeof lastMessage.text === 'string' ? lastMessage.text.length : 0,
-    turnRef: lastMessage.turnRef || null,
-    sourceEventType: lastMessage.sourceEventType || null,
+    turnRef: normalizeTraceString(lastMessage.turnRef),
+    sourceEventType: normalizeTraceString(lastMessage.sourceEventType),
   } : null;
 }
 

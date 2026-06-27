@@ -2449,6 +2449,10 @@ describe('renderer chat runtime boundary', () => {
     expect(providerTraceRuntimeSource).toContain('buildChatProviderTraceWorkspaceSnapshot');
     expect(providerTraceRuntimeSource).toContain('function hasConversationView');
     expect(providerTraceRuntimeSource).toContain('buildConversationViewTraceSummary');
+    expect(providerTraceRuntimeSource).toContain('value.length > 0 && value === value.trim()');
+    expect(providerTraceRuntimeSource).not.toContain("value.trim() ? value.trim() : null");
+    expect(providerTraceRuntimeSource).not.toContain('turnRef: lastMessage.turnRef || null');
+    expect(providerTraceRuntimeSource).not.toContain('sourceEventType: lastMessage.sourceEventType || null');
     expect(providerTraceRuntimeSource).not.toContain('conversationView?.displayRows');
     expect(providerTraceRuntimeSource).not.toContain('displayRows.length');
     expect(providerTraceRuntimeSource).not.toContain('return displayRows ? displayRows.length : messages.length');

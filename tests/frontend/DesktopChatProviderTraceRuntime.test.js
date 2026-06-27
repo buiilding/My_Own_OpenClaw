@@ -109,4 +109,35 @@ describe('DesktopChatProviderTraceRuntime', () => {
       },
     });
   });
+
+  test('does not repair padded raw trace identity without ConversationView', () => {
+    expect(buildChatProviderTraceWorkspaceSnapshot({
+      activeConversationRef: 'conv-provider',
+      workspace: {
+        messages: [{
+          id: 'raw-message',
+          sender: 'assistant',
+          type: 'llm-text',
+          text: 'raw answer',
+          turnRef: ' turn-raw ',
+          sourceEventType: ' streaming-response ',
+        }],
+        streamTracking: {
+          activeTurnRef: ' turn-raw ',
+        },
+        conversationView: null,
+      },
+    })).toEqual({
+      activeConversationRef: 'conv-provider',
+      workspaceMessageCount: 1,
+      activeTurnRef: null,
+      lastMessage: {
+        sender: 'assistant',
+        type: 'llm-text',
+        textLength: 'raw answer'.length,
+        turnRef: null,
+        sourceEventType: null,
+      },
+    });
+  });
 });
