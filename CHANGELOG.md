@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: route first-message send-state checks through the shared
+  complete `ConversationView` gate, so partial view-shaped objects no longer
+  become a separate SDK display-row authority. No migration required.
 - frontend/display-rows: keep SDK-authored progress rows as `tool-progress`
   messages in display-row and live-turn adapters while preserving legacy
   `search-source` rendering support for old rows. No migration required.

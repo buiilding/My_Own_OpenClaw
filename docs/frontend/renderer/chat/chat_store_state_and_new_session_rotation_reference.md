@@ -509,11 +509,12 @@ matches. The same lookup treats only canonical SDK user rows
 (`role: "user"` plus `type: "user_message"`) as user rows, so mismatched
 role/type rows cannot claim pending-bridge replacement or first-message
 send-state authority.
-Send-read-model helpers follow the same rule: once a `ConversationView` object
-is present, first-user-message decisions ask
+Send-read-model helpers follow the same rule: once the shared complete
+`ConversationView` gate accepts the SDK envelope, first-user-message decisions ask
 `DesktopConversationDisplayRowLookupRuntime` whether SDK user display rows
-exist and do not fall back to raw chat-store messages, even if a direct
-app-runtime caller passes a partial view shape.
+exist and do not fall back to raw chat-store messages. Partial view-shaped
+objects stay on the no-view fallback path instead of becoming first-message
+authority.
 
 `selectChatInterfaceState` exposes the active workspace selector model:
 

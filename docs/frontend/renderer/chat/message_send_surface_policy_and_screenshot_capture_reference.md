@@ -207,8 +207,8 @@ Replay commands do not pass renderer-composed payload context; SDK replay
 resolution reuses durable target-row metadata rather than composer resources.
 
 `DesktopChatSendStateRuntime.hasPriorUserMessages(...)` owns the
-first-user-message predicate used by the send read-model selector. When a SDK
-`ConversationView.displayRows` snapshot exists, the predicate reads user rows
+first-user-message predicate used by the send read-model selector. When a
+complete SDK `ConversationView` envelope exists, the predicate reads user rows
 from that view instead of treating `chatStore.messages` as competing durable
 history; `chatStore.messages` remains only the no-view historical fallback, and
 pending-send identity travels separately as `pendingTurn`.
@@ -263,9 +263,9 @@ Capture path specifics:
   - `screenshotRef`/`screenshotUrl` artifact attachment only (no base64)
 - SDK upload/materialization treats either shape as valid screenshot context and
   keeps user-row metadata stable.
-- first-message decisions use `ConversationView.displayRows` whenever a view
-  object exists; direct app-runtime callers do not fall back to raw
-  chat-store messages under a partial view shape.
+- first-message decisions use `ConversationView.displayRows` only after the
+  shared complete-view gate accepts the SDK envelope; direct app-runtime
+  callers fall back to raw chat-store messages under a partial view shape.
 
 ## SDK User Row Contract
 

@@ -5,10 +5,16 @@
 import {
   DesktopConversationDisplayRowLookupRuntime,
 } from './desktopConversationDisplayRowLookupRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
 const {
   hasConversationViewUserDisplayRows,
 } = DesktopConversationDisplayRowLookupRuntime;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 type SenderState = {
   sender?: string | null;
@@ -28,15 +34,11 @@ function hasUserMessages(messages: SenderState[] | null | undefined): boolean {
   return messages.some((message) => message.sender === 'user');
 }
 
-function isConversationView(value: ConversationViewState): boolean {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
 function hasPriorUserMessages({
   conversationView,
   messages,
 }: PriorUserMessageState): boolean {
-  if (isConversationView(conversationView)) {
+  if (hasWorkspaceConversationView({ conversationView })) {
     return hasConversationViewUserDisplayRows(conversationView);
   }
   return hasUserMessages(messages);
