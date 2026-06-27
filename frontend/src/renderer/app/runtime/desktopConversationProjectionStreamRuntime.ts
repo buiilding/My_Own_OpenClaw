@@ -16,6 +16,9 @@ import {
   DesktopPresentationSourceChannels,
 } from './desktopPresentationSourceChannels';
 import {
+  DesktopConversationDisplayProjection,
+} from './desktopConversationDisplayProjection';
+import {
   type RendererReplayTraceValues,
   DesktopRendererTraceRuntime,
 } from './desktopRendererTraceRuntime';
@@ -92,6 +95,9 @@ const {
   logRendererCurrentTurnAppliedTrace,
   logRendererReplayTrace,
 } = DesktopRendererTraceRuntime;
+const {
+  buildConversationViewTraceSummary,
+} = DesktopConversationDisplayProjection;
 
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 
@@ -113,12 +119,14 @@ function buildReplayProjectionTracePayload({
 }: ReplayProjectionTracePayloadInput): RendererReplayTraceValues {
   const pendingTurnRef = normalizeTurnRef(workspace.pendingTurn?.turnRef);
   const hasConversationView = isConversationView(workspace.conversationView);
-  const viewLiveTurn = hasConversationView ? workspace.conversationView.liveTurn ?? null : null;
+  const viewTrace = hasConversationView
+    ? buildConversationViewTraceSummary(workspace.conversationView)
+    : null;
   const currentTurnRef = hasConversationView
-    ? normalizeTurnRef(viewLiveTurn?.turnRef)
+    ? viewTrace?.liveTurnRef ?? null
     : normalizeTurnRef(workspace.sdkLiveTurn?.turnRef);
   const currentTurnPhase = hasConversationView
-    ? viewLiveTurn?.phase ?? null
+    ? viewTrace?.liveTurnPhase ?? null
     : workspace.sdkLiveTurn?.phase ?? null;
   const streamActiveTurnRef = hasConversationView
     ? currentTurnRef
@@ -126,9 +134,7 @@ function buildReplayProjectionTracePayload({
   const messageCount = hasConversationView
     ? 0
     : Array.isArray(workspace.messages) ? workspace.messages.length : 0;
-  const displayRowCount = hasConversationView && Array.isArray(workspace.conversationView?.displayRows)
-    ? workspace.conversationView.displayRows.length
-    : 0;
+  const displayRowCount = viewTrace?.displayRowCount ?? 0;
   return {
     action,
     conversationRef,

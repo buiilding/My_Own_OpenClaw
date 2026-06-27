@@ -373,6 +373,11 @@ descriptors on the typed `attachments[]` prop only. Renderer attachment helpers
 may perform narrow component checks such as artifact image-source resolution,
 but they must not expose aggregate lifecycle summaries that make the renderer a
 second attachment state authority.
+Renderer replay/provider diagnostics that need display-row counts, latest row
+shape, or live-turn identity ask
+`DesktopConversationDisplayProjection.buildConversationViewTraceSummary(...)`
+for a trace summary instead of scanning `ConversationView.displayRows`
+directly.
 Renderer token-usage presentation may estimate image cost from SDK
 `attachments[]`, but only by counting descriptors whose SDK `kind` is `image`;
 pending screenshot requests and failed request descriptors are display states,

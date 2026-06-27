@@ -9,6 +9,7 @@ import type { ChatMessage } from '../../frontend/src/renderer/app/runtime/deskto
 
 const {
   buildConversationViewChatMessages,
+  buildConversationViewTraceSummary,
   buildConversationViewTurnChatMessages,
   buildPendingBridgeChatMessages,
   findConversationViewUserDisplayRowForTurn,
@@ -225,6 +226,54 @@ describe('desktopConversationDisplayProjection', () => {
     ]), 'turn-1')).toBeNull();
     expect(findConversationViewUserDisplayRowForTurn(conversationViewWithRows([]), 'turn-1')).toBeNull();
     expect(findConversationViewUserDisplayRowForTurn(null, 'turn-1')).toBeNull();
+  });
+
+  test('builds ConversationView trace summaries without raw workspace message fallback', () => {
+    expect(buildConversationViewTraceSummary({
+      ...conversationViewWithRows([
+        {
+          id: 'view-user',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-view',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'prompt',
+        },
+        {
+          id: 'view-assistant',
+          conversationRef: 'conv-1',
+          turnRef: ' turn-view ',
+          index: 1,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'visible answer',
+          sourceEventType: 'assistant-message-full',
+        },
+      ]),
+      liveTurn: {
+        turnRef: ' turn-view ',
+        phase: 'complete',
+      },
+    } as never)).toEqual({
+      displayRowCount: 2,
+      liveTurnPhase: 'complete',
+      liveTurnRef: 'turn-view',
+      lastMessage: {
+        sender: 'assistant',
+        sourceEventType: 'assistant-message-full',
+        textLength: 'visible answer'.length,
+        turnRef: 'turn-view',
+        type: 'assistant_message',
+      },
+    });
+
+    expect(buildConversationViewTraceSummary(conversationViewWithRows([]))).toEqual({
+      displayRowCount: 0,
+      liveTurnPhase: null,
+      liveTurnRef: null,
+      lastMessage: null,
+    });
   });
 
   test('merges renderer-only feedback back into matching SDK messages', () => {

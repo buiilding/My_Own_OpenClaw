@@ -1132,6 +1132,7 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).not.toContain('export function normalizeDisplayRowsProjectionEvent');
     expect(eventClientSource).not.toContain('onDisplayRows');
     expect(displayProjectionSource).toContain('export const DesktopConversationDisplayProjection = Object.freeze');
+    expect(displayProjectionSource).toContain('buildConversationViewTraceSummary');
     expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).toContain('appendPendingBridgeUserMessages');
     expect(displayProjectionSource).toContain('pendingBridgeUserMessages');
@@ -1148,7 +1149,6 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).not.toContain('rendererAnnotations.length > 0 ? rendererAnnotations : currentMessages');
     expect(displayProjectionSource).not.toContain('currentMessages');
     expect(displayProjectionSource).not.toContain('export function mergeRendererAnnotationsIntoSdkMessages');
-    expect(displayProjectionSource).not.toContain('buildDisplayProjectionTraceSummary');
     expect(displayProjectionSource).not.toContain('export {\n  buildChatMessagesFromSdkDisplayRows');
     expect(displayProjectionSource).not.toContain('buildDisplayProjectionTraceSummary,\n  buildChatMessagesFromSdkDisplayRows');
     expect(displayProjectionSource).not.toContain('buildDisplayProjectionTraceSummary,\n  mergeRendererAnnotationsIntoSdkMessages');
@@ -1167,12 +1167,13 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionStreamRuntimeSource).toContain('buildReplayProjectionTracePayload');
     expect(projectionStreamRuntimeSource).toContain('currentMatchesOldTurn');
     expect(projectionStreamRuntimeSource).toContain('const hasConversationView = isConversationView(workspace.conversationView)');
-    expect(projectionStreamRuntimeSource).toContain('viewLiveTurn?.turnRef');
+    expect(projectionStreamRuntimeSource).toContain('buildConversationViewTraceSummary');
+    expect(projectionStreamRuntimeSource).not.toContain('viewLiveTurn?.turnRef');
     expect(projectionStreamRuntimeSource).toContain('workspace.sdkLiveTurn?.turnRef');
     expect(projectionStreamRuntimeSource).not.toContain('workspace.currentTurnProjection');
-    expect(projectionStreamRuntimeSource).toContain('workspace.conversationView.displayRows.length');
+    expect(projectionStreamRuntimeSource).not.toContain('workspace.conversationView.displayRows.length');
     expect(projectionStreamRuntimeSource).toContain('messageCount = hasConversationView');
-    expect(projectionStreamRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
+    expect(projectionStreamRuntimeSource).toContain('DesktopConversationDisplayProjection');
     expect(projectionStreamRuntimeSource).not.toContain('features/chat');
     expect(replayRuntimeSource).toContain('buildReplayProjectionTracePayload');
     expect(replayRuntimeSource).toContain('getProjectedWorkspaceReadModel');
@@ -2411,7 +2412,9 @@ describe('renderer chat runtime boundary', () => {
     expect(providerTraceRuntimeSource).toContain('export const DesktopChatProviderTraceRuntime = Object.freeze');
     expect(providerTraceRuntimeSource).toContain('buildChatProviderTraceWorkspaceSnapshot');
     expect(providerTraceRuntimeSource).toContain('function hasConversationView');
-    expect(providerTraceRuntimeSource).toContain('conversationView?.displayRows');
+    expect(providerTraceRuntimeSource).toContain('buildConversationViewTraceSummary');
+    expect(providerTraceRuntimeSource).not.toContain('conversationView?.displayRows');
+    expect(providerTraceRuntimeSource).not.toContain('displayRows.length');
     expect(providerTraceRuntimeSource).not.toContain('return displayRows ? displayRows.length : messages.length');
     expect(providerTraceRuntimeSource).not.toContain('features/chat');
     expect(clientSource).toContain('SEND_CHANNELS.LIVE_SURFACE_TRACE');

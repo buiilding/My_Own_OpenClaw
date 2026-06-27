@@ -54,10 +54,65 @@ type BuildConversationViewTurnMessagesInput = {
   turnRef?: string | null;
 };
 
+type ConversationViewTraceLastMessage = {
+  sender: string | null;
+  sourceEventType: string | null;
+  textLength: number;
+  turnRef: string | null;
+  type: string | null;
+};
+
+type ConversationViewTraceSummary = {
+  displayRowCount: number;
+  lastMessage: ConversationViewTraceLastMessage | null;
+  liveTurnPhase: string | null;
+  liveTurnRef: string | null;
+};
+
+type ConversationViewTraceSource = {
+  displayRows?: unknown[] | null;
+  liveTurn?: {
+    phase?: string | null;
+    turnRef?: string | null;
+  } | null;
+} | null | undefined;
+
 function normalizeTurnRef(turnRef: string | null | undefined): string | null {
   return typeof turnRef === 'string' && turnRef.trim()
     ? turnRef.trim()
     : null;
+}
+
+function normalizeTraceString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function resolveTraceTextLength(value: unknown): number {
+  return typeof value === 'string' ? value.length : 0;
+}
+
+function buildConversationViewTraceSummary(
+  conversationView: ConversationViewTraceSource,
+): ConversationViewTraceSummary {
+  const displayRows = Array.isArray(conversationView?.displayRows)
+    ? conversationView.displayRows
+    : [];
+  const latestRow = displayRows[displayRows.length - 1] ?? null;
+  const latestRecord = latestRow as Record<string, unknown> | null;
+  return {
+    displayRowCount: displayRows.length,
+    liveTurnPhase: normalizeTraceString(conversationView?.liveTurn?.phase),
+    liveTurnRef: normalizeTurnRef(conversationView?.liveTurn?.turnRef),
+    lastMessage: latestRecord
+      ? {
+        sender: normalizeTraceString(latestRecord.role) || normalizeTraceString(latestRecord.sender),
+        sourceEventType: normalizeTraceString(latestRecord.sourceEventType),
+        textLength: resolveTraceTextLength(latestRecord.content ?? latestRecord.text),
+        turnRef: normalizeTurnRef(latestRecord.turnRef as string | null | undefined),
+        type: normalizeTraceString(latestRecord.type),
+      }
+      : null,
+  };
 }
 
 function buildConversationViewTurnChatMessages({
@@ -198,6 +253,7 @@ function buildConversationViewChatMessages({
 
 export const DesktopConversationDisplayProjection = Object.freeze({
   buildConversationViewChatMessages,
+  buildConversationViewTraceSummary,
   buildConversationViewTurnChatMessages,
   buildPendingBridgeChatMessages,
   findConversationViewUserDisplayRowForTurn,

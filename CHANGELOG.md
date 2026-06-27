@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: route ConversationView trace summaries through
+  `DesktopConversationDisplayProjection`, so replay/provider diagnostics no
+  longer scan SDK display rows directly. No migration required.
 - frontend/send: make chat send payload normalization a positive contract over
   `text`, `clipboardImages`, and `readableFiles`, so renderer send prep no
   longer carries explicit removed screenshot or attachment alias names. No
