@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: route response-overlay active-turn display-row conversion
+  through `DesktopConversationDisplayProjection` instead of importing the
+  low-level SDK display-row message projector directly. No migration required.
 - frontend/projection: delete the raw-message renderer annotation selector from
   the ConversationView display projection adapter, so callers must pass explicit
   `rendererAnnotations` records instead of asking the adapter to recover

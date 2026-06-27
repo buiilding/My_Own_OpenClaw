@@ -9,6 +9,7 @@ import type { ChatMessage } from '../../frontend/src/renderer/app/runtime/deskto
 
 const {
   buildConversationViewChatMessages,
+  buildConversationViewTurnChatMessages,
   buildPendingBridgeChatMessages,
 } = DesktopConversationDisplayProjection;
 
@@ -105,6 +106,42 @@ describe('desktopConversationDisplayProjection', () => {
         text: 'inspect recent commits',
       }),
     ]);
+  });
+
+  test('projects only SDK display rows for the requested ConversationView turn', () => {
+    expect(buildConversationViewTurnChatMessages({
+      conversationView: conversationViewWithRows([
+        {
+          id: 'row-user-turn-1',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'first turn',
+        },
+        {
+          id: 'row-assistant-turn-2',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-2',
+          index: 1,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'second turn',
+        },
+      ]),
+      turnRef: 'turn-2',
+    })).toEqual([
+      expect.objectContaining({
+        id: 'row-assistant-turn-2',
+        sender: 'assistant',
+        text: 'second turn',
+      }),
+    ]);
+    expect(buildConversationViewTurnChatMessages({
+      conversationView: conversationViewWithRows([]),
+      turnRef: 'turn-2',
+    })).toEqual([]);
   });
 
   test('merges renderer-only feedback back into matching SDK messages', () => {

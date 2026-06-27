@@ -43,10 +43,32 @@ type BuildPendingBridgeMessagesInput = {
   pendingTurn?: PendingTurnLike;
 };
 
+type BuildConversationViewTurnMessagesInput = {
+  conversationView?: ConversationView | null;
+  turnRef?: string | null;
+};
+
 function normalizeTurnRef(turnRef: string | null | undefined): string | null {
   return typeof turnRef === 'string' && turnRef.trim()
     ? turnRef.trim()
     : null;
+}
+
+function buildConversationViewTurnChatMessages({
+  conversationView = null,
+  turnRef = null,
+}: BuildConversationViewTurnMessagesInput): ChatMessage[] {
+  const normalizedTurnRef = normalizeTurnRef(turnRef);
+  if (!conversationView || !normalizedTurnRef || typeof conversationView !== 'object') {
+    return [];
+  }
+  const displayRows = Array.isArray(conversationView.displayRows)
+    ? conversationView.displayRows.filter((row) => normalizeTurnRef(row.turnRef) === normalizedTurnRef)
+    : [];
+  if (displayRows.length === 0) {
+    return [];
+  }
+  return buildChatMessagesFromSdkDisplayRows(displayRows);
 }
 
 function sdkUserTurnRefs(messages: ChatMessage[]): Set<string> {
@@ -170,5 +192,6 @@ function buildConversationViewChatMessages({
 
 export const DesktopConversationDisplayProjection = Object.freeze({
   buildConversationViewChatMessages,
+  buildConversationViewTurnChatMessages,
   buildPendingBridgeChatMessages,
 });

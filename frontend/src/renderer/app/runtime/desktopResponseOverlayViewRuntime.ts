@@ -7,7 +7,8 @@ import { DesktopCurrentTurnMessageRuntime } from './desktopCurrentTurnMessageRun
 import { DesktopCurrentTurnPresentationRuntime } from './desktopCurrentTurnPresentationRuntime';
 import { DesktopLiveTurnSurfaceRuntime } from './desktopLiveTurnSurfaceRuntime';
 import { DesktopVisibleTurnLifecycleRuntime } from './desktopVisibleTurnLifecycleRuntime';
-import { DesktopSdkDisplayChatMessageProjectionRuntime } from './desktopSdkDisplayChatMessageProjectionRuntime';
+import { DesktopConversationDisplayProjection } from './desktopConversationDisplayProjection';
+import type { ConversationView } from './desktopConversationRuntimeContracts';
 
 const AWAITING_VISIBLE_LIFECYCLE_STATUSES = new Set(['local_pending', 'awaiting']);
 const {
@@ -30,10 +31,8 @@ const {
   resolveVisibleTurnLifecycle,
 } = DesktopVisibleTurnLifecycleRuntime;
 const {
-  buildChatMessagesFromSdkDisplayRows,
-} = DesktopSdkDisplayChatMessageProjectionRuntime;
-
-type SdkDisplayRowsInput = Parameters<typeof buildChatMessagesFromSdkDisplayRows>[0];
+  buildConversationViewTurnChatMessages,
+} = DesktopConversationDisplayProjection;
 
 type CurrentTurnPresentationStateLike = {
   visibleTurnLifecycle?: {
@@ -189,25 +188,15 @@ function conversationViewLiveTurnRef(conversationView: unknown): string | null {
   );
 }
 
-function displayRowsForLiveTurn(conversationView: unknown): unknown[] {
-  const view = recordFromUnknown(conversationView);
-  const displayRows = Array.isArray(view.displayRows) ? view.displayRows : [];
+function responseOverlayDisplayRowMessages(conversationView: unknown): ResponseOverlayEntryLike[] {
   const liveTurnRef = conversationViewLiveTurnRef(conversationView);
   if (!liveTurnRef) {
     return [];
   }
-  return displayRows.filter((row) => {
-    const record = recordFromUnknown(row);
-    return normalizeUnknownString(record.turnRef) === liveTurnRef;
-  });
-}
-
-function responseOverlayDisplayRowMessages(conversationView: unknown): ResponseOverlayEntryLike[] {
-  const displayRows = displayRowsForLiveTurn(conversationView);
-  if (displayRows.length === 0) {
-    return [];
-  }
-  return buildChatMessagesFromSdkDisplayRows(displayRows as SdkDisplayRowsInput)
+  return buildConversationViewTurnChatMessages({
+    conversationView: isConversationView(conversationView) ? conversationView as ConversationView : null,
+    turnRef: liveTurnRef,
+  })
     .filter(isVisibleResponseOverlayMessage);
 }
 

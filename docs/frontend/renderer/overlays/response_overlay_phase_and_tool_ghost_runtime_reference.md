@@ -52,9 +52,10 @@ Current-turn entry construction:
   response overlay does not independently choose between `ConversationView`,
   presentation entries, and older no-presentation projection snapshots.
 - under `ConversationView`, response-overlay entries start with active-turn
-  `displayRows` converted through the SDK display-row projection, then append
-  only live-turn rows that have not materialized in those display rows. Tool
-  call/output/progress rows reconcile by SDK display identity
+  `displayRows` converted through
+  `DesktopConversationDisplayProjection.buildConversationViewTurnChatMessages(...)`,
+  then append only live-turn rows that have not materialized in those display
+  rows. Tool call/output/progress rows reconcile by SDK display identity
   (`correlationId`, `toolCallDetails`, or `toolOutputDetails`) rather than by
   broad row type, so one materialized tool call does not hide another same-type
   live-only tool call. The overlay must not depend only on `liveTurn.entries`,
