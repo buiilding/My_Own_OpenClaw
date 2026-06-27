@@ -12,7 +12,9 @@ import {
   applyPendingTurnBroadcastToChatStore,
   clearMessagesInChatStore,
   clearPendingTurnInChatStore,
+  getChatProviderTraceWorkspaceSnapshotFromChatStore,
   setNoViewSdkLiveTurnInChatStore,
+  setConversationViewInChatStore,
   setIsSendingInChatStore,
   setMessagesInChatStore,
   setThinkingSourceEventTypeInChatStore,
@@ -204,6 +206,55 @@ describe('chatStore', () => {
     setTokenCountsInChatStore(tokenCounts);
     const afterSnapshot = useChatStore.getState();
     expect(afterSnapshot).toBe(beforeSnapshot);
+  });
+
+  test('provider trace snapshots read projected workspace state through the adapter', () => {
+    setMessagesInChatStore([
+      {
+        id: 'raw-message',
+        sender: 'assistant',
+        text: 'raw answer',
+        turnRef: 'turn-raw',
+      },
+    ], 'conv-trace');
+    setConversationViewInChatStore({
+      conversationRef: 'conv-trace',
+      revisionId: null,
+      displayRows: [{
+        id: 'view-row',
+        conversationRef: 'conv-trace',
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'view answer',
+        turnRef: 'turn-view',
+      }],
+      liveTurn: {
+        turnRef: 'turn-view',
+      },
+      surfaces: {
+        dashboard: { mode: 'normal', visible: true },
+        pill: { mode: 'normal', visible: true },
+        responseOverlay: { mode: 'hidden', visible: false },
+      },
+      actions: {
+        canEdit: false,
+        canRetry: false,
+        canFork: false,
+      },
+    }, 'conv-trace');
+
+    expect(getChatProviderTraceWorkspaceSnapshotFromChatStore('conv-trace')).toEqual({
+      activeConversationRef: null,
+      workspaceMessageCount: 1,
+      activeTurnRef: 'turn-view',
+      lastMessage: {
+        sender: 'assistant',
+        type: 'assistant_message',
+        textLength: 'view answer'.length,
+        turnRef: 'turn-view',
+        sourceEventType: null,
+      },
+    });
   });
 
   test('clearMessages resets to an empty message list', () => {

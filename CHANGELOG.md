@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: move ChatProvider trace snapshot reads behind a
+  purpose-built chat-store adapter so the provider no longer imports broad
+  projected workspace read models just to configure renderer tracing. No
+  migration required.
 - frontend/thread: render `ConversationView.liveTurn.entries` without applying
   no-view raw-message duplicate or latest-user suppression, keeping SDK view
   live rows authoritative while legacy current-turn fallback keeps its

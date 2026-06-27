@@ -72,11 +72,13 @@ All mutating actions accept optional `conversationRef` and write into that works
 adapter functions live in `chatStoreAdapters.ts`, which imports the runtime
 mutation helpers and applies their returned state updates through
 `useChatStore.setState(...)`. Hooks that need active conversation,
-projected read-model, or send read-model snapshots use named
-`chatStoreAdapters.ts` getters instead of calling `useChatStore.getState()`
-directly. Raw workspace inspection is test-only and lives in
-`tests/frontend/chatStoreTestUtils.ts`; production adapters keep raw workspace
-reads private to projected selectors and mutation helpers.
+projected read-model, send read-model, or chat-provider trace snapshots use
+named `chatStoreAdapters.ts` getters instead of calling
+`useChatStore.getState()` directly. The ChatProvider trace resolver uses the
+purpose-built provider trace snapshot getter rather than importing the broad
+projected workspace read-model helper. Raw workspace inspection is test-only
+and lives in `tests/frontend/chatStoreTestUtils.ts`; production adapters keep
+raw workspace reads private to projected selectors and mutation helpers.
 Dashboard conversation-open reset code does not receive a raw workspace getter
 from `DashboardShell`. It calls the chat-store clear adapter with
 `preserveConversationView: true`; the clear-message app-runtime owner decides

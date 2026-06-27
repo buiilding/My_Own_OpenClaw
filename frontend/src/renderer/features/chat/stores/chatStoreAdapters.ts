@@ -47,6 +47,9 @@ import {
   DesktopChatTurnConversationRefRuntime,
 } from '../../../app/runtime/desktopChatTurnConversationRefRuntime';
 import {
+  DesktopChatProviderTraceRuntime,
+} from '../../../app/runtime/desktopChatProviderTraceRuntime';
+import {
   DesktopCurrentTurnWorkspaceRuntime,
 } from '../../../app/runtime/desktopCurrentTurnWorkspaceRuntime';
 import {
@@ -109,6 +112,9 @@ const {
 const {
   recordRendererTurnConversationRefs,
 } = DesktopChatTurnConversationRefRuntime;
+const {
+  buildChatProviderTraceWorkspaceSnapshot,
+} = DesktopChatProviderTraceRuntime;
 const {
   buildSetNoViewSdkLiveTurnStateUpdate,
 } = DesktopCurrentTurnWorkspaceRuntime;
@@ -189,6 +195,15 @@ export function getProjectedWorkspaceReadModelFromChatStore(
 
 export function getChatSendReadModelFromChatStore(): ReturnType<typeof selectChatSendReadModel> {
   return selectChatSendReadModel(useChatStore.getState());
+}
+
+export function getChatProviderTraceWorkspaceSnapshotFromChatStore(
+  conversationRef?: string | null,
+): ReturnType<typeof buildChatProviderTraceWorkspaceSnapshot> {
+  return buildChatProviderTraceWorkspaceSnapshot({
+    activeConversationRef: getActiveConversationRefFromChatStore(),
+    workspace: getProjectedWorkspaceReadModelFromChatStore(conversationRef),
+  });
 }
 
 export function applyPendingTurnBroadcastToChatStore(

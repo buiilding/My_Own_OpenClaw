@@ -2669,10 +2669,11 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('export function configureRendererTraceWorkspaceSnapshotResolver');
     expect(chatProviderSource).toContain('configureRendererTraceWorkspaceSnapshotResolver');
     expect(chatProviderSource).toContain('DesktopRendererTraceRuntime');
-    expect(chatProviderSource).toContain('DesktopChatProviderTraceRuntime');
-    expect(chatProviderSource).toContain('buildChatProviderTraceWorkspaceSnapshot');
-    expect(chatProviderSource).toContain('getActiveConversationRefFromChatStore');
-    expect(chatProviderSource).toContain('getProjectedWorkspaceReadModelFromChatStore');
+    expect(chatProviderSource).toContain('getChatProviderTraceWorkspaceSnapshotFromChatStore');
+    expect(chatProviderSource).not.toContain('DesktopChatProviderTraceRuntime');
+    expect(chatProviderSource).not.toContain('buildChatProviderTraceWorkspaceSnapshot');
+    expect(chatProviderSource).not.toContain('getActiveConversationRefFromChatStore');
+    expect(chatProviderSource).not.toContain('getProjectedWorkspaceReadModelFromChatStore');
     expect(chatProviderSource).not.toContain('useChatStore');
     expect(chatProviderSource).not.toContain('store.getWorkspaceState(conversationRef)');
     expect(chatProviderSource).not.toContain('projectWorkspaceReadModelState');
@@ -2696,6 +2697,12 @@ describe('renderer chat runtime boundary', () => {
     expect(providerTraceRuntimeSource).not.toContain('displayRows.length');
     expect(providerTraceRuntimeSource).not.toContain('return displayRows ? displayRows.length : messages.length');
     expect(providerTraceRuntimeSource).not.toContain('features/chat');
+    const chatStoreAdaptersSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters.ts'),
+      'utf8',
+    );
+    expect(chatStoreAdaptersSource).toContain('getChatProviderTraceWorkspaceSnapshotFromChatStore');
+    expect(chatStoreAdaptersSource).toContain('buildChatProviderTraceWorkspaceSnapshot');
     expect(clientSource).toContain('SEND_CHANNELS.LIVE_SURFACE_TRACE');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/chatStream/chatStreamDebugTrace.ts'),
