@@ -4129,8 +4129,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSelectorRuntimeSource).toContain('selectStableChatSendReadModel');
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('latestConversationView');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('latestConversationView');
-    expect(chatInterfaceSource).toContain('buildRevisionCheckoutCommand');
-    expect(chatInterfaceSource).toContain('buildRevisionForkCommand');
+    expect(chatInterfaceSource).not.toContain('buildRevisionCheckoutCommand');
+    expect(chatInterfaceSource).not.toContain('buildRevisionForkCommand');
     expect(chatInterfaceSource).toContain('markActiveRevisionFromCheckoutResult');
     expect(chatInterfaceSource).not.toContain('markActiveRevisionInList');
     expect(chatInterfaceSource).not.toContain('result?.revisionId');
@@ -4156,6 +4156,10 @@ describe('renderer chat runtime boundary', () => {
     expect(headerControlsSource).not.toContain('forkActionId');
     expect(headerControlsSource).not.toContain('revisionActionId');
     expect(headerControlsSource).not.toContain('activeRevisionId');
+    expect(headerControlsSource).not.toContain('item.revisionId');
+    expect(headerControlsSource).not.toContain('item.revision');
+    expect(headerControlsSource).toContain('item.checkoutCommand');
+    expect(headerControlsSource).toContain('item.forkCommand');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildThreadPresentationMessages');
     expect(threadPresentationRuntimeSource).not.toContain('modelFacingToolCall');
     expect(chatInterfacePresentationRuntimeSource).toContain('DesktopConversationDisplayProjection');

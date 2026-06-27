@@ -83,28 +83,40 @@ function buildRevisionForkCommand({
 }
 
 function buildRevisionMenuItems({
+  activeConversationRef = null,
   activeRevisionId = null,
   revisionActionId = null,
   revisions = [],
+  userId = null,
 } = {}) {
   const normalizedActiveRevisionId = normalizeRevisionId(activeRevisionId);
   const activeActionId = typeof revisionActionId === 'string' ? revisionActionId : null;
   const revisionList = Array.isArray(revisions) ? revisions : [];
   return revisionList.map((revision, index) => {
     const revisionId = normalizeRevisionId(revision?.revisionId);
-    const checkoutActionId = buildRevisionActionId('checkout', revisionId);
-    const forkActionId = buildRevisionActionId('fork', revisionId);
+    const checkoutCommand = buildRevisionCheckoutCommand({
+      activeConversationRef,
+      revisionId,
+      userId,
+    });
+    const forkCommand = buildRevisionForkCommand({
+      activeConversationRef,
+      revision,
+      userId,
+    });
+    const checkoutActionId = checkoutCommand?.actionId ?? buildRevisionActionId('checkout', revisionId);
+    const forkActionId = forkCommand?.actionId ?? buildRevisionActionId('fork', revisionId);
     const shortId = shortRevisionId(revisionId);
     const isActive = Boolean(revisionId && revisionId === normalizedActiveRevisionId);
     return {
       key: revisionId || `revision:${index}`,
-      revision,
-      revisionId,
       shortId,
       metaLabel: isActive ? 'active' : revisionOperationLabel(revision?.operation),
       isActive,
-      checkoutDisabled: !revisionId || activeActionId === checkoutActionId,
-      forkDisabled: !revisionId || activeActionId === forkActionId,
+      checkoutCommand,
+      forkCommand,
+      checkoutDisabled: !checkoutCommand || activeActionId === checkoutActionId,
+      forkDisabled: !forkCommand || activeActionId === forkActionId,
       forkAriaLabel: `Fork revision ${shortId}`,
     };
   });

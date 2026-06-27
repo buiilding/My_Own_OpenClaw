@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/revisions: prepare checkout/fork commands inside
+  `DesktopChatRevisionActionRuntime` menu rows, so `ChatInterface` and header
+  controls no longer extract revision ids or raw revision records from menu
+  items before executing SDK revision actions. No migration required.
 - frontend/overlay: move response-overlay rendered-typing trace value shaping
   into `DesktopResponseOverlayViewRuntime`, so `MinimalResponseOverlay` no
   longer maps view-model turn ids into trace `turnRef` fields directly. No

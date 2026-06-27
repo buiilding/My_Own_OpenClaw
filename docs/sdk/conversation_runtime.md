@@ -857,10 +857,11 @@ display row and returns the forked SDK view to the newly active conversation,
 so renderer code does not load display timelines just to reconstruct a branch
 prefix. Renderer revision controls receive app-runtime-prepared menu items:
 the adapter owns exact revision/conversation identity validation, active-row
-metadata, checkout/fork action ids, disabled state, and checkout-result active
-revision marking. Padded or empty revision ids and conversation refs fail closed
-instead of being trimmed into SDK checkout/fork command inputs, while React
-renders the item and sends only the selected checkout/fork intent to SDK commands.
+metadata, checkout/fork command objects, disabled state, and checkout-result
+active revision marking. Padded or empty revision ids and conversation refs fail
+closed instead of being trimmed into SDK checkout/fork command inputs, while
+React renders the item and passes only the selected prepared command back to the
+app-runtime executor.
 Renderer
 app-runtime facades should not expose direct display timeline
 load/replace helpers to React; low-level timeline mutation remains SDK/main

@@ -233,7 +233,7 @@ function ChatInterfaceHeaderControls({
                         className="chat-revision-menu-item"
                         role="menuitem"
                         disabled={item.checkoutDisabled}
-                        onClick={() => handleRevisionCheckout(item.revisionId)}
+                        onClick={() => handleRevisionCheckout(item.checkoutCommand)}
                       >
                         <span className="chat-revision-menu-id">
                           {item.shortId}
@@ -248,7 +248,7 @@ function ChatInterfaceHeaderControls({
                         aria-label={item.forkAriaLabel}
                         title="Fork revision"
                         disabled={item.forkDisabled}
-                        onClick={() => handleRevisionFork(item.revision)}
+                        onClick={() => handleRevisionFork(item.forkCommand)}
                       >
                         <GitFork size={15} />
                       </button>
