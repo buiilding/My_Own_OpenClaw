@@ -18,12 +18,18 @@ function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function readExactIdentityString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function normalizeConversationRef(value) {
-  return normalizeString(value);
+  return readExactIdentityString(value);
 }
 
 function normalizeTurnRef(value) {
-  return normalizeString(value);
+  return readExactIdentityString(value);
 }
 
 function normalizePendingTurn(value) {
@@ -178,15 +184,15 @@ function findAwaitingAnchor(pendingTurn, sdkLiveTurn) {
   const presentationAnchor = sdkLiveTurn?.presentation?.awaitingAnchor;
   if (
     presentationAnchor?.kind === 'user-message'
-    && normalizeString(presentationAnchor.rowId)
+    && readExactIdentityString(presentationAnchor.rowId)
   ) {
     return {
       kind: 'user-message',
-      rowId: presentationAnchor.rowId.trim(),
+      rowId: presentationAnchor.rowId,
     };
   }
 
-  const pendingMessageId = normalizeString(pendingTurn?.userMessageId);
+  const pendingMessageId = readExactIdentityString(pendingTurn?.userMessageId);
   if (pendingMessageId) {
     return {
       kind: 'user-message',
@@ -200,7 +206,7 @@ function findAwaitingAnchor(pendingTurn, sdkLiveTurn) {
 function findConversationViewAwaitingAnchor(conversationView, pendingTurn) {
   const liveTurnRef = getConversationViewLiveTurnRef(conversationView);
   const userRow = findConversationViewUserDisplayRowForTurn(conversationView, liveTurnRef);
-  const rowId = normalizeString(userRow?.id);
+  const rowId = readExactIdentityString(userRow?.id);
   if (rowId) {
     return {
       kind: 'user-message',

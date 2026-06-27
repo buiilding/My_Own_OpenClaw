@@ -41,6 +41,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: reject repaired ConversationView display-row turn refs
   during turn filtering and pending-bridge suppression, so malformed SDK row
   identity cannot hide renderer pending sends. No migration required.
+- frontend/lifecycle: reject repaired SDK live-turn and ConversationView
+  identity during visible-lifecycle handoff, keeping padded refs from replacing
+  renderer pending sends. No migration required.
 - frontend/projection: reject malformed SDK display-row `toolName` metadata
   instead of passing padded or non-string tool labels into renderer tool rows.
   No migration required.

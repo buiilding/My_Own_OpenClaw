@@ -331,6 +331,77 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
   });
 
+  test('does not repair padded SDK live-turn identities before replacing local pending', () => {
+    const pending = pendingTurn();
+    const visibleProjection = projection({
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'entry-1',
+          type: 'llm-text',
+          text: 'Hello there',
+        }],
+      },
+    });
+
+    expect(resolvePendingTurnForSdkLiveTurn({
+      pendingTurn: pending,
+      sdkLiveTurn: {
+        ...visibleProjection,
+        turnRef: ' turn-1 ',
+      },
+    })).toBe(pending);
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      sdkLiveTurn: {
+        ...visibleProjection,
+        turnRef: ' turn-1 ',
+      },
+    })).toMatchObject({
+      status: 'local_pending',
+      source: 'local',
+      turnRef: 'turn-1',
+    });
+
+    expect(resolvePendingTurnForSdkLiveTurn({
+      pendingTurn: pending,
+      sdkLiveTurn: {
+        ...visibleProjection,
+        conversationRef: ' conv-1 ',
+      },
+    })).toBe(pending);
+  });
+
+  test('does not repair padded SDK awaiting anchors before lifecycle projection', () => {
+    const pending = pendingTurn({
+      userMessageId: 'pending-user',
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      sdkLiveTurn: projection({
+        phase: 'awaiting',
+        presentation: {
+          isBusy: true,
+          entries: [],
+          awaitingAnchor: {
+            kind: 'user-message',
+            rowId: ' sdk-user ',
+          },
+        },
+      }),
+    })).toMatchObject({
+      status: 'awaiting',
+      source: 'sdk',
+      awaitingAnchor: {
+        kind: 'user-message',
+        rowId: 'pending-user',
+      },
+    });
+  });
+
   test('lets same-turn ConversationView replace local pending lifecycle', () => {
     const pending = pendingTurn({
       conversationRef: 'conv-1',
@@ -374,6 +445,77 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         }),
       ],
       showTyping: false,
+    });
+  });
+
+  test('does not repair padded ConversationView identities before replacing local pending', () => {
+    const pending = pendingTurn({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-view',
+      userMessageId: 'pending-user',
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [{
+          id: 'sdk-user-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-view',
+          role: 'user',
+          type: 'user_message',
+          content: 'hello',
+        }],
+        liveTurn: {
+          turnRef: ' turn-view ',
+          phase: 'streaming',
+          isBusy: true,
+          entries: [{
+            id: 'entry-view',
+            type: 'llm-text',
+            text: 'view response',
+          }],
+        },
+        surfaces: {
+          responseOverlay: {
+            mode: 'response',
+            visible: true,
+            turnRef: ' turn-view ',
+            guardRef: ' turn-view ',
+            ownerConversationRef: 'conv-1',
+          },
+        },
+      },
+    })).toMatchObject({
+      status: 'local_pending',
+      source: 'local',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-view',
+      awaitingAnchor: {
+        kind: 'user-message',
+        rowId: 'pending-user',
+      },
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      conversationView: {
+        conversationRef: ' conv-1 ',
+        displayRows: [],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'complete',
+          isTerminal: true,
+          entries: [],
+        },
+        surfaces: {},
+      },
+    })).toMatchObject({
+      status: 'local_pending',
+      source: 'local',
     });
   });
 

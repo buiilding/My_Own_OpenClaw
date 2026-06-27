@@ -51,6 +51,9 @@ owns pending-turn handoff for store updates, while
 surface local-pending status consumed by dashboard, pill, and overlay surfaces.
 Both use the same visible lifecycle authority so SDK idle, wrong-turn terminal,
 stale, and visible-empty live-turn fallbacks do not replace `local_pending`.
+Same-turn handoff identity is exact: padded SDK live-turn refs,
+`ConversationView` refs, or awaiting-anchor row ids are ignored instead of
+being trimmed into pending-turn replacements or awaiting anchors.
 Local pending rendering requires a valid renderer `pendingTurn`; bare
 `isSending=true` is store/diagnostic compatibility state and does not create
 visible typing or busy lifecycle by itself.

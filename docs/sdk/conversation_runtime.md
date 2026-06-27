@@ -282,6 +282,10 @@ user rows.
 Pending bridge identity fields are exact non-empty values. Renderer and main
 pending-turn adapters reject padded conversation refs, turn refs, and pending
 user-row ids instead of trimming them into bridge or Stop targets.
+Renderer visible-lifecycle handoff applies that same exactness rule when SDK
+live turns or `ConversationView` state replace the pending bridge; padded SDK
+conversation refs, turn refs, response-overlay refs, or awaiting-anchor row ids
+are ignored instead of being trimmed into same-turn lifecycle authority.
 Renderer and main stop-target resolution applies the same exact identity rule
 to stoppable `ConversationView` live turns and pending bridge targets; padded
 view or pending refs resolve as non-stoppable idle state instead of being

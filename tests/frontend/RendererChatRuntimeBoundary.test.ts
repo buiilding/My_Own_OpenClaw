@@ -4169,6 +4169,9 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('const hasSameTurnUserDisplayRow = displayRows.some');
     expect(visibleLifecycleRuntimeSource).toContain('findConversationViewUserDisplayRowForTurn');
     expect(visibleLifecycleRuntimeSource).toContain('DesktopConversationDisplayRowLookupRuntime');
+    expect(visibleLifecycleRuntimeSource).toContain('function readExactIdentityString');
+    expect(visibleLifecycleRuntimeSource).toContain('return readExactIdentityString(value);');
+    expect(visibleLifecycleRuntimeSource).toContain('readExactIdentityString(presentationAnchor.rowId)');
     expect(visibleLifecycleRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
     expect(visibleLifecycleRuntimeSource).not.toContain('function isConversationViewUserDisplayRow');
     expect(visibleLifecycleRuntimeSource).not.toContain('conversationView.displayRows.length - 1');

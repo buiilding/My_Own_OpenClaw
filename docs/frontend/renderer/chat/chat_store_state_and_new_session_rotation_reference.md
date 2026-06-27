@@ -195,8 +195,11 @@ exposed as turn, tool, or visible label identity.
   until SDK display rows or `ConversationView` arrive. Raw
   no-view SDK live-turn storage is read, written, and reset through
   `DesktopChatWorkspaceStateRuntime` helpers; pending-turn replacement and
-  no-op guards live in `desktopCurrentTurnWorkspaceRuntime.ts`. The store
-  module delegates SDK live-turn intent plus workspace dependency adapters.
+  no-op guards live in `desktopCurrentTurnWorkspaceRuntime.ts`. Those
+  same-turn replacement checks compare SDK live-turn identity exactly; padded
+  conversation or turn refs do not clear the pending bridge by being trimmed
+  into a match. The store module delegates SDK live-turn intent plus workspace
+  dependency adapters.
 - SDK `ConversationView` writes enter through the module-level
   `setConversationViewInChatStore(...)` adapter instead of a Zustand action.
   The conversation-view workspace state update lives in
@@ -208,6 +211,10 @@ exposed as turn, tool, or visible label identity.
   view snapshots may drive surface state, but they do not erase the pending
   bridge because that bridge owns the only visible dashboard user row and
   typing anchor before SDK rows arrive.
+  ConversationView handoff uses the same exact identity rule for
+  `conversationRef`, `liveTurn.turnRef`, response-overlay turn refs, and SDK
+  user-row anchors; malformed padded refs keep the renderer pending bridge
+  visible instead of being repaired into lifecycle authority.
 - `acceptPendingTurnInChatStore(...)` stores the renderer-local pending turn
   before the SDK live turn opens, so dashboard/pill surfaces can
   show awaiting state and stop can target the real outgoing `turnRef`; an
