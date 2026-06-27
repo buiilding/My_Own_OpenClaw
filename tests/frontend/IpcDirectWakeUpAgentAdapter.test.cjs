@@ -567,7 +567,7 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       revisionId: 'rev-1',
       store: { ignored: true },
     })).resolves.toEqual({
-      turnRef: 'turn-edit',
+      turnRef: undefined,
       queryMessageId: 'msg-edit',
     });
 
@@ -579,20 +579,16 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       revisionId: 'rev-1',
       store: { ignored: true },
     })).resolves.toEqual({
-      turnRef: 'turn-retry',
+      turnRef: undefined,
       queryMessageId: 'msg-retry',
     });
 
     expect(runtime.editAndResend).toHaveBeenCalledWith({
       messageId: 'row-user',
       text: 'edited text',
-      turnRef: 'turn-edit',
-      payload: { screenshot_refs: ['artifact-one'] },
     });
     expect(runtime.retryTurn).toHaveBeenCalledWith({
       messageId: 'row-assistant',
-      turnRef: 'turn-retry',
-      payload: { screenshot_ref: 'artifact-one' },
     });
     expect(runtime.load).toHaveBeenCalledTimes(2);
   });

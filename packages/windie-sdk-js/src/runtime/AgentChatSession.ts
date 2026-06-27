@@ -85,7 +85,7 @@ export class AgentChatSession {
     return this.runtime.editAndResend(input);
   }
 
-  async retry(input: RetryTurnInput = {}): Promise<TurnResult> {
+  async retry(input: RetryTurnInput): Promise<TurnResult> {
     return this.runtime.retryTurn(input);
   }
 

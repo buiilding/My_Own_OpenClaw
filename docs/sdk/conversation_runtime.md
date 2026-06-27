@@ -1310,8 +1310,9 @@ The renderer active path calls `conversation.editAndResend` or
 `conversation.rewrite_after_event`, or backend rehydrate as part of normal
 edit/retry execution. The SDK commands resolve the stored target display row,
 preserve display attachments and legacy screenshot refs from that row, write
-the child display/model revision, emit supersession for old live work, apply
-model overrides, and dispatch the replacement through the normal `send()` path.
+the child display/model revision, emit supersession for old live work, and
+dispatch the replacement through the normal `send()` path without accepting
+caller-supplied replay payload, model, or replacement turn-ref overrides.
 Renderer replay facades must pass exact non-empty SDK row ids from row action
 metadata; they reject padded or empty ids instead of trimming them into replay
 targets. Electron main applies the same exact-only rule to replay SDK command
@@ -1330,9 +1331,10 @@ typed image attachment has a display-local id and a separate `screenshotRef`,
 replay uses the real screenshot/artifact ref for the backend payload and carries
 the typed attachment as SDK display metadata. Legacy display-row
 `screenshot_refs` and single screenshot refs still flow through replay
-screenshot resolution inside the SDK command. Renderer replay command payloads
-must not infer or forward screenshot aliases; absent renderer payload fields
-must not erase prior resolved resources without an explicit removal operation.
+screenshot resolution inside the SDK command. Replay command callers must not
+infer or forward screenshot aliases; the SDK does not merge caller replay
+payload fields, so absent or stale caller payload fields cannot erase or
+replace prior resolved resources.
 
 The Electron renderer does not publish a replay-specific pending turn, retained
 display prefix, separate replacement query, renderer replay payload, or
@@ -1344,8 +1346,8 @@ that target as a generic
 `targetRowId`; edit and retry both map it to the SDK command's `messageId`
 field without classifying the row as a user-message target. It must not call
 the renderer settings facade or read renderer config to pre-apply the replay
-model; the SDK command applies any model selection inside the replacement
-`send()` path. The SDK command chooses the replacement turn ref. If the SDK
+model; replay uses the SDK runtime's current model state when the replacement
+flows through `send()`. The SDK command chooses the replacement turn ref. If the SDK
 command cannot resolve the stored target row or fails, the renderer records
 replay diagnostics and returns
 failure without rolling its own display replacement, failure row, or resource

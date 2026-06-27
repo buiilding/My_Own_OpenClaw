@@ -146,8 +146,9 @@ flowchart LR
      transcript session or selected-model overrides; the replay runtime facade
      reads only session scope behind the app-runtime boundary. It must not read
      renderer config or call the renderer settings facade to apply the model
-     before dispatch; SDK replay commands apply any model selection through
-     their normal `send()` path.
+     before dispatch; SDK replay commands use the runtime's current model state
+     through their normal `send()` path and do not accept replay model
+     overrides.
      Renderer continuity service replay methods expose only user id,
      conversation ref, target row id, and edited text; they must not forward
      replay payloads, attachment aliases, turn refs, or model overrides. They

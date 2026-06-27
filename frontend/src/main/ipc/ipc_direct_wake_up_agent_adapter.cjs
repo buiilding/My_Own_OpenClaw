@@ -412,11 +412,10 @@ function createDirectWakeUpAgentAdapter({
     editAndResend: async (options = {}) => {
       const displayConversationRef = resolveSdkCommandConversationRef(options);
       const handle = getConversationRuntimeHandle(displayConversationRef);
-      const input = { ...options };
-      delete input.conversationRef;
-      delete input.revisionId;
-      delete input.revision_id;
-      delete input.store;
+      const input = {
+        messageId: options.messageId,
+        text: options.text,
+      };
       const result = await handle.runtime.editAndResend(input);
       markInferenceContextStale(handle.conversationRef);
       await reloadRuntimeSnapshot(handle);
@@ -425,11 +424,9 @@ function createDirectWakeUpAgentAdapter({
     retryTurn: async (options = {}) => {
       const displayConversationRef = resolveSdkCommandConversationRef(options);
       const handle = getConversationRuntimeHandle(displayConversationRef);
-      const input = { ...options };
-      delete input.conversationRef;
-      delete input.revisionId;
-      delete input.revision_id;
-      delete input.store;
+      const input = {
+        messageId: options.messageId,
+      };
       const result = await handle.runtime.retryTurn(input);
       markInferenceContextStale(handle.conversationRef);
       await reloadRuntimeSnapshot(handle);

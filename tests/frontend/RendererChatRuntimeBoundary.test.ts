@@ -2056,6 +2056,14 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs'),
       'utf8',
     );
+    const sdkConversationRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/ConversationRuntime.ts'),
+      'utf8',
+    );
+    const sdkReplayCommandSource = sdkConversationRuntimeSource.slice(
+      sdkConversationRuntimeSource.indexOf('  async editAndResend(input: EditAndResendInput)'),
+      sdkConversationRuntimeSource.indexOf('  private shouldStopSupersededTurn'),
+    );
     const transcriptRuntimeDocSource = await fs.readFile(
       path.resolve(__dirname, '../../docs/frontend/renderer/transcript_session_and_rehydrate_reference.md'),
       'utf8',
@@ -2240,6 +2248,12 @@ describe('renderer chat runtime boundary', () => {
     expect(ipcSdkCommandHandlerSource).not.toContain('model: cloneJsonObject(payload.model)');
     expect(ipcSdkCommandHandlerSource).not.toContain('turnRef,\n        payload:');
     expect(ipcSdkCommandHandlerSource).toContain("messageId: requireExactCommandString(payload, 'messageId', 'message id')");
+    expect(sdkConversationRuntimeSource).toContain('export type EditAndResendInput = {\n  messageId: string;\n  text: string;\n};');
+    expect(sdkConversationRuntimeSource).toContain('export type RetryTurnInput = {\n  messageId: string;\n};');
+    expect(sdkReplayCommandSource).not.toContain('const replayPayload = mergeReplayPayload');
+    expect(sdkReplayCommandSource).not.toContain('input.payload');
+    expect(sdkReplayCommandSource).not.toContain('input.model');
+    expect(sdkReplayCommandSource).not.toContain('input.turnRef');
     expect(transcriptRuntimeDocSource).toContain('SDK replay commands own target-row selection');
     expect(transcriptRuntimeDocSource).not.toContain('DesktopConversationReplayRuntime owns replay row selection');
     expect(transcriptRuntimeDocSource).not.toContain('prepared\n  desktop-turn shaping');

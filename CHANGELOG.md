@@ -22,6 +22,10 @@ All notable changes to WindieOS will be documented in this file.
   dropping caller-supplied replay payloads, model overrides, and turn refs
   before `conversation.editAndResend`/`conversation.retryTurn`; retry now
   requires an exact SDK target row id. No migration required.
+- sdk/replay: narrow `editAndResend` and `retryTurn` inputs to target row
+  intent, deriving replacement turn refs, replay payload resources, and model
+  behavior from the SDK display timeline and normal send path instead of
+  caller-supplied overrides. No migration required for Electron callers.
 - frontend/revisions: require exact conversation refs, revision ids, optional
   fork cut row ids, and explicit fork conversation refs inside the desktop
   continuity facade before invoking SDK revision commands, so direct facade
