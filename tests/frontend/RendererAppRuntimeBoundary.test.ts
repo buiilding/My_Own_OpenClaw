@@ -1389,6 +1389,8 @@ describe('renderer app runtime boundary', () => {
     expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
     expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
     expect(liveTurnSource).toContain('function optionalExactString');
+    expect(liveTurnSource).toContain('function hasOnlyAllowedResourceKeys');
+    expect(liveTurnSource).toContain('Object.keys(resource).every((key) => allowedKeys.includes(key))');
     expect(liveTurnSource).toContain('const turnRef = optionalExactString(input.turnRef)');
     expect(liveTurnSource).not.toContain('const turnRef = optionalString(input.turnRef)');
     expect(liveTurnSource).toContain('optionalExactString(conversationRef)');

@@ -101,6 +101,10 @@ Clipboard image IPC trust boundary:
 3. Preserve image handles.
    - Keep `base64`, `contentType`, `filename`, and `previewUrl` through composer preview.
    - Renderer send should submit `clipboard_image` resources without uploading artifacts.
+   - Live-turn command resources must use the positive SDK resource shape only;
+     descriptors with renderer preview, display-lifecycle, screenshot-alias, or
+     attachment-summary fields are rejected rather than stripped into a sendable
+     resource.
    - SDK resource resolvers upload images, preserve content type, and choose a deterministic filename when none is provided.
 
 4. Preserve readable-file behavior.

@@ -46,11 +46,21 @@ function requiredField(value: unknown): { required: boolean } | Record<string, n
   return required === null ? {} : { required };
 }
 
+function hasOnlyAllowedResourceKeys(
+  resource: Record<string, unknown>,
+  allowedKeys: readonly string[],
+): boolean {
+  return Object.keys(resource).every((key) => allowedKeys.includes(key));
+}
+
 function normalizeTurnInputResource(resource: unknown): TurnInputResource | null {
   if (!isRecord(resource)) {
     return null;
   }
   if (resource.kind === 'readable_file') {
+    if (!hasOnlyAllowedResourceKeys(resource, ['kind', 'filePath', 'filename', 'required'])) {
+      return null;
+    }
     const filePath = optionalExactString(resource.filePath);
     const filename = optionalExactString(resource.filename);
     return filePath && filename
@@ -63,6 +73,9 @@ function normalizeTurnInputResource(resource: unknown): TurnInputResource | null
       : null;
   }
   if (resource.kind === 'clipboard_image') {
+    if (!hasOnlyAllowedResourceKeys(resource, ['kind', 'base64', 'contentType', 'filename', 'required'])) {
+      return null;
+    }
     const base64 = optionalExactString(resource.base64);
     if (!base64) {
       return null;
@@ -76,6 +89,9 @@ function normalizeTurnInputResource(resource: unknown): TurnInputResource | null
     };
   }
   if (resource.kind === 'query_screenshot_request') {
+    if (!hasOnlyAllowedResourceKeys(resource, ['kind', 'isFirstUserMessage', 'reason', 'required'])) {
+      return null;
+    }
     const isFirstUserMessage = optionalBoolean(resource.isFirstUserMessage);
     return {
       kind: 'query_screenshot_request',
@@ -85,6 +101,9 @@ function normalizeTurnInputResource(resource: unknown): TurnInputResource | null
     };
   }
   if (resource.kind === 'workspace') {
+    if (!hasOnlyAllowedResourceKeys(resource, ['kind', 'workspacePath', 'required'])) {
+      return null;
+    }
     const workspacePath = optionalExactString(resource.workspacePath);
     return workspacePath
       ? {

@@ -111,7 +111,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     }));
   });
 
-  test('sendQuery normalizes turn input resources before SDK command dispatch', async () => {
+  test('sendQuery keeps turn input resources on the positive SDK resource contract', async () => {
     const { DesktopLiveTurnRuntimeClient } = require(
       '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
     );
@@ -137,11 +137,24 @@ describe('DesktopLiveTurnRuntimeClient', () => {
           required: true,
         },
         {
+          kind: 'clipboard_image',
+          base64: 'valid-image-base64',
+          contentType: 'image/png',
+          filename: 'valid-shot.png',
+          required: true,
+        },
+        {
           kind: 'query_screenshot_request',
           displayAttachmentId: 'renderer-screenshot-id',
           isFirstUserMessage: true,
           reason: ' capture ',
           previewSrc: 'data:image/png;base64,preview',
+          required: false,
+        },
+        {
+          kind: 'query_screenshot_request',
+          isFirstUserMessage: true,
+          reason: 'capture',
           required: false,
         },
         {
@@ -167,15 +180,15 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     expect(commandPayload.resources).toEqual([
       {
         kind: 'clipboard_image',
-        base64: 'image-base64',
-        contentType: null,
-        filename: 'shot.png',
+        base64: 'valid-image-base64',
+        contentType: 'image/png',
+        filename: 'valid-shot.png',
         required: true,
       },
       {
         kind: 'query_screenshot_request',
         isFirstUserMessage: true,
-        reason: null,
+        reason: 'capture',
         required: false,
       },
     ]);

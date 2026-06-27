@@ -173,13 +173,13 @@ When attachment(s) exist:
    processing assigns stable display attachment ids before producing live
    visual attachment projection state.
    `DesktopLiveTurnRuntimeClient` re-normalizes the final resource array before
-   `conversation.send`, so only SDK resource-kind fields cross the command
-   boundary; malformed required handles, renderer preview fields, display ids,
-   screenshot aliases, and attachment lifecycle descriptors are dropped instead
-   of being repaired or forwarded. The live-turn client does not forward a
-   generic renderer metadata object; capture metadata, attachment context, and
-   attachment filenames are SDK resource-resolution outputs, not renderer send
-   inputs.
+   `conversation.send`, so every resource must contain only the positive key
+   set for its SDK resource kind. Descriptors carrying extra renderer preview,
+   display-lifecycle, screenshot-alias, or attachment-summary fields are
+   rejected as malformed resources instead of being stripped and repaired into
+   command input. The live-turn client does not forward a generic renderer
+   metadata object; capture metadata, attachment context, and attachment
+   filenames are SDK resource-resolution outputs, not renderer send inputs.
 7. call `DesktopLiveTurnRuntimeClient.sendQuery` with text, conversation ref,
    turn ref, and typed resources. Normal sends do not build a renderer-owned
    filename payload, metadata object, or per-turn model override; selected model

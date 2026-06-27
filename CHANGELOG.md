@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: require live-turn command resources to match the positive SDK
+  resource key set, dropping descriptors with renderer preview/lifecycle or
+  attachment alias fields instead of stripping them into `conversation.send`
+  input. No migration required.
 - frontend/projection: require exact SDK labels in ConversationView trace
   summaries, so padded live-turn phases, row senders, row types, and
   source-event values appear as missing diagnostics instead of being trimmed
