@@ -46,6 +46,8 @@ function buildChatInterfacePresentationState({
   rendererAnnotations = [],
   sdkLiveTurn = null,
 } = {}) {
+  const hasConversationView = isConversationView(conversationView);
+  const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
   if (
     chatInterfacePresentationCache.state
     && chatInterfacePresentationCache.activeConversationRef === activeConversationRef
@@ -56,15 +58,14 @@ function buildChatInterfacePresentationState({
     && chatInterfacePresentationCache.messages === messages
     && chatInterfacePresentationCache.pendingTurn === pendingTurn
     && chatInterfacePresentationCache.rendererAnnotations === rendererAnnotations
-    && chatInterfacePresentationCache.sdkLiveTurn === sdkLiveTurn
-    && chatInterfacePresentationCache.sdkLiveTurnPhase === sdkLiveTurn?.phase
-    && chatInterfacePresentationCache.sdkLiveTurnAssistantText === sdkLiveTurn?.assistantText
-    && chatInterfacePresentationCache.sdkLiveTurnReasoningText === sdkLiveTurn?.reasoningText
-    && chatInterfacePresentationCache.sdkLiveTurnToolEvents === sdkLiveTurn?.toolEvents
+    && chatInterfacePresentationCache.sdkLiveTurn === effectiveSdkLiveTurn
+    && chatInterfacePresentationCache.sdkLiveTurnPhase === effectiveSdkLiveTurn?.phase
+    && chatInterfacePresentationCache.sdkLiveTurnAssistantText === effectiveSdkLiveTurn?.assistantText
+    && chatInterfacePresentationCache.sdkLiveTurnReasoningText === effectiveSdkLiveTurn?.reasoningText
+    && chatInterfacePresentationCache.sdkLiveTurnToolEvents === effectiveSdkLiveTurn?.toolEvents
   ) {
     return chatInterfacePresentationCache.state;
   }
-  const hasConversationView = isConversationView(conversationView);
   const baseMessages = hasConversationView
     ? buildConversationViewChatMessages({
       conversationView,
@@ -76,7 +77,6 @@ function buildChatInterfacePresentationState({
       messages,
       pendingTurn,
     });
-  const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
   const state = {
     renderedMessages: buildThreadPresentationMessages(baseMessages, {
       conversationView,
@@ -96,11 +96,11 @@ function buildChatInterfacePresentationState({
     messages,
     pendingTurn,
     rendererAnnotations,
-    sdkLiveTurn,
-    sdkLiveTurnPhase: sdkLiveTurn?.phase,
-    sdkLiveTurnAssistantText: sdkLiveTurn?.assistantText,
-    sdkLiveTurnReasoningText: sdkLiveTurn?.reasoningText,
-    sdkLiveTurnToolEvents: sdkLiveTurn?.toolEvents,
+    sdkLiveTurn: effectiveSdkLiveTurn,
+    sdkLiveTurnPhase: effectiveSdkLiveTurn?.phase,
+    sdkLiveTurnAssistantText: effectiveSdkLiveTurn?.assistantText,
+    sdkLiveTurnReasoningText: effectiveSdkLiveTurn?.reasoningText,
+    sdkLiveTurnToolEvents: effectiveSdkLiveTurn?.toolEvents,
     state,
   };
   return state;

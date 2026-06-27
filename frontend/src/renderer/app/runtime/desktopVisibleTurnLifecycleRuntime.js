@@ -69,21 +69,6 @@ function hasPresentationLifecycleEvidence(presentation) {
   );
 }
 
-function hasLegacyVisibleLiveTurnContent(sdkLiveTurn) {
-  if (!sdkLiveTurn || typeof sdkLiveTurn !== 'object') {
-    return false;
-  }
-  if (sdkLiveTurn.presentation && typeof sdkLiveTurn.presentation === 'object') {
-    return false;
-  }
-  return Boolean(
-    normalizeString(sdkLiveTurn.assistantText)
-      || normalizeString(sdkLiveTurn.reasoningText)
-      || normalizeString(sdkLiveTurn.lastError)
-      || (Array.isArray(sdkLiveTurn.toolEvents) && sdkLiveTurn.toolEvents.length > 0),
-  );
-}
-
 function hasTerminalSdkLiveTurnLifecycle(sdkLiveTurn) {
   const phase = normalizeSdkLiveTurnPhase(sdkLiveTurn);
   return Boolean(
@@ -97,7 +82,6 @@ function canSdkLiveTurnReplacePendingTurn(pendingTurn, sdkLiveTurn) {
     sdkLiveTurnMatchesPendingTurn(pendingTurn, sdkLiveTurn)
     && (
       hasVisiblePresentationContent(sdkLiveTurn?.presentation)
-      || hasLegacyVisibleLiveTurnContent(sdkLiveTurn)
       || hasTerminalSdkLiveTurnLifecycle(sdkLiveTurn)
     )
   );
@@ -270,7 +254,6 @@ function resolveSdkLifecycleStatus(sdkLiveTurn) {
   if (
     ACTIVE_PROGRESS_PHASES.has(phase)
     || hasVisiblePresentationContent(sdkLiveTurn.presentation)
-    || hasLegacyVisibleLiveTurnContent(sdkLiveTurn)
   ) {
     return 'active';
   }

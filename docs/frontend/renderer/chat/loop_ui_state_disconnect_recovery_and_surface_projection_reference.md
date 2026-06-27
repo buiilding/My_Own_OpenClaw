@@ -204,7 +204,9 @@ rather than legacy SDK visibility booleans or overlay intent mode. Overlay
 intent remains guard/window metadata; its mode is derived from SDK phase and
 actual entries, text, error, or tool-progress evidence instead of copied as
 lifecycle authority. SDK `presentation.hasVisibleContent` is also not lifecycle
-evidence by itself.
+evidence by itself. Raw current-turn `assistantText`, `reasoningText`, and
+`toolEvents` are not lifecycle evidence; live-turn text/tool rendering must
+arrive through SDK presentation entries or `ConversationView.liveTurn.entries`.
 `selectLiveTurnSurfaceState(...)` likewise omits raw `isSending`, and minimal
 surface trace payloads name the renderer-local path `useLocalPendingTurn`
 instead of a send-latch alias.
@@ -219,6 +221,10 @@ bridge, which keeps its pending user row available until SDK view handoff.
 the same empty renderer-message fallback internally, so callers that bypass the
 selector cannot reintroduce stale message-derived response state beside an SDK
 view.
+`DesktopChatInterfacePresentationRuntime.buildChatInterfacePresentationState(...)`
+keys its memoized presentation state from the effective live-turn input; once a
+`ConversationView` exists, raw `sdkLiveTurn` fallback changes are ignored for
+both rendering and cache invalidation.
 The decision to keep renderer-local pending typing through idle, hidden, stale,
 terminal, or visible SDK projections lives with the visible lifecycle owner and
 requires an accepted renderer `pendingTurn`.
@@ -284,8 +290,9 @@ longer imports the overlay lifecycle adapter.
   projections
 - same-turn SDK awaiting, visible progress/text, and terminal projections
   replace local pending
-- SDK presentation visibility flags do not replace local pending unless actual
-  entries, text, error, or tool-progress evidence is present
+- SDK presentation visibility flags and raw current-turn content do not replace
+  local pending unless actual presentation entries, presentation error, or
+  terminal lifecycle evidence is present
 - shared presentation adapters map renderer visible lifecycle into busy,
   awaiting-dot, chatbox, and response overlay presentation fields
 - bare `isSending=true` does not create local pending without `pendingTurn`

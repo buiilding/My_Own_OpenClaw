@@ -6,6 +6,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/conversation-view: key main chat presentation memoization from the
+  effective SDK live-turn input, so raw no-view live-turn fallback changes do
+  not invalidate `ConversationView` rendering. No migration required.
+- frontend/live-turn: stop visible lifecycle projection from treating raw
+  current-turn `assistantText`, `reasoningText`, or `toolEvents` as lifecycle
+  evidence; SDK presentation entries and `ConversationView.liveTurn.entries`
+  remain the live rendering authority. No migration required.
 - sdk/conversation-view: preserve SDK-authored materializing attachment
   `previewSrc` fields in display-row projection state while backend-origin
   attachment normalization continues to strip preview/data URL fields. No
