@@ -77,8 +77,8 @@ stays private behind the renderer app-runtime facade.
 Normalized shape:
 
 - `text`: required
-- `clipboardImages[]`: accepted only when each image has non-empty `base64`
-- `readableFiles[]`: accepted only when each file has non-empty absolute-ish `filePath` + `filename`
+- `clipboardImages[]`: accepted only when each image has exact non-empty `base64`
+- `readableFiles[]`: accepted only when each file has exact non-empty absolute-ish `filePath` + `filename`
 - singular `clipboardImage` rejects the object payload; all image attachments must use the canonical `clipboardImages[]` array.
 - removed renderer-owned attachment/screenshot aliases such as
   `attachmentContext`, `attachmentFilenames`, `attachments`,
@@ -96,9 +96,10 @@ SDK resource resolution own durable screenshot aliases and attachment metadata.
 
 `clipboardImages[]` metadata fields:
 
-- `base64`
-- optional `contentType`
-- optional `filename`
+- `base64`: exact non-empty required value
+- optional `contentType`: forwarded only when exact non-empty
+- optional `filename`: forwarded only when exact non-empty; otherwise SDK resource
+  resolution chooses fallback naming
 
 ## MessageInput -> Sender Coupling
 

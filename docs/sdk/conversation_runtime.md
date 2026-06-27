@@ -290,7 +290,12 @@ Normal renderer send payload normalization is a positive contract: object
 payloads may contain only `text`, `clipboardImages[]`, and `readableFiles[]`.
 Any extra renderer field is rejected generically, so send prep does not carry
 removed screenshot or attachment alias vocabulary. Composer sends pass only
-typed resource handles into SDK turn preparation.
+typed resource handles into SDK turn preparation. Required resource strings
+such as clipboard `base64`, readable-file `filePath`, and readable-file
+`filename` must already be exact non-empty values; the renderer drops malformed
+attachment items rather than trimming them into SDK resources. Optional
+clipboard metadata such as `contentType` and `filename` is forwarded only when
+exact, leaving SDK resource resolution to choose fallback metadata when omitted.
 Conversation-view chat projection receives explicit renderer annotation records,
 not raw current chat messages, when copying local assistant feedback state onto
 SDK assistant rows. The renderer stores those annotations beside the

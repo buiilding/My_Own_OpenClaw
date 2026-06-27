@@ -38,6 +38,41 @@ describe('desktopChatSendPayloadRuntime', () => {
     });
   });
 
+  test('rejects padded required resource handle fields instead of repairing them', () => {
+    expect(normalizeOutgoingPayload({
+      text: 'bad image',
+      clipboardImages: [{ base64: ' abc ', filename: 'shot.png' }],
+    })).toEqual({
+      text: 'bad image',
+      clipboardImages: [],
+      readableFiles: [],
+    });
+
+    expect(normalizeOutgoingPayload({
+      text: 'bad file',
+      readableFiles: [{ filePath: ' /tmp/a ', filename: 'a.txt' }],
+    })).toEqual({
+      text: 'bad file',
+      clipboardImages: [],
+      readableFiles: [],
+    });
+  });
+
+  test('drops padded optional clipboard metadata without trimming it into resources', () => {
+    expect(normalizeOutgoingPayload({
+      text: 'image',
+      clipboardImages: [{
+        base64: 'abc',
+        contentType: ' image/png ',
+        filename: ' shot.png ',
+      }],
+    })).toEqual({
+      text: 'image',
+      clipboardImages: [{ base64: 'abc' }],
+      readableFiles: [],
+    });
+  });
+
   test('rejects removed singular clipboard image compatibility payloads', () => {
     expect(normalizeOutgoingPayload({
       text: 'hello',

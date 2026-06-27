@@ -620,6 +620,54 @@ describe('useChatMessageSender', () => {
     expectPendingBridgeUserMessage('Please inspect this image');
   });
 
+  test('does not repair padded attachment resource fields before SDK send', async () => {
+    const { result } = renderSender({ senderSurface: 'main-window' });
+
+    await sendPayload(result, {
+      text: 'Please inspect this malformed image',
+      clipboardImages: [
+        {
+          base64: ' clipboard-image-base64 ',
+          contentType: 'image/png',
+          filename: 'clipboard-image.png',
+        },
+      ],
+      readableFiles: [
+        {
+          filePath: ' /tmp/notes.txt ',
+          filename: 'notes.txt',
+        },
+      ],
+    });
+
+    expectSingleSendQueryCall('Please inspect this malformed image', 'conv_msg-1', []);
+    expectPendingBridgeUserMessage('Please inspect this malformed image');
+  });
+
+  test('drops padded optional clipboard metadata before SDK send', async () => {
+    const { result } = renderSender({ senderSurface: 'main-window' });
+
+    await sendPayload(result, {
+      text: 'Please inspect this image',
+      clipboardImages: [
+        {
+          base64: 'clipboard-image-base64',
+          contentType: ' image/png ',
+          filename: ' clipboard-image.png ',
+        },
+      ],
+    });
+
+    expectSingleSendQueryCall('Please inspect this image', 'conv_msg-1', [{
+      kind: 'clipboard_image',
+      base64: 'clipboard-image-base64',
+      contentType: null,
+      filename: null,
+      required: true,
+    }]);
+    expectPendingBridgeUserMessage('Please inspect this image');
+  });
+
   test('sends pasted image before camera screenshot request for mixed visual sends', async () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
 

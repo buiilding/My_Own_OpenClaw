@@ -2540,6 +2540,10 @@ describe('renderer chat runtime boundary', () => {
     expect(payloadRuntimeSource).toContain('export const DesktopChatSendPayloadRuntime = Object.freeze');
     expect(payloadRuntimeSource).toContain('ALLOWED_OUTGOING_PAYLOAD_FIELDS');
     expect(payloadRuntimeSource).toContain('hasUnsupportedOutgoingPayloadField');
+    expect(payloadRuntimeSource).toContain('function exactNonEmptyString(value: unknown)');
+    expect(payloadRuntimeSource).not.toContain('clipboardImage.base64.length > 0');
+    expect(payloadRuntimeSource).not.toContain('readableFile.filePath.length > 0');
+    expect(payloadRuntimeSource).not.toContain('readableFile.filename.length > 0');
     expect(payloadRuntimeSource).toContain("'clipboardImages'");
     expect(payloadRuntimeSource).toContain("'readableFiles'");
     expect(payloadRuntimeSource).not.toContain('REMOVED_RENDERER_ATTACHMENT_PAYLOAD_FIELDS');

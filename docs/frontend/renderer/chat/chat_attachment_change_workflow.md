@@ -77,6 +77,10 @@ Clipboard image IPC trust boundary:
      inputs do not wait on SDK resource preparation; rejected async sends must
      restore the captured text, pasted images, and selected readable files for
      retry.
+   - Typed resource handle strings are exact. The renderer rejects padded
+     `base64`, `filePath`, and `filename` values instead of trimming them into
+     SDK resources; malformed optional clipboard metadata is omitted so SDK
+     resource resolution can choose fallback names.
 
 3. Preserve image handles.
    - Keep `base64`, `contentType`, `filename`, and `previewUrl` through composer preview.
