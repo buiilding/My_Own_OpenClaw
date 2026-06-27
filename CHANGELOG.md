@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/current-turn: reject legacy no-presentation SDK live-turn snapshots
+  without exact conversation refs instead of synthesizing `conversation`
+  renderer row identity. No migration required.
 - frontend/pending-turn: reject pending-turn bridge payloads that carry
   attachment descriptors, screenshot refs, or filename aliases instead of
   silently stripping them. No migration required.

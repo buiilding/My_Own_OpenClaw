@@ -79,10 +79,6 @@ function resolveToolName(value) {
   return readExactSdkString(value);
 }
 
-function resolveLiveTurnIdentity(value, fallback) {
-  return readExactSdkString(value) || fallback;
-}
-
 function buildProjectedToolCallMessage({
   baseId,
   liveTurnRef,
@@ -199,7 +195,10 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
     return [];
   }
 
-  const liveConversationRef = resolveLiveTurnIdentity(conversationRef, 'conversation');
+  const liveConversationRef = readExactSdkString(conversationRef);
+  if (!liveConversationRef) {
+    return [];
+  }
   const liveTurnRef = readExactSdkString(turnRef);
   const baseId = `${liveConversationRef}:${liveTurnRef || 'turn'}`;
   const messages = [{

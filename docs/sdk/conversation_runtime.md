@@ -600,6 +600,9 @@ projected detail objects, not backend-wire payload recovery.
 The raw no-presentation current-turn fallback builder stays private to the
 renderer message runtime; callers use the no-view SDK live-turn facade so the
 legacy raw-field bridge cannot become a parallel presentation API.
+That legacy bridge also requires an exact SDK `conversationRef` before it
+builds fallback row ids; malformed or missing conversation refs are ignored
+instead of being repaired into synthetic renderer identities.
 
 ### Removed Renderer Transcript and Rehydrate Helpers
 
