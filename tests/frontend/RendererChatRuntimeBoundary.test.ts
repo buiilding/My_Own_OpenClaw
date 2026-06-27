@@ -4099,6 +4099,9 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationDisplayProjectionSource).not.toContain('emptyRendererMessageAnnotations');
     expect(conversationDisplayProjectionSource).not.toContain('hasRendererMessageAnnotations');
     expect(conversationDisplayProjectionSource).toContain('findConversationViewUserDisplayRowForTurn');
+    expect(conversationDisplayProjectionSource).toContain('findConversationViewUserDisplayRowForTurn(conversationView, pendingTurnRef)');
+    expect(conversationDisplayProjectionSource).not.toContain('sdkUserTurnRefs');
+    expect(conversationDisplayProjectionSource).not.toContain('projectedUserTurns');
     expect(conversationDisplayProjectionSource).toContain('DesktopConversationDisplayRowLookupRuntime');
     expect(conversationDisplayRowLookupSource).toContain('findConversationViewUserDisplayRowForTurn');
     expect(conversationDisplayRowLookupSource).toContain('ConversationView display-row lookup');

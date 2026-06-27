@@ -133,7 +133,7 @@ function buildConversationViewTurnChatMessages({
   return buildChatMessagesFromSdkDisplayRows(displayRows);
 }
 
-function sdkUserTurnRefs(messages: ChatMessage[]): Set<string> {
+function chatMessageUserTurnRefs(messages: ChatMessage[]): Set<string> {
   const turnRefs = new Set<string>();
   for (const message of messages) {
     if (message.sender !== 'user') {
@@ -147,19 +147,23 @@ function sdkUserTurnRefs(messages: ChatMessage[]): Set<string> {
   return turnRefs;
 }
 
+function normalizePendingTurnRef(pendingTurn: PendingTurnLike): string | null {
+  return normalizeTurnRef(pendingTurn?.turnRef);
+}
+
 function pendingBridgeUserMessages(
-  sdkMessages: ChatMessage[],
+  baseMessages: ChatMessage[],
   pendingTurn: PendingTurnLike,
+  hasUserRowForPendingTurn = false,
 ): ChatMessage[] {
-  const sdkMessageIds = new Set(sdkMessages.map((message) => message.id));
-  const projectedUserTurns = sdkUserTurnRefs(sdkMessages);
+  const baseMessageIds = new Set(baseMessages.map((message) => message.id));
   const pendingMessage = buildPendingTurnUserMessage(pendingTurn) as ChatMessage | null;
   const pendingTurnRef = normalizeTurnRef(pendingMessage?.turnRef);
   if (
     pendingMessage
     && pendingTurnRef
-    && !sdkMessageIds.has(pendingMessage.id)
-    && !projectedUserTurns.has(pendingTurnRef)
+    && !baseMessageIds.has(pendingMessage.id)
+    && !hasUserRowForPendingTurn
   ) {
     return [pendingMessage];
   }
@@ -212,10 +216,11 @@ function mergeRendererAnnotationsIntoSdkMessages(
 function appendPendingBridgeUserMessages(
   sdkMessages: ChatMessage[],
   pendingTurn: PendingTurnLike,
+  hasUserRowForPendingTurn = false,
 ): ChatMessage[] {
   return mergePendingBridgeUserMessages(
     sdkMessages,
-    pendingBridgeUserMessages(sdkMessages, pendingTurn),
+    pendingBridgeUserMessages(sdkMessages, pendingTurn, hasUserRowForPendingTurn),
   );
 }
 
@@ -224,7 +229,15 @@ function buildPendingBridgeChatMessages({
   pendingTurn = null,
 }: BuildPendingBridgeMessagesInput = {}): ChatMessage[] {
   const baseMessages = Array.isArray(messages) ? messages : [];
-  return appendPendingBridgeUserMessages(baseMessages, pendingTurn);
+  const pendingTurnRef = normalizePendingTurnRef(pendingTurn);
+  const hasUserRowForPendingTurn = Boolean(
+    pendingTurnRef && chatMessageUserTurnRefs(baseMessages).has(pendingTurnRef),
+  );
+  return appendPendingBridgeUserMessages(
+    baseMessages,
+    pendingTurn,
+    hasUserRowForPendingTurn,
+  );
 }
 
 function buildConversationViewChatMessages({
@@ -246,9 +259,14 @@ function buildConversationViewChatMessages({
       rendererAnnotations,
     )
     : sdkMessages;
+  const pendingTurnRef = normalizePendingTurnRef(pendingTurn);
+  const hasSdkUserRowForPendingTurn = Boolean(
+    pendingTurnRef && findConversationViewUserDisplayRowForTurn(conversationView, pendingTurnRef),
+  );
   return appendPendingBridgeUserMessages(
     annotatedSdkMessages,
     pendingTurn,
+    hasSdkUserRowForPendingTurn,
   );
 }
 

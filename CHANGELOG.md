@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: make ConversationView pending-bridge suppression ask the
+  shared SDK display-row lookup helper instead of inferring same-turn user rows
+  from projected chat messages. No migration required.
 - frontend/chat-store: route raw message mutation no-op checks through
   `DesktopConversationViewWorkspaceRuntime.hasWorkspaceConversationView(...)`,
   keeping ConversationView authority detection out of the message mutation
