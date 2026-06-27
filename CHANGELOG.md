@@ -20,7 +20,10 @@ All notable changes to WindieOS will be documented in this file.
   come only from SDK-authored display metadata. No migration required.
 - frontend/replay: remove the caller-provided active-conversation override from
   replay execution; replay scope now resolves only from transcript session
-  state and the injected chat-store dependency. No migration required.
+  state and the injected UI-state adapter. No migration required.
+- frontend/replay: pass replay execution a narrow UI-state adapter instead of
+  the full chat-store object, keeping SDK replay command dispatch independent
+  of Zustand's `getState()` contract. No migration required.
 - frontend/selectors: route the chat send read model through the shared
   surface selector before checking prior user messages, keeping
   `ConversationView` raw-message suppression in one renderer boundary. No

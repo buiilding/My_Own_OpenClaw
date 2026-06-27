@@ -130,9 +130,11 @@ flowchart LR
      replacement display rows.
    - React replay hooks should pass edit/retry intent through
      `desktopConversationReplayRuntime`. Hooks call the runtime's single
-     replay-action entrypoint with row ids/text plus UI dependencies; active
-     conversation state is resolved by the runtime from the store dependency
-     instead of selected in React or passed as a caller override. If neither
+     replay-action entrypoint with row ids/text plus a narrow UI context for
+     active conversation and projected workspace trace reads; active
+     conversation state is resolved by the runtime from that adapter instead of
+     selected in React, passed as a caller override, or read through the full
+     Zustand store contract. If neither
      transcript session nor chat-store active workspace has a conversation ref,
      replay returns a traced failure instead of creating a fresh conversation
      whose SDK display rows cannot own the target id. Replay failures are
@@ -145,8 +147,7 @@ flowchart LR
      SDK replay commands apply model selection through their normal `send()`
      path.
      Chat-store adapters should not export replay wrapper commands; the store
-     may be passed into the replay runtime only as an injected UI-state
-     dependency.
+     shape and `getState()` contract must not be passed into the replay runtime.
    - Renderer app-runtime facades should not expose direct display timeline
      load/replace helpers to React. Low-level display timeline operations remain
      SDK/main-owner diagnostics and command-handler concerns; normal UI paths

@@ -10,9 +10,6 @@ import {
   DesktopConversationProjectionStreamRuntime,
 } from './desktopConversationProjectionStreamRuntime';
 import { DesktopRendererConfigRuntimeClient } from './desktopRendererConfigRuntimeClient';
-import {
-  projectWorkspaceReadModelState,
-} from './desktopChatWorkspaceStateRuntime';
 import { DesktopRendererTraceRuntime } from './desktopRendererTraceRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
@@ -77,12 +74,13 @@ function traceErrorKind(error) {
   return error instanceof Error ? 'Error' : typeof error;
 }
 
-function replayTraceSnapshot(chatStore, conversationRef) {
-  const state = chatStore.getState();
-  const rawWorkspace = typeof state.getWorkspaceState === 'function'
-    ? state.getWorkspaceState(conversationRef)
-    : state;
-  const workspace = projectWorkspaceReadModelState(rawWorkspace);
+function replayTraceSnapshot(replayUiContext, conversationRef) {
+  const workspace = typeof replayUiContext?.getProjectedWorkspaceReadModel === 'function'
+    ? replayUiContext.getProjectedWorkspaceReadModel(conversationRef)
+    : null;
+  if (!workspace) {
+    return {};
+  }
   const tracePayload = buildReplayProjectionTracePayload({
     action: 'replay_trace_snapshot',
     conversationRef,
@@ -95,26 +93,26 @@ function replayTraceSnapshot(chatStore, conversationRef) {
   );
 }
 
-function logReplayTimeline(chatStore, action, {
+function logReplayTimeline(replayUiContext, action, {
   conversationRef,
   ...values
 }) {
   logRendererReplayTrace({
     action,
     conversationRef,
-    ...replayTraceSnapshot(chatStore, conversationRef),
+    ...replayTraceSnapshot(replayUiContext, conversationRef),
     ...values,
   });
 }
 
 async function executeReplayIntent({
-  chatStore,
   deferredQueryModelSelection,
   intent,
+  replayUiContext,
   sessionInfo,
   storeConversationRef,
 }) {
-  if (!intent || !chatStore || typeof chatStore.getState !== 'function') {
+  if (!intent) {
     return false;
   }
   const {
@@ -143,7 +141,7 @@ async function executeReplayIntent({
     userId: sessionInfo.userId || undefined,
     updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
   });
-  logReplayTimeline(chatStore, 'replay_start', {
+  logReplayTimeline(replayUiContext, 'replay_start', {
     conversationRef,
     targetUserMessageId: messageId,
   });
@@ -152,7 +150,7 @@ async function executeReplayIntent({
       ...(workspaceBinding.workspacePath ? { workspace_path: workspaceBinding.workspacePath } : {}),
     };
     try {
-      logReplayTimeline(chatStore, 'sdk_replay_sent', {
+      logReplayTimeline(replayUiContext, 'sdk_replay_sent', {
         conversationRef,
         action,
         targetUserMessageId: messageId,
@@ -175,14 +173,14 @@ async function executeReplayIntent({
           model: deferredQueryModelSelection || undefined,
         });
       }
-      logReplayTimeline(chatStore, 'sdk_replay_done', {
+      logReplayTimeline(replayUiContext, 'sdk_replay_done', {
         conversationRef,
         action,
         replaySucceeded: true,
         targetUserMessageId: messageId,
       });
     } catch (sdkReplayError) {
-      logReplayTimeline(chatStore, 'sdk_replay_failed', {
+      logReplayTimeline(replayUiContext, 'sdk_replay_failed', {
         conversationRef,
         action,
         replaySucceeded: false,
@@ -197,7 +195,7 @@ async function executeReplayIntent({
     return true;
   } catch (error) {
     console.error(`[ChatInterface] ${errorPrefix}:`, error);
-    logReplayTimeline(chatStore, 'replay_failed_cleanup', {
+    logReplayTimeline(replayUiContext, 'replay_failed_cleanup', {
       conversationRef,
       errorKind: traceErrorKind(error),
       targetUserMessageId: messageId,
@@ -233,9 +231,9 @@ async function executeReplayAction({
   action,
   assistantMessageId = null,
   config = null,
-  chatStore,
   deferredQueryModelSelection,
   editedText = null,
+  replayUiContext = null,
   sessionInfo = null,
   userMessageId = null,
 }) {
@@ -250,18 +248,18 @@ async function executeReplayAction({
   }
   const resolvedSessionInfo = sessionInfo
     || DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
-  const storeState = chatStore && typeof chatStore.getState === 'function'
-    ? chatStore.getState()
+  const storeConversationRef = typeof replayUiContext?.getActiveConversationRef === 'function'
+    ? replayUiContext.getActiveConversationRef()
     : null;
   return executeReplayIntent({
-    chatStore,
     deferredQueryModelSelection: resolveReplayModelSelection({
       config,
       deferredQueryModelSelection,
     }),
     intent,
+    replayUiContext,
     sessionInfo: resolvedSessionInfo,
-    storeConversationRef: storeState?.activeConversationRef ?? null,
+    storeConversationRef,
   });
 }
 

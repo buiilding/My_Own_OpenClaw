@@ -1175,7 +1175,9 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionStreamRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
     expect(projectionStreamRuntimeSource).not.toContain('features/chat');
     expect(replayRuntimeSource).toContain('buildReplayProjectionTracePayload');
-    expect(replayRuntimeSource).toContain('projectWorkspaceReadModelState');
+    expect(replayRuntimeSource).toContain('getProjectedWorkspaceReadModel');
+    expect(replayRuntimeSource).not.toContain('projectWorkspaceReadModelState');
+    expect(replayRuntimeSource).not.toContain('.getState()');
     expect(replayRuntimeSource).toContain('Object.entries(tracePayload).filter');
     expect(replayRuntimeSource).toContain("key !== 'action' && key !== 'conversationRef'");
     expect(replayRuntimeSource).not.toContain('currentTurnProjection?.turnRef');
@@ -1907,8 +1909,12 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('desktopConversationReplayRuntime');
     expect(source).toContain('DesktopConversationReplayRuntime');
     expect(source).not.toContain('DesktopChatSendPreparationRuntime');
-    expect(source).toContain("} from '../stores/chatStore';");
-    expect(source).toContain('chatStore: useChatStore');
+    expect(source).toContain("} from '../stores/chatStoreAdapters';");
+    expect(source).toContain('getActiveConversationRefFromChatStore');
+    expect(source).toContain('getProjectedWorkspaceReadModelFromChatStore');
+    expect(source).toContain('replayUiContext');
+    expect(source).not.toContain('useChatStore');
+    expect(source).not.toContain('chatStore:');
     expect(source).not.toContain('useChatStore((state)');
     expect(source).not.toContain('buildDeferredQueryModelSelection');
     expect(source).not.toContain('utils/conversationReplayToolMessages');
@@ -1984,9 +1990,12 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('buildReplayPendingPublication');
     expect(replayRuntimeSource).toContain('executeReplayAction');
     expect(replayRuntimeSource).toContain('executeReplayIntent');
+    expect(replayRuntimeSource).toContain('replayUiContext');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.editAndResend');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.retryTurn');
     expect(replayRuntimeSource).toContain('storeConversationRef');
+    expect(replayRuntimeSource).not.toContain('chatStore');
+    expect(replayRuntimeSource).not.toContain('.getState()');
     expect(replayRuntimeSource).not.toContain('activeConversationRef,');
     expect(replayRuntimeSource).not.toContain('DesktopSettingsRuntimeClient');
     expect(replayRuntimeSource).not.toContain('.setModel(');

@@ -10,12 +10,18 @@ import {
   DesktopRendererConfigRuntimeClient,
 } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import {
-  useChatStore,
-} from '../stores/chatStore';
+  getActiveConversationRefFromChatStore,
+  getProjectedWorkspaceReadModelFromChatStore,
+} from '../stores/chatStoreAdapters';
 
 const {
   executeReplayAction,
 } = DesktopConversationReplayRuntime;
+
+const replayUiContext = {
+  getActiveConversationRef: getActiveConversationRefFromChatStore,
+  getProjectedWorkspaceReadModel: getProjectedWorkspaceReadModelFromChatStore,
+};
 
 export function useConversationReplayActions() {
   const { config } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
@@ -23,8 +29,8 @@ export function useConversationReplayActions() {
   const handleEditFromUser = useCallback(async (userMessageId, editedText) => {
     return executeReplayAction({
       action: 'edit_resend',
-      chatStore: useChatStore,
       config,
+      replayUiContext,
       userMessageId,
       editedText,
     });
@@ -35,8 +41,8 @@ export function useConversationReplayActions() {
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
     return executeReplayAction({
       action: 'retry',
-      chatStore: useChatStore,
       config,
+      replayUiContext,
       assistantMessageId,
     });
   }, [

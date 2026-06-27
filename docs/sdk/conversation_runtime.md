@@ -379,11 +379,13 @@ visible prefix rows as UI rows only; it does not filter tool pairs, reconstruct
 model context, or provide fallback rows for replay command resolution.
 React replay hooks do not select store `activeConversationRef`, `addMessage`,
 or skin failure copy for replay orchestration; `desktopConversationReplayRuntime`
-resolves active conversation state from its store dependency and leaves replay
-failure display to SDK/main conversation events rather than publishing a
-renderer-local row. Replay execution does not accept a caller-supplied
-active-conversation override. It may pass a model override as command data, but
-it must not call the renderer settings facade to apply that model before dispatch.
+resolves active conversation state through a narrow UI adapter for the active
+conversation ref and projected workspace trace reads, without depending on the
+full chat-store object or `getState()` contract. It leaves replay failure
+display to SDK/main conversation events rather than publishing a renderer-local
+row. Replay execution does not accept a caller-supplied active-conversation
+override. It may pass a model override as command data, but it must not call the
+renderer settings facade to apply that model before dispatch.
 SDK replay commands own the durable child revision, model-selection application
 through `send()`, and provider-safe replacement history.
 Thread presentation no longer accepts caller-built `currentTurnMessages` as an

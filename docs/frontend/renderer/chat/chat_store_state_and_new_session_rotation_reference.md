@@ -207,14 +207,15 @@ current-turn row construction on typed SDK presentation fields.
   reducer and renderer superseded-turn ledger have been removed; renderer
   pending state is now only the normal post-send bridge.
   `useConversationReplayActions(...)` passes replay intent plus renderer config
-  to `DesktopConversationReplayRuntime.executeReplayAction(...)` with the chat
-  store supplied only as an injected UI-state dependency. `chatStoreAdapters.ts`
-  does not expose replay wrapper commands. The replay runtime derives deferred
-  SDK model selection as command data before dispatching SDK commands. It must
-  not call the renderer settings facade to apply the model directly. Replay
-  requires an existing conversation ref from the transcript session or
-  chat-store active workspace; it must not create a fresh conversation for a
-  row id the SDK cannot resolve.
+  to `DesktopConversationReplayRuntime.executeReplayAction(...)` with only a
+  narrow `chatStoreAdapters.ts` UI context for active conversation and
+  projected workspace trace reads. `chatStoreAdapters.ts` does not expose
+  replay wrapper commands. The replay runtime derives deferred SDK model
+  selection as command data before dispatching SDK commands. It must not call
+  the renderer settings facade to apply the model directly or depend on the
+  full Zustand store object. Replay requires an existing conversation ref from
+  the transcript session or chat-store active workspace; it must not create a
+  fresh conversation for a row id the SDK cannot resolve.
 - `clearPendingTurnInChatStore(...)` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn.
   Pending-turn clear matching, broadcast action branching, and workspace
