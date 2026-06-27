@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: stop duplicating SDK display-row tool-output content
+  into the legacy `modelFacingToolOutput` prop; display-row tool output now
+  reaches renderer components through `message.text` only. No migration
+  required.
 - frontend/projection: stop using SDK `toolOutputDetails` as fallback metadata
   for `tool_progress` display rows, keeping progress details on explicit
   SDK-authored `toolCallDetails` only. No migration required.

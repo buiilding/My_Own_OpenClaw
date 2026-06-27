@@ -130,6 +130,11 @@ Displayed output precedence:
 1. `message.modelFacingToolOutput` string
 2. fallback `message.text`
 
+SDK display-row projection sets `message.text` directly from
+`tool_output`/`tool_bundle_output` row `content` and does not republish that
+same content on `modelFacingToolOutput`; the prop remains component
+compatibility for older message shapes only.
+
 Details payload precedence:
 
 1. object `message.toolOutputDetails`

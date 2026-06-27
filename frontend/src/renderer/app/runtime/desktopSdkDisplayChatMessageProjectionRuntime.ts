@@ -184,7 +184,6 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
     sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
     isComplete: true,
-    modelFacingToolOutput: text,
     ...(toolOutputDetails ? { toolOutputDetails } : {}),
     ...(attachments.length > 0 ? { attachments } : {}),
     ...(correlationId ? { correlationId } : {}),

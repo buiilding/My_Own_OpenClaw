@@ -4347,6 +4347,7 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('copyKeys');
     expect(projectionRuntimeSource).not.toContain('JSON.stringify');
     expect(projectionRuntimeSource).not.toContain('modelFacingToolCall');
+    expect(projectionRuntimeSource).not.toContain('modelFacingToolOutput');
     expect(projectionRuntimeSource).not.toContain('reasoning_text');
     expect(projectionRuntimeSource).not.toContain("'web-search-progress'");
     expect(projectionRuntimeSource).not.toContain('fallbackToolCall');

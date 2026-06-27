@@ -525,7 +525,9 @@ types whose SDK contract owns string content, such as user, assistant,
 tool-output, and progress rows. Producers must normalize those rows before they
 reach `ConversationView`; the renderer may only stringify SDK-declared
 structured tool rows such as tool calls and bundle outputs for component
-compatibility.
+compatibility. SDK display-row tool-output projection writes visible output to
+`message.text` only and does not duplicate row content into the legacy
+`modelFacingToolOutput` prop.
 Current-turn and `ConversationView.liveTurn.entries[]` type discriminators are
 SDK-authored exact strings; padded or empty entry `type` values fall back to
 generic assistant text rather than being trimmed into tool, thinking, progress,

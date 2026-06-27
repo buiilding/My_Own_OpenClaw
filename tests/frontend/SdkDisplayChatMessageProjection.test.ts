@@ -10,7 +10,7 @@ const {
 
 describe('sdkDisplayChatMessageProjection', () => {
   test('projects SDK display messages into existing chat message shapes', () => {
-    expect(buildChatMessagesFromSdkDisplayRows([
+    const messages = buildChatMessagesFromSdkDisplayRows([
       {
         id: 'msg-user',
         conversationRef: 'conv-sdk',
@@ -84,7 +84,9 @@ describe('sdkDisplayChatMessageProjection', () => {
           timestamp: '2026-05-15T12:00:03.000Z',
         },
       },
-    ])).toEqual([
+    ]);
+
+    expect(messages).toEqual([
       expect.objectContaining({
         id: 'msg-user',
         sender: 'user',
@@ -106,6 +108,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         id: 'msg-tool-output',
         sender: 'assistant',
         type: 'tool-output',
+        text: 'package contents',
         correlationId: 'req-1',
         toolOutputDetails: {
           toolName: 'read_file',
@@ -121,6 +124,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         text: 'package json is loaded',
       }),
     ]);
+    expect(messages[2]).not.toHaveProperty('modelFacingToolOutput');
   });
 
   test('does not recover malformed string-owned display row content in renderer projection', () => {
