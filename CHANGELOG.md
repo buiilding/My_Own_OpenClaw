@@ -29,6 +29,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/attachments: remove the message-row attachment visibility facade so
   CSS class assembly trusts already-projected `attachments[]` instead of
   revalidating SDK attachment lifecycle state. No migration required.
+- frontend/send: remove the stale per-turn `model` slot from renderer prepared
+  sends and the live-turn command facade so normal sends apply model changes
+  only through the awaited SDK settings command before dispatch. No migration
+  required.
 - frontend/revisions: require exact conversation refs, revision ids, optional
   fork cut row ids, and explicit fork conversation refs inside the desktop
   continuity facade before invoking SDK revision commands, so direct facade

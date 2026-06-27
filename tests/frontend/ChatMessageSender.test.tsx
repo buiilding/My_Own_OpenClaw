@@ -138,6 +138,7 @@ describe('useChatMessageSender', () => {
     expect(call).not.toHaveProperty('captureMeta');
     expect(call).not.toHaveProperty('attachmentContext');
     expect(call).not.toHaveProperty('metadata');
+    expect(call).not.toHaveProperty('model');
     if (expectedResources) {
       expect(call.resources).toEqual(expectedResources);
     }

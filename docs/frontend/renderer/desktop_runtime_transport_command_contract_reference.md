@@ -571,6 +571,12 @@ commands. SDK library commands such as `conversation.loadDisplay`,
 3. returns the accepted exact `messageId` from main when provided
 4. otherwise returns the caller-provided message id
 
+The renderer live-turn facade accepts only query text, exact conversation/turn
+identity, workspace path, and typed SDK resource handles. It does not forward a
+caller-supplied `model` override; normal renderer sends await the SDK settings
+command before dispatch, and reusable SDK callers that need per-turn model
+selection use the SDK runtime send API directly.
+
 Accepted `messageId` results from main also follow exact identity rules. Padded
 results are ignored instead of being trimmed into the renderer transport return
 value; callers keep their original exact `query_message_id` fallback.

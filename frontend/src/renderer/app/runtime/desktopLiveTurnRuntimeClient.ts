@@ -4,7 +4,6 @@
 
 import {
   DesktopConversationRuntimeContracts,
-  type AgentModelSelection,
   type TurnInputResource,
 } from './desktopConversationRuntimeContracts';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
@@ -25,7 +24,6 @@ type SendConversationQueryInput = {
   conversationRef: string;
   workspacePath?: string | null;
   resources?: TurnInputResource[] | null;
-  model?: AgentModelSelection | null;
   turnRef?: string | null;
 };
 
@@ -143,7 +141,6 @@ export const DesktopLiveTurnRuntimeClient = {
       text: input.text,
       conversation_ref: conversationRef,
       query_message_id: turnRef ?? null,
-      ...(input.model ? { model: input.model } : {}),
       workspace_path: optionalString(input.workspacePath) ?? null,
       resources: normalizeTurnInputResources(input.resources),
       memory_retrieval_enabled: DesktopMemoryRetrievalPreferenceRuntime.getMemoryRetrievalInjectionEnabled(),

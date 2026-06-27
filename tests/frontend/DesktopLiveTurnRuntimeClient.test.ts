@@ -71,6 +71,27 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('attachment_context');
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('attachment_filenames');
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('metadata');
+    expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('model');
+  });
+
+  test('sendQuery ignores stale renderer model overrides before SDK command dispatch', async () => {
+    const { DesktopLiveTurnRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
+    );
+
+    await DesktopLiveTurnRuntimeClient.sendQuery({
+      text: 'hello',
+      conversationRef: 'conv-send',
+      turnRef: 'turn-explicit',
+      model: {
+        modelProvider: 'openai',
+        modelId: 'stale-renderer-override',
+      },
+    } as any);
+
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', expect.not.objectContaining({
+      model: expect.anything(),
+    }));
   });
 
   test('sendQuery normalizes turn input resources before SDK command dispatch', async () => {

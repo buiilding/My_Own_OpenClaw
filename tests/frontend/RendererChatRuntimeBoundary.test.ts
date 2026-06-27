@@ -282,6 +282,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts'),
       'utf8',
     );
+    const liveTurnRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),
+      'utf8',
+    );
 
     expect(hookSource).not.toContain('recordUserTranscriptMessage');
     expect(hookSource).not.toContain('recordUserMessage');
@@ -291,6 +295,12 @@ describe('renderer chat runtime boundary', () => {
     expect(helperSource).not.toContain('export async function dispatchPreparedDesktopChatTurn');
     expect(helperSource).not.toContain('recordUserTranscriptMessage');
     expect(helperSource).not.toContain('recordTranscriptUserMessage');
+    expect(helperSource).not.toContain('model: null');
+    expect(helperSource).not.toContain('preparedTurn.model');
+    expect(helperSource).not.toContain('AgentModelSelection');
+    expect(liveTurnRuntimeSource).not.toContain('AgentModelSelection');
+    expect(liveTurnRuntimeSource).not.toContain('input.model');
+    expect(liveTurnRuntimeSource).not.toContain('model: input.model');
   });
 
   test('app live-turn runtime facade does not own transcript projection writes', async () => {

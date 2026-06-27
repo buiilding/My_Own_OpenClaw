@@ -11,7 +11,7 @@ import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
 import { DesktopWindowRuntimeClient } from './desktopWindowRuntimeClient';
-import type { AgentModelSelection, TurnInputResource } from './desktopConversationRuntimeContracts';
+import type { TurnInputResource } from './desktopConversationRuntimeContracts';
 import type { ChatSendSurface } from './desktopMessageSendUiRuntime';
 import {
   DesktopConversationSessionRuntime,
@@ -83,7 +83,6 @@ type PreparedDesktopChatTurn = {
   deferredQueryModelSelection: ReturnType<
     typeof DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection
   >;
-  model: AgentModelSelection | null;
   resources: TurnInputResource[];
   sendLifecycle: SendLifecycle;
   sessionInfo: ReturnType<typeof DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo>;
@@ -310,7 +309,6 @@ async function prepareDesktopChatSend({
     conversationRef,
     deferredQueryModelSelection: DesktopRendererConfigRuntimeClient
       .buildDeferredQueryModelSelection(config),
-    model: null,
     resources,
     sendLifecycle,
     sessionInfo,
@@ -335,7 +333,6 @@ async function dispatchPreparedDesktopChatTurn(
       conversationRef: preparedTurn.conversationRef,
       workspacePath: preparedTurn.workspacePath,
       resources: preparedTurn.resources,
-      model: preparedTurn.model,
       turnRef: preparedTurn.turnRef,
     });
     logRendererChatSendLifecycleTrace({

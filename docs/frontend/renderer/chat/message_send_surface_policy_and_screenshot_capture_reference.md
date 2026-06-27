@@ -182,7 +182,8 @@ When attachment(s) exist:
    inputs.
 7. call `DesktopLiveTurnRuntimeClient.sendQuery` with text, conversation ref,
    turn ref, and typed resources. Normal sends do not build a renderer-owned
-   filename payload or metadata object for filenames.
+   filename payload, metadata object, or per-turn model override; selected model
+   changes are applied through the awaited SDK settings command before dispatch.
 8. Electron main preserves `resources` for SDK `send()` while keeping them out
    of the backend query allowlist; SDK resource resolution owns user-row
    metadata updates.
@@ -200,7 +201,8 @@ When attachment(s) exist:
 
 Steps 1-6 produce a `PreparedDesktopChatTurn`. The final dispatch helper applies
 deferred model selection and sends the prepared SDK turn input through
-`DesktopLiveTurnRuntimeClient.sendQuery`. If dispatch fails before SDK turn
+`DesktopLiveTurnRuntimeClient.sendQuery`, without carrying a separate model
+field on the send payload. If dispatch fails before SDK turn
 authority opens, the helper clears the short pending bridge from chat store and
 main-process pending-turn state using the prepared turn identity; React sender
 Replay commands do not pass renderer-composed payload context; SDK replay

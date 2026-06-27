@@ -189,6 +189,7 @@ describe('DesktopChatSendPreparationRuntime', () => {
         modelProvider: 'openai',
       },
     }));
+    expect(preparedTurn).not.toHaveProperty('model');
     expect(preparedTurn?.resources).toEqual([
       {
         kind: 'readable_file',
@@ -226,7 +227,6 @@ describe('DesktopChatSendPreparationRuntime', () => {
     const preparedTurn = {
       conversationRef: 'conv-1',
       deferredQueryModelSelection: null,
-      model: null,
       resources: [{
         kind: 'clipboard_image',
         base64: 'image-base64',
@@ -260,7 +260,6 @@ describe('DesktopChatSendPreparationRuntime', () => {
       conversationRef: 'conv-1',
       workspacePath: null,
       resources: preparedTurn.resources,
-      model: null,
       turnRef: 'turn-1',
     });
     expect(mockClearPendingTurn).toHaveBeenCalledWith({
