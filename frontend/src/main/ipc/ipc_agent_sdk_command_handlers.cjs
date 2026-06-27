@@ -33,6 +33,12 @@ function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function readExactOptionalString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function normalizePositiveInteger(value) {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     return undefined;
@@ -104,6 +110,39 @@ function requireCommandString(payload = {}, key, label) {
   return value;
 }
 
+function requireExactCommandString(payload = {}, key, label) {
+  const value = readExactOptionalString(payload[key]);
+  if (!value) {
+    throw new Error(`Agent SDK command requires exact ${label}.`);
+  }
+  return value;
+}
+
+function optionalExactCommandString(payload = {}, key, label) {
+  if (!Object.prototype.hasOwnProperty.call(payload, key)) {
+    return undefined;
+  }
+  const value = readExactOptionalString(payload[key]);
+  if (!value) {
+    throw new Error(`Agent SDK command requires exact ${label}.`);
+  }
+  return value;
+}
+
+function requireExactCommandConversationRef(payload = {}) {
+  if (Object.prototype.hasOwnProperty.call(payload, 'conversation_ref')) {
+    throw new Error('Agent SDK command requires conversationRef; conversation_ref is not supported.');
+  }
+  return requireExactCommandString(payload, 'conversationRef', 'conversation reference');
+}
+
+function requireCommandText(payload = {}) {
+  if (typeof payload.text !== 'string') {
+    throw new Error('Agent SDK command requires edited text.');
+  }
+  return payload.text;
+}
+
 function appendRendererAppDiagnostic(payload = {}, deps = {}) {
   const state = deps.getState();
   const context = conversationMetadataDiagnosticsRuntime.createContext(payload, state);
@@ -125,12 +164,13 @@ function buildReplayRuntimePayload({
   deps,
 } = {}) {
   const basePayload = cloneJsonObject(payload) || {};
+  delete basePayload.agent_definition;
   const runtimePayload = {
     ...basePayload,
     conversation_ref: conversationRef,
   };
-  if (typeof text === 'string' && text.trim()) {
-    runtimePayload.text = text.trim();
+  if (typeof text === 'string') {
+    runtimePayload.text = text;
   }
   if (typeof deps.attachRuntimeTurnContextToPayload !== 'function') {
     return runtimePayload;
@@ -411,8 +451,8 @@ function buildAgentSdkCommandHandlers({
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_EDIT_AND_RESEND]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const conversationRef = requireCommandConversationRef(payload);
-      const text = requireCommandString(payload, 'text', 'edited text');
+      const conversationRef = requireExactCommandConversationRef(payload);
+      const text = requireCommandText(payload);
       const turnRef = normalizeOptionalString(payload.turnRef) ?? undefined;
       const runtimePayload = buildReplayRuntimePayload({
         conversationRef,
@@ -433,7 +473,7 @@ function buildAgentSdkCommandHandlers({
       });
       return runtimeRegistry.editAndResend({
         conversationRef,
-        messageId: requireCommandString(payload, 'messageId', 'message id'),
+        messageId: requireExactCommandString(payload, 'messageId', 'message id'),
         text,
         turnRef,
         payload: runtimePayload,
@@ -442,7 +482,7 @@ function buildAgentSdkCommandHandlers({
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_RETRY_TURN]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const conversationRef = requireCommandConversationRef(payload);
+      const conversationRef = requireExactCommandConversationRef(payload);
       const turnRef = normalizeOptionalString(payload.turnRef) ?? undefined;
       const runtimePayload = buildReplayRuntimePayload({
         conversationRef,
@@ -461,7 +501,7 @@ function buildAgentSdkCommandHandlers({
       });
       return runtimeRegistry.retryTurn({
         conversationRef,
-        messageId: normalizeOptionalString(payload.messageId) ?? undefined,
+        messageId: optionalExactCommandString(payload, 'messageId', 'message id'),
         turnRef,
         payload: runtimePayload,
         model: cloneJsonObject(payload.model),

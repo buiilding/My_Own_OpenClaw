@@ -2095,6 +2095,8 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).toContain('prepareReplayEditIntent');
     expect(replayRuntimeSource).toContain('prepareReplayRetryIntent');
     expect(replayRuntimeSource).toContain('readExactReplayMessageId');
+    expect(replayRuntimeSource).toContain('readExactReplayConversationRef');
+    expect(replayRuntimeSource).not.toContain('resolveRendererConversationSessionSnapshot');
     expect(replayRuntimeSource).not.toContain('normalizeReplayMessageId');
     expect(replayRuntimeSource).not.toContain('messageId.trim()');
     expect(replayRuntimeSource).not.toContain('editedText.trim');

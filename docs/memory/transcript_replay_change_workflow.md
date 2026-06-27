@@ -164,7 +164,11 @@ flowchart LR
      Renderer replay facades reject padded or empty ids instead of trimming
      them into targets. Edit text is forwarded as UI intent without renderer
      trimming or empty-after-trim rejection; SDK replay commands own text
-     normalization and non-empty validation.
+     normalization and non-empty validation. Replay conversation scope follows
+     the same exact-identity rule: padded transcript/session/store refs are
+     treated as missing scope, and Electron main rejects padded replay command
+     `conversationRef`/`messageId` fields instead of trimming them before SDK
+     dispatch.
 
 5. Preserve model-history resume shape.
    - SDK `modelHistoryPayloadFromCheckpoint(...)` should emit

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: require exact replay conversation refs and IPC replay
+  command row ids before SDK edit/retry dispatch, leaving edited text raw for
+  SDK validation instead of trimming command identity in renderer or main. No
+  migration required.
 - frontend/pending-turn: omit the `attachments` prop from renderer-local pending
   user rows so the pending bridge carries only identity, text, and timestamp
   while SDK display rows remain the attachment display authority. No migration

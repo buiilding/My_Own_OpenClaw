@@ -170,6 +170,34 @@ describe('desktopConversationReplayRuntime', () => {
     }));
   });
 
+  test('does not repair padded replay conversation refs before SDK dispatch', async () => {
+    const chatStoreBundle = createChatStore();
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    chatStoreBundle.state.activeConversationRef = ' conv-store-active ';
+    DesktopTranscriptSessionRuntimeClient.getActiveConversationRef.mockReturnValue(' conv-transcript ');
+
+    await expect(executeReplayAction(replayArgs({
+      action: 'retry',
+      assistantMessageId: 'assistant-1',
+      chatStoreBundle,
+      sessionInfo: {
+        conversationRef: ' conv-session ',
+        userId: 'user-1',
+      },
+    }))).resolves.toBe(false);
+
+    expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
+    expect(DesktopConversationContinuityService.editAndResend).not.toHaveBeenCalled();
+    expect(DesktopTranscriptSessionRuntimeClient.updateTranscriptSession).not.toHaveBeenCalled();
+    expect(DesktopRendererTraceRuntime.logRendererReplayTrace).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'replay_failed_cleanup',
+      conversationRef: null,
+      errorKind: 'MissingConversationRef',
+      targetRowId: 'assistant-1',
+    }));
+    errorSpy.mockRestore();
+  });
+
   test('ignores caller-provided active conversation overrides for replay scope', async () => {
     const chatStoreBundle = createChatStore();
     chatStoreBundle.state.activeConversationRef = 'conv-store-active';

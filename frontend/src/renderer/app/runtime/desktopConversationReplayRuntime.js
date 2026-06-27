@@ -13,7 +13,6 @@ import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
 
 const {
   applyRendererConversationSelection,
-  resolveRendererConversationSessionSnapshot,
 } = DesktopConversationSessionRuntime;
 const {
   logRendererReplayTrace,
@@ -23,6 +22,12 @@ function readExactReplayMessageId(value) {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
     ? value
     : '';
+}
+
+function readExactReplayConversationRef(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
 function prepareReplayEditIntent({ userMessageId, editedText }) {
@@ -51,10 +56,9 @@ function prepareReplayRetryIntent({ assistantMessageId }) {
 }
 
 function resolveExistingConversationRef(sessionConversationRef, storeConversationRef) {
-  return resolveRendererConversationSessionSnapshot({
-    transcriptConversationRef: DesktopTranscriptSessionRuntimeClient.getActiveConversationRef() || sessionConversationRef,
-    storeConversationRef,
-  }).conversationRef;
+  return readExactReplayConversationRef(DesktopTranscriptSessionRuntimeClient.getActiveConversationRef())
+    || readExactReplayConversationRef(sessionConversationRef)
+    || readExactReplayConversationRef(storeConversationRef);
 }
 
 function traceErrorKind(error) {

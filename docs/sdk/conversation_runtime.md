@@ -556,6 +556,9 @@ conversation ref only, without depending on projected workspace reads, the full
 chat-store object, or `getState()` contract. It leaves replay failure display
 to SDK/main conversation events rather than publishing a renderer-local row.
 Replay execution does not accept a caller-supplied active-conversation override.
+The replay runtime treats transcript/session/store conversation refs as exact
+identity values; padded refs are missing scope, not repaired active
+conversations.
 It may pass a model override as command data, but React replay hooks do not read
 renderer config context or pass config through the UI intent call. The replay
 runtime facade reads optional model command data behind the app-runtime boundary
@@ -1236,7 +1239,12 @@ the child display/model revision, emit supersession for old live work, apply
 model overrides, and dispatch the replacement through the normal `send()` path.
 Renderer replay facades must pass exact non-empty SDK row ids from row action
 metadata; they reject padded or empty ids instead of trimming them into replay
-targets.
+targets. Electron main applies the same exact-only rule to replay SDK command
+`conversationRef` and `messageId` payload fields before calling SDK
+`editAndResend` or `retryTurn`; padded command identities fail instead of
+dispatching against trimmed rows. Edit text remains raw command data through
+the main IPC adapter so SDK replay commands own text normalization and
+non-empty validation.
 
 Resource preservation comes from the target display row. Typed display
 attachments become the edited pending user row's visible `attachments[]` and

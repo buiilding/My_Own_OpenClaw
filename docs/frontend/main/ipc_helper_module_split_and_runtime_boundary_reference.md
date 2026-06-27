@@ -966,6 +966,13 @@ registration helper stay private to the runtime helper:
   through `createConversationMetadataDiagnosticsRuntime(...)`; command handlers
   choose lifecycle stages and call the runtime facade rather than constructing
   diagnostic rows inline or importing lower-level context/record helpers.
+- replay command forwarding treats SDK row and conversation identities as exact:
+  `conversation.editAndResend` and `conversation.retryTurn` reject padded
+  `conversationRef` and `messageId` fields instead of trimming them before SDK
+  dispatch. Edited text remains untrimmed command data so the SDK replay command
+  owns text normalization and non-empty validation. Caller-supplied
+  `agent_definition` is removed before Electron main attaches the current
+  runtime-turn Agent definition.
 
 Removed preflight invoke path:
 
