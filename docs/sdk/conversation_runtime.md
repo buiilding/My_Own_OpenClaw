@@ -886,7 +886,9 @@ source labels such as `tool-call`, `tool-output`, and `web-search-progress`,
 but active tool rows and phase tracking should come from the SDK current-turn
 presentation instead of a separate normalized-event live-state path. Raw
 `snapshot.currentTurn.toolEvents` is legacy no-presentation fallback context
-only.
+only. Display-row adapters preserve SDK-authored `sourceEventType` values for
+tool progress rows and otherwise use the generic `tool_progress` row type; the
+renderer does not infer `web-search-progress` for unlabeled progress rows.
 When provider-native web search progress has to be rehydrated as a synthetic
 `web_search` tool pair, the SDK projection uses provider-neutral display text.
 Backend web-search docs remain the source of truth for whether OpenAI native,

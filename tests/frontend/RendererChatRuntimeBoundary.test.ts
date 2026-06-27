@@ -3738,6 +3738,7 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('copyKeys');
     expect(projectionRuntimeSource).not.toContain('modelFacingToolCall');
     expect(projectionRuntimeSource).not.toContain('reasoning_text');
+    expect(projectionRuntimeSource).not.toContain("'web-search-progress'");
     expect(projectionRuntimeSource).not.toContain('fallbackToolCall');
     expect(projectionRuntimeSource).toContain('row.metadata?.displayCorrelationId ?? null');
     expect(projectionRuntimeSource).toContain('row.metadata?.displayCorrelationId ?? undefined');

@@ -776,6 +776,37 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
+  test('does not relabel generic SDK tool progress rows as web search progress', () => {
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'progress-generic',
+        conversationRef: 'conv-tool',
+        turnRef: 'turn-tool',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Preparing tool result',
+        metadata: {
+          revisionId: 'rev-tool',
+          timestamp: '2026-06-09T04:21:00.000Z',
+          toolName: 'read_file',
+          requestId: 'req-tool-1',
+          displayCorrelationId: 'req-tool-1',
+        },
+      },
+    ])).toEqual([
+      expect.objectContaining({
+        id: 'progress-generic',
+        sender: 'assistant',
+        type: 'search-source',
+        text: 'Preparing tool result',
+        sourceEventType: 'tool_progress',
+        toolName: 'read_file',
+        correlationId: 'req-tool-1',
+      }),
+    ]);
+  });
+
   test('does not forward raw SDK diagnostics into renderer chat details', () => {
     const [message] = buildChatMessagesFromSdkDisplayRows([
       {

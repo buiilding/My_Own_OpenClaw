@@ -15,6 +15,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/traces: stop provider trace snapshots from falling back to raw
   messages or raw stream-tracking turn refs whenever a `ConversationView`
   exists, even before the view has display rows. No migration required.
+- frontend/projection: stop relabeling unlabeled SDK `tool_progress` display
+  rows as web-search progress in the renderer adapter; web-search labels now
+  come only from SDK-authored display metadata. No migration required.
 - frontend/attachments: count image-token estimates only from SDK
   `attachments[]` descriptors whose `kind` is `image`, leaving pending or
   failed screenshot request descriptors as display state. No migration required.

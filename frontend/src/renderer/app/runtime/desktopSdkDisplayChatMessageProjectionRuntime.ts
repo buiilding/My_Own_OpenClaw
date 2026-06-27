@@ -39,6 +39,10 @@ function rowTimestamp(row: SdkDisplayRow): string {
 }
 
 function rowSourceEventType(row: SdkDisplayRow): string {
+  const sourceEventType = row.metadata?.sourceEventType;
+  if (typeof sourceEventType === 'string' && sourceEventType.trim()) {
+    return sourceEventType;
+  }
   return row.type === 'assistant_message' && row.isStreaming ? 'assistant_delta' : row.type;
 }
 
@@ -134,15 +138,12 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
 }
 
 function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
-  const sourceEventType = row.metadata?.sourceEventType;
   return withRowActions({
     id: row.id,
     text: displayTextFromStringRowContent(row.content),
     sender: 'assistant',
     type: 'search-source',
-    sourceEventType: typeof sourceEventType === 'string' && sourceEventType.trim()
-      ? sourceEventType
-      : 'web-search-progress',
+    sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
     turnRef: row.turnRef ?? undefined,
     timestamp: rowTimestamp(row),
