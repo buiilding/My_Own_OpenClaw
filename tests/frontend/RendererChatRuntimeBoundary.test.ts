@@ -1291,6 +1291,10 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionStreamRuntimeSource).toContain('turnRef.length > 0 && turnRef === turnRef.trim()');
     expect(projectionStreamRuntimeSource).not.toContain('turnRef.trim()\n    ? turnRef.trim()');
     expect(projectionStreamRuntimeSource).toContain('hasWorkspaceConversationView(workspace)');
+    expect(projectionStreamRuntimeSource).toContain('ConversationView');
+    expect(projectionStreamRuntimeSource).toContain('conversationView?: ConversationView | null');
+    expect(projectionStreamRuntimeSource).not.toContain('type ConversationViewLike');
+    expect(projectionStreamRuntimeSource).not.toContain('displayRows?: unknown[] | null');
     expect(projectionStreamRuntimeSource).not.toContain('function isConversationView');
     expect(projectionStreamRuntimeSource).toContain('buildConversationViewTraceSummary');
     expect(projectionStreamRuntimeSource).not.toContain('viewLiveTurn?.turnRef');

@@ -192,7 +192,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
           displayRows: [
             { id: 'partial-view-row' },
           ],
-        },
+        } as never,
         pendingTurn: { turnRef: 'turn-new' },
         sdkLiveTurn: {
           turnRef: 'turn-raw',

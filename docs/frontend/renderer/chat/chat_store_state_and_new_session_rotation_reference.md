@@ -93,7 +93,9 @@ full `ConversationView` payload. The current-turn projection read model keeps
 the SDK view envelope needed for trace summaries, pending turn identity,
 no-view live-turn identity/phase, stream tracking, and thinking status; it does
 not carry raw messages, raw-message counts, or renderer annotations into
-projection side effects. The
+projection side effects. That read model is typed against the SDK
+`ConversationView` contract after the shared full-envelope gate, so projection
+stream code cannot publish or depend on a renderer-local partial view shape. The
 projected workspace read model is assembled from an allowlist of fields and
 does not expose the raw `isSending` storage latch; visible busy/typing state is
 derived by lifecycle/surface runtimes from the pending bridge and SDK view/live

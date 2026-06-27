@@ -18,6 +18,9 @@ import {
 import {
   DesktopConversationViewWorkspaceRuntime,
 } from './desktopConversationViewWorkspaceRuntime';
+import type {
+  ConversationView,
+} from './desktopConversationRuntimeContracts';
 import {
   type RendererReplayTraceValues,
   DesktopRendererTraceRuntime,
@@ -32,21 +35,13 @@ type CurrentTurnLike = {
   turnRef?: string | null;
 } | null | undefined;
 
-type ConversationViewLike = {
-  displayRows?: unknown[] | null;
-  liveTurn?: {
-    phase?: string | null;
-    turnRef?: string | null;
-  } | null;
-} | null | undefined;
-
 type StreamTrackingLike = {
   activeTurnRef?: string | null;
   phase: StreamPhase;
 };
 
 export type CurrentTurnProjectionWorkspaceReadModel = {
-  conversationView?: ConversationViewLike;
+  conversationView?: ConversationView | null;
   pendingTurn?: PendingTurnLike;
   sdkLiveTurn?: CurrentTurnLike;
   streamTracking: StreamTrackingLike;

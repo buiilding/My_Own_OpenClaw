@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: type the current-turn projection workspace read model
+  against the SDK `ConversationView` contract instead of a local partial view
+  shape, keeping malformed views on explicit test-only fallback coverage. No
+  migration required.
 - frontend/pill: make chat-pill lifecycle/state trace helpers consume the SDK
   `ConversationView` type after the shared full-envelope gate instead of
   carrying a pill-local partial view shape. No migration required.
