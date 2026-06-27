@@ -17,6 +17,8 @@ const {
   invokeAgentSdkCommand,
 } = AgentSdkCommandInvokeClient;
 
+const INVALID_QUERY_MESSAGE_ID_ERROR = 'conversation.send requires an exact query_message_id when a caller provides one';
+
 function optionalString(value: unknown): string | null {
   return normalizeNonEmptyString(value);
 }
@@ -89,12 +91,17 @@ async function sendQuery(
   if (Object.prototype.hasOwnProperty.call(payload, 'id')) {
     throw new Error('conversation.send received removed id field. Use query_message_id.');
   }
+  const hasMessageId = messageId !== null && messageId !== undefined;
+  const queryMessageId = optionalExactString(messageId);
+  if (hasMessageId && !queryMessageId) {
+    throw new Error(INVALID_QUERY_MESSAGE_ID_ERROR);
+  }
   const result = await invokeAgentSdkCommand<Record<string, unknown> | null>(
     SDK_RUNTIME_COMMANDS.CONVERSATION_SEND,
     {
       text: optionalString(payload.text) ?? '',
       conversation_ref: optionalString(payload.conversation_ref) ?? '',
-      query_message_id: messageId,
+      query_message_id: queryMessageId,
       screenshot_ref: optionalExactString(payload.screenshot_ref),
       screenshot_url: optionalExactString(payload.screenshot_url),
       screenshot_refs: optionalExactStringArray(payload.screenshot_refs),
@@ -167,7 +174,7 @@ function createDesktopRuntimeTransport(workspacePath: string | null = null): Age
     connect: async () => undefined,
     handshake: async () => undefined,
     sendQuery: async (payload, options = {}) => {
-      const messageId = optionalString(options.messageId);
+      const messageId = options.messageId ?? null;
       return await sendQuery(payload, normalizedWorkspacePath, messageId) ?? '';
     },
     sendToolResult: async () => undefined,

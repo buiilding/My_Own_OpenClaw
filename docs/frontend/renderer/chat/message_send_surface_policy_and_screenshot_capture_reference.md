@@ -150,7 +150,10 @@ When attachment(s) exist:
    and store only `pendingTurn` for the short pre-SDK handoff. Presentation
    projects that bridge beside no-view history or SDK display rows until the
    next SDK view arrives; accepting the pending turn does not append a
-   renderer-composed row into raw workspace `messages`. The bridge only fills
+   renderer-composed row into raw workspace `messages`. The live-turn command
+   facade forwards the pending bridge turn id as `query_message_id` only when it
+   is exact; padded ids fail before dispatch instead of being trimmed into SDK
+   send identity. The bridge only fills
    an absent user row; once the SDK display row for that turn exists, the SDK
    row is authoritative and renderer attachment state is not copied forward.
    Pending bridge identity fields must be exact non-empty strings; renderer and

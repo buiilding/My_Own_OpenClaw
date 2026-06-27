@@ -50,7 +50,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       metadata: {
         source: 'renderer',
       },
-      turnRef: ' turn-explicit ',
+      turnRef: 'turn-explicit',
     });
 
     expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', {
@@ -76,6 +76,25 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('capture_meta');
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('attachment_context');
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('attachment_filenames');
+  });
+
+  test('sendQuery rejects padded command identity before dispatch', async () => {
+    const { DesktopLiveTurnRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
+    );
+
+    await expect(DesktopLiveTurnRuntimeClient.sendQuery({
+      text: 'hello',
+      conversationRef: ' conv-send ',
+      turnRef: 'turn-explicit',
+    })).rejects.toThrow('conversation.send requires exact non-empty conversationRef and turnRef values');
+    await expect(DesktopLiveTurnRuntimeClient.sendQuery({
+      text: 'hello',
+      conversationRef: 'conv-send',
+      turnRef: ' turn-explicit ',
+    })).rejects.toThrow('conversation.send requires exact non-empty conversationRef and turnRef values');
+
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
   });
 
   test('sendQuery throws a generic runtime fallback when command invoke fails without an error', async () => {

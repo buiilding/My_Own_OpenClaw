@@ -1358,6 +1358,8 @@ describe('renderer app runtime boundary', () => {
     expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
     expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
     expect(liveTurnSource).toContain('function optionalExactString');
+    expect(liveTurnSource).toContain('const turnRef = optionalExactString(input.turnRef)');
+    expect(liveTurnSource).not.toContain('const turnRef = optionalString(input.turnRef)');
     expect(liveTurnSource).toContain('optionalExactString(conversationRef)');
     expect(liveTurnSource).toContain('optionalExactString(turnRef)');
     expect(liveTurnSource).not.toContain('optionalString(conversationRef)\n      ?? DesktopTranscriptSessionRuntimeClient.getActiveConversationRef()');
@@ -1385,6 +1387,7 @@ describe('renderer app runtime boundary', () => {
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE');
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.MODELS_LIST');
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED');
+    expect(agentRuntimeTransportSource).toContain('const queryMessageId = optionalExactString(messageId)');
     expect(agentRuntimeTransportSource).toContain('const turnRef = optionalExactString(payload.turn_ref)');
     expect(agentRuntimeTransportSource).toContain('AgentRuntimeTransport');
     expect(agentRuntimeTransportSource).toContain('export const DesktopRuntimeTransport = Object.freeze');

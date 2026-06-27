@@ -66,6 +66,23 @@ describe('desktopRuntimeTransport', () => {
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('turn_ref');
   });
 
+  test('rejects padded query message ids instead of trimming them into send commands', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: true,
+      messageId: 'msg-1',
+    });
+
+    const transport = createDesktopRuntimeTransport(null);
+
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+    }, {
+      messageId: ' turn-1 ',
+    })).rejects.toThrow('conversation.send requires an exact query_message_id when a caller provides one');
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
+  });
+
   test('forwards only exact SDK send resource metadata fields', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({
       ok: true,

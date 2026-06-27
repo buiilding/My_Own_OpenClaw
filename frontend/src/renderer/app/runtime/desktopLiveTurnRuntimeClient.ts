@@ -11,6 +11,7 @@ import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessio
 import { DesktopMemoryRetrievalPreferenceRuntime } from './desktopMemoryRetrievalPreferenceRuntime';
 import { AgentSdkCommandInvokeClient } from './agentSdkCommandInvokeClient';
 
+const INVALID_SEND_IDENTITY_ERROR = 'conversation.send requires exact non-empty conversationRef and turnRef values';
 const SEND_COMMAND_FAILURE_FALLBACK = 'Failed to send command to the renderer app runtime';
 const {
   SDK_RUNTIME_COMMANDS,
@@ -61,10 +62,15 @@ function throwIfFailedIpcResult(result: unknown): void {
  */
 export const DesktopLiveTurnRuntimeClient = {
   async sendQuery(input: SendConversationQueryInput): Promise<void> {
-    const turnRef = optionalString(input.turnRef) ?? undefined;
+    const conversationRef = optionalExactString(input.conversationRef);
+    const hasExplicitTurnRef = input.turnRef !== null && input.turnRef !== undefined;
+    const turnRef = optionalExactString(input.turnRef) ?? undefined;
+    if (!conversationRef || (hasExplicitTurnRef && !turnRef)) {
+      throw new Error(INVALID_SEND_IDENTITY_ERROR);
+    }
     const result = await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_SEND, {
       text: input.text,
-      conversation_ref: optionalString(input.conversationRef) ?? '',
+      conversation_ref: conversationRef,
       query_message_id: turnRef ?? null,
       ...(input.model ? { model: input.model } : {}),
       workspace_path: optionalString(input.workspacePath) ?? null,
