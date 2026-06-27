@@ -190,7 +190,8 @@ describe('useConversationReplayActions', () => {
     expect(mockRetryTurn).not.toHaveBeenCalled();
   });
 
-  test('forwards empty replay row targets to the SDK command facade', async () => {
+  test('rejects empty replay row targets before the SDK command facade', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
@@ -198,16 +199,14 @@ describe('useConversationReplayActions', () => {
       await result.current.handleEditFromUser(' ', 'edited question');
     });
 
-    expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
-      messageId: ' ',
-    }));
-    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
-      messageId: ' ',
-      text: 'edited question',
-    }));
+    expect(mockRetryTurn).not.toHaveBeenCalled();
+    expect(mockEditAndResend).not.toHaveBeenCalled();
+    expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 
-  test('does not repair padded replay row targets before SDK dispatch', async () => {
+  test('rejects padded replay row targets before the SDK command facade', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
@@ -215,13 +214,10 @@ describe('useConversationReplayActions', () => {
       await result.current.handleEditFromUser(' renderer-user-1 ', 'edited question');
     });
 
-    expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
-      messageId: ' assistant-1 ',
-    }));
-    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
-      messageId: ' renderer-user-1 ',
-      text: 'edited question',
-    }));
+    expect(mockRetryTurn).not.toHaveBeenCalled();
+    expect(mockEditAndResend).not.toHaveBeenCalled();
+    expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 
   test('does not append a renderer replay error row when SDK retry rejects', async () => {

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: align hook coverage with the SDK-owned replay boundary so
+  empty or padded row ids are rejected before reaching SDK command facades. No
+  migration required.
 - frontend/thread: split ConversationView live-row selection from no-view
   current-turn fallback heuristics so SDK view live entries no longer pass
   through renderer duplicate/latest-user suppression. No migration required.
