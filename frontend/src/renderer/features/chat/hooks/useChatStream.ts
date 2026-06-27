@@ -9,7 +9,7 @@ import {
 } from '../stores/chatStore';
 import {
   getActiveConversationRefFromChatStore,
-  getProjectedWorkspaceReadModelFromChatStore,
+  getChatStreamWorkspaceReadModelFromChatStore,
   setCompactionDebugInfoInChatStore,
   setIsSendingInChatStore,
   setThinkingSourceEventTypeInChatStore,
@@ -104,7 +104,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     eventIdentity: ReturnType<typeof resolveConversationStreamEventIdentity>,
     conversationRef?: string | null,
   ): boolean => shouldIgnoreConversationEventIdentityForStaleTurn(eventIdentity, conversationRef, {
-    getWorkspaceState: getProjectedWorkspaceReadModelFromChatStore,
+    getWorkspaceState: getChatStreamWorkspaceReadModelFromChatStore,
   }), []);
 
   const {
@@ -121,7 +121,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,
     getThinkingSourceEventType: (conversationRef?: string | null) => (
       resolveWorkspaceThinkingSourceEventType(conversationRef, {
-        getWorkspaceState: getProjectedWorkspaceReadModelFromChatStore,
+        getWorkspaceState: getChatStreamWorkspaceReadModelFromChatStore,
       })
     ),
     setCompactionDebugInfo: setCompactionDebugInfoInChatStore,
@@ -149,7 +149,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   });
 
   const processStreamingComplete = useChatStreamCompletionHandler({
-    getWorkspaceState: getProjectedWorkspaceReadModelFromChatStore,
+    getWorkspaceState: getChatStreamWorkspaceReadModelFromChatStore,
     recordTrackingEvent,
     setIsSending: setIsSendingInChatStore,
     setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,

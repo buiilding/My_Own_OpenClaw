@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: keep the generic projected workspace read helper private
+  to chat-store adapters and route stream/current-turn projection hooks through
+  purpose-named projected read adapters. No migration required.
 - frontend/chat-store: move ChatProvider trace snapshot reads behind a
   purpose-built chat-store adapter so the provider no longer imports broad
   projected workspace read models just to configure renderer tracing. No

@@ -185,12 +185,24 @@ function readWorkspaceStateFromChatStore(
   return readWorkspaceState(state, workspaceRef);
 }
 
-export function getProjectedWorkspaceReadModelFromChatStore(
+function getProjectedWorkspaceReadModelFromChatStore(
   conversationRef?: string | null,
 ): ChatWorkspaceState {
   return projectWorkspaceReadModelState(
     readWorkspaceStateFromChatStore(conversationRef),
   );
+}
+
+export function getChatStreamWorkspaceReadModelFromChatStore(
+  conversationRef?: string | null,
+): ChatWorkspaceState {
+  return getProjectedWorkspaceReadModelFromChatStore(conversationRef);
+}
+
+export function getCurrentTurnProjectionWorkspaceReadModelFromChatStore(
+  conversationRef?: string | null,
+): ChatWorkspaceState {
+  return getProjectedWorkspaceReadModelFromChatStore(conversationRef);
 }
 
 export function getChatSendReadModelFromChatStore(): ReturnType<typeof selectChatSendReadModel> {
