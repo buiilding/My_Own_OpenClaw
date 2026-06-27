@@ -118,19 +118,55 @@ function messageTypesMatch(left, right) {
   return (left || 'llm-text') === (right || 'llm-text');
 }
 
-function resolveToolName(message) {
-  const candidates = [
-    message?.toolName,
-    message?.toolCallDetails?.toolName,
-    message?.toolOutputDetails?.toolName,
-  ];
-  for (const candidate of candidates) {
-    const normalized = normalizeRef(candidate);
-    if (normalized) {
-      return normalized;
+function asRecord(value) {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value
+    : null;
+}
+
+function stringField(record, ...keys) {
+  for (const key of keys) {
+    const value = record?.[key];
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
     }
   }
   return null;
+}
+
+function identityFromToolRecord(record) {
+  const metadata = asRecord(record?.metadata);
+  return stringField(
+    record,
+    'displayCorrelationId',
+    'toolCallId',
+    'tool_call_id',
+    'id',
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'correlationId',
+    'correlation_id',
+  ) ?? stringField(
+    metadata,
+    'displayCorrelationId',
+    'toolCallId',
+    'tool_call_id',
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'correlationId',
+    'correlation_id',
+  );
+}
+
+function toolMessageIdentity(message) {
+  return normalizeRef(message?.correlationId)
+    || identityFromToolRecord(asRecord(message?.toolCallDetails))
+    || identityFromToolRecord(asRecord(message?.toolOutputDetails))
+    || identityFromToolRecord(asRecord(message?.toolMetadata));
 }
 
 function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
@@ -164,9 +200,9 @@ function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
     if (liveMessage?.correlationId && message.correlationId === liveMessage.correlationId) {
       return true;
     }
-    const liveToolName = resolveToolName(liveMessage);
-    if (liveToolName && resolveToolName(message) === liveToolName) {
-      return true;
+    const liveToolIdentity = toolMessageIdentity(liveMessage);
+    if (liveToolIdentity) {
+      return toolMessageIdentity(message) === liveToolIdentity;
     }
     const materializedText = normalizeText(message.text);
     return Boolean(liveText && materializedText && materializedText === liveText);

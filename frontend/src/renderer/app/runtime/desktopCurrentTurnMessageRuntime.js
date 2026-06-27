@@ -44,6 +44,15 @@ function normalizeOptionalText(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function resolveEntryCorrelationId(entry) {
+  return (
+    normalizeOptionalText(entry.correlationId)
+    || normalizeOptionalText(entry.requestId)
+    || normalizeOptionalText(entry.bundleId)
+    || null
+  );
+}
+
 function resolveNoViewSdkLiveTurnThinkingText(sdkLiveTurn = null) {
   if (hasPresentationObject(sdkLiveTurn)) {
     return '';
@@ -310,8 +319,8 @@ function buildToolCallMessage(entry, liveTurnContext) {
     ...buildBaseMessageFields(entry, liveTurnContext),
     text: displayText,
     toolCallDisplayText: displayText,
-    toolCallDetails: asRecord(entry.toolCallDetails),
-    correlationId: normalizeOptionalText(entry.correlationId),
+    toolCallDetails: sanitizeSdkToolDetailRecord(asRecord(entry.toolCallDetails)),
+    correlationId: resolveEntryCorrelationId(entry),
   });
 }
 
@@ -344,8 +353,8 @@ function buildToolOutputMessage(entry, liveTurnContext) {
     toolName,
     executionTime: typeof entry.executionTime === 'number' ? entry.executionTime : null,
     success: typeof entry.success === 'boolean' ? entry.success : null,
-    correlationId: normalizeOptionalText(entry.correlationId),
-    toolOutputDetails: asRecord(entry.toolOutputDetails),
+    correlationId: resolveEntryCorrelationId(entry),
+    toolOutputDetails: sanitizeSdkToolDetailRecord(asRecord(entry.toolOutputDetails)),
     turnRef: entry.turnRef || liveTurnContext?.turnRef || null,
     modelId: entry.modelId || null,
     modelProvider: entry.modelProvider || null,

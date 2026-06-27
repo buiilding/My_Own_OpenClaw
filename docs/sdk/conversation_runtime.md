@@ -314,7 +314,8 @@ materialized in `snapshot.view.displayRows`, so a tool card has one UI row
 owner. Legacy no-view tool-call rows must still preserve request identity from
 the tool event or nested payload as the renderer `correlationId`, because
 display-row reconciliation keys live/materialized tool cards by that identity
-before falling back to tool name or text. Raw
+and does not treat tool name alone as a duplicate signal; exact text remains
+only a last-resort fallback when no SDK identity is available. Raw
 `snapshot.currentTurn.presentation.entries` and phase-derived current-turn rows
 remain only as the no-view bridge and must not append visible rows beside the
 SDK view.

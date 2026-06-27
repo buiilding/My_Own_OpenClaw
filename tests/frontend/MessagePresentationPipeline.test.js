@@ -748,6 +748,52 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
+  test('buildThreadPresentationMessages keeps same-tool live rows with distinct SDK identity', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+      {
+        id: 'materialized-tool-call',
+        sender: 'assistant',
+        text: 'Using read_file',
+        type: 'tool-call',
+        turnRef: 'turn-1',
+        toolName: 'read_file',
+        correlationId: 'req-a',
+      },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: 'live-tool-call-b',
+          type: 'tool-call',
+          text: 'Using read_file',
+          sourceEventType: 'tool_call',
+          sourceChannel: 'sdk:current-turn',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+          requestId: 'req-b',
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered).toEqual([
+      ...messages,
+      expect.objectContaining({
+        id: 'live-tool-call-b',
+        type: 'tool-call',
+        correlationId: 'req-b',
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages drops current-turn thinking once assistant text is materialized', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },

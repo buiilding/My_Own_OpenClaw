@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/presentation: reconcile materialized and live dashboard/thread tool
+  rows by SDK display identity instead of tool name, while preserving
+  `requestId`/`bundleId` as renderer correlation ids for live entries and
+  keeping live tool detail records sanitized. No migration required.
 - frontend/overlay: reconcile materialized and live response-overlay tool rows
   by SDK display identity instead of broad row type, so same-turn live-only tool
   calls remain visible beside already-materialized tool rows. No migration

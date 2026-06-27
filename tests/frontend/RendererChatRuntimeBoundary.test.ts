@@ -3565,6 +3565,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('sanitizeSdkToolDetailRecord');
     expect(source).toContain('const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);');
     expect(source).toContain('const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);');
+    expect(source).toContain('toolCallDetails: sanitizeSdkToolDetailRecord(asRecord(entry.toolCallDetails))');
+    expect(source).toContain('toolOutputDetails: sanitizeSdkToolDetailRecord(asRecord(entry.toolOutputDetails))');
     expect(source).not.toContain('const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);');
     expect(source).toContain('buildLegacyNoPresentationCurrentTurnMessages');
     expect(source).toContain('buildNoViewSdkLiveTurnMessages');
@@ -3777,7 +3779,12 @@ describe('renderer chat runtime boundary', () => {
     expect(displayAttachmentProjectionSource).not.toContain('screenshot_refs');
     expect(displayAttachmentProjectionSource).not.toContain('countLegacyScreenshotAttachments');
     expect(currentTurnMessageRuntimeSource).toContain('readSdkDisplayAttachments');
+    expect(currentTurnMessageRuntimeSource).toContain('function resolveEntryCorrelationId(entry)');
+    expect(currentTurnMessageRuntimeSource).toContain('normalizeOptionalText(entry.requestId)');
     expect(currentTurnMessageRuntimeSource).not.toContain('function normalizeDisplayAttachments');
+    expect(threadPresentationRuntimeSource).toContain('function toolMessageIdentity(message)');
+    expect(threadPresentationRuntimeSource).not.toContain('function resolveToolName');
+    expect(threadPresentationRuntimeSource).not.toContain('resolveToolName(message)');
     expect(chatInterfaceSource).toContain('DesktopChatInterfacePresentationRuntime');
     expect(chatInterfaceSource).toContain('DesktopChatRevisionActionRuntime');
     expect(chatInterfaceSource).not.toContain('DesktopConversationContinuityService');
