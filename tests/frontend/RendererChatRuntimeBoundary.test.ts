@@ -2052,6 +2052,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts'),
       'utf8',
     );
+    const ipcSdkCommandHandlerSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs'),
+      'utf8',
+    );
     const transcriptRuntimeDocSource = await fs.readFile(
       path.resolve(__dirname, '../../docs/frontend/renderer/transcript_session_and_rehydrate_reference.md'),
       'utf8',
@@ -2230,6 +2234,12 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('screenshotRef');
     expect(replayRuntimeSource).not.toContain('attachmentFilenames');
     expect(replayRuntimeSource).not.toContain('features/chat');
+    expect(ipcSdkCommandHandlerSource).not.toContain('buildReplayRuntimePayload');
+    expect(ipcSdkCommandHandlerSource).not.toContain('traceReplayRuntimeSend');
+    expect(ipcSdkCommandHandlerSource).not.toContain('payload: runtimePayload');
+    expect(ipcSdkCommandHandlerSource).not.toContain('model: cloneJsonObject(payload.model)');
+    expect(ipcSdkCommandHandlerSource).not.toContain('turnRef,\n        payload:');
+    expect(ipcSdkCommandHandlerSource).toContain("messageId: requireExactCommandString(payload, 'messageId', 'message id')");
     expect(transcriptRuntimeDocSource).toContain('SDK replay commands own target-row selection');
     expect(transcriptRuntimeDocSource).not.toContain('DesktopConversationReplayRuntime owns replay row selection');
     expect(transcriptRuntimeDocSource).not.toContain('prepared\n  desktop-turn shaping');

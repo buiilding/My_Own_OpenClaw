@@ -22,13 +22,6 @@ function cloneJsonArray(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function cloneJsonObject(value) {
-  if (!isPlainObject(value)) {
-    return undefined;
-  }
-  return JSON.parse(JSON.stringify(value));
-}
-
 function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
@@ -118,17 +111,6 @@ function requireExactCommandString(payload = {}, key, label) {
   return value;
 }
 
-function optionalExactCommandString(payload = {}, key, label) {
-  if (!Object.prototype.hasOwnProperty.call(payload, key)) {
-    return undefined;
-  }
-  const value = readExactOptionalString(payload[key]);
-  if (!value) {
-    throw new Error(`Agent SDK command requires exact ${label}.`);
-  }
-  return value;
-}
-
 function requireExactCommandConversationRef(payload = {}) {
   if (Object.prototype.hasOwnProperty.call(payload, 'conversation_ref')) {
     throw new Error('Agent SDK command requires conversationRef; conversation_ref is not supported.');
@@ -154,46 +136,6 @@ function appendRendererAppDiagnostic(payload = {}, deps = {}) {
     durationMs: normalizePositiveInteger(payload.durationMs),
     data: isPlainObject(payload.data) ? payload.data : {},
     error: payload.error,
-  });
-}
-
-function buildReplayRuntimePayload({
-  conversationRef,
-  text,
-  payload,
-  deps,
-} = {}) {
-  const basePayload = cloneJsonObject(payload) || {};
-  delete basePayload.agent_definition;
-  const runtimePayload = {
-    ...basePayload,
-    conversation_ref: conversationRef,
-  };
-  if (typeof text === 'string') {
-    runtimePayload.text = text;
-  }
-  if (typeof deps.attachRuntimeTurnContextToPayload !== 'function') {
-    return runtimePayload;
-  }
-  return cloneJsonObject(deps.attachRuntimeTurnContextToPayload(runtimePayload)) || runtimePayload;
-}
-
-function traceReplayRuntimeSend({
-  conversationRef,
-  text,
-  turnRef,
-  payload,
-  deps,
-} = {}) {
-  if (typeof deps.traceRuntimeSend !== 'function') {
-    return;
-  }
-  deps.traceRuntimeSend({
-    conversationRef,
-    text: typeof text === 'string' ? text : '',
-    turnRef,
-    payload,
-    resources: Array.isArray(payload?.resources) ? payload.resources : [],
   });
 }
 
@@ -453,58 +395,24 @@ function buildAgentSdkCommandHandlers({
       requireCommandUserId(payload, deps.getState().currentUserId);
       const conversationRef = requireExactCommandConversationRef(payload);
       const text = requireCommandText(payload);
-      const turnRef = normalizeOptionalString(payload.turnRef) ?? undefined;
-      const runtimePayload = buildReplayRuntimePayload({
-        conversationRef,
-        text,
-        payload: payload.payload,
-        deps,
-      });
-      traceReplayRuntimeSend({
-        conversationRef,
-        text,
-        turnRef,
-        payload: runtimePayload,
-        deps,
-      });
       const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.editAndResend',
         conversationRef,
       });
       return runtimeRegistry.editAndResend({
-        conversationRef,
         messageId: requireExactCommandString(payload, 'messageId', 'message id'),
         text,
-        turnRef,
-        payload: runtimePayload,
-        model: cloneJsonObject(payload.model),
       });
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_RETRY_TURN]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
       const conversationRef = requireExactCommandConversationRef(payload);
-      const turnRef = normalizeOptionalString(payload.turnRef) ?? undefined;
-      const runtimePayload = buildReplayRuntimePayload({
-        conversationRef,
-        payload: payload.payload,
-        deps,
-      });
-      traceReplayRuntimeSend({
-        conversationRef,
-        turnRef,
-        payload: runtimePayload,
-        deps,
-      });
       const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.retryTurn',
         conversationRef,
       });
       return runtimeRegistry.retryTurn({
-        conversationRef,
-        messageId: optionalExactCommandString(payload, 'messageId', 'message id'),
-        turnRef,
-        payload: runtimePayload,
-        model: cloneJsonObject(payload.model),
+        messageId: requireExactCommandString(payload, 'messageId', 'message id'),
       });
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_CHECKOUT_REVISION]: async (payload = {}) => {

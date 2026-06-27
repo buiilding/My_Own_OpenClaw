@@ -154,6 +154,11 @@ flowchart LR
      also reject padded or empty replay conversation refs and target row ids
      before invoking the Electron SDK command bridge, so direct facade callers
      cannot bypass the public replay runtime's exact-identity gate.
+     Electron main `windie:invoke` replay command handlers are intent-only as
+     well: they accept exact user/conversation/target identity plus edit text,
+     do not build replay runtime payloads, attach query runtime context, trace
+     runtime sends, or forward caller-supplied `payload`, `model`, or `turnRef`
+     fields, and retry requires an exact target row id.
      Chat-store adapters should not export replay wrapper commands, active-scope
      helpers for replay, or projected workspace rows; the store shape and
      `getState()` contract must not be passed into the replay runtime.

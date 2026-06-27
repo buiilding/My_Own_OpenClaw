@@ -18,6 +18,10 @@ All notable changes to WindieOS will be documented in this file.
   renderer display-detail allowlist before publishing current-turn message rows,
   keeping raw nested payloads and screenshot aliases out of progress/output
   props. No migration required.
+- frontend/replay: make Electron main SDK replay commands intent-only by
+  dropping caller-supplied replay payloads, model overrides, and turn refs
+  before `conversation.editAndResend`/`conversation.retryTurn`; retry now
+  requires an exact SDK target row id. No migration required.
 - frontend/revisions: require exact conversation refs, revision ids, optional
   fork cut row ids, and explicit fork conversation refs inside the desktop
   continuity facade before invoking SDK revision commands, so direct facade
