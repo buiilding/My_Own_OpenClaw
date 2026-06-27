@@ -169,7 +169,9 @@ trimmed into no-view/pending routing state.
   `DesktopConversationViewWorkspaceRuntime.hasWorkspaceConversationView(...)`
   before mutating `messages`; when SDK `ConversationView` is present, only
   renderer-local annotation updates such as feedback may be written beside the
-  SDK view.
+  SDK view. That predicate requires the SDK view shape (`displayRows`,
+  `liveTurn`, `surfaces`, and `actions`); display-timeline `rows` payloads or
+  other partial objects do not become chat read-model authority.
 - `setMessagesInChatStore(...)` no-ops when array reference is unchanged; when hydrating a concrete
   conversation workspace, it records message `turnRef` values through the
   app-runtime turn-routing registry so later turn-scoped stream events can

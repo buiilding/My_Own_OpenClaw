@@ -10,14 +10,36 @@ const {
 function buildConversationView(conversationRef: string): ConversationView {
   return {
     conversationRef,
-    rows: [],
+    revisionId: null,
+    displayRows: [],
+    liveTurn: {
+      turnRef: null,
+      phase: 'idle',
+      entries: [],
+      isBusy: false,
+      isTerminal: true,
+      canStop: false,
+    },
+    surfaces: {
+      pill: {
+        mode: 'idle',
+      },
+      dashboard: {
+        mode: 'idle',
+      },
+      responseOverlay: {
+        mode: 'hidden',
+        visible: false,
+        guardRef: null,
+        ownerConversationRef: conversationRef,
+        turnRef: null,
+      },
+    },
     actions: {
       canEdit: false,
       canRetry: false,
+      canFork: false,
     },
-    revisions: [],
-    activeRevisionId: null,
-    liveTurn: null,
   };
 }
 
@@ -59,6 +81,12 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     })).toBe(true);
     expect(hasWorkspaceConversationView({
       conversationView: null,
+    })).toBe(false);
+    expect(hasWorkspaceConversationView({
+      conversationView: {
+        conversationRef: 'conv-1',
+        rows: [],
+      },
     })).toBe(false);
     expect(hasWorkspaceConversationView(null)).toBe(false);
   });

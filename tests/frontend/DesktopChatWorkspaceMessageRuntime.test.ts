@@ -30,6 +30,42 @@ function createDeps(workspace) {
   };
 }
 
+function buildConversationView(conversationRef = 'conv-1') {
+  return {
+    conversationRef,
+    revisionId: null,
+    displayRows: [],
+    liveTurn: {
+      turnRef: null,
+      phase: 'idle',
+      entries: [],
+      isBusy: false,
+      isTerminal: true,
+      canStop: false,
+    },
+    surfaces: {
+      pill: {
+        mode: 'idle',
+      },
+      dashboard: {
+        mode: 'idle',
+      },
+      responseOverlay: {
+        mode: 'hidden',
+        visible: false,
+        guardRef: null,
+        ownerConversationRef: conversationRef,
+        turnRef: null,
+      },
+    },
+    actions: {
+      canEdit: false,
+      canRetry: false,
+      canFork: false,
+    },
+  };
+}
+
 describe('DesktopChatWorkspaceMessageRuntime', () => {
   test('buildAddMessageStateUpdate appends messages and indexes turn refs', () => {
     const workspace = {
@@ -110,10 +146,7 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
 
   test('buildAddMessageStateUpdate no-ops when ConversationView is authoritative', () => {
     const workspace = {
-      conversationView: {
-        conversationRef: 'conv-1',
-        displayRows: [],
-      },
+      conversationView: buildConversationView('conv-1'),
       messages: [
         { id: 'annotation-row', sender: 'assistant' as const, text: '', feedback: 'like' as const },
       ],
@@ -137,6 +170,37 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
     })).toBeNull();
     expect(deps.buildWorkspaceUpdate).not.toHaveBeenCalled();
     expect(deps.recordTurnConversationRefs).not.toHaveBeenCalled();
+  });
+
+  test('buildAddMessageStateUpdate does not treat display timeline rows as ConversationView authority', () => {
+    const workspace = {
+      conversationView: {
+        conversationRef: 'conv-1',
+        rows: [],
+      },
+      messages: [],
+    };
+    const state = {
+      workspaces: {
+        'conv-1': workspace,
+      },
+    };
+    const deps = createDeps(workspace);
+    const message = {
+      id: 'assistant-1',
+      sender: 'assistant' as const,
+      text: 'no-view fallback',
+      turnRef: 'turn-1',
+    };
+
+    const nextState = buildAddMessageStateUpdate({
+      deps,
+      message,
+      state,
+    });
+
+    expect(nextState.workspaces['conv-1'].messages).toEqual([message]);
+    expect(deps.recordTurnConversationRefs).toHaveBeenCalledWith([message], 'conv-1');
   });
 
   test('buildUpdateMessageStateUpdate updates matching messages and indexes changed turn refs', () => {
@@ -177,10 +241,7 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
 
   test('buildUpdateMessageStateUpdate keeps only renderer annotations under ConversationView', () => {
     const workspace = {
-      conversationView: {
-        conversationRef: 'conv-1',
-        displayRows: [],
-      },
+      conversationView: buildConversationView('conv-1'),
       messages: [
         { id: 'assistant-row', sender: 'assistant' as const, text: 'stale raw text' },
       ],
@@ -222,10 +283,7 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
 
   test('buildUpdateMessageStateUpdate creates annotation records under ConversationView', () => {
     const workspace = {
-      conversationView: {
-        conversationRef: 'conv-1',
-        displayRows: [],
-      },
+      conversationView: buildConversationView('conv-1'),
       messages: [],
       rendererAnnotations: [],
     };
@@ -277,10 +335,7 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
 
   test('buildUpdateMessageStateUpdate no-ops for non-annotation updates under ConversationView', () => {
     const workspace = {
-      conversationView: {
-        conversationRef: 'conv-1',
-        displayRows: [],
-      },
+      conversationView: buildConversationView('conv-1'),
       messages: [],
     };
     const deps = createDeps(workspace);
@@ -369,10 +424,7 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
 
   test('buildUpdateStreamTargetMessageStateUpdate no-ops when ConversationView is authoritative', () => {
     const workspace = {
-      conversationView: {
-        conversationRef: 'conv-1',
-        displayRows: [],
-      },
+      conversationView: buildConversationView('conv-1'),
       messages: [
         { id: 'assistant-1', sender: 'assistant' as const, type: 'llm-text' as const, text: 'one', turnRef: 'turn-1' },
       ],
@@ -435,10 +487,7 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
   test('buildSetMessagesStateUpdate no-ops when ConversationView is authoritative', () => {
     const message = { id: 'user-1', sender: 'user' as const, text: 'hello', turnRef: 'turn-1' };
     const workspace = {
-      conversationView: {
-        conversationRef: 'conv-1',
-        displayRows: [],
-      },
+      conversationView: buildConversationView('conv-1'),
       messages: [message],
     };
     const deps = createDeps(workspace);

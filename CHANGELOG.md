@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: require cached ConversationView workspace authority to
+  have SDK `displayRows`, `liveTurn`, `surfaces`, and `actions` shape, so
+  display-timeline `rows` payloads or partial objects cannot suppress no-view
+  raw message writes. No migration required.
 - frontend/projection: remove the `preserveRendererAnnotations` switch from
   ConversationView display projection, so explicit `rendererAnnotations` are
   always the only renderer-local decoration channel beside SDK display rows. No

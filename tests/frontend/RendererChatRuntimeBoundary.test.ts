@@ -4349,6 +4349,10 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildConversationViewWorkspaceMutation');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildSetConversationViewStateUpdate');
     expect(conversationViewWorkspaceRuntimeSource).toContain('hasWorkspaceConversationView');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('Array.isArray(source.displayRows)');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('Boolean(source.liveTurn && typeof source.liveTurn === \'object\')');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('Boolean(source.surfaces && typeof source.surfaces === \'object\')');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('Boolean(source.actions && typeof source.actions === \'object\')');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('buildSetLatestConversationViewStateUpdate');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('hasLatestConversationViewUpdate');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('latestConversationView');

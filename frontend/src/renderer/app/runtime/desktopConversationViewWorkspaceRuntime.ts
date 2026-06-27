@@ -49,13 +49,24 @@ function normalizeString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function isConversationView(value: unknown): value is ConversationView {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  const source = value as Partial<ConversationView>;
+  return typeof source.conversationRef === 'string'
+    && Array.isArray(source.displayRows)
+    && Boolean(source.liveTurn && typeof source.liveTurn === 'object')
+    && Boolean(source.surfaces && typeof source.surfaces === 'object')
+    && Boolean(source.actions && typeof source.actions === 'object');
+}
+
 function hasWorkspaceConversationView(workspace: unknown): boolean {
   return Boolean(
     workspace
       && typeof workspace === 'object'
       && !Array.isArray(workspace)
-      && (workspace as ConversationViewWorkspace).conversationView
-      && typeof (workspace as ConversationViewWorkspace).conversationView === 'object',
+      && isConversationView((workspace as ConversationViewWorkspace).conversationView),
   );
 }
 
