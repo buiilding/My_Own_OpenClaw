@@ -231,6 +231,10 @@ trimmed into no-view/pending routing state.
   `conversationRef`, `liveTurn.turnRef`, response-overlay turn refs, and SDK
   user-row anchors; malformed padded refs keep the renderer pending bridge
   visible instead of being repaired into lifecycle authority.
+  Minimal-pill turn-id resolution and lifecycle/reset trace snapshots follow
+  that exact-only rule for refs, phases, and pill surface modes, so padded SDK
+  surface values cannot become visible pill identity or diagnostic handoff
+  state.
 - `acceptPendingTurnInChatStore(...)` stores the renderer-local pending turn
   before the SDK live turn opens, so dashboard/pill surfaces can
   show awaiting state and stop can target the real outgoing `turnRef`; an

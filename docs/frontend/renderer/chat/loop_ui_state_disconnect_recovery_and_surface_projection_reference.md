@@ -283,6 +283,9 @@ longer imports the overlay lifecycle adapter.
 - consumes `useChatSurfaceController(...)`
 - treats visible lifecycle `isBusy` as loop-interaction lock for pill
   controls/input/drag/actions
+- receives pill turn identity and trace snapshots from the app-runtime session
+  helper, which rejects padded conversation refs, turn refs, lifecycle phases,
+  and SDK pill surface modes instead of repairing them into minimal-pill state
 
 `ChatBoxResponse.jsx`:
 

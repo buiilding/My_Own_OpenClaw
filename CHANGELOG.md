@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pill: reject padded chat-pill turn refs, conversation refs,
+  lifecycle phases, and SDK pill surface modes in the app-runtime session
+  helper instead of trimming them into overlay turn identity or trace/reset
+  payloads. No migration required.
 - frontend/lifecycle: reject repaired SDK live-turn phase and ConversationView
   response-overlay mode labels instead of trimming padded lifecycle strings
   into busy, awaiting, terminal, or response state. No migration required.

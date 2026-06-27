@@ -264,7 +264,10 @@ renderer and Electron-main Stop shortcut resolution.
 The pill response-overlay `turnId` is also resolved inside the app runtime from
 SDK response rows, SDK overlay intent, visible lifecycle, or the pending bridge;
 React hooks pass those inputs through instead of composing renderer-owned
-turn-ref fallbacks.
+turn-ref fallbacks. The same resolver and chat-pill trace snapshots accept only
+exact conversation refs, turn refs, lifecycle phases, and pill surface modes;
+padded SDK values are ignored instead of being trimmed into pill visibility,
+trace, or reset identity.
 Desktop live-surface overlay identity accepts only exact SDK refs from
 `snapshot.view.liveTurn`, `snapshot.view.surfaces.responseOverlay`, or
 `snapshot.currentTurn.presentation.overlayIntent`; padded refs are ignored

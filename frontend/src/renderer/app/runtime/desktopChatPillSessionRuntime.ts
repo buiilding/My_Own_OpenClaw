@@ -73,20 +73,19 @@ const CHAT_PILL_SURFACE_REASON = Object.freeze({
   TOOL_SCREENSHOT: 'tool_screenshot',
 });
 
-function normalizeOptionalTurnRef(value: unknown): string | null {
+function readExactNonEmptyString(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null;
   }
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
+  return value.length > 0 && value === value.trim() ? value : null;
+}
+
+function normalizeOptionalTurnRef(value: unknown): string | null {
+  return readExactNonEmptyString(value);
 }
 
 function normalizeOptionalString(value: unknown): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
+  return readExactNonEmptyString(value);
 }
 
 function resolveViewLiveTurnRef(conversationView: ChatPillConversationView): string | null {
