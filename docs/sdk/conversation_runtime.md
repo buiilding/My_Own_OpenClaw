@@ -288,7 +288,10 @@ Desktop live-surface overlay identity accepts only exact SDK refs from
 `snapshot.view.liveTurn`, `snapshot.view.surfaces.responseOverlay`, or
 `snapshot.currentTurn.presentation.overlayIntent`; padded refs are ignored
 instead of being trimmed into response-overlay turn, conversation, or guard
-identity. The same live-surface adapter treats SDK live-turn `phase` and
+identity. After the overlay intent resolver has selected those exact refs, the
+live-surface presentation output consumes that resolved intent directly instead
+of recomposing turn, conversation, or guard fallbacks beside it. The same
+live-surface adapter treats SDK live-turn `phase` and
 response-overlay `mode` labels as exact; padded labels fall back to hidden/idle
 surface state instead of being repaired into awaiting or response overlays.
 Renderer response-overlay dismissal keys and native responsebox window

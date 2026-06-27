@@ -107,7 +107,6 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
         userMessageId: 'user-local',
         text: 'hello',
         timestamp: '2026-06-25T12:00:00.000Z',
-        attachmentFilenames: null,
       },
     });
 
@@ -130,7 +129,6 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
         userMessageId: 'user-local',
         text: 'hello',
         timestamp: '2026-06-25T12:00:00.000Z',
-        attachmentFilenames: null,
       },
       sdkLiveTurn: {
         conversationRef: 'conv-stale',
@@ -254,7 +252,6 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
         userMessageId: 'user-local',
         text: 'hello',
         timestamp: '2026-06-25T12:00:00.000Z',
-        attachmentFilenames: null,
       },
     });
 

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-surface: consume resolved SDK overlay intent identity directly
+  instead of recomposing turn, conversation, and guard fallbacks in the renderer
+  presentation output. No migration required.
 - frontend/tool-details: allow only explicit SDK display-detail fields through
   renderer tool card metadata, so new raw payload, provider, attachment, or
   screenshot-alias fields cannot leak through by default. No migration required.
