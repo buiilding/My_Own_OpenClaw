@@ -2014,6 +2014,9 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('findReplayEditableUserMessageIndex');
     expect(replayRuntimeSource).toContain('prepareReplayEditIntent');
     expect(replayRuntimeSource).toContain('prepareReplayRetryIntent');
+    expect(replayRuntimeSource).toContain('readExactReplayMessageId');
+    expect(replayRuntimeSource).not.toContain('normalizeReplayMessageId');
+    expect(replayRuntimeSource).not.toContain('messageId.trim()');
     expect(replayRuntimeSource).not.toContain('resolveReplayRetryMessageIndexes');
     expect(replayRuntimeSource).toContain('DesktopConversationReplayRuntime');
     expect(replayRuntimeSource).not.toContain('export function findReplayEditableUserMessageIndex');

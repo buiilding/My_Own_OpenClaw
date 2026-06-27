@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: reject padded SDK replay target row ids instead of trimming
+  them before edit/resend or retry command dispatch. No migration required.
 - frontend/projection: reject padded SDK display attachment ids and
   artifact image-source fields instead of trimming them into valid renderer
   display fetches. No migration required.

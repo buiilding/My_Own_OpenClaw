@@ -81,11 +81,16 @@ function createChatStore() {
 }
 
 function replayArgs(overrides = {}) {
-  const { chatStore } = overrides.chatStoreBundle || createChatStore();
+  const chatStoreBundle = overrides.chatStoreBundle || createChatStore();
+  const { chatStore, state } = chatStoreBundle;
   return {
     chatStore,
     deferredQueryModelSelection: null,
     messages: [],
+    replayUiContext: {
+      getActiveConversationRef: () => state.activeConversationRef,
+      getProjectedWorkspaceReadModel: (conversationRef) => state.getWorkspaceState(conversationRef),
+    },
     sessionInfo: {
       conversationRef: 'conv-replay',
       userId: 'user-1',
@@ -279,6 +284,25 @@ describe('desktopConversationReplayRuntime', () => {
     }))).resolves.toBeUndefined();
 
     expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
+  });
+
+  test('returns undefined for padded replay targets without dispatching SDK commands', async () => {
+    const chatStoreBundle = createChatStore();
+
+    await expect(executeReplayAction(replayArgs({
+      action: 'retry',
+      chatStoreBundle,
+      assistantMessageId: ' assistant-1 ',
+    }))).resolves.toBeUndefined();
+    await expect(executeReplayAction(replayArgs({
+      action: 'edit_resend',
+      chatStoreBundle,
+      userMessageId: ' user-1 ',
+      editedText: 'edited question',
+    }))).resolves.toBeUndefined();
+
+    expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
+    expect(DesktopConversationContinuityService.editAndResend).not.toHaveBeenCalled();
   });
 
   test('does not create a conversation when replay has no active scope', async () => {

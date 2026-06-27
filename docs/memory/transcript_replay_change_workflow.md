@@ -158,6 +158,9 @@ flowchart LR
      restore event-log cutting through `conversation.rewrite_after_event`, SDK
      `prepareEditAndResend`, SDK `prepareRetryTurn`, or durable row replacement
      from React.
+   - Replay target ids are exact SDK display-row ids from action metadata.
+     Renderer replay facades reject padded or empty ids instead of trimming
+     them into targets.
 
 5. Preserve model-history resume shape.
    - SDK `modelHistoryPayloadFromCheckpoint(...)` should emit

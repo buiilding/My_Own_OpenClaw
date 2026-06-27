@@ -1074,6 +1074,9 @@ edit/retry execution. The SDK commands resolve the stored target display row,
 preserve display attachments and legacy screenshot refs from that row, write
 the child display/model revision, emit supersession for old live work, apply
 model overrides, and dispatch the replacement through the normal `send()` path.
+Renderer replay facades must pass exact non-empty SDK row ids from row action
+metadata; they reject padded or empty ids instead of trimming them into replay
+targets.
 
 Resource preservation comes from the target display row. Typed display
 attachments become the edited pending user row's visible `attachments[]` and

@@ -107,7 +107,7 @@ describe('useConversationReplayActions', () => {
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
-      await result.current.handleTryAgainFromAssistant(' assistant-1 ');
+      await result.current.handleTryAgainFromAssistant('assistant-1');
     });
 
     expect(mockGetActiveConversationRef).toHaveBeenCalled();
@@ -131,7 +131,7 @@ describe('useConversationReplayActions', () => {
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
-      await result.current.handleEditFromUser(' renderer-user-2 ', ' edited second question ');
+      await result.current.handleEditFromUser('renderer-user-2', ' edited second question ');
     });
 
     expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
@@ -216,6 +216,18 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant(' ');
       await result.current.handleEditFromUser('renderer-user-1', ' ');
       await result.current.handleEditFromUser(' ', 'edited question');
+    });
+
+    expect(mockRetryTurn).not.toHaveBeenCalled();
+    expect(mockEditAndResend).not.toHaveBeenCalled();
+  });
+
+  test('does not repair padded replay targets before SDK dispatch', async () => {
+    const { result } = renderHook(() => useConversationReplayActions());
+
+    await act(async () => {
+      await result.current.handleTryAgainFromAssistant(' assistant-1 ');
+      await result.current.handleEditFromUser(' renderer-user-1 ', 'edited question');
     });
 
     expect(mockRetryTurn).not.toHaveBeenCalled();

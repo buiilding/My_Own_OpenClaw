@@ -25,15 +25,17 @@ const {
   buildReplayProjectionTracePayload,
 } = DesktopConversationProjectionStreamRuntime;
 
-function normalizeReplayMessageId(messageId) {
-  return typeof messageId === 'string' ? messageId.trim() : '';
+function readExactReplayMessageId(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : '';
 }
 
 function prepareReplayEditIntent({ userMessageId, editedText }) {
   const normalizedEditedText = typeof editedText === 'string'
     ? editedText.trim()
     : '';
-  const normalizedMessageId = normalizeReplayMessageId(userMessageId);
+  const normalizedMessageId = readExactReplayMessageId(userMessageId);
   if (!normalizedEditedText || !normalizedMessageId) {
     return null;
   }
@@ -46,7 +48,7 @@ function prepareReplayEditIntent({ userMessageId, editedText }) {
 }
 
 function prepareReplayRetryIntent({ assistantMessageId }) {
-  const normalizedMessageId = normalizeReplayMessageId(assistantMessageId);
+  const normalizedMessageId = readExactReplayMessageId(assistantMessageId);
   if (!normalizedMessageId) {
     return null;
   }
