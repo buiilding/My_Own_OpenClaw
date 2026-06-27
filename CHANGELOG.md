@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display-rows: stop re-exporting ConversationView row lookup helpers
+  from the display projection runtime, keeping lookup authority with
+  `DesktopConversationDisplayRowLookupRuntime` while projection stays a row to
+  chat-message adapter. No migration required.
 - frontend/chat-store: remove the unused active-workspace predicate from the
   workspace-state runtime so feature code stays on projected read-model
   selectors and explicit mutation targets instead of raw workspace identity

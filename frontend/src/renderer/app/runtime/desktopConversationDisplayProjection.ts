@@ -25,7 +25,6 @@ const {
 } = DesktopPendingTurnBridgeRuntime;
 const {
   findConversationViewUserDisplayRowForTurn,
-  hasConversationViewUserDisplayRows,
 } = DesktopConversationDisplayRowLookupRuntime;
 const {
   hasWorkspaceConversationView,
@@ -286,6 +285,4 @@ export const DesktopConversationDisplayProjection = Object.freeze({
   buildConversationViewTraceSummary,
   buildConversationViewTurnChatMessages,
   buildPendingBridgeChatMessages,
-  findConversationViewUserDisplayRowForTurn,
-  hasConversationViewUserDisplayRows,
 });

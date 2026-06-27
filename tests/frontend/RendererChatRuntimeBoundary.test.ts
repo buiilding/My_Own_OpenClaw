@@ -4621,7 +4621,9 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationDisplayProjectionSource).not.toContain('sdkUserTurnRefs');
     expect(conversationDisplayProjectionSource).not.toContain('projectedUserTurns');
     expect(conversationDisplayProjectionSource).toContain('DesktopConversationDisplayRowLookupRuntime');
+    expect(conversationDisplayProjectionSource).not.toContain('hasConversationViewUserDisplayRows');
     expect(conversationDisplayRowLookupSource).toContain('findConversationViewUserDisplayRowForTurn');
+    expect(conversationDisplayRowLookupSource).toContain('hasConversationViewUserDisplayRows');
     expect(conversationDisplayRowLookupSource).toContain('ConversationView display-row lookup');
     expect(conversationDisplayRowLookupSource).toContain('exactNonEmptyString');
     expect(conversationDisplayRowLookupSource).toContain("(row as Record<string, unknown>).role === 'user'");

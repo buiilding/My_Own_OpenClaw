@@ -5,6 +5,9 @@
 import {
   DesktopConversationDisplayProjection,
 } from '../../frontend/src/renderer/app/runtime/desktopConversationDisplayProjection';
+import {
+  DesktopConversationDisplayRowLookupRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopConversationDisplayRowLookupRuntime';
 import type { ChatMessage } from '../../frontend/src/renderer/app/runtime/desktopChatMessageTypes';
 
 const {
@@ -12,9 +15,11 @@ const {
   buildConversationViewTraceSummary,
   buildConversationViewTurnChatMessages,
   buildPendingBridgeChatMessages,
+} = DesktopConversationDisplayProjection;
+const {
   findConversationViewUserDisplayRowForTurn,
   hasConversationViewUserDisplayRows,
-} = DesktopConversationDisplayProjection;
+} = DesktopConversationDisplayRowLookupRuntime;
 
 function message(overrides: Partial<ChatMessage>): ChatMessage {
   return {
