@@ -357,6 +357,10 @@ descriptors on the typed `attachments[]` prop only. Renderer attachment helpers
 may perform narrow component checks such as artifact image-source resolution,
 but they must not expose aggregate lifecycle summaries that make the renderer a
 second attachment state authority.
+Renderer token-usage presentation may estimate image cost from SDK
+`attachments[]`, but only by counting descriptors whose SDK `kind` is `image`;
+pending screenshot requests and failed request descriptors are display states,
+not renderer-inferred model images.
 Tool detail panels may receive display identity fields such as `toolName`, `requestId`,
 `correlationId`, `bundleId`, `toolCallId`, and `success`, plus SDK-authored
 display details, but component correlation identity comes from the SDK-authored

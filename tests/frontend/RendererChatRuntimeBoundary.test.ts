@@ -1383,6 +1383,7 @@ describe('renderer chat runtime boundary', () => {
     expect(tokenUsageRuntimeSource).not.toContain('screenshotUrl');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshotRef');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshotUrl');
+    expect(tokenUsageRuntimeSource).toContain("attachment.kind === 'image'");
     expect(tokenUsageRuntimeSource).not.toContain('screenshot: message?.screenshot');
     expect(tokenUsageRuntimeSource).not.toContain('modelFacingToolCall');
     expect(tokenUsageRuntimeSource).toContain('DesktopMessageTokenUsageRuntime');

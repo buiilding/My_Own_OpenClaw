@@ -44,6 +44,32 @@ describe('desktopMessageTokenUsageRuntime', () => {
     expect(tag).toBe('tokens~ txt:2 img(est):85 total:87');
   });
 
+  test('estimates image tokens only from SDK image attachment descriptors', () => {
+    const tag = resolveMessageTokenUsageTag({
+      sender: 'user',
+      text: 'abcd',
+      attachments: [{
+        id: 'pending-shot',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'pending_capture',
+      }, {
+        id: 'failed-shot',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'failed',
+      }, {
+        id: 'ready-image',
+        kind: 'image',
+        source: 'camera_button',
+        status: 'ready',
+        screenshotRef: 'shot-1',
+      }],
+    });
+
+    expect(tag).toBe('tokens~ txt:1 img(est):85 total:86');
+  });
+
   test('ignores legacy screenshot arrays for user image token estimates', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'user',

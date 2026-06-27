@@ -28,7 +28,12 @@ function estimateTextTokens(text) {
 }
 
 function resolveUserImageAttachmentCount(message) {
-  return Array.isArray(message?.attachments) ? message.attachments.length : 0;
+  if (!Array.isArray(message?.attachments)) {
+    return 0;
+  }
+  return message.attachments
+    .filter((attachment) => attachment.kind === 'image')
+    .length;
 }
 
 function resolveUserText(message) {

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: count image-token estimates only from SDK
+  `attachments[]` descriptors whose `kind` is `image`, leaving pending or
+  failed screenshot request descriptors as display state. No migration required.
 - frontend/replay: remove chat-store replay wrapper exports; the replay hook
   now calls the renderer replay runtime entrypoint directly and passes the chat
   store only as an injected UI-state dependency. No migration required.
