@@ -3770,7 +3770,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('sourceChannel: liveTurnContext?.sourceChannel || sdkCurrentTurnSourceChannel');
     expect(source).not.toContain('turnRef: entry.turnRef || liveTurnContext?.turnRef || undefined');
     expect(source).not.toContain('turnRef: entry.turnRef || liveTurnContext?.turnRef || null');
-    expect(source).toContain('turnRef: readExactSdkString(liveTurnContext?.turnRef) || readExactSdkString(entry.turnRef)');
+    expect(source).not.toContain('readExactSdkString(entry.turnRef)');
+    expect(source).toContain('turnRef: readExactSdkString(liveTurnContext?.turnRef) || undefined');
+    expect(source).toContain('turnRef: readExactSdkString(liveTurnContext?.turnRef),');
     expect(source).toContain('conversationRef: readExactSdkString(conversationView?.conversationRef)');
     expect(source).toContain('turnRef: readExactSdkString(conversationView?.liveTurn?.turnRef)');
     expect(source).not.toContain('conversationRef: conversationView?.conversationRef || null');

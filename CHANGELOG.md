@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-rows: ignore entry-level live `turnRef` values and project row
+  identity only from the containing SDK live turn or ConversationView live-turn
+  context. No migration required.
 - frontend/live-surface: consume resolved SDK overlay intent identity directly
   instead of recomposing turn, conversation, and guard fallbacks in the renderer
   presentation output. No migration required.

@@ -475,11 +475,12 @@ Renderer live-entry adapters assign their own presentation `sourceChannel`
 based on whether the input came from no-view SDK current-turn presentation or
 first-class `ConversationView.liveTurn.entries`; live entry payloads cannot
 override that channel to enter or leave the live-row visibility path.
-Projected live rows also prefer the containing SDK live-turn `turnRef` over any
-entry-level `turnRef`, so stale entry payload identity cannot move a current
-live row onto an older turn. No-view SDK current-turn `conversationRef` and
-`turnRef` values are exact in renderer fallback projection; padded refs are not
-exposed through generated live row ids or row `turnRef` props. The
+Projected live rows take `turnRef` only from the containing SDK live-turn
+context and ignore entry-level `turnRef` fields, so stale entry payload identity
+cannot move a current live row onto an older turn. No-view SDK current-turn
+`conversationRef` and `turnRef` values are exact in renderer fallback
+projection; padded refs are not exposed through generated live row ids or row
+`turnRef` props. The
 `ConversationView.liveTurn.turnRef` context follows the same exact rule before
 renderer adapters copy it into live row props, so padded view-level live-turn
 refs cannot become visible component identity.

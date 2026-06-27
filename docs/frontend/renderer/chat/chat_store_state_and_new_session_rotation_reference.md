@@ -113,10 +113,11 @@ keeps SDK presentation entry ids exact, so padded ids fall back to the local
 entry index/type key instead of being trimmed into SDK identity. Renderer presentation assigns
 `sourceChannel` from the adapter path (`sdk:current-turn` or
 `sdk:conversation-view`) instead of trusting live entry payload fields for
-visibility gating. Live row `turnRef` projection similarly prefers the
-containing SDK live turn's `turnRef` over entry-level payload refs. No-view SDK
-current-turn `conversationRef` and `turnRef` values are exact; padded refs are
-not exposed through fallback live row ids or row `turnRef` props.
+visibility gating. Live row `turnRef` projection similarly uses only the
+containing SDK live turn's `turnRef` and ignores entry-level payload refs.
+No-view SDK current-turn `conversationRef` and `turnRef` values are exact;
+padded refs are not exposed through fallback live row ids or row `turnRef`
+props.
 `ConversationView.liveTurn.turnRef` uses the same exact gate before the
 renderer copies it into live row props, so padded view-level live-turn refs stay
 out of component identity. The live-surface adapter also requires the shared
