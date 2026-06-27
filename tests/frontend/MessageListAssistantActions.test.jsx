@@ -500,6 +500,42 @@ describe('MessageList assistant actions', () => {
     expect(screen.queryByRole('button', { name: 'Edit and resend' })).not.toBeInTheDocument();
   });
 
+  test('passes raw user edit text to SDK replay intent without trimming or blank veto', async () => {
+    const onUserEdit = jest.fn(async () => false);
+
+    render(
+      <MessageList
+        messages={[
+          {
+            id: 'user-raw-edit',
+            text: 'old text',
+            sender: 'user',
+            type: 'user',
+            actions: {
+              canEdit: true,
+              editTargetRowId: 'user-raw-target',
+            },
+          },
+        ]}
+        thinkingStatus={null}
+        enableUserActions
+        onUserEdit={onUserEdit}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit and resend' }));
+    const editor = screen.getByRole('group', { name: 'Edit user message' });
+    fireEvent.change(within(editor).getByRole('textbox'), {
+      target: { value: '   ' },
+    });
+    fireEvent.click(within(editor).getByRole('button', { name: 'Send' }));
+
+    expect(onUserEdit).toHaveBeenCalledWith('user-raw-target', '   ');
+    await waitFor(() => {
+      expect(screen.getByRole('group', { name: 'Edit user message' })).toBeInTheDocument();
+    });
+  });
+
   test('requires explicit row edit availability before showing edit controls', () => {
     const { rerender } = render(
       <MessageList

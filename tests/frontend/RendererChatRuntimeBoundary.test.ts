@@ -4211,6 +4211,8 @@ describe('renderer chat runtime boundary', () => {
     expect(messageListSource).not.toContain('editTargetMessageId || messageId');
     expect(messageListSource).not.toContain('editingUserReplayTargetMessageId || editingUserMessageId');
     expect(messageListSource).not.toContain('editingUserReplayTargetMessageId');
+    expect(messageListSource).not.toContain('editingUserDraft.trim');
+    expect(messageListSource).not.toContain('normalizedText');
     expect(messageItemSource).not.toContain('assistantRetryTargetMessageId');
     expect(messageItemSource).not.toContain('userEditTargetMessageId');
     expect(messageItemSource).toContain('canRetryMessage');

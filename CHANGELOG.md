@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: stop trimming or blocking inline edit text before replay
+  dispatch; SDK `editAndResend` now owns edit text normalization and blank-text
+  rejection from end to end. No migration required.
 - frontend/tool-identity: stop using legacy `toolMetadata` as a thread dedupe
   or response-overlay materialization identity fallback; renderer tool identity
   now comes only from exact `correlationId`, `toolCallDetails`, or

@@ -84,15 +84,11 @@ function MessageList({
     ) {
       return;
     }
-    const normalizedText = editingUserDraft.trim();
-    if (!normalizedText) {
-      return;
-    }
     setSubmittingUserEdit(true);
     try {
       const result = await onUserEdit(
         editingUserReplayTargetRowId,
-        normalizedText,
+        editingUserDraft,
       );
       if (result !== false) {
         setEditingUserMessageId(null);

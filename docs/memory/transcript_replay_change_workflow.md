@@ -163,10 +163,11 @@ flowchart LR
      from React.
    - Replay target ids are exact SDK display-row ids from action metadata.
      Renderer replay facades reject padded or empty ids instead of trimming
-     them into targets. Edit text is forwarded as UI intent without renderer
-     trimming or empty-after-trim rejection; SDK replay commands own text
-     normalization and non-empty validation. Replay conversation scope follows
-     the same exact-identity rule: padded transcript/session/store refs are
+     them into targets. Edit text is forwarded as UI intent from the inline
+     edit composer through the replay facade without renderer trimming or
+     empty-after-trim rejection; SDK replay commands own text normalization and
+     non-empty validation. Replay conversation scope follows the same
+     exact-identity rule: padded transcript/session/store refs are
      treated as missing scope, and Electron main rejects padded replay command
      `conversationRef`/`messageId` fields instead of trimming them before SDK
      dispatch.

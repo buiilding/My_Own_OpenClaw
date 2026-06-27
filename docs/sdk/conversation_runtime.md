@@ -1269,9 +1269,9 @@ metadata; they reject padded or empty ids instead of trimming them into replay
 targets. Electron main applies the same exact-only rule to replay SDK command
 `conversationRef` and `messageId` payload fields before calling SDK
 `editAndResend` or `retryTurn`; padded command identities fail instead of
-dispatching against trimmed rows. Edit text remains raw command data through
-the main IPC adapter so SDK replay commands own text normalization and
-non-empty validation.
+dispatching against trimmed rows. Edit text remains raw command data from the
+renderer inline edit composer through replay runtime and main IPC adapters, so
+SDK replay commands own text normalization and non-empty validation.
 
 Resource preservation comes from the target display row. Typed display
 attachments become the edited pending user row's visible `attachments[]` and
