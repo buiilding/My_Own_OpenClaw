@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stream: route stale-turn guards, compaction thinking-source reads,
+  and terminal-completion state through the projected chat workspace read model
+  so SDK `ConversationView` suppresses raw stream-tracking fallback before
+  stream handlers decide side effects. No migration required.
 - frontend/dashboard: remove the raw chat-workspace read from dashboard
   conversation open; the hook now requests a view-preserving clear while the
   chat-store clear runtime owns preserving cached SDK `ConversationView`

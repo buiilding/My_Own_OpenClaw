@@ -572,6 +572,9 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(streamSource).toContain('resolveWorkspaceThinkingSourceEventType');
+    expect(streamSource).toContain('getProjectedWorkspaceReadModelFromChatStore');
+    expect(streamSource).toContain('getWorkspaceState: getProjectedWorkspaceReadModelFromChatStore');
+    expect(streamSource).not.toContain('getWorkspaceStateFromChatStore');
     expect(streamSource).not.toContain('.thinkingSourceEventType');
   });
 
@@ -1838,12 +1841,21 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/chatStream/useChatStreamCompletionHandler.ts'),
       'utf8',
     );
+    const streamSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatStream.ts'),
+      'utf8',
+    );
     const runtimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts'),
       'utf8',
     );
 
     expect(source).toContain('resolveTurnCompletedStreamEventState');
+    expect(source).toContain('getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceReadModelState');
+    expect(source).not.toContain('stores/chatStoreAdapters');
+    expect(source).not.toContain('getWorkspaceStateFromChatStore');
+    expect(streamSource).toContain('getWorkspaceState: getProjectedWorkspaceReadModelFromChatStore');
+    expect(streamSource).not.toContain('getWorkspaceStateFromChatStore');
     expect(source).not.toContain('isTurnCompletedConversationStreamEvent');
     expect(source).not.toContain('shouldRecordTerminalCompletionTracking');
     expect(source).not.toContain("event.type !== 'turn_completed'");

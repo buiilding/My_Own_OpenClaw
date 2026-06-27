@@ -241,16 +241,22 @@ Turn-completion handlers call
 `DesktopChatStreamEventRuntime.resolveTurnCompletedStreamEventState(...)` for
 resolved conversation identity, turn identity, and terminal tracking decisions;
 hooks should not read workspace stream state directly to make that decision.
+`useChatStream` supplies the projected chat workspace read model to this
+runtime, so an SDK `ConversationView` suppresses raw stream-tracking fallback
+state before terminal completion decides whether to record side effects.
 Compaction handlers similarly read the current thinking source through
 `DesktopChatStreamEventRuntime.resolveWorkspaceThinkingSourceEventType(...)`;
-the hook wires store access as an adapter dependency and does not dereference
-workspace thinking fields inline.
+the hook wires the same projected read-model adapter dependency and does not
+dereference workspace thinking fields inline. With a `ConversationView`, raw
+thinking-source state remains a no-view fallback instead of a competing stream
+authority.
 SDK conversation-event stale-turn gating also belongs to
 `DesktopChatStreamEventRuntime`: it resolves active turn identity from
 `ConversationView.liveTurn.turnRef` first and uses raw `streamTracking` only as
-the no-view fallback so stale renderer stream tracking cannot reject the
-SDK-owned live turn. Terminal completion tracking uses the same view-first
-turn identity before falling back to raw complete-state/pending-bridge checks.
+the no-view fallback. The hook passes the projected read model into that guard,
+so stale renderer stream tracking cannot reject the SDK-owned live turn.
+Terminal completion tracking uses the same view-first turn identity before
+falling back to raw complete-state/pending-bridge checks.
 Those comparisons use exact refs only; padded view, event, pending, or
 stream-tracking refs are not repaired into a match.
 

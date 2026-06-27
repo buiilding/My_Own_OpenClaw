@@ -3,8 +3,8 @@
  */
 
 import { useCallback } from 'react';
-import { getWorkspaceStateFromChatStore } from '../../stores/chatStoreAdapters';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
+import type { ChatWorkspaceReadModelState } from '../../../../app/runtime/desktopChatWorkspaceStateRuntime';
 import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
 
 const {
@@ -12,6 +12,7 @@ const {
 } = DesktopChatStreamEventRuntime;
 
 type UseChatStreamCompletionHandlerOptions = {
+  getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceReadModelState;
   recordTrackingEvent: (
     eventType: string,
     turnRef: string | null | undefined,
@@ -27,6 +28,7 @@ type UseChatStreamCompletionHandlerOptions = {
 };
 
 export const useChatStreamCompletionHandler = ({
+  getWorkspaceState,
   recordTrackingEvent,
   setIsSending,
   setThinkingStatus,
@@ -37,7 +39,7 @@ export const useChatStreamCompletionHandler = ({
       event,
       conversationRef,
       {
-        getWorkspaceState: getWorkspaceStateFromChatStore,
+        getWorkspaceState,
       },
     );
     if (!completionState) {
@@ -57,6 +59,7 @@ export const useChatStreamCompletionHandler = ({
       }, resolvedConversationRef);
     }
   }, [
+    getWorkspaceState,
     recordTrackingEvent,
     setIsSending,
     setThinkingSourceEventType,
