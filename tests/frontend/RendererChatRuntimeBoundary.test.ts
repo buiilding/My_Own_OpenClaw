@@ -3859,6 +3859,8 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnMessageRuntimeSource).toContain('function resolveEntryCorrelationId(entry)');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveToolEventCorrelationId(toolEvent)');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveToolName(value)');
+    expect(currentTurnMessageRuntimeSource).toContain('function resolveLiveTurnIdentity(value, fallback)');
+    expect(currentTurnMessageRuntimeSource).toContain('const liveTurnRef = readExactSdkString(turnRef);');
     expect(currentTurnMessageRuntimeSource).toContain('readExactSdkString(entry.requestId)');
     expect(currentTurnMessageRuntimeSource).toContain('readExactSdkString(toolEvent.requestId)');
     expect(currentTurnMessageRuntimeSource).toContain('readExactSdkString(toolEvent.bundleId)');
@@ -3866,6 +3868,8 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnMessageRuntimeSource).not.toContain('normalizeOptionalText(entry.toolName)');
     expect(currentTurnMessageRuntimeSource).not.toContain('readString(toolEvent.toolName)');
     expect(currentTurnMessageRuntimeSource).not.toContain('readString(toolEvent.requestId)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('const baseId = `${conversationRef ||');
+    expect(currentTurnMessageRuntimeSource).not.toContain('turnRef: turnRef || undefined');
     expect(currentTurnMessageRuntimeSource).not.toContain('function normalizeDisplayAttachments');
     expect(threadPresentationRuntimeSource).toContain('function toolMessageIdentity(message)');
     expect(threadPresentationRuntimeSource).toContain('function readExactRef(value)');

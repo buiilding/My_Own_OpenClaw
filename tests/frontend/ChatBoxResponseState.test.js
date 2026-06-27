@@ -241,6 +241,43 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     expect(messages.map(message => message.text)).not.toContain(' web_search ');
   });
 
+  test('buildNoViewSdkLiveTurnMessages does not expose padded live-turn refs', () => {
+    const messages = buildNoViewSdkLiveTurnMessages({
+      conversationRef: ' conv-1 ',
+      turnRef: ' turn-1 ',
+      phase: 'streaming',
+      assistantText: 'Projected response',
+      reasoningText: 'Projected thinking',
+      lastError: null,
+      toolEvents: [{
+        id: 'tool-call-1',
+        kind: 'tool_call',
+        toolName: 'read_file',
+        requestId: 'request-tool-1',
+      }],
+    });
+
+    expect(messages).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'conversation:turn:user-marker',
+        turnRef: undefined,
+      }),
+      expect.objectContaining({
+        id: 'conversation:turn:tool:tool-call-1',
+        type: 'tool-call',
+      }),
+      expect.objectContaining({
+        id: 'conversation:turn:assistant',
+        text: 'Projected response',
+        turnRef: undefined,
+      }),
+    ]));
+    expect(messages.some(message => message.id.includes(' conv-1 '))).toBe(false);
+    expect(messages.some(message => message.id.includes(' turn-1 '))).toBe(false);
+    expect(messages.map(message => message.turnRef)).not.toContain(' turn-1 ');
+    expect(messages.map(message => message.turnRef)).not.toContain('turn-1');
+  });
+
   test('buildNoViewSdkLiveTurnMessages uses presentation-backed current turns before legacy fallback', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',

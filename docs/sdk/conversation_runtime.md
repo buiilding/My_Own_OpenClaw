@@ -406,7 +406,9 @@ first-class `ConversationView.liveTurn.entries`; live entry payloads cannot
 override that channel to enter or leave the live-row visibility path.
 Projected live rows also prefer the containing SDK live-turn `turnRef` over any
 entry-level `turnRef`, so stale entry payload identity cannot move a current
-live row onto an older turn.
+live row onto an older turn. No-view SDK current-turn `conversationRef` and
+`turnRef` values are exact in renderer fallback projection; padded refs are not
+exposed through generated live row ids or row `turnRef` props.
 Tool live-entry identity fields such as `correlationId`, `requestId`, and
 `bundleId` are exact SDK strings in renderer presentation; padded or empty
 values are ignored rather than trimmed into duplicate-detection keys. Legacy

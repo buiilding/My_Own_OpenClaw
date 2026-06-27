@@ -18,6 +18,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: prefer containing SDK live-turn refs over entry-level
   `turnRef` payloads when rendering live rows, preventing stale entry identity
   from retargeting current live rows. No migration required.
+- frontend/projection: reject padded no-view SDK current-turn refs instead of
+  exposing malformed conversation or turn identity in fallback live row ids and
+  `turnRef` props. No migration required.
 - frontend/projection: stop trimming SDK live-entry tool identity fields into
   renderer correlation ids; padded `correlationId`/`requestId`/`bundleId` values
   now fall through instead of becoming dedupe keys. No migration required.

@@ -79,9 +79,13 @@ function resolveToolName(value) {
   return readExactSdkString(value);
 }
 
+function resolveLiveTurnIdentity(value, fallback) {
+  return readExactSdkString(value) || fallback;
+}
+
 function buildProjectedToolCallMessage({
   baseId,
-  turnRef,
+  liveTurnRef,
   toolEvent,
 }) {
   const toolName = resolveToolName(toolEvent.toolName) || '';
@@ -98,13 +102,13 @@ function buildProjectedToolCallMessage({
     correlationId: correlationId ?? null,
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
-    turnRef: turnRef || undefined,
+    turnRef: liveTurnRef || undefined,
   });
 }
 
 function buildProjectedToolOutputMessage({
   baseId,
-  turnRef,
+  liveTurnRef,
   toolEvent,
 }) {
   const toolOutputDetails = asObject(toolEvent.toolOutputDetails) || {};
@@ -126,7 +130,7 @@ function buildProjectedToolOutputMessage({
     success: typeof toolEvent.success === 'boolean' ? toolEvent.success : null,
     correlationId,
     toolOutputDetails: displayToolOutputDetails,
-    turnRef: turnRef || null,
+    turnRef: liveTurnRef || null,
     modelId: null,
     modelProvider: null,
   });
@@ -134,7 +138,7 @@ function buildProjectedToolOutputMessage({
 
 function buildProjectedToolProgressMessage({
   baseId,
-  turnRef,
+  liveTurnRef,
   toolEvent,
 }) {
   const text = typeof toolEvent?.text === 'string' && toolEvent.text.trim()
@@ -150,21 +154,21 @@ function buildProjectedToolProgressMessage({
     type: 'search-source',
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
-    turnRef: turnRef || undefined,
+    turnRef: liveTurnRef || undefined,
     toolName: resolveToolName(toolEvent.toolName) || undefined,
     success: toolEvent.status === 'success' ? true : undefined,
     toolMetadata: toolEvent.toolMetadata || null,
   };
 }
 
-function buildProjectedToolMessage({ baseId, turnRef, toolEvent }) {
+function buildProjectedToolMessage({ baseId, liveTurnRef, toolEvent }) {
   if (toolEvent.kind === 'tool_output') {
-    return buildProjectedToolOutputMessage({ baseId, turnRef, toolEvent });
+    return buildProjectedToolOutputMessage({ baseId, liveTurnRef, toolEvent });
   }
   if (toolEvent.kind === 'tool_progress') {
-    return buildProjectedToolProgressMessage({ baseId, turnRef, toolEvent });
+    return buildProjectedToolProgressMessage({ baseId, liveTurnRef, toolEvent });
   }
-  return buildProjectedToolCallMessage({ baseId, turnRef, toolEvent });
+  return buildProjectedToolCallMessage({ baseId, liveTurnRef, toolEvent });
 }
 
 function hasPresentationObject(sdkLiveTurn) {
@@ -195,12 +199,14 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
     return [];
   }
 
-  const baseId = `${conversationRef || 'conversation'}:${turnRef || 'turn'}`;
+  const liveConversationRef = resolveLiveTurnIdentity(conversationRef, 'conversation');
+  const liveTurnRef = readExactSdkString(turnRef);
+  const baseId = `${liveConversationRef}:${liveTurnRef || 'turn'}`;
   const messages = [{
     id: `${baseId}:user-marker`,
     text: '',
     sender: 'user',
-    turnRef: turnRef || undefined,
+    turnRef: liveTurnRef || undefined,
     sourceEventType: 'sdk-current-turn',
     sourceChannel: sdkCurrentTurnSourceChannel,
   }];
@@ -214,7 +220,7 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
       thinkingText: reasoningText,
       sourceEventType: 'reasoning_delta',
       sourceChannel: sdkCurrentTurnSourceChannel,
-      turnRef: turnRef || undefined,
+      turnRef: liveTurnRef || undefined,
       isComplete: false,
     });
   }
@@ -225,7 +231,11 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
         ...toolEvent,
         id: toolEvent.id || index,
       };
-      const message = buildProjectedToolMessage({ baseId, turnRef, toolEvent: projectedToolEvent });
+      const message = buildProjectedToolMessage({
+        baseId,
+        liveTurnRef,
+        toolEvent: projectedToolEvent,
+      });
       if (message) {
         messages.push(message);
       }
@@ -241,7 +251,7 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
       thinkingText: hasReasoning ? reasoningText : null,
       sourceEventType: 'assistant_delta',
       sourceChannel: sdkCurrentTurnSourceChannel,
-      turnRef: turnRef || undefined,
+      turnRef: liveTurnRef || undefined,
       isComplete: phase === 'complete',
     });
   }
@@ -254,7 +264,7 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
       type: 'error',
       sourceEventType: 'runtime_error',
       sourceChannel: sdkCurrentTurnSourceChannel,
-      turnRef: turnRef || undefined,
+      turnRef: liveTurnRef || undefined,
       isComplete: true,
     });
   }
