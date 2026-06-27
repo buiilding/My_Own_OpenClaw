@@ -57,7 +57,8 @@ User action row render conditions:
 Inline user editor behavior:
 
 - opens from `UserMessageActions` edit button
-- submit path trims draft and no-ops on empty
+- submit path forwards the draft text unchanged; SDK replay commands own
+  normalization and empty-text rejection
 - cancel path closes editor without callback dispatch
 - light appearance routes the editor surface, draft text, and secondary action
   button through appearance foreground/background tokens so edit/resend visuals

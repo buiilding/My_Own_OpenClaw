@@ -24,7 +24,7 @@ function buildMessageClassName(message) {
   }
 
   if (hasVisualAttachment(message)) {
-    classNames.push('message-has-screenshot');
+    classNames.push('message-has-attachment');
   }
 
   return classNames.join(' ');

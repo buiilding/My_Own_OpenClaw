@@ -124,10 +124,10 @@ instead.
 - always: `message`, `message-${sender}`
 - `message-streaming` for unfinished assistant LLM rows
 - `message-type-${type}` for typed rows (`tool-call`, `tool-output`, `error`, etc.)
-- `message-has-screenshot` when the projected row carries typed SDK
+- `message-has-attachment` when the projected row carries typed SDK
   `attachments[]`
 
-Screenshot presence for row classes follows the already-projected typed
+Attachment presence for row classes follows the already-projected typed
 `attachments[]` list; the class helper does not classify SDK attachment
 lifecycle state. User-message and tool-output visual routing use SDK-owned
 descriptors through `AttachmentList` / `AttachmentRendererRegistry`.

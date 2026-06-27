@@ -56,8 +56,8 @@ export default function ToolOutputMessage({
         activeFindMatchIndex={activeFindMatchIndex}
       />
       {displayAttachments.length > 0 ? (
-        <div className="tool-screenshot-container">
-          <div className="tool-screenshot-header">📸 Screenshot After Action</div>
+        <div className="tool-attachment-container">
+          <div className="tool-attachment-header">Visual Output</div>
           <AttachmentList attachments={displayAttachments} surface="tool-output" />
         </div>
       ) : null}

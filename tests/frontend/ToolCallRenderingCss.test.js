@@ -37,7 +37,7 @@ describe('tool call rendering CSS', () => {
     const contentBody = collectRuleBodies(css, String.raw`\.tool-output-content,\s*\.tool-call-content`);
     const detailsLabelBody = collectRuleBodies(css, String.raw`\.tool-details-label`);
     const detailsContentBody = collectRuleBodies(css, String.raw`\.tool-details-content`);
-    const screenshotHeaderBody = collectRuleBodies(css, String.raw`\.tool-screenshot-header`);
+    const attachmentHeaderBody = collectRuleBodies(css, String.raw`\.tool-attachment-header`);
 
     expect(containerBody).toEqual(expect.stringContaining('--tool-card-text:'));
     expect(containerBody).toEqual(expect.stringContaining('color: var(--tool-card-text);'));
@@ -45,7 +45,7 @@ describe('tool call rendering CSS', () => {
     expect(contentBody).toEqual(expect.stringContaining('color: var(--tool-card-text);'));
     expect(detailsLabelBody).toEqual(expect.stringContaining('color: var(--tool-card-text-muted);'));
     expect(detailsContentBody).toEqual(expect.stringContaining('color: var(--tool-card-text);'));
-    expect(screenshotHeaderBody).toEqual(expect.stringContaining('color: var(--tool-card-text-muted);'));
+    expect(attachmentHeaderBody).toEqual(expect.stringContaining('color: var(--tool-card-text-muted);'));
     expect(detailsButtonBody).not.toEqual(expect.stringContaining('color: var(--text-primary);'));
     expect(contentBody).not.toEqual(expect.stringContaining('color: var(--text-primary);'));
     expect(detailsContentBody).not.toEqual(expect.stringContaining('color: var(--text-primary);'));

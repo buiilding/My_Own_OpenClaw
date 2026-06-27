@@ -1522,6 +1522,8 @@ describe('renderer chat runtime boundary', () => {
     expect(classRuntimeSource).toContain('hasVisualAttachment');
     expect(classRuntimeSource).toContain('DesktopSdkDisplayAttachmentProjection');
     expect(classRuntimeSource).toContain('readSdkDisplayAttachments');
+    expect(classRuntimeSource).toContain('message-has-attachment');
+    expect(classRuntimeSource).not.toContain('message-has-screenshot');
     expect(classRuntimeSource).not.toContain('hasReadyDisplayImageAttachment');
     expect(classRuntimeSource).not.toContain('screenshotRef');
     expect(classRuntimeSource).not.toContain('screenshotUrl');
@@ -2755,13 +2757,19 @@ describe('renderer chat runtime boundary', () => {
     expect(attachmentListSource).toContain('DesktopSdkDisplayAttachmentProjection');
     expect(attachmentListSource).toContain('readSdkDisplayAttachments(attachments)');
     expect(attachmentListSource).not.toContain('typeof attachment.id === \'string\'');
+    expect(attachmentListSource).not.toContain('user-screenshot');
     expect(attachmentRegistrySource).toContain('DesktopArtifactRuntimeClient.showImageContextMenu');
+    expect(attachmentRegistrySource).toContain('message-attachment-image');
+    expect(attachmentRegistrySource).not.toContain('user-screenshot');
     expect(attachmentRegistrySource).not.toContain('lastVisibleSrc');
     expect(attachmentRegistrySource).not.toContain('useState');
     expect(attachmentRegistrySource).not.toContain('setLastVisibleSrc');
     expect(toolOutputSource).toContain('DesktopSdkDisplayAttachmentProjection');
     expect(toolOutputSource).toContain('readSdkDisplayAttachments(message.attachments)');
     expect(toolOutputSource).toContain('displayAttachments.length > 0');
+    expect(toolOutputSource).toContain('tool-attachment-container');
+    expect(toolOutputSource).not.toContain('tool-screenshot');
+    expect(toolOutputSource).not.toContain('Screenshot After Action');
     expect(toolOutputSource).not.toContain('Array.isArray(message.attachments) ? message.attachments : []');
     expect(toolOutputSource).not.toContain('DesktopSdkToolDetailProjection');
     expect(toolOutputSource).not.toContain('sanitizeSdkToolDetailRecord(message.toolMetadata)');

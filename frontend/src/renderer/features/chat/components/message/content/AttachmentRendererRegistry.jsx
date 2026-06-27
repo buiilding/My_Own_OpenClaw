@@ -35,12 +35,12 @@ function AttachmentImageFrame({ src, surface = 'dashboard' }) {
   }
 
   return (
-    <div className={`user-screenshot-container message-attachment-image-container message-attachment-image-container--${surfaceClass}`}>
-      <div className="user-screenshot-frame">
+    <div className={`message-attachment-image-container message-attachment-image-container--${surfaceClass}`}>
+      <div className="message-attachment-image-frame">
         <img
           src={src}
           alt="User message attachment"
-          className="user-screenshot-image"
+          className="message-attachment-image"
           loading="lazy"
           onContextMenu={handleContextMenu}
         />

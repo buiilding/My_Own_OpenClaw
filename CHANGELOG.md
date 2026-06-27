@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: rename renderer attachment chrome away from screenshot
+  presentation classes and labels; visual rows now use generic SDK attachment
+  class names while still rendering only from `attachments[]`. No migration
+  required.
 - frontend/replay: stop trimming or blocking inline edit text before replay
   dispatch; SDK `editAndResend` now owns edit text normalization and blank-text
   rejection from end to end. No migration required.

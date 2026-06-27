@@ -299,7 +299,7 @@ def test_tool_domain_values_stable():
 ```javascript
 import { DesktopMessageClassRuntime } from '../../frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js';
 
-test('adds screenshot class when SDK attachment data exists', () => {
+test('adds attachment class when SDK attachment data exists', () => {
   const cls = DesktopMessageClassRuntime.buildMessageClassName({
     sender: 'assistant',
     attachments: [{
@@ -310,7 +310,7 @@ test('adds screenshot class when SDK attachment data exists', () => {
       screenshotRef: 'abc123',
     }],
   });
-  expect(cls).toContain('message-has-screenshot');
+  expect(cls).toContain('message-has-attachment');
 });
 ```
 

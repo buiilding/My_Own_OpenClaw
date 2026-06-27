@@ -78,9 +78,9 @@ Tool cards:
 - `.tool-output-container` and `.tool-call-container` share mono-card base + typed accents.
 - `.tool-details-*` classes define expandable metadata sections.
 
-Screenshot cards:
+Attachment cards:
 
-- `.tool-screenshot-*` and `.user-screenshot-*` classes handle framing/labels.
+- `.tool-attachment-*` and `.message-attachment-*` classes handle framing/labels.
 - media uses bounded contain behavior and bordered cards.
 
 Transparency cards:

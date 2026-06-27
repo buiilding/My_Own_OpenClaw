@@ -1245,7 +1245,7 @@
 .message-type-tool-explanation,
 .message-type-tool-actions-summary,
 .message-type-error,
-.message-has-screenshot {
+.message-has-attachment {
   max-width: 100%;
   width: 100%;
 }
@@ -1846,16 +1846,15 @@
   overflow-y: auto;
 }
 
-.tool-screenshot-container {
+.tool-attachment-container {
   border-top: 1px solid var(--tool-card-border);
   margin-top: 12px;
   padding-top: 12px;
 }
 
-.tool-screenshot-header,
-.user-screenshot-header {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-muted);
+.tool-attachment-header {
+  background: var(--tool-card-header-bg);
+  color: var(--tool-card-text-muted);
   padding: 6px 10px;
   font-size: 11px;
   font-weight: 600;
@@ -1865,13 +1864,7 @@
   text-transform: uppercase;
 }
 
-.tool-screenshot-header {
-  background: var(--tool-card-header-bg);
-  color: var(--tool-card-text-muted);
-}
-
-.tool-screenshot-image,
-.user-screenshot-image {
+.message-attachment-image {
   width: 100%;
   max-height: 360px;
   object-fit: contain;
@@ -1882,7 +1875,7 @@
   box-shadow: var(--shadow-soft);
 }
 
-.tool-screenshot-image {
+.message-attachment-image-container--tool-output .message-attachment-image {
   border-color: var(--tool-card-border);
 }
 
@@ -1917,7 +1910,7 @@
   text-overflow: ellipsis;
 }
 
-.user-screenshot-gallery {
+.message-attachment-gallery {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1930,7 +1923,7 @@
   margin-top: 8px;
 }
 
-.user-screenshot-container {
+.message-attachment-image-container {
   width: min(380px, 42vw);
   max-width: min(380px, 100%);
   border-radius: 10px;
@@ -1961,7 +1954,7 @@
   min-height: 56px;
 }
 
-.user-screenshot-container .user-screenshot-image {
+.message-attachment-image-container .message-attachment-image {
   width: 100%;
   max-height: 220px;
   margin-top: 0;
@@ -1970,13 +1963,13 @@
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
 }
 
-.message-attachment-image-container--tool-output .user-screenshot-image {
+.message-attachment-image-container--tool-output .message-attachment-image {
   max-height: 360px;
   border-color: var(--tool-card-border);
 }
 
 @media (max-width: 980px) {
-  .user-screenshot-container {
+  .message-attachment-image-container {
     width: min(300px, 76vw);
   }
 }

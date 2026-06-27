@@ -26,7 +26,7 @@ describe('desktopMessageClassRuntime', () => {
     ).toBe('message message-assistant message-streaming');
   });
 
-  test('includes message type and screenshot classes for typed SDK attachments', () => {
+  test('includes message type and attachment classes for typed SDK attachments', () => {
     expect(
       buildMessageClassName({
         sender: 'assistant',
@@ -40,11 +40,11 @@ describe('desktopMessageClassRuntime', () => {
         }],
       }),
     ).toBe(
-      'message message-assistant message-type-tool-output message-has-screenshot',
+      'message message-assistant message-type-tool-output message-has-attachment',
     );
   });
 
-  test('does not include screenshot class for legacy screenshot aliases alone', () => {
+  test('does not include attachment class for legacy screenshot aliases alone', () => {
     expect(
       buildMessageClassName({
         sender: 'assistant',
@@ -55,7 +55,7 @@ describe('desktopMessageClassRuntime', () => {
     ).toBe('message message-assistant message-type-tool-output');
   });
 
-  test('does not include screenshot class for malformed attachment descriptors', () => {
+  test('does not include attachment class for malformed attachment descriptors', () => {
     expect(
       buildMessageClassName({
         sender: 'assistant',

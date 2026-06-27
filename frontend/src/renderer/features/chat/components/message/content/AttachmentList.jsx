@@ -26,7 +26,7 @@ export default function AttachmentList({ attachments = [], surface = 'dashboard'
   const surfaceClass = normalizeSurfaceClass(surface);
 
   return (
-    <div className={`user-screenshot-gallery message-attachment-gallery message-attachment-gallery--${surfaceClass}`}>
+    <div className={`message-attachment-gallery message-attachment-gallery--${surfaceClass}`}>
       {visibleAttachments.map((attachment) => (
         <AttachmentRendererRegistry
           attachment={attachment}

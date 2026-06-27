@@ -296,7 +296,7 @@ describe('MessageContent', () => {
       />,
     );
 
-    expect(screen.queryByText(/Screenshot After Action/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Visual Output/)).not.toBeInTheDocument();
     expect(screen.queryByRole('img', { name: 'User message attachment' })).toBeNull();
     expect(screen.getByText('result')).toBeInTheDocument();
   });
