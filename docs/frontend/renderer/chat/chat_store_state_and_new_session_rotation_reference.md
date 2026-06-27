@@ -258,7 +258,10 @@ trimmed into no-view/pending routing state.
   same-turn replacement checks compare SDK live-turn identity exactly; padded
   conversation or turn refs do not clear the pending bridge by being trimmed
   into a match. The store module delegates SDK live-turn intent plus workspace
-  dependency adapters.
+  dependency adapters. The workspace-state runtime does not expose an
+  active-workspace predicate; feature code should select projected read models
+  or pass explicit mutation targets instead of branching on raw workspace
+  identity.
 - SDK `ConversationView` writes enter through the module-level
   `setConversationViewInChatStore(...)` adapter instead of a Zustand action.
   The conversation-view workspace state update lives in

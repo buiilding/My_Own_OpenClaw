@@ -136,13 +136,6 @@ export function readWorkspaceState(
   return state.workspaces?.[workspaceRef] ?? createInitialWorkspaceState();
 }
 
-export function isActiveWorkspaceRef(
-  state: ChatWorkspaceStoreSnapshot,
-  workspaceRef: string,
-): boolean {
-  return workspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
-}
-
 export function buildWorkspaceUpdate<TState extends ChatWorkspaceStoreSnapshot>(
   state: TState,
   workspaceRef: string,
@@ -268,7 +261,6 @@ export const DesktopChatWorkspaceStateRuntime = Object.freeze({
   buildWorkspaceUpdate,
   createInitialWorkspaceRecord,
   createInitialWorkspaceState,
-  isActiveWorkspaceRef,
   normalizeConversationRef,
   readWorkspaceState,
   resolveChatWorkspaceRef,

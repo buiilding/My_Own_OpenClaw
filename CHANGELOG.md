@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: remove the unused active-workspace predicate from the
+  workspace-state runtime so feature code stays on projected read-model
+  selectors and explicit mutation targets instead of raw workspace identity
+  checks. No migration required.
 - frontend/chat-store: require exact SDK display-row ids before writing
   renderer feedback annotations beside an authoritative `ConversationView`, so
   padded row ids cannot create renderer-owned annotation records. No migration

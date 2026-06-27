@@ -4679,6 +4679,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateRuntimeSource).toContain('resolveWorkspaceMutationTarget');
     expect(chatWorkspaceStateRuntimeSource).toContain('projectWorkspaceReadModelState');
     expect(chatWorkspaceStateRuntimeSource).toContain('selectActiveWorkspaceReadModelState');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('function isActiveWorkspaceRef');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('isActiveWorkspaceRef,');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('export function selectActiveWorkspaceState');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('selectActiveWorkspaceState,');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('selectRendererMessageAnnotations(workspace.messages)');

@@ -10,7 +10,6 @@ import {
   buildWorkspaceUpdate,
   createInitialWorkspaceRecord,
   createInitialWorkspaceState,
-  isActiveWorkspaceRef,
   normalizeConversationRef,
   projectWorkspaceReadModelState,
   readNoViewSdkLiveTurnStorage,
@@ -370,8 +369,6 @@ describe('chatWorkspaceState', () => {
       messages: [{ id: 'active', text: 'active', sender: 'assistant' as const }],
     };
 
-    expect(isActiveWorkspaceRef(state, 'active-thread')).toBe(true);
-    expect(isActiveWorkspaceRef(state, 'inactive-thread')).toBe(false);
     expect(buildWorkspaceUpdate(state, 'inactive-thread', workspace, {
       extraUiState: true,
     })).toEqual({
