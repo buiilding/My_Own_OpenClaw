@@ -169,9 +169,9 @@ describe('useChatMessageSender', () => {
         sourceEventType: 'renderer-compose',
         sourceChannel: 'renderer-local',
         isComplete: true,
-        attachments: null,
       }),
     ]);
+    expect(renderedMessages[0]).not.toHaveProperty('attachments');
     return renderedMessages[0];
   }
 
@@ -564,7 +564,7 @@ describe('useChatMessageSender', () => {
       reason: 'query_send_with_capture',
       required: false,
     }]);
-    expect(expectPendingBridgeUserMessage('hello').attachments).toBeNull();
+    expect(expectPendingBridgeUserMessage('hello')).not.toHaveProperty('attachments');
     expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
   });

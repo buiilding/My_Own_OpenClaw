@@ -71,8 +71,8 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
     })).toBeNull();
   });
 
-  test('builds a renderer-local pending user row without visual attachments', () => {
-    expect(DesktopPendingTurnBridgeRuntime.buildPendingTurnUserMessage({
+  test('builds a renderer-local pending user row without an attachment field', () => {
+    const pendingUserRow = DesktopPendingTurnBridgeRuntime.buildPendingTurnUserMessage({
       conversationRef: 'conv-pending',
       turnRef: 'turn-pending',
       userMessageId: 'user-pending',
@@ -84,7 +84,9 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
         source: 'user_included',
         status: 'ready',
       }],
-    })).toEqual({
+    });
+
+    expect(pendingUserRow).toEqual({
       id: 'user-pending',
       text: 'hello',
       sender: 'user',
@@ -93,7 +95,7 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
       sourceChannel: 'renderer-local',
       isComplete: true,
       timestamp: '2026-06-25T12:00:00.000Z',
-      attachments: null,
     });
+    expect(pendingUserRow).not.toHaveProperty('attachments');
   });
 });

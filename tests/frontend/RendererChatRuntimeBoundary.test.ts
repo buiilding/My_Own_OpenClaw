@@ -2623,7 +2623,7 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('{ attachmentFilenames, attachment_filenames');
     expect(senderTestSource).toContain('function expectPendingBridgeUserMessage');
     expect(senderTestSource).not.toContain('function expectOptimisticUserMessage');
-    expect(senderTestSource).toContain('attachments: null');
+    expect(senderTestSource).not.toContain('attachments: null');
     expect(senderTestSource).not.toContain('attachments: unknown[] | null = null');
     expect(sendPreparationSource).not.toContain('chatMessageSenderPayloads');
     expect(sendPreparationSource).not.toContain('chatMessageSenderUtils');
@@ -4525,7 +4525,7 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('features/chat');
     expect(chatStoreSource).not.toContain("sourceEventType: 'renderer-compose'");
     expect(pendingBridgeSource).toContain("sourceEventType: 'renderer-compose'");
-    expect(pendingBridgeSource).toContain('attachments: null');
+    expect(pendingBridgeSource).not.toContain('attachments: null');
     expect(pendingBridgeSource).not.toContain('attachmentFilenames');
     expect(pendingBridgeSource).not.toContain('readSdkDisplayAttachments');
     expect(pendingBridgeSource).not.toContain('screenshotRef');

@@ -305,7 +305,8 @@ attachment normalization strips preview/data URL fields before they become
 durable or backend-owned descriptors. Renderer display projection may synthesize
 only this explicit `pendingTurn` bridge beside SDK display rows; it must not
 scan prior `renderer-compose` chat messages and carry them forward as visible
-user rows.
+user rows. Pending-turn user rows also omit the `attachments` prop entirely
+instead of publishing a null display-attachment placeholder.
 Pending bridge identity fields are exact non-empty values. Renderer and main
 pending-turn adapters reject padded conversation refs, turn refs, and pending
 user-row ids instead of trimming them into bridge or Stop targets. Pending-turn

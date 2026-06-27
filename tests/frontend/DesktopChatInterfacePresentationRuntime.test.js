@@ -231,9 +231,9 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         text: 'pending prompt',
         sourceEventType: 'renderer-compose',
         sourceChannel: 'renderer-local',
-        attachments: null,
       }),
     ]);
+    expect(state.renderedMessages[1]).not.toHaveProperty('attachments');
   });
 
   test('does not project no-view pending bridge when a user row already owns the turn', () => {

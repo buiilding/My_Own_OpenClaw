@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pending-turn: omit the `attachments` prop from renderer-local pending
+  user rows so the pending bridge carries only identity, text, and timestamp
+  while SDK display rows remain the attachment display authority. No migration
+  required.
 - frontend/projection: require complete SDK `ConversationView` envelopes in
   thread, chat-surface, live-turn surface, and visible-lifecycle helpers before
   suppressing no-view fallback messages, `sdkLiveTurn`, or pending bridge state.

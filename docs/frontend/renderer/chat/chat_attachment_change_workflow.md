@@ -76,7 +76,8 @@ Clipboard image IPC trust boundary:
      only conversation ref, turn ref, pending user-row id, text, and timestamp;
      any attachment descriptors, screenshot refs, filename aliases, or
      lifecycle fields reject the pending-turn payload instead of being
-     stripped.
+     stripped. Renderer-local pending user rows also omit the `attachments` prop
+     entirely; SDK display rows are the only attachment-bearing user rows.
    - Attachment-only sends should use the existing fallback text rather than blocking submission.
    - Clear the composer draft immediately after local send acceptance so renderer
      inputs do not wait on SDK resource preparation; rejected async sends must
