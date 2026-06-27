@@ -309,6 +309,68 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
+  test('does not repair padded SDK live-turn phases into surface state', () => {
+    const state = resolveLiveTurnPresentationInput({
+      sdkLiveTurn: {
+        phase: ' streaming ',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+      },
+    });
+
+    expect(state).toEqual({
+      phase: 'idle',
+      isBusy: false,
+      source: 'idle',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: false,
+      overlayIntent: null,
+      entries: [],
+      turnRef: null,
+      conversationRef: null,
+      guardRef: null,
+    });
+  });
+
+  test('does not repair padded ConversationView surface modes into surface state', () => {
+    const state = resolveLiveTurnPresentationInput({
+      conversationView: {
+        conversationRef: 'conv-1',
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'idle',
+          isBusy: false,
+          entries: [],
+        },
+        surfaces: {
+          responseOverlay: {
+            visible: true,
+            mode: ' response ',
+            turnRef: 'turn-view',
+            guardRef: 'turn-view',
+            ownerConversationRef: 'conv-1',
+          },
+        },
+      },
+    });
+
+    expect(state).toMatchObject({
+      phase: 'idle',
+      isBusy: false,
+      source: 'conversation-view',
+      useSdkLiveTurnPresentation: false,
+      overlayIntent: expect.objectContaining({
+        mode: 'hidden',
+        turnRef: 'turn-view',
+        conversationRef: 'conv-1',
+        staleGuardRef: 'turn-view',
+      }),
+      turnRef: 'turn-view',
+      conversationRef: 'conv-1',
+      guardRef: 'turn-view',
+    });
+  });
+
   test('keeps visible SDK content in response mode while phase is still awaiting', () => {
     const state = resolveLiveTurnPresentationInput({
       sdkLiveTurn: {

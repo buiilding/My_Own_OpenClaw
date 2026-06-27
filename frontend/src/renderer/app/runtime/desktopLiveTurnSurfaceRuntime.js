@@ -45,7 +45,9 @@ const LEGACY_NO_PRESENTATION_RESPONSE_PHASES = new Set([
 ]);
 
 function normalizePhase(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
 function normalizeTurnRef(value) {

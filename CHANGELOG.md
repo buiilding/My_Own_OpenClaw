@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/surfaces: reject padded SDK live-turn phases and response-overlay
+  surface modes in live-surface projection instead of trimming them into
+  awaiting or response overlay state. No migration required.
 - frontend/projection: reject padded `ConversationView.liveTurn.turnRef`
   context before projecting SDK live entries into renderer row props, so view
   live rows cannot expose repaired turn identity. No migration required.

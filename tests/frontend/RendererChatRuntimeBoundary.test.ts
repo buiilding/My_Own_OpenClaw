@@ -185,7 +185,12 @@ describe('renderer chat runtime boundary', () => {
     const conversationRefNormalizer = surfaceRuntimeSource.match(
       /function normalizeConversationRef\(value\) \{[\s\S]*?\n\}/,
     )?.[0] ?? '';
+    const phaseNormalizer = surfaceRuntimeSource.match(
+      /function normalizePhase\(value\) \{[\s\S]*?\n\}/,
+    )?.[0] ?? '';
 
+    expect(phaseNormalizer).toContain('value.length > 0 && value === value.trim()');
+    expect(phaseNormalizer).not.toContain('value.trim() ? value.trim() : null');
     expect(turnRefNormalizer).toContain('value.length > 0 && value === value.trim()');
     expect(turnRefNormalizer).not.toContain('value.trim() ? value.trim() : null');
     expect(conversationRefNormalizer).toContain('value.length > 0 && value === value.trim()');
