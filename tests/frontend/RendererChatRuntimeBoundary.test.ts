@@ -4667,6 +4667,12 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationViewWorkspaceRuntimeSource).toContain('hasWorkspaceConversationView');
     expect(conversationViewWorkspaceRuntimeSource).toContain('function exactNonEmptyString');
     expect(conversationViewWorkspaceRuntimeSource).toContain('value === value.trim()');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('const conversationRef = exactNonEmptyString(source.conversationRef);');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('const turnRef = exactNonEmptyString(source.turnRef);');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('const conversationRef = exactNonEmptyString(conversationView.conversationRef);');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('exactNonEmptyString(liveTurn?.turnRef)');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('exactNonEmptyString(responseOverlay?.turnRef)');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('const phase = exactNonEmptyString(liveTurn?.phase);');
     expect(conversationViewWorkspaceRuntimeSource).toContain('function isObjectRecord');
     expect(conversationViewWorkspaceRuntimeSource).toContain('Array.isArray(source.displayRows)');
     expect(conversationViewWorkspaceRuntimeSource).toContain('isObjectRecord(source.liveTurn)');

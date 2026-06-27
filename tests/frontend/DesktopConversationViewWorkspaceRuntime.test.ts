@@ -248,6 +248,111 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     });
   });
 
+  test('does not repair padded pending bridge refs when ConversationView becomes authoritative', () => {
+    const conversationView = buildLiveConversationView({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+    });
+    const pendingTurn = {
+      conversationRef: ' conv-1 ',
+      turnRef: 'turn-1',
+      userMessageId: 'user-1',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    };
+    const workspace = {
+      conversationView: null,
+      isSending: true,
+      pendingTurn,
+    };
+
+    expect(buildConversationViewWorkspaceMutation({
+      conversationView,
+      currentWorkspace: workspace,
+    })).toEqual({
+      workspace: {
+        conversationView,
+        isSending: true,
+        pendingTurn,
+      },
+    });
+  });
+
+  test('does not repair padded ConversationView turn refs before clearing pending bridge', () => {
+    const conversationView = buildLiveConversationView({
+      conversationRef: 'conv-1',
+      turnRef: ' turn-1 ',
+    });
+    const pendingTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      userMessageId: 'user-1',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    };
+    const workspace = {
+      conversationView: null,
+      isSending: true,
+      pendingTurn,
+    };
+
+    expect(buildConversationViewWorkspaceMutation({
+      conversationView,
+      currentWorkspace: workspace,
+    })).toEqual({
+      workspace: {
+        conversationView,
+        isSending: true,
+        pendingTurn,
+      },
+    });
+  });
+
+  test('does not repair padded ConversationView terminal phase before clearing pending bridge', () => {
+    const conversationView: ConversationView = {
+      ...buildConversationView('conv-1'),
+      liveTurn: {
+        turnRef: 'turn-1',
+        phase: ' complete ',
+        isBusy: false,
+        isTerminal: false,
+        entries: [],
+      },
+      surfaces: {
+        responseOverlay: {
+          mode: 'hidden',
+          visible: false,
+          turnRef: 'turn-1',
+          guardRef: 'turn-1',
+          ownerConversationRef: 'conv-1',
+        },
+      },
+    };
+    const pendingTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      userMessageId: 'user-1',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    };
+    const workspace = {
+      conversationView: null,
+      isSending: true,
+      pendingTurn,
+    };
+
+    expect(buildConversationViewWorkspaceMutation({
+      conversationView,
+      currentWorkspace: workspace,
+    })).toEqual({
+      workspace: {
+        conversationView,
+        isSending: true,
+        pendingTurn,
+      },
+    });
+  });
+
   test('keeps pending bridge when awaiting ConversationView has no replacement rows yet', () => {
     const pendingTurn = {
       conversationRef: 'conv-1',

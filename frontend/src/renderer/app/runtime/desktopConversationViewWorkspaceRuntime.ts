@@ -137,8 +137,8 @@ function normalizePendingTurn(value: unknown): {
     return null;
   }
   const source = value as Record<string, unknown>;
-  const conversationRef = normalizeString(source.conversationRef);
-  const turnRef = normalizeString(source.turnRef);
+  const conversationRef = exactNonEmptyString(source.conversationRef);
+  const turnRef = exactNonEmptyString(source.turnRef);
   return conversationRef && turnRef
     ? { conversationRef, turnRef }
     : null;
@@ -152,7 +152,7 @@ function normalizeConversationViewLiveTurn(conversationView: ConversationView | 
   if (!conversationView || typeof conversationView !== 'object') {
     return null;
   }
-  const conversationRef = normalizeString(conversationView.conversationRef);
+  const conversationRef = exactNonEmptyString(conversationView.conversationRef);
   const liveTurn = conversationView.liveTurn && typeof conversationView.liveTurn === 'object'
     ? conversationView.liveTurn as Record<string, unknown>
     : null;
@@ -163,10 +163,10 @@ function normalizeConversationViewLiveTurn(conversationView: ConversationView | 
     ? surfaces.responseOverlay as Record<string, unknown>
     : null;
   const turnRef = (
-    normalizeString(liveTurn?.turnRef)
-    || normalizeString(responseOverlay?.turnRef)
+    exactNonEmptyString(liveTurn?.turnRef)
+    || exactNonEmptyString(responseOverlay?.turnRef)
   );
-  const phase = normalizeString(liveTurn?.phase);
+  const phase = exactNonEmptyString(liveTurn?.phase);
   const entries = Array.isArray(liveTurn?.entries) ? liveTurn.entries : [];
   const hasSameTurnUserDisplayRow = Boolean(
     findConversationViewUserDisplayRowForTurn(conversationView, turnRef),

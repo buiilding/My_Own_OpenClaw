@@ -335,6 +335,10 @@ Renderer visible-lifecycle handoff applies that same exactness rule when SDK
 live turns or `ConversationView` state replace the pending bridge; padded SDK
 conversation refs, turn refs, response-overlay refs, or awaiting-anchor row ids
 are ignored instead of being trimmed into same-turn lifecycle authority.
+The workspace `ConversationView` mutation that actually clears `pendingTurn`
+uses the same exact-only rule for pending refs, `ConversationView` refs,
+response-overlay turn refs, and terminal phase labels, so a padded SDK-like view
+may update the cached view but cannot end the local pending bridge.
 Renderer and main stop-target resolution applies the same exact identity rule
 to stoppable `ConversationView` live turns and pending bridge targets; padded
 view or pending refs resolve as non-stoppable idle state instead of being

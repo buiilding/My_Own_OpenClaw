@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/conversation-view: require exact pending bridge refs,
+  `ConversationView.liveTurn.turnRef`, response-overlay `turnRef`, and
+  live-turn phase labels before the workspace view mutation clears local
+  pending state, so padded SDK-like values cannot replace the renderer's
+  short pending-send bridge. No migration required.
 - frontend/current-turn: require the shared complete `ConversationView` gate
   before SDK live-row projection suppresses no-view current-turn fallback rows.
   No migration required.
