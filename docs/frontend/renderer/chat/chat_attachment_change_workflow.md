@@ -100,6 +100,9 @@ Clipboard image IPC trust boundary:
      `base64`, `filePath`, and `filename` values instead of trimming them into
      SDK resources; malformed optional clipboard metadata is omitted so SDK
      resource resolution can choose fallback names.
+   - Workspace bindings follow the same exact rule during send preparation:
+     padded workspace paths do not enter the prepared handoff or the workspace
+     SDK resource list.
 
 3. Preserve image handles.
    - Keep `base64`, `contentType`, `filename`, and `previewUrl` through composer preview.

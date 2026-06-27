@@ -373,6 +373,9 @@ such as clipboard `base64`, readable-file `filePath`, and readable-file
 attachment items rather than trimming them into SDK resources. Optional
 clipboard metadata such as `contentType` and `filename` is forwarded only when
 exact, leaving SDK resource resolution to choose fallback metadata when omitted.
+Workspace bindings follow the same exactness rule in send preparation: padded
+workspace paths are omitted from both the prepared handoff and workspace SDK
+resource list.
 The renderer live-turn command facade re-normalizes resource arrays before
 `conversation.send`, preserving only typed SDK resource fields and dropping
 renderer preview/display lifecycle leftovers such as display ids, preview

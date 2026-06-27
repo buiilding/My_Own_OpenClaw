@@ -172,6 +172,9 @@ When attachment(s) exist:
    Turn resources do not accept caller-owned display attachment ids; SDK turn
    processing assigns stable display attachment ids before producing live
    visual attachment projection state.
+   Send preparation only includes a workspace path or workspace SDK resource
+   when the binding is already exact and non-empty; padded bindings are omitted
+   from the prepared handoff instead of being carried until command dispatch.
    `DesktopLiveTurnRuntimeClient` re-normalizes the final resource array before
    `conversation.send`, so every resource must contain only the positive key
    set for its SDK resource kind. Descriptors carrying extra renderer preview,

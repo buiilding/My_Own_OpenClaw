@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: require workspace bindings to be exact before send preparation
+  includes `workspacePath` or a workspace SDK resource in the prepared turn
+  handoff. No migration required.
 - frontend/live-turn: require SDK presentation `lastError` text to be exact
   before it counts as visible lifecycle, overlay, side-effect, or legacy
   no-view error-row evidence. No migration required.

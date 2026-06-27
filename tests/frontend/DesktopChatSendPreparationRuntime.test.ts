@@ -225,6 +225,43 @@ describe('DesktopChatSendPreparationRuntime', () => {
     expect(JSON.stringify(preparedTurn?.resources)).not.toContain('attachments');
   });
 
+  test('does not repair padded workspace bindings into prepared send resources', async () => {
+    mockGetConversationWorkspaceBinding.mockReturnValue({
+      workspacePath: ' /workspace/stale ',
+      workspaceName: 'Stale',
+    });
+    mockFetchActiveWorkspaceSelection.mockResolvedValue({
+      workspace: {
+        activeWorkspacePath: ' /workspace/padded ',
+        activeWorkspaceName: 'Padded',
+      },
+    });
+    const setChatActiveConversationRef = jest.fn();
+
+    const preparedTurn = await prepareDesktopChatSend({
+      payload: 'hello',
+      config: null,
+      dependencies: {
+        acceptPendingTurn: mockAcceptPendingTurn,
+        getActiveConversationRef: () => null,
+        getSendReadModel: () => ({ hasPriorUserMessages: true }),
+        setChatActiveConversationRef,
+      },
+      senderSurface: 'main-window',
+      sendLifecycle: {
+        shouldCaptureQueryScreenshot: false,
+        shouldReturnToChatboxOnSend: false,
+        surfaceReason: 'main-window',
+      },
+    });
+
+    expect(mockFetchActiveWorkspaceSelection).toHaveBeenCalled();
+    expect(preparedTurn?.workspacePath).toBeNull();
+    expect(preparedTurn?.resources).toEqual([]);
+    expect(JSON.stringify(preparedTurn)).not.toContain('/workspace/padded');
+    expect(JSON.stringify(preparedTurn)).not.toContain('/workspace/stale');
+  });
+
   test('dispatch clears the pending bridge when SDK send fails before turn authority opens', async () => {
     mockSendQuery.mockRejectedValue(new Error('send failed'));
     const preparedTurn = {

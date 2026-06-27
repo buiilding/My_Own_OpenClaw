@@ -2820,6 +2820,7 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('getMessages');
     expect(sendPreparationSource).not.toContain('desktopChatSendStateRuntime');
     expect(sendPreparationSource).not.toContain('displayRows');
+    expect(sendPreparationSource).toContain('function exactNonEmptyString(value: unknown)');
     await expect(fs.stat(path.join(chatRoot, 'hooks/useChatCommonActions.ts'))).rejects.toThrow();
     expect(sendPreparationSource).toContain('sendReadModel.hasPriorUserMessages === true');
     expect(sendPreparationSource).toContain('export const DesktopChatSendPreparationRuntime = Object.freeze');
@@ -2849,6 +2850,7 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('attachments:');
     expect(sendPreparationSource).not.toContain('attachmentFilenames');
     expect(sendPreparationSource).not.toContain('{ attachmentFilenames, attachment_filenames');
+    expect(sendPreparationSource).not.toContain('workspacePath: workspaceBinding.workspacePath || null');
     expect(senderTestSource).toContain('function expectPendingBridgeUserMessage');
     expect(senderTestSource).not.toContain('function expectOptimisticUserMessage');
     expect(senderTestSource).not.toContain('attachments: null');

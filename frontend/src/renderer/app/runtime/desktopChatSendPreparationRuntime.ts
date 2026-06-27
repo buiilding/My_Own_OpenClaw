@@ -90,6 +90,12 @@ type PreparedDesktopChatTurn = {
   workspacePath: string | null;
 };
 
+function exactNonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function buildTurnInputResources({
   readableFiles,
   clipboardImages,
@@ -131,10 +137,11 @@ function buildTurnInputResources({
       required: false,
     });
   }
-  if (workspacePath) {
+  const exactWorkspacePath = exactNonEmptyString(workspacePath);
+  if (exactWorkspacePath) {
     resources.push({
       kind: 'workspace',
-      workspacePath,
+      workspacePath: exactWorkspacePath,
       required: false,
     });
   }
@@ -143,8 +150,12 @@ function buildTurnInputResources({
 
 async function ensureConversationWorkspaceBinding(conversationRef: string): Promise<WorkspaceBinding> {
   const existingBinding = DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding(conversationRef);
-  if (existingBinding.workspacePath) {
-    return existingBinding;
+  const existingWorkspacePath = exactNonEmptyString(existingBinding.workspacePath);
+  if (existingWorkspacePath) {
+    return {
+      ...existingBinding,
+      workspacePath: existingWorkspacePath,
+    };
   }
 
   try {
@@ -292,13 +303,14 @@ async function prepareDesktopChatSend({
     reason: sendLifecycle.surfaceReason,
   });
 
+  const workspacePath = exactNonEmptyString(workspaceBinding.workspacePath);
   const resources = buildTurnInputResources({
     readableFiles,
     clipboardImages,
     shouldCaptureQueryScreenshot: sendLifecycle.shouldCaptureQueryScreenshot,
     isFirstUserMessage: !hadUserMessages,
     surfaceReason: sendLifecycle.surfaceReason,
-    workspacePath: workspaceBinding.workspacePath || null,
+    workspacePath,
   });
 
   return {
@@ -309,7 +321,7 @@ async function prepareDesktopChatSend({
     sendLifecycle,
     text,
     turnId,
-    workspacePath: workspaceBinding.workspacePath || null,
+    workspacePath,
   };
 }
 
