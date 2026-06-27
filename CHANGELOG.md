@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tool-details: sanitize `ToolOutputMessage` fallback `toolMetadata`
+  before rendering details, so raw payloads, model metadata, screenshot aliases,
+  and attachment lifecycle descriptors cannot leak through component-level
+  fallback panels. No migration required.
 - frontend/attachments: gate user-message attachment rendering on
   SDK-validated descriptors before calling `AttachmentList`, so malformed raw
   `message.attachments` arrays cannot enter the user attachment renderer path.

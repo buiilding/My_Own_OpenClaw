@@ -7,12 +7,18 @@ import PropTypes from 'prop-types';
 import {
   DesktopSdkDisplayAttachmentProjection,
 } from '../../../../../app/runtime/desktopSdkDisplayAttachmentProjection';
+import {
+  DesktopSdkToolDetailProjection,
+} from '../../../../../app/runtime/desktopSdkToolDetailProjection';
 import AttachmentList from './AttachmentList';
 import HighlightedPlainText from './HighlightedPlainText';
 
 const {
   readSdkDisplayAttachments,
 } = DesktopSdkDisplayAttachmentProjection;
+const {
+  sanitizeSdkToolDetailRecord,
+} = DesktopSdkToolDetailProjection;
 
 export default function ToolOutputMessage({
   message,
@@ -22,6 +28,7 @@ export default function ToolOutputMessage({
 }) {
   const [showDetails, setShowDetails] = useState(false);
   const displayAttachments = readSdkDisplayAttachments(message.attachments);
+  const fallbackToolMetadata = sanitizeSdkToolDetailRecord(message.toolMetadata);
   const modelFacingOutput = (
     typeof message.modelFacingToolOutput === 'string'
       ? message.modelFacingToolOutput
@@ -37,7 +44,7 @@ export default function ToolOutputMessage({
       tool_name: message.toolName || null,
       execution_time: message.executionTime ?? null,
       success: message.success ?? null,
-      metadata: message.toolMetadata || null,
+      metadata: fallbackToolMetadata,
     };
 
   return (

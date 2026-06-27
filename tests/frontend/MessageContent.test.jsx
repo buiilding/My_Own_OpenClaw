@@ -296,6 +296,48 @@ describe('MessageContent', () => {
     expect(screen.getByText(/"request_id": "req-1"/)).toBeInTheDocument();
   });
 
+  test('tool output fallback details sanitize SDK-owned metadata channels', () => {
+    render(
+      <MessageContent
+        message={{
+          sender: 'assistant',
+          type: 'tool-output',
+          text: 'fallback output',
+          toolName: 'screenshot',
+          executionTime: 12,
+          success: true,
+          toolMetadata: {
+            requestId: 'req-shot',
+            attachments: [{
+              id: 'tool-output-shot:attachment:000',
+              kind: 'image',
+              source: 'tool_result',
+              status: 'ready',
+              screenshotRef: 'artifact-shot',
+            }],
+            modelId: 'model-1',
+            modelProvider: 'provider-1',
+            raw: { payload: { output: 'done' } },
+            screenshotRef: 'legacy-shot',
+            structuredPayload: { output: 'legacy' },
+          },
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Details' }));
+
+    const details = document.querySelector('.tool-details-content');
+    expect(details).not.toBeNull();
+    expect(details.textContent).toContain('"requestId": "req-shot"');
+    expect(details.textContent).not.toContain('"attachments"');
+    expect(details.textContent).not.toContain('"modelId"');
+    expect(details.textContent).not.toContain('"modelProvider"');
+    expect(details.textContent).not.toContain('"raw"');
+    expect(details.textContent).not.toContain('"screenshotRef"');
+    expect(details.textContent).not.toContain('"structuredPayload"');
+  });
+
   test('tool call details button reveals SDK display text and tool details', () => {
     render(
       <MessageContent
