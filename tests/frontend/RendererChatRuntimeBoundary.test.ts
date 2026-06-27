@@ -3072,6 +3072,13 @@ describe('renderer chat runtime boundary', () => {
     expect(messageInputSource).not.toContain('.focus()');
     expect(messageInputRuntimeSource).toContain('export const DesktopMessageInputRuntime = Object.freeze');
     expect(messageInputRuntimeSource).toContain('focusTextInputAtEnd');
+    expect(messageInputRuntimeSource).toContain('function normalizeClipboardImage');
+    expect(messageInputRuntimeSource).toContain('base64: clipboardImage.base64');
+    expect(messageInputRuntimeSource).toContain('filePath: readableFile.filePath');
+    expect(messageInputRuntimeSource).not.toContain('return clipboardImages.filter((image) => isClipboardImage(image))');
+    expect(messageInputRuntimeSource).not.toContain('previewUrl: clipboardImage.previewUrl');
+    expect(messageInputRuntimeSource).not.toContain('id: clipboardImage.id');
+    expect(messageInputRuntimeSource).not.toContain('id: readableFile.id');
     expect(messageInputRuntimeSource).not.toContain('export function buildOutgoingMessage');
     expect(messageInputRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(

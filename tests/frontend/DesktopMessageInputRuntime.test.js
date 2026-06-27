@@ -33,20 +33,30 @@ describe('desktopMessageInputRuntime', () => {
 
   test('buildOutgoingMessage includes normalized clipboardImages payload', () => {
     const result = buildOutgoingMessage('  hello  ', false, [
-      { base64: 'abc', contentType: 'image/png' },
+      {
+        id: 'preview-id',
+        base64: 'abc',
+        contentType: 'image/png',
+        filename: 'image.png',
+        previewUrl: 'data:image/png;base64,abc',
+      },
       { base64: '' },
       null,
     ]);
     expect(result).toEqual({
       text: 'hello',
-      clipboardImages: [{ base64: 'abc', contentType: 'image/png' }],
+      clipboardImages: [{
+        base64: 'abc',
+        contentType: 'image/png',
+        filename: 'image.png',
+      }],
       readableFiles: [],
     });
   });
 
   test('buildOutgoingMessage includes normalized readableFiles payload', () => {
     const result = buildOutgoingMessage('  hello  ', false, [], [
-      { filePath: '/tmp/a.txt', filename: 'a.txt' },
+      { id: 'file-preview-id', filePath: '/tmp/a.txt', filename: 'a.txt' },
       { filePath: '', filename: 'b.txt' },
       null,
     ]);
@@ -54,6 +64,37 @@ describe('desktopMessageInputRuntime', () => {
       text: 'hello',
       clipboardImages: [],
       readableFiles: [{ filePath: '/tmp/a.txt', filename: 'a.txt' }],
+    });
+  });
+
+  test('buildOutgoingMessage keeps preview-only attachment fields out of send payloads', () => {
+    const result = buildOutgoingMessage('  inspect  ', false, [
+      {
+        id: 'preview-id',
+        base64: 'abc',
+        contentType: 'image/png',
+        filename: 'image.png',
+        previewUrl: 'data:image/png;base64,abc',
+      },
+    ], [
+      {
+        id: 'file-preview-id',
+        filePath: '/tmp/a.txt',
+        filename: 'a.txt',
+      },
+    ]);
+
+    expect(result).toEqual({
+      text: 'inspect',
+      clipboardImages: [{
+        base64: 'abc',
+        contentType: 'image/png',
+        filename: 'image.png',
+      }],
+      readableFiles: [{
+        filePath: '/tmp/a.txt',
+        filename: 'a.txt',
+      }],
     });
   });
 

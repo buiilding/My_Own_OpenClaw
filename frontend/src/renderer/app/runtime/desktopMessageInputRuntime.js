@@ -16,11 +16,29 @@ function isClipboardImage(clipboardImage) {
   );
 }
 
+function normalizeClipboardImage(clipboardImage) {
+  if (!isClipboardImage(clipboardImage)) {
+    return null;
+  }
+  const normalizedImage = {
+    base64: clipboardImage.base64,
+  };
+  if (typeof clipboardImage.contentType === 'string') {
+    normalizedImage.contentType = clipboardImage.contentType;
+  }
+  if (typeof clipboardImage.filename === 'string') {
+    normalizedImage.filename = clipboardImage.filename;
+  }
+  return normalizedImage;
+}
+
 function normalizeClipboardImages(clipboardImages) {
   if (!Array.isArray(clipboardImages)) {
     return [];
   }
-  return clipboardImages.filter((image) => isClipboardImage(image));
+  return clipboardImages
+    .map((image) => normalizeClipboardImage(image))
+    .filter(Boolean);
 }
 
 function isReadableFileAttachment(readableFile) {
@@ -38,7 +56,12 @@ function normalizeReadableFiles(readableFiles) {
   if (!Array.isArray(readableFiles)) {
     return [];
   }
-  return readableFiles.filter((readableFile) => isReadableFileAttachment(readableFile));
+  return readableFiles
+    .filter((readableFile) => isReadableFileAttachment(readableFile))
+    .map((readableFile) => ({
+      filePath: readableFile.filePath,
+      filename: readableFile.filename,
+    }));
 }
 
 function buildOutgoingMessage(

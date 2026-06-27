@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/composer: strip preview-only attachment fields such as image
+  `previewUrl` and local ids from outgoing composer payloads before send
+  preparation, keeping previews UI-local while SDK resource handles carry only
+  base64/content type/filename or readable file path/name. No migration
+  required.
 - frontend/send: reject removed renderer-owned attachment and screenshot alias
   fields in normal send payload normalization, so composer sends can only pass
   text plus typed SDK resource handles while SDK resource resolution owns

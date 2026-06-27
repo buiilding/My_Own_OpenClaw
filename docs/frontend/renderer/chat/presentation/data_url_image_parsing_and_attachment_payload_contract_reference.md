@@ -112,6 +112,9 @@ Readable files (non-image):
 and readable-file collections:
 
 - drops invalid clipboard/readable entries with normalization helpers
+- strips preview-only fields such as image/readable `id` and image
+  `previewUrl` before calling the sender; previews remain composer UI state,
+  while outgoing payloads carry only SDK resource-handle fields
 - blocks send when the caller passes `isSubmitBlocked=true`
 - returns `null` when both text and attachments are absent
 - text-only -> returns trimmed string
@@ -119,6 +122,17 @@ and readable-file collections:
   - `text`
   - `clipboardImages`
   - `readableFiles`
+
+Outgoing `clipboardImages[]` entries contain only:
+
+- `base64`
+- optional `contentType`
+- optional `filename`
+
+Outgoing `readableFiles[]` entries contain only:
+
+- `filePath`
+- `filename`
 
 Attachment-only fallback text:
 
@@ -155,6 +169,7 @@ Attachment-only fallback text:
 `tests/frontend/MessageInput.test.jsx`:
 
 - pasted images append (not replace) previews
+- outgoing image payloads omit preview-only `id`/`previewUrl` fields
 - selected readable files appear in outgoing payload
 - pasted-image and picker parse failures are caught and logged
 - attachment-only messages can be sent
