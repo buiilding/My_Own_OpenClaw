@@ -19,7 +19,6 @@ import {
   resolveWorkspaceMutationTarget,
   resolveWorkspaceKey,
   selectActiveWorkspaceReadModelState,
-  selectActiveWorkspaceState,
 } from '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceStateRuntime';
 
 function createStreamTracking(overrides: Partial<StreamTracking> = {}): StreamTracking {
@@ -151,35 +150,6 @@ describe('chatWorkspaceState', () => {
         eventCount: 0,
       }),
     }));
-  });
-
-  test('selects active workspace from the workspace record, not top-level mirrors', () => {
-    const workspace = {
-      ...createInitialWorkspaceState(),
-      messages: [{ id: 'workspace', text: 'workspace', sender: 'assistant' as const }],
-    };
-    const rootMessages = [{ id: 'root', text: 'root', sender: 'assistant' as const }];
-    const state = {
-      activeConversationRef: 'thread-1',
-      workspaces: {
-        'thread-1': workspace,
-      },
-      messages: rootMessages,
-      isSending: true,
-      thinkingStatus: 'thinking',
-      thinkingSourceEventType: 'llm-thought',
-      tokenCounts: { total_tokens: 4 },
-      streamTracking: createStreamTracking({ phase: 'streaming', eventCount: 2 }),
-    };
-
-    const resolved = selectActiveWorkspaceState(state);
-    expect(resolved).toBe(workspace);
-    expect(resolved.messages).toEqual([
-      { id: 'workspace', text: 'workspace', sender: 'assistant' },
-    ]);
-    expect(resolved.isSending).toBe(false);
-    expect(resolved.thinkingStatus).toBeNull();
-    expect(resolved.streamTracking.phase).toBe('idle');
   });
 
   test('projects no-view workspace read model with only sdk live-turn fallback', () => {

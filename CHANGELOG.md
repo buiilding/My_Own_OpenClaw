@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: keep the raw active workspace selector private to the
+  workspace runtime so chat UI selectors consume the cached read-model entry
+  point instead. No migration required.
 - frontend/attachments: remove the unused renderer attachment lifecycle summary
   helper, keeping attachment adapters to SDK descriptor filtering, image checks,
   and artifact source resolution only. No migration required.

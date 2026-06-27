@@ -298,7 +298,8 @@ import chat feature store internals.
 
 `DesktopChatWorkspaceStateRuntime.selectActiveWorkspaceReadModelState(...)` is
 the normal read entrypoint for chat UI selectors. It always returns a cached
-selector read model rather than the raw workspace object. While no SDK
+selector read model rather than the raw workspace object, and the raw active
+workspace selector remains private to the workspace runtime. While no SDK
 `ConversationView` exists, raw stored messages remain available and the
 temporary live fallback is exposed as `sdkLiveTurn`.
 Once `ConversationView` exists, raw `messages` are replaced by the

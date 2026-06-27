@@ -187,7 +187,7 @@ export function buildActiveConversationWorkspaceUpdate<TState extends ChatWorksp
   } as unknown as Partial<TState>;
 }
 
-export function selectActiveWorkspaceState(
+function selectActiveWorkspaceState(
   state: ChatWorkspaceStoreSnapshot,
 ): ChatWorkspaceState {
   const activeWorkspaceRef = resolveChatWorkspaceRef(state.activeConversationRef);
@@ -260,5 +260,4 @@ export const DesktopChatWorkspaceStateRuntime = Object.freeze({
   readNoViewSdkLiveTurnStorage,
   projectWorkspaceReadModelState,
   selectActiveWorkspaceReadModelState,
-  selectActiveWorkspaceState,
 });

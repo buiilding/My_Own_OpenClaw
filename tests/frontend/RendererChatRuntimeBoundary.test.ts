@@ -4037,6 +4037,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateRuntimeSource).toContain('resolveWorkspaceMutationTarget');
     expect(chatWorkspaceStateRuntimeSource).toContain('projectWorkspaceReadModelState');
     expect(chatWorkspaceStateRuntimeSource).toContain('selectActiveWorkspaceReadModelState');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('export function selectActiveWorkspaceState');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('selectActiveWorkspaceState,');
     expect(chatWorkspaceStateRuntimeSource).toContain('selectRendererMessageAnnotations(workspace.messages)');
     expect(chatWorkspaceStateRuntimeSource).toContain('readNoViewSdkLiveTurnStorage');
     expect(chatWorkspaceStateRuntimeSource).toContain('buildNoViewSdkLiveTurnStorageUpdate');
