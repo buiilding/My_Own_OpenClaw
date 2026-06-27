@@ -4039,6 +4039,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('hasSdkConversationView');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('hasConversationView');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('hasWorkspaceConversationView(activeWorkspace)');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('emptyChatMessages');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('activeWorkspace.currentTurnProjection ?? null');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('currentTurnProjection');

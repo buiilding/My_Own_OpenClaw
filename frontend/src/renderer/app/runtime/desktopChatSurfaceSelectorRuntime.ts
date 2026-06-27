@@ -3,6 +3,13 @@
  */
 
 import type { ChatMessage } from './desktopChatMessageTypes';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
+
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 type DesktopChatWorkspaceProjection = {
   messages: ChatMessage[];
@@ -42,7 +49,9 @@ function projectDesktopChatSurfaceState({
 }: {
   activeWorkspace: DesktopChatWorkspaceProjection;
 }) {
-  const conversationView = activeWorkspace.conversationView ?? null;
+  const conversationView = hasWorkspaceConversationView(activeWorkspace)
+    ? activeWorkspace.conversationView ?? null
+    : null;
   const messages = conversationView ? emptySurfaceMessages : activeWorkspace.messages;
   const sdkLiveTurn = conversationView ? null : activeWorkspace.sdkLiveTurn ?? null;
   const pendingTurn = activeWorkspace.pendingTurn ?? null;

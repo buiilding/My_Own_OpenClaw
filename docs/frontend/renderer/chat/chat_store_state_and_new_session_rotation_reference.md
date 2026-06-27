@@ -177,6 +177,10 @@ trimmed into no-view/pending routing state.
   compaction debug info, token counts, or exposing `rendererAnnotations`. A
   partial object under `conversationView` remains on the no-view fallback path
   instead of becoming a second chat read model.
+- Shared chat surface selectors use that same predicate before replacing raw
+  surface messages with the empty view-owned list or nulling the no-view
+  `sdkLiveTurn`, so direct selector callers cannot make partial
+  `conversationView` objects suppress no-view state.
 - `setMessagesInChatStore(...)` no-ops when array reference is unchanged; when hydrating a concrete
   conversation workspace, it records message `turnRef` values through the
   app-runtime turn-routing registry so later turn-scoped stream events can

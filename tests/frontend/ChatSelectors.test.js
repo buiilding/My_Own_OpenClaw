@@ -302,6 +302,34 @@ describe('chatSelectors', () => {
     });
   });
 
+  test('surface selector keeps no-view state for display timeline row payloads', () => {
+    const messages = [{ id: 'raw-user', text: 'raw no-view', sender: 'user' }];
+    const sdkLiveTurn = { turnRef: 'raw-live-turn' };
+
+    expect(projectDesktopChatSurfaceState({
+      activeWorkspace: {
+        messages,
+        conversationView: {
+          conversationRef: 'conv-direct',
+          rows: [],
+        },
+        pendingTurn: {
+          conversationRef: 'conv-direct',
+          turnRef: 'turn-pending',
+        },
+        sdkLiveTurn,
+      },
+    })).toEqual({
+      messages,
+      conversationView: null,
+      pendingTurn: {
+        conversationRef: 'conv-direct',
+        turnRef: 'turn-pending',
+      },
+      sdkLiveTurn,
+    });
+  });
+
   test('drops raw surface messages while carrying the pending bridge under ConversationView', () => {
     const conversationView = buildConversationView('conv-view');
     const activeWorkspace = {
