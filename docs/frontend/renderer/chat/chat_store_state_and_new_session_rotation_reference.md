@@ -71,10 +71,12 @@ All mutating actions accept optional `conversationRef` and write into that works
 `chatStore.ts` is the Zustand state/selector module. Workspace mutation
 adapter functions live in `chatStoreAdapters.ts`, which imports the runtime
 mutation helpers and applies their returned state updates through
-`useChatStore.setState(...)`. Hooks that need active conversation, workspace,
+`useChatStore.setState(...)`. Hooks that need active conversation,
 projected read-model, or send read-model snapshots use named
 `chatStoreAdapters.ts` getters instead of calling `useChatStore.getState()`
-directly.
+directly. Raw workspace inspection is test-only and lives in
+`tests/frontend/chatStoreTestUtils.ts`; production adapters keep raw workspace
+reads private to projected selectors and mutation helpers.
 Dashboard conversation-open reset code does not receive a raw workspace getter
 from `DashboardShell`. It calls the chat-store clear adapter with
 `preserveConversationView: true`; the clear-message app-runtime owner decides

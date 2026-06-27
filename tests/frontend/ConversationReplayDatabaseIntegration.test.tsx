@@ -20,9 +20,11 @@ import {
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   clearMessagesInChatStore,
-  getWorkspaceStateFromChatStore,
   setMessagesInChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
+import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+} from './chatStoreTestUtils';
 import {
   createConversationEvent,
   LocalRuntimeConversationStore,

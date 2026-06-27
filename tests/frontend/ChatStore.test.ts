@@ -12,7 +12,6 @@ import {
   applyPendingTurnBroadcastToChatStore,
   clearMessagesInChatStore,
   clearPendingTurnInChatStore,
-  getWorkspaceStateFromChatStore,
   setNoViewSdkLiveTurnInChatStore,
   setIsSendingInChatStore,
   setMessagesInChatStore,
@@ -27,6 +26,7 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime';
 import {
   createAssistantSeedMessage,
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
   resetChatStoreForTests,
 } from './chatStoreTestUtils';
 

@@ -171,7 +171,7 @@ export function getActiveConversationRefFromChatStore(): string | null {
   return useChatStore.getState().activeConversationRef;
 }
 
-export function getWorkspaceStateFromChatStore(
+function readWorkspaceStateFromChatStore(
   conversationRef?: string | null,
 ): ChatWorkspaceState {
   const state = useChatStore.getState();
@@ -183,7 +183,7 @@ export function getProjectedWorkspaceReadModelFromChatStore(
   conversationRef?: string | null,
 ): ChatWorkspaceState {
   return projectWorkspaceReadModelState(
-    getWorkspaceStateFromChatStore(conversationRef),
+    readWorkspaceStateFromChatStore(conversationRef),
   );
 }
 

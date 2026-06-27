@@ -11,7 +11,6 @@ import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
-  getWorkspaceStateFromChatStore,
   setConversationViewInChatStore,
   setMessagesInChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
@@ -22,6 +21,9 @@ import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/ru
 import {
   DesktopChatInterfacePresentationRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime';
+import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+} from './chatStoreTestUtils';
 
 let mockRendererConfig: Record<string, unknown> = {
   include_query_screenshot: true,

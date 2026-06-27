@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: stop exporting the raw workspace getter from production
+  chat-store adapters, keeping raw workspace inspection in frontend test
+  utilities while feature code stays on projected read models. No migration
+  required.
 - frontend/stop: narrow `DesktopStopTurnRuntime` to the selector, execution,
   and stopped-turn adapter entrypoints, keeping stop plan construction and
   SDK-live-turn terminalization private to the runtime. No migration required.

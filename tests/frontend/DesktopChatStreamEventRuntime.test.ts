@@ -4,8 +4,8 @@
 
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
-  getWorkspaceStateFromChatStore,
-} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+} from './chatStoreTestUtils';
 import { DesktopChatStreamEventRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime';
 import {
   DesktopChatTurnConversationRefRuntime,

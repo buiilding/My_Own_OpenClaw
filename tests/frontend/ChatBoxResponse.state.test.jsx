@@ -25,7 +25,6 @@ import {
   acceptPendingTurnInChatStore,
   acceptStoppedTurnInChatStore,
   clearPendingTurnInChatStore,
-  getWorkspaceStateFromChatStore,
   setConversationViewInChatStore,
   setNoViewSdkLiveTurnInChatStore,
   setIsSendingInChatStore,
@@ -33,6 +32,9 @@ import {
   setThinkingStatusInChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { DesktopCurrentTurnMessageRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
+import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+} from './chatStoreTestUtils';
 
 const {
   buildNoViewSdkLiveTurnMessages,
@@ -335,11 +337,8 @@ describe('ChatBoxResponse state behavior', () => {
     expect(toolMessage).toEqual(expect.objectContaining({
       text: 'README contents',
       correlationId: 'corr-read',
-      toolOutputDetails: {
-        success: true,
-      },
     }));
-    expect(toolMessage.toolOutputDetails).not.toHaveProperty('output');
+    expect(toolMessage).not.toHaveProperty('toolOutputDetails');
     expect(toolMessage.text).not.toContain('wrong output');
     expect(toolMessage.text).not.toContain('wrong step');
   });

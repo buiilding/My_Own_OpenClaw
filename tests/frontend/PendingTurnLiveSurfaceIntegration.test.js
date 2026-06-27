@@ -10,7 +10,6 @@ import {
 import {
   acceptPendingTurnInChatStore,
   applyPendingTurnBroadcastToChatStore,
-  getWorkspaceStateFromChatStore,
   setNoViewSdkLiveTurnInChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import {
@@ -26,6 +25,7 @@ import {
   DesktopCurrentTurnMessageRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
   resetChatStoreForTests,
 } from './chatStoreTestUtils';
 

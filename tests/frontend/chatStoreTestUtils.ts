@@ -7,6 +7,13 @@ import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
+  readWorkspaceState,
+  resolveWorkspaceKey,
+} from '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceStateRuntime';
+import type {
+  ChatWorkspaceState,
+} from '../../frontend/src/renderer/app/runtime/desktopChatWorkspaceStateRuntime';
+import {
   DesktopChatTurnConversationRefRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime';
 
@@ -41,6 +48,14 @@ export function createAssistantSeedMessage(overrides: Partial<ChatMessage> = {})
     sender: 'assistant',
     ...overrides,
   };
+}
+
+export function getWorkspaceStateFromChatStoreForTest(
+  conversationRef?: string | null,
+): ChatWorkspaceState {
+  const state = useChatStore.getState();
+  const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+  return readWorkspaceState(state, workspaceRef);
 }
 
 export function resetChatStoreForTests(

@@ -8,7 +8,6 @@ import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
-  getWorkspaceStateFromChatStore,
   setConversationViewInChatStore,
   setNoViewSdkLiveTurnInChatStore,
   setMessagesInChatStore,
@@ -23,6 +22,9 @@ import {
   setMockConfig,
   transcriptSpies,
 } from './ChatStreamThinkingStatus.testUtils';
+import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+} from './chatStoreTestUtils';
 
 describe('useChatStream live SDK event ownership', () => {
   beforeEach(() => {

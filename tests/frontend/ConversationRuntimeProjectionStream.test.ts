@@ -14,9 +14,11 @@ import {
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   acceptPendingTurnInChatStore,
-  getWorkspaceStateFromChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
+import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+} from './chatStoreTestUtils';
 
 describe('useConversationRuntimeProjectionStream display row merging', () => {
   beforeEach(() => {

@@ -17,12 +17,12 @@ import {
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   acceptPendingTurnInChatStore,
-  getWorkspaceStateFromChatStore,
   setIsSendingInChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { useChatSurfaceController } from '../../frontend/src/renderer/features/chat/hooks/useChatSurfaceController';
 import { useStopTurnHandler } from '../../frontend/src/renderer/features/chat/hooks/useStopTurnHandler';
 import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
   resetChatStoreForTests,
 } from './chatStoreTestUtils';
 

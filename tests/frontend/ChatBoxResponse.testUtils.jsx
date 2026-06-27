@@ -45,13 +45,15 @@ import {
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   clearPendingTurnInChatStore,
-  getWorkspaceStateFromChatStore,
   setConversationViewInChatStore,
   setNoViewSdkLiveTurnInChatStore,
   setIsSendingInChatStore,
   setMessagesInChatStore,
   setThinkingStatusInChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
+import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+} from './chatStoreTestUtils';
 
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 const WORKSPACE_MIRROR_FIELDS = [

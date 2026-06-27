@@ -4576,7 +4576,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('buildPendingTurnClearWorkspaceMutation');
     expect(chatStoreAdaptersSource).toContain('Chat store adapter functions');
     expect(chatStoreAdaptersSource).toContain('useChatStore');
-    expect(chatStoreAdaptersSource).toContain('getWorkspaceStateFromChatStore');
+    expect(chatStoreAdaptersSource).not.toContain('export function getWorkspaceStateFromChatStore');
+    expect(chatStoreAdaptersSource).toContain('function readWorkspaceStateFromChatStore');
     expect(chatStoreAdaptersSource).toContain('readWorkspaceState(state, workspaceRef)');
     expect(chatStoreAdaptersSource).toContain('resolveWorkspaceKey(conversationRef, state.activeConversationRef)');
     expect(chatStoreAdaptersSource).toContain('buildWorkspaceUpdate');

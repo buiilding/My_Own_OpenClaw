@@ -10,8 +10,10 @@ import {
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   clearMessagesInChatStore,
-  getWorkspaceStateFromChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
+import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+} from './chatStoreTestUtils';
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
