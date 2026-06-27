@@ -59,6 +59,10 @@ function rowToolName(row: SdkDisplayRow): string | null {
   return exactNonEmptyString(row.metadata?.toolName);
 }
 
+function rowReasoningText(row: SdkDisplayRow): string | null {
+  return exactNonEmptyString(row.metadata?.reasoningText);
+}
+
 function isSdkDisplayRowStreaming(row: SdkDisplayRow): boolean {
   return 'isStreaming' in row && row.isStreaming === true;
 }
@@ -104,10 +108,7 @@ function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
 }
 
 function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
-  const reasoningText = row.metadata?.reasoningText;
-  const thinkingText = typeof reasoningText === 'string' && reasoningText.trim()
-    ? reasoningText
-    : null;
+  const thinkingText = rowReasoningText(row);
   const sourceEventType = rowSourceEventType(row);
   const base = buildAssistantTextChatMessageState({
     id: row.id,

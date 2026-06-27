@@ -1022,6 +1022,37 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
+  test('does not expose padded reasoning text from display rows', () => {
+    const [message] = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'conv-1:turn-1:assistant',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'Partial answer',
+        isStreaming: true,
+        metadata: {
+          reasoningText: ' Thinking through it. ',
+        },
+      },
+    ]);
+
+    expect(message).toEqual(expect.objectContaining({
+      id: 'conv-1:turn-1:assistant',
+      sender: 'assistant',
+      type: 'llm-text',
+      text: 'Partial answer',
+      isComplete: false,
+      sourceEventType: 'assistant_message',
+    }));
+    expect(message).not.toHaveProperty('thinkingText');
+    expect(message).not.toHaveProperty('thinkingSourceEventType');
+    expect(message).not.toEqual(expect.objectContaining({ thinkingText: ' Thinking through it. ' }));
+    expect(message).not.toEqual(expect.objectContaining({ thinkingText: 'Thinking through it.' }));
+  });
+
   test('does not read snake-case reasoning aliases from display rows', () => {
     const [message] = buildChatMessagesFromSdkDisplayRows([
       {

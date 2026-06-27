@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display-rows: require exact non-empty SDK display-row
+  `metadata.reasoningText` before projecting renderer thinking text, keeping
+  padded reasoning metadata from becoming a repaired thinking row. No migration
+  required.
 - frontend/display-rows: require exact non-empty SDK display-row timestamps
   before copying them into renderer chat-message metadata, keeping padded
   timestamp strings from becoming a repaired renderer display value. No

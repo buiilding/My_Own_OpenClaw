@@ -4131,6 +4131,10 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.turnRef);');
     expect(projectionRuntimeSource).toContain('function rowToolName(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.toolName);');
+    expect(projectionRuntimeSource).toContain('function rowReasoningText(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.reasoningText);');
+    expect(projectionRuntimeSource).toContain('const thinkingText = rowReasoningText(row);');
+    expect(projectionRuntimeSource).not.toContain("typeof reasoningText === 'string' && reasoningText.trim()");
     expect(projectionRuntimeSource).not.toContain('row.metadata?.displayCorrelationId ?? null');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.displayCorrelationId ?? undefined');
     expect(projectionRuntimeSource).not.toContain('toolName: row.metadata?.toolName ?? null');
