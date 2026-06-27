@@ -46,22 +46,10 @@ describe('desktopChatSendPayloadRuntime', () => {
     })).toBeNull();
   });
 
-  test.each([
-    'attachmentContext',
-    'attachmentFilenames',
-    'attachments',
-    'captureMeta',
-    'displayAttachments',
-    'screenshot',
-    'screenshotRef',
-    'screenshotRefs',
-    'screenshotUrl',
-  ])('rejects removed renderer attachment alias field %s', (field) => {
+  test('rejects payload objects with unsupported fields by positive send contract', () => {
     expect(normalizeOutgoingPayload({
       text: 'hello',
-      [field]: field === 'attachmentFilenames' || field === 'screenshotRefs'
-        ? ['artifact-1']
-        : 'artifact-1',
+      legacyRendererField: 'artifact-1',
     } as any)).toBeNull();
   });
 });

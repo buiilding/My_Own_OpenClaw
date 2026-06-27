@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: make chat send payload normalization a positive contract over
+  `text`, `clipboardImages`, and `readableFiles`, so renderer send prep no
+  longer carries explicit removed screenshot or attachment alias names. No
+  migration required.
 - frontend/projection: centralize same-turn SDK user display-row lookup in
   `DesktopConversationDisplayRowLookupRuntime`, re-export it from
   `DesktopConversationDisplayProjection`, and route ConversationView

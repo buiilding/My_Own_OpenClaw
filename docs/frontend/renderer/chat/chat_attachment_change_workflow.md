@@ -68,6 +68,10 @@ Clipboard image IPC trust boundary:
 2. Preserve composer payload shape.
    - `DesktopMessageInputRuntime.buildOutgoingMessage(...)` may return a string for text-only sends.
    - It must return an object payload when images or readable files are attached.
+   - Renderer send payload normalization accepts only `text`,
+     `clipboardImages[]`, and `readableFiles[]`; extra fields are rejected
+     without naming removed screenshot or attachment aliases in the send
+     runtime.
    - Attachment-only sends should use the existing fallback text rather than blocking submission.
    - Clear the composer draft immediately after local send acceptance so renderer
      inputs do not wait on SDK resource preparation; rejected async sends must

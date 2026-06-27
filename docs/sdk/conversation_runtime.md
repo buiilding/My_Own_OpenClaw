@@ -279,10 +279,11 @@ durable or backend-owned descriptors. Renderer display projection may synthesize
 only this explicit `pendingTurn` bridge beside SDK display rows; it must not
 scan prior `renderer-compose` chat messages and carry them forward as visible
 user rows.
-Normal renderer send payload normalization rejects removed attachment/screenshot
-alias fields such as `attachmentFilenames`, `screenshotRef`, and
-`screenshotRefs`; composer sends pass only typed resource handles like
-`clipboardImages[]` and `readableFiles[]` into SDK turn preparation.
+Normal renderer send payload normalization is a positive contract: object
+payloads may contain only `text`, `clipboardImages[]`, and `readableFiles[]`.
+Any extra renderer field is rejected generically, so send prep does not carry
+removed screenshot or attachment alias vocabulary. Composer sends pass only
+typed resource handles into SDK turn preparation.
 Conversation-view chat projection receives explicit renderer annotation records,
 not raw current chat messages, when copying local assistant feedback state onto
 SDK assistant rows. The renderer stores those annotations beside the

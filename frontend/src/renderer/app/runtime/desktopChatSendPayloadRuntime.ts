@@ -19,22 +19,14 @@ export type OutgoingUserMessagePayload = string | {
   readableFiles?: ReadableFilePayload[] | null;
 };
 
-const REMOVED_RENDERER_ATTACHMENT_PAYLOAD_FIELDS = Object.freeze([
-  'attachmentContext',
-  'attachmentFilenames',
-  'attachments',
-  'captureMeta',
-  'displayAttachments',
-  'screenshot',
-  'screenshotRef',
-  'screenshotRefs',
-  'screenshotUrl',
+const ALLOWED_OUTGOING_PAYLOAD_FIELDS = new Set([
+  'clipboardImages',
+  'readableFiles',
+  'text',
 ]);
 
-function hasRemovedRendererAttachmentPayloadField(payload: Record<string, unknown>): boolean {
-  return REMOVED_RENDERER_ATTACHMENT_PAYLOAD_FIELDS.some((field) => (
-    Object.prototype.hasOwnProperty.call(payload, field)
-  ));
+function hasUnsupportedOutgoingPayloadField(payload: Record<string, unknown>): boolean {
+  return Object.keys(payload).some((field) => !ALLOWED_OUTGOING_PAYLOAD_FIELDS.has(field));
 }
 
 function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
@@ -61,10 +53,7 @@ function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
     return null;
   }
 
-  if (Object.prototype.hasOwnProperty.call(payload, 'clipboardImage')) {
-    return null;
-  }
-  if (hasRemovedRendererAttachmentPayloadField(payload as Record<string, unknown>)) {
+  if (hasUnsupportedOutgoingPayloadField(payload as Record<string, unknown>)) {
     return null;
   }
 
