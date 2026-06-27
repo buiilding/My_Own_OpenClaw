@@ -368,7 +368,7 @@ describe('desktopConversationDisplayProjection', () => {
         type: 'user_message',
       },
     ]))).toBe(false);
-    expect(hasConversationViewUserDisplayRows({})).toBe(false);
+    expect(hasConversationViewUserDisplayRows({} as never)).toBe(false);
   });
 
   test('builds ConversationView trace summaries without raw workspace message fallback', () => {

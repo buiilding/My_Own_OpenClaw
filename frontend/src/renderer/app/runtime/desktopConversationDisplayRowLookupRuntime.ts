@@ -46,11 +46,9 @@ function findConversationViewUserDisplayRowForTurn(
 }
 
 function hasConversationViewUserDisplayRows(
-  conversationView: unknown,
+  conversationView: ConversationView | null | undefined,
 ): boolean {
-  const displayRows = conversationView && typeof conversationView === 'object'
-    ? (conversationView as { displayRows?: unknown[] | null }).displayRows
-    : null;
+  const displayRows = conversationView?.displayRows;
   if (!Array.isArray(displayRows)) {
     return false;
   }

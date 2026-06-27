@@ -74,17 +74,10 @@ type ConversationViewTraceSummary = {
   liveTurnRef: string | null;
 };
 
-type ConversationViewTraceSource = {
-  displayRows?: unknown[] | null;
-  liveTurn?: {
-    phase?: string | null;
-    turnRef?: string | null;
-  } | null;
-} | null | undefined;
-
-function sdkConversationViewEnvelope(value: ConversationView | null | undefined): ConversationView | null {
-  return hasWorkspaceConversationView({ conversationView: value })
-    ? value as ConversationView
+function sdkConversationViewEnvelope(value: unknown): ConversationView | null {
+  const workspace = { conversationView: value };
+  return hasWorkspaceConversationView(workspace)
+    ? workspace.conversationView
     : null;
 }
 
@@ -105,9 +98,9 @@ function resolveTraceTextLength(value: unknown): number {
 }
 
 function buildConversationViewTraceSummary(
-  conversationView: ConversationViewTraceSource,
+  conversationView: unknown,
 ): ConversationViewTraceSummary {
-  const view = sdkConversationViewEnvelope(conversationView as ConversationView | null | undefined);
+  const view = sdkConversationViewEnvelope(conversationView);
   const displayRows = Array.isArray(view?.displayRows)
     ? view.displayRows
     : [];

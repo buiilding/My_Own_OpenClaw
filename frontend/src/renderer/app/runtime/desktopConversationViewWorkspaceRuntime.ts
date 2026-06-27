@@ -67,7 +67,7 @@ function isConversationView(value: unknown): value is ConversationView {
     && isObjectRecord(source.actions);
 }
 
-function hasWorkspaceConversationView(workspace: unknown): boolean {
+function hasWorkspaceConversationView(workspace: unknown): workspace is { conversationView: ConversationView } {
   return Boolean(
     workspace
       && typeof workspace === 'object'

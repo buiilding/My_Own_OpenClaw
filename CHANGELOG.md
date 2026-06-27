@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: route ConversationView trace summaries and send-state
+  user-row checks through the shared full-envelope SDK view gate, removing
+  renderer-local partial `displayRows` view shapes from those adapters. No
+  migration required.
 - frontend/projection: type the current-turn projection workspace read model
   against the SDK `ConversationView` contract instead of a local partial view
   shape, keeping malformed views on explicit test-only fallback coverage. No

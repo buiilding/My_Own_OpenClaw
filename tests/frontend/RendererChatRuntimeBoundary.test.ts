@@ -1249,11 +1249,14 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).toContain('viewPendingTurn');
     expect(displayProjectionSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
     expect(displayProjectionSource).toContain('DesktopConversationViewWorkspaceRuntime');
-    expect(displayProjectionSource).toContain('hasWorkspaceConversationView({ conversationView: value })');
+    expect(displayProjectionSource).toContain('const workspace = { conversationView: value }');
+    expect(displayProjectionSource).toContain('hasWorkspaceConversationView(workspace)');
     expect(displayProjectionSource).toContain('function sdkConversationViewEnvelope');
     expect(displayProjectionSource).toContain('function exactTraceString(value: unknown)');
     expect(displayProjectionSource).toContain('liveTurnPhase: exactTraceString');
     expect(displayProjectionSource).toContain('const view = sdkConversationViewEnvelope(conversationView)');
+    expect(displayProjectionSource).not.toContain('type ConversationViewTraceSource');
+    expect(displayProjectionSource).not.toContain('displayRows?: unknown[] | null');
     expect(displayProjectionSource).not.toContain('function normalizeTraceString');
     expect(displayProjectionSource).not.toContain('value.trim() ? value.trim() : null');
     expect(displayProjectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
@@ -2894,8 +2897,9 @@ describe('renderer chat runtime boundary', () => {
     expect(stateRuntimeSource).toContain('hasPriorUserMessages');
     expect(stateRuntimeSource).toContain('DesktopConversationDisplayRowLookupRuntime');
     expect(stateRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
-    expect(stateRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
-    expect(stateRuntimeSource).toContain('hasConversationViewUserDisplayRows(conversationView)');
+    expect(stateRuntimeSource).toContain('const workspace = { conversationView }');
+    expect(stateRuntimeSource).toContain('hasWorkspaceConversationView(workspace)');
+    expect(stateRuntimeSource).toContain('hasConversationViewUserDisplayRows(workspace.conversationView)');
     expect(stateRuntimeSource).not.toContain('function isConversationView');
     expect(stateRuntimeSource).not.toContain('row.role ===');
     expect(stateRuntimeSource).not.toContain('displayRows.some');
@@ -4776,6 +4780,8 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationDisplayRowLookupSource).toContain('ConversationView display-row lookup');
     expect(conversationDisplayRowLookupSource).toContain('exactNonEmptyString');
     expect(conversationDisplayRowLookupSource).toContain("(row as Record<string, unknown>).role === 'user'");
+    expect(conversationDisplayRowLookupSource).toContain('conversationView?.displayRows');
+    expect(conversationDisplayRowLookupSource).not.toContain('conversationView as { displayRows?: unknown[] | null }');
     expect(conversationDisplayRowLookupSource).toContain("(row as Record<string, unknown>).type === 'user_message'");
     expect(conversationDisplayRowLookupSource).not.toContain("(row as Record<string, unknown>).role === 'user'\n        ||");
     expect(conversationDisplayRowLookupSource).not.toContain('value.trim() ? value.trim()');

@@ -96,7 +96,10 @@ not carry raw messages, raw-message counts, or renderer annotations into
 projection side effects. That read model is typed against the SDK
 `ConversationView` contract after the shared full-envelope gate, so projection
 stream code cannot publish or depend on a renderer-local partial view shape. The
-projected workspace read model is assembled from an allowlist of fields and
+display projection trace helper and send-read-model user-row predicate use the
+same narrowed SDK view before reading `displayRows`; partial view-like objects
+stay on no-view fallback paths. The projected workspace read model is
+assembled from an allowlist of fields and
 does not expose the raw `isSending` storage latch; visible busy/typing state is
 derived by lifecycle/surface runtimes from the pending bridge and SDK view/live
 turn state. Raw

@@ -38,8 +38,9 @@ function hasPriorUserMessages({
   conversationView,
   messages,
 }: PriorUserMessageState): boolean {
-  if (hasWorkspaceConversationView({ conversationView })) {
-    return hasConversationViewUserDisplayRows(conversationView);
+  const workspace = { conversationView };
+  if (hasWorkspaceConversationView(workspace)) {
+    return hasConversationViewUserDisplayRows(workspace.conversationView);
   }
   return hasUserMessages(messages);
 }

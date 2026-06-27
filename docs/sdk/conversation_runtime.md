@@ -296,6 +296,9 @@ inputs. Thread presentation, chat-surface, live-turn surface,
 visible-lifecycle helpers, and no-view live-turn workspace storage now require
 that same complete envelope before a value can suppress raw fallback messages,
 `sdkLiveTurn`, or pending bridge state.
+ConversationView trace summaries and send-state user-row checks use that same
+shared full-envelope gate before reading `displayRows`; partial objects do not
+define a renderer-local trace or first-message read model.
 Desktop live-surface overlay identity accepts only exact SDK refs from
 `snapshot.view.liveTurn`, `snapshot.view.surfaces.responseOverlay`, or
 `snapshot.currentTurn.presentation.overlayIntent`; padded refs are ignored
