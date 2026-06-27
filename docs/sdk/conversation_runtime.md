@@ -350,8 +350,11 @@ reach `ConversationView`; the renderer may only stringify SDK-declared
 structured tool rows such as tool calls and bundle outputs for component
 compatibility.
 Renderer display-row and live-turn adapters also keep SDK attachment
-descriptors on the typed `attachments[]` prop only. Tool detail panels may
-receive display identity fields such as `toolName`, `requestId`,
+descriptors on the typed `attachments[]` prop only. Renderer attachment helpers
+may perform narrow component checks such as image count, ready-image presence,
+and artifact image-source resolution, but they must not expose aggregate
+lifecycle summaries that make the renderer a second attachment state authority.
+Tool detail panels may receive display identity fields such as `toolName`, `requestId`,
 `correlationId`, `bundleId`, `toolCallId`, and `success`, plus SDK-authored
 display details, but component correlation identity comes from the SDK-authored
 `displayCorrelationId` field. Renderer adapters must not recover correlation

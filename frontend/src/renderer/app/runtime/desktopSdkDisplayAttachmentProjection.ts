@@ -93,51 +93,9 @@ function readSdkImageAttachmentSource(value: unknown): SdkDisplayImageAttachment
   };
 }
 
-function summarizeSdkDisplayAttachments(value: unknown): Record<string, unknown> {
-  let userAttachmentCount = 0;
-  let readyArtifactCount = 0;
-  let materializingPreviewCount = 0;
-  let pendingScreenshotRequestCount = 0;
-  let failedAttachmentCount = 0;
-  const sources = new Set<string>();
-  const statuses = new Set<string>();
-  for (const attachment of readSdkDisplayAttachments(value)) {
-    const attachmentRecord = recordFromUnknown(attachment);
-    if (!attachmentRecord) {
-      continue;
-    }
-    userAttachmentCount += 1;
-    if (typeof attachmentRecord.source === 'string') {
-      sources.add(attachmentRecord.source);
-    }
-    if (typeof attachmentRecord.status === 'string') {
-      statuses.add(attachmentRecord.status);
-    }
-    if (isReadyDisplayImageAttachment(attachmentRecord)) {
-      readyArtifactCount += 1;
-    } else if (attachmentRecord.status === 'materializing') {
-      materializingPreviewCount += 1;
-    } else if (attachmentRecord.status === 'pending_capture') {
-      pendingScreenshotRequestCount += 1;
-    } else if (attachmentRecord.status === 'failed') {
-      failedAttachmentCount += 1;
-    }
-  }
-  return {
-    userAttachmentCount,
-    attachmentSources: Array.from(sources).sort(),
-    attachmentStatuses: Array.from(statuses).sort(),
-    readyArtifactCount,
-    materializingPreviewCount,
-    pendingScreenshotRequestCount,
-    failedAttachmentCount,
-  };
-}
-
 export const DesktopSdkDisplayAttachmentProjection = Object.freeze({
   countDisplayImageAttachments,
   hasReadyDisplayImageAttachment,
   readSdkImageAttachmentSource,
   readSdkDisplayAttachments,
-  summarizeSdkDisplayAttachments,
 });

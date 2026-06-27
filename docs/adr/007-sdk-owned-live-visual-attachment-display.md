@@ -136,7 +136,8 @@ MessageRow
 ```
 
 The registry dispatches by SDK attachment `kind`, `status`, and, where needed,
-`source`. It is not a state authority and must not merge screenshot metadata.
+`source`. It is not a state authority and must not merge screenshot metadata or
+publish aggregate attachment lifecycle summaries.
 
 ## Persistence And Privacy
 

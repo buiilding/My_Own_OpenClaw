@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: remove the unused renderer attachment lifecycle summary
+  helper, keeping attachment adapters to SDK descriptor filtering, image checks,
+  and artifact source resolution only. No migration required.
 - frontend/replay: stop applying selected models through the renderer settings
   facade before edit/retry dispatch; replay now passes model data to SDK
   commands and leaves selection application to the SDK `send()` path. No

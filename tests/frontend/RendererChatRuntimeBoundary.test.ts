@@ -3741,6 +3741,10 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('row.metadata?.requestId ?? row.metadata?.correlationId');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.toolName\n      ?');
     expect(displayAttachmentProjectionSource).toContain('readSdkDisplayAttachments');
+    expect(displayAttachmentProjectionSource).not.toContain('summarizeSdkDisplayAttachments');
+    expect(displayAttachmentProjectionSource).not.toContain('materializingPreviewCount');
+    expect(displayAttachmentProjectionSource).not.toContain('pendingScreenshotRequestCount');
+    expect(displayAttachmentProjectionSource).not.toContain('failedAttachmentCount');
     expect(displayAttachmentProjectionSource).not.toContain('screenshot_refs');
     expect(displayAttachmentProjectionSource).not.toContain('countLegacyScreenshotAttachments');
     expect(currentTurnMessageRuntimeSource).toContain('readSdkDisplayAttachments');

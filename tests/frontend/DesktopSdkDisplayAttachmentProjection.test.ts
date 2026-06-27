@@ -11,7 +11,6 @@ const {
   hasReadyDisplayImageAttachment,
   readSdkImageAttachmentSource,
   readSdkDisplayAttachments,
-  summarizeSdkDisplayAttachments,
 } = DesktopSdkDisplayAttachmentProjection;
 
 describe('DesktopSdkDisplayAttachmentProjection', () => {
@@ -115,46 +114,4 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
     })).toBeNull();
   });
 
-  test('summarizes SDK display attachment lifecycle fields without payload aliases', () => {
-    expect(summarizeSdkDisplayAttachments([
-      {
-        id: 'attachment-ready',
-        kind: 'image',
-        source: 'replay',
-        status: 'ready',
-        screenshotRef: 'artifact-ready',
-      },
-      {
-        id: 'attachment-materializing',
-        kind: 'image',
-        source: 'user_included',
-        status: 'materializing',
-        previewSrc: 'blob:preview',
-      },
-      {
-        id: 'attachment-pending',
-        kind: 'screenshot_request',
-        source: 'camera_button',
-        status: 'pending_capture',
-      },
-      {
-        id: 'attachment-failed',
-        kind: 'image',
-        source: 'user_included',
-        status: 'failed',
-      },
-      {
-        id: 'legacy-alias',
-        screenshotRef: 'artifact-legacy',
-      },
-    ])).toEqual({
-      userAttachmentCount: 4,
-      attachmentSources: ['camera_button', 'replay', 'user_included'],
-      attachmentStatuses: ['failed', 'materializing', 'pending_capture', 'ready'],
-      readyArtifactCount: 1,
-      materializingPreviewCount: 1,
-      pendingScreenshotRequestCount: 1,
-      failedAttachmentCount: 1,
-    });
-  });
 });
