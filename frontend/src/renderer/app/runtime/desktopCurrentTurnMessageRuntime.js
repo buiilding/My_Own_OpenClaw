@@ -494,7 +494,6 @@ function isResponseOverlaySourceTaggedMessage(message) {
 export const DesktopCurrentTurnMessageRuntime = Object.freeze({
   buildConversationViewLiveTurnMessages,
   buildCurrentTurnMessagesFromPresentation,
-  buildLegacyNoPresentationCurrentTurnMessages,
   buildNoViewSdkLiveTurnMessages,
   buildSdkLiveTurnMessages,
   isResponseCloseable,

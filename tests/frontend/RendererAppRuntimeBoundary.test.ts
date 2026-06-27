@@ -664,6 +664,7 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnMessageSource).toContain('buildLegacyNoPresentationCurrentTurnMessages');
     expect(currentTurnMessageSource).toContain('buildNoViewSdkLiveTurnMessages');
     expect(currentTurnMessageSource).toContain('buildSdkLiveTurnMessages');
+    expect(currentTurnMessageSource).not.toContain('  buildLegacyNoPresentationCurrentTurnMessages,');
     expect(currentTurnMessageSource).not.toContain('buildCurrentTurnMessagesFromProjection');
     expect(currentTurnMessageSource).not.toContain('export function buildCurrentTurnMessagesFromProjection');
     expect(currentTurnMessageSource).not.toContain('export function buildCurrentTurnMessagesFromPresentation');

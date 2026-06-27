@@ -7,7 +7,7 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 
 const {
-  buildLegacyNoPresentationCurrentTurnMessages,
+  buildNoViewSdkLiveTurnMessages,
   isResponseCloseable,
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
@@ -59,8 +59,8 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     expect(isResponseOverlaySourceTaggedMessage({ sourceEventType: '   ' })).toBe(false);
   });
 
-  test('buildLegacyNoPresentationCurrentTurnMessages creates overlay-ready active turn messages', () => {
-    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+  test('buildNoViewSdkLiveTurnMessages creates overlay-ready legacy active turn messages', () => {
+    const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'tool_call',
@@ -95,8 +95,8 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     ]));
   });
 
-  test('buildLegacyNoPresentationCurrentTurnMessages preserves payload request ids for tool correlation', () => {
-    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+  test('buildNoViewSdkLiveTurnMessages preserves projected request ids for tool correlation', () => {
+    const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'tool_call',
@@ -106,9 +106,11 @@ describe('desktopCurrentTurnMessageRuntime', () => {
       toolEvents: [{
         id: 'tool-1',
         kind: 'tool_call',
+        toolName: 'read_file',
+        requestId: 'request-tool-1',
         payload: {
-          toolName: 'read_file',
-          requestId: 'request-tool-1',
+          toolName: 'wrong_backend_tool',
+          requestId: 'wrong-request',
         },
       }],
     });
@@ -122,8 +124,8 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     ]));
   });
 
-  test('buildLegacyNoPresentationCurrentTurnMessages prefers explicit tool correlation ids', () => {
-    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+  test('buildNoViewSdkLiveTurnMessages prefers explicit tool correlation ids', () => {
+    const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'tool_call',
@@ -149,8 +151,8 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     ]));
   });
 
-  test('buildLegacyNoPresentationCurrentTurnMessages ignores presentation-backed current turns', () => {
-    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+  test('buildNoViewSdkLiveTurnMessages uses presentation-backed current turns before legacy fallback', () => {
+    const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'streaming',
@@ -170,11 +172,17 @@ describe('desktopCurrentTurnMessageRuntime', () => {
       },
     });
 
-    expect(messages).toEqual([]);
+    expect(messages).toEqual([
+      expect.objectContaining({
+        id: 'entry-1',
+        type: 'llm-text',
+        text: 'SDK presentation owns this',
+      }),
+    ]);
   });
 
-  test('buildLegacyNoPresentationCurrentTurnMessages renders SDK tool-output text', () => {
-    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+  test('buildNoViewSdkLiveTurnMessages renders SDK tool-output text', () => {
+    const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'tool_output',

@@ -4,21 +4,18 @@
 
 import { act } from '@testing-library/react';
 import {
-  useChatStore,
-} from '../../frontend/src/renderer/features/chat/stores/chatStore';
-import {
-  setMessagesInChatStore,
-  updateStreamTrackingInChatStore,
-} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
-import {
   getActiveWorkspaceStateForTest,
   registerBackendListener,
   resetChatStreamTestState,
 } from './ChatStreamThinkingStatus.testUtils';
+import {
+  setMessagesInChatStore,
+  updateStreamTrackingInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { DesktopCurrentTurnMessageRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 
 const {
-  buildLegacyNoPresentationCurrentTurnMessages,
+  buildNoViewSdkLiveTurnMessages,
 } = DesktopCurrentTurnMessageRuntime;
 
 describe('useChatStream message metadata handling', () => {
@@ -224,7 +221,7 @@ describe('useChatStream message metadata handling', () => {
   });
 
   test('projected tool-call message stores raw arguments preview metadata for recoverable parse failures', () => {
-    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+    const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-test',
       turnRef: 'turn-test',
       phase: 'tool_call',
@@ -265,7 +262,7 @@ describe('useChatStream message metadata handling', () => {
   });
 
   test('projected tool-call message uses SDK display fields for pre-dispatch validation failures', () => {
-    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+    const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-test',
       turnRef: 'turn-test',
       phase: 'tool_call',
@@ -329,7 +326,7 @@ describe('useChatStream message metadata handling', () => {
   });
 
   test('projected tool-call message marks execution skipped for direct-tool validation failures', () => {
-    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+    const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-test',
       turnRef: 'turn-test',
       phase: 'tool_call',

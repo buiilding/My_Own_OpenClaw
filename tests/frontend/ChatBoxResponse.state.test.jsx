@@ -34,7 +34,7 @@ import {
 import { DesktopCurrentTurnMessageRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 
 const {
-  buildLegacyNoPresentationCurrentTurnMessages,
+  buildNoViewSdkLiveTurnMessages,
 } = DesktopCurrentTurnMessageRuntime;
 
 describe('ChatBoxResponse state behavior', () => {
@@ -252,8 +252,8 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
-  test('buildLegacyNoPresentationCurrentTurnMessages uses SDK tool-event identity fields', () => {
-    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+  test('buildNoViewSdkLiveTurnMessages uses SDK tool-event identity fields', () => {
+    const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-test',
       turnRef: 'turn-live',
       phase: 'tool_call',
@@ -302,8 +302,8 @@ describe('ChatBoxResponse state behavior', () => {
     expect(toolMessage.text).not.toContain('wrong.md');
   });
 
-  test('buildLegacyNoPresentationCurrentTurnMessages renders SDK tool-output text', () => {
-    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+  test('buildNoViewSdkLiveTurnMessages renders SDK tool-output text', () => {
+    const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-test',
       turnRef: 'turn-live',
       phase: 'tool_output',

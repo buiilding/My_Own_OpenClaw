@@ -441,6 +441,9 @@ display details from raw `payload` or `structuredPayload` fallbacks.
 Older renderer fallback adapters that read `snapshot.currentTurn.toolEvents`
 directly follow the same boundary: use projected tool-event fields and
 projected detail objects, not backend-wire payload recovery.
+The raw no-presentation current-turn fallback builder stays private to the
+renderer message runtime; callers use the no-view SDK live-turn facade so the
+legacy raw-field bridge cannot become a parallel presentation API.
 
 ### Removed Renderer Transcript and Rehydrate Helpers
 

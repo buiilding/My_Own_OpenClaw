@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/current-turn: keep the raw no-presentation current-turn fallback
+  builder private to the message runtime; tests and callers now use the public
+  no-view SDK live-turn facade. No migration required.
 - frontend/conversation-view: pass SDK display-row action metadata through to
   chat message props without renderer target-id trimming or reconstruction. No
   migration required.
