@@ -78,6 +78,9 @@ Clipboard image IPC trust boundary:
      lifecycle fields reject the pending-turn payload instead of being
      stripped. Renderer-local pending user rows also omit the `attachments` prop
      entirely; SDK display rows are the only attachment-bearing user rows.
+     Visible lifecycle, live-surface, and Stop adapters consume the same strict
+     pending bridge shape, so partial or attachment-bearing pending-like objects
+     cannot drive local typing, response overlay, or stop authority.
    - Attachment-only sends should use the existing fallback text rather than blocking submission.
    - Clear the composer draft immediately after local send acceptance so renderer
      inputs do not wait on SDK resource preparation; rejected async sends must

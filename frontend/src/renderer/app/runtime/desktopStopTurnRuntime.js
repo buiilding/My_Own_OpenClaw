@@ -8,6 +8,9 @@ import {
 import {
   DesktopConversationViewWorkspaceRuntime,
 } from './desktopConversationViewWorkspaceRuntime';
+import {
+  DesktopChatPendingTurnStateRuntime,
+} from './desktopChatPendingTurnStateRuntime';
 
 const {
   buildNoViewSdkLiveTurnStorageUpdate,
@@ -16,6 +19,9 @@ const {
 const {
   hasWorkspaceConversationView,
 } = DesktopConversationViewWorkspaceRuntime;
+const {
+  normalizePendingTurn,
+} = DesktopChatPendingTurnStateRuntime;
 
 function readExactNonEmptyRef(value) {
   return typeof value === 'string' && value && value.trim() === value ? value : null;
@@ -86,7 +92,8 @@ function doesSdkLiveTurnMatch(sdkLiveTurn, input = null) {
 }
 
 function doesPendingTurnMatch(pendingTurn, input = null) {
-  if (!pendingTurn) {
+  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
+  if (!normalizedPendingTurn) {
     return false;
   }
   if (!input) {
@@ -96,8 +103,8 @@ function doesPendingTurnMatch(pendingTurn, input = null) {
   const turnRef = readExactNonEmptyRef(input.turnRef);
   return (
     Boolean(conversationRef && turnRef)
-    && readExactNonEmptyRef(pendingTurn.conversationRef) === conversationRef
-    && readExactNonEmptyRef(pendingTurn.turnRef) === turnRef
+    && normalizedPendingTurn.conversationRef === conversationRef
+    && normalizedPendingTurn.turnRef === turnRef
   );
 }
 
@@ -254,12 +261,7 @@ function executeStopTurnExecutionPlan({
 }
 
 function isPendingTurn(value) {
-  return Boolean(
-    value
-      && typeof value === 'object'
-      && readExactNonEmptyRef(value.conversationRef)
-      && readExactNonEmptyRef(value.turnRef)
-  );
+  return Boolean(normalizePendingTurn(value));
 }
 
 function isStoppableConversationView(conversationView) {
@@ -286,11 +288,12 @@ function resolveStopTurnTarget({
   }
 
   if (isSdkConversationView(conversationView)) {
-    if (isPendingTurn(pendingTurn)) {
+    const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
+    if (normalizedPendingTurn) {
       return {
         source: 'pending-turn',
-        conversationRef: readExactNonEmptyRef(pendingTurn.conversationRef),
-        turnRef: readExactNonEmptyRef(pendingTurn.turnRef),
+        conversationRef: normalizedPendingTurn.conversationRef,
+        turnRef: normalizedPendingTurn.turnRef,
         canStop: true,
       };
     }
@@ -303,11 +306,12 @@ function resolveStopTurnTarget({
     };
   }
 
-  if (isPendingTurn(pendingTurn)) {
+  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
+  if (normalizedPendingTurn) {
     return {
       source: 'pending-turn',
-      conversationRef: readExactNonEmptyRef(pendingTurn.conversationRef),
-      turnRef: readExactNonEmptyRef(pendingTurn.turnRef),
+      conversationRef: normalizedPendingTurn.conversationRef,
+      turnRef: normalizedPendingTurn.turnRef,
       canStop: true,
     };
   }

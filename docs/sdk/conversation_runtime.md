@@ -299,8 +299,12 @@ That bridge may carry turn identity, text, and timestamps, but it must not
 carry filename metadata, visual attachment lifecycle descriptors, screenshots,
 preview bytes, or ready artifact refs. SDK display rows and
 `ConversationView` own user-included image, camera screenshot, and replay
-attachment presentation. SDK-shaped materializing display attachments may carry
-volatile `previewSrc` only inside display-row/UI projection state; backend-origin
+attachment presentation. Renderer visible lifecycle, live-surface, and Stop
+adapters use the same strict pending bridge validator as chat-store state, so
+partial or attachment-bearing pending-like objects do not become local typing,
+response overlay, or Stop authority. SDK-shaped materializing display
+attachments may carry volatile `previewSrc` only inside display-row/UI
+projection state; backend-origin
 attachment normalization strips preview/data URL fields before they become
 durable or backend-owned descriptors. Renderer display projection may synthesize
 only this explicit `pendingTurn` bridge beside SDK display rows; it must not

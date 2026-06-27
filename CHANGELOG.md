@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/runtime: route visible lifecycle and Stop pending-turn authority
+  through the strict pending bridge validator so attachment-bearing or partial
+  pending-shaped objects cannot drive local typing or stop state. No migration
+  required.
 - frontend/overlay: route response-overlay `ConversationView` read-model
   authority through the shared workspace gate so partial view objects stay on
   the no-view SDK current-turn fallback path. No migration required.

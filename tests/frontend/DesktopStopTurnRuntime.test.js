@@ -57,6 +57,24 @@ function conversationView({
   };
 }
 
+function pendingTurn({
+  conversationRef = 'conv-pending',
+  turnRef = 'turn-pending',
+  userMessageId = 'user-pending',
+  text = 'pending prompt',
+  timestamp = '2026-06-25T12:00:00.000Z',
+  ...overrides
+} = {}) {
+  return {
+    conversationRef,
+    turnRef,
+    userMessageId,
+    text,
+    timestamp,
+    ...overrides,
+  };
+}
+
 function workspace(overrides = {}) {
   return {
     messages: [],
@@ -83,10 +101,10 @@ function workspace(overrides = {}) {
       turnRef: 'turn-stop',
       phase: 'streaming',
     },
-    pendingTurn: {
+    pendingTurn: pendingTurn({
       conversationRef: 'conv-stop',
       turnRef: 'turn-stop',
-    },
+    }),
     ...overrides,
   };
 }
@@ -99,10 +117,10 @@ describe('desktopStopTurnRuntime', () => {
         turnRef: 'turn-view',
         canStop: true,
       }),
-      pendingTurn: {
+      pendingTurn: pendingTurn({
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
-      },
+      }),
       conversationRef: 'conv-session',
     })).toEqual({
       source: 'conversation-view',
@@ -114,10 +132,10 @@ describe('desktopStopTurnRuntime', () => {
 
   test('resolveStopTurnTarget keeps pending bridge without raw current-turn authority', () => {
     expect(resolveStopTurnTarget({
-      pendingTurn: {
+      pendingTurn: pendingTurn({
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
-      },
+      }),
       conversationRef: 'conv-session',
     })).toEqual({
       source: 'pending-turn',
@@ -127,12 +145,30 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
+  test('resolveStopTurnTarget rejects attachment-bearing pending bridge objects', () => {
+    expect(resolveStopTurnTarget({
+      pendingTurn: pendingTurn({
+        attachments: [{
+          id: 'attachment-1',
+          kind: 'image',
+          status: 'ready',
+        }],
+      }),
+      conversationRef: 'conv-session',
+    })).toEqual({
+      source: 'idle',
+      conversationRef: 'conv-session',
+      turnRef: null,
+      canStop: false,
+    });
+  });
+
   test('resolveStopTurnTarget uses pending turn ref without terminal current-turn fallback', () => {
     expect(resolveStopTurnTarget({
-      pendingTurn: {
+      pendingTurn: pendingTurn({
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
-      },
+      }),
       conversationRef: 'conv-session',
     })).toEqual({
       source: 'pending-turn',
@@ -161,10 +197,10 @@ describe('desktopStopTurnRuntime', () => {
         phase: 'idle',
         canStop: false,
       }),
-      pendingTurn: {
+      pendingTurn: pendingTurn({
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
-      },
+      }),
       conversationRef: 'conv-session',
     })).toEqual({
       source: 'pending-turn',
@@ -208,10 +244,10 @@ describe('desktopStopTurnRuntime', () => {
 
   test('classifies only pending bridge targets in stop execution plans', () => {
     const pendingTarget = resolveStopTurnTarget({
-      pendingTurn: {
+      pendingTurn: pendingTurn({
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
-      },
+      }),
     });
     const idleTarget = resolveStopTurnTarget({
       conversationRef: 'conv-idle',
@@ -229,10 +265,10 @@ describe('desktopStopTurnRuntime', () => {
 
   test('builds stop execution plans with pending bridge cleanup owned by runtime', () => {
     expect(buildStopTurnExecutionPlan(resolveStopTurnTarget({
-      pendingTurn: {
+      pendingTurn: pendingTurn({
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
-      },
+      }),
     }))).toEqual({
       canStop: true,
       conversationRef: 'conv-pending',
@@ -268,10 +304,10 @@ describe('desktopStopTurnRuntime', () => {
     });
 
     expect(resolveStopTurnTarget({
-      pendingTurn: {
+      pendingTurn: pendingTurn({
         conversationRef: 'conv-pending',
         turnRef: ' turn-pending ',
-      },
+      }),
       conversationRef: 'conv-session',
     })).toEqual({
       source: 'idle',
@@ -330,10 +366,10 @@ describe('desktopStopTurnRuntime', () => {
     const result = executeStopTurnExecutionPlan({
       deps,
       stopTarget: resolveStopTurnTarget({
-        pendingTurn: {
+        pendingTurn: pendingTurn({
           conversationRef: 'conv-pending',
           turnRef: 'turn-pending',
-        },
+        }),
       }),
     });
 
@@ -393,10 +429,10 @@ describe('desktopStopTurnRuntime', () => {
       deps,
       enabled: false,
       stopTarget: resolveStopTurnTarget({
-        pendingTurn: {
+        pendingTurn: pendingTurn({
           conversationRef: 'conv-pending',
           turnRef: 'turn-pending',
-        },
+        }),
       }),
     })).toBe(false);
     expect(executeStopTurnExecutionPlan({
@@ -427,10 +463,10 @@ describe('desktopStopTurnRuntime', () => {
       const result = executeStopTurnExecutionPlan({
         deps,
         stopTarget: resolveStopTurnTarget({
-          pendingTurn: {
+          pendingTurn: pendingTurn({
             conversationRef: 'conv-pending',
             turnRef: 'turn-pending',
-          },
+          }),
         }),
         warningContext: 'StopTest',
       });
@@ -567,10 +603,10 @@ describe('desktopStopTurnRuntime', () => {
       conversationRef: 'conv-stop',
       currentWorkspace: workspace({
         sdkLiveTurn: null,
-        pendingTurn: {
+        pendingTurn: pendingTurn({
           conversationRef: 'conv-stop',
           turnRef: ' turn-stop ',
-        },
+        }),
       }),
       stoppedAt: '2026-06-25T12:01:00.000Z',
       turnRef: 'turn-stop',

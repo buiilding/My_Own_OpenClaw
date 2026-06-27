@@ -958,6 +958,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
         pendingTurn: {
           conversationRef: 'conv-view',
           turnRef: 'turn-pending',
+          userMessageId: 'pending-user',
+          text: 'pending prompt',
+          timestamp: '2026-06-25T12:00:00.000Z',
         },
         conversationView: conversationView({
           conversationRef: 'conv-view',
@@ -988,7 +991,10 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(state.visibleTurnLifecycle).toEqual(expect.objectContaining({
       source: 'local',
       status: 'local_pending',
-      awaitingAnchor: null,
+      awaitingAnchor: {
+        kind: 'user-message',
+        rowId: 'pending-user',
+      },
     }));
   });
 
@@ -1004,6 +1010,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
         pendingTurn: {
           conversationRef: 'conv-pending',
           turnRef: 'turn-pending',
+          userMessageId: 'pending-user',
           text: 'pending prompt',
           timestamp: '2026-06-25T12:00:00.000Z',
         },
@@ -1033,6 +1040,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
         pendingTurn: {
           conversationRef: 'conv-pending',
           turnRef: 'turn-pending',
+          userMessageId: 'pending-user',
           text: 'pending prompt',
           timestamp: '2026-06-25T12:00:00.000Z',
         },
@@ -1052,7 +1060,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(responseOverlaySurfaceState.useLocalPendingTurn).toBe(true);
     expect(responseOverlaySurfaceState.responseOverlayMessages).toEqual([]);
     expect(presentationState).toEqual(expect.objectContaining({
-      awaitingDotTargetMessageId: null,
+      awaitingDotTargetMessageId: 'pending-user',
       isBusy: true,
       overlayIntent: expect.objectContaining({
         mode: 'awaiting',

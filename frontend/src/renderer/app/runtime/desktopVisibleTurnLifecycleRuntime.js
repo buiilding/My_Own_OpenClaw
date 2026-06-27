@@ -5,6 +5,9 @@
 import {
   DesktopConversationDisplayRowLookupRuntime,
 } from './desktopConversationDisplayRowLookupRuntime';
+import {
+  DesktopChatPendingTurnStateRuntime,
+} from './desktopChatPendingTurnStateRuntime';
 
 const TERMINAL_PHASES = new Set(['complete', 'error']);
 const ACTIVE_PROGRESS_PHASES = new Set(['tool_call', 'tool_output']);
@@ -13,6 +16,9 @@ const BUSY_PHASES = new Set(['awaiting', 'streaming', 'tool_call', 'tool_output'
 const {
   findConversationViewUserDisplayRowForTurn,
 } = DesktopConversationDisplayRowLookupRuntime;
+const {
+  normalizePendingTurn,
+} = DesktopChatPendingTurnStateRuntime;
 
 function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
@@ -40,22 +46,6 @@ function normalizeConversationRef(value) {
 
 function normalizeTurnRef(value) {
   return readExactIdentityString(value);
-}
-
-function normalizePendingTurn(value) {
-  if (!value || typeof value !== 'object') {
-    return null;
-  }
-  const conversationRef = normalizeConversationRef(value.conversationRef);
-  const turnRef = normalizeTurnRef(value.turnRef);
-  if (!conversationRef || !turnRef) {
-    return null;
-  }
-  return {
-    ...value,
-    conversationRef,
-    turnRef,
-  };
 }
 
 function normalizeSdkLiveTurnPhase(sdkLiveTurn) {

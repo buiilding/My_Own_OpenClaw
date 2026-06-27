@@ -19,7 +19,6 @@ function pendingTurn(overrides = {}) {
     userMessageId: 'user-pending',
     text: 'start now',
     timestamp: '2026-06-16T00:00:00.000Z',
-    attachmentFilenames: null,
     ...overrides,
   };
 }
@@ -97,6 +96,29 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
         mode: 'awaiting',
         staleGuardRef: preflightGuardRef,
       }),
+    });
+  });
+
+  test('rejects attachment-bearing pending turns for local live-surface authority', () => {
+    const state = resolveLiveTurnPresentationInput({
+      sdkLiveTurn: null,
+      pendingTurn: pendingTurn({
+        attachments: [{
+          id: 'attachment-1',
+          kind: 'image',
+          status: 'ready',
+        }],
+      }),
+    });
+
+    expect(state).toMatchObject({
+      phase: 'idle',
+      isBusy: false,
+      source: 'idle',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: false,
+      overlayIntent: null,
+      turnRef: null,
     });
   });
 
