@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/current-turn: require the shared complete `ConversationView` gate
+  before accepting `view` payloads from current-turn IPC normalization, keeping
+  partial envelopes on the no-view event path. No migration required.
 - frontend/send: route first-message send-state checks through the shared
   complete `ConversationView` gate, so partial view-shaped objects no longer
   become a separate SDK display-row authority. No migration required.

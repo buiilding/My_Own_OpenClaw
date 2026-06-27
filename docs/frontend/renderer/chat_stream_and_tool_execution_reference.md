@@ -136,11 +136,12 @@ the renderer through SDK `ConversationView`; the `windie:rows` channel remains
 an Electron IPC compatibility/diagnostic transport, not a normal chat render
 subscription.
 When Electron main includes `view` on a `windie:current-turn` envelope, the
-renderer must preserve that `ConversationView` in the normalized event and store
-it in the target chat workspace before applying no-view current-turn side
-effects. Retry and edit/resend live updates depend on that envelope; dropping
-the view leaves only the local pending bridge visible after the raw display-row
-stream subscription has been removed.
+renderer must first accept it through the shared complete `ConversationView`
+gate, preserve that `ConversationView` in the normalized event, and store it in
+the target chat workspace before applying no-view current-turn side effects.
+Retry and edit/resend live updates depend on that envelope; dropping the view
+leaves only the local pending bridge visible after the raw display-row stream
+subscription has been removed.
 
 Projection-stream diagnostics use `buildReplayProjectionTracePayload(...)` for
 stale-turn and replay-projection summaries; command replay itself no longer

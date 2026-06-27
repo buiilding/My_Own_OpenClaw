@@ -86,6 +86,7 @@ const conversationView = {
       visible: false,
     },
   },
+  actions: {},
 };
 
 describe('DesktopConversationRuntimeEventClient', () => {
@@ -119,6 +120,16 @@ describe('DesktopConversationRuntimeEventClient', () => {
       currentTurn: null,
       view: conversationView,
     });
+    mockChannelListeners.get('windie:current-turn')?.({
+      conversationRef: 'conv-partial',
+      currentTurn: null,
+      view: {
+        conversationRef: 'conv-partial',
+        displayRows: [],
+        liveTurn: {},
+        surfaces: {},
+      },
+    });
 
     expect(mockOn).toHaveBeenCalledWith('windie:current-turn', expect.any(Function));
     expect(events).toEqual([
@@ -151,6 +162,11 @@ describe('DesktopConversationRuntimeEventClient', () => {
         currentTurn: null,
         conversationRef: 'conv-view',
         view: conversationView,
+      },
+      {
+        currentTurn: null,
+        conversationRef: 'conv-partial',
+        view: null,
       },
     ]);
 

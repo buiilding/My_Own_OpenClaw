@@ -394,7 +394,10 @@ snapshots and diagnostics.
 Electron main also hydrates newly tracked renderer windows with the cached
 `ConversationView` on the `windie:current-turn` envelope, so renderer reloads
 enter the same view-owned path as live runtime updates instead of starting from
-a raw current-turn-only sync.
+a raw current-turn-only sync. Renderer current-turn IPC normalization applies
+the same complete-view gate before accepting that envelope's `view`; partial
+view-shaped payloads remain no-view current-turn events instead of claiming SDK
+view authority.
 Renderer current-turn IPC adapters should treat a valid `presentation.entries`
 array as the normal current-turn shape and must not require raw `assistantText`
 or `toolEvents` when presentation exists. The raw field requirement remains

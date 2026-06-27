@@ -1210,6 +1210,9 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN');
     expect(eventClientSource).toContain('function normalizeCurrentTurnProjectionEvent');
+    expect(eventClientSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(eventClientSource).toContain('hasWorkspaceConversationView({ conversationView: source.view })');
+    expect(eventClientSource).not.toContain('function isConversationView');
     expect(eventClientSource).not.toContain('export function normalizeCurrentTurnProjectionEvent');
     expect(eventClientSource).not.toContain('onCurrentTurn(listener');
     expect(eventClientSource).not.toContain('DESKTOP_RUNTIME_ON_CHANNELS.ROWS');
