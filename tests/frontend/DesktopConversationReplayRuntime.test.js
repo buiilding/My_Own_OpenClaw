@@ -89,7 +89,6 @@ function replayArgs(overrides = {}) {
     messages: [],
     replayUiContext: {
       getActiveConversationRef: () => state.activeConversationRef,
-      getProjectedWorkspaceReadModel: (conversationRef) => state.getWorkspaceState(conversationRef),
     },
     sessionInfo: {
       conversationRef: 'conv-replay',
@@ -196,7 +195,7 @@ describe('desktopConversationReplayRuntime', () => {
     }));
   });
 
-  test('replay traces consume sanitized ConversationView read model', async () => {
+  test('replay traces do not read projected workspace state', async () => {
     const chatStoreBundle = createChatStore();
     chatStoreBundle.state.getWorkspaceState.mockReturnValue({
       messages: [
@@ -234,11 +233,9 @@ describe('desktopConversationReplayRuntime', () => {
     expect(DesktopRendererTraceRuntime.logRendererReplayTrace).toHaveBeenCalledWith(expect.objectContaining({
       action: 'replay_start',
       conversationRef: 'conv-replay',
-      currentTurnRef: 'turn-view',
-      currentTurnPhase: 'complete',
-      messageCount: 0,
-      displayRowCount: 2,
+      targetRowId: 'view-assistant',
     }));
+    expect(chatStoreBundle.state.getWorkspaceState).not.toHaveBeenCalled();
     expect(DesktopRendererTraceRuntime.logRendererReplayTrace).not.toHaveBeenCalledWith(expect.objectContaining({
       currentTurnRef: 'turn-raw',
       messageCount: 2,

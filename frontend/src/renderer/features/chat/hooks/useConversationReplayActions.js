@@ -11,7 +11,6 @@ import {
 } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import {
   getActiveConversationRefFromChatStore,
-  getProjectedWorkspaceReadModelFromChatStore,
 } from '../stores/chatStoreAdapters';
 
 const {
@@ -20,7 +19,6 @@ const {
 
 const replayUiContext = {
   getActiveConversationRef: getActiveConversationRefFromChatStore,
-  getProjectedWorkspaceReadModel: getProjectedWorkspaceReadModelFromChatStore,
 };
 
 export function useConversationReplayActions() {

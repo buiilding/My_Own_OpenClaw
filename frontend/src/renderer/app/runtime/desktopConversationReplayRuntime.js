@@ -6,9 +6,6 @@ import { DesktopConversationContinuityService } from './desktopConversationConti
 import {
   DesktopConversationSessionRuntime,
 } from './desktopConversationSessionRuntime';
-import {
-  DesktopConversationProjectionStreamRuntime,
-} from './desktopConversationProjectionStreamRuntime';
 import { DesktopRendererConfigRuntimeClient } from './desktopRendererConfigRuntimeClient';
 import { DesktopRendererTraceRuntime } from './desktopRendererTraceRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
@@ -21,9 +18,6 @@ const {
 const {
   logRendererReplayTrace,
 } = DesktopRendererTraceRuntime;
-const {
-  buildReplayProjectionTracePayload,
-} = DesktopConversationProjectionStreamRuntime;
 
 function readExactReplayMessageId(value) {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
@@ -73,33 +67,13 @@ function traceErrorKind(error) {
   return error instanceof Error ? 'Error' : typeof error;
 }
 
-function replayTraceSnapshot(replayUiContext, conversationRef) {
-  const workspace = typeof replayUiContext?.getProjectedWorkspaceReadModel === 'function'
-    ? replayUiContext.getProjectedWorkspaceReadModel(conversationRef)
-    : null;
-  if (!workspace) {
-    return {};
-  }
-  const tracePayload = buildReplayProjectionTracePayload({
-    action: 'replay_trace_snapshot',
-    conversationRef,
-    workspace,
-  });
-  return Object.fromEntries(
-    Object.entries(tracePayload).filter(
-      ([key]) => key !== 'action' && key !== 'conversationRef',
-    ),
-  );
-}
-
-function logReplayTimeline(replayUiContext, action, {
+function logReplayTimeline(action, {
   conversationRef,
   ...values
 }) {
   logRendererReplayTrace({
     action,
     conversationRef,
-    ...replayTraceSnapshot(replayUiContext, conversationRef),
     ...values,
   });
 }
@@ -107,7 +81,6 @@ function logReplayTimeline(replayUiContext, action, {
 async function executeReplayIntent({
   deferredQueryModelSelection,
   intent,
-  replayUiContext,
   sessionInfo,
   storeConversationRef,
 }) {
@@ -140,7 +113,7 @@ async function executeReplayIntent({
     userId: sessionInfo.userId || undefined,
     updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
   });
-  logReplayTimeline(replayUiContext, 'replay_start', {
+  logReplayTimeline('replay_start', {
     conversationRef,
     targetRowId,
   });
@@ -149,7 +122,7 @@ async function executeReplayIntent({
       ...(workspaceBinding.workspacePath ? { workspace_path: workspaceBinding.workspacePath } : {}),
     };
     try {
-      logReplayTimeline(replayUiContext, 'sdk_replay_sent', {
+      logReplayTimeline('sdk_replay_sent', {
         conversationRef,
         action,
         targetRowId,
@@ -172,14 +145,14 @@ async function executeReplayIntent({
           model: deferredQueryModelSelection || undefined,
         });
       }
-      logReplayTimeline(replayUiContext, 'sdk_replay_done', {
+      logReplayTimeline('sdk_replay_done', {
         conversationRef,
         action,
         replaySucceeded: true,
         targetRowId,
       });
     } catch (sdkReplayError) {
-      logReplayTimeline(replayUiContext, 'sdk_replay_failed', {
+      logReplayTimeline('sdk_replay_failed', {
         conversationRef,
         action,
         replaySucceeded: false,
@@ -194,7 +167,7 @@ async function executeReplayIntent({
     return true;
   } catch (error) {
     console.error(`[ChatInterface] ${errorPrefix}:`, error);
-    logReplayTimeline(replayUiContext, 'replay_failed_cleanup', {
+    logReplayTimeline('replay_failed_cleanup', {
       conversationRef,
       errorKind: traceErrorKind(error),
       targetRowId,
@@ -256,7 +229,6 @@ async function executeReplayAction({
       deferredQueryModelSelection,
     }),
     intent,
-    replayUiContext,
     sessionInfo: resolvedSessionInfo,
     storeConversationRef,
   });

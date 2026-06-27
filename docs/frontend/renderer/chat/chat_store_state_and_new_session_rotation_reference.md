@@ -273,9 +273,9 @@ trimmed into no-view/pending routing state.
   the normal post-send bridge.
   `useConversationReplayActions(...)` passes replay intent plus renderer config
   to `DesktopConversationReplayRuntime.executeReplayAction(...)` with only a
-  narrow `chatStoreAdapters.ts` UI context for active conversation and
-  projected workspace trace reads. `chatStoreAdapters.ts` does not expose
-  replay wrapper commands. The replay runtime derives deferred SDK model
+  narrow `chatStoreAdapters.ts` UI context for active conversation scope.
+  `chatStoreAdapters.ts` does not expose replay wrapper commands or projected
+  workspace rows to replay. The replay runtime derives deferred SDK model
   selection as command data before dispatching SDK commands, and its trace
   metadata names edit/retry targets as generic SDK `targetRowId` values before
   mapping them into the SDK command `messageId` field. It must not call the
@@ -421,15 +421,14 @@ app-runtime callers: with `ConversationView` present, its base rows must be
 SDK display-row messages or the explicit renderer pending bridge. Untagged raw
 chat-store rows are ignored before live-row insertion and duplicate checks.
 The conversation projection-stream hook applies the same rule when it needs
-workspace context for stale-turn checks and replay traces: it wraps raw store
+workspace context for stale-turn checks and projection diagnostics: it wraps raw store
 workspace reads with `projectWorkspaceReadModelState(...)`, so projection-stream
 diagnostics consume `sdkLiveTurn`. Replay projection traces accept exact
 pending, live, and stream-tracking turn refs only; padded refs are reported as
 missing instead of being trimmed into same-turn match diagnostics.
-Replay action diagnostics also route workspace snapshots through that read-model
-runtime before calling `buildReplayProjectionTracePayload(...)`, so SDK replay
-commands and their traces do not restore raw message/current-turn authority when
-`ConversationView` exists.
+Replay action diagnostics no longer route workspace snapshots through that
+read-model runtime; SDK replay commands log command intent/results without
+reading raw message/current-turn authority when `ConversationView` exists.
 
 When `ConversationView` exists, the shared interface projection returns the
 stable empty message list plus narrow `rendererAnnotations`; it does not pass

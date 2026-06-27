@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: stop replay command tracing from reading projected workspace
+  state; edit/retry actions now pass only active conversation scope plus target
+  row intent to the replay runtime. No migration required.
 - frontend/current-turn: reject legacy no-presentation SDK live-turn snapshots
   without exact conversation refs instead of synthesizing `conversation`
   renderer row identity. No migration required.

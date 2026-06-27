@@ -1216,12 +1216,12 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionStreamRuntimeSource).toContain('messageCount = hasConversationView');
     expect(projectionStreamRuntimeSource).toContain('DesktopConversationDisplayProjection');
     expect(projectionStreamRuntimeSource).not.toContain('features/chat');
-    expect(replayRuntimeSource).toContain('buildReplayProjectionTracePayload');
-    expect(replayRuntimeSource).toContain('getProjectedWorkspaceReadModel');
+    expect(replayRuntimeSource).not.toContain('buildReplayProjectionTracePayload');
+    expect(replayRuntimeSource).not.toContain('getProjectedWorkspaceReadModel');
     expect(replayRuntimeSource).not.toContain('projectWorkspaceReadModelState');
     expect(replayRuntimeSource).not.toContain('.getState()');
-    expect(replayRuntimeSource).toContain('Object.entries(tracePayload).filter');
-    expect(replayRuntimeSource).toContain("key !== 'action' && key !== 'conversationRef'");
+    expect(replayRuntimeSource).not.toContain('Object.entries(tracePayload).filter');
+    expect(replayRuntimeSource).not.toContain("key !== 'action' && key !== 'conversationRef'");
     expect(replayRuntimeSource).not.toContain('currentTurnProjection?.turnRef');
     expect(replayRuntimeSource).not.toContain('pendingTurn?.turnRef');
     expect(replayRuntimeSource).not.toContain('streamTracking?.activeTurnRef');
@@ -1958,7 +1958,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopChatSendPreparationRuntime');
     expect(source).toContain("} from '../stores/chatStoreAdapters';");
     expect(source).toContain('getActiveConversationRefFromChatStore');
-    expect(source).toContain('getProjectedWorkspaceReadModelFromChatStore');
+    expect(source).not.toContain('getProjectedWorkspaceReadModelFromChatStore');
     expect(source).toContain('replayUiContext');
     expect(source).not.toContain('useChatStore');
     expect(source).not.toContain('chatStore:');

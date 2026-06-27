@@ -142,14 +142,13 @@ effects. Retry and edit/resend live updates depend on that envelope; dropping
 the view leaves only the local pending bridge visible after the raw display-row
 stream subscription has been removed.
 
-Replay diagnostics use the same projection-stream helper. Replay intent runtime
-passes old/new turn refs into `buildReplayProjectionTracePayload(...)` and logs
-the resulting summary; it should not read raw current-turn, pending-turn, stream
-tracking, or message-count fields itself. Once `ConversationView` exists, that
-helper reports trace current-turn identity from `ConversationView.liveTurn` and
-uses that live-turn ref as the trace active turn while counting `displayRows`;
-raw `chatStore.messages`, `currentTurnProjection`, and stream-tracking active
-turn refs remain no-view diagnostic fallbacks only.
+Projection-stream diagnostics use `buildReplayProjectionTracePayload(...)` for
+stale-turn and replay-projection summaries; command replay itself no longer
+reads projected workspace state. Once `ConversationView` exists, projection
+diagnostics report trace current-turn identity from `ConversationView.liveTurn`
+and use that live-turn ref as the trace active turn while counting
+`displayRows`; raw `chatStore.messages`, `currentTurnProjection`, and
+stream-tracking active turn refs remain no-view diagnostic fallbacks only.
 
 Renderer-only feedback is merged back into matching SDK-projected messages by
 `desktopConversationDisplayProjection.ts`; prompt transparency, tool schemas,
