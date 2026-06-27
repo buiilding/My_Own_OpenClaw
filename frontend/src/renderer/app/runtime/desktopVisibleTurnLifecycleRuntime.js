@@ -2,10 +2,17 @@
  * Owns renderer-visible turn lifecycle projection for desktop surfaces.
  */
 
+import {
+  DesktopConversationDisplayRowLookupRuntime,
+} from './desktopConversationDisplayRowLookupRuntime';
+
 const TERMINAL_PHASES = new Set(['complete', 'error']);
 const ACTIVE_PROGRESS_PHASES = new Set(['tool_call', 'tool_output']);
 const AWAITING_PHASES = new Set(['awaiting']);
 const BUSY_PHASES = new Set(['awaiting', 'streaming', 'tool_call', 'tool_output']);
+const {
+  findConversationViewUserDisplayRowForTurn,
+} = DesktopConversationDisplayRowLookupRuntime;
 
 function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
@@ -123,35 +130,6 @@ function getConversationViewLiveTurnRef(conversationView) {
     normalizeTurnRef(conversationView?.liveTurn?.turnRef)
     || normalizeTurnRef(conversationView?.surfaces?.responseOverlay?.turnRef)
   );
-}
-
-function isConversationViewUserDisplayRow(row) {
-  return Boolean(
-    row
-      && typeof row === 'object'
-      && (
-        row.role === 'user'
-        || row.type === 'user_message'
-      ),
-  );
-}
-
-function findConversationViewUserDisplayRowForTurn(conversationView, turnRef) {
-  const normalizedTurnRef = normalizeTurnRef(turnRef);
-  if (!normalizedTurnRef || !Array.isArray(conversationView?.displayRows)) {
-    return null;
-  }
-  for (let index = conversationView.displayRows.length - 1; index >= 0; index -= 1) {
-    const row = conversationView.displayRows[index];
-    if (
-      isConversationViewUserDisplayRow(row)
-      && normalizeTurnRef(row.turnRef) === normalizedTurnRef
-      && normalizeString(row.id)
-    ) {
-      return row;
-    }
-  }
-  return null;
 }
 
 function hasConversationViewVisibleReplacement(conversationView, pendingTurn = null) {

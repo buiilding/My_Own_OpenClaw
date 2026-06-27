@@ -3735,6 +3735,14 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationDisplayProjection.ts'),
       'utf8',
     );
+    const conversationDisplayRowLookupSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationDisplayRowLookupRuntime.ts'),
+      'utf8',
+    );
+    const visibleLifecycleRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime.js'),
+      'utf8',
+    );
     const messageActionRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageActionRuntime.js'),
       'utf8',
@@ -4078,6 +4086,18 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationDisplayProjectionSource).not.toContain('selectRendererMessageAnnotations');
     expect(conversationDisplayProjectionSource).not.toContain('emptyRendererMessageAnnotations');
     expect(conversationDisplayProjectionSource).not.toContain('hasRendererMessageAnnotations');
+    expect(conversationDisplayProjectionSource).toContain('findConversationViewUserDisplayRowForTurn');
+    expect(conversationDisplayProjectionSource).toContain('DesktopConversationDisplayRowLookupRuntime');
+    expect(conversationDisplayRowLookupSource).toContain('findConversationViewUserDisplayRowForTurn');
+    expect(conversationDisplayRowLookupSource).toContain('ConversationView display-row lookup');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('findConversationViewUserDisplayRowForTurn');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('DesktopConversationDisplayRowLookupRuntime');
+    expect(conversationViewWorkspaceRuntimeSource).not.toContain('const hasSameTurnUserDisplayRow = displayRows.some');
+    expect(visibleLifecycleRuntimeSource).toContain('findConversationViewUserDisplayRowForTurn');
+    expect(visibleLifecycleRuntimeSource).toContain('DesktopConversationDisplayRowLookupRuntime');
+    expect(visibleLifecycleRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
+    expect(visibleLifecycleRuntimeSource).not.toContain('function isConversationViewUserDisplayRow');
+    expect(visibleLifecycleRuntimeSource).not.toContain('conversationView.displayRows.length - 1');
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBridgeRuntime');
     expect(chatStoreSource).not.toContain('buildPendingTurnUserMessage');
     expect(chatStoreSource).not.toContain('function normalizePendingTurn');

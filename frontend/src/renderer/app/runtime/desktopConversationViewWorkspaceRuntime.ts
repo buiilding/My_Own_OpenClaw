@@ -1,4 +1,11 @@
 import type { ConversationView } from './desktopConversationRuntimeContracts';
+import {
+  DesktopConversationDisplayRowLookupRuntime,
+} from './desktopConversationDisplayRowLookupRuntime';
+
+const {
+  findConversationViewUserDisplayRowForTurn,
+} = DesktopConversationDisplayRowLookupRuntime;
 
 type ConversationViewWorkspace = {
   conversationView: ConversationView | null;
@@ -140,15 +147,9 @@ function normalizeConversationViewLiveTurn(conversationView: ConversationView | 
   );
   const phase = normalizeString(liveTurn?.phase);
   const entries = Array.isArray(liveTurn?.entries) ? liveTurn.entries : [];
-  const displayRows = Array.isArray(conversationView.displayRows)
-    ? conversationView.displayRows
-    : [];
-  const hasSameTurnUserDisplayRow = displayRows.some((row) => (
-    row
-      && typeof row === 'object'
-      && row.role === 'user'
-      && normalizeString(row.turnRef) === turnRef
-  ));
+  const hasSameTurnUserDisplayRow = Boolean(
+    findConversationViewUserDisplayRowForTurn(conversationView, turnRef),
+  );
   const hasVisibleReplacement = Boolean(
     hasSameTurnUserDisplayRow
       || entries.length > 0

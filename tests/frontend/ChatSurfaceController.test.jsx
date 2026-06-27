@@ -34,6 +34,13 @@ function renderController({
       reasoningText: null,
       toolEvents: [],
       lastError: null,
+      presentation: {
+        entries: [{
+          id: 'entry-streaming',
+          type: 'llm-text',
+          text: 'streaming response',
+        }],
+      },
     },
     conversationView = null,
     pendingTurn = null,
@@ -133,6 +140,13 @@ describe('useChatSurfaceController', () => {
           reasoningText: null,
           toolEvents: [],
           lastError: null,
+          presentation: {
+            entries: [{
+              id: 'entry-visible-turn',
+              type: 'llm-text',
+              text: 'streaming response',
+            }],
+          },
         },
       },
     });
@@ -385,6 +399,13 @@ describe('useChatSurfaceController', () => {
           reasoningText: null,
           toolEvents: [],
           lastError: null,
+          presentation: {
+            entries: [{
+              id: 'entry-busy',
+              type: 'llm-text',
+              text: 'streaming',
+            }],
+          },
         },
       },
     });

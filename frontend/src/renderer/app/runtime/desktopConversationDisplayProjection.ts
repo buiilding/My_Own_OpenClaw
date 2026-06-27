@@ -10,6 +10,9 @@ import {
 import {
   DesktopPendingTurnBridgeRuntime,
 } from './desktopPendingTurnBridgeRuntime';
+import {
+  DesktopConversationDisplayRowLookupRuntime,
+} from './desktopConversationDisplayRowLookupRuntime';
 
 const {
   buildChatMessagesFromSdkDisplayRows,
@@ -17,6 +20,9 @@ const {
 const {
   buildPendingTurnUserMessage,
 } = DesktopPendingTurnBridgeRuntime;
+const {
+  findConversationViewUserDisplayRowForTurn,
+} = DesktopConversationDisplayRowLookupRuntime;
 
 type PendingTurnLike = {
   conversationRef?: string | null;
@@ -194,4 +200,5 @@ export const DesktopConversationDisplayProjection = Object.freeze({
   buildConversationViewChatMessages,
   buildConversationViewTurnChatMessages,
   buildPendingBridgeChatMessages,
+  findConversationViewUserDisplayRowForTurn,
 });

@@ -11,6 +11,7 @@ const {
   buildConversationViewChatMessages,
   buildConversationViewTurnChatMessages,
   buildPendingBridgeChatMessages,
+  findConversationViewUserDisplayRowForTurn,
 } = DesktopConversationDisplayProjection;
 
 function message(overrides: Partial<ChatMessage>): ChatMessage {
@@ -142,6 +143,88 @@ describe('desktopConversationDisplayProjection', () => {
       conversationView: conversationViewWithRows([]),
       turnRef: 'turn-2',
     })).toEqual([]);
+  });
+
+  test('finds the last same-turn SDK user display row with a stable row id', () => {
+    const conversationView = conversationViewWithRows([
+      {
+        id: 'first-user-turn-1',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'first prompt',
+      },
+      {
+        id: 'assistant-turn-1',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 1,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'answer',
+      },
+      {
+        id: '',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 2,
+        role: 'user',
+        type: 'user_message',
+        content: 'invalid duplicate prompt',
+      },
+      {
+        id: 'last-user-turn-1',
+        conversationRef: 'conv-1',
+        turnRef: ' turn-1 ',
+        index: 3,
+        role: 'assistant',
+        type: 'user_message',
+        content: 'last valid prompt',
+      },
+    ]);
+
+    expect(findConversationViewUserDisplayRowForTurn(conversationView, 'turn-1')).toEqual(
+      expect.objectContaining({
+        id: 'last-user-turn-1',
+        content: 'last valid prompt',
+      }),
+    );
+  });
+
+  test('does not find assistant, missing-id, or wrong-turn display rows as SDK user rows', () => {
+    expect(findConversationViewUserDisplayRowForTurn(conversationViewWithRows([
+      {
+        id: 'assistant-turn-1',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'answer',
+      },
+      {
+        id: '',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 1,
+        role: 'user',
+        type: 'user_message',
+        content: 'missing id',
+      },
+      {
+        id: 'wrong-turn-user',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        index: 2,
+        role: 'user',
+        type: 'user_message',
+        content: 'wrong turn',
+      },
+    ]), 'turn-1')).toBeNull();
+    expect(findConversationViewUserDisplayRowForTurn(conversationViewWithRows([]), 'turn-1')).toBeNull();
+    expect(findConversationViewUserDisplayRowForTurn(null, 'turn-1')).toBeNull();
   });
 
   test('merges renderer-only feedback back into matching SDK messages', () => {

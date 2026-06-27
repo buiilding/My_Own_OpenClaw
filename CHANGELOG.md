@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: centralize same-turn SDK user display-row lookup in
+  `DesktopConversationDisplayRowLookupRuntime`, re-export it from
+  `DesktopConversationDisplayProjection`, and route ConversationView
+  pending-handoff and visible lifecycle code through the shared helper instead
+  of local `displayRows` scans. No migration required.
 - frontend/overlay: route response-overlay active-turn display-row conversion
   through `DesktopConversationDisplayProjection` instead of importing the
   low-level SDK display-row message projector directly. No migration required.
