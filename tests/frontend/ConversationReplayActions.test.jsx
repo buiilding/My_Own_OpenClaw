@@ -186,7 +186,8 @@ describe('useConversationReplayActions', () => {
     errorSpy.mockRestore();
   });
 
-  test('reuses projected chat-store conversation ref when transcript session is empty', async () => {
+  test('does not use chat-store active conversation when transcript session is empty', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     mockConversationRef = null;
     useChatStore.setState({ activeConversationRef: 'conv-store-active' });
     const { result } = renderHook(() => useConversationReplayActions());
@@ -195,8 +196,10 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-store');
     });
 
-    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-store-active', 'user-1');
-    expect(mockRetryTurn.mock.calls[0][0].conversationRef).toBe('conv-store-active');
+    expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
+    expect(mockRetryTurn).not.toHaveBeenCalled();
+    expect(mockEditAndResend).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 
   test('passes blank edit text through to SDK replay command', async () => {

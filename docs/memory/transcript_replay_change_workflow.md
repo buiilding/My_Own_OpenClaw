@@ -130,14 +130,14 @@ flowchart LR
      replacement display rows.
    - React replay hooks should pass edit/retry intent through
      `desktopConversationReplayRuntime`. Hooks call the runtime's single
-     replay-action entrypoint with row ids/text plus a narrow UI context for
-     active conversation scope only; active conversation state is resolved by
-     the runtime from that adapter instead of selected in React, passed as a
-     caller override, projected from workspace rows, or read through the full
-     Zustand store contract. If neither
-     transcript session nor chat-store active workspace has a conversation ref,
-     replay returns a traced failure instead of creating a fresh conversation
-     whose SDK display rows cannot own the target id. Replay failures are
+     replay-action entrypoint with row ids/text only; active conversation scope
+     is resolved from transcript/session state behind the app-runtime boundary
+     instead of selected in React, passed as a caller override, projected from
+     workspace rows, or read through the full Zustand store contract. If
+     transcript/session state has no conversation ref, replay returns a traced
+     failure instead of falling back to chat-store active workspace or creating
+     a fresh conversation whose SDK display rows cannot own the target id.
+     Replay failures are
      trace/status outcomes rather than
      renderer-published chat rows. That public facade exports only
      `executeReplayAction`, and hooks do not call replay preparation helpers,
@@ -148,8 +148,9 @@ flowchart LR
      boundary. It must not call the renderer settings facade to apply the model
      before dispatch; SDK replay commands apply model selection through their
      normal `send()` path.
-     Chat-store adapters should not export replay wrapper commands; the store
-     shape and `getState()` contract must not be passed into the replay runtime.
+     Chat-store adapters should not export replay wrapper commands, active-scope
+     helpers for replay, or projected workspace rows; the store shape and
+     `getState()` contract must not be passed into the replay runtime.
    - Renderer app-runtime facades should not expose direct display timeline
      load/replace helpers to React. Low-level display timeline operations remain
      SDK/main-owner diagnostics and command-handler concerns; normal UI paths

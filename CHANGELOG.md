@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: stop using chat-store active conversation state as replay
+  command scope; edit/retry commands now require transcript/session
+  conversation identity before SDK dispatch. No migration required.
 - frontend/live-turn: stop projecting attachments from legacy no-view
   current-turn `toolEvents`; live attachments now surface only through SDK
   presentation entries or `ConversationView` live-turn entries. No migration

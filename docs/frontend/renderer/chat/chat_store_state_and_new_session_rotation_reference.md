@@ -285,7 +285,8 @@ trimmed into no-view/pending routing state.
   store. Pending-turn IPC broadcasts use
   `applyPendingTurnBroadcastToChatStore(...)` instead of a Zustand action, so
   React components do not select broadcast handling from store state.
-- Replay/edit/retry commands do not use the renderer pending-turn bridge.
+- Replay/edit/retry commands do not use the renderer pending-turn bridge or
+  chat-store active conversation refs as command scope.
   `desktopConversationReplayRuntime` passes only row ids/text, workspace path,
   optional model-selection command data, and session identity to SDK command
   APIs; SDK runtime owns target-row lookup, child display revision cuts,
@@ -294,18 +295,18 @@ trimmed into no-view/pending routing state.
   `attachments[]`. The legacy replay-pending reducer and renderer
   superseded-turn ledger have been removed; renderer pending state is now only
   the normal post-send bridge.
-  `useConversationReplayActions(...)` passes replay intent plus renderer config
-  to `DesktopConversationReplayRuntime.executeReplayAction(...)` with only a
-  narrow `chatStoreAdapters.ts` UI context for active conversation scope.
-  `chatStoreAdapters.ts` does not expose replay wrapper commands or projected
-  workspace rows to replay. The replay runtime derives deferred SDK model
-  selection as command data before dispatching SDK commands, and its trace
-  metadata names edit/retry targets as generic SDK `targetRowId` values before
-  mapping them into the SDK command `messageId` field. It must not call the
-  renderer settings facade to apply the model directly or depend on the full
-  Zustand store object. Replay requires an existing conversation ref from the
-  transcript session or chat-store active workspace; it must not create a fresh
-  conversation for a row id the SDK cannot resolve.
+  `useConversationReplayActions(...)` passes replay intent to
+  `DesktopConversationReplayRuntime.executeReplayAction(...)` with no
+  chat-store adapter context. `chatStoreAdapters.ts` does not expose replay
+  wrapper commands, active-scope helpers for replay, or projected workspace rows
+  to replay. The replay runtime derives deferred SDK model selection as command
+  data before dispatching SDK commands, and its trace metadata names edit/retry
+  targets as generic SDK `targetRowId` values before mapping them into the SDK
+  command `messageId` field. It must not call the renderer settings facade to
+  apply the model directly or depend on the full Zustand store object. Replay
+  requires an existing conversation ref from transcript/session state; it must
+  not create a fresh conversation or fall back to chat-store active workspace
+  for a row id the SDK cannot resolve.
 - `clearPendingTurnInChatStore(...)` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn.
   Pending-turn clear matching, broadcast action branching, and workspace
@@ -586,9 +587,9 @@ When checkout/fork commands return a `ConversationView`, `ChatInterface` stores
 only that SDK view for the target conversation; it does not project
 `displayRows` back into active workspace messages.
 Replay actions do not consume selector row models. The hook passes only row
-ids/text plus UI dependencies to `DesktopConversationReplayRuntime`, which
-forwards intent to SDK command APIs and resolves replay conversation scope from
-transcript session plus the injected store dependency, not a caller-provided
+ids/text to `DesktopConversationReplayRuntime`, which forwards intent to SDK
+command APIs and resolves replay conversation scope from transcript/session
+state, not chat-store active workspace or a caller-provided
 active-conversation override. The chat-store adapter surface does not publish
 replay actions. SDK runtime resolves display rows and resources from its
 canonical `ConversationView`/display timeline state.

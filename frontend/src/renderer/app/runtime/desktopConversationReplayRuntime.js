@@ -55,10 +55,10 @@ function prepareReplayRetryIntent({ assistantMessageId }) {
   };
 }
 
-function resolveExistingConversationRef(sessionConversationRef, storeConversationRef) {
+function resolveExistingConversationRef(sessionConversationRef) {
   return readExactReplayConversationRef(DesktopTranscriptSessionRuntimeClient.getActiveConversationRef())
     || readExactReplayConversationRef(sessionConversationRef)
-    || readExactReplayConversationRef(storeConversationRef);
+    || null;
 }
 
 function traceErrorKind(error) {
@@ -86,7 +86,6 @@ async function executeReplayIntent({
   intent,
   modelSelection,
   sessionInfo,
-  storeConversationRef,
 }) {
   if (!intent) {
     return false;
@@ -97,10 +96,7 @@ async function executeReplayIntent({
     queryText,
     targetRowId,
   } = intent;
-  const conversationRef = resolveExistingConversationRef(
-    sessionInfo.conversationRef,
-    storeConversationRef,
-  );
+  const conversationRef = resolveExistingConversationRef(sessionInfo.conversationRef);
   if (!conversationRef) {
     console.error(`[ChatInterface] ${errorPrefix}: missing active conversation`);
     logRendererReplayTrace({
@@ -203,7 +199,6 @@ async function executeReplayAction({
   action,
   assistantMessageId = null,
   editedText = null,
-  replayUiContext = null,
   userMessageId = null,
 }) {
   const intent = prepareReplayActionIntent({
@@ -216,14 +211,10 @@ async function executeReplayAction({
     return undefined;
   }
   const resolvedSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
-  const storeConversationRef = typeof replayUiContext?.getActiveConversationRef === 'function'
-    ? replayUiContext.getActiveConversationRef()
-    : null;
   return executeReplayIntent({
     intent,
     modelSelection: resolveReplayModelSelection(),
     sessionInfo: resolvedSessionInfo,
-    storeConversationRef,
   });
 }
 
