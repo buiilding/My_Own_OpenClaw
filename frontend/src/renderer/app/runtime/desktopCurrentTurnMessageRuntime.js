@@ -103,7 +103,6 @@ function buildProjectedToolOutputMessage({
     type: 'tool-output',
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
-    modelFacingToolOutput: outputText,
     ...(correlationId ? { correlationId } : {}),
     ...(liveTurnRef ? { turnRef: liveTurnRef } : {}),
   };
@@ -359,7 +358,6 @@ function buildToolOutputMessage(entry, liveTurnContext) {
     type: 'tool-output',
     sourceEventType: readExactSdkString(entry.sourceEventType) || 'tool_output',
     sourceChannel: liveTurnContext?.sourceChannel || sdkCurrentTurnSourceChannel,
-    modelFacingToolOutput: text,
     toolOutputDetails,
     ...(attachments.length > 0 ? { attachments } : {}),
     ...(correlationId ? { correlationId } : {}),

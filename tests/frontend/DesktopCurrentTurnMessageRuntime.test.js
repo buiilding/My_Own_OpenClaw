@@ -213,6 +213,7 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
       turnRef: 'turn-view',
       sourceChannel: 'sdk:conversation-view',
     });
+    expect(messages[0]).not.toHaveProperty('modelFacingToolOutput');
   });
 
   test('drops ConversationView live entries with malformed SDK row ids', () => {
@@ -336,6 +337,7 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
       text: 'captured screen',
       sourceChannel: 'sdk:current-turn',
     }));
+    expect(toolMessage).not.toHaveProperty('modelFacingToolOutput');
     expect(toolMessage).not.toHaveProperty('attachments');
   });
 

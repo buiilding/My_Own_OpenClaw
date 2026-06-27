@@ -4428,6 +4428,7 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnMessageRuntimeSource).not.toContain('toolEvent.attachments');
     expect(currentTurnMessageRuntimeSource).not.toContain('readSdkDisplayAttachments(toolEvent');
     expect(currentTurnMessageRuntimeSource).not.toContain('attachments: [],');
+    expect(currentTurnMessageRuntimeSource).not.toContain('modelFacingToolOutput');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveEntryCorrelationId(entry)');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveToolEventCorrelationId(toolEvent)');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveToolName(value)');

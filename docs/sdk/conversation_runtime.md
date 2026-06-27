@@ -556,6 +556,8 @@ props. The
 `ConversationView.liveTurn.turnRef` context follows the same exact rule before
 renderer adapters copy it into live row props, so padded view-level live-turn
 refs cannot become visible component identity.
+Live-entry tool-output projection writes visible output to `message.text` only
+and does not duplicate entry text into the legacy `modelFacingToolOutput` prop.
 Tool live-entry identity fields such as `correlationId`, `requestId`, and
 `bundleId` are exact SDK strings in renderer presentation; padded or empty
 values are ignored rather than trimmed into duplicate-detection keys. Legacy

@@ -389,9 +389,10 @@ describe('desktopCurrentTurnMessageRuntime', () => {
       expect.objectContaining({
         type: 'tool-output',
         text: expect.stringContaining('README contents'),
-        modelFacingToolOutput: expect.stringContaining('README contents'),
       }),
     ]));
+    expect(messages.find(message => message.type === 'tool-output'))
+      .not.toHaveProperty('modelFacingToolOutput');
   });
 
 });
