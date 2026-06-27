@@ -9,9 +9,6 @@ type ToolOutputChatMessageStateInput = {
   outputText: string;
   sourceEventType?: string | null;
   sourceChannel?: string | null;
-  toolName?: string | null;
-  executionTime?: number | null;
-  success?: boolean | null;
   correlationId?: string | null;
   toolOutputDetails?: Record<string, unknown> | null;
   attachments?: SdkDisplayAttachment[] | null;
@@ -28,9 +25,6 @@ export function buildToolOutputChatMessageState({
   outputText,
   sourceEventType = null,
   sourceChannel = null,
-  toolName = null,
-  executionTime = null,
-  success = null,
   correlationId = null,
   toolOutputDetails = null,
   attachments = null,
@@ -48,9 +42,6 @@ export function buildToolOutputChatMessageState({
     type: 'tool-output',
     ...(sourceEventType ? { sourceEventType } : {}),
     ...(sourceChannel ? { sourceChannel } : {}),
-    ...(toolName ? { toolName } : {}),
-    ...(executionTime !== null && executionTime !== undefined ? { executionTime } : {}),
-    ...(success !== null && success !== undefined ? { success } : {}),
     ...(correlationId ? { correlationId } : {}),
     ...(modelFacingToolOutput !== null ? { modelFacingToolOutput } : {}),
     ...(preserveNullToolOutputDetails || toolOutputDetails !== null ? { toolOutputDetails } : {}),

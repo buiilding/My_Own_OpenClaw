@@ -30,6 +30,9 @@ describe('toolOutputChatMessageState', () => {
       modelProvider: 'provider-1',
     } as Parameters<typeof buildToolOutputChatMessageState>[0] & {
       toolMetadata: Record<string, unknown>;
+      toolName: string;
+      executionTime: number;
+      success: boolean;
     });
 
     expect(message).toEqual({
@@ -39,9 +42,6 @@ describe('toolOutputChatMessageState', () => {
       type: 'tool-output',
       sourceEventType: 'tool-output',
       sourceChannel: 'sdk:conversation-event',
-      toolName: 'mouse_control',
-      executionTime: 0.5,
-      success: true,
       correlationId: 'req-1',
       modelFacingToolOutput: 'clicked',
       toolOutputDetails: { request_id: 'req-1' },
@@ -61,6 +61,9 @@ describe('toolOutputChatMessageState', () => {
     expect(message).not.toHaveProperty('screenshotUrl');
     expect(message).not.toHaveProperty('screenshotContentType');
     expect(message).not.toHaveProperty('toolMetadata');
+    expect(message).not.toHaveProperty('toolName');
+    expect(message).not.toHaveProperty('executionTime');
+    expect(message).not.toHaveProperty('success');
 
     uuidSpy.mockRestore();
   });

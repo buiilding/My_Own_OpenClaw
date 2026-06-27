@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tool-output: remove legacy top-level `toolName`, `executionTime`,
+  and `success` from the tool-output message-state helper so SDK
+  `toolOutputDetails` remains the only tool detail payload. No migration
+  required.
 - frontend/tool-output: remove legacy `toolMetadata` from the tool-output
   message-state helper so helper output cannot publish a parallel detail
   channel beside SDK `toolOutputDetails`. No migration required.

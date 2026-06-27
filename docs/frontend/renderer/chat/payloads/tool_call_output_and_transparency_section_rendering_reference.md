@@ -144,8 +144,9 @@ attachment lifecycle descriptors; those stay on SDK display fields such as
 do not rebuild missing details from `toolMetadata`, `toolName`,
 `executionTime`, or `success`; SDK `toolOutputDetails` is the only details
 payload authority. The transcript tool-output state helper also omits
-`toolMetadata`, so adapters must pass explicit `toolOutputDetails` instead of
-publishing a parallel metadata channel.
+`toolMetadata`, `toolName`, `executionTime`, and `success`, so adapters must
+pass explicit `toolOutputDetails` instead of publishing parallel detail
+channels.
 
 Visible tool-output screenshots render through the same typed attachment path as
 user visuals:
