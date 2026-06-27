@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: stop using `ConversationView.displayRows` as a response
+  overlay view-shape marker; overlay display-row rendering stays behind
+  `DesktopConversationDisplayProjection`. No migration required.
 - frontend/send: route ConversationView prior-user detection through
   `DesktopConversationDisplayRowLookupRuntime`, so send-state no longer carries
   local SDK display-row scanning rules. No migration required.

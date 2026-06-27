@@ -2009,6 +2009,9 @@ describe('renderer app runtime boundary', () => {
     expect(selectorRuntimeSource).toContain('const sdkLiveTurn = conversationView ? null : activeWorkspace.sdkLiveTurn ?? null;');
     expect(selectorRuntimeSource).toContain('sdkLiveTurn,');
     expect(chatInterfaceSelectorRuntimeSource).toContain(
+      'const presentationMessages = interfaceState.messages as ChatMessage[];',
+    );
+    expect(chatInterfaceSelectorRuntimeSource).not.toContain(
       'const messages = conversationView ? [] : activeWorkspace.messages;',
     );
     expect(chatInterfaceSelectorRuntimeSource).toContain('messages,');

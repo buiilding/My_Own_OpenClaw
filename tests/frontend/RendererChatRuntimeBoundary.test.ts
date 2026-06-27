@@ -3259,6 +3259,7 @@ describe('renderer chat runtime boundary', () => {
     expect(responseViewRuntimeSource).not.toContain('projectionInput');
     expect(responseViewRuntimeSource).toContain('buildConversationViewTurnChatMessages');
     expect(responseViewRuntimeSource).not.toContain('buildChatMessagesFromSdkDisplayRows');
+    expect(responseViewRuntimeSource).not.toContain('view.displayRows');
     expect(responseViewRuntimeSource).toContain('const messages = conversationView');
     expect(responseViewRuntimeSource).toContain('const sdkLiveTurn = conversationView ? null : surfaceState.sdkLiveTurn ?? null;');
     expect(viewModelSource).not.toContain('currentTurnProjection');

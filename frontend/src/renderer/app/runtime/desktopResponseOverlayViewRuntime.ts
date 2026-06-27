@@ -170,7 +170,6 @@ function isConversationView(value: unknown): boolean {
   const view = recordFromUnknown(value);
   return Boolean(
     view.conversationRef
-      || view.displayRows
       || view.liveTurn
       || view.surfaces,
   );
