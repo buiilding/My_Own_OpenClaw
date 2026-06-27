@@ -10,7 +10,6 @@ import {
 } from '../../chat/stores/chatStore';
 import {
   clearMessagesInChatStore,
-  getWorkspaceStateFromChatStore,
   setConversationViewInChatStore,
   setIsSendingInChatStore,
   setThinkingStatusInChatStore,
@@ -123,7 +122,6 @@ function DashboardShell({
     resolvedUserId,
     sessionConversationRef: sessionInfo.conversationRef,
     activeConversationRef: activeChatConversationRef,
-    getChatWorkspaceState: getWorkspaceStateFromChatStore,
     clearChatMessages: clearMessagesInChatStore,
     setChatIsSending: setIsSendingInChatStore,
     setChatThinkingStatus: setThinkingStatusInChatStore,

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/dashboard: remove the raw chat-workspace read from dashboard
+  conversation open; the hook now requests a view-preserving clear while the
+  chat-store clear runtime owns preserving cached SDK `ConversationView`
+  state. No migration required.
 - frontend/replay: stop reading deferred renderer model selection for
   retry/edit replay commands, leaving replay dispatch as row intent plus
   session identity while SDK commands own model application. No migration

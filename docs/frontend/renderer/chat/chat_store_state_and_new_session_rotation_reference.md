@@ -75,9 +75,11 @@ mutation helpers and applies their returned state updates through
 projected read-model, or send read-model snapshots use named
 `chatStoreAdapters.ts` getters instead of calling `useChatStore.getState()`
 directly.
-Dashboard conversation-open reset code receives
-`getWorkspaceStateFromChatStore` from the adapter layer rather than a raw
-Zustand `getWorkspaceState` method from `DashboardShell`.
+Dashboard conversation-open reset code does not receive a raw workspace getter
+from `DashboardShell`. It calls the chat-store clear adapter with
+`preserveConversationView: true`; the clear-message app-runtime owner decides
+whether a cached complete SDK `ConversationView` should survive while stale
+no-view messages, live-turn fallback state, and pending bridges are cleared.
 Stream compaction handlers persist SDK replay replacement snapshots through
 `DesktopChatStreamCompactionRuntime`; React handlers should not call the
 conversation continuity service directly.

@@ -143,8 +143,9 @@ role prefix.
 `handleOpenConversation(conversation)`:
 
 1. updates transcript session and active conversation ref
-2. clears the target chat workspace only when it has no cached rows, so stale
-   rows do not remain visible while the SDK view is loading
+2. asks the chat-store clear adapter for a view-preserving reset, so stale
+   no-view rows do not remain visible while the SDK view is loading and cached
+   SDK `ConversationView` state remains under the chat-store runtime owner
 3. loads the SDK `ConversationView` through the desktop conversation
    library/runtime
 4. stores the loaded `ConversationView` as the normal chat read model

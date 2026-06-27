@@ -1298,6 +1298,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js'),
       'utf8',
     );
+    const dashboardLoadRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime.js'),
+      'utf8',
+    );
 
     expect(dashboardHookSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(dashboardHookSource).not.toContain('desktopConversationDisplayProjection');
@@ -1311,9 +1315,13 @@ describe('renderer chat runtime boundary', () => {
     expect(dashboardHookSource).not.toContain('hasWorkspaceConversationView');
     expect(dashboardHookSource).toContain('applyDashboardConversationOpenWorkspaceReset');
     expect(dashboardHookSource).not.toContain('cachedWorkspace?.conversationView');
-    expect(dashboardShellSource).toContain('getWorkspaceStateFromChatStore');
-    expect(dashboardShellSource).toContain('getChatWorkspaceState: getWorkspaceStateFromChatStore');
+    expect(dashboardHookSource).not.toContain('getChatWorkspaceState');
+    expect(dashboardHookSource).not.toContain('getWorkspaceState');
+    expect(dashboardShellSource).not.toContain('getWorkspaceStateFromChatStore');
+    expect(dashboardShellSource).not.toContain('getChatWorkspaceState:');
     expect(dashboardShellSource).not.toContain('(state) => state.getWorkspaceState');
+    expect(dashboardLoadRuntimeSource).toContain('preserveConversationView: true');
+    expect(dashboardLoadRuntimeSource).not.toContain('getWorkspaceState');
     expect(dashboardHookSource).toContain('DesktopConversationLibraryClient.loadConversationView');
     expect(dashboardHookSource).not.toContain('DesktopConversationLibraryClient.loadDisplayRows');
     expect(dashboardHookSource).toContain('setChatConversationView?.(conversationView, conversationRef)');

@@ -163,11 +163,14 @@ Normalization:
 `handleOpenConversation(conversation)` shell behavior:
 
 1. guard missing `conversation_id`.
-2. ask the SDK conversation library to load canonical local-runtime `conversation_events`.
-3. project SDK events for UI display.
-4. mark the conversation inference session unknown for lazy continuity rehydrate.
-5. update active conversation + transcript session identity.
-6. replace chat messages and clear sending/thinking flags.
+2. update active conversation + transcript session identity.
+3. ask the chat-store clear adapter for a view-preserving reset so stale
+   no-view rows are cleared while cached SDK `ConversationView` state remains
+   owned by the store runtime.
+4. ask the SDK conversation library to load the canonical `ConversationView`
+   through `conversation.loadDisplay`.
+5. store the loaded `ConversationView` as the normal chat read model and clear
+   sending/thinking/token flags for the selected workspace.
 
 Error behavior:
 

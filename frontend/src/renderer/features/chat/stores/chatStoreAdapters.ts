@@ -270,11 +270,13 @@ export function setMessagesInChatStore(
 
 export function clearMessagesInChatStore(
   conversationRef?: string | null,
+  options: { preserveConversationView?: boolean } = {},
 ): void {
   useChatStore.setState((state) => (
     buildClearMessagesStateUpdate<ChatState, StreamTracking, ChatWorkspaceState>({
       conversationRef,
       deps: clearMessagesStateRuntimeDependencies,
+      preserveConversationView: options.preserveConversationView === true,
       state,
     })
   ));

@@ -62,7 +62,6 @@ export function useDashboardConversations({
   resolvedUserId,
   sessionConversationRef,
   activeConversationRef,
-  getChatWorkspaceState,
   clearChatMessages,
   setChatIsSending,
   setChatThinkingStatus,
@@ -271,7 +270,6 @@ export function useDashboardConversations({
       });
       applyDashboardConversationOpenWorkspaceReset({
         conversationRef,
-        getWorkspaceState: getChatWorkspaceState,
         clearMessages: clearChatMessages,
         setIsSending: setChatIsSending,
         setThinkingStatus: setChatThinkingStatus,
@@ -307,7 +305,6 @@ export function useDashboardConversations({
   }, [
     clearChatMessages,
     activeConversationRef,
-    getChatWorkspaceState,
     resolvedUserId,
     setChatActiveConversationRef,
     setChatConversationView,

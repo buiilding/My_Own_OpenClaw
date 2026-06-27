@@ -2,10 +2,6 @@
  * Provides dashboard conversation load rules for the renderer app runtime.
  */
 
-import {
-  DesktopConversationViewWorkspaceRuntime,
-} from './desktopConversationViewWorkspaceRuntime';
-
 const MAX_RECENT_CHAT_RETRY_ATTEMPTS = 8;
 const RECENT_CHAT_RETRY_BASE_DELAY_MS = 250;
 const RECENT_CHAT_RETRY_MAX_DELAY_MS = 2000;
@@ -76,7 +72,6 @@ function getDashboardConversationRef(conversation) {
 
 function applyDashboardConversationOpenWorkspaceReset({
   conversationRef,
-  getWorkspaceState,
   clearMessages,
   setIsSending,
   setThinkingStatus,
@@ -86,24 +81,11 @@ function applyDashboardConversationOpenWorkspaceReset({
   if (!targetRef) {
     return {
       didReset: false,
-      hasConversationView: false,
-    };
-  }
-  const workspace = typeof getWorkspaceState === 'function'
-    ? getWorkspaceState(targetRef)
-    : null;
-  const hasConversationView = (
-    DesktopConversationViewWorkspaceRuntime.hasWorkspaceConversationView(workspace)
-  );
-  if (hasConversationView) {
-    return {
-      didReset: false,
-      hasConversationView: true,
     };
   }
 
   if (typeof clearMessages === 'function') {
-    clearMessages(targetRef);
+    clearMessages(targetRef, { preserveConversationView: true });
   }
   if (typeof setIsSending === 'function') {
     setIsSending(false, targetRef);
@@ -117,7 +99,6 @@ function applyDashboardConversationOpenWorkspaceReset({
 
   return {
     didReset: true,
-    hasConversationView: false,
   };
 }
 
