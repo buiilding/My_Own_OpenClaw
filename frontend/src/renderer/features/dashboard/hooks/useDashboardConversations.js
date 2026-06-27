@@ -111,8 +111,16 @@ export function useDashboardConversations({
       return [];
     }
 
+    const shouldForceReload = options.forceReload === true;
+    const shouldClearBeforeLoad = options.clearBeforeLoad === true;
+    if (shouldClearBeforeLoad) {
+      updateRecentConversations([]);
+      setPinnedConversationRefs([]);
+      setRecentConversationsError('');
+    }
+
     const activeLoad = recentConversationLoadInFlightRef.current;
-    if (activeLoad && activeLoad.userId === resolvedUserId) {
+    if (!shouldForceReload && activeLoad && activeLoad.userId === resolvedUserId) {
       return activeLoad.promise;
     }
 

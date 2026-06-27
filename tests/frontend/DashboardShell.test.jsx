@@ -119,7 +119,10 @@ jest.mock('../../frontend/src/renderer/features/chat/components/ChatInterface', 
 );
 
 jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/SettingsSection', () => (props) => (
-  <div data-testid="settings-section-stub">
+  <div
+    data-testid="settings-section-stub"
+    data-memory-admin-user-id={props.memoryAdminUserId || ''}
+  >
     <button type="button" onClick={() => props.onClose?.()}>
       Back to dashboard
     </button>
@@ -1020,6 +1023,21 @@ describe('DashboardShell', () => {
     ))).toBe(true);
     expect(mockClearAllConversationWorkspaceBindings.mock.calls.length).toBe(1);
     expect(hasSdkCommandCall('conversations.list', { userId: 'user-live' })).toBe(true);
+  });
+
+  test('settings receives the snapshot user id when transcript session is default user', async () => {
+    mockSessionInfo = { conversationRef: 'conv-live', userId: 'default_user' };
+    mockClientSnapshot = { isConnected: true, userId: 'user-snapshot' };
+
+    await renderDashboardShell();
+
+    fireEvent.click(screen.getByTestId('sidebar-user-menu-trigger'));
+    fireEvent.click(screen.getByTestId('sidebar-user-menu-settings'));
+
+    expect(screen.getByTestId('settings-section-stub')).toHaveAttribute(
+      'data-memory-admin-user-id',
+      'user-snapshot',
+    );
   });
 
   test('retries recent chats on startup when local runtime is not ready', async () => {

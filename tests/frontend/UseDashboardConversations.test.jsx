@@ -248,6 +248,64 @@ describe('useDashboardConversations', () => {
     expect(DesktopConversationLibraryClient.listMetadata).toHaveBeenCalledTimes(2);
   });
 
+  test('force reload clears recent chats and ignores older in-flight metadata', async () => {
+    let resolveBackgroundLoad;
+    DesktopConversationLibraryClient.listMetadata
+      .mockResolvedValueOnce([
+        {
+          conversationRef: 'conv-old',
+          title: 'Old chat',
+          updatedAt: '2026-05-16T20:00:00.000Z',
+          eventCount: 2,
+        },
+      ])
+      .mockImplementationOnce(() => new Promise((resolve) => {
+        resolveBackgroundLoad = resolve;
+      }))
+      .mockResolvedValueOnce([]);
+
+    const { result } = renderDashboardConversations();
+
+    await waitFor(() => {
+      expect(result.current.recentConversations).toEqual([
+        expect.objectContaining({
+          conversation_id: 'conv-old',
+          title: 'Old chat',
+        }),
+      ]);
+    });
+
+    await act(async () => {
+      void result.current.loadRecentConversations();
+      await Promise.resolve();
+    });
+    expect(DesktopConversationLibraryClient.listMetadata).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      await result.current.loadRecentConversations({
+        clearBeforeLoad: true,
+        forceReload: true,
+      });
+    });
+
+    expect(DesktopConversationLibraryClient.listMetadata).toHaveBeenCalledTimes(3);
+    expect(result.current.recentConversations).toEqual([]);
+
+    await act(async () => {
+      resolveBackgroundLoad([
+        {
+          conversationRef: 'conv-stale',
+          title: 'Stale pre-delete chat',
+          updatedAt: '2026-05-16T20:01:00.000Z',
+          eventCount: 1,
+        },
+      ]);
+      await Promise.resolve();
+    });
+
+    expect(result.current.recentConversations).toEqual([]);
+  });
+
   test('keeps rendered recent chats visible during resend-shaped background refresh', async () => {
     let sdkConversationEventListener = null;
     let resolveRefresh;

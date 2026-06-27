@@ -8,13 +8,13 @@ import { useMemorySettingsActions } from './useMemorySettingsActions';
 
 const memorySettingsSkin = DesktopRuntimeSkin.desktopRuntimeSkin.settings.memory;
 
-function MemorySettingsTab({ onChatsCleared }) {
+function MemorySettingsTab({ onChatsCleared, memoryAdminUserId = null }) {
   const {
     clearLocalMemory,
     clearChatHistory,
     pendingAction,
     status,
-  } = useMemorySettingsActions();
+  } = useMemorySettingsActions({ memoryAdminUserId });
 
   return (
     <div className="settings-surface-memory">
@@ -69,6 +69,7 @@ function MemorySettingsTab({ onChatsCleared }) {
 
 MemorySettingsTab.propTypes = {
   onChatsCleared: PropTypes.func,
+  memoryAdminUserId: PropTypes.string,
 };
 
 export default MemorySettingsTab;

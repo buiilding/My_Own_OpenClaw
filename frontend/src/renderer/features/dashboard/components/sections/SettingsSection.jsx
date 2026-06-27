@@ -68,6 +68,7 @@ function SettingsSection({
   initialTab = 'general',
   onClose,
   onChatsCleared,
+  memoryAdminUserId = null,
 }) {
   const [activeTab, setActiveTab] = useState(initialTab);
 
@@ -83,7 +84,12 @@ function SettingsSection({
       return <AppearanceSettingsTab config={config} onConfigChange={onConfigChange} />;
     }
     if (activeTab === 'memory') {
-      return <MemorySettingsTab onChatsCleared={onChatsCleared} />;
+      return (
+        <MemorySettingsTab
+          onChatsCleared={onChatsCleared}
+          memoryAdminUserId={memoryAdminUserId}
+        />
+      );
     }
     if (activeTab === 'agent') {
       return <AgentSettingsTab config={config} onConfigChange={onConfigChange} />;
@@ -161,6 +167,7 @@ SettingsSection.propTypes = {
   initialTab: PropTypes.string,
   onClose: PropTypes.func.isRequired,
   onChatsCleared: PropTypes.func,
+  memoryAdminUserId: PropTypes.string,
 };
 
 export default SettingsSection;

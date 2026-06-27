@@ -80,6 +80,16 @@ DashboardModal.propTypes = {
 const DASHBOARD_OPEN_ANIMATION_MS = 420;
 const DASHBOARD_SCROLL_LOCK_CLASS = 'cg-scroll-locked';
 
+function resolveDashboardUserId(...candidates) {
+  for (const candidate of candidates) {
+    const userId = typeof candidate === 'string' ? candidate.trim() : '';
+    if (userId && userId !== 'default_user') {
+      return userId;
+    }
+  }
+  return null;
+}
+
 function DashboardShell({
   config,
   availableModels,
@@ -98,7 +108,7 @@ function DashboardShell({
   const [snapshotUserId, setSnapshotUserId] = useState(null);
   const [composerFocusToken, setComposerFocusToken] = useState(0);
   const sessionInfo = useRendererConversationSessionInfo();
-  const resolvedUserId = sessionInfo.userId || snapshotUserId || null;
+  const resolvedUserId = resolveDashboardUserId(sessionInfo.userId, snapshotUserId);
 
   const activeChatConversationRef = useChatStore((state) => state.activeConversationRef);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
@@ -217,7 +227,10 @@ function DashboardShell({
       setChatActiveConversationRef,
     });
     DesktopWorkspaceRuntimeClient.clearAllConversationWorkspaceBindings();
-    await loadRecentConversations();
+    await loadRecentConversations({
+      clearBeforeLoad: true,
+      forceReload: true,
+    });
   }, [
     loadRecentConversations,
     resolvedUserId,
@@ -341,6 +354,7 @@ function DashboardShell({
             initialTab={settingsInitialTab}
             onClose={() => setSettingsOpen(false)}
             onChatsCleared={handleChatsCleared}
+            memoryAdminUserId={resolvedUserId}
           />
         ) : (
           <ChatInterface

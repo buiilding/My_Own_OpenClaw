@@ -236,7 +236,12 @@ permission presentation.
 2. `Nuke chats`
    - invokes SDK-shaped `conversations.clearAll` through the memory runtime client
    - deletes transcript chat history only
-   - on success, calls parent `onChatsCleared` so dashboard chat state and recent-chat lists are reset/reloaded
+   - receives the dashboard effective user id, with `default_user` treated as
+     non-actionable, so destructive deletion targets the same user whose
+     conversations are listed in the sidebar
+   - on success, calls parent `onChatsCleared` so dashboard chat state and
+     recent-chat lists are reset and force-reloaded without reusing stale
+     in-flight metadata requests
 
 These are user-facing SDK commands. The settings tab owns presentation and user
 intent only; Electron main owns the IPC hop and calls public SDK APIs.
@@ -257,6 +262,8 @@ Exception:
   `conversations.clearAll` commands over `window.agentSdk.invoke`.
   `DesktopMemoryRuntimeClient` also owns active-user resolution for destructive
   chat-history deletion, including the non-actionable `default_user` sentinel.
+  `DashboardShell` passes its effective non-sentinel user id into the memory
+  settings surface so listing and destructive deletion share one user boundary.
   `DesktopMemorySettingsDialogRuntime` owns browser confirmation for the
   destructive settings actions.
 - retired `data-controls` links fall through to the generic placeholder instead of mounting hidden permission UI.
@@ -271,8 +278,12 @@ Exception:
 - wakeword STT toggle emits exact payload `{ wakeword_stt_enabled: true }`
 - tool log visibility toggle emits exact payload `{ show_tool_logs: true }`
 - memory-tab destructive actions call the correct IPC channels and success callbacks
+- memory-tab chat deletion prefers the dashboard effective user id over a
+  `default_user` transcript-session fallback
 - memory-tab destructive confirmation stays behind the app-runtime dialog
   facade instead of direct browser-dialog calls in the settings hook
+- dashboard chat-clear success force-reloads recent chats without reusing older
+  in-flight metadata requests
 
 ## Drift Hotspots
 

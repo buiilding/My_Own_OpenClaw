@@ -233,6 +233,7 @@ describe('SettingsSection', () => {
       onClose = jest.fn(),
       onChatsCleared = jest.fn(),
       initialTab = 'general',
+      memoryAdminUserId = null,
     } = overrides;
     return render(
       <SettingsSection
@@ -241,6 +242,7 @@ describe('SettingsSection', () => {
         onClose={onClose}
         onChatsCleared={onChatsCleared}
         initialTab={initialTab}
+        memoryAdminUserId={memoryAdminUserId}
       />,
     );
   }
@@ -724,6 +726,28 @@ describe('SettingsSection', () => {
         'Delete saved chat transcripts, revisions, and titles? Memories will be kept.',
       );
       expect(mockClearChatHistory).toHaveBeenCalledWith('user-memory');
+      expect(onChatsCleared).toHaveBeenCalled();
+      expect(screen.getByText('Chat history deleted.')).toBeInTheDocument();
+    });
+  });
+
+  test('delete chats uses the dashboard effective user id before transcript session fallback', async () => {
+    const onChatsCleared = jest.fn();
+    mockTranscriptSessionInfo = {
+      conversationRef: 'conv-memory',
+      userId: 'default_user',
+    };
+    renderSettingsSection({
+      initialTab: 'memory',
+      memoryAdminUserId: 'user-dashboard',
+      onChatsCleared,
+    });
+
+    fireEvent.click(screen.getByTestId('settings-tab-memory'));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete chats' }));
+
+    await waitFor(() => {
+      expect(mockClearChatHistory).toHaveBeenCalledWith('user-dashboard');
       expect(onChatsCleared).toHaveBeenCalled();
       expect(screen.getByText('Chat history deleted.')).toBeInTheDocument();
     });

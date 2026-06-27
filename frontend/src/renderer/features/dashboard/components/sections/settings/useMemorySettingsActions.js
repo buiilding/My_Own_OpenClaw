@@ -10,9 +10,12 @@ import { DesktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 
 const memorySettingsSkin = DesktopRuntimeSkin.desktopRuntimeSkin.settings.memory;
 
-export function useMemorySettingsActions() {
+export function useMemorySettingsActions({ memoryAdminUserId: providedMemoryAdminUserId = null } = {}) {
   const sessionInfo = DesktopTranscriptSessionInfoRuntimeClient.useDesktopTranscriptSessionInfo();
-  const memoryAdminUserId = DesktopMemoryRuntimeClient.resolveMemoryAdminUserId(sessionInfo);
+  const memoryAdminUserId = (
+    DesktopMemoryRuntimeClient.resolveMemoryAdminUserId({ userId: providedMemoryAdminUserId })
+    || DesktopMemoryRuntimeClient.resolveMemoryAdminUserId(sessionInfo)
+  );
   const [pendingAction, setPendingAction] = useState(null);
   const [status, setStatus] = useState({
     tone: 'idle',

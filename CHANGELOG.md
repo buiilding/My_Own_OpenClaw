@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/settings: make Memory > Delete chats use the same effective
+  non-`default_user` dashboard identity as the sidebar conversation list and
+  force-refresh recent chats after a successful clear, so stale or wrong-user
+  chat rows no longer remain visible. No migration required.
 - frontend/replay: sync the selected model through
   `DesktopSettingsRuntimeClient.setModel(...)` before SDK retry/edit resend
   dispatch, while still passing the model into the SDK replay command, so
