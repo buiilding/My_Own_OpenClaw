@@ -200,6 +200,8 @@ describe('renderer chat runtime boundary', () => {
     expect(pillSessionRuntimeSource).not.toContain('isObjectRecord(value.surfaces)');
     expect(pillSessionRuntimeSource).not.toContain('isObjectRecord(value.actions)');
     expect(pillSessionRuntimeSource).not.toContain('Boolean(conversationView && typeof conversationView === \'object\')');
+    expect(pillSessionRuntimeSource).not.toContain('chatSurfaceState.messages.length');
+    expect(pillSessionRuntimeSource).toContain('messageCount: rendererFallbackMessages.length');
   });
 
   test('live surface runtime rejects repaired overlay refs', async () => {

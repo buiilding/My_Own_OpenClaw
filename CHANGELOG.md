@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pill: keep minimal chat-pill trace message counts on the no-view
+  fallback path only, so valid SDK `ConversationView` surfaces cannot reopen
+  raw surface messages for diagnostics. No migration required.
 - frontend/overlay: resolve minimal response-overlay transparency and trace
   counts from selected overlay entries instead of the broader surface message
   fallback, keeping SDK `ConversationView` overlay rendering from reopening raw

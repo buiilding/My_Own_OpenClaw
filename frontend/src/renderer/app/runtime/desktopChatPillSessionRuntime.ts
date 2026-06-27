@@ -275,6 +275,11 @@ function buildChatPillStateTraceSnapshot({
     ? candidateConversationView
     : null;
   const hasConversationView = Boolean(conversationView);
+  const rendererFallbackMessages = hasConversationView
+    ? []
+    : Array.isArray(chatSurfaceState?.messages)
+      ? chatSurfaceState.messages
+      : [];
   const currentTurnPhase = hasConversationView
     ? resolveViewLiveTurnPhase(conversationView)
     : normalizeOptionalString(sdkLiveTurn?.phase);
@@ -303,9 +308,7 @@ function buildChatPillStateTraceSnapshot({
       liveTurnSource: normalizeOptionalString(surfaceSource),
       busy,
       stopAvailable,
-      messageCount: Array.isArray(chatSurfaceState?.messages)
-        ? chatSurfaceState.messages.length
-        : 0,
+      messageCount: rendererFallbackMessages.length,
     },
   };
 }

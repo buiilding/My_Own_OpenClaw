@@ -534,7 +534,9 @@ raw workspace `isSending` stays store/diagnostic state rather than dashboard sur
 authority. Response overlay view-model tracing must not subscribe to raw
 workspace `streamTracking`; overlay diagnostics should use the selected
 `chatSurfaceState`/visible lifecycle instead of reopening store runtime state
-as a surface input.
+as a surface input. Minimal pill state traces follow the same split: raw
+surface message counts are no-view fallback diagnostics only, and a valid SDK
+`ConversationView` blanks them before trace payload construction.
 
 ## New Chat Session Lifecycle
 

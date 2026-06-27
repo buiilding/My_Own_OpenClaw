@@ -500,7 +500,7 @@ describe('desktopChatPillSessionRuntime', () => {
     const snapshot = buildChatPillStateTraceSnapshot({
       busy: true,
       chatSurfaceState: {
-        messages: [{ id: 'pending-row' }],
+        messages: [{ id: 'stale-raw-row' }],
         sdkLiveTurn: {
           turnRef: 'turn-current',
           phase: 'awaiting',
@@ -542,7 +542,7 @@ describe('desktopChatPillSessionRuntime', () => {
       liveTurnSource: 'conversation-view',
       busy: true,
       stopAvailable: true,
-      messageCount: 1,
+      messageCount: 0,
     });
   });
 
