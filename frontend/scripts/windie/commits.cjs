@@ -130,14 +130,27 @@ function scoreCommit(commit, query) {
   return score;
 }
 
-function loadRecentCommits({ scanLimit = DEFAULT_COMMIT_SCAN_LIMIT } = {}) {
-  const metadata = capture(
+function gitLogPathspecArgs(pathspecs = ['.']) {
+  const normalized = pathspecs
+    .map((pathspec) => String(pathspec || '').trim())
+    .filter(Boolean);
+  return normalized.length > 0 ? ['--', ...normalized] : [];
+}
+
+function loadRecentCommits({
+  scanLimit = DEFAULT_COMMIT_SCAN_LIMIT,
+  pathspecs = ['.'],
+  captureFn = capture,
+} = {}) {
+  const pathspecArgs = gitLogPathspecArgs(pathspecs);
+  const metadata = captureFn(
     'git',
     [
       'log',
       `--max-count=${scanLimit}`,
       '--date=short',
       `--format=${RECORD_SEPARATOR}%H${FIELD_SEPARATOR}%h${FIELD_SEPARATOR}%ad${FIELD_SEPARATOR}%an${FIELD_SEPARATOR}%s${FIELD_SEPARATOR}%b`,
+      ...pathspecArgs,
     ],
     { cwd: REPO_ROOT },
   );
@@ -145,13 +158,14 @@ function loadRecentCommits({ scanLimit = DEFAULT_COMMIT_SCAN_LIMIT } = {}) {
     throw new Error(metadata.stderr || metadata.error || 'Failed to read git commit history.');
   }
 
-  const paths = capture(
+  const paths = captureFn(
     'git',
     [
       'log',
       `--max-count=${scanLimit}`,
       `--format=${RECORD_SEPARATOR}%H`,
       '--name-only',
+      ...pathspecArgs,
     ],
     { cwd: REPO_ROOT },
   );
@@ -197,6 +211,7 @@ function findCommits(topic, options = {}) {
 module.exports = {
   DEFAULT_COMMIT_SEARCH_LIMIT,
   findCommits,
+  gitLogPathspecArgs,
   loadRecentCommits,
   normalizeCommitSearchText,
   parseCommitMetadata,

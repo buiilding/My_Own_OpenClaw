@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/public: scope `<windie> commits search` Git scans to the public repo
+  root pathspec, so running the public frontend CLI inside the private monorepo
+  cannot surface backend-only commit history. No migration required.
 - repo/public: split the public developer surface into the `frontend/` subtree
   with public docs, workflows, CLI helpers, skills, plugins, MCPs, examples,
   extensions, and packages, while moving backend docs under `backend/docs/` so
