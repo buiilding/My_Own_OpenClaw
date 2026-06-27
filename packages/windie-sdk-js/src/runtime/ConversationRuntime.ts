@@ -3216,8 +3216,7 @@ export class SdkConversationRuntime {
       if (resource.kind !== 'clipboard_image' && resource.kind !== 'query_screenshot_request') {
         return resource;
       }
-      const displayAttachmentId = stringPayloadField({ value: resource.displayAttachmentId }, 'value')
-        ?? `${turnRef}:attachment:${visualIndex.toString().padStart(3, '0')}`;
+      const displayAttachmentId = `${turnRef}:attachment:${visualIndex.toString().padStart(3, '0')}`;
       visualIndex += 1;
       return {
         ...resource,
@@ -3230,7 +3229,9 @@ export class SdkConversationRuntime {
     const attachments: SdkDisplayAttachment[] = [];
     for (const resource of resources) {
       if (resource.kind === 'clipboard_image') {
-        const id = stringPayloadField({ value: resource.displayAttachmentId }, 'value');
+        const id = stringPayloadField({
+          value: (resource as TurnInputResource & { displayAttachmentId?: unknown }).displayAttachmentId,
+        }, 'value');
         if (!id) {
           continue;
         }
@@ -3245,7 +3246,9 @@ export class SdkConversationRuntime {
           previewSrc: `data:${contentType};base64,${resource.base64}`,
         });
       } else if (resource.kind === 'query_screenshot_request') {
-        const id = stringPayloadField({ value: resource.displayAttachmentId }, 'value');
+        const id = stringPayloadField({
+          value: (resource as TurnInputResource & { displayAttachmentId?: unknown }).displayAttachmentId,
+        }, 'value');
         if (!id) {
           continue;
         }

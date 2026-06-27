@@ -168,9 +168,9 @@ When attachment(s) exist:
    - `readable_file` for selected non-image files
    - `query_screenshot_request` when overlay/config policy asks for a query screenshot
    - `workspace` when the conversation has a workspace binding
-   Renderer resources do not assign `displayAttachmentId`; SDK turn processing
-   assigns stable display attachment ids before producing live visual
-   attachment projection state.
+   Turn resources do not accept caller-owned display attachment ids; SDK turn
+   processing assigns stable display attachment ids before producing live
+   visual attachment projection state.
    `DesktopLiveTurnRuntimeClient` re-normalizes the final resource array before
    `conversation.send`, so only SDK resource-kind fields cross the command
    boundary; malformed required handles, renderer preview fields, display ids,

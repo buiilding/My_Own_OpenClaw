@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/attachments: make display attachment ids SDK-owned for turn resources;
+  `conversation.send` now ignores caller-supplied `displayAttachmentId` values
+  and assigns stable per-turn ids before live visual projection. No migration
+  required.
 - frontend/replay: stop adding renderer workspace payload context to retry and
   edit/resend commands; replay commands now pass row intent while SDK/main
   runtime context and target display rows own payload reconstruction. No

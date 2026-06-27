@@ -4855,9 +4855,10 @@ describe('Agent SDK conversation runtime core', () => {
       turnRef: 'turn-query-shot',
       resources: [{
         kind: 'query_screenshot_request',
+        displayAttachmentId: 'caller-owned-attachment-id',
         reason: 'query_send_with_capture',
         required: false,
-      }],
+      } as any],
     });
 
     expect(executeTool).toHaveBeenCalledWith(expect.objectContaining({
@@ -4892,8 +4893,18 @@ describe('Agent SDK conversation runtime core', () => {
       expect.objectContaining({
         screenshotRef: 'artifact-query-shot.jpg',
         screenshot_ref: 'artifact-query-shot.jpg',
+        attachments: [
+          expect.objectContaining({
+            id: 'turn-query-shot:attachment:000',
+            kind: 'image',
+            source: 'camera_button',
+            status: 'ready',
+            screenshotRef: 'artifact-query-shot.jpg',
+          }),
+        ],
       }),
     );
+    expect(JSON.stringify(events)).not.toContain('caller-owned-attachment-id');
     const timeline = buildTraceTimeline(events, {
       turnRef: 'turn-query-shot',
       path: 'screenshot.capture',
