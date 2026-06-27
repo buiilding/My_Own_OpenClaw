@@ -33,10 +33,6 @@ function normalizeText(value) {
   return typeof value === 'string' && value.trim() ? value : '';
 }
 
-function normalizeOptionalText(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
 function readExactSdkString(value) {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
     ? value
@@ -503,7 +499,7 @@ function isResponseOverlaySourceTaggedMessage(message) {
     && (
       message.type === 'llm-text'
       || message.type === 'error'
-      || normalizeOptionalText(message.sourceEventType)
+      || readExactSdkString(message.sourceEventType)
     ),
   );
 }

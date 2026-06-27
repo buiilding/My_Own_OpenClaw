@@ -58,6 +58,7 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     expect(isResponseOverlaySourceTaggedMessage({ type: 'llm-text' })).toBe(true);
     expect(isResponseOverlaySourceTaggedMessage({ type: 'error' })).toBe(true);
     expect(isResponseOverlaySourceTaggedMessage({ sourceEventType: 'tool-call' })).toBe(true);
+    expect(isResponseOverlaySourceTaggedMessage({ sourceEventType: ' tool-call ' })).toBe(false);
     expect(isResponseOverlaySourceTaggedMessage({ sourceEventType: '   ' })).toBe(false);
   });
 

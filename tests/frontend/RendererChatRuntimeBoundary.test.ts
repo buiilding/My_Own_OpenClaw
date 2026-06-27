@@ -4070,6 +4070,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('sourceEventType: entry.sourceEventType || null');
     expect(source).not.toContain("thinkingSourceEventType: entry.sourceEventType || 'reasoning_delta'");
     expect(source).not.toContain("sourceEventType: entry.sourceEventType || 'tool_output'");
+    expect(source).toContain('readExactSdkString(message.sourceEventType)');
+    expect(source).not.toContain('normalizeOptionalText(message.sourceEventType)');
     expect(source).not.toContain('sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel');
     expect(source).toContain('sourceChannel: liveTurnContext?.sourceChannel || sdkCurrentTurnSourceChannel');
     expect(source).not.toContain('turnRef: entry.turnRef || liveTurnContext?.turnRef || undefined');

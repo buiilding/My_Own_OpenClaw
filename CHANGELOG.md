@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: require response-overlay source-tag detection to use exact
+  SDK `sourceEventType` labels, so padded labels are ignored instead of being
+  trimmed into overlay response eligibility. No migration required.
 - frontend/main: require direct Agent SDK revision command identities
   (`conversationRef`, `revisionId`, `baseRevisionId`, `sourceRevisionId`,
   `cutAfterRowId`, and `newConversationRef`) to be exact before main invokes

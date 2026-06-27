@@ -96,6 +96,9 @@ response-pane visibility:
 - live current-turn progress rows rendered by the dashboard (`tool-explanation`, SDK `tool-progress`, and legacy `search-source`) suppress the awaiting dot even before the first `llm-text` row arrives
 - prior-turn progress rows before the latest user row must not suppress the awaiting dot for a later user turn
 - thinking-only assistant placeholders do not count as visible replies for response-pane selection, so they do not become `activeResponse` / `visibleResponse`
+- response-overlay source tagging treats SDK `sourceEventType` as an exact
+  authored label; padded labels are ignored instead of being trimmed into
+  response eligibility
 
 ## Consumer Contracts
 
