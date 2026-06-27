@@ -262,8 +262,8 @@ function buildBaseMessageFields(entry, liveTurnContext) {
     sourceEventType: readExactSdkString(entry.sourceEventType),
     sourceChannel: liveTurnContext?.sourceChannel || sdkCurrentTurnSourceChannel,
     turnRef: readExactSdkString(liveTurnContext?.turnRef) || undefined,
-    modelId: entry.modelId || null,
-    modelProvider: entry.modelProvider || null,
+    modelId: readExactSdkString(entry.modelId),
+    modelProvider: readExactSdkString(entry.modelProvider),
     isComplete: entry.isComplete === true,
   };
 }
@@ -350,6 +350,8 @@ function buildToolOutputMessage(entry, liveTurnContext) {
   const correlationId = resolveEntryCorrelationId(entry);
   const turnRef = readExactSdkString(liveTurnContext?.turnRef);
   const toolOutputDetails = sanitizeSdkToolDetailRecord(asRecord(entry.toolOutputDetails));
+  const modelId = readExactSdkString(entry.modelId);
+  const modelProvider = readExactSdkString(entry.modelProvider);
   return {
     id: entry.id,
     text,
@@ -362,8 +364,8 @@ function buildToolOutputMessage(entry, liveTurnContext) {
     ...(attachments.length > 0 ? { attachments } : {}),
     ...(correlationId ? { correlationId } : {}),
     ...(turnRef ? { turnRef } : {}),
-    ...(entry.modelId ? { modelId: entry.modelId } : {}),
-    ...(entry.modelProvider ? { modelProvider: entry.modelProvider } : {}),
+    ...(modelId ? { modelId } : {}),
+    ...(modelProvider ? { modelProvider } : {}),
     isComplete: entry.isComplete === true,
   };
 }

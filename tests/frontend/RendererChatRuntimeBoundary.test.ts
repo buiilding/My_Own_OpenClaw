@@ -4070,6 +4070,14 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('sourceEventType: entry.sourceEventType || null');
     expect(source).not.toContain("thinkingSourceEventType: entry.sourceEventType || 'reasoning_delta'");
     expect(source).not.toContain("sourceEventType: entry.sourceEventType || 'tool_output'");
+    expect(source).toContain('modelId: readExactSdkString(entry.modelId)');
+    expect(source).toContain('modelProvider: readExactSdkString(entry.modelProvider)');
+    expect(source).toContain('const modelId = readExactSdkString(entry.modelId);');
+    expect(source).toContain('const modelProvider = readExactSdkString(entry.modelProvider);');
+    expect(source).not.toContain('modelId: entry.modelId || null');
+    expect(source).not.toContain('modelProvider: entry.modelProvider || null');
+    expect(source).not.toContain('...(entry.modelId ? { modelId: entry.modelId } : {})');
+    expect(source).not.toContain('...(entry.modelProvider ? { modelProvider: entry.modelProvider } : {})');
     expect(source).toContain('readExactSdkString(message.sourceEventType)');
     expect(source).not.toContain('normalizeOptionalText(message.sourceEventType)');
     expect(source).not.toContain('sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel');

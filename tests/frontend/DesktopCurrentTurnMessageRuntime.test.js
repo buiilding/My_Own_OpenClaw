@@ -98,6 +98,45 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     });
   });
 
+  test('does not expose padded live-entry model metadata as renderer props', () => {
+    const messages = buildCurrentTurnMessagesFromPresentation({
+      turnRef: 'turn-live',
+      presentation: {
+        entries: [{
+          id: 'entry-assistant',
+          type: 'llm-text',
+          text: 'streaming',
+          modelId: ' gpt-padded ',
+          modelProvider: ' openai ',
+        }, {
+          id: 'entry-tool-output',
+          type: 'tool-output',
+          text: 'done',
+          modelId: ' gpt-padded ',
+          modelProvider: ' openai ',
+        }, {
+          id: 'entry-assistant-exact',
+          type: 'llm-text',
+          text: 'exact model',
+          modelId: 'gpt-exact',
+          modelProvider: 'openai',
+        }],
+      },
+    });
+
+    expect(messages.find(message => message.id === 'entry-assistant')).toEqual(expect.objectContaining({
+      modelId: null,
+      modelProvider: null,
+    }));
+    const toolOutputMessage = messages.find(message => message.id === 'entry-tool-output');
+    expect(toolOutputMessage).not.toHaveProperty('modelId');
+    expect(toolOutputMessage).not.toHaveProperty('modelProvider');
+    expect(messages.find(message => message.id === 'entry-assistant-exact')).toEqual(expect.objectContaining({
+      modelId: 'gpt-exact',
+      modelProvider: 'openai',
+    }));
+  });
+
   test('ignores live presentation tool metadata while preserving explicit details', () => {
     const messages = buildCurrentTurnMessagesFromPresentation({
       turnRef: 'turn-live',

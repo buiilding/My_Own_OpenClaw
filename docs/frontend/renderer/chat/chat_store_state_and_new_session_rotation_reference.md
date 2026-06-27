@@ -149,9 +149,12 @@ remains a compatibility guard only for legacy/no-presentation tool detail
 shapes. Live entry `type` dispatch is exact: padded SDK entry types are not
 trimmed into tool/thinking/progress rows by renderer presentation. Live entry
 `sourceEventType` labels use the same exact rule and fall back to generic row
-sources when SDK sends padded or empty labels. Live-turn side-effect dedupe also
-keeps SDK presentation entry ids exact, so padded ids fall back to the local
-entry index/type key instead of being trimmed into SDK identity. Renderer presentation assigns
+sources when SDK sends padded or empty labels. Live entry `modelId` and
+`modelProvider` props follow the same exact rule, so padded provider/model
+metadata is ignored instead of becoming renderer row metadata. Live-turn
+side-effect dedupe also keeps SDK presentation entry ids exact, so padded ids
+fall back to the local entry index/type key instead of being trimmed into SDK
+identity. Renderer presentation assigns
 `sourceChannel` from the adapter path (`sdk:current-turn` or
 `sdk:conversation-view`) instead of trusting live entry payload fields for
 visibility gating. Live row `turnRef` projection similarly uses only the

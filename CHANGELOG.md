@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: require SDK live-entry `modelId` and `modelProvider` values to
+  be exact before projecting them onto renderer message props, so padded
+  provider/model metadata is ignored instead of preserved. No migration
+  required.
 - frontend/chat: key no-view SDK presentation caches with exact live-turn refs,
   phase labels, and presentation error text, so malformed padded SDK strings do
   not churn ChatInterface presentation state. No migration required.
