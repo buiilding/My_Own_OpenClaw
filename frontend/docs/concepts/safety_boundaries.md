@@ -32,8 +32,8 @@ WindieOS safety is split across prompt-visible capabilities, backend validation,
 
 ## Deep Docs
 
-- [Operations Security](../operations/security.md)
-- [Backend Input Validation + Client Settings Patch Guard Reference](../backend/core/validation/input_validation_and_client_settings_patch_guard_reference.md)
-- [Backend Trust-Boundary Metrics + Enforcement Reference](../backend/core/observability/trust_boundary_metrics_and_enforcement_reference.md)
+- Operations Security (private backend docs)
+- Backend Input Validation + Client Settings Patch Guard Reference (private backend docs)
+- Backend Trust-Boundary Metrics + Enforcement Reference (private backend docs)
 - [Frontend Preload Channel Allowlist + Renderer Bridge Reference](../frontend/preload/preload_channel_allowlist_and_renderer_bridge_reference.md)
 - [Frontend Permission Manifest, Probe, and IPC Request Contract Reference](../frontend/main/permission_manifest_probe_and_request_ipc_reference.md)

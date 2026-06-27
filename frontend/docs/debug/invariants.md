@@ -25,7 +25,7 @@ this page.
 | Core loop UI behavior | [Core Loop Regression Pack](core_loop_regression_pack.md) | `<windie> test core-loop` |
 | Frontend runtime and overlay behavior | [Frontend Runtime Invariants and PR Checklist](../frontend/runtime/frontend_runtime_invariants_checklist.md) | Frontend owner tests listed in the checklist |
 | Tool and extension contracts | [Tool Contracts](../tools/tool_contracts.md) | Tool schema, SDK/main, local-runtime, and parity tests listed in the tool docs |
-| Security-sensitive behavior | [Security Boundary Matrix](../security/security_boundary_matrix.md) | Owner-specific security and boundary tests |
+| Security-sensitive behavior | Security Boundary Matrix (private backend docs) | Owner-specific security and boundary tests |
 | Runtime ownership decisions | [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md) | Owner-runtime tests for the enforcing boundary |
 
 ## Settings And Model Selection

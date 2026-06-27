@@ -16,10 +16,10 @@ Core rule: preserve the failure boundary. Backend errors should stay sanitized b
 
 | Failure surface | First owner | Code roots | Tests to inspect or add | Start docs |
 | --- | --- | --- | --- | --- |
-| Backend exception hierarchy and metadata | Backend core infrastructure | `backend/src/core/infrastructure/error_types/**`, `backend/src/core/infrastructure/user_facing_errors.py` | `tests/backend/test_exceptions.py`, `tests/backend/test_api_errors.py` | [Backend Exception Hierarchy](../backend/core/exception_hierarchy_and_metadata_propagation_reference.md) |
-| Websocket incoming validation and sanitized error envelope | Backend API/websocket | `backend/src/api/infrastructure/errors.py`, `backend/src/api/routes/websocket/message_handler.py`, `backend/src/api/transport/sender.py`, `backend/src/api/processing/formatters/error.py` | websocket/API error tests, formatter tests | [Handler Registry and Error Envelope Reference](../backend/api/handler_registry_and_error_envelope_reference.md) |
-| HTTP route errors | Owning backend route/service | `backend/src/api/routes/**`, `backend/src/api/infrastructure/errors.py`, service helpers | route-specific backend tests | [API Route Change Workflow](../backend/api/api_route_change_workflow.md) |
-| Model/tool parse recovery | Backend agent runtime | `backend/src/agent/recovery/**`, `backend/src/llm/parser_validation.py`, `backend/src/agent/execution/**` | parser validation, recovery, interaction-loop tests | [Tool-Call Error Recovery Reference](../backend/agent/recovery/tool_call_error_recovery_and_synthetic_tool_output_replay_reference.md) |
+| Backend exception hierarchy and metadata | Backend core infrastructure | `backend/src/core/infrastructure/error_types/**`, `backend/src/core/infrastructure/user_facing_errors.py` | `tests/backend/test_exceptions.py`, `tests/backend/test_api_errors.py` | Backend Exception Hierarchy (private backend docs) |
+| Websocket incoming validation and sanitized error envelope | Backend API/websocket | `backend/src/api/infrastructure/errors.py`, `backend/src/api/routes/websocket/message_handler.py`, `backend/src/api/transport/sender.py`, `backend/src/api/processing/formatters/error.py` | websocket/API error tests, formatter tests | Handler Registry and Error Envelope Reference (private backend docs) |
+| HTTP route errors | Owning backend route/service | `backend/src/api/routes/**`, `backend/src/api/infrastructure/errors.py`, service helpers | route-specific backend tests | API Route Change Workflow (private backend docs) |
+| Model/tool parse recovery | Backend agent runtime | `backend/src/agent/recovery/**`, `backend/src/llm/parser_validation.py`, `backend/src/agent/execution/**` | parser validation, recovery, interaction-loop tests | Tool-Call Error Recovery Reference (private backend docs) |
 | Tool result failure ingestion | Backend tool waiting/processing | `backend/src/api/handlers/tool_result.py`, `backend/src/agent/tools/waiting/**`, `backend/src/agent/tools/processing/**` | `tests/backend/test_tool_result_*.py`, `test_incoming_tool_result_schemas.py` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 | Electron websocket send/reconnect failure | Electron main IPC bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs` | `tests/frontend/IpcMainBridge*.test.cjs` | [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md) |
 | Preload IPC validation errors | Preload bridge and renderer IPC wrapper | `frontend/src/preload.js`, `frontend/src/renderer/infrastructure/ipc/**` | `tests/frontend/IpcBridgeValidation.test.ts` | [IPC Change Workflow](../frontend/ipc_change_workflow.md) |
@@ -93,7 +93,7 @@ Renderer UI should display errors from canonical backend events, tool-result env
 
 Read:
 
-- [Handler Registry and Error Envelope Reference](../backend/api/handler_registry_and_error_envelope_reference.md)
+- Handler Registry and Error Envelope Reference (private backend docs)
 - [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md)
 - [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md)
 
@@ -115,8 +115,8 @@ Validate:
 
 Read:
 
-- [API Route Change Workflow](../backend/api/api_route_change_workflow.md)
-- [REST Route Auth Matrix](../gateway/rest_route_auth_matrix.md)
+- API Route Change Workflow (private backend docs)
+- REST Route Auth Matrix (private backend docs)
 - [SDK Auth and Error Handling](../sdk/sdk_auth_and_error_handling.md)
 
 Edit the owning route/service first. Keep auth, validation, missing-resource, conflict, and internal errors distinct.
@@ -197,7 +197,7 @@ Validate:
 Read:
 
 - [Observability Change Workflow](observability_change_workflow.md)
-- [Credential and Token Change Workflow](../security/credential_token_change_workflow.md)
+- Credential and Token Change Workflow (private backend docs)
 - [Logging](logging.md)
 
 Edit the producing runtime call site first. Add broader helpers only when repeated sites need the same redaction behavior.
@@ -251,7 +251,7 @@ Before committing an error/failure change:
 ## Related Docs
 
 - [Failure Domain Map](../architecture/failure_domain_map.md)
-- [Handler Registry and Error Envelope Reference](../backend/api/handler_registry_and_error_envelope_reference.md)
+- Handler Registry and Error Envelope Reference (private backend docs)
 - [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md)
 - [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Observability Change Workflow](observability_change_workflow.md)

@@ -20,13 +20,13 @@ patching the wrong consumer.
 | --- | --- | --- | --- |
 | Dashboard chat | Main React dashboard composer | renderer SDK command -> Electron agent host -> Agent SDK backend transport -> backend `/ws` | [Channel Routing Matrix](channel_routing_matrix.md), [Desktop Dashboard](../desktop/dashboard.md) |
 | Minimal chat pill | Floating overlay composer | overlay renderer SDK command -> Electron agent host -> Agent SDK backend transport -> backend `/ws` | [Channel Routing Matrix](channel_routing_matrix.md), [Minimal Chat Pill](../desktop/minimal_chat_pill.md) |
-| Backend agent stream | Main query/control protocol | WebSocket `/ws` | [Backend API and Transport](../backend/api/api_and_transport.md), [HTTP and WebSocket API Surface](../reference/http_api_surface.md) |
+| Backend agent stream | Main query/control protocol | WebSocket `/ws` | Backend API and Transport (private backend docs), [HTTP and WebSocket API Surface](../reference/http_api_surface.md) |
 | Voice dictation | Voice-mode microphone capture | renderer audio -> backend `/ws/transcription` | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
 | Wakeword | Background hotword listener | renderer audio -> Electron wakeword bridge -> local-runtime wakeword helper backed by the Python subprocess | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
-| TTS playback | Backend audio response | backend `/ws` `audio-chunk` events -> renderer playback queue | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Audio Channels](voice_and_audio_channels.md), [Backend TTS Manager](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md) |
+| TTS playback | Backend audio response | backend `/ws` `audio-chunk` events -> renderer playback queue | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Audio Channels](voice_and_audio_channels.md), Backend TTS Manager (private backend docs) |
 | Local tools | Computer, browser, filesystem, shell, memory | SDK/main local runtime -> local-runtime Python executor | [Local Tool Channels](sidecar_and_tool_channels.md), [Tools Hub](../tools/README.md) |
 | SDK clients | External programmatic clients | direct hosted HTTP + WebSocket | [Channel Routing Matrix](channel_routing_matrix.md), [SDK Hub](../sdk/README.md) |
-| VM runs | Hosted dashboard or worker execution | `/api/runs/*` HTTP control plane + backend `/ws` dispatch | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md) |
+| VM runs | Hosted dashboard or worker execution | `/api/runs/*` HTTP control plane + backend `/ws` dispatch | Automation Hub (private backend docs), VM Runs and Workers (private backend docs) |
 
 ## Rules
 
@@ -59,7 +59,7 @@ Read:
 - [Channel Routing Matrix](channel_routing_matrix.md)
 - [Frontend Chat Stream + Tool Runtime](../frontend/renderer/chat_stream_and_tool_execution_reference.md)
 - [IPC Channel and Handler Reference](../frontend/contracts/ipc_channel_and_handler_reference.md)
-- [Backend API and Transport](../backend/api/api_and_transport.md)
+- Backend API and Transport (private backend docs)
 
 Likely code:
 
@@ -96,7 +96,7 @@ Read:
 - [Voice Audio Change Workflow](voice_audio_change_workflow.md)
 - [Voice and Audio Channels](voice_and_audio_channels.md)
 - [Voice and Wakeword](../desktop/voice_and_wakeword.md)
-- [Backend TTS + Wakeword Audio Runtime Reference](../backend/services/tts_and_wakeword_audio_runtime_reference.md)
+- Backend TTS + Wakeword Audio Runtime Reference (private backend docs)
 
 Likely code:
 
@@ -137,4 +137,4 @@ Validate backend schema tests, SDK runtime/router tests, local-runtime Python to
 - [Local Tool Channels](sidecar_and_tool_channels.md)
 - [Communication Flow](../architecture/communication_flow.md)
 - [IPC Channel and Handler Reference](../frontend/contracts/ipc_channel_and_handler_reference.md)
-- [HTTP and WebSocket Endpoint Reference](../backend/api/http_and_ws_endpoint_reference.md)
+- HTTP and WebSocket Endpoint Reference (private backend docs)

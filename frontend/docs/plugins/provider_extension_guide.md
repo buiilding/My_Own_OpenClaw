@@ -24,8 +24,8 @@ Docs:
 
 - [Providers Hub](../providers/README.md)
 - [Models and LLM Providers](../providers/models.md)
-- [Provider Credentials](../providers/credentials.md)
-- [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md)
+- Provider Credentials (private backend docs)
+- Backend LLM Provider Docs Hub (private backend docs)
 
 Validation:
 
@@ -68,7 +68,7 @@ Validation:
 - Use environment variables or explicit renderer-managed credential surfaces.
 - Do not hardcode keys in provider classes, fixtures, docs, or generated examples.
 - Keep install-auth tokens separate from provider credentials.
-- Document required env vars in [Provider Credentials](../providers/credentials.md) and [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) when applicable.
+- Document required env vars in Provider Credentials (private backend docs) and Runtime Configuration Matrix (private backend docs) when applicable.
 
 ## Product Surface Rules
 

@@ -25,7 +25,7 @@ This is the compact local docs directory. For the complete canonical navigation 
 - [Runtime Model](../concepts/runtime_model.md) - backend, Electron main, renderer, preload, and local-runtime boundaries.
 - [Runtime Nodes Hub](../nodes/README.md) - process and service ownership across backend, desktop, local runtime, wakeword, VM worker, and hosted ingress.
 - [Channels Hub](../channels/README.md) - desktop, websocket, local-runtime JSON-RPC, voice, SDK, and VM-run communication paths.
-- [Gateway Hub](../gateway/README.md) - hosted backend ingress, app assembly, websocket handshake, auth, health, and troubleshooting.
+- Gateway Hub (private backend docs) - hosted backend ingress, app assembly, websocket handshake, auth, health, and troubleshooting.
 - [Agent Runtime Ownership and Change Routing](../development/agent_runtime_ownership_and_change_routing.md) - owner responsibilities and first docs for common change types.
 - [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md) - owner selection by runtime and trust boundary.
 - [Data Flow and State Ownership](../architecture/data_flow_and_state_ownership.md) - query, stream, tool result, settings, transcript, memory, artifact, permission, provider, and VM-run state.
@@ -34,12 +34,12 @@ This is the compact local docs directory. For the complete canonical navigation 
 
 ## Backend and Prompting
 
-- [Backend Hub](../backend/README.md) - backend source maps and sub-hubs.
-- [Backend Runtime Hub](../backend/runtime/README.md) - query, session, compaction, and event runtime.
-- [Query Lifecycle Change Workflow](../backend/runtime/query_lifecycle_change_workflow.md) - backend query and stream changes.
-- [Backend API Hub](../backend/api/README.md) - HTTP/websocket route ownership.
-- [Backend LLM Prompt Hub](../backend/llm/prompts/README.md) - prompt constructor, prompt manager, and transparency metadata.
-- [Prompt Manager and System Prompt Lifecycle](../backend/llm/prompts/prompt_manager_and_system_prompt_lifecycle_reference.md) - system prompt loading, rendering, and history wiring.
+- Backend Hub (private backend docs) - backend source maps and sub-hubs.
+- Backend Runtime Hub (private backend docs) - query, session, compaction, and event runtime.
+- Query Lifecycle Change Workflow (private backend docs) - backend query and stream changes.
+- Backend API Hub (private backend docs) - HTTP/websocket route ownership.
+- Backend LLM Prompt Hub (private backend docs) - prompt constructor, prompt manager, and transparency metadata.
+- Prompt Manager and System Prompt Lifecycle (private backend docs) - system prompt loading, rendering, and history wiring.
 
 ## Frontend and Desktop
 
@@ -77,9 +77,9 @@ This is the compact local docs directory. For the complete canonical navigation 
 - [Install Hub](../install/README.md) - local development, packaged builds, endpoint setup, and reset loops.
 - [Local Development](../install/local_development.md) - source setup, run commands, tests, and environment launcher.
 - [Operations Hub](../operations/README.md) - runtime config, hosted auth, packaging, release, deployment, and troubleshooting.
-- [Automation Hub](../automation/README.md) - VM run orchestration, worker polling, run-control APIs, and scheduler boundaries.
-- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) - config ownership, defaults, propagation, and validation.
-- [Remote Backend Auto Deploy](../operations/remote_backend_auto_deploy.md) - GitHub push-to-host checkout updates, systemd restarts, and deploy health checks.
+- Automation Hub (private backend docs) - VM run orchestration, worker polling, run-control APIs, and scheduler boundaries.
+- Runtime Configuration Matrix (private backend docs) - config ownership, defaults, propagation, and validation.
+- Remote Backend Auto Deploy (private backend docs) - GitHub push-to-host checkout updates, systemd restarts, and deploy health checks.
 - [Web Surfaces](../web/README.md) - landing page, hosted APIs/auth, SDK clients, artifacts, websockets, and dashboard-adjacent web behavior.
 
 ## Security and Reference

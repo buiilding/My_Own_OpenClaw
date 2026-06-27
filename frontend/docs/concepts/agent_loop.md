@@ -42,9 +42,9 @@ than a single function call.
 
 ## Deep Docs
 
-- [Backend Query Handler and Query Execution Service Runtime Reference](../backend/api/handlers/query_handler_and_query_execution_service_runtime_reference.md)
-- [Backend Interaction Loop + Tool-Turn Orchestration Reference](../backend/agent/interaction_loop_and_tool_turn_orchestration_reference.md)
-- [Backend Tool Result Ingress Reference](../backend/tools/tool_result_ingress_and_storage_reference.md)
+- Backend Query Handler and Query Execution Service Runtime Reference (private backend docs)
+- Backend Interaction Loop + Tool-Turn Orchestration Reference (private backend docs)
+- Backend Tool Result Ingress Reference (private backend docs)
 - [Frontend Chat Stream + Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md)
 
 ## Evidence Notes

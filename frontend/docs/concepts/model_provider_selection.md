@@ -70,8 +70,8 @@ Do not imply that a failed LLM request automatically retries on another provider
 
 - [Providers Hub](../providers/README.md)
 - [Models and LLM Providers](../providers/models.md)
-- [Provider Credentials](../providers/credentials.md)
+- Provider Credentials (private backend docs)
 - [Inference Providers](../providers/inference.md)
-- [Backend Provider Factory and Runtime Selection Reference](../backend/llm/provider_factory_and_runtime_selection_reference.md)
-- [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md)
-- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
+- Backend Provider Factory and Runtime Selection Reference (private backend docs)
+- Backend LLM Provider Docs Hub (private backend docs)
+- Runtime Configuration Matrix (private backend docs)

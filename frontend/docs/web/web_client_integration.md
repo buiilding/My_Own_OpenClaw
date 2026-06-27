@@ -50,4 +50,4 @@ SDK package instead of reaching into renderer infrastructure.
 - [SDK Hub](../sdk/README.md)
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
-- [Automation Hub](../automation/README.md)
+- Automation Hub (private backend docs)

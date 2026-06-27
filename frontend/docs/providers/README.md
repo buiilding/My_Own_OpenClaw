@@ -21,7 +21,7 @@ WindieOS has multiple provider classes:
 - [Models and LLM Providers](models.md)
 - [Provider Change Workflow](provider_change_workflow.md)
 - [Model Catalog Change Workflow](model_catalog_change_workflow.md)
-- [Provider Credentials](credentials.md)
+- Provider Credentials (private backend docs)
 - [Inference Providers](inference.md)
 - [Inference Capability Change Workflow](inference_capability_change_workflow.md)
 - [OpenAI Provider](openai.md)
@@ -67,8 +67,8 @@ Primary files:
 
 ## Deep Docs
 
-- [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md)
-- [Backend Provider Factory + Runtime Selection Reference](../backend/llm/provider_factory_and_runtime_selection_reference.md)
+- Backend LLM Provider Docs Hub (private backend docs)
+- Backend Provider Factory + Runtime Selection Reference (private backend docs)
 - [LLM Integration](../architecture/llm_integration.md)
 
 ## Evidence Notes

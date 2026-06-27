@@ -39,7 +39,7 @@ Questions to answer:
 Read:
 
 - [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md)
-- [Backend Tool Policy Runtime](../backend/tools/policy/tool_policy_and_agent_capability_runtime_reference.md)
+- Backend Tool Policy Runtime (private backend docs)
 
 ## Schema and Parser Failures
 
@@ -54,8 +54,8 @@ Questions to answer:
 Read:
 
 - [Tool Contracts](tool_contracts.md)
-- [Backend Tool Registry and Schema Cache](../backend/tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md)
-- [Backend Tool Policy Runtime](../backend/tools/policy/tool_policy_and_agent_capability_runtime_reference.md)
+- Backend Tool Registry and Schema Cache (private backend docs)
+- Backend Tool Policy Runtime (private backend docs)
 
 ## Dispatch and Execution Failures
 
@@ -86,9 +86,9 @@ Questions to answer:
 
 Read:
 
-- [Backend Tool Result Ingress](../backend/tools/tool_result_ingress_and_storage_reference.md)
-- [Backend Tool Result Processor](../backend/tools/processing/tool_result_processor_bundle_formatting_and_cleanup_reference.md)
-- [Backend History Hub](../backend/agent/history/README.md)
+- Backend Tool Result Ingress (private backend docs)
+- Backend Tool Result Processor (private backend docs)
+- Backend History Hub (private backend docs)
 - [Memory Hub](../memory/README.md)
 
 ## Tool-Specific Starting Points

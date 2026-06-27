@@ -50,7 +50,7 @@ Use this map when a failure is broader than one feature. It complements [Triage 
 - [Error and Failure Change Workflow](../debug/error_failure_change_workflow.md)
 - [Process Health Checklist](../debug/process_health_checklist.md)
 - [Runtime Node Matrix](../nodes/runtime_node_matrix.md)
-- [Operational Troubleshooting](../operations/operational_troubleshooting.md)
+- Operational Troubleshooting (private backend docs)
 
 ## Evidence Notes
 

@@ -29,7 +29,7 @@ WindieOS should use OpenClaw-style node docs for discoverability, but the curren
 | Remote VM control/viewer node | planned | [VM Multi-Agent Plan](../planning/windieos_vm_multi_agent_plan.md) |
 | Multi-agent coordination node | planned | [Agent-to-Agent Communication Plan](../planning/windieos_agent_to_agent_communication_plan.md) |
 | Mobile companion node | planned | [Mobile App Plan](../planning/windieos_mobile_app_plan.md) |
-| Durable scheduler/cron/webhook node | planned | [Automation Boundaries](../automation/automation_boundaries.md) |
+| Durable scheduler/cron/webhook node | planned | Automation Boundaries (private backend docs) |
 | Edge worker or regional gateway node | not implemented | Keep in planning until there is a concrete service, route, deployment target, and tests. |
 | Plugin marketplace node | not implemented | [Current vs Future Plugin Boundary](../plugins/current_vs_future_plugin_boundary.md) |
 
@@ -58,6 +58,6 @@ Before moving a future node from planning into active docs, verify:
 
 - [Runtime Nodes Hub](README.md)
 - [Runtime Node Matrix](runtime_node_matrix.md)
-- [Automation Hub](../automation/README.md)
+- Automation Hub (private backend docs)
 - [Plugins and Extensions Hub](../plugins/README.md)
 - [Planning Hub](../planning/README.md)

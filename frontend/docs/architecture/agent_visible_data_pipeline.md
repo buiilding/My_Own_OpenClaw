@@ -100,11 +100,11 @@ Question the design when you see any of these:
 | Symptom | Ask this first | Start docs |
 | --- | --- | --- |
 | The agent did not use a tool | Did the backend expose the tool schema to the model? | [Prompt and Tool Context](../concepts/prompt_and_tool_context.md), [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) |
-| The agent called a tool with odd args | Did the model see one shape but local execution ran another? | [Backend Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
+| The agent called a tool with odd args | Did the model see one shape but local execution ran another? | Backend Tool Turn Change Workflow (private backend docs), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 | Renderer showed a tool call but nothing executed | Did the backend event normalize into the SDK tool coordinator with live request/bundle IDs? | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md), [Windie Client Runtime](../sdk/windie_client_runtime.md) |
-| Local execution succeeded but model never continued | Did `tool-result` return with the original request or bundle ID? | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md), [Tool Result Ingress](../backend/tools/tool_result_ingress_and_storage_reference.md) |
+| Local execution succeeded but model never continued | Did `tool-result` return with the original request or bundle ID? | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md), Tool Result Ingress (private backend docs) |
 | Replay is wrong | Did transcript rows preserve structured payloads and identity fields? | [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md), [Session and Transcript Reference](../reference/session_and_transcript_reference.md) |
-| Prompt transparency disagrees with behavior | Is transparency sourced from backend prompt metadata or reconstructed downstream? | [Backend Prompt Context Change Workflow](../backend/llm/prompts/prompt_context_change_workflow.md), [Prompt and Tool Context](../concepts/prompt_and_tool_context.md) |
+| Prompt transparency disagrees with behavior | Is transparency sourced from backend prompt metadata or reconstructed downstream? | Backend Prompt Context Change Workflow (private backend docs), [Prompt and Tool Context](../concepts/prompt_and_tool_context.md) |
 | A layer looks unnecessary | Does it cross runtime, trust, language, provider, storage, or display boundaries? | [Runtime Boundary Matrix](runtime_boundary_matrix.md), [Data Flow and State Ownership](data_flow_and_state_ownership.md) |
 
 ## Validation Matrix
@@ -126,7 +126,7 @@ Question the design when you see any of these:
 - [Session and Transcript Reference](../reference/session_and_transcript_reference.md)
 - [Prompt and Tool Context](../concepts/prompt_and_tool_context.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
-- [Backend Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md)
+- Backend Tool Turn Change Workflow (private backend docs)
 - [Chat Stream and Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md)
 - [IPC Change Workflow](../frontend/ipc_change_workflow.md)
 - [Local Runtime JSON-RPC Change Workflow](../frontend/sidecar/local_backend_jsonrpc_change_workflow.md)

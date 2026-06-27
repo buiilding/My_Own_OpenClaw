@@ -81,5 +81,5 @@ If a true plugin system is needed, start in `docs/planning/` and include:
 Also read:
 
 - [Security Hub](../security/README.md)
-- [Security Boundary Matrix](../security/security_boundary_matrix.md)
+- Security Boundary Matrix (private backend docs)
 - [Extension Surface Matrix](extension_surface_matrix.md)

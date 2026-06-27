@@ -63,11 +63,11 @@ Replay displays stored transcript rows in the UI. Rehydrate converts stored tran
 - [Session and Conversation Identity Change Workflow](../memory/session_conversation_identity_change_workflow.md)
 - [Memory Hub](../memory/README.md)
 - [Transcript and Replay](../memory/transcript_and_replay.md)
-- [Backend History and Semantic Routes](../memory/backend_history_and_semantic_routes.md)
-- [Backend Session Runtime and Config Rewire Reference](../backend/agent/session_runtime_and_config_rewire_reference.md)
+- Backend History and Semantic Routes (private backend docs)
+- Backend Session Runtime and Config Rewire Reference (private backend docs)
 - [Frontend Transcript Session and Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md)
 - [IPC Query Runtime and Transcript Sync Helper Reference](../frontend/main/ipc_query_runtime_and_transcript_sync_helper_reference.md)
-- [VM Worker Node](../nodes/vm_worker_node.md)
+- VM Worker Node (private backend docs)
 
 ## Evidence Notes
 

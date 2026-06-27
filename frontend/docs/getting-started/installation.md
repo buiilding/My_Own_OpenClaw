@@ -419,7 +419,7 @@ node --version  # Should be 18+
 
 After installation:
 
-1. **Configure Settings**: See [Configuration Guide](../operations/configuration.md)
+1. **Configure Settings**: See Configuration Guide (private backend docs)
 2. **Quick Start**: See [Quick Start Guide](quick_start.md)
 3. **Read Documentation**: See [Documentation Index](../README.md)
 
@@ -427,5 +427,5 @@ After installation:
 
 For more help, see:
 - [Troubleshooting Guide](troubleshooting.md)
-- [Configuration Guide](../operations/configuration.md)
+- Configuration Guide (private backend docs)
 - [Quick Start Guide](quick_start.md)

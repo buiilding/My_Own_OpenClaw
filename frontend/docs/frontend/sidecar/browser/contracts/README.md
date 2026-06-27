@@ -15,7 +15,7 @@ title: "Local-Runtime Browser Contracts Docs Hub"
 ## Related Pages
 
 - [Local-Runtime Browser Docs Hub](../README.md)
-- [Backend Browser Schema Docs Hub](../../../../backend/tools/browser/schema/README.md)
+- Backend Browser Schema Docs Hub (private backend docs)
 
 ## Code Scope
 

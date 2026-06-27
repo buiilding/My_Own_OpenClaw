@@ -250,7 +250,7 @@ Read the file README.md
 ## Next Steps
 
 - **Read the Documentation**: See [Documentation Index](../README.md)
-- **Configure Settings**: See [Configuration Guide](../operations/configuration.md)
+- **Configure Settings**: See Configuration Guide (private backend docs)
 - **Develop Tools**: See [Tool Development Guide](../development/tool_development.md)
 - **Understand Architecture**: See [Architecture Overview](../architecture/architecture.md)
 

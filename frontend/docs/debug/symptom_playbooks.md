@@ -27,7 +27,7 @@ Docs:
 
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
 - [Agent Loop](../concepts/agent_loop.md)
-- [Backend API Docs Hub](../backend/api/README.md)
+- Backend API Docs Hub (private backend docs)
 
 Validate:
 
@@ -52,7 +52,7 @@ Docs:
 
 - [Providers Hub](../providers/README.md)
 - [Models and LLM Providers](../providers/models.md)
-- [Provider Credentials](../providers/credentials.md)
+- Provider Credentials (private backend docs)
 
 Validate:
 

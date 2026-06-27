@@ -10,7 +10,7 @@ title: "HTTP and WebSocket API Surface"
 
 This page is the route-level map. Use [API Reference](api_reference.md) for payload examples and longer protocol notes.
 
-For gateway-level route assembly, auth, health checks, and hosted troubleshooting, start with [Gateway Hub](../gateway/README.md).
+For gateway-level route assembly, auth, health checks, and hosted troubleshooting, start with Gateway Hub (private backend docs).
 
 ## Public/Hosted Surfaces
 
@@ -53,9 +53,9 @@ Runs routes require the runs API key dependency. Do not route normal desktop app
 
 Detailed run orchestration docs:
 
-- [Automation Hub](../automation/README.md)
-- [VM Runs and Workers](../automation/vm_runs_and_workers.md)
-- [Runs API Runbook](../automation/runs_api_runbook.md)
+- Automation Hub (private backend docs)
+- VM Runs and Workers (private backend docs)
+- Runs API Runbook (private backend docs)
 
 ## Auth Rules
 

@@ -81,7 +81,7 @@ that adapter after persisted rows and tool-result artifact payloads emit ordered
 ## Deep Docs
 
 - [Artifact Change Workflow](artifact_change_workflow.md)
-- [Backend Artifact/Screenshot/System-State Flow Reference](../backend/services/artifact_screenshot_and_system_state_flow_reference.md)
+- Backend Artifact/Screenshot/System-State Flow Reference (private backend docs)
 - [Frontend Capture, Artifact URL, and Payload Normalization Reference](../frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
 - [Screenshot Message State and SDK Projection Reference](../frontend/renderer/transcript/screenshot_message_state_and_sdk_projection_reference.md)
 - [API Reference](../reference/api_reference.md)

@@ -101,4 +101,4 @@ Useful focused command:
 - [Tool Catalog Matrix](tool_catalog_matrix.md)
 - [OpenAI Provider](../providers/openai.md)
 - [Gemini Provider](../providers/gemini.md)
-- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
+- Runtime Configuration Matrix (private backend docs)

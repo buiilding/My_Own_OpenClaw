@@ -58,7 +58,7 @@ If visibility changes, update the manifest/runtime tests and user-facing setting
 ## Related Docs
 
 - [Onboarding and Permissions](../desktop/onboarding_permissions.md)
-- [Security Boundary Matrix](../security/security_boundary_matrix.md)
+- Security Boundary Matrix (private backend docs)
 - [macOS](macos.md)
 - [Windows](windows.md)
 - [Linux](linux.md)

@@ -39,6 +39,6 @@ Backend model-facing tool exposure still flows through backend registry/policy c
 
 ## Deep Docs
 
-- [Backend SDK Tool Context + Schema Contract Reference](../backend/sdk/tool_context_and_schema_contract_reference.md)
-- [Backend SDK Sub-Agent Session Helper Runtime Reference](../backend/sdk/subagent_session_helper_runtime_reference.md)
-- [Backend Tools Templates Docs Hub](../backend/tools/templates/README.md)
+- Backend SDK Tool Context + Schema Contract Reference (private backend docs)
+- Backend SDK Sub-Agent Session Helper Runtime Reference (private backend docs)
+- Backend Tools Templates Docs Hub (private backend docs)

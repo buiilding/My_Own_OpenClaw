@@ -64,6 +64,6 @@ When extension mode is implemented:
 
 - update [Browser Hub](../browser/README.md)
 - update [Browser Troubleshooting](../browser/browser_troubleshooting.md)
-- update [Security Boundary Matrix](../security/security_boundary_matrix.md)
+- update Security Boundary Matrix (private backend docs)
 - add local-runtime/browser extension protocol tests
 - add permission/onboarding docs for extension mode

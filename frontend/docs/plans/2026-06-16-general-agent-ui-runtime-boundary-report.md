@@ -5,7 +5,7 @@ title: "General Agent UI Runtime Boundary Report"
 
 # General Agent UI Runtime Boundary Report
 
-Plan: [General Agent UI Runtime Boundary Execution Plan](2026-06-16-general-agent-ui-runtime-boundary-execution-plan.md)
+Plan: General Agent UI Runtime Boundary Execution Plan
 User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md)
 
 ## Current Status

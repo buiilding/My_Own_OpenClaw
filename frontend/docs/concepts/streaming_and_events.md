@@ -91,12 +91,12 @@ The renderer renders display-only tool state and transcript projections. Do not 
 
 - [Channels Hub](../channels/README.md)
 - [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md)
-- [Backend Streaming Events Contracts Hub](../backend/contracts/events/README.md)
-- [Backend Formatter Dispatch and Schema Alignment](../backend/api/processing/formatter_dispatch_and_schema_alignment_reference.md)
+- Backend Streaming Events Contracts Hub (private backend docs)
+- Backend Formatter Dispatch and Schema Alignment (private backend docs)
 - [Frontend Backend Event Consumer Matrix](../frontend/contracts/backend_event_consumer_matrix_reference.md)
 - [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md)
 - [Frontend Chat Stream and Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md)
-- [Token Count Event and Usage Diagnostics Reference](../backend/runtime/token_count_event_and_usage_diagnostics_reference.md)
+- Token Count Event and Usage Diagnostics Reference (private backend docs)
 
 ## Evidence Notes
 

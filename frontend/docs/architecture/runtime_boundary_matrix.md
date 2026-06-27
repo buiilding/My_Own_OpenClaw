@@ -14,15 +14,15 @@ Use this architecture-level matrix before searching broadly. It is intentionally
 
 | Boundary | Owns | First code roots | First docs |
 | --- | --- | --- | --- |
-| hosted backend | agent loop, prompt construction, provider routing, model-facing schemas, websocket/REST contracts, artifacts, OCR/vision/embedding/TTS, SDK, VM runs | `backend/src/api`, `backend/src/agent`, `backend/src/llm`, `backend/src/tools`, `backend/src/services` | [Backend Architecture](backend_architecture.md), [Gateway Hub](../gateway/README.md) |
-| backend route/gateway | FastAPI app assembly, router registration, CORS, install auth, websocket handshake | `backend/src/main.py`, `backend/src/api/app_assembly.py`, `backend/src/api/routes`, `backend/src/api/auth` | [Gateway Protocol Map](../gateway/gateway_protocol_map.md) |
+| hosted backend | agent loop, prompt construction, provider routing, model-facing schemas, websocket/REST contracts, artifacts, OCR/vision/embedding/TTS, SDK, VM runs | `backend/src/api`, `backend/src/agent`, `backend/src/llm`, `backend/src/tools`, `backend/src/services` | Backend Architecture (private backend docs), Gateway Hub (private backend docs) |
+| backend route/gateway | FastAPI app assembly, router registration, CORS, install auth, websocket handshake | `backend/src/main.py`, `backend/src/api/app_assembly.py`, `backend/src/api/routes`, `backend/src/api/auth` | Gateway Protocol Map (private backend docs) |
 | Electron main | windows, overlays, renderer IPC, direct Electron agent-host startup, endpoint diagnostics, config persistence, permission probes, local-runtime lifecycle, wakeword bridge, VM worker runtime | `frontend/src/main` | [Frontend Architecture](frontend_architecture.md), [Frontend Main Docs Hub](../frontend/main/README.md) |
 | preload | context-bridge IPC surface and allowlist | `frontend/src/preload.js`, `frontend/src/shared/ipcChannels.json` | [Frontend Preload Docs Hub](../frontend/preload/README.md) |
 | React renderer | dashboard, chat UI, response overlay UI, settings, permissions UI, voice controls, transcript projection, display-only tool state | `frontend/src/renderer` | [Frontend Architecture](frontend_architecture.md), [Frontend Renderer Docs Hub](../frontend/renderer/README.md) |
 | local-runtime implementation | local tools, browser runtime, filesystem/shell/computer actions, local memory DB/FAISS, system state, hosted SDK helper clients | `frontend/src/main/python` | [Local-Runtime Python Implementation](python_sidecar.md), [Local Tool Channels](../channels/sidecar_and_tool_channels.md) |
 | wakeword subprocess | wakeword model/runtime, audio frame handling, detection events | `frontend/src/main/wakeword/wakeword_bridge*.cjs`, `frontend/src/main/python/wakeword_service.py` | [Voice and Audio Channels](../channels/voice_and_audio_channels.md) |
-| VM worker | hosted run heartbeat, assignment, dispatch, event relay, stop controls | `frontend/src/main/app/vm_worker_runtime.cjs`, `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py` | [Automation Hub](../automation/README.md) |
-| Cloudflare/origin | public HTTPS/WebSocket ingress to hosted backend origin | `scripts/cloudflared`, deployment/service config | [Operational Troubleshooting](../operations/operational_troubleshooting.md) |
+| VM worker | hosted run heartbeat, assignment, dispatch, event relay, stop controls | `frontend/src/main/app/vm_worker_runtime.cjs`, `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py` | Automation Hub (private backend docs) |
+| Cloudflare/origin | public HTTPS/WebSocket ingress to hosted backend origin | `scripts/cloudflared`, deployment/service config | Operational Troubleshooting (private backend docs) |
 
 ## Boundary Tests
 

@@ -59,7 +59,7 @@ Choose the install path from the runtime you need to validate. Source-mode check
 
 - [Local Development](local_development.md)
 - [Packaged Desktop Builds](packaged_desktop.md)
-- [Endpoint Setup](local_backend_and_endpoint_setup.md)
+- Endpoint Setup (private backend docs)
 - [Uninstall, Reinstall, and Reset](uninstall_reinstall_reset.md)
 - [Install Troubleshooting](install_troubleshooting.md)
-- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
+- Runtime Configuration Matrix (private backend docs)

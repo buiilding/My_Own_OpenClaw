@@ -41,7 +41,7 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 | browser runtime | backend browser schema tests plus local-runtime Python browser tests | include browser UI/session tests when renderer controls change |
 | docs-only | `<windie> docs list`, focused link check, `git diff --check` | no code tests needed unless docs generator changed |
 | packaging/reinstall | `<windie> docs list` plus target OS package/reinstall command | run matching `scripts/ci/smoke-*` helper before release |
-| runtime config/env vars | focused backend, renderer, and local-runtime config tests | include docs updates for [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) |
+| runtime config/env vars | focused backend, renderer, and local-runtime config tests | include docs updates for Runtime Configuration Matrix (private backend docs) |
 
 ## Common Focused Test Paths
 

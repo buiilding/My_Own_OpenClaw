@@ -74,5 +74,5 @@ This reference maps renderer, Electron main, SDK local-runtime, local-runtime Py
 
 - [Frontend Inventory Docs Hub](README.md)
 - [Frontend Runtime Surface Matrix Reference](frontend_runtime_surface_matrix_reference.md)
-- [Backend Cross-Layer Contract Touchpoints Reference](../../backend/inventory/backend_cross_layer_contract_touchpoints_reference.md)
+- Backend Cross-Layer Contract Touchpoints Reference (private backend docs)
 - [Frontend Contracts Docs Hub](../contracts/README.md)

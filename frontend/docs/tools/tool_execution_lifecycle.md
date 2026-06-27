@@ -139,13 +139,13 @@ without reviving the old Electron-only screenshot materializer.
 | Failure | Likely owner | First docs |
 | --- | --- | --- |
 | Tool never appears in prompt | backend policy/profile/provider health | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) |
-| Model emits invalid args | backend schema, provider projection, parser recovery | [Tool Contracts](tool_contracts.md), [Backend Tools Docs Hub](../backend/tools/README.md) |
+| Model emits invalid args | backend schema, provider projection, parser recovery | [Tool Contracts](tool_contracts.md), Backend Tools Docs Hub (private backend docs) |
 | Backend emits `tool-call`, local execution does nothing | SDK runtime event normalization, tool coordinator, or SDK local-runtime client | [Windie Client Runtime](../sdk/windie_client_runtime.md) |
 | Backend tool event is missing request or bundle ids | SDK runtime malformed-event handling | SDK should store `runtime_error` with `reason: "malformed_tool_event"` and avoid invoking the local executor without a result id |
 | SDK runtime invokes tool but local runtime says missing tool | Local-runtime registry/exposed-name parity backed by local-runtime Python implementation | [Tool Catalog Matrix](tool_catalog_matrix.md), [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
-| Local execution succeeds but model never sees result | result envelope/request id/waiting storage | [Backend Tool Result Ingress](../backend/tools/tool_result_ingress_and_storage_reference.md) |
+| Local execution succeeds but model never sees result | result envelope/request id/waiting storage | Backend Tool Result Ingress (private backend docs) |
 | Local tool output is stored as `deliveryFailed` | SDK transport/result delivery | SDK runtime should also append a turn error so UI/debug state does not treat the tool wait as completed successfully |
-| Tool output appears in UI but rehydrate breaks later | transcript/history shaping | [Memory Hub](../memory/README.md), [Backend History](../backend/agent/history/README.md) |
+| Tool output appears in UI but rehydrate breaks later | transcript/history shaping | [Memory Hub](../memory/README.md), Backend History (private backend docs) |
 
 ## Validation Checklist
 

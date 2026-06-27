@@ -17,7 +17,7 @@ If the owner is still unclear, use [Triage Routes](triage_routes.md). If the iss
 - Confirm the backend process is running.
 - Check websocket connection and settings ACK logs in Electron main.
 - Check backend `/ws` handshake and task-limit behavior.
-- Read [Backend API Docs Hub](../backend/api/README.md).
+- Read Backend API Docs Hub (private backend docs).
 
 ## Model or Provider Is Missing
 

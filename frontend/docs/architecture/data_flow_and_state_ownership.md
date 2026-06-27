@@ -80,7 +80,7 @@ Runtime ownership cleanup is tracked through [Agent Runtime Ownership and Change
 - [Agent-Visible Data Pipeline](agent_visible_data_pipeline.md)
 - [Storage and Persistence Change Workflow](storage_persistence_change_workflow.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
-- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
+- Runtime Configuration Matrix (private backend docs)
 - [Memory Hub](../memory/README.md)
 
 ## Evidence Notes

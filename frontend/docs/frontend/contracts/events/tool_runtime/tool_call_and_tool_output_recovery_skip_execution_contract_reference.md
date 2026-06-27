@@ -204,5 +204,5 @@ If stale-turn cancellations are firing incorrectly:
 
 - [Frontend Events Tool Runtime Docs Hub](README.md)
 - [Frontend Contracts Events Docs Hub](../README.md)
-- [Backend Agent Recovery Docs Hub](../../../../backend/agent/recovery/README.md)
-- [Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference](../../../../backend/agent/recovery/tool_call_error_recovery_and_synthetic_tool_output_replay_reference.md)
+- Backend Agent Recovery Docs Hub (private backend docs)
+- Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference (private backend docs)

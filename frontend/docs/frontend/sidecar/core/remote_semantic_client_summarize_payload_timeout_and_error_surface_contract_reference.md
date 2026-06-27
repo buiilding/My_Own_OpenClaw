@@ -119,4 +119,4 @@ Shared lifecycle helper coverage:
 - [Local-Runtime Core Docs Hub](README.md)
 - [Remote API Client Base Session Lifecycle, Timeout, and Error-Wrapper Contract Reference](remote_api_client_base_session_lifecycle_timeout_and_error_wrapper_contract_reference.md)
 - [Backend Config Env-Precedence Reference](backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md)
-- [Semantic Summarization Service Config Resolution, Prompt Assembly, and Parser-Fallback Contract Reference](../../../backend/api/memory/semantic_summarization_service_config_resolution_prompt_assembly_and_parser_fallback_contract_reference.md)
+- Semantic Summarization Service Config Resolution, Prompt Assembly, and Parser-Fallback Contract Reference (private backend docs)

@@ -82,7 +82,7 @@ Do not remove a model id without checking persisted renderer config and backend 
 
 - [Models and LLM Providers](models.md)
 - [Provider Change Workflow](provider_change_workflow.md)
-- [Provider Credentials](credentials.md)
+- Provider Credentials (private backend docs)
 - [Model Provider Selection](../concepts/model_provider_selection.md)
 - [Frontend Model Settings Change Workflow](../frontend/renderer/settings/model_settings_change_workflow.md)
 - [Configuration Reference](../reference/configuration_reference.md)

@@ -612,5 +612,5 @@ Settings are persisted locally and synced to the backend session:
 
 For more detailed information, see:
 - [Frontend Architecture](frontend_architecture.md)
-- [Backend Architecture](backend_architecture.md)
+- Backend Architecture (private backend docs)
 - [API Reference](../reference/api_reference.md)

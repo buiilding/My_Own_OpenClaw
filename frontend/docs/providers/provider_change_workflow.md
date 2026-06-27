@@ -84,7 +84,7 @@ Do not hard-code provider capability only in the renderer. The frontend should r
 
 - [Providers Hub](README.md)
 - [Models and LLM Providers](models.md)
-- [Provider Credentials](credentials.md)
+- Provider Credentials (private backend docs)
 - [Provider Extension Guide](../plugins/provider_extension_guide.md)
-- [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md)
+- Backend LLM Provider Docs Hub (private backend docs)
 - [Code Change Surface Index](../reference/code_change_surface_index.md)

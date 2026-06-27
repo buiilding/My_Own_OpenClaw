@@ -15,8 +15,8 @@ WindieOS config is split by runtime owner. Add a field where the owner can enfor
 
 | Owner | Stores/applies | Primary docs |
 | --- | --- | --- |
-| Backend `AppConfig` | model/provider defaults, API-key env names, inference routing, tool policy, install auth, artifact limits | [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), [Configuration](../operations/configuration.md) |
-| Electron main | backend endpoint resolution, local desktop UI config file, local-runtime env, VM mode, windows/overlay policy | [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), [Frontend Runtime Surface](../frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md) |
+| Backend `AppConfig` | model/provider defaults, API-key env names, inference routing, tool policy, install auth, artifact limits | Runtime Configuration Matrix (private backend docs), Configuration (private backend docs) |
+| Electron main | backend endpoint resolution, local desktop UI config file, local-runtime env, VM mode, windows/overlay policy | Runtime Configuration Matrix (private backend docs), [Frontend Runtime Surface](../frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md) |
 | Renderer | user-facing settings subset and local UI state | [Renderer Config Sync Lifecycle](../frontend/runtime/config_sync_and_settings_lifecycle_reference.md) |
 | Local-runtime implementation | local tool env flags, backend URL for remote clients, workers, browser runtime | [Local Runtime Python Implementation Docs Hub](../frontend/sidecar/README.md) |
 | Release/CI | package targets, signing, notarization, bundled Python runtime | [Release Guide](../operations/release.md), [Bundled Python Runtime Packaging](../operations/sidecar_runtime_packaging.md) |
@@ -53,17 +53,17 @@ WindieOS config is split by runtime owner. Add a field where the owner can enfor
 3. Add validation/normalization near the owner.
 4. Propagate only the normalized downstream value.
 5. Add tests at owner and protocol boundaries.
-6. Update [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), [Configuration](../operations/configuration.md), and any feature docs.
+6. Update Runtime Configuration Matrix (private backend docs), Configuration (private backend docs), and any feature docs.
 7. Run `<windie> docs list`.
 
-Use [Backend Config and Container Change Workflow](../backend/config/backend_config_and_container_change_workflow.md) when the owner is backend `AppConfig`, a session-scoped settings update, or a container/provider rebinding path.
+Use Backend Config and Container Change Workflow (private backend docs) when the owner is backend `AppConfig`, a session-scoped settings update, or a container/provider rebinding path.
 
 ## Deep Docs
 
-- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
-- [Configuration](../operations/configuration.md)
-- [Backend Config and Container Change Workflow](../backend/config/backend_config_and_container_change_workflow.md)
-- [Hosted Backend Auth](../operations/hosted_backend_auth.md)
-- [Provider Credentials](../providers/credentials.md)
+- Runtime Configuration Matrix (private backend docs)
+- Configuration (private backend docs)
+- Backend Config and Container Change Workflow (private backend docs)
+- Hosted Backend Auth (private backend docs)
+- Provider Credentials (private backend docs)
 - [Model Provider Selection](../concepts/model_provider_selection.md)
-- [VM Worker Node](../nodes/vm_worker_node.md)
+- VM Worker Node (private backend docs)

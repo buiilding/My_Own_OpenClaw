@@ -126,11 +126,11 @@ logs sidecar`, `<windie> test sidecar`, and `<windie> build
 sidecar-runtime`. Prefer the primary `local-runtime` commands in new docs and
 automation.
 
-Read [Cloudflared Self-Host Runbook](../operations/cloudflared_self_host_windieos.md) before running or changing these scripts.
+Read Cloudflared Self-Host Runbook (private backend docs) before running or changing these scripts.
 
 ## Related Docs
 
 - [Validation Commands](validation_commands.md)
 - [Packaging and Release Commands](packaging_and_release_commands.md)
 - [Commands and Scripts Hub](README.md)
-- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
+- Runtime Configuration Matrix (private backend docs)

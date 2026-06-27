@@ -25,7 +25,7 @@ Current runtime topology includes both:
 
 See:
 
-- [Backend Runtime Surface: Query, Tool Loop, and VM Runs](../backend/runtime/backend_runtime_surface_query_tool_loop_and_vm_runs_reference.md)
+- Backend Runtime Surface: Query, Tool Loop, and VM Runs (private backend docs)
 - [Frontend Runtime Surface: Main, Renderer, Local Runtime, and VM Worker](../frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
 
 ## Future: Hosted Multi-Tenant Architecture (Planned)
@@ -530,6 +530,6 @@ tests/
 ---
 
 For more detailed information, see:
-- [Backend Architecture](backend_architecture.md)
+- Backend Architecture (private backend docs)
 - [Frontend Architecture](frontend_architecture.md)
 - [Communication Flow](communication_flow.md)

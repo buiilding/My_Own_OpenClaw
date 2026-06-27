@@ -586,4 +586,4 @@ async def test_tool_execution_flow():
 For more detailed information, see:
 - [Tool Development Guide](../development/tool_development.md)
 - [API Reference](../reference/api_reference.md)
-- [Backend Architecture](backend_architecture.md)
+- Backend Architecture (private backend docs)

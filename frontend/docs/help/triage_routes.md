@@ -23,7 +23,7 @@ Use this page before editing code when a bug report starts with a visible sympto
 | permission is stuck | Electron permission service or stored permission state | platform probe and onboarding visibility | [Platform Permission Matrix](../platforms/permission_matrix.md) |
 | browser action fails | local-runtime browser adapter/runtime | browser session state and local-runtime browser logs | [Browser Troubleshooting](../browser/browser_troubleshooting.md) |
 | packaged app works differently than source | bundled runtime, endpoint env, installed app state, or package dependency | installed app logs and `resources/python-runtime` | [Install Troubleshooting](../install/install_troubleshooting.md) |
-| hosted API returns `401`, `502`, or websocket `1008` | hosted auth, Cloudflare tunnel, or websocket handshake | concrete route health and auth headers | [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md) |
+| hosted API returns `401`, `502`, or websocket `1008` | hosted auth, Cloudflare tunnel, or websocket handshake | concrete route health and auth headers | Gateway Troubleshooting (private backend docs) |
 | voice or wakeword does not trigger | renderer audio, Electron wakeword bridge, local-runtime wakeword helper, or transcription route | mic permission, bridge logs, transcription websocket | [Voice and Wakeword](../desktop/voice_and_wakeword.md) |
 | transcript, replay, or memory is stale | renderer transcript queue, local-runtime memory store, backend history, or semantic routes | identify visible transcript vs backend history vs semantic memory | [Memory Troubleshooting](../memory/memory_troubleshooting.md) |
 

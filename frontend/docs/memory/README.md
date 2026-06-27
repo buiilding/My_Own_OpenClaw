@@ -29,7 +29,7 @@ memory-like systems. They must not be treated as one store.
 - [Storage and Persistence Change Workflow](../architecture/storage_persistence_change_workflow.md) routes storage shape, migration, reset, durability, SQLite/FAISS, artifact, config, and in-memory-state changes.
 - [Transcript and Replay](transcript_and_replay.md) maps renderer transcript writes, pending queues, local snapshots, replay, and model-history resume payloads.
 - [Local Runtime Memory](sidecar_local_memory.md) maps JSON-RPC handlers, local store operations, semanticization, titles, and local search.
-- [Backend History and Semantic Routes](backend_history_and_semantic_routes.md) maps active backend history, rehydrate services, embedding providers, and memory HTTP routes.
+- Backend History and Semantic Routes (private backend docs) maps active backend history, rehydrate services, embedding providers, and memory HTTP routes.
 - [Memory Troubleshooting](memory_troubleshooting.md) maps missing chats, stale semantic memory, title issues, and replay linkage failures.
 
 ## Development Rules

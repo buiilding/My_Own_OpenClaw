@@ -46,7 +46,7 @@ Escalate review if the change touches:
 - hosted tenant/user identity
 - plugin/extension loading or future marketplace behavior
 
-Read [Security Change Playbook](../security/security_change_playbook.md).
+Read Security Change Playbook (private backend docs).
 
 ## Validation
 
@@ -70,5 +70,5 @@ For each changed boundary:
 
 - [Validation Matrix](validation_matrix.md)
 - [Planning Hub](../planning/README.md)
-- [Security Change Playbook](../security/security_change_playbook.md)
+- Security Change Playbook (private backend docs)
 - [Architecture Failure Domain Map](../architecture/failure_domain_map.md)

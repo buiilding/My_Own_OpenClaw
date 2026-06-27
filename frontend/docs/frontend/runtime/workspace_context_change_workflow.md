@@ -286,7 +286,7 @@ Update these docs when workspace context changes:
 
 - [Query Send and Stream Relay Change Workflow](../main/query_send_and_stream_relay_change_workflow.md)
 - [Dashboard Change Workflow](../renderer/dashboard/dashboard_change_workflow.md)
-- [Prompt Context Change Workflow](../../backend/llm/prompts/prompt_context_change_workflow.md)
+- Prompt Context Change Workflow (private backend docs)
 - [Prompt and Tool Context](../../concepts/prompt_and_tool_context.md)
 - [Session and Conversation Identity Change Workflow](../../memory/session_conversation_identity_change_workflow.md)
 - [Permissions and Local Authority Workflow](../../security/permissions_and_local_authority_workflow.md)

@@ -95,7 +95,7 @@ or provider-specific prompt payloads.
 
 - [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md)
 - [Streaming and Events](../concepts/streaming_and_events.md)
-- [Backend Streaming Events Contracts Hub](../backend/contracts/events/README.md)
-- [Streaming Event to Formatter and Outgoing Contract Alignment Reference](../backend/contracts/events/streaming_event_to_formatter_and_outgoing_contract_alignment_reference.md)
+- Backend Streaming Events Contracts Hub (private backend docs)
+- Streaming Event to Formatter and Outgoing Contract Alignment Reference (private backend docs)
 - [Frontend Backend Event Consumer Matrix](../frontend/contracts/backend_event_consumer_matrix_reference.md)
 - [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md)

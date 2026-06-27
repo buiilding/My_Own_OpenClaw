@@ -19,7 +19,7 @@ BACKEND_HTTP_URL=http://127.0.0.1:8765
 BACKEND_WS_URL=ws://127.0.0.1:8765/ws
 ```
 
-Read [Backend Endpoint Setup](../install/local_backend_and_endpoint_setup.md).
+Read Backend Endpoint Setup (private backend docs).
 
 ## Why does source mode work but the packaged app fails?
 
@@ -37,7 +37,7 @@ Read [Tool Troubleshooting](../tools/tool_troubleshooting.md).
 
 Check provider registration, model catalog metadata, credential environment variables, and provider health/capability gates.
 
-Read [Models and LLM Providers](../providers/models.md) and [Provider Credentials](../providers/credentials.md).
+Read [Models and LLM Providers](../providers/models.md) and Provider Credentials (private backend docs).
 
 ## Why does a screenshot include the chat pill or response overlay?
 

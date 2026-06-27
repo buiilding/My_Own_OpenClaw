@@ -16,7 +16,7 @@ These cards do not replace the deeper workflow docs. They are a fast map for cho
 
 Owner: backend.
 
-Start with [Backend API Hub](../backend/api/README.md), [API Route Change Workflow](../backend/api/api_route_change_workflow.md), and [HTTP and WebSocket API Surface](../reference/http_api_surface.md).
+Start with Backend API Hub (private backend docs), API Route Change Workflow (private backend docs), and [HTTP and WebSocket API Surface](../reference/http_api_surface.md).
 
 Validate route models, auth behavior, service tests, and any SDK/client examples that call the route. Keep route contracts in backend docs and do not make frontend or local-runtime implementation code import backend objects for parity.
 
@@ -136,7 +136,7 @@ Avoid: accepting unknown renderer event shapes as a compatibility path instead o
 
 Owner: backend gateway ingress and websocket lifecycle.
 
-Start with [Gateway Hub](../gateway/README.md), [WebSocket Connection Change Workflow](../gateway/websocket_connection_change_workflow.md), and [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md).
+Start with Gateway Hub (private backend docs), WebSocket Connection Change Workflow (private backend docs), and Gateway Troubleshooting (private backend docs).
 
 Validate auth handshake, identity binding, message validation, task admission limits, receive timeouts, handler dispatch, transport sends, and cleanup. Keep connection admission separate from query execution behavior.
 
@@ -146,7 +146,7 @@ Avoid: changing stream event payloads to compensate for a connection lifecycle o
 
 Owner: backend config for hosted policy, Electron/main and renderer for local settings surfaces, SDK for reusable runtime sync.
 
-Start with [Configuration Change Workflow](../operations/configuration_change_workflow.md), [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), and [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md).
+Start with Configuration Change Workflow (private backend docs), Runtime Configuration Matrix (private backend docs), and [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md).
 
 Validate defaults, environment overrides, persisted settings, ACK/error events, provider rebinding, and settings UI state. Document whether existing persisted values migrate or remain compatible.
 
@@ -156,7 +156,7 @@ Avoid: adding a renderer-only default that disagrees with backend config or pack
 
 Owner: Electron main for native permission prompts and window policy, local runtime for local machine actions, backend for policy validation only.
 
-Start with [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md), [Security Boundary Matrix](../security/security_boundary_matrix.md), and [Platform Permission Matrix](../platforms/permission_matrix.md).
+Start with [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md), Security Boundary Matrix (private backend docs), and [Platform Permission Matrix](../platforms/permission_matrix.md).
 
 Validate screen, input, microphone, browser, workspace, and sudo authority paths on the relevant platform. Keep permission state, credential state, and tool execution state separate.
 
@@ -166,7 +166,7 @@ Avoid: granting backend code authority over local input, filesystem, or OS permi
 
 Owner: backend auth and config for hosted tokens, Electron/renderer for user-entered local settings, local runtime only for scoped remote-client credentials.
 
-Start with [Credential and Token Change Workflow](../security/credential_token_change_workflow.md), [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md), and [Hosted Backend Auth](../operations/hosted_backend_auth.md).
+Start with Credential and Token Change Workflow (private backend docs), Credentials and Tokens Matrix (private backend docs), and Hosted Backend Auth (private backend docs).
 
 Validate environment-variable loading, install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, redaction, and logs. Use placeholders in docs and tests.
 
@@ -196,7 +196,7 @@ Avoid: treating MCP tools as backend built-ins when the active local tool surfac
 
 Owner: backend runs API and run-control service, with Electron VM worker dispatch as the local executor path.
 
-Start with [Automation Hub](../automation/README.md), [VM Run Control Change Workflow](../automation/vm_run_control_change_workflow.md), and [Runs API Runbook](../automation/runs_api_runbook.md).
+Start with Automation Hub (private backend docs), VM Run Control Change Workflow (private backend docs), and Runs API Runbook (private backend docs).
 
 Validate run creation, worker heartbeat assignment, event timelines, pending controls, stop behavior, runs API keys, and Electron worker dispatch. Keep `/api/runs/*` as the control plane; normal desktop chat stays on `/ws`.
 

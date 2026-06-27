@@ -62,7 +62,7 @@ For tool work, read:
 For operations work, read:
 
 - [Operations Hub](../operations/README.md)
-- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
+- Runtime Configuration Matrix (private backend docs)
 
 ## 4. Inspect Code Before Editing
 

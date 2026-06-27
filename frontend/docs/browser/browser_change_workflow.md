@@ -71,7 +71,7 @@ If a payload parses in the backend but fails in local runtime, compare the share
 Read:
 
 - [Browser Action Surface](browser_action_surface.md)
-- [Backend Browser Schema Parity Reference](../backend/tools/browser/schema/backend_local_runtime_browser_schema_parity_and_validation_boundary_reference.md)
+- Backend Browser Schema Parity Reference (private backend docs)
 - [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md)
 
 Edit:
@@ -99,7 +99,7 @@ Read:
 
 - [Browser Action Surface](browser_action_surface.md)
 - [Tool Contract Map](../tools/tool_contracts.md)
-- [Backend-Local Runtime Browser Schema Parity Reference](../backend/tools/browser/schema/backend_local_runtime_browser_schema_parity_and_validation_boundary_reference.md)
+- Backend-Local Runtime Browser Schema Parity Reference (private backend docs)
 
 Edit:
 

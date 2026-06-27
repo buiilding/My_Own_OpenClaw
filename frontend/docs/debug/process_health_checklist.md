@@ -129,5 +129,5 @@ journalctl --user -u windieos-cloudflared.service -n 100 --no-pager
 - [Runtime Nodes Hub](../nodes/README.md)
 - [Endpoint and Network Debugging](endpoint_and_network_debugging.md)
 - [Logging](logging.md)
-- [Operational Troubleshooting](../operations/operational_troubleshooting.md)
-- [Cloudflared Self-Host Runbook](../operations/cloudflared_self_host_windieos.md)
+- Operational Troubleshooting (private backend docs)
+- Cloudflared Self-Host Runbook (private backend docs)

@@ -233,6 +233,6 @@ Update these docs when model settings change:
 - [Config Sync and Settings Lifecycle Reference](../../runtime/config_sync_and_settings_lifecycle_reference.md)
 - [Model Catalog Change Workflow](../../../providers/model_catalog_change_workflow.md)
 - [Provider Change Workflow](../../../providers/provider_change_workflow.md)
-- [Provider Credentials](../../../providers/credentials.md)
+- Provider Credentials (private backend docs)
 - [Renderer Config Filter, Storage, and Provider Merge Runtime Reference](config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
 - [Dashboard Change Workflow](../dashboard/dashboard_change_workflow.md)

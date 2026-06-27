@@ -49,4 +49,4 @@ Each ADR should include:
 - [Architecture Hub](../architecture/README.md)
 - [Planning Hub](../planning/README.md)
 - [Extension Points](../architecture/extension_points.md)
-- [Security Change Playbook](../security/security_change_playbook.md)
+- Security Change Playbook (private backend docs)

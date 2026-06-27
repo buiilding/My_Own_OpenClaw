@@ -90,7 +90,7 @@ Check source-only assumptions:
 ## Escalation Route
 
 1. Use [Install Decision Matrix](install_decision_matrix.md) to confirm the intended path.
-2. Use [Backend Endpoint Setup](local_backend_and_endpoint_setup.md) when the failure is connection/auth/tunnel related.
+2. Use Backend Endpoint Setup (private backend docs) when the failure is connection/auth/tunnel related.
 3. Use [Uninstall, Reinstall, and Reset](uninstall_reinstall_reset.md) when installed app state may be stale.
 4. Use [Diagnostic Flags](../debug/diagnostic_flags.md) for the smallest useful log signal.
 5. Use [Process Health Checklist](../debug/process_health_checklist.md) if a runtime looks dead or disconnected.
@@ -100,5 +100,5 @@ Check source-only assumptions:
 - [Local Development](local_development.md)
 - [Packaged Desktop Builds](packaged_desktop.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
-- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
-- [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md)
+- Runtime Configuration Matrix (private backend docs)
+- Gateway Troubleshooting (private backend docs)

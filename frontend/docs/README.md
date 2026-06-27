@@ -27,15 +27,15 @@ contracts.
 - [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and local-runtime URL drift checks
 - [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, local-runtime, wakeword, VM worker, and Cloudflare process triage
 - [**Channels Hub**](channels/README.md) - Desktop, websocket, voice, sidecar, SDK, and VM-run communication paths
-- [**Gateway Hub**](gateway/README.md) - Hosted backend ingress, FastAPI route assembly, websocket protocols, auth, health, and troubleshooting
-- [**WebSocket Connection Change Workflow**](gateway/websocket_connection_change_workflow.md) - Owner routing for main `/ws` handshake auth, identity binding, message validation, task limits, timeouts, handler dispatch, transport sends, and cleanup
-- [**REST Route Auth Matrix**](gateway/rest_route_auth_matrix.md) - Hosted `/api/*` route owners, install-token rules, runs key behavior, failure signals, and tests
-- [**WebSocket Connection Lifecycle**](gateway/websocket_connection_lifecycle.md) - Main `/ws` accept, handshake, auth, message validation, task scheduling, timeout, and cleanup flow
+- **Gateway Hub** (private backend docs) - Hosted backend ingress, FastAPI route assembly, websocket protocols, auth, health, and troubleshooting
+- **WebSocket Connection Change Workflow** (private backend docs) - Owner routing for main `/ws` handshake auth, identity binding, message validation, task limits, timeouts, handler dispatch, transport sends, and cleanup
+- **REST Route Auth Matrix** (private backend docs) - Hosted `/api/*` route owners, install-token rules, runs key behavior, failure signals, and tests
+- **WebSocket Connection Lifecycle** (private backend docs) - Main `/ws` accept, handshake, auth, message validation, task scheduling, timeout, and cleanup flow
 - [**Runtime Nodes Hub**](nodes/README.md) - Runtime process and service boundaries for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
-- [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and future scheduler boundaries
-- [**VM Run Control Change Workflow**](automation/vm_run_control_change_workflow.md) - Owner routing for `/api/runs/*`, VM worker heartbeats, event timelines, controls, runs keys, and Electron worker dispatch
+- **Automation Hub** (private backend docs) - VM run orchestration, worker polling, run-control APIs, and future scheduler boundaries
+- **VM Run Control Change Workflow** (private backend docs) - Owner routing for `/api/runs/*`, VM worker heartbeats, event timelines, controls, runs keys, and Electron worker dispatch
 - [**Security Hub**](security/README.md) - Hosted auth, IPC isolation, schema validation, credentials, tool execution, and local-runtime boundaries
-- [**Credential and Token Change Workflow**](security/credential_token_change_workflow.md) - Owner routing for install auth, bearer tokens, runs keys, provider credentials, OAuth state, local-runtime remote-client auth headers, and secret logging
+- **Credential and Token Change Workflow** (private backend docs) - Owner routing for install auth, bearer tokens, runs keys, provider credentials, OAuth state, local-runtime remote-client auth headers, and secret logging
 - [**Plugins and Extensions Hub**](plugins/README.md) - Current extension points for tools, providers, SDK routes, local-runtime actions, and future plugin boundaries
 - [**Tools Hub**](tools/README.md) - Tool contracts, computer tools, browser automation, filesystem, and shell execution
 - [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Owner routing for model-visible tool schemas, policy gates, provider projection, local-runtime executable parity, SDK/main dispatch, and tool-result contracts
@@ -63,7 +63,7 @@ contracts.
 - [**FAQ**](help/faq.md) - Short routes for recurring source, packaged, endpoint, provider, tool, browser, and memory issues
 - [**Web Surfaces**](web/README.md) - Landing page, hosted backend APIs, auth, SDK routes, client integration, artifacts, and websocket surfaces
 - [**Web Surface Matrix**](web/web_surface_matrix.md) - Current web/API surfaces, owners, public contracts, and change routing
-- [**Hosted API and Auth**](web/hosted_api_and_auth.md) - Hosted REST/websocket auth, CORS, health checks, and failure routing
+- **Hosted API and Auth** (private backend docs) - Hosted REST/websocket auth, CORS, health checks, and failure routing
 - [**Landing Page**](web/landing_page.md) - Standalone public landing page entrypoint, section, style, and product-claim boundaries
 - [**Landing Page Change Workflow**](web/landing_page_change_workflow.md) - Change workflow for landing entrypoints, section content, anchors, CTA links, styles, tests, and product claims
 - [**Web Client Integration**](web/web_client_integration.md) - Hosted TypeScript/Python client and non-Electron integration boundaries
@@ -71,14 +71,14 @@ contracts.
 - [**Code Change Surface Index**](reference/code_change_surface_index.md) - Feature-request to source-root, test, docs, and validation routing map
 - [**OpenClaw Docs Structure Reference**](reference/openclaw_docs_structure_reference.md) - Structure benchmark and WindieOS mapping
 - [**Canonical Docs Navigation**](docs.json) - Machine-readable local docs navigation map validated by `<windie> docs list`
-- [**Backend Bootstrap/API/Contracts Hubs**](backend/README.md) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
+- **Backend Bootstrap/API/Contracts Hubs** (private backend docs) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
 - [**Frontend Main/Renderer/Contracts/Local-Runtime Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
 - [**IPC Change Workflow**](frontend/ipc_change_workflow.md) - Safe IPC change flow across shared registry, preload, renderer bridge, main handlers, and local-runtime bridge
 - [**Local Runtime Process Lifecycle Workflow**](frontend/main/local_backend/process_lifecycle_change_workflow.md) - Local-runtime Python process startup, readiness, status propagation, request correlation, packaged launch targets, and renderer readiness consumers
 - [**Local Runtime JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Owner routing for SDK/main local-runtime JSON-RPC methods, payload mappers, readiness, timeouts, and response envelopes
 - [**Local-Runtime Tool Change Workflow**](frontend/local_runtime_tool_change_workflow.md) - Cross-runtime tool change workflow for backend schema, SDK/main dispatch, Electron bridge, and local-runtime Python implementation
-- [**Backend Config/LLM/Services Hubs**](backend/README.md) - Additional backend sub-hub navigation for config policy, model stack, and runtime services
-- [**Backend LLM Provider Hub**](backend/llm/providers/README.md) - Base provider contract and provider-specific runtime docs for cloud/local integrations
+- **Backend Config/LLM/Services Hubs** (private backend docs) - Additional backend sub-hub navigation for config policy, model stack, and runtime services
+- **Backend LLM Provider Hub** (private backend docs) - Base provider contract and provider-specific runtime docs for cloud/local integrations
 
 ### Getting Started
 - [**Product Overview**](getting-started/product_overview.md) - Non-technical summary of current capabilities and future direction
@@ -88,7 +88,7 @@ contracts.
 - [**Install Decision Matrix**](install/install_decision_matrix.md) - Choose source, packaged, reinstall, endpoint, or release validation paths by change type
 - [**Local Development**](install/local_development.md) - Source setup, run commands, tests, and environment launcher usage
 - [**Packaged Desktop Builds**](install/packaged_desktop.md) - Electron Builder targets and bundled local-runtime Python packaging
-- [**Backend Endpoint Setup**](install/local_backend_and_endpoint_setup.md) - Hosted, local, packaged-default, and self-host backend endpoint setup
+- **Backend Endpoint Setup** (private backend docs) - Hosted, local, packaged-default, and self-host backend endpoint setup
 - [**Uninstall, Reinstall, and Reset**](install/uninstall_reinstall_reset.md) - OS-specific packaged app reinstall helpers and reset scope
 - [**Install Troubleshooting**](install/install_troubleshooting.md) - Source setup, package build, packaged local-runtime Python, endpoint, permission, and signing failure routes
 - [**Packaging and Reinstall Runbooks**](operations/packaging_and_reinstall_runbooks.md) - OS-specific packaged-app reinstall and smoke-check workflows
@@ -113,36 +113,36 @@ contracts.
 - [**Voice Audio Change Workflow**](channels/voice_audio_change_workflow.md) - Owner routing for wakeword, microphone permissions, transcription websocket, STT providers, TTS chunks, and renderer playback
 - [**Voice and Audio Channels**](channels/voice_and_audio_channels.md) - Wakeword, voice dictation, transcription websocket, and TTS playback ownership
 - [**Local Tool Channels**](channels/sidecar_and_tool_channels.md) - Local tool routing, SDK/main local-runtime execution, local-runtime Python implementation, executable tools, and tool-result return path
-- [**Gateway Hub**](gateway/README.md) - FastAPI gateway boundary for hosted HTTP/websocket ingress
-- [**WebSocket Connection Change Workflow**](gateway/websocket_connection_change_workflow.md) - Change workflow for main websocket handshake, install auth, message validation, task scheduling, timeout, and cleanup behavior
-- [**Gateway Protocol Map**](gateway/gateway_protocol_map.md) - App assembly, router registration, websocket, REST, CORS, and protocol families
-- [**Gateway Auth and Health Runbook**](gateway/gateway_auth_and_health_runbook.md) - Install auth, websocket auth, runs key, and health endpoints
-- [**REST Route Auth Matrix**](gateway/rest_route_auth_matrix.md) - Hosted REST route ownership, identity source, auth failure routing, and focused route tests
-- [**WebSocket Connection Lifecycle**](gateway/websocket_connection_lifecycle.md) - `/ws` handshake, install auth, message parse, task limit, timeout, and cleanup internals
-- [**Gateway Troubleshooting**](gateway/gateway_troubleshooting.md) - Hosted route, websocket, auth, Cloudflare, health, and endpoint-resolution failures
+- **Gateway Hub** (private backend docs) - FastAPI gateway boundary for hosted HTTP/websocket ingress
+- **WebSocket Connection Change Workflow** (private backend docs) - Change workflow for main websocket handshake, install auth, message validation, task scheduling, timeout, and cleanup behavior
+- **Gateway Protocol Map** (private backend docs) - App assembly, router registration, websocket, REST, CORS, and protocol families
+- **Gateway Auth and Health Runbook** (private backend docs) - Install auth, websocket auth, runs key, and health endpoints
+- **REST Route Auth Matrix** (private backend docs) - Hosted REST route ownership, identity source, auth failure routing, and focused route tests
+- **WebSocket Connection Lifecycle** (private backend docs) - `/ws` handshake, install auth, message parse, task limit, timeout, and cleanup internals
+- **Gateway Troubleshooting** (private backend docs) - Hosted route, websocket, auth, Cloudflare, health, and endpoint-resolution failures
 - [**Runtime Nodes Hub**](nodes/README.md) - Process/service ownership map for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
 - [**Runtime Node Matrix**](nodes/runtime_node_matrix.md) - Node-to-code-root, protocol, lifecycle, failure-signal, and validation matrix
 - [**Desktop and Local Runtime Node**](nodes/desktop_and_sidecar_node.md) - Electron main, renderer, preload, local-runtime JSON-RPC, local tools, and wakeword ownership
-- [**VM Worker Node**](nodes/vm_worker_node.md) - `/api/runs/*` heartbeat, assignment, dispatch, event relay, and stop-control worker behavior
+- **VM Worker Node** (private backend docs) - `/api/runs/*` heartbeat, assignment, dispatch, event relay, and stop-control worker behavior
 - [**Current vs Future Nodes**](nodes/current_vs_future_nodes.md) - Implemented nodes versus planned mobile, edge, scheduler, and multi-agent VM node work
 - [**Memory Hub**](memory/README.md) - Transcript persistence, replay, local-runtime memory, semantic routes, and troubleshooting
 - [**Memory Change Workflow**](memory/memory_change_workflow.md) - Route transcript, replay, local-runtime memory, semanticization, backend history, and compaction changes
 - [**Session and Conversation Identity Change Workflow**](memory/session_conversation_identity_change_workflow.md) - Change workflow for `user_id`, `session_id`, `conversation_ref`, `turn_ref`, transcript-session sync, resume, rehydrate, and stale-stream routing
 - [**Transcript Replay Change Workflow**](memory/transcript_replay_change_workflow.md) - Change workflow for transcript writes, pending queues, dashboard replay/resume, local-runtime transcript storage, backend rehydrate payloads, and tool-row reconstruction
 - [**Security Hub**](security/README.md) - Security routing for auth, IPC, validation, credentials, permissions, tools, and local execution
-- [**Security Boundary Matrix**](security/security_boundary_matrix.md) - Trust-boundary owner, code-root, failure-signal, and validation matrix
-- [**Security Change Playbook**](security/security_change_playbook.md) - Focused implementation checklist for security-sensitive changes
+- **Security Boundary Matrix** (private backend docs) - Trust-boundary owner, code-root, failure-signal, and validation matrix
+- **Security Change Playbook** (private backend docs) - Focused implementation checklist for security-sensitive changes
 - [**Permissions and Local Authority Workflow**](security/permissions_and_local_authority_workflow.md) - Screen/input/microphone/browser/workspace/sudo authority routing
-- [**Credentials and Tokens Matrix**](security/credentials_and_tokens_matrix.md) - Install tokens, runs keys, provider keys, OAuth state, and local-runtime remote-client auth
-- [**Credential and Token Change Workflow**](security/credential_token_change_workflow.md) - Change workflow for install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, local-runtime remote-client auth headers, and secret logging
+- **Credentials and Tokens Matrix** (private backend docs) - Install tokens, runs keys, provider keys, OAuth state, and local-runtime remote-client auth
+- **Credential and Token Change Workflow** (private backend docs) - Change workflow for install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, local-runtime remote-client auth headers, and secret logging
 - [**Plugins and Extensions Hub**](plugins/README.md) - Current extension surfaces and plugin-marketplace boundaries
 - [**Extension Surface Matrix**](plugins/extension_surface_matrix.md) - Registration points, owner files, docs, and validation targets for extensibility work
 - [**Provider Extension Guide**](plugins/provider_extension_guide.md) - LLM/inference provider extension paths, credentials, product rules, and tests
-- [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and scheduling boundaries
-- [**VM Run Control Change Workflow**](automation/vm_run_control_change_workflow.md) - Change workflow for route models, `VmRunControlService`, assignment, event timelines, pending controls, stop-all, runs API keys, and worker dispatch
-- [**VM Runs and Workers**](automation/vm_runs_and_workers.md) - Run lifecycle from creation through worker dispatch, event relay, and controls
-- [**Runs API Runbook**](automation/runs_api_runbook.md) - `/api/runs/*` endpoint behavior, auth, payloads, statuses, and tests
-- [**Automation Boundaries**](automation/automation_boundaries.md) - Current VM runs versus future cron, webhook, durable queue, and scheduler work
+- **Automation Hub** (private backend docs) - VM run orchestration, worker polling, run-control APIs, and scheduling boundaries
+- **VM Run Control Change Workflow** (private backend docs) - Change workflow for route models, `VmRunControlService`, assignment, event timelines, pending controls, stop-all, runs API keys, and worker dispatch
+- **VM Runs and Workers** (private backend docs) - Run lifecycle from creation through worker dispatch, event relay, and controls
+- **Runs API Runbook** (private backend docs) - `/api/runs/*` endpoint behavior, auth, payloads, statuses, and tests
+- **Automation Boundaries** (private backend docs) - Current VM runs versus future cron, webhook, durable queue, and scheduler work
 - [**Safety Boundaries**](concepts/safety_boundaries.md) - Permissions, schema validation, provider health, and trust boundaries
 - [**Dashboard**](desktop/dashboard.md) - Dashboard shell, sidebar, chat history, settings, memory, and model section routing
 - [**Minimal Chat Pill**](desktop/minimal_chat_pill.md) - Floating command pill behavior, capture timing, drag, anchor, and Linux flicker contract
@@ -174,7 +174,7 @@ contracts.
 - [**Models and LLM Providers**](providers/models.md) - Provider factory, model catalog, reasoning variants, and capability flags
 - [**Provider Change Workflow**](providers/provider_change_workflow.md) - Add/change provider runtime, factory, config, credentials, renderer settings, and tests
 - [**Model Catalog Change Workflow**](providers/model_catalog_change_workflow.md) - Add/change model entries, capability flags, routing metadata, picker behavior, and validation
-- [**Provider Credentials**](providers/credentials.md) - Environment variables, renderer overrides, OAuth entries, and install auth
+- **Provider Credentials** (private backend docs) - Environment variables, renderer overrides, OAuth entries, and install auth
 - [**Inference Providers**](providers/inference.md) - OCR, vision, embeddings, STT, TTS, health, and capability gating
 - [**OpenAI Provider**](providers/openai.md) - Responses routing, native reasoning/search, Codex OAuth, and tool compatibility
 - [**Gemini Provider**](providers/gemini.md) - Native thinking/search, streamed tool-call aggregation, and source extraction
@@ -192,12 +192,12 @@ contracts.
 - [**OCR and Vision SDK**](sdk/ocr_and_vision.md) - SDK perception routes for OCR, vision locate/describe, overlays, and artifact image sources
 - [**Tool Authoring**](sdk/tool_authoring.md) - Backend SDK tool template, ToolContext, permissions, schema, and registration expectations
 - [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, deployment, packaging, release, security, performance, and operational troubleshooting
-- [**Configuration Change Workflow**](operations/configuration_change_workflow.md) - Owner routing for backend config, Electron endpoints, renderer settings, local-runtime env, credentials, VM vars, and packaging config
-- [**Runtime Configuration Matrix**](operations/runtime_configuration_matrix.md) - Config ownership, env vars, defaults, propagation paths, and validation targets
-- [**Hosted Backend Auth**](operations/hosted_backend_auth.md) - Install registration, bearer-token REST auth, websocket identity, and hosted-auth debugging
-- [**Evidence Collection Runbook**](operations/evidence_collection_runbook.md) - Operations evidence packet for hosted, tunnel, Electron, renderer, sidecar, packaged, VM, provider, and permission failures
-- [**Incident Triage Runbook**](operations/incident_triage_runbook.md) - Severity, owner, mitigation, validation, and closure flow for operational incidents
-- [**Operational Troubleshooting**](operations/operational_troubleshooting.md) - Symptom-to-owner routing for hosted, tunnel, packaged-app, sidecar, and VM worker failures
+- **Configuration Change Workflow** (private backend docs) - Owner routing for backend config, Electron endpoints, renderer settings, local-runtime env, credentials, VM vars, and packaging config
+- **Runtime Configuration Matrix** (private backend docs) - Config ownership, env vars, defaults, propagation paths, and validation targets
+- **Hosted Backend Auth** (private backend docs) - Install registration, bearer-token REST auth, websocket identity, and hosted-auth debugging
+- **Evidence Collection Runbook** (private backend docs) - Operations evidence packet for hosted, tunnel, Electron, renderer, sidecar, packaged, VM, provider, and permission failures
+- **Incident Triage Runbook** (private backend docs) - Severity, owner, mitigation, validation, and closure flow for operational incidents
+- **Operational Troubleshooting** (private backend docs) - Symptom-to-owner routing for hosted, tunnel, packaged-app, sidecar, and VM worker failures
 
 ### Architecture & Design
 - [**Architecture Hub**](architecture/README.md) - Runtime boundaries, ownership decision tree, state flow, failure domains, and subsystem architecture routes
@@ -223,33 +223,33 @@ contracts.
 - [**Frontend IPC + Local-Runtime Contract Touchpoints**](frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md) - Renderer/main/local-runtime boundary map for IPC, local-runtime JSON-RPC methods, and backend stream/tool payload integration points
 - [**Frontend Landing Runtime + Content Reference**](frontend/landing/landing_page_runtime_and_content_reference.md) - Standalone landing entrypoint wiring, section/anchor contracts, static content sources, and CSS token/animation behavior
 - [**Frontend Landing Section Content Contracts**](frontend/landing/sections/hero_how_available_and_roadmap_section_content_contract_reference.md) - Hero/How/Available/Roadmap source arrays, CTA anchor semantics, and status-label behavior for public capability messaging
-- [**Backend Functionality Map**](backend/README.md) - Detailed module-level backend runtime and API maps
-- [**API Route Change Workflow**](backend/api/api_route_change_workflow.md) - Owner routing for backend HTTP routes, websocket messages, handlers, formatters, auth gates, route models, and package exports
-- [**Backend Service Change Workflow**](backend/services/backend_service_change_workflow.md) - Owner routing for artifacts, OCR, vision, embeddings, semantic memory, TTS/wakeword audio, token counting, and VM run-control services
-- [**Prompt Context Change Workflow**](backend/llm/prompts/prompt_context_change_workflow.md) - Owner routing for system prompt text, repo instructions, memory and attachment context, model-visible tool schemas, transparency events, and generated prompt/schema artifacts
-- [**Backend Config and Container Change Workflow**](backend/config/backend_config_and_container_change_workflow.md) - Owner routing for `AppConfig`, runtime normalization, client settings patches, DI rebinding, provider refresh, and session config propagation
-- [**Backend Inventory Docs Hub**](backend/inventory/README.md) - Subfolder inventory hub for exhaustive backend runtime coverage, flow matrices, and file ownership indexes
-- [**Backend Inventory Domains Hub**](backend/inventory/domains/README.md) - Domain ownership matrix + change-path playbooks for API/agent/core/tools/llm/services scope decisions
-- [**Backend Inventory Protocols Hub**](backend/inventory/protocols/README.md) - WebSocket handshake/incoming/outgoing/formatter matrix for backend protocol ownership and drift detection
-- [**Backend Full Functionality Inventory Reference**](backend/inventory/backend_full_functionality_inventory_reference.md) - Exhaustive backend feature inventory by runtime domain, module ownership, and end-to-end query/tool path
-- [**Backend Functionality Capability Catalog Reference**](backend/inventory/backend_functionality_capability_catalog_reference.md) - Capability-first backend map linking runtime behaviors to ownership files across API/session/loop/tool/LLM/service domains
-- [**Backend Capability to File Matrix Reference**](backend/inventory/backend_capability_to_file_matrix_reference.md) - Detailed backend capability matrix with concrete ownership files for API/agent/tool/LLM/core/service responsibilities
-- [**Backend Cross-Layer Contract Touchpoints**](backend/inventory/backend_cross_layer_contract_touchpoints_reference.md) - Backend-owned contract map for websocket schemas, formatter outputs, tool-result envelopes, and sidecar/browser parity seams
-- [**Backend Source Maps Hub**](backend/source_maps/README.md) - Sub-hub for source-owned folder topology maps and package `__init__` export surfaces
-- [**Backend Simulation Runtime Reference**](backend/simulation/simulation_backend_and_mock_llm_runtime_reference.md) - Simulation entrypoints, DI LLM-factory override lifecycle, native tool-call fixture behavior, and deterministic mock-sequence invariants
-- [**Backend Simulation Entrypoint Launch Contracts**](backend/simulation/entrypoints/package_runner_and_main_module_uvicorn_bootstrap_contract_reference.md) - `python -m` package runner vs main-module uvicorn bootstrap behavior (reload/access-log differences)
-- [**Backend SDK Tool Context + Schema Contract**](backend/sdk/tool_context_and_schema_contract_reference.md) - SDK `Tool` base contract, schema normalization/caching behavior, ToolContext shape, and ContextFactory injection semantics
-- [**Backend SDK Sub-Agent Helper Runtime**](backend/sdk/subagent_session_helper_runtime_reference.md) - Restricted tool-registry behavior, child-session creation helpers, model override semantics, and response extraction fallback rules
-- [**Backend Event Bus + Cache Infrastructure**](backend/core/event_bus_and_cache_infrastructure_reference.md) - Core event dispatch internals (weakref handlers, MRO cache, error recovery) and cache semantics (TTL/LRU/negative caching/stampede guards)
-- [**Backend Core Logging Profile Contracts**](backend/core/logging/log_profile_noise_filter_and_env_level_resolution_contract_reference.md) - Logging profile/env resolution, noisy-module suppression policy, and important-profile signal retention
-- [**Backend Trust-Boundary Metrics + Enforcement**](backend/core/observability/trust_boundary_metrics_and_enforcement_reference.md) - Per-boundary violation metrics model, DI lifecycle wiring, exception metadata conventions, and parser/prompt trust-boundary observability flow
-- [**Backend Input Validation + Client Settings Patch Guard**](backend/core/validation/input_validation_and_client_settings_patch_guard_reference.md) - Shared query/user-id/message validation helpers, client settings patch allowlist, and API error-sanitization boundary semantics
-- [**Backend Container DI Lifecycle**](backend/bootstrap/container_di_and_init_lifecycle_reference.md) - Container composition, startup phase sequencing, lazy runtime binders, and config-update propagation
-- [**Backend Shared Entrypoint Logger + Uvicorn Runner**](backend/bootstrap/entrypoints/shared_entrypoint_logger_and_uvicorn_runner_contract_reference.md) - Shared startup logging bootstrap and uvicorn launch kwargs contract for production and simulation
-- [**Backend Config and Container Change Workflow**](backend/config/backend_config_and_container_change_workflow.md) - Change workflow for backend config fields, env-var resolution, DI provider rebinding, model service refresh, and stale session debugging
-- [**Backend Config Runtime Policy**](backend/config/config_fields_and_runtime_policy.md) - Exact config fields, runtime normalization, and client settings patch boundaries
-- [**Backend API/Core Topology Source Map Runtime**](backend/source_maps/api_core_folder_topology_and_data_flow_source_map_reference.md) - Source-owned API/core folder maps and layer/data-flow parity expectations
-- [**Backend Package `__init__` Export Surface Runtime**](backend/source_maps/backend_package_init_exports_and_public_import_surface_reference.md) - Contract map for backend package-level re-export and marker surfaces
+- **Backend Functionality Map** (private backend docs) - Detailed module-level backend runtime and API maps
+- **API Route Change Workflow** (private backend docs) - Owner routing for backend HTTP routes, websocket messages, handlers, formatters, auth gates, route models, and package exports
+- **Backend Service Change Workflow** (private backend docs) - Owner routing for artifacts, OCR, vision, embeddings, semantic memory, TTS/wakeword audio, token counting, and VM run-control services
+- **Prompt Context Change Workflow** (private backend docs) - Owner routing for system prompt text, repo instructions, memory and attachment context, model-visible tool schemas, transparency events, and generated prompt/schema artifacts
+- **Backend Config and Container Change Workflow** (private backend docs) - Owner routing for `AppConfig`, runtime normalization, client settings patches, DI rebinding, provider refresh, and session config propagation
+- **Backend Inventory Docs Hub** (private backend docs) - Subfolder inventory hub for exhaustive backend runtime coverage, flow matrices, and file ownership indexes
+- **Backend Inventory Domains Hub** (private backend docs) - Domain ownership matrix + change-path playbooks for API/agent/core/tools/llm/services scope decisions
+- **Backend Inventory Protocols Hub** (private backend docs) - WebSocket handshake/incoming/outgoing/formatter matrix for backend protocol ownership and drift detection
+- **Backend Full Functionality Inventory Reference** (private backend docs) - Exhaustive backend feature inventory by runtime domain, module ownership, and end-to-end query/tool path
+- **Backend Functionality Capability Catalog Reference** (private backend docs) - Capability-first backend map linking runtime behaviors to ownership files across API/session/loop/tool/LLM/service domains
+- **Backend Capability to File Matrix Reference** (private backend docs) - Detailed backend capability matrix with concrete ownership files for API/agent/tool/LLM/core/service responsibilities
+- **Backend Cross-Layer Contract Touchpoints** (private backend docs) - Backend-owned contract map for websocket schemas, formatter outputs, tool-result envelopes, and sidecar/browser parity seams
+- **Backend Source Maps Hub** (private backend docs) - Sub-hub for source-owned folder topology maps and package `__init__` export surfaces
+- **Backend Simulation Runtime Reference** (private backend docs) - Simulation entrypoints, DI LLM-factory override lifecycle, native tool-call fixture behavior, and deterministic mock-sequence invariants
+- **Backend Simulation Entrypoint Launch Contracts** (private backend docs) - `python -m` package runner vs main-module uvicorn bootstrap behavior (reload/access-log differences)
+- **Backend SDK Tool Context + Schema Contract** (private backend docs) - SDK `Tool` base contract, schema normalization/caching behavior, ToolContext shape, and ContextFactory injection semantics
+- **Backend SDK Sub-Agent Helper Runtime** (private backend docs) - Restricted tool-registry behavior, child-session creation helpers, model override semantics, and response extraction fallback rules
+- **Backend Event Bus + Cache Infrastructure** (private backend docs) - Core event dispatch internals (weakref handlers, MRO cache, error recovery) and cache semantics (TTL/LRU/negative caching/stampede guards)
+- **Backend Core Logging Profile Contracts** (private backend docs) - Logging profile/env resolution, noisy-module suppression policy, and important-profile signal retention
+- **Backend Trust-Boundary Metrics + Enforcement** (private backend docs) - Per-boundary violation metrics model, DI lifecycle wiring, exception metadata conventions, and parser/prompt trust-boundary observability flow
+- **Backend Input Validation + Client Settings Patch Guard** (private backend docs) - Shared query/user-id/message validation helpers, client settings patch allowlist, and API error-sanitization boundary semantics
+- **Backend Container DI Lifecycle** (private backend docs) - Container composition, startup phase sequencing, lazy runtime binders, and config-update propagation
+- **Backend Shared Entrypoint Logger + Uvicorn Runner** (private backend docs) - Shared startup logging bootstrap and uvicorn launch kwargs contract for production and simulation
+- **Backend Config and Container Change Workflow** (private backend docs) - Change workflow for backend config fields, env-var resolution, DI provider rebinding, model service refresh, and stale session debugging
+- **Backend Config Runtime Policy** (private backend docs) - Exact config fields, runtime normalization, and client settings patch boundaries
+- **Backend API/Core Topology Source Map Runtime** (private backend docs) - Source-owned API/core folder maps and layer/data-flow parity expectations
+- **Backend Package `__init__` Export Surface Runtime** (private backend docs) - Contract map for backend package-level re-export and marker surfaces
 - [**Frontend Stream State Machine**](frontend/runtime/stream_event_state_machine.md) - Event-to-phase transitions and per-turn stream tracking behavior
 - [**Frontend Chat Stream + Tool Display Runtime**](frontend/renderer/chat_stream_and_tool_execution_reference.md) - Provider ownership, query-send flow, backend event routing, stale-turn cancellation, and SDK-projected tool display semantics
 - [**Frontend Renderer Chat Hub**](frontend/renderer/chat/README.md) - Sub-hub for chat send-path policy, screenshot attachment flow, and store/session rotation contracts
@@ -324,103 +324,103 @@ contracts.
 - [**Data Flow and State Ownership**](architecture/data_flow_and_state_ownership.md) - State owners and duplication risks for core runtime flows
 - [**Change Ownership Decision Tree**](architecture/change_ownership_decision_tree.md) - Subsystem routing before code changes
 - [**Failure Domain Map**](architecture/failure_domain_map.md) - Architecture-level failure routing
-- [**Backend Architecture**](architecture/backend_architecture.md) - Backend system design and patterns
+- **Backend Architecture** (private backend docs) - Backend system design and patterns
 - [**Frontend Architecture**](architecture/frontend_architecture.md) - Frontend system design and patterns
 - [**Communication Flow**](architecture/communication_flow.md) - How frontend and backend communicate
 
 ### Core Systems
 - [**Agent System**](architecture/agent_system.md) - Agent orchestrator and execution flow
 - [**Tool System**](architecture/tool_system.md) - Tool execution architecture and development
-- [**Backend Tools Docs Hub**](backend/tools/README.md) - Backend schema bridge, policy filtering, and wait/ingress runtime docs for SDK/main local-runtime tools
-- [**Backend Tools Registry Docs Hub**](backend/tools/registry/README.md) - Sub-hub for remote tool registration, canonical schema caching, and backend/local-runtime tool-name parity contracts
-- [**Backend Browser Tools Docs Hub**](backend/tools/browser/README.md) - Sub-hub for browser remote schema surface and OpenClaw compatibility-field boundaries
-- [**Backend Browser Schema Docs Hub**](backend/tools/browser/schema/README.md) - Sub-hub for BrowserControlArgs schema layering, compatibility-field mixins, and backend/local-runtime validation boundary mapping
-- [**Backend Tools Policy Docs Hub**](backend/tools/policy/README.md) - Sub-hub for interaction allowlist + dev tool-selection filtering and mouse method startup gating semantics
-- [**Backend Remote Tools Docs Hub**](backend/tools/remote/README.md) - Sub-hub for domain-specific remote stub payload and request-id behavior before SDK/main local-runtime execution
-- [**Backend Tools Execution Docs Hub**](backend/tools/execution/README.md) - Sub-hub for send-path dispatch rules, bundle detection branching, and single/bundle wait orchestration semantics
-- [**Backend Tools Preparation Docs Hub**](backend/tools/preparation/README.md) - Sub-hub for active screenshot/OCR state lifecycle and resolved-call storage contracts used across preparation and execution
-- [**Backend Tools Waiting Docs Hub**](backend/tools/waiting/README.md) - Sub-hub for SDK/local-runtime tool-result receive/route internals and centralized pending/future storage cleanup semantics
-- [**Backend Tools Processing Docs Hub**](backend/tools/processing/README.md) - Sub-hub for result-transform formatting rules, synthetic failure result generation, and history-commit cleanup sequencing
-- [**Backend Tools Contracts Docs Hub**](backend/tools/contracts/README.md) - Sub-hub for tool taxonomy enums, shared schema field factories, and typed tool-result helper/model contracts
-- [**Backend Tools Templates Docs Hub**](backend/tools/templates/README.md) - Sub-hub for SDK tool scaffold files and manifest/capability conventions for new tool authors
-- [**Backend Tools Security Docs Hub**](backend/tools/security/README.md) - Core security policy primitives, audit sanitization controls, and removed executor-registry references
-- [**Backend Tool Security Policy**](backend/tools/tool_security_policy_and_executor_reference.md) - Active vs planned tool-security boundary: ToolPolicy filtering, fail-closed permission checks, audit-log hardening, and removed executor-registry behavior
-- [**Backend Policy Permissions + Audit Sanitization + Removed Executor Registry**](backend/tools/security/policy_permissions_audit_and_executor_registry_reference.md) - `core/security` fail-closed permission rules, path/resource checks, bounded audit-log sanitization semantics, and removed runtime executor swap behavior
-- [**Backend Tool Result Ingress Reference**](backend/tools/tool_result_ingress_and_storage_reference.md) - End-to-end `tool-result`/`tool-bundle-result` flow across API handler, session routing, storage, and futures
-- [**Backend Tool Sender Dispatch + Synthetic Error Runtime**](backend/tools/execution/tool_sender_local_runtime_dispatch_and_synthetic_error_result_reference.md) - Preparation-result branching, synthetic failure event ordering, and model-facing metadata contracts for SDK/main local-runtime dispatch
-- [**Backend Tool Result Orchestrator Bundle + Wait Runtime**](backend/tools/execution/tool_result_orchestrator_bundle_detection_and_wait_path_reference.md) - Atomic bundle detection rules, session-required execution routing, per-tool/bundle futures, and stale-screen safety guard behavior
-- [**Backend Tool Result Receiver + Router Shared Route-Mode**](backend/tools/waiting/tool_result_receiver_and_router_shared_route_mode_reference.md) - Single-vs-bundle shared routing path, bundle success normalization, screenshot-ref decode flow, and session system-state refresh behavior
-- [**Backend Tool Result Storage Future Lifecycle + Cleanup**](backend/tools/waiting/tool_result_storage_future_lifecycle_and_cleanup_reference.md) - Pending/future map ownership, sync/async future creation, TTL cleanup semantics, and request-id targeted cleanup guarantees
-- [**Backend Screenshot Manager + OCR Task Lifecycle**](backend/tools/preparation/screenshot_manager_and_ocr_task_lifecycle_reference.md) - Current-screenshot model, proactive OCR task replacement/cleanup, completion-event behavior, and outdated-result suppression rules
-- [**Backend Resolved Tool-Call Storage + Session Access Contract**](backend/tools/preparation/resolved_tool_call_storage_and_session_access_contract_reference.md) - Request-id map semantics, session encapsulation APIs, cleanup lifecycle, and stale-screen guard coupling at execution time
-- [**Backend Tool Result Processor Bundle Formatting + Cleanup**](backend/tools/processing/tool_result_processor_bundle_formatting_and_cleanup_reference.md) - Atomic-bundle commit branch, bundle narrative generation, individual-result fallback path, and guaranteed request-id/resolved-call cleanup behavior
-- [**Backend Result Transformer + Tool Result Formatting Contract**](backend/tools/processing/result_transformer_and_tool_result_formatting_contract_reference.md) - Pure transformation invariant, screenshot extraction precedence, and `ToolResult.format_for_history` fallback semantics
-- [**Backend Synthetic Result Factory + Coordinate-Resolution Failure Output**](backend/tools/processing/synthetic_result_factory_and_coordinate_resolution_failure_tool_output_reference.md) - Backend-generated synthetic `ToolResult` shape, failure event ordering, and immediate pending-result storage semantics
-- [**Backend Remote Tool Registry + Schema Cache Runtime**](backend/tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md) - `ToolRegistry`/`SchemaRegistry` internals: remote class registration, canonical schema rules, capability fallback extraction, and parity tests against local-runtime exposed tools
-- [**Backend Browser Remote Schema Surface**](backend/tools/browser/browser_remote_schema_surface_reference.md) - `BrowserControlArgs` unified action schema, action-specific validator models, canonical fields, and `RemoteBrowserTool` payload emission semantics
-- [**Backend Browser Control Unified Schema**](backend/tools/browser/schema/browser_control_unified_schema_reference.md) - Action literal surface, strict action models, grouped validation, and canonical schema projection contracts
-- [**Backend-Local Runtime Browser Schema Parity + Validation Boundary**](backend/tools/browser/schema/backend_local_runtime_browser_schema_parity_and_validation_boundary_reference.md) - Cross-layer action/field parity checks and debugging flow for backend parse-success vs local-runtime rejection cases
-- [**Backend Tool Policy + Agent Capability Runtime**](backend/tools/policy/tool_policy_and_agent_capability_runtime_reference.md) - `ToolPolicy` + `ToolSelection` precedence rules, mouse schema pruning, parser method validation, and OCR/vision startup gating behavior
-- [**Backend Remote Tool Domain Payload + Request-ID Runtime**](backend/tools/remote/remote_tool_domain_payload_and_request_id_semantics_reference.md) - Domain stub matrix (computer/system/filesystem/browser), request-id sourcing/override behavior, and payload model_dump differences
-- [**Backend Query Lifecycle Change Workflow**](backend/runtime/query_lifecycle_change_workflow.md) - Owner routing for query ingress, active-task cancellation, stream completion, TTS, agent loop, and frontend event consumers
-- [**Backend Tool Turn Change Workflow**](backend/agent/tool_turn_change_workflow.md) - Owner routing for model-visible tool schemas, tool-call parsing, preparation, dispatch, waiting, history, and SDK/main local execution contracts
-- [**Backend Query Execution Pipeline**](backend/runtime/query_execution_and_stream_pipeline_reference.md) - Query handler to stream pipeline internals, completion backfill rules, and cancellation/task-tracking behavior
-- [**Backend API Handlers Hub**](backend/api/handlers/README.md) - Sub-hub for typed websocket handler contracts and query/non-query execution ownership boundaries
-- [**Backend API Services Hub**](backend/api/services/README.md) - Sub-hub for query/rehydrate/wakeword service-layer orchestration and shared API TTS-session lifecycle boundaries
-- [**Backend API Processing Hub**](backend/api/processing/README.md) - Formatter dispatch, stream pipeline ordering, completion fallback resolution, and TTS concurrency docs
-- [**Backend Formatter Dispatch + Schema Alignment**](backend/api/processing/formatter_dispatch_and_schema_alignment_reference.md) - Canonical formatter registry wiring, per-event required-field behavior, and outgoing schema drift guards
-- [**Backend Stream Pipeline + Completion + TTS Concurrency**](backend/api/processing/stream_pipeline_completion_and_tts_concurrency_reference.md) - Per-event send/format/TTS ordering, completion-text precedence/backfill, and pending-audio race barriers
-- [**Backend Query Execution Runtime-State + Completion Resolver**](backend/api/processing/query_execution_runtime_state_and_completion_resolver_reference.md) - Query-time system-state merge rules, screenshot artifact fallback, event extraction compatibility, and deterministic completion-text fallback semantics
-- [**Backend API Processing TTS Hub**](backend/api/processing/tts/README.md) - API-layer TTS manager/session lifecycle and suppression-state docs
-- [**Backend API Processing Formatters Hub**](backend/api/processing/formatters/README.md) - Base formatter utility contracts and formatter-specific validation/test matrices
-- [**Backend Base Formatter Guard Utilities + Skip Semantics**](backend/api/processing/formatters/base_formatter_guard_utilities_and_skip_semantics_reference.md) - Shared event dict conversion, required-field logging guards, and per-formatter skip-vs-raise behavior
-- [**Backend Formatter Validation + Contract-Test Matrix**](backend/api/processing/formatters/formatter_validation_and_contract_test_matrix_reference.md) - Formatter behavior coverage tied to schema parsing and registry drift tests
-- [**Backend Streaming Events Contracts Hub**](backend/contracts/events/README.md) - Sub-hub for stream event dataclass semantics and event-type alignment across formatters/schemas
-- [**Backend Routing Contracts Hub**](backend/contracts/routing/README.md) - Sub-hub for incoming message route-table parity and handler-binding invariants
-- [**Backend Message Types Contracts Hub**](backend/contracts/message_types/README.md) - Sub-hub for canonical message-type constants and schema-subset/ACK-control boundaries
-- [**Backend Incoming Route Table + Handler-Binding Reference**](backend/contracts/routing/incoming_route_table_schema_parity_and_handler_binding_reference.md) - Canonical route-table/schema-literal validation rules and DI handler-key binding guarantees
-- [**Backend Streaming Event -> Formatter + Outgoing Alignment**](backend/contracts/events/streaming_event_to_formatter_and_outgoing_contract_alignment_reference.md) - Canonical matrix from `StreamingEventType` literals to formatter dispatch and outgoing websocket schema types
-- [**Backend Message-Type Constants + Schema-Subset Reference**](backend/contracts/message_types/message_type_constants_schema_subset_and_handler_ack_reference.md) - Exact incoming/outgoing constants, schema-validated outgoing subset, and settings/model ACK-type semantics
-- [**Backend TTS Manager Audio Stream + Cleanup**](backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md) - Speech gate, audio-chunk relay loop, disconnect behavior, and bounded teardown/cancellation semantics
-- [**Backend TTS Processor Suppression State Machine**](backend/api/processing/tts/tts_processor_suppression_state_machine_reference.md) - Chunk classification states, code/json suppression exits, and mid-chunk marker handling behavior
-- [**Backend Session Runtime + Config Rewire**](backend/agent/session_runtime_and_config_rewire_reference.md) - SessionManager lock/task semantics, AgentSession runtime containers, conversation-thread switching, and full LLM/prompt dependency rebind behavior on settings updates
-- [**Backend Interaction Loop + Tool-Turn Orchestration**](backend/agent/interaction_loop_and_tool_turn_orchestration_reference.md) - Executor component composition, loop iteration policy, tool send/wait/process sequencing, empty-final-response fallback rules, and cleanup invariants
-- [**Backend Agent LLM Docs Hub**](backend/agent/llm/README.md) - Sub-hub for iteration-aware prompt context caching, prompt-transparency presentation contracts, and stream/token diagnostics runtime behavior
-- [**Backend Conversation Context + Prompt-Metadata Presenter**](backend/agent/llm/conversation_context_and_event_presenter_prompt_metadata_reference.md) - First-turn prompt build/cache semantics, `system-prompt`/`user-message-full`/`tool-schemas` event ordering, and tool-schema validation boundary
-- [**Backend LLM Stream Processor Token + Cache Diagnostics**](backend/agent/llm/llm_stream_processor_token_count_and_cache_diagnostics_reference.md) - Stream-vs-non-stream tool-turn routing, normalized payload capture, prompt/provider cache diagnostics, and provider-vs-estimated token accounting rules
-- [**Backend Agent History Docs Hub**](backend/agent/history/README.md) - Sub-hub for result-transform/commit boundaries and tool-call-id staging semantics in conversation history writes
-- [**Backend History Committer + Result-Processor Boundary**](backend/agent/history/history_committer_and_result_processor_boundary_reference.md) - Pure-transform vs state-mutation split, atomic bundle commit path, and finally-block request-id cleanup guarantees
-- [**Backend Tool-Call-ID Staging + Tool-Output History Rows**](backend/agent/history/tool_call_id_staging_and_tool_output_history_row_contract_reference.md) - Dual-row tool-output storage strategy, staged id consumption modes, and token-cache update semantics
-- [**Backend Tool-Call Error Recovery + Synthetic Tool-Output Replay**](backend/agent/recovery/tool_call_error_recovery_and_synthetic_tool_output_replay_reference.md) - Recoverable malformed tool-call stream error classification, synthetic `ToolCallEvent`/`ToolOutputEvent` ordering, history replay injection, and skip-local-execution metadata contract
-- [**Backend Conversation History + Prompt Context Runtime**](backend/runtime/conversation_history_and_prompt_context_runtime_reference.md) - Iteration-1 prompt metadata generation, cached later-turn history retrieval, tool-call/tool-output linkage, rehydrate normalization, and token-cache semantics
-- [**Backend Token Count Event + Usage Diagnostics**](backend/runtime/token_count_event_and_usage_diagnostics_reference.md) - Token-count event lifecycle from LLM stream processor through websocket formatter, provider usage-precedence rules, and fallback/cache semantics
-- [**Backend Token Service Message Normalization + Fallback**](backend/services/token/token_service_message_normalization_and_fallback_reference.md) - LiteLLM token-counter message canonicalization rules, assistant tool-call normalization, text-only fallback estimate semantics, and singleton/thread-safety contract
-- [**Backend Non-Query Handler Flows**](backend/api/non_query_handler_and_control_flow_reference.md) - Settings/model handlers, stop-query cancellation semantics, wakeword activation responses, and transcript rehydrate normalization path
-- [**Backend Query Handler + Query Execution Service Runtime**](backend/api/handlers/query_handler_and_query_execution_service_runtime_reference.md) - Active task registration, screenshot/runtime-state ingestion, stream completion backfill ordering, and TTS session lifecycle
-- [**Backend Non-Query Handler Dispatch + Payload Normalization**](backend/api/handlers/non_query_handler_dispatch_and_payload_normalization_reference.md) - Stop-query completion guarantee, tool-result normalization/routing, settings boundary enforcement, and rehydrate/wakeword service sequencing
-- [**Backend Query Execution Service Stream Context + Completion Fallback**](backend/api/services/query_execution_service_stream_context_and_completion_fallback_reference.md) - Shared stream-context reuse, screenshot/runtime-state ingestion, completion-text precedence, and synthetic fallback/backfill emission rules
-- [**Backend Rehydrate and Wakeword Services + TTSSession**](backend/api/services/rehydrate_and_wakeword_execution_service_and_tts_session_reference.md) - Transcript rehydrate normalization/linkage validation and wakeword greeting+audio service lifecycle contracts
-- [**Backend WebSocket Connection + Task Lifecycle**](backend/api/websocket_connection_and_task_lifecycle_reference.md) - `/ws` handshake contract, receive-loop task scheduling/limits, SafeWebSocket serialization, stop-query cancellation tracking, and disconnect cleanup guarantees
-- [**Backend App Assembly + Container Dependency**](backend/api/app_assembly_and_container_dependency_reference.md) - FastAPI creation/route registration order, default CORS, lifespan container set-clear sequence, and HTTP/WS dependency failure contracts
-- [**Backend Memory Route Validation + Fallback**](backend/api/memory_route_validation_and_fallback_reference.md) - Exact `/api/embeddings` and `/api/semantic` request constraints, session/global config resolution, parser/fallback logic, and sanitized health/error semantics
-- [**Backend Handler Registry + Error Envelope Runtime**](backend/api/handler_registry_and_error_envelope_reference.md) - Canonical incoming route-table validation, fail-closed middleware/typed handler dispatch, and sanitized websocket error envelope guarantees
-- [**Backend Safe WebSocket + Transport Envelope Runtime**](backend/api/transport/safe_websocket_and_transport_envelope_reference.md) - `SafeWebSocket` bounded sender-loop/backpressure semantics, protocol-wrapped send path, and canonical outbound context-field attachment behavior
-- [**Backend Provider Factory Runtime**](backend/llm/provider_factory_and_runtime_selection_reference.md) - Provider-factory cache keys, provider availability gates, client normalization, and model-service catalog/discovery rules
-- [**Backend LLM Base Request + Stream Normalization**](backend/llm/providers/base_request_stream_and_normalization_reference.md) - `LLMProvider` request validation, message/tool schema normalization, stream delta parsing, and usage/cache diagnostics extraction
-- [**Backend LLM Provider-Specific Overrides**](backend/llm/providers/provider_specific_overrides_and_local_runtime_reference.md) - Anthropic/Gemini thinking flags, Kimi stream tool-call assembly, local provider model listing, and provider alias/URL normalization
-- [**Backend LLM Prompt Constructor + Transparency Metadata**](backend/llm/prompts/prompt_constructor_and_transparency_metadata_reference.md) - Prompt build tuple contract, tool-policy schema filtering, XML context extraction, and first-turn metadata event emission
-- [**Backend LLM Prompt Manager Lifecycle**](backend/llm/prompts/prompt_manager_and_system_prompt_lifecycle_reference.md) - Startup prompt loading/failure semantics, prompt-history wiring, and sub-agent custom system-prompt override behavior
-- [**Backend Parser Trust Boundary + Native Tool-Call Path**](backend/llm/parser_trust_boundary_and_native_tool_call_reference.md) - Current live native tool-call ingestion path, parser trust-boundary modules, extraction/validation limits, and violation telemetry semantics
-- [**Backend Artifact + Screenshot Flow**](backend/services/artifact_screenshot_and_system_state_flow_reference.md) - Artifact upload/load rules and screenshot/system-state propagation across query, tool-result, OCR refresh, and rehydrate flows
-- [**Backend Embedding + Semantic Memory Runtime**](backend/services/embedding_and_semantic_memory_runtime_reference.md) - Embedder DI/startup lifecycle, `/api/embeddings` and `/api/semantic` contracts, parser fallback semantics, and sidecar consumption path impacts
-- [**Backend TTS + Wakeword Audio Runtime**](backend/services/tts_and_wakeword_audio_runtime_reference.md) - Query-time speech pipeline and wakeword greeting flow: runtime config gates, TTS filtering/queueing internals, chunk streaming, and cleanup semantics
-- [**Backend Services Screen-Grounding Hub**](backend/services/screen_grounding/README.md) - Sub-hub for OCR state machine and vision provider/runtime details used by coordinate preparation
-- [**Backend OCR + Vision Coordinate Runtime Overview**](backend/services/ocr_and_vision_coordinate_runtime_reference.md) - Overview index linking focused OCR-state and vision-provider deep references
-- [**Backend OCR Service + Screenshot State Machine Runtime**](backend/services/screen_grounding/ocr_service_and_screenshot_state_machine_reference.md) - Startup OCR policy gate, screenshot-ID/task race guards, proactive/on-demand OCR coordination, and CUDA->CPU OCR fallback semantics
-- [**Backend OCR Helper Utility Contracts**](backend/services/screen_grounding/ocr/cuda_error_detection_screenshot_decode_and_ocr_field_normalization_helper_contract_reference.md) - CUDA error classification, strict screenshot payload decode rules, and OCR field normalization behavior used by OCR service internals
-- [**Backend Vision Provider Runtime + Coordinate Scaling**](backend/services/screen_grounding/vision_provider_runtime_and_coordinate_scaling_reference.md) - Vision provider selection/load fallback, inference serialization/runtime retries, and coordinate parse/scale contracts
-- [**Backend Tool Preparation + Coordinate Resolution**](backend/tools/tool_preparation_and_coordinate_resolution_reference.md) - Pre-dispatch tool resolution internals: execution refs, OCR/prediction coordinate flow, normalization metadata contract, synthetic failure paths, and stale-screen execution guard
-- [**Backend Tools Processing Hub**](backend/tools/processing/README.md) - Sub-hub for history-facing post-execution processing (transform, synthetic error creation, and bundle-aware commit behavior)
+- **Backend Tools Docs Hub** (private backend docs) - Backend schema bridge, policy filtering, and wait/ingress runtime docs for SDK/main local-runtime tools
+- **Backend Tools Registry Docs Hub** (private backend docs) - Sub-hub for remote tool registration, canonical schema caching, and backend/local-runtime tool-name parity contracts
+- **Backend Browser Tools Docs Hub** (private backend docs) - Sub-hub for browser remote schema surface and OpenClaw compatibility-field boundaries
+- **Backend Browser Schema Docs Hub** (private backend docs) - Sub-hub for BrowserControlArgs schema layering, compatibility-field mixins, and backend/local-runtime validation boundary mapping
+- **Backend Tools Policy Docs Hub** (private backend docs) - Sub-hub for interaction allowlist + dev tool-selection filtering and mouse method startup gating semantics
+- **Backend Remote Tools Docs Hub** (private backend docs) - Sub-hub for domain-specific remote stub payload and request-id behavior before SDK/main local-runtime execution
+- **Backend Tools Execution Docs Hub** (private backend docs) - Sub-hub for send-path dispatch rules, bundle detection branching, and single/bundle wait orchestration semantics
+- **Backend Tools Preparation Docs Hub** (private backend docs) - Sub-hub for active screenshot/OCR state lifecycle and resolved-call storage contracts used across preparation and execution
+- **Backend Tools Waiting Docs Hub** (private backend docs) - Sub-hub for SDK/local-runtime tool-result receive/route internals and centralized pending/future storage cleanup semantics
+- **Backend Tools Processing Docs Hub** (private backend docs) - Sub-hub for result-transform formatting rules, synthetic failure result generation, and history-commit cleanup sequencing
+- **Backend Tools Contracts Docs Hub** (private backend docs) - Sub-hub for tool taxonomy enums, shared schema field factories, and typed tool-result helper/model contracts
+- **Backend Tools Templates Docs Hub** (private backend docs) - Sub-hub for SDK tool scaffold files and manifest/capability conventions for new tool authors
+- **Backend Tools Security Docs Hub** (private backend docs) - Core security policy primitives, audit sanitization controls, and removed executor-registry references
+- **Backend Tool Security Policy** (private backend docs) - Active vs planned tool-security boundary: ToolPolicy filtering, fail-closed permission checks, audit-log hardening, and removed executor-registry behavior
+- **Backend Policy Permissions + Audit Sanitization + Removed Executor Registry** (private backend docs) - `core/security` fail-closed permission rules, path/resource checks, bounded audit-log sanitization semantics, and removed runtime executor swap behavior
+- **Backend Tool Result Ingress Reference** (private backend docs) - End-to-end `tool-result`/`tool-bundle-result` flow across API handler, session routing, storage, and futures
+- **Backend Tool Sender Dispatch + Synthetic Error Runtime** (private backend docs) - Preparation-result branching, synthetic failure event ordering, and model-facing metadata contracts for SDK/main local-runtime dispatch
+- **Backend Tool Result Orchestrator Bundle + Wait Runtime** (private backend docs) - Atomic bundle detection rules, session-required execution routing, per-tool/bundle futures, and stale-screen safety guard behavior
+- **Backend Tool Result Receiver + Router Shared Route-Mode** (private backend docs) - Single-vs-bundle shared routing path, bundle success normalization, screenshot-ref decode flow, and session system-state refresh behavior
+- **Backend Tool Result Storage Future Lifecycle + Cleanup** (private backend docs) - Pending/future map ownership, sync/async future creation, TTL cleanup semantics, and request-id targeted cleanup guarantees
+- **Backend Screenshot Manager + OCR Task Lifecycle** (private backend docs) - Current-screenshot model, proactive OCR task replacement/cleanup, completion-event behavior, and outdated-result suppression rules
+- **Backend Resolved Tool-Call Storage + Session Access Contract** (private backend docs) - Request-id map semantics, session encapsulation APIs, cleanup lifecycle, and stale-screen guard coupling at execution time
+- **Backend Tool Result Processor Bundle Formatting + Cleanup** (private backend docs) - Atomic-bundle commit branch, bundle narrative generation, individual-result fallback path, and guaranteed request-id/resolved-call cleanup behavior
+- **Backend Result Transformer + Tool Result Formatting Contract** (private backend docs) - Pure transformation invariant, screenshot extraction precedence, and `ToolResult.format_for_history` fallback semantics
+- **Backend Synthetic Result Factory + Coordinate-Resolution Failure Output** (private backend docs) - Backend-generated synthetic `ToolResult` shape, failure event ordering, and immediate pending-result storage semantics
+- **Backend Remote Tool Registry + Schema Cache Runtime** (private backend docs) - `ToolRegistry`/`SchemaRegistry` internals: remote class registration, canonical schema rules, capability fallback extraction, and parity tests against local-runtime exposed tools
+- **Backend Browser Remote Schema Surface** (private backend docs) - `BrowserControlArgs` unified action schema, action-specific validator models, canonical fields, and `RemoteBrowserTool` payload emission semantics
+- **Backend Browser Control Unified Schema** (private backend docs) - Action literal surface, strict action models, grouped validation, and canonical schema projection contracts
+- **Backend-Local Runtime Browser Schema Parity + Validation Boundary** (private backend docs) - Cross-layer action/field parity checks and debugging flow for backend parse-success vs local-runtime rejection cases
+- **Backend Tool Policy + Agent Capability Runtime** (private backend docs) - `ToolPolicy` + `ToolSelection` precedence rules, mouse schema pruning, parser method validation, and OCR/vision startup gating behavior
+- **Backend Remote Tool Domain Payload + Request-ID Runtime** (private backend docs) - Domain stub matrix (computer/system/filesystem/browser), request-id sourcing/override behavior, and payload model_dump differences
+- **Backend Query Lifecycle Change Workflow** (private backend docs) - Owner routing for query ingress, active-task cancellation, stream completion, TTS, agent loop, and frontend event consumers
+- **Backend Tool Turn Change Workflow** (private backend docs) - Owner routing for model-visible tool schemas, tool-call parsing, preparation, dispatch, waiting, history, and SDK/main local execution contracts
+- **Backend Query Execution Pipeline** (private backend docs) - Query handler to stream pipeline internals, completion backfill rules, and cancellation/task-tracking behavior
+- **Backend API Handlers Hub** (private backend docs) - Sub-hub for typed websocket handler contracts and query/non-query execution ownership boundaries
+- **Backend API Services Hub** (private backend docs) - Sub-hub for query/rehydrate/wakeword service-layer orchestration and shared API TTS-session lifecycle boundaries
+- **Backend API Processing Hub** (private backend docs) - Formatter dispatch, stream pipeline ordering, completion fallback resolution, and TTS concurrency docs
+- **Backend Formatter Dispatch + Schema Alignment** (private backend docs) - Canonical formatter registry wiring, per-event required-field behavior, and outgoing schema drift guards
+- **Backend Stream Pipeline + Completion + TTS Concurrency** (private backend docs) - Per-event send/format/TTS ordering, completion-text precedence/backfill, and pending-audio race barriers
+- **Backend Query Execution Runtime-State + Completion Resolver** (private backend docs) - Query-time system-state merge rules, screenshot artifact fallback, event extraction compatibility, and deterministic completion-text fallback semantics
+- **Backend API Processing TTS Hub** (private backend docs) - API-layer TTS manager/session lifecycle and suppression-state docs
+- **Backend API Processing Formatters Hub** (private backend docs) - Base formatter utility contracts and formatter-specific validation/test matrices
+- **Backend Base Formatter Guard Utilities + Skip Semantics** (private backend docs) - Shared event dict conversion, required-field logging guards, and per-formatter skip-vs-raise behavior
+- **Backend Formatter Validation + Contract-Test Matrix** (private backend docs) - Formatter behavior coverage tied to schema parsing and registry drift tests
+- **Backend Streaming Events Contracts Hub** (private backend docs) - Sub-hub for stream event dataclass semantics and event-type alignment across formatters/schemas
+- **Backend Routing Contracts Hub** (private backend docs) - Sub-hub for incoming message route-table parity and handler-binding invariants
+- **Backend Message Types Contracts Hub** (private backend docs) - Sub-hub for canonical message-type constants and schema-subset/ACK-control boundaries
+- **Backend Incoming Route Table + Handler-Binding Reference** (private backend docs) - Canonical route-table/schema-literal validation rules and DI handler-key binding guarantees
+- **Backend Streaming Event -> Formatter + Outgoing Alignment** (private backend docs) - Canonical matrix from `StreamingEventType` literals to formatter dispatch and outgoing websocket schema types
+- **Backend Message-Type Constants + Schema-Subset Reference** (private backend docs) - Exact incoming/outgoing constants, schema-validated outgoing subset, and settings/model ACK-type semantics
+- **Backend TTS Manager Audio Stream + Cleanup** (private backend docs) - Speech gate, audio-chunk relay loop, disconnect behavior, and bounded teardown/cancellation semantics
+- **Backend TTS Processor Suppression State Machine** (private backend docs) - Chunk classification states, code/json suppression exits, and mid-chunk marker handling behavior
+- **Backend Session Runtime + Config Rewire** (private backend docs) - SessionManager lock/task semantics, AgentSession runtime containers, conversation-thread switching, and full LLM/prompt dependency rebind behavior on settings updates
+- **Backend Interaction Loop + Tool-Turn Orchestration** (private backend docs) - Executor component composition, loop iteration policy, tool send/wait/process sequencing, empty-final-response fallback rules, and cleanup invariants
+- **Backend Agent LLM Docs Hub** (private backend docs) - Sub-hub for iteration-aware prompt context caching, prompt-transparency presentation contracts, and stream/token diagnostics runtime behavior
+- **Backend Conversation Context + Prompt-Metadata Presenter** (private backend docs) - First-turn prompt build/cache semantics, `system-prompt`/`user-message-full`/`tool-schemas` event ordering, and tool-schema validation boundary
+- **Backend LLM Stream Processor Token + Cache Diagnostics** (private backend docs) - Stream-vs-non-stream tool-turn routing, normalized payload capture, prompt/provider cache diagnostics, and provider-vs-estimated token accounting rules
+- **Backend Agent History Docs Hub** (private backend docs) - Sub-hub for result-transform/commit boundaries and tool-call-id staging semantics in conversation history writes
+- **Backend History Committer + Result-Processor Boundary** (private backend docs) - Pure-transform vs state-mutation split, atomic bundle commit path, and finally-block request-id cleanup guarantees
+- **Backend Tool-Call-ID Staging + Tool-Output History Rows** (private backend docs) - Dual-row tool-output storage strategy, staged id consumption modes, and token-cache update semantics
+- **Backend Tool-Call Error Recovery + Synthetic Tool-Output Replay** (private backend docs) - Recoverable malformed tool-call stream error classification, synthetic `ToolCallEvent`/`ToolOutputEvent` ordering, history replay injection, and skip-local-execution metadata contract
+- **Backend Conversation History + Prompt Context Runtime** (private backend docs) - Iteration-1 prompt metadata generation, cached later-turn history retrieval, tool-call/tool-output linkage, rehydrate normalization, and token-cache semantics
+- **Backend Token Count Event + Usage Diagnostics** (private backend docs) - Token-count event lifecycle from LLM stream processor through websocket formatter, provider usage-precedence rules, and fallback/cache semantics
+- **Backend Token Service Message Normalization + Fallback** (private backend docs) - LiteLLM token-counter message canonicalization rules, assistant tool-call normalization, text-only fallback estimate semantics, and singleton/thread-safety contract
+- **Backend Non-Query Handler Flows** (private backend docs) - Settings/model handlers, stop-query cancellation semantics, wakeword activation responses, and transcript rehydrate normalization path
+- **Backend Query Handler + Query Execution Service Runtime** (private backend docs) - Active task registration, screenshot/runtime-state ingestion, stream completion backfill ordering, and TTS session lifecycle
+- **Backend Non-Query Handler Dispatch + Payload Normalization** (private backend docs) - Stop-query completion guarantee, tool-result normalization/routing, settings boundary enforcement, and rehydrate/wakeword service sequencing
+- **Backend Query Execution Service Stream Context + Completion Fallback** (private backend docs) - Shared stream-context reuse, screenshot/runtime-state ingestion, completion-text precedence, and synthetic fallback/backfill emission rules
+- **Backend Rehydrate and Wakeword Services + TTSSession** (private backend docs) - Transcript rehydrate normalization/linkage validation and wakeword greeting+audio service lifecycle contracts
+- **Backend WebSocket Connection + Task Lifecycle** (private backend docs) - `/ws` handshake contract, receive-loop task scheduling/limits, SafeWebSocket serialization, stop-query cancellation tracking, and disconnect cleanup guarantees
+- **Backend App Assembly + Container Dependency** (private backend docs) - FastAPI creation/route registration order, default CORS, lifespan container set-clear sequence, and HTTP/WS dependency failure contracts
+- **Backend Memory Route Validation + Fallback** (private backend docs) - Exact `/api/embeddings` and `/api/semantic` request constraints, session/global config resolution, parser/fallback logic, and sanitized health/error semantics
+- **Backend Handler Registry + Error Envelope Runtime** (private backend docs) - Canonical incoming route-table validation, fail-closed middleware/typed handler dispatch, and sanitized websocket error envelope guarantees
+- **Backend Safe WebSocket + Transport Envelope Runtime** (private backend docs) - `SafeWebSocket` bounded sender-loop/backpressure semantics, protocol-wrapped send path, and canonical outbound context-field attachment behavior
+- **Backend Provider Factory Runtime** (private backend docs) - Provider-factory cache keys, provider availability gates, client normalization, and model-service catalog/discovery rules
+- **Backend LLM Base Request + Stream Normalization** (private backend docs) - `LLMProvider` request validation, message/tool schema normalization, stream delta parsing, and usage/cache diagnostics extraction
+- **Backend LLM Provider-Specific Overrides** (private backend docs) - Anthropic/Gemini thinking flags, Kimi stream tool-call assembly, local provider model listing, and provider alias/URL normalization
+- **Backend LLM Prompt Constructor + Transparency Metadata** (private backend docs) - Prompt build tuple contract, tool-policy schema filtering, XML context extraction, and first-turn metadata event emission
+- **Backend LLM Prompt Manager Lifecycle** (private backend docs) - Startup prompt loading/failure semantics, prompt-history wiring, and sub-agent custom system-prompt override behavior
+- **Backend Parser Trust Boundary + Native Tool-Call Path** (private backend docs) - Current live native tool-call ingestion path, parser trust-boundary modules, extraction/validation limits, and violation telemetry semantics
+- **Backend Artifact + Screenshot Flow** (private backend docs) - Artifact upload/load rules and screenshot/system-state propagation across query, tool-result, OCR refresh, and rehydrate flows
+- **Backend Embedding + Semantic Memory Runtime** (private backend docs) - Embedder DI/startup lifecycle, `/api/embeddings` and `/api/semantic` contracts, parser fallback semantics, and sidecar consumption path impacts
+- **Backend TTS + Wakeword Audio Runtime** (private backend docs) - Query-time speech pipeline and wakeword greeting flow: runtime config gates, TTS filtering/queueing internals, chunk streaming, and cleanup semantics
+- **Backend Services Screen-Grounding Hub** (private backend docs) - Sub-hub for OCR state machine and vision provider/runtime details used by coordinate preparation
+- **Backend OCR + Vision Coordinate Runtime Overview** (private backend docs) - Overview index linking focused OCR-state and vision-provider deep references
+- **Backend OCR Service + Screenshot State Machine Runtime** (private backend docs) - Startup OCR policy gate, screenshot-ID/task race guards, proactive/on-demand OCR coordination, and CUDA->CPU OCR fallback semantics
+- **Backend OCR Helper Utility Contracts** (private backend docs) - CUDA error classification, strict screenshot payload decode rules, and OCR field normalization behavior used by OCR service internals
+- **Backend Vision Provider Runtime + Coordinate Scaling** (private backend docs) - Vision provider selection/load fallback, inference serialization/runtime retries, and coordinate parse/scale contracts
+- **Backend Tool Preparation + Coordinate Resolution** (private backend docs) - Pre-dispatch tool resolution internals: execution refs, OCR/prediction coordinate flow, normalization metadata contract, synthetic failure paths, and stale-screen execution guard
+- **Backend Tools Processing Hub** (private backend docs) - Sub-hub for history-facing post-execution processing (transform, synthetic error creation, and bundle-aware commit behavior)
 - [**Browser Control**](browser/browser_control.md) - Browser automation architecture and tool behavior
 - [**Browser Change Workflow**](browser/browser_change_workflow.md) - Browser action/schema/CDP/session/file change workflow across backend, local-runtime execution, local-runtime Python adapters, Electron, renderer, and tests
 - [**Local-Runtime Browser Automation Stack**](frontend/sidecar/browser_automation_stack.md) - Renderer->main->local-runtime browser execution and CDP orchestration details backed by local-runtime Python adapters
@@ -481,8 +481,8 @@ contracts.
 - [**Packaging and Release Commands**](cli/packaging_and_release_commands.md) - Packaging, smoke, reinstall, and release guardrail command reference
 
 ### Configuration & Deployment
-- [**Configuration Guide**](operations/configuration.md) - Configuration options and settings
-- [**Deployment Guide**](operations/deployment.md) - Production deployment instructions
+- **Configuration Guide** (private backend docs) - Configuration options and settings
+- **Deployment Guide** (private backend docs) - Production deployment instructions
 - [**Release Guide**](operations/release.md) - Repeatable release checklist and guardrails
 - [**Planning Hub**](planning/README.md) - Active roadmap and future initiative plans
 - [**Future Product Plan (Draft)**](planning/future_plan.md) - Sequenced roadmap for packaging, hosted rollout, and major future features
@@ -495,9 +495,9 @@ contracts.
 
 ### Additional Resources
 - [**Testing Guide**](development/testing.md) - Testing strategies and practices
-- [**Security Guide**](operations/security.md) - Security considerations and best practices
-- [**Multi-User Runtime Hardening**](operations/multi_user_runtime_hardening.md) - Session identity, multi-device policy, and per-user model isolation guidance
-- [**Performance Guide**](operations/performance.md) - Performance optimization strategies
+- **Security Guide** (private backend docs) - Security considerations and best practices
+- **Multi-User Runtime Hardening** (private backend docs) - Session identity, multi-device policy, and per-user model isolation guidance
+- **Performance Guide** (private backend docs) - Performance optimization strategies
 - [**Planning Hub**](planning/README.md) - Single entrypoint for active future initiative plans
 - [**Contributing Guide**](development/contributing.md) - How to contribute to the project
 
@@ -515,8 +515,8 @@ Start with:
 ### For System Administrators
 Start with:
 1. [Installation Guide](getting-started/installation.md) - Set up the system
-2. [Configuration Guide](operations/configuration.md) - Configure the application
-3. [Deployment Guide](operations/deployment.md) - Deploy to production
+2. Configuration Guide (private backend docs) - Configure the application
+3. Deployment Guide (private backend docs) - Deploy to production
 
 ### For Users
 Start with:

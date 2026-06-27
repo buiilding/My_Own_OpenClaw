@@ -30,7 +30,7 @@ WindieOS is primarily a desktop app, but it has web-facing surfaces:
 ## Web Pages
 
 - [Web Surface Matrix](web_surface_matrix.md)
-- [Hosted API and Auth](hosted_api_and_auth.md)
+- Hosted API and Auth (private backend docs)
 - [Landing Page](landing_page.md)
 - [Landing Page Change Workflow](landing_page_change_workflow.md)
 - [Web Client Integration](web_client_integration.md)
@@ -44,9 +44,9 @@ WindieOS is primarily a desktop app, but it has web-facing surfaces:
 ## Related Docs
 
 - [Frontend Landing Docs Hub](../frontend/landing/README.md)
-- [Backend API Docs Hub](../backend/api/README.md)
-- [Gateway Protocol Map](../gateway/gateway_protocol_map.md)
+- Backend API Docs Hub (private backend docs)
+- Gateway Protocol Map (private backend docs)
 - [API Reference](../reference/api_reference.md)
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
 - [Hosted Backend Clients](../sdk/hosted_backend_clients.md)
-- [Deployment](../operations/deployment.md)
+- Deployment (private backend docs)

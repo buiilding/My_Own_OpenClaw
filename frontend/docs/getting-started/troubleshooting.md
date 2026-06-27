@@ -500,5 +500,5 @@ When reporting issues, include:
 
 For more help, see:
 - [Installation Guide](installation.md)
-- [Configuration Guide](../operations/configuration.md)
+- Configuration Guide (private backend docs)
 - [Developer Guide](../development/developer_guide.md)

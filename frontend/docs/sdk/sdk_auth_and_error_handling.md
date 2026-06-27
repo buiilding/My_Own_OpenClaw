@@ -67,6 +67,6 @@ Do not collapse all SDK failures into `Error: request failed`. Preserve status, 
 
 - [Hosted Backend Clients](hosted_backend_clients.md)
 - [SDK Route Change Workflow](sdk_route_change_workflow.md)
-- [Hosted API and Auth](../web/hosted_api_and_auth.md)
-- [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md)
-- [REST Route Auth Matrix](../gateway/rest_route_auth_matrix.md)
+- Hosted API and Auth (private backend docs)
+- Credentials and Tokens Matrix (private backend docs)
+- REST Route Auth Matrix (private backend docs)

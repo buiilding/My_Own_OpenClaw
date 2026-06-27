@@ -78,7 +78,7 @@ Local-runtime Python stdout is protocol traffic. Never log debug text to stdout.
 | `WINDIE_VM_WORKER_HEARTBEAT_MS=<ms>` | Worker heartbeat interval as a strict integer; minimum is 1000ms. |
 | `WINDIE_VM_RUNS_API_KEY=<key>` | Worker-specific runs API key override. |
 
-Use [VM Worker Node](../nodes/vm_worker_node.md) and [Runs API Runbook](../automation/runs_api_runbook.md) for the full control-plane flow.
+Use VM Worker Node (private backend docs) and Runs API Runbook (private backend docs) for the full control-plane flow.
 
 ## Packaged Reinstall
 
@@ -96,5 +96,5 @@ Local reinstall logs are not release-signing validation.
 - [Logging](logging.md)
 - [Observability Change Workflow](observability_change_workflow.md)
 - [Runtime Traces](runtime_traces.md)
-- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
+- Runtime Configuration Matrix (private backend docs)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)

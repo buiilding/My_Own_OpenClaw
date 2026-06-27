@@ -52,6 +52,6 @@ Provider health and circuit breakers should hide or fail capabilities predictabl
 ## Deep Docs
 
 - [Inference Capability Change Workflow](inference_capability_change_workflow.md)
-- [Backend Services Screen-Grounding Docs Hub](../backend/services/screen_grounding/README.md)
-- [Backend Embedding + Semantic Memory Runtime Reference](../backend/services/embedding_and_semantic_memory_runtime_reference.md)
-- [Backend TTS + Wakeword Audio Runtime Reference](../backend/services/tts_and_wakeword_audio_runtime_reference.md)
+- Backend Services Screen-Grounding Docs Hub (private backend docs)
+- Backend Embedding + Semantic Memory Runtime Reference (private backend docs)
+- Backend TTS + Wakeword Audio Runtime Reference (private backend docs)

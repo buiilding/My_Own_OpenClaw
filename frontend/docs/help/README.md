@@ -31,6 +31,6 @@ Start here for user-visible failures. If the issue is implementation-specific, f
 
 - [Getting Started Troubleshooting](../getting-started/troubleshooting.md)
 - [Debug Hub](../debug/README.md)
-- [Configuration](../operations/configuration.md)
-- [Security](../operations/security.md)
+- Configuration (private backend docs)
+- Security (private backend docs)
 - [Platforms Hub](../platforms/README.md)

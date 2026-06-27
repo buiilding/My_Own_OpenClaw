@@ -29,10 +29,10 @@ WindieOS is desktop-first. Web-facing surfaces are either the public landing pag
 | Change | Start docs | Code roots |
 | --- | --- | --- |
 | update public landing copy/sections | [Landing Page Change Workflow](landing_page_change_workflow.md), [Landing Page](landing_page.md) | `frontend/src/landing/*` |
-| add/change hosted REST route | [Hosted API and Auth](hosted_api_and_auth.md), [Gateway Protocol Map](../gateway/gateway_protocol_map.md) | `backend/src/api/routes/*` |
+| add/change hosted REST route | Hosted API and Auth (private backend docs), Gateway Protocol Map (private backend docs) | `backend/src/api/routes/*` |
 | add/change websocket event | [HTTP and WebSocket API Surface](../reference/http_api_surface.md), [WebSocket Event Reference](../reference/websocket_event_reference.md) | `backend/src/api/routes/websocket/*`, renderer event consumers |
 | expose SDK/client helper | [Web Client Integration](web_client_integration.md), [SDK Hub](../sdk/README.md) | `backend/src/api/routes/sdk/*`, `packages/windie-sdk-js`, `frontend/src/main/python/core` |
-| add VM run control feature | [Automation Hub](../automation/README.md) | `backend/src/api/routes/runs/*`, `frontend/src/main/app/vm_worker_runtime.cjs` |
+| add VM run control feature | Automation Hub (private backend docs) | `backend/src/api/routes/runs/*`, `frontend/src/main/app/vm_worker_runtime.cjs` |
 | make a browser-hosted dashboard | planning first | identify Electron IPC, local runtime, auth, and filesystem assumptions before implementation |
 
 ## Rules
@@ -45,6 +45,6 @@ WindieOS is desktop-first. Web-facing surfaces are either the public landing pag
 ## Related Docs
 
 - [Web Surfaces Hub](README.md)
-- [Hosted API and Auth](hosted_api_and_auth.md)
+- Hosted API and Auth (private backend docs)
 - [Web Client Integration](web_client_integration.md)
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)

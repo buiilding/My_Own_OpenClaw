@@ -15,14 +15,14 @@ Use this workflow before adding logs or diagnostic flags. Observability should p
 
 | Need | First owner | Source roots | Start docs | Tests |
 | --- | --- | --- | --- | --- |
-| backend log profile, logger level, third-party noise filtering | backend logging setup | `backend/src/core/logging_setup.py` | [Logging](logging.md), [Backend Core Logging Profile Contracts](../backend/core/logging/log_profile_noise_filter_and_env_level_resolution_contract_reference.md) | `tests/backend/test_logging_setup.py` |
-| backend security/trust-boundary metrics | backend observability service | `backend/src/core/observability`, trust-boundary parsers/enforcers | [Backend Trust-Boundary Metrics and Enforcement](../backend/core/observability/trust_boundary_metrics_and_enforcement_reference.md) | `tests/backend/test_trust_boundary_metrics.py` |
-| stream, websocket, or query event trace | backend formatter/transport plus Electron relay and SDK/renderer stream | `backend/src/api`, `frontend/src/main/ipc.cjs`, `frontend/src/renderer/features/chat` | [Runtime Traces](runtime_traces.md), [Query Lifecycle Change Workflow](../backend/runtime/query_lifecycle_change_workflow.md) | backend formatter/websocket tests plus SDK/renderer stream tests |
+| backend log profile, logger level, third-party noise filtering | backend logging setup | `backend/src/core/logging_setup.py` | [Logging](logging.md), Backend Core Logging Profile Contracts (private backend docs) | `tests/backend/test_logging_setup.py` |
+| backend security/trust-boundary metrics | backend observability service | `backend/src/core/observability`, trust-boundary parsers/enforcers | Backend Trust-Boundary Metrics and Enforcement (private backend docs) | `tests/backend/test_trust_boundary_metrics.py` |
+| stream, websocket, or query event trace | backend formatter/transport plus Electron relay and SDK/renderer stream | `backend/src/api`, `frontend/src/main/ipc.cjs`, `frontend/src/renderer/features/chat` | [Runtime Traces](runtime_traces.md), Query Lifecycle Change Workflow (private backend docs) | backend formatter/websocket tests plus SDK/renderer stream tests |
 | chat pill, response overlay, or screenshot trace | Electron main surface runtime and overlay phase handlers | `frontend/src/main/debug/chat_pill_trace_runtime.cjs`, `frontend/src/main/overlay_*`, `frontend/src/main/surfaces` | [Runtime Traces](runtime_traces.md), [Platform Change Workflow](../platforms/platform_change_workflow.md) | overlay/phase tests |
 | app startup, sidebar chat-list, browser session readiness, or non-turn diagnostics that must survive restart | Electron main app diagnostics store plus producer runtime | `frontend/src/main/diagnostics/app_diagnostics_store.cjs`, SDK/runtime producer, local-runtime Python producer | [Runtime Traces](runtime_traces.md), [Storage Persistence Change Workflow](../architecture/storage_persistence_change_workflow.md) | app diagnostics store tests plus focused producer tests |
 | tool execution or tool screenshot debug output | SDK tool routing and local-runtime screenshot capture | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md), [Runtime Traces](runtime_traces.md) | SDK tool/runtime tests, local-runtime Python screenshot tests |
 | local-runtime stderr logging or system metrics | local-runtime Python implementation | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/system_metrics.py`, local-runtime Python implementation modules | [Logging](logging.md), [Process Health Checklist](process_health_checklist.md) | local-runtime Python focused pytest, `tests/sidecar/test_system_metrics_and_watermark_state.py` |
-| VM run event log or operations evidence | backend VM run control and operations runbooks | `backend/src/services/vm_run_control_support`, `docs/operations` | [Evidence Collection Runbook](../operations/evidence_collection_runbook.md), [Incident Triage Runbook](../operations/incident_triage_runbook.md) | `tests/backend/test_vm_run_control_event_log.py` |
+| VM run event log or operations evidence | backend VM run control and operations runbooks | `backend/src/services/vm_run_control_support`, `docs/operations` | Evidence Collection Runbook (private backend docs), Incident Triage Runbook (private backend docs) | `tests/backend/test_vm_run_control_event_log.py` |
 | packaged app log controls | reinstall helpers and Electron launch/runtime env | `<windie> reinstall <platform>`, `frontend/scripts/electron-launcher.cjs`, `frontend/src/main` | [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md), [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md) | package smoke helpers and target OS manual checks |
 
 ## Rules
@@ -133,8 +133,8 @@ Use operational evidence docs when the signal is needed for incident triage, hos
 
 Primary docs:
 
-- [Evidence Collection Runbook](../operations/evidence_collection_runbook.md)
-- [Incident Triage Runbook](../operations/incident_triage_runbook.md)
+- Evidence Collection Runbook (private backend docs)
+- Incident Triage Runbook (private backend docs)
 - [Evidence Packet](../help/evidence_packet.md)
 - [Process Health Checklist](process_health_checklist.md)
 
@@ -161,5 +161,5 @@ Rules:
 - [Runtime Traces](runtime_traces.md)
 - [Diagnostic Flags](diagnostic_flags.md)
 - [Process Health Checklist](process_health_checklist.md)
-- [Evidence Collection Runbook](../operations/evidence_collection_runbook.md)
+- Evidence Collection Runbook (private backend docs)
 - [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md)

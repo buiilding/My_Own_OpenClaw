@@ -114,7 +114,7 @@ Result path rules:
 Read next:
 
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
-- [Backend Tool Result Ingress Reference](../backend/tools/tool_result_ingress_and_storage_reference.md)
+- Backend Tool Result Ingress Reference (private backend docs)
 
 ## Common Failure Routing
 

@@ -46,7 +46,6 @@
               "architecture/README",
               "nodes/README",
               "channels/README",
-              "gateway/README",
               "architecture/runtime_boundary_matrix",
               "architecture/data_flow_and_state_ownership",
               "architecture/agent_visible_data_pipeline",
@@ -136,12 +135,9 @@
             "pages": [
               "install/README",
               "install/local_development",
-              "install/local_backend_and_endpoint_setup",
               "install/packaged_desktop",
               "operations/README",
-              "automation/README",
-              "web/README",
-              "operations/runtime_configuration_matrix"
+              "web/README"
             ]
           },
           {
@@ -156,7 +152,6 @@
               "help/README",
               "help/triage_routes",
               "security/README",
-              "security/security_boundary_matrix",
               "security/permissions_and_local_authority_workflow"
             ]
           }

@@ -164,7 +164,7 @@ Before committing:
 | Bad local-runtime payload | Inspect the SDK local-runtime caller or scoped main helper, method names, mapped keys, and local-runtime Python handler params. | [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md) |
 | Backend relay drift | Inspect `windie:invoke` SDK commands, typed SDK/backend-event fan-out, settings sync gate, query payload builder, and Agent SDK backend transport send. | [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md) |
 | Renderer stale event | Inspect `IpcBridge.on` cleanup, stream turn refs, transcript session refs, and replay state. | [Renderer State Change Workflow](renderer/renderer_state_change_workflow.md) |
-| Security concern | Inspect preload exposure, credential handling, permission gates, and local-runtime authority. | [Security Change Playbook](../security/security_change_playbook.md) |
+| Security concern | Inspect preload exposure, credential handling, permission gates, and local-runtime authority. | Security Change Playbook (private backend docs) |
 
 ## Test Targets
 

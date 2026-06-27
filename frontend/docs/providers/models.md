@@ -91,9 +91,9 @@ reasoning presets; the provider request path reads the explicit
 
 ## Deep Docs
 
-- [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md)
-- [Backend LLM Base Request, Stream, and Normalization Reference](../backend/llm/providers/base_request_stream_and_normalization_reference.md)
-- [Backend LLM Provider-Specific Overrides and Local Runtime Reference](../backend/llm/providers/provider_specific_overrides_and_local_runtime_reference.md)
+- Backend LLM Provider Docs Hub (private backend docs)
+- Backend LLM Base Request, Stream, and Normalization Reference (private backend docs)
+- Backend LLM Provider-Specific Overrides and Local Runtime Reference (private backend docs)
 
 ## Provider-Specific Docs
 

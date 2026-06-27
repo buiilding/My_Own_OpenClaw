@@ -16,14 +16,14 @@ Use this hub when an agent needs to identify where a behavior runs before editin
 
 | Node | Runs where | Owns | Start docs |
 | --- | --- | --- | --- |
-| Hosted backend node | Peter-hosted or self-hosted FastAPI process | agent loop, websocket protocols, REST routes, model/tool schema, providers, artifacts, OCR/vision, semantic routes, run control | [Runtime Node Matrix](runtime_node_matrix.md), [Gateway Hub](../gateway/README.md), [Backend Functionality Map](../backend/README.md) |
+| Hosted backend node | Peter-hosted or self-hosted FastAPI process | agent loop, websocket protocols, REST routes, model/tool schema, providers, artifacts, OCR/vision, semantic routes, run control | [Runtime Node Matrix](runtime_node_matrix.md), Gateway Hub (private backend docs), Backend Functionality Map (private backend docs) |
 | Electron main node | local desktop app main process | windows, overlay lifecycle, SDK-runtime adapter, local config, preload IPC handlers, local-runtime host/status context, VM worker mode | [Desktop and Local Runtime Node](desktop_and_sidecar_node.md), [Frontend Main Docs Hub](../frontend/main/README.md) |
 | Renderer node | local desktop renderer processes | dashboard, chat UI, overlay UI, voice UI, settings, transcript projection, display-only tool state | [Desktop and Local Runtime Node](desktop_and_sidecar_node.md), [Frontend Renderer Docs Hub](../frontend/renderer/README.md) |
 | Preload bridge node | local isolated bridge injected into renderer windows | allowed IPC surface, channel validation, safe renderer-to-main access | [Runtime Node Matrix](runtime_node_matrix.md), [Frontend Preload Docs Hub](../frontend/preload/README.md) |
 | Local-runtime Python implementation node | local Python subprocess managed by SDK local runtime | SDK/main local runtime owns local executable authority; this node is the concrete implementation for filesystem/shell/computer/browser tools, local memory, system state, JSON-RPC methods, and SDK helper clients | [Desktop and Local Runtime Node](desktop_and_sidecar_node.md), [Local Runtime Python Implementation Docs Hub](../frontend/sidecar/README.md) |
 | Wakeword service node | local Python subprocess separate from generic local-runtime JSON-RPC | wakeword model bootstrap, audio framing, detection events | [Desktop and Local Runtime Node](desktop_and_sidecar_node.md), [Voice and Audio Channels](../channels/voice_and_audio_channels.md) |
-| VM worker node | Electron main running in `WINDIE_VM_MODE` or `WINDIE_VM_WORKER_MODE` | `/api/runs/*` heartbeat, assignment, dispatch, run event relay, stop controls | [VM Worker Node](vm_worker_node.md), [Automation Hub](../automation/README.md) |
-| Cloudflare/origin service node | deployment host and Cloudflare Tunnel user service | public `api.windieos.com` ingress to a self-hosted backend origin | [Runtime Node Matrix](runtime_node_matrix.md), [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md), [Cloudflared Self-Host Runbook](../operations/cloudflared_self_host_windieos.md) |
+| VM worker node | Electron main running in `WINDIE_VM_MODE` or `WINDIE_VM_WORKER_MODE` | `/api/runs/*` heartbeat, assignment, dispatch, run event relay, stop controls | VM Worker Node (private backend docs), Automation Hub (private backend docs) |
+| Cloudflare/origin service node | deployment host and Cloudflare Tunnel user service | public `api.windieos.com` ingress to a self-hosted backend origin | [Runtime Node Matrix](runtime_node_matrix.md), Gateway Troubleshooting (private backend docs), Cloudflared Self-Host Runbook (private backend docs) |
 
 ## Node Boundary Rules
 
@@ -77,8 +77,8 @@ Validate preload/channel tests, main-process IPC tests, SDK/main tool-routing te
 Read:
 
 - [Runtime Node Matrix](runtime_node_matrix.md)
-- [Gateway Hub](../gateway/README.md)
-- [Gateway Protocol Map](../gateway/gateway_protocol_map.md)
+- Gateway Hub (private backend docs)
+- Gateway Protocol Map (private backend docs)
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
 
 Likely code:
@@ -95,8 +95,8 @@ Validate backend route/auth/websocket tests and SDK clients when public route be
 
 Read:
 
-- [VM Worker Node](vm_worker_node.md)
-- [Automation Hub](../automation/README.md)
+- VM Worker Node (private backend docs)
+- Automation Hub (private backend docs)
 - [Current vs Future Nodes](current_vs_future_nodes.md)
 - [VM Multi-Agent Plan](../planning/windieos_vm_multi_agent_plan.md)
 
@@ -114,8 +114,8 @@ Validate backend run-control tests and frontend VM worker/runtime-mode tests.
 
 - [Runtime Node Matrix](runtime_node_matrix.md)
 - [Desktop and Local Runtime Node](desktop_and_sidecar_node.md)
-- [VM Worker Node](vm_worker_node.md)
+- VM Worker Node (private backend docs)
 - [Current vs Future Nodes](current_vs_future_nodes.md)
 - [Channels Hub](../channels/README.md)
-- [Gateway Hub](../gateway/README.md)
-- [Automation Hub](../automation/README.md)
+- Gateway Hub (private backend docs)
+- Automation Hub (private backend docs)

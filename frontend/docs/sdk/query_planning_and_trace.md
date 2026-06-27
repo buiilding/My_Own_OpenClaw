@@ -51,4 +51,4 @@ prompt context is needed.
 
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
 - [Agent Definition Contract](agent_definition.md)
-- [Backend Prompt Constructor and Transparency Metadata Reference](../backend/llm/prompts/prompt_constructor_and_transparency_metadata_reference.md)
+- Backend Prompt Constructor and Transparency Metadata Reference (private backend docs)

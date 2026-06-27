@@ -179,7 +179,7 @@ Do not change version numbers, tags, or publish artifacts without explicit appro
 | macOS app launches from copied install but not DMG | signing/hardened runtime/Gatekeeper path | `scripts/ci/smoke-macos-packages.sh`, [Release Guide](release.md) |
 | Windows packaging fails extracting signing helper | symlink/developer mode | run reinstall helper preflight, enable Developer Mode or use elevated shell |
 | Linux AppImage browser tools fail but DEB works | missing system package | verify `xdotool` installed for AppImage users |
-| Packaged app connects to wrong backend | endpoint env/default resolution | [Runtime Configuration Matrix](runtime_configuration_matrix.md), `frontend/src/main/app/backend_endpoints.cjs` |
+| Packaged app connects to wrong backend | endpoint env/default resolution | Runtime Configuration Matrix (private backend docs), `frontend/src/main/app/backend_endpoints.cjs` |
 | Browser tool asks to install Chromium | no compatible system browser and no Playwright cache | [Browser Troubleshooting](../browser/browser_troubleshooting.md) |
 
 ## Validation Checklist

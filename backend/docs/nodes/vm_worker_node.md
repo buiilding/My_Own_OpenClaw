@@ -12,7 +12,7 @@ The VM worker node is an Electron main-process runtime configured to poll the ho
 
 The worker uses `/api/runs/*` for control-plane state, then dispatches assigned work through the normal backend websocket query path.
 
-For code-owner routing across route models, assignment helpers, event logs, controls, auth, and Electron worker dispatch, use [VM Run Control Change Workflow](../automation/vm_run_control_change_workflow.md).
+For code-owner routing across route models, assignment helpers, event logs, controls, auth, and Electron worker dispatch, use VM Run Control Change Workflow (private backend docs).
 
 ## Current Runtime
 
@@ -114,18 +114,18 @@ Use the smallest test set that covers the changed node:
 
 Docs to update with behavior changes:
 
-- [Automation Hub](../automation/README.md)
-- [VM Run Control Change Workflow](../automation/vm_run_control_change_workflow.md)
-- [VM Runs and Workers](../automation/vm_runs_and_workers.md)
-- [Runs API Runbook](../automation/runs_api_runbook.md)
-- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
+- Automation Hub (private backend docs)
+- VM Run Control Change Workflow (private backend docs)
+- VM Runs and Workers (private backend docs)
+- Runs API Runbook (private backend docs)
+- Runtime Configuration Matrix (private backend docs)
 - [Runtime Node Matrix](runtime_node_matrix.md)
 
 ## Related Docs
 
-- [Automation Hub](../automation/README.md)
-- [VM Runs and Workers](../automation/vm_runs_and_workers.md)
-- [Runs API Runbook](../automation/runs_api_runbook.md)
-- [Gateway Auth and Health Runbook](../gateway/gateway_auth_and_health_runbook.md)
+- Automation Hub (private backend docs)
+- VM Runs and Workers (private backend docs)
+- Runs API Runbook (private backend docs)
+- Gateway Auth and Health Runbook (private backend docs)
 - [Current vs Future Nodes](current_vs_future_nodes.md)
 - [VM Multi-Agent Plan](../planning/windieos_vm_multi_agent_plan.md)

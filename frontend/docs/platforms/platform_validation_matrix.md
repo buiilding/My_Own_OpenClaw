@@ -107,4 +107,4 @@ Suggested broader checks:
 - [Window and Input Matrix](window_input_matrix.md)
 - [Packaging Runtime Matrix](packaging_runtime_matrix.md)
 - [Doctor Checklist](../help/doctor_checklist.md)
-- [Evidence Collection Runbook](../operations/evidence_collection_runbook.md)
+- Evidence Collection Runbook (private backend docs)

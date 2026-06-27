@@ -86,7 +86,7 @@ Provider notes:
 
 Read next:
 
-- [HTTP and WebSocket Endpoint Reference](../backend/api/http_and_ws_endpoint_reference.md)
+- HTTP and WebSocket Endpoint Reference (private backend docs)
 - [Frontend Voice Mode Gateway and Transcription Region Reference](../frontend/renderer/voice/voice_mode_gateway_connection_and_transcription_region_reference.md)
 - [Frontend Audio Encoding and Capture Cleanup Reference](../frontend/renderer/voice/utils/audio_encoding_chunk_normalization_and_capture_cleanup_reference.md)
 
@@ -113,8 +113,8 @@ Key files:
 
 Read next:
 
-- [Backend TTS Manager Audio Stream and Cleanup Reference](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md)
-- [Backend TTS Processor Suppression State Machine](../backend/api/processing/tts/tts_processor_suppression_state_machine_reference.md)
+- Backend TTS Manager Audio Stream and Cleanup Reference (private backend docs)
+- Backend TTS Processor Suppression State Machine (private backend docs)
 - [Frontend Audio Chunk Playback Runtime](../frontend/runtime/audio_chunk_playback_and_stop_semantics_reference.md)
 
 ## Validation

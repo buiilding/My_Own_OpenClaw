@@ -74,8 +74,8 @@ journalctl --user -u windieos-cloudflared.service -n 100 --no-pager
 
 ## Related Docs
 
-- [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md)
-- [Gateway Auth and Health Runbook](../gateway/gateway_auth_and_health_runbook.md)
-- [Operational Troubleshooting](../operations/operational_troubleshooting.md)
+- Gateway Troubleshooting (private backend docs)
+- Gateway Auth and Health Runbook (private backend docs)
+- Operational Troubleshooting (private backend docs)
 - [Configuration Reference](../reference/configuration_reference.md)
 - [Runtime Node Matrix](../nodes/runtime_node_matrix.md)

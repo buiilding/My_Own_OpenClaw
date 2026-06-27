@@ -39,6 +39,6 @@ Use this section for stable lookup material: route maps, event vocabularies, con
 
 - [Documentation Hub](../getting-started/docs_hub.md)
 - [Concepts Hub](../concepts/README.md)
-- [Gateway Hub](../gateway/README.md)
+- Gateway Hub (private backend docs)
 - [Channels Hub](../channels/README.md)
 - [Development Hub](../development/README.md)

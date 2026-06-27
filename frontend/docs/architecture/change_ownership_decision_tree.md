@@ -26,7 +26,7 @@ Use this before touching code when ownership is ambiguous.
    - Read [Frontend Renderer Docs Hub](../frontend/renderer/README.md).
 5. Does it expose or change a hosted HTTP/websocket route?
    - Yes: backend gateway/API ownership plus web/reference docs.
-   - Read [Gateway Protocol Map](../gateway/gateway_protocol_map.md) and [HTTP and WebSocket API Surface](../reference/http_api_surface.md).
+   - Read Gateway Protocol Map (private backend docs) and [HTTP and WebSocket API Surface](../reference/http_api_surface.md).
 6. Does it change package output, bundled Python, signing, or installed app state?
    - Yes: install/operations/platform ownership.
    - Read [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md).

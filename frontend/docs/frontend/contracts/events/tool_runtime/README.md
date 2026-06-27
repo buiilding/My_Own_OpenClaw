@@ -17,7 +17,7 @@ title: "Frontend Events Tool Runtime Docs Hub"
 - [Frontend Contracts Events Docs Hub](../README.md)
 - [Chat Stream and Tool Execution Reference](../../../renderer/chat_stream_and_tool_execution_reference.md)
 - [Tool Execution and Streaming](../../../runtime/tool_execution_and_streaming.md)
-- [Backend Agent Recovery Docs Hub](../../../../backend/agent/recovery/README.md)
+- Backend Agent Recovery Docs Hub (private backend docs)
 
 ## Code Scope
 

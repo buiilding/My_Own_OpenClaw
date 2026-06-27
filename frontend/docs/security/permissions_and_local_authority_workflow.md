@@ -82,8 +82,8 @@ must not mark shell execution granted.
 
 ## Related Docs
 
-- [Security Boundary Matrix](security_boundary_matrix.md)
-- [Security Change Playbook](security_change_playbook.md)
+- Security Boundary Matrix (private backend docs)
+- Security Change Playbook (private backend docs)
 - [Onboarding and Permissions](../desktop/onboarding_permissions.md)
 - [Platform Permission Matrix](../platforms/permission_matrix.md)
 - [Screenshot and Overlay Policy](../platforms/screenshot_overlay_policy.md)

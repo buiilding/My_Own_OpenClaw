@@ -2263,6 +2263,6 @@ Current sequence:
 
 For more detailed information, see:
 - [Communication Flow](../architecture/communication_flow.md)
-- [Backend Architecture](../architecture/backend_architecture.md)
+- Backend Architecture (private backend docs)
 - [Frontend Architecture](../architecture/frontend_architecture.md)
 - ADR 005: `docs/adr/005-frontend-tool-schema-source-of-truth.md`

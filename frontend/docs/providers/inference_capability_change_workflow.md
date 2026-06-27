@@ -43,17 +43,17 @@ deployment choices instead of cross-runtime rewrites.
 
 | Change or symptom | Primary owner files | Tests/docs to inspect |
 | --- | --- | --- |
-| Add or change an inference backend mode | `backend/src/core/config/models.py`, `backend/src/core/config/app_config.py`, `backend/src/core/container/factories.py` | `tests/backend/test_config_models.py`, `tests/backend/test_inference_factory_selection.py`, [Backend Config and Container Change Workflow](../backend/config/backend_config_and_container_change_workflow.md) |
-| OCR local/remote/disabled behavior changes | `backend/src/core/inference/ocr_router.py`, `backend/src/services/ocr/*`, `backend/src/core/container/factories.py` | `tests/backend/test_inference_routers.py`, `tests/backend/test_ocr_service.py`, `tests/backend/test_remote_ocr_vision_providers.py`, [OCR Service and Screenshot State Machine](../backend/services/screen_grounding/ocr_service_and_screenshot_state_machine_reference.md) |
-| Vision locate/describe/provider loading changes | `backend/src/core/inference/vision_router.py`, `backend/src/services/vision/*`, `backend/src/core/container/factories.py` | `tests/backend/test_inference_routers.py`, `tests/backend/test_vision_service.py`, `tests/backend/test_vision_provider_loader.py`, [Vision Provider Runtime](../backend/services/screen_grounding/vision_provider_runtime_and_coordinate_scaling_reference.md) |
-| Embedding local/remote/vendor/disabled behavior changes | `backend/src/core/inference/embedding_router.py`, `backend/src/embeddings/*`, `backend/src/api/routes/memory/embeddings/*`, `backend/src/core/container/factories.py` | `tests/backend/test_embeddings_*.py`, `tests/backend/test_remote_embedding_provider.py`, `tests/backend/test_openai_embedding_provider.py`, [Embedding and Semantic Memory Runtime](../backend/services/embedding_and_semantic_memory_runtime_reference.md) |
+| Add or change an inference backend mode | `backend/src/core/config/models.py`, `backend/src/core/config/app_config.py`, `backend/src/core/container/factories.py` | `tests/backend/test_config_models.py`, `tests/backend/test_inference_factory_selection.py`, Backend Config and Container Change Workflow (private backend docs) |
+| OCR local/remote/disabled behavior changes | `backend/src/core/inference/ocr_router.py`, `backend/src/services/ocr/*`, `backend/src/core/container/factories.py` | `tests/backend/test_inference_routers.py`, `tests/backend/test_ocr_service.py`, `tests/backend/test_remote_ocr_vision_providers.py`, OCR Service and Screenshot State Machine (private backend docs) |
+| Vision locate/describe/provider loading changes | `backend/src/core/inference/vision_router.py`, `backend/src/services/vision/*`, `backend/src/core/container/factories.py` | `tests/backend/test_inference_routers.py`, `tests/backend/test_vision_service.py`, `tests/backend/test_vision_provider_loader.py`, Vision Provider Runtime (private backend docs) |
+| Embedding local/remote/vendor/disabled behavior changes | `backend/src/core/inference/embedding_router.py`, `backend/src/embeddings/*`, `backend/src/api/routes/memory/embeddings/*`, `backend/src/core/container/factories.py` | `tests/backend/test_embeddings_*.py`, `tests/backend/test_remote_embedding_provider.py`, `tests/backend/test_openai_embedding_provider.py`, Embedding and Semantic Memory Runtime (private backend docs) |
 | Provider health hides tools unexpectedly | `backend/src/tools/provider_health.py`, `backend/src/tools/tool_policy.py`, capability routers | `tests/backend/test_provider_health_policy.py`, `tests/backend/test_tool_policy.py`, [Tool Policy Profiles and Capabilities](../tools/tool_policy_profiles_and_capabilities.md) |
 | Circuit breaker opens too eagerly or never opens | `backend/src/core/inference/circuit_breaker.py`, capability routers | `tests/backend/test_inference_routers.py`, provider-specific failure tests |
 | Runtime config update does not rebind providers | `backend/src/core/container/config_updater.py`, `backend/src/core/validation/settings_update_rules.py`, `backend/src/agent/session` config propagation | `tests/backend/test_container_config_updater.py`, `tests/backend/test_settings_update_rules.py`, `tests/backend/test_session_config_service.py` |
 | SDK OCR/vision behavior changes | `backend/src/api/routes/sdk/*`, OCR/vision routers and service helpers, `backend/src/sdk`, hosted clients | `tests/backend/test_sdk_routes.py`, `tests/frontend/AgentSdkClient.test.ts`, [SDK Route Change Workflow](../sdk/sdk_route_change_workflow.md) |
 | SDK memory embedding behavior changes | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, local-runtime memory store/search pipeline | SDK memory tests, `tests/sidecar/test_local_store_*.py`, [Local-Runtime Core Docs Hub](../frontend/sidecar/core/README.md) |
 | STT provider or transcription websocket changes | `backend/src/api/routes/transcription/*`, backend transcription services, renderer voice capture | `tests/backend/test_transcription_gateway.py`, `tests/backend/test_openai_realtime_transcription.py`, frontend voice tests, [Voice Audio Change Workflow](../channels/voice_audio_change_workflow.md) |
-| TTS provider, chunking, suppression, or cleanup changes | `backend/src/api/processing/tts/*`, `backend/src/api/services/tts_session.py`, speech service factory/config | `tests/backend/test_tts_manager.py`, `tests/backend/test_tts_session.py`, `tests/backend/test_elevenlabs_tts_service.py`, [TTS and Wakeword Audio Runtime](../backend/services/tts_and_wakeword_audio_runtime_reference.md) |
+| TTS provider, chunking, suppression, or cleanup changes | `backend/src/api/processing/tts/*`, `backend/src/api/services/tts_session.py`, speech service factory/config | `tests/backend/test_tts_manager.py`, `tests/backend/test_tts_session.py`, `tests/backend/test_elevenlabs_tts_service.py`, TTS and Wakeword Audio Runtime (private backend docs) |
 
 ## Runtime Flow
 
@@ -271,10 +271,10 @@ provider health and tool policy together.
 Update these docs when inference capability behavior changes:
 
 - [Inference Providers](inference.md)
-- [Backend Service Change Workflow](../backend/services/backend_service_change_workflow.md)
-- [Backend Services Screen-Grounding Docs Hub](../backend/services/screen_grounding/README.md)
+- Backend Service Change Workflow (private backend docs)
+- Backend Services Screen-Grounding Docs Hub (private backend docs)
 - [Tool Policy Profiles and Capabilities](../tools/tool_policy_profiles_and_capabilities.md)
 - [SDK OCR and Vision](../sdk/ocr_and_vision.md) when SDK-facing behavior changes
 - [Voice Audio Change Workflow](../channels/voice_audio_change_workflow.md) when STT/TTS behavior changes
-- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) when config/env fields change
+- Runtime Configuration Matrix (private backend docs) when config/env fields change
 - [CHANGELOG](../../CHANGELOG.md)

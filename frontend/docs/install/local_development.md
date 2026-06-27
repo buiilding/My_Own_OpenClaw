@@ -106,6 +106,6 @@ Run `<windie> docs list` from the repo root before implementation work.
 
 ## Related Docs
 
-- [Backend Endpoint Setup](local_backend_and_endpoint_setup.md)
+- Backend Endpoint Setup (private backend docs)
 - [Install Troubleshooting](install_troubleshooting.md)
 - [Validation Commands](../cli/validation_commands.md)
