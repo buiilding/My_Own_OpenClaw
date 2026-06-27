@@ -1572,10 +1572,10 @@ describe('renderer chat runtime boundary', () => {
     expect(classRuntimeSource).toContain('DesktopMessageClassRuntime');
     expect(classRuntimeSource).toContain('hasVisualAttachment');
     expect(classRuntimeSource).not.toContain('DesktopMessageAttachmentPresentationRuntime');
-    expect(classRuntimeSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
-    expect(classRuntimeSource).not.toContain('readSdkDisplayAttachments');
+    expect(classRuntimeSource).toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(classRuntimeSource).toContain('readSdkDisplayAttachments');
     expect(classRuntimeSource).not.toContain('hasVisibleSdkDisplayAttachments');
-    expect(classRuntimeSource).toContain('Array.isArray(message?.attachments) && message.attachments.length > 0');
+    expect(classRuntimeSource).not.toContain('message.attachments.length');
     expect(classRuntimeSource).toContain('message-has-attachment');
     expect(classRuntimeSource).not.toContain('message-has-screenshot');
     expect(classRuntimeSource).not.toContain('hasReadyDisplayImageAttachment');

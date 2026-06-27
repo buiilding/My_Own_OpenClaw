@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: route message-row attachment class detection through
+  the SDK display attachment projection gate, so malformed raw attachment
+  arrays cannot mark a renderer row as attachment-bearing. No migration
+  required.
 - frontend/chat-store: type public projected workspace readers as
   `ChatWorkspaceReadModelState`, keeping raw workspace state as an internal
   mutation detail of chat-store adapters. No migration required.

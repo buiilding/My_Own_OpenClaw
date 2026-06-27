@@ -2,8 +2,14 @@
  * Provides renderer message row class-name assembly for presentation surfaces.
  */
 
+import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
+
+const {
+  readSdkDisplayAttachments,
+} = DesktopSdkDisplayAttachmentProjection;
+
 function hasVisualAttachment(message) {
-  return Array.isArray(message?.attachments) && message.attachments.length > 0;
+  return readSdkDisplayAttachments(message?.attachments).length > 0;
 }
 
 function buildMessageClassName(message) {
