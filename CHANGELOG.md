@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: sanitize SDK display-row tool detail records before they
+  reach renderer tool panels, keeping raw payloads, model metadata, screenshot
+  aliases, and attachment lifecycle descriptors out of generic details. No
+  migration required.
 - frontend/attachments: gate tool-output screenshot chrome on SDK-validated
   display attachments, so malformed raw `message.attachments` arrays no longer
   create renderer attachment UI. No migration required.

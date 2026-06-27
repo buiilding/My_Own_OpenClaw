@@ -139,6 +139,13 @@ Details payload precedence:
 - `success`
 - `toolMetadata`
 
+SDK display-row and live-turn adapters sanitize SDK-authored
+`toolCallDetails` and `toolOutputDetails` before those records reach the
+component detail panels. Generic details must not carry provider-facing
+payloads, raw payload mirrors, screenshot aliases, model metadata, or typed
+attachment lifecycle descriptors; those stay on SDK display fields such as
+`attachments[]` or compatibility-only SDK/backend paths.
+
 Visible tool-output screenshots render through the same typed attachment path as
 user visuals:
 

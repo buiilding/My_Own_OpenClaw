@@ -11,17 +11,15 @@ import { buildToolCallChatMessageState } from '../../infrastructure/transcript/t
 import { buildToolOutputChatMessageState } from '../../infrastructure/transcript/toolOutputChatMessageState';
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
 import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
+import { DesktopSdkToolDetailProjection } from './desktopSdkToolDetailProjection';
 
 const sdkDisplayRowsSourceChannel = DesktopPresentationSourceChannels.getSdkDisplayRowsSourceChannel();
 const {
   readSdkDisplayAttachments,
 } = DesktopSdkDisplayAttachmentProjection;
-
-function recordFromUnknown(value: unknown): Record<string, unknown> | null {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : null;
-}
+const {
+  sanitizeSdkToolDetailRecord,
+} = DesktopSdkToolDetailProjection;
 
 function displayTextFromStringRowContent(content: unknown): string {
   return typeof content === 'string' ? content : '';
@@ -115,7 +113,7 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
 
 function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
   const text = displayTextFromStructuredRowContent(row.content);
-  const toolCallDetails = recordFromUnknown(row.metadata?.toolCallDetails);
+  const toolCallDetails = sanitizeSdkToolDetailRecord(row.metadata?.toolCallDetails);
   const base = buildToolCallChatMessageState({
     id: row.id,
     text,
@@ -135,7 +133,7 @@ function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
 
 function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
   const attachments = readSdkDisplayAttachments(row.metadata?.attachments);
-  const toolOutputDetails = recordFromUnknown(row.metadata?.toolOutputDetails);
+  const toolOutputDetails = sanitizeSdkToolDetailRecord(row.metadata?.toolOutputDetails);
   const base = buildToolOutputChatMessageState({
     id: row.id,
     outputText: row.type === 'tool_bundle_output'
@@ -160,6 +158,9 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
 }
 
 function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
+  const toolMetadata = sanitizeSdkToolDetailRecord(
+    row.metadata?.toolCallDetails ?? row.metadata?.toolOutputDetails,
+  );
   return withRowActions({
     id: row.id,
     text: displayTextFromStringRowContent(row.content),
@@ -170,7 +171,7 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
     turnRef: rowTurnRef(row) ?? undefined,
     timestamp: rowTimestamp(row),
     toolName: rowToolName(row) ?? undefined,
-    toolMetadata: recordFromUnknown(row.metadata?.toolCallDetails ?? row.metadata?.toolOutputDetails),
+    toolMetadata,
     correlationId: rowCorrelationId(row) ?? undefined,
   }, row);
 }

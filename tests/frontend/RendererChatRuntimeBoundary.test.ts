@@ -3896,6 +3896,9 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).toContain('desktopChatMessageTypes');
     expect(projectionRuntimeSource).toContain('desktopPresentationSourceChannels');
     expect(projectionRuntimeSource).toContain('desktopSdkDisplayAttachmentProjection');
+    expect(projectionRuntimeSource).toContain('desktopSdkToolDetailProjection');
+    expect(projectionRuntimeSource).toContain('sanitizeSdkToolDetailRecord(row.metadata?.toolCallDetails)');
+    expect(projectionRuntimeSource).toContain('sanitizeSdkToolDetailRecord(row.metadata?.toolOutputDetails)');
     expect(projectionRuntimeSource).not.toContain('DisplayMessage');
     expect(projectionRuntimeSource).not.toContain('displayMessageFromSdkDisplayRow');
     expect(projectionRuntimeSource).not.toContain('function displayAttachmentsFromPayload');
@@ -3925,6 +3928,8 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('turnRef: row.turnRef ?? undefined');
     expect(projectionRuntimeSource).toContain('row.metadata?.toolCallDetails');
     expect(projectionRuntimeSource).toContain('row.metadata?.toolOutputDetails');
+    expect(projectionRuntimeSource).not.toContain('recordFromUnknown(row.metadata?.toolCallDetails)');
+    expect(projectionRuntimeSource).not.toContain('recordFromUnknown(row.metadata?.toolOutputDetails)');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.requestId');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.toolCallId');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.bundleId');

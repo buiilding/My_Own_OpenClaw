@@ -1110,6 +1110,109 @@ describe('sdkDisplayChatMessageProjection', () => {
     expect(message.toolOutputDetails).not.toHaveProperty('attachments');
   });
 
+  test('sanitizes SDK-owned channels from display-row tool output details', () => {
+    const [message] = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-tool-output-sanitized-details',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'tool',
+        type: 'tool_output',
+        content: 'captured screen',
+        metadata: {
+          revisionId: 'rev-1',
+          timestamp: '2026-06-22T12:00:00.000Z',
+          toolName: 'screenshot',
+          displayCorrelationId: 'req-shot',
+          toolOutputDetails: {
+            toolName: 'screenshot',
+            requestId: 'req-shot',
+            attachments: [{
+              id: 'tool-output-shot:attachment:000',
+              kind: 'image',
+              source: 'tool_result',
+              status: 'ready',
+              screenshotRef: 'artifact-tool-1',
+            }],
+            modelId: 'model-1',
+            modelProvider: 'provider-1',
+            raw: { payload: { output: 'done' } },
+            screenshotRef: 'legacy-shot',
+            structuredPayload: { output: 'legacy structured output' },
+          },
+          attachments: [{
+            id: 'tool-output-shot:attachment:000',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            screenshotRef: 'artifact-tool-1',
+          }],
+        },
+      },
+    ]);
+
+    expect(message).toEqual(expect.objectContaining({
+      attachments: [
+        expect.objectContaining({
+          id: 'tool-output-shot:attachment:000',
+        }),
+      ],
+      toolOutputDetails: {
+        toolName: 'screenshot',
+        requestId: 'req-shot',
+      },
+    }));
+    expect(message.toolOutputDetails).not.toHaveProperty('attachments');
+    expect(message.toolOutputDetails).not.toHaveProperty('modelId');
+    expect(message.toolOutputDetails).not.toHaveProperty('modelProvider');
+    expect(message.toolOutputDetails).not.toHaveProperty('raw');
+    expect(message.toolOutputDetails).not.toHaveProperty('screenshotRef');
+    expect(message.toolOutputDetails).not.toHaveProperty('structuredPayload');
+  });
+
+  test('sanitizes SDK-owned channels from display-row tool call details', () => {
+    const [message] = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-tool-call-sanitized-details',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_call',
+        content: {
+          id: 'call-1',
+          name: 'read_file',
+          arguments: { path: 'package.json' },
+        },
+        metadata: {
+          revisionId: 'rev-1',
+          timestamp: '2026-05-15T12:00:01.000Z',
+          displayCorrelationId: 'call-1',
+          toolCallDetails: {
+            toolName: 'read_file',
+            requestId: 'req-1',
+            modelFacingToolCall: {
+              id: 'call-1',
+              name: 'read_file',
+              arguments: { path: 'package.json' },
+            },
+            modelProvider: 'provider-1',
+            payload: { tool_name: 'read_file' },
+            screenshotUrl: '/api/artifacts/legacy-shot',
+          },
+        },
+      },
+    ]);
+
+    expect(message.toolCallDetails).toEqual({
+      toolName: 'read_file',
+      requestId: 'req-1',
+    });
+    expect(message.toolCallDetails).not.toHaveProperty('modelFacingToolCall');
+    expect(message.toolCallDetails).not.toHaveProperty('modelProvider');
+    expect(message.toolCallDetails).not.toHaveProperty('payload');
+    expect(message.toolCallDetails).not.toHaveProperty('screenshotUrl');
+  });
+
   test('keeps provider-facing and model metadata out of SDK display chat props', () => {
     const [message] = buildChatMessagesFromSdkDisplayRows([
       {
