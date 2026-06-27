@@ -1391,6 +1391,8 @@ describe('renderer app runtime boundary', () => {
     expect(liveTurnSource).toContain('optionalExactString(conversationRef)');
     expect(liveTurnSource).toContain('optionalExactString(turnRef)');
     expect(liveTurnSource).not.toContain('optionalString(conversationRef)\n      ?? DesktopTranscriptSessionRuntimeClient.getActiveConversationRef()');
+    expect(liveTurnSource).not.toContain('metadata?: Record');
+    expect(liveTurnSource).not.toContain('metadata: input.metadata');
     expect(liveTurnSource).not.toContain('screenshotRef');
     expect(liveTurnSource).not.toContain('screenshotUrl');
     expect(liveTurnSource).not.toContain('screenshotRefs');

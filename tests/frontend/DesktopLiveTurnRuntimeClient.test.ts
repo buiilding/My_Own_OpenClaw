@@ -47,9 +47,6 @@ describe('DesktopLiveTurnRuntimeClient', () => {
         filename: 'notes.txt',
         required: true,
       }],
-      metadata: {
-        source: 'renderer',
-      },
       turnRef: 'turn-explicit',
     });
 
@@ -63,9 +60,6 @@ describe('DesktopLiveTurnRuntimeClient', () => {
         filename: 'notes.txt',
         required: true,
       }],
-      metadata: {
-        source: 'renderer',
-      },
       query_message_id: 'turn-explicit',
       memory_retrieval_enabled: true,
     });
@@ -76,6 +70,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('capture_meta');
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('attachment_context');
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('attachment_filenames');
+    expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('metadata');
   });
 
   test('sendQuery normalizes turn input resources before SDK command dispatch', async () => {
@@ -87,6 +82,11 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       text: 'hello with resources',
       conversationRef: 'conv-send',
       turnRef: 'turn-explicit',
+      metadata: {
+        attachment_context: 'renderer-owned context',
+        attachment_filenames: ['notes.txt'],
+        capture_meta: { displayId: 1 },
+      },
       resources: [
         {
           kind: 'clipboard_image',
@@ -122,9 +122,10 @@ describe('DesktopLiveTurnRuntimeClient', () => {
           required: true,
         },
       ] as any,
-    });
+    } as any);
 
     const commandPayload = mockInvokeAgentSdkCommand.mock.calls[0][1];
+    expect(commandPayload).not.toHaveProperty('metadata');
     expect(commandPayload.resources).toEqual([
       {
         kind: 'clipboard_image',

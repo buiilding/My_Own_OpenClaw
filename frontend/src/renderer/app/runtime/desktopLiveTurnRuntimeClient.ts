@@ -25,7 +25,6 @@ type SendConversationQueryInput = {
   conversationRef: string;
   workspacePath?: string | null;
   resources?: TurnInputResource[] | null;
-  metadata?: Record<string, unknown> | null;
   model?: AgentModelSelection | null;
   turnRef?: string | null;
 };
@@ -147,9 +146,6 @@ export const DesktopLiveTurnRuntimeClient = {
       ...(input.model ? { model: input.model } : {}),
       workspace_path: optionalString(input.workspacePath) ?? null,
       resources: normalizeTurnInputResources(input.resources),
-      metadata: input.metadata && typeof input.metadata === 'object' && !Array.isArray(input.metadata)
-        ? input.metadata
-        : null,
       memory_retrieval_enabled: DesktopMemoryRetrievalPreferenceRuntime.getMemoryRetrievalInjectionEnabled(),
     });
     throwIfFailedIpcResult(result);

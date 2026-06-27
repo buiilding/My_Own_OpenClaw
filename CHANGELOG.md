@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: remove the generic renderer metadata pass-through from
+  `DesktopLiveTurnRuntimeClient.sendQuery`, leaving normal sends to cross the
+  SDK command boundary with typed resources rather than attachment or capture
+  metadata blobs. No migration required.
 - frontend/display-rows: require SDK-authored string row content for renderer
   tool-call and tool-output card text, dropping structured row content instead
   of JSON-stringifying it in the display-row adapter. No migration required.

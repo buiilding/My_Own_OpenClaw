@@ -175,7 +175,10 @@ When attachment(s) exist:
    `conversation.send`, so only SDK resource-kind fields cross the command
    boundary; malformed required handles, renderer preview fields, display ids,
    screenshot aliases, and attachment lifecycle descriptors are dropped instead
-   of being repaired or forwarded.
+   of being repaired or forwarded. The live-turn client does not forward a
+   generic renderer metadata object; capture metadata, attachment context, and
+   attachment filenames are SDK resource-resolution outputs, not renderer send
+   inputs.
 7. call `DesktopLiveTurnRuntimeClient.sendQuery` with text, conversation ref,
    turn ref, and typed resources. Normal sends do not build a renderer-owned
    filename payload or metadata object for filenames.
@@ -317,7 +320,7 @@ Fatal failure:
 
 1. Changing payload union type without updating `MessageInput` + tests can silently drop clipboard images.
 2. Moving resource resolution back before SDK `send()` can delay base user-row emission and reintroduce send flicker.
-3. Dropping `resources`/`metadata` in Electron main query filtering means SDK never sees attachments.
+3. Dropping `resources` in Electron main query filtering means SDK never sees attachments.
 4. Changing upload filename/content-type normalization can desync artifact extension/type behavior.
 
 ## Related Pages
