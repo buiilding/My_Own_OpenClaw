@@ -2530,6 +2530,9 @@ describe('renderer chat runtime boundary', () => {
       stopRuntimeSource.indexOf('function resolveStopTurnTarget'),
       stopRuntimeSource.indexOf('export const DesktopStopTurnRuntime'),
     );
+    const stopRuntimeExportSource = stopRuntimeSource.slice(
+      stopRuntimeSource.indexOf('export const DesktopStopTurnRuntime'),
+    );
 
     expect(stopHandlerSource).toContain('desktopStopTurnRuntime');
     expect(stopHandlerSource).toContain('DesktopStopTurnRuntime');
@@ -2598,6 +2601,13 @@ describe('renderer chat runtime boundary', () => {
     expect(stopRuntimeSource).not.toContain('presentation?.hasVisibleContent');
     expect(stopRuntimeSource).not.toContain('export function buildStopQueryTrackingPatch');
     expect(stopRuntimeSource).not.toContain('export function buildStoppedSdkLiveTurn');
+    expect(stopRuntimeExportSource).toContain('buildAcceptStoppedTurnStateUpdate');
+    expect(stopRuntimeExportSource).toContain('executeStopTurnExecutionPlan');
+    expect(stopRuntimeExportSource).toContain('resolveStopTurnTarget');
+    expect(stopRuntimeExportSource).not.toContain('buildStopQueryTrackingPatch,');
+    expect(stopRuntimeExportSource).not.toContain('buildStopTurnExecutionPlan,');
+    expect(stopRuntimeExportSource).not.toContain('buildStoppedTurnWorkspaceMutation,');
+    expect(stopRuntimeExportSource).not.toContain('buildStoppedSdkLiveTurn,');
     expect(stopRuntimeSource).not.toContain('export function isStopTurnTargetFromCurrentTurn');
     expect(stopRuntimeSource).not.toContain('isStopTurnTargetFromConversationView');
     expect(stopRuntimeSource).not.toContain('export function isStopTurnTargetFromPendingTurn');

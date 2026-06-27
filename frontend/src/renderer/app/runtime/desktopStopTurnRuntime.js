@@ -310,10 +310,6 @@ function resolveStopTurnTarget({
 
 export const DesktopStopTurnRuntime = Object.freeze({
   buildAcceptStoppedTurnStateUpdate,
-  buildStopQueryTrackingPatch,
-  buildStopTurnExecutionPlan,
-  buildStoppedTurnWorkspaceMutation,
-  buildStoppedSdkLiveTurn,
   executeStopTurnExecutionPlan,
   resolveStopTurnTarget,
 });

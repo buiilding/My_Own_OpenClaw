@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stop: narrow `DesktopStopTurnRuntime` to the selector, execution,
+  and stopped-turn adapter entrypoints, keeping stop plan construction and
+  SDK-live-turn terminalization private to the runtime. No migration required.
 - frontend/display-rows: stop re-exporting ConversationView row lookup helpers
   from the display projection runtime, keeping lookup authority with
   `DesktopConversationDisplayRowLookupRuntime` while projection stays a row to
