@@ -83,6 +83,10 @@ generic projected workspace read helper remains private to
 purpose-shaped stream/current-turn read models, not the raw
 `ChatWorkspaceState`, so callers do not type against raw fallback fields as
 durable chat authority or casually reach across SDK-view boundaries. The
+chat-stream read model exposes only pending-turn identity, stream-tracking
+state, `ConversationView.liveTurn.turnRef`, and thinking source labels; it does
+not carry raw messages, renderer annotations, the no-view `sdkLiveTurn`, or the
+full `ConversationView` payload. The
 projected workspace read model is assembled from an allowlist of fields and
 does not expose the raw `isSending` storage latch; visible busy/typing state is
 derived by lifecycle/surface runtimes from the pending bridge and SDK view/live

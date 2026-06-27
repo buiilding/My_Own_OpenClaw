@@ -13,6 +13,7 @@ import {
   clearMessagesInChatStore,
   clearPendingTurnInChatStore,
   getChatProviderTraceWorkspaceSnapshotFromChatStore,
+  getChatStreamWorkspaceReadModelFromChatStore,
   setNoViewSdkLiveTurnInChatStore,
   setConversationViewInChatStore,
   setIsSendingInChatStore,
@@ -255,6 +256,76 @@ describe('chatStore', () => {
         sourceEventType: null,
       },
     });
+  });
+
+  test('chat stream read model omits raw workspace message and view authority', () => {
+    setMessagesInChatStore([
+      {
+        id: 'raw-message',
+        sender: 'assistant',
+        text: 'raw answer',
+        turnRef: 'turn-raw',
+      },
+    ], 'conv-stream');
+    acceptPendingTurnInChatStore({
+      conversationRef: 'conv-stream',
+      turnRef: 'turn-pending',
+      userMessageId: 'pending-user',
+      text: 'pending prompt',
+      timestamp: '2026-06-27T12:00:00.000Z',
+    });
+    setThinkingSourceEventTypeInChatStore('assistant_delta', 'conv-stream');
+    updateStreamTrackingInChatStore((current) => ({
+      ...current,
+      activeTurnRef: 'turn-raw',
+      phase: 'streaming',
+    }), 'conv-stream');
+    setConversationViewInChatStore({
+      conversationRef: 'conv-stream',
+      revisionId: null,
+      displayRows: [{
+        id: 'view-row',
+        conversationRef: 'conv-stream',
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'view answer',
+        turnRef: 'turn-view',
+      }],
+      liveTurn: {
+        turnRef: 'turn-view',
+      },
+      surfaces: {
+        dashboard: { mode: 'normal', visible: true },
+        pill: { mode: 'normal', visible: true },
+        responseOverlay: { mode: 'hidden', visible: false },
+      },
+      actions: {
+        canEdit: false,
+        canRetry: false,
+        canFork: false,
+      },
+    }, 'conv-stream');
+
+    const readModel = getChatStreamWorkspaceReadModelFromChatStore('conv-stream') as Record<string, unknown>;
+
+    expect(readModel).toEqual({
+      conversationView: {
+        liveTurn: {
+          turnRef: 'turn-view',
+        },
+      },
+      pendingTurn: {
+        turnRef: 'turn-pending',
+      },
+      streamTracking: expect.objectContaining({
+        activeTurnRef: null,
+        phase: 'idle',
+      }),
+      thinkingSourceEventType: null,
+    });
+    expect(readModel).not.toHaveProperty('messages');
+    expect(readModel).not.toHaveProperty('rendererAnnotations');
+    expect(readModel).not.toHaveProperty('sdkLiveTurn');
   });
 
   test('clearMessages resets to an empty message list', () => {

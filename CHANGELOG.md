@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: narrow the chat-stream workspace read adapter to
+  pending-turn identity, stream tracking, view live-turn ref, and thinking
+  source labels instead of exposing raw messages or full SDK view state. No
+  migration required.
 - frontend/thread: require ConversationView-mode renderer pending rows to be
   explicitly allowed by the ChatInterface projection adapter, so arbitrary
   `renderer-compose` rows cannot bypass SDK display-row authority. No migration

@@ -4635,6 +4635,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('ChatWorkspaceReadModelState');
     expect(chatStoreAdaptersSource).toContain('): ChatStreamWorkspaceReadModel');
     expect(chatStoreAdaptersSource).toContain('): CurrentTurnProjectionWorkspaceReadModel');
+    expect(chatStoreAdaptersSource).toContain('function buildChatStreamWorkspaceReadModel');
+    expect(chatStoreAdaptersSource).toContain('return buildChatStreamWorkspaceReadModel(');
     expect(chatStoreAdaptersSource).toContain('ChatStreamWorkspaceReadModel,\n} from');
     expect(chatStoreAdaptersSource).toContain('CurrentTurnProjectionWorkspaceReadModel,\n} from');
     expect(chatStoreAdaptersSource).toContain('getChatStreamWorkspaceReadModelFromChatStore');

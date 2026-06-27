@@ -202,10 +202,33 @@ function getProjectedWorkspaceReadModelFromChatStore(
   );
 }
 
+function buildChatStreamWorkspaceReadModel(
+  workspace: ChatWorkspaceReadModelState,
+): ChatStreamWorkspaceReadModel {
+  return {
+    conversationView: workspace.conversationView
+      ? {
+        liveTurn: {
+          turnRef: workspace.conversationView.liveTurn?.turnRef ?? null,
+        },
+      }
+      : null,
+    pendingTurn: workspace.pendingTurn
+      ? {
+        turnRef: workspace.pendingTurn.turnRef,
+      }
+      : null,
+    streamTracking: workspace.streamTracking,
+    thinkingSourceEventType: workspace.thinkingSourceEventType,
+  };
+}
+
 export function getChatStreamWorkspaceReadModelFromChatStore(
   conversationRef?: string | null,
 ): ChatStreamWorkspaceReadModel {
-  return getProjectedWorkspaceReadModelFromChatStore(conversationRef);
+  return buildChatStreamWorkspaceReadModel(
+    getProjectedWorkspaceReadModelFromChatStore(conversationRef),
+  );
 }
 
 export function getCurrentTurnProjectionWorkspaceReadModelFromChatStore(
