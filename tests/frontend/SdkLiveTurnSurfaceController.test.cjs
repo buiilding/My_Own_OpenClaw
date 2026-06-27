@@ -209,6 +209,52 @@ describe('sdk_live_turn_surface_controller', () => {
     }, false);
   });
 
+  test('does not trim padded ConversationView live turn refs into overlay identity', () => {
+    const deps = createDeps();
+    const snapshot = createSnapshotWithView({
+      viewMode: 'response',
+      turnRef: 'turn-view',
+    });
+    delete snapshot.view.surfaces.responseOverlay.turnRef;
+    delete snapshot.view.surfaces.responseOverlay.guardRef;
+    snapshot.view.liveTurn.turnRef = ' turn-view ';
+
+    const result = handleSdkLiveTurnSurfaceIntent(snapshot, deps);
+
+    expect(result).toMatchObject({
+      success: true,
+      applied: true,
+      visible: true,
+      mode: 'response',
+      turnRef: null,
+      staleGuardRef: null,
+    });
+    expect(deps.setActiveResponseOverlayGuardRef).not.toHaveBeenCalled();
+    expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
+  });
+
+  test('requires cross-owner ConversationView overlay intent to provide an exact surface turn ref', () => {
+    const deps = createDeps();
+    const snapshot = createSnapshotWithView({
+      viewMode: 'response',
+      conversationRef: 'conv-view',
+      turnRef: 'turn-view',
+    });
+    snapshot.view.surfaces.responseOverlay.ownerConversationRef = 'conv-owner';
+    delete snapshot.view.surfaces.responseOverlay.turnRef;
+    delete snapshot.view.surfaces.responseOverlay.guardRef;
+
+    const result = handleSdkLiveTurnSurfaceIntent(snapshot, deps);
+
+    expect(result).toMatchObject({
+      success: true,
+      applied: false,
+      reason: 'missing-conversation-view-overlay-intent',
+    });
+    expect(deps.responseWindow.setBounds).not.toHaveBeenCalled();
+    expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
+  });
+
   test('keeps a user response overlay when a same-turn other conversation awaiting intent arrives', () => {
     const surfaceState = createSdkLiveTurnSurfaceState();
     const deps = createDeps({ surfaceState });

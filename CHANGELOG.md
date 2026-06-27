@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: make the SDK live-turn surface controller treat
+  ConversationView response-overlay refs as exact SDK identity, so padded view
+  turn/guard/conversation refs are not trimmed into native response-overlay
+  authority and cross-owner overlay intents must provide their own exact turn
+  ref. No migration required.
 - frontend/stream: derive the chat-stream `viewLiveTurnRef` read model through
   the ConversationView workspace runtime's exact SDK live-turn reader, so padded
   view turn refs do not leave the SDK-view boundary as stream authority. No
