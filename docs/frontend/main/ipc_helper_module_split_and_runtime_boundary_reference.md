@@ -321,6 +321,12 @@ Owns Electron-main Agent SDK command execution helpers:
   command execution as an explicit runtime helper
 - sends renderer chat payloads through `agent.run(...)` while separating
   resources and metadata from the SDK runtime command payload
+- forwards SDK-owned backend resource metadata only when exact:
+  `screenshot_ref`, `screenshot_refs[]`, `attachment_filenames[]`, and
+  `workspace_path` are omitted when padded or empty, and malformed
+  `capture_meta` is dropped before `backendPayload` reaches `agent.run(...)`.
+  `attachment_context` intentionally preserves non-empty whitespace because it
+  is hidden file-content context, not identity metadata.
 - stops active turns through the active adapter and clears pending-turn state
   before dispatch
 - routes settings updates, model-list requests, and wakeword-detected events

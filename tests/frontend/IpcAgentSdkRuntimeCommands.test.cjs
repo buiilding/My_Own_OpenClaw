@@ -152,6 +152,35 @@ describe('ipc_agent_sdk_runtime_commands', () => {
     expect(queryInput).not.toHaveProperty('payload');
   });
 
+  test('omits malformed SDK resource metadata instead of trimming it through agent run', async () => {
+    const { commands, deps } = createCommands();
+
+    await expect(commands.sendQueryThroughAgentSdkRuntime({
+      messageId: 'turn-resource-metadata',
+      payload: {
+        text: 'hello',
+        conversation_ref: 'conversation-1',
+        screenshot_ref: ' screenshot-padded ',
+        screenshot_refs: ['screenshot-1', ' screenshot-2 ', '', 42],
+        attachment_filenames: ['notes.txt', ' notes-padded.txt ', '', null],
+        capture_meta: ['display-lifecycle'],
+        workspace_path: ' /repo/workspace ',
+      },
+    })).resolves.toBe('query-1');
+
+    const queryInput = deps.agent.run.mock.calls[0][0];
+    expect(queryInput.screenshotRef).toBeUndefined();
+    expect(queryInput.screenshotRefs).toEqual(['screenshot-1']);
+    expect(queryInput.attachmentFilenames).toEqual(['notes.txt']);
+    expect(queryInput.workspacePath).toBeUndefined();
+    expect(queryInput.backendPayload).toEqual({
+      text: 'hello',
+      conversation_ref: 'conversation-1',
+      screenshot_refs: ['screenshot-1'],
+      attachment_filenames: ['notes.txt'],
+    });
+  });
+
   test('preserves SDK attachment context without trimming file-content whitespace', async () => {
     const { commands, deps } = createCommands();
 
@@ -249,7 +278,14 @@ describe('ipc_agent_sdk_runtime_commands', () => {
     expect(helperSource).toContain('runtimeCommandPayload');
     expect(helperSource).toContain('backendPayload: runtimeCommandPayload');
     expect(helperSource).toContain('function optionalAttachmentContext');
+    expect(helperSource).toContain('function optionalExactString');
+    expect(helperSource).toContain('function optionalExactStringArray');
+    expect(helperSource).toContain('function normalizeBackendResourceMetadata');
     expect(helperSource).toContain('attachmentContext: optionalAttachmentContext(runtimeCommandPayload.attachment_context) || undefined');
+    expect(helperSource).toContain('screenshotRef: optionalExactString(runtimeCommandPayload.screenshot_ref) || undefined');
+    expect(helperSource).toContain('workspacePath: optionalExactString(runtimeCommandPayload.workspace_path) || undefined');
+    expect(helperSource).not.toContain('screenshotRef: optionalString(runtimeCommandPayload.screenshot_ref) || undefined');
+    expect(helperSource).not.toContain('workspacePath: optionalString(runtimeCommandPayload.workspace_path) || undefined');
     expect(helperSource).not.toContain('payload: runtimeCommandPayload');
     expect(helperSource).toContain('agent.stop({');
     expect(helperSource).toContain('agent.updateSettings(payload)');

@@ -10,8 +10,57 @@ function optionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function optionalExactString(value) {
+  return typeof value === 'string' && value.length > 0 && value.trim() === value ? value : null;
+}
+
+function optionalExactStringArray(value) {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  const normalized = value.filter(item => optionalExactString(item));
+  return normalized.length > 0 ? normalized : undefined;
+}
+
 function optionalAttachmentContext(value) {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
+}
+
+function normalizeBackendResourceMetadata(payload) {
+  const normalized = { ...payload };
+  const screenshotRef = optionalExactString(payload.screenshot_ref);
+  if (screenshotRef) {
+    normalized.screenshot_ref = screenshotRef;
+  } else {
+    delete normalized.screenshot_ref;
+  }
+
+  const screenshotRefs = optionalExactStringArray(payload.screenshot_refs);
+  if (screenshotRefs) {
+    normalized.screenshot_refs = screenshotRefs;
+  } else {
+    delete normalized.screenshot_refs;
+  }
+
+  const attachmentFilenames = optionalExactStringArray(payload.attachment_filenames);
+  if (attachmentFilenames) {
+    normalized.attachment_filenames = attachmentFilenames;
+  } else {
+    delete normalized.attachment_filenames;
+  }
+
+  const workspacePath = optionalExactString(payload.workspace_path);
+  if (workspacePath) {
+    normalized.workspace_path = workspacePath;
+  } else {
+    delete normalized.workspace_path;
+  }
+
+  if (!isPlainObject(payload.capture_meta)) {
+    delete normalized.capture_meta;
+  }
+
+  return normalized;
 }
 
 function createAgentSdkRuntimeCommandsRuntime(deps = {}) {
@@ -30,7 +79,7 @@ function createAgentSdkRuntimeCommandsRuntime(deps = {}) {
       const resources = Array.isArray(sourcePayload.resources) ? sourcePayload.resources : undefined;
       const metadata = isPlainObject(sourcePayload.metadata) ? sourcePayload.metadata : undefined;
       const model = isPlainObject(sourcePayload.model) ? { ...sourcePayload.model } : undefined;
-      const runtimeCommandPayload = { ...sourcePayload };
+      const runtimeCommandPayload = normalizeBackendResourceMetadata(sourcePayload);
       delete runtimeCommandPayload.resources;
       delete runtimeCommandPayload.metadata;
       delete runtimeCommandPayload.model;
@@ -51,7 +100,7 @@ function createAgentSdkRuntimeCommandsRuntime(deps = {}) {
           ? runtimeCommandPayload.agent_definition
           : undefined,
         content: optionalString(runtimeCommandPayload.content) || undefined,
-        screenshotRef: optionalString(runtimeCommandPayload.screenshot_ref) || undefined,
+        screenshotRef: optionalExactString(runtimeCommandPayload.screenshot_ref) || undefined,
         screenshotRefs: Array.isArray(runtimeCommandPayload.screenshot_refs)
           ? runtimeCommandPayload.screenshot_refs
           : undefined,
@@ -62,7 +111,7 @@ function createAgentSdkRuntimeCommandsRuntime(deps = {}) {
         systemStateInternal: isPlainObject(runtimeCommandPayload.system_state_internal)
           ? runtimeCommandPayload.system_state_internal
           : undefined,
-        workspacePath: optionalString(runtimeCommandPayload.workspace_path) || undefined,
+        workspacePath: optionalExactString(runtimeCommandPayload.workspace_path) || undefined,
         resources,
         metadata,
       };

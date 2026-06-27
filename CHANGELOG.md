@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: omit malformed SDK resource metadata from the Agent SDK
+  runtime command bridge instead of trimming padded artifact refs, attachment
+  filenames, workspace paths, or malformed capture metadata into
+  `agent.run(...)`. No migration required.
 - frontend/main: require renderer-window SDK view hydration to see the full
   `ConversationView` envelope before forwarding `latestConversationView`,
   leaving partial objects on the no-view current-turn fallback path. No
