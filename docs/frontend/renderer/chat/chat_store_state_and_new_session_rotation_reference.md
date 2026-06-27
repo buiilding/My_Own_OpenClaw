@@ -222,10 +222,11 @@ trimmed into no-view/pending routing state.
   writes no-op because SDK display rows are authoritative. Direct id updates
   under a view are narrowed to renderer-local assistant feedback and write the
   explicit `rendererAnnotations` list instead of adding synthetic rows to
-  `messages`. When a `ConversationView` first becomes authoritative, existing
-  no-view assistant feedback is migrated into `rendererAnnotations` once; the
-  projected read model must not recover annotations from raw `messages` under a
-  view.
+  `messages`. Annotation row ids must already be exact SDK display-row ids;
+  padded or empty ids do not get trimmed into annotation records. When a
+  `ConversationView` first becomes authoritative, existing no-view assistant
+  feedback is migrated into `rendererAnnotations` once; the projected read model
+  must not recover annotations from raw `messages` under a view.
 - Scalar workspace-field writes enter through the module-level
   `setIsSendingInChatStore(...)`, `setThinkingStatusInChatStore(...)`,
   `setThinkingSourceEventTypeInChatStore(...)`,

@@ -80,6 +80,12 @@ function selectRendererAnnotationUpdates(
   return Object.keys(annotationUpdates).length > 0 ? annotationUpdates : null;
 }
 
+function exactAnnotationRowId(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function updateRendererAnnotations(
   rendererAnnotations: RendererAnnotationRecord[] | undefined,
   id: string,
@@ -169,14 +175,15 @@ function buildUpdateMessageStateUpdate<
   } = deps.resolveWorkspaceMutationTarget(state, conversationRef);
   if (hasWorkspaceConversationView(currentWorkspace)) {
     const annotationUpdates = selectRendererAnnotationUpdates(updates);
-    if (!annotationUpdates) {
+    const annotationRowId = exactAnnotationRowId(id);
+    if (!annotationUpdates || !annotationRowId) {
       return null;
     }
     const nextWorkspace = {
       ...currentWorkspace,
       rendererAnnotations: updateRendererAnnotations(
         currentWorkspace.rendererAnnotations,
-        id,
+        annotationRowId,
         annotationUpdates,
       ),
     };

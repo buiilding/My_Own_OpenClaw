@@ -312,6 +312,30 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
     ]);
   });
 
+  test('buildUpdateMessageStateUpdate rejects padded annotation ids under ConversationView', () => {
+    const workspace = {
+      conversationView: buildConversationView('conv-1'),
+      messages: [],
+      rendererAnnotations: [],
+    };
+    const state = {
+      workspaces: {
+        'conv-1': workspace,
+      },
+    };
+    const deps = createDeps(workspace);
+
+    expect(buildUpdateMessageStateUpdate({
+      deps,
+      id: ' sdk-row ',
+      state,
+      updates: {
+        feedback: 'like',
+      },
+    })).toBeNull();
+    expect(deps.buildWorkspaceUpdate).not.toHaveBeenCalled();
+  });
+
   test('buildUpdateMessageStateUpdate no-ops when message id is missing', () => {
     const workspace = {
       messages: [

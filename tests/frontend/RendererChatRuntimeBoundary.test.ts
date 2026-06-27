@@ -4736,6 +4736,10 @@ describe('renderer chat runtime boundary', () => {
     expect(workspaceMessageRuntimeSource).not.toContain('function hasConversationView');
     expect(workspaceMessageRuntimeSource).not.toContain('hasConversationView(currentWorkspace.conversationView)');
     expect(workspaceMessageRuntimeSource).toContain('selectRendererAnnotationUpdates');
+    expect(workspaceMessageRuntimeSource).toContain('function exactAnnotationRowId');
+    expect(workspaceMessageRuntimeSource).toContain('const annotationRowId = exactAnnotationRowId(id);');
+    expect(workspaceMessageRuntimeSource).toContain('!annotationUpdates || !annotationRowId');
+    expect(workspaceMessageRuntimeSource).toContain('annotationRowId,');
     expect(workspaceMessageRuntimeSource).toContain('recordTurnConversationRefs');
     expect(workspaceMessageRuntimeSource).not.toContain('turnConversationRefs:');
     expect(workspaceMessageRuntimeSource).not.toContain('features/chat');

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: require exact SDK display-row ids before writing
+  renderer feedback annotations beside an authoritative `ConversationView`, so
+  padded row ids cannot create renderer-owned annotation records. No migration
+  required.
 - frontend/revisions: require exact conversation refs, revision ids, optional
   fork cut row ids, and explicit fork conversation refs inside the desktop
   continuity facade before invoking SDK revision commands, so direct facade
