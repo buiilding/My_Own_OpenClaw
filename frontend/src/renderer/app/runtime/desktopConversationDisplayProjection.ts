@@ -22,6 +22,7 @@ const {
 } = DesktopPendingTurnBridgeRuntime;
 const {
   findConversationViewUserDisplayRowForTurn,
+  hasConversationViewUserDisplayRows,
 } = DesktopConversationDisplayRowLookupRuntime;
 
 type PendingTurnLike = {
@@ -257,4 +258,5 @@ export const DesktopConversationDisplayProjection = Object.freeze({
   buildConversationViewTurnChatMessages,
   buildPendingBridgeChatMessages,
   findConversationViewUserDisplayRowForTurn,
+  hasConversationViewUserDisplayRows,
 });

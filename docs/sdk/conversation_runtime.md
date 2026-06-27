@@ -390,14 +390,14 @@ identity by trying request, bundle, tool-call, or legacy correlation fields in
 fallback order. Tool detail panels must not receive provider-facing
 `modelFacingToolCall`, model-selection metadata, raw payloads, screenshot
 aliases, or SDK attachment lifecycle descriptors as generic detail payload.
-Copy/feedback actions remain renderer-local affordances. Renderer
-replay execution calls the SDK edit/resend and retry commands directly; when a
-`ConversationView` exists, replay target preparation derives its row model from
-`ConversationView.displayRows` instead of raw `chatStore.messages`.
-`ChatInterface` no longer passes a replay row model or fallback transcript into
-replay hooks. The renderer's temporary replay bridge retains already projected
-visible prefix rows as UI rows only; it does not filter tool pairs, reconstruct
-model context, or provide fallback rows for replay command resolution.
+Copy/feedback actions remain renderer-local affordances. Renderer replay
+execution calls the SDK edit/resend and retry commands directly, passing row
+ids, edited text, and UI adapter context as intent. `ChatInterface` no longer
+passes a replay row model or fallback transcript into replay hooks. The
+renderer's temporary replay bridge retains already projected visible prefix rows
+as UI rows only; it does not inspect `ConversationView.displayRows`, filter tool
+pairs, reconstruct model context, or provide fallback rows for replay command
+resolution.
 React replay hooks do not select store `activeConversationRef`, `addMessage`,
 or skin failure copy for replay orchestration; `desktopConversationReplayRuntime`
 resolves active conversation state through a narrow UI adapter for the active

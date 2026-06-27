@@ -2547,6 +2547,10 @@ describe('renderer chat runtime boundary', () => {
     expect(payloadRuntimeSource).not.toContain('features/chat');
     expect(stateRuntimeSource).toContain('export const DesktopChatSendStateRuntime = Object.freeze');
     expect(stateRuntimeSource).toContain('hasPriorUserMessages');
+    expect(stateRuntimeSource).toContain('DesktopConversationDisplayRowLookupRuntime');
+    expect(stateRuntimeSource).toContain('hasConversationViewUserDisplayRows(conversationView)');
+    expect(stateRuntimeSource).not.toContain('row.role ===');
+    expect(stateRuntimeSource).not.toContain('displayRows.some');
     expect(stateRuntimeSource).not.toContain('export function hasUserMessages');
     expect(stateRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: route ConversationView prior-user detection through
+  `DesktopConversationDisplayRowLookupRuntime`, so send-state no longer carries
+  local SDK display-row scanning rules. No migration required.
 - frontend/projection: route ConversationView trace summaries through
   `DesktopConversationDisplayProjection`, so replay/provider diagnostics no
   longer scan SDK display rows directly. No migration required.

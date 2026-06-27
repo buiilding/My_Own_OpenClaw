@@ -18,7 +18,7 @@ describe('desktopChatSendStateRuntime', () => {
   test('hasPriorUserMessages reads ConversationView display rows before raw messages', () => {
     expect(hasPriorUserMessages({
       conversationView: {
-        displayRows: [{ role: 'user' }],
+        displayRows: [{ id: 'sdk-user-row', type: 'user_message' }],
       },
       messages: [{ sender: 'assistant' }],
     })).toBe(true);

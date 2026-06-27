@@ -5,7 +5,6 @@
 import type { ConversationView } from './desktopConversationRuntimeContracts';
 
 type ConversationViewDisplayRow = ConversationView['displayRows'][number];
-
 function normalizeString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
@@ -46,6 +45,19 @@ function findConversationViewUserDisplayRowForTurn(
   return null;
 }
 
+function hasConversationViewUserDisplayRows(
+  conversationView: unknown,
+): boolean {
+  const displayRows = conversationView && typeof conversationView === 'object'
+    ? (conversationView as { displayRows?: unknown[] | null }).displayRows
+    : null;
+  if (!Array.isArray(displayRows)) {
+    return false;
+  }
+  return displayRows.some(isConversationViewUserDisplayRow);
+}
+
 export const DesktopConversationDisplayRowLookupRuntime = Object.freeze({
   findConversationViewUserDisplayRowForTurn,
+  hasConversationViewUserDisplayRows,
 });

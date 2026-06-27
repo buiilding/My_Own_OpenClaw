@@ -361,9 +361,10 @@ while the view has not yet supplied a same-turn SDK user display row, so an
 awaiting/busy view snapshot cannot render an empty transcript between user
 send acceptance and the first display-row/live-entry projection.
 Send-read-model helpers follow the same rule: once a `ConversationView` object
-is present, first-user-message decisions read only `displayRows` and do not
-fall back to raw chat-store messages, even if a direct app-runtime caller passes
-a partial view shape.
+is present, first-user-message decisions ask
+`DesktopConversationDisplayRowLookupRuntime` whether SDK user display rows
+exist and do not fall back to raw chat-store messages, even if a direct
+app-runtime caller passes a partial view shape.
 
 `selectChatInterfaceState` exposes the active workspace selector model:
 
@@ -384,10 +385,10 @@ a partial view shape.
 `selectChatSendReadModel` is the send-only read model for
 `useChatMessageSender(...)`. It exposes only the resolved
 `hasPriorUserMessages` predicate. The selector computes that predicate from SDK
-`ConversationView.displayRows` when a view exists and from the shared
-surface-selector `messages` only for the no-view first-message fallback,
-without passing either row source into send preparation or adding those raw
-fields back to the React chat-interface selector.
+display-row lookup helpers when a view exists and from the shared
+surface-selector `messages` only for the no-view first-message fallback. Send
+preparation receives neither row source, and the raw fields are not added back
+to the React chat-interface selector.
 
 Minimal chat pill and response overlay state now route through the live-turn
 presentation/view-model helpers instead of a separate chat-box selector. The

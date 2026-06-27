@@ -13,6 +13,7 @@ const {
   buildConversationViewTurnChatMessages,
   buildPendingBridgeChatMessages,
   findConversationViewUserDisplayRowForTurn,
+  hasConversationViewUserDisplayRows,
 } = DesktopConversationDisplayProjection;
 
 function message(overrides: Partial<ChatMessage>): ChatMessage {
@@ -226,6 +227,29 @@ describe('desktopConversationDisplayProjection', () => {
     ]), 'turn-1')).toBeNull();
     expect(findConversationViewUserDisplayRowForTurn(conversationViewWithRows([]), 'turn-1')).toBeNull();
     expect(findConversationViewUserDisplayRowForTurn(null, 'turn-1')).toBeNull();
+  });
+
+  test('detects whether a ConversationView contains SDK user display rows', () => {
+    expect(hasConversationViewUserDisplayRows(conversationViewWithRows([
+      {
+        id: 'assistant-row',
+        role: 'assistant',
+        type: 'assistant_message',
+      },
+      {
+        id: 'typed-user-row',
+        role: 'assistant',
+        type: 'user_message',
+      },
+    ]))).toBe(true);
+    expect(hasConversationViewUserDisplayRows(conversationViewWithRows([
+      {
+        id: 'assistant-row',
+        role: 'assistant',
+        type: 'assistant_message',
+      },
+    ]))).toBe(false);
+    expect(hasConversationViewUserDisplayRows({})).toBe(false);
   });
 
   test('builds ConversationView trace summaries without raw workspace message fallback', () => {
