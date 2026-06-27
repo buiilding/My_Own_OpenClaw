@@ -182,7 +182,7 @@ describe('DesktopChatSendPreparationRuntime', () => {
     expect(preparedTurn).toEqual(expect.objectContaining({
       conversationRef: 'conv_turn-1',
       text: 'look here',
-      turnRef: 'turn-1',
+      turnId: 'turn-1',
       workspacePath: '/workspace/project',
       deferredQueryModelSelection: {
         modelId: 'gpt-5.4',
@@ -190,6 +190,9 @@ describe('DesktopChatSendPreparationRuntime', () => {
       },
     }));
     expect(preparedTurn).not.toHaveProperty('model');
+    expect(preparedTurn).not.toHaveProperty('sessionInfo');
+    expect(preparedTurn).not.toHaveProperty('timestamp');
+    expect(preparedTurn).not.toHaveProperty('turnRef');
     expect(preparedTurn?.resources).toEqual([
       {
         kind: 'readable_file',
@@ -239,14 +242,8 @@ describe('DesktopChatSendPreparationRuntime', () => {
         shouldReturnToChatboxOnSend: false,
         surfaceReason: 'overlay-chatbox',
       },
-      sessionInfo: {
-        conversationRef: 'conv-1',
-        userId: 'user-1',
-      },
       text: 'hello',
-      timestamp: '2026-06-27T00:00:00.000Z',
       turnId: 'turn-1',
-      turnRef: 'turn-1',
       workspacePath: null,
     };
 
@@ -260,7 +257,7 @@ describe('DesktopChatSendPreparationRuntime', () => {
       conversationRef: 'conv-1',
       workspacePath: null,
       resources: preparedTurn.resources,
-      turnRef: 'turn-1',
+      turnRef: preparedTurn.turnId,
     });
     expect(mockClearPendingTurn).toHaveBeenCalledWith({
       conversationRef: 'conv-1',

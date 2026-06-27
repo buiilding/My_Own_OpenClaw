@@ -2826,6 +2826,13 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('export async function dispatchPreparedDesktopChatTurn');
     expect(sendPreparationSource).toContain('DesktopPendingTurnRuntimeClient.clear');
     expect(sendPreparationSource).toContain('dependencies.clearPendingTurn');
+    const preparedSendReturnSource = sendPreparationSource.slice(
+      sendPreparationSource.indexOf('return {\n    conversationRef,'),
+      sendPreparationSource.indexOf('async function dispatchPreparedDesktopChatTurn'),
+    );
+    expect(preparedSendReturnSource).not.toContain('sessionInfo:');
+    expect(preparedSendReturnSource).not.toContain('timestamp,');
+    expect(preparedSendReturnSource).not.toContain('turnRef: turnId');
     expect(sendPreparationSource).toContain('logRendererChatSendLifecycleTrace');
     expect(sendPreparationSource).not.toContain('logRendererChatPillTrace');
     expect(sendPreparationSource).not.toContain("source: 'renderer-send'");

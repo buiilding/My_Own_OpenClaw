@@ -93,6 +93,9 @@ Clipboard image IPC trust boundary:
      inputs do not wait on SDK resource preparation; rejected async sends must
      restore the captured text, pasted images, and selected readable files for
      retry.
+   - The prepared renderer send handoff carries typed SDK resources and the
+     pending bridge cleanup id only; transcript session snapshots, pending-row
+     timestamps, and duplicate turn-ref fields stay out of the dispatch object.
    - Typed resource handle strings are exact. The renderer rejects padded
      `base64`, `filePath`, and `filename` values instead of trimming them into
      SDK resources; malformed optional clipboard metadata is omitted so SDK

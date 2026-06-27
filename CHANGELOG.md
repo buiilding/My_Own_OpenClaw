@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: shrink the prepared chat-send handoff so dispatch no longer
+  carries transcript session snapshots, pending-row timestamps, or a duplicate
+  `turnRef`; SDK dispatch still receives typed resources plus the pending
+  cleanup id. No migration required.
 - frontend/chat-store: remove raw-message counts from the SDK current-turn
   projection workspace read model; replay diagnostics now rely on SDK view row
   counts or renderer trace defaults while provider traces keep their explicit

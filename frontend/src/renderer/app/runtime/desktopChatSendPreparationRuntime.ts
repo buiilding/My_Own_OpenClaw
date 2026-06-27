@@ -85,11 +85,8 @@ type PreparedDesktopChatTurn = {
   >;
   resources: TurnInputResource[];
   sendLifecycle: SendLifecycle;
-  sessionInfo: ReturnType<typeof DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo>;
   text: string;
-  timestamp: string;
   turnId: string;
-  turnRef: string | null;
   workspacePath: string | null;
 };
 
@@ -264,7 +261,6 @@ async function prepareDesktopChatSend({
     turnId,
   });
   const workspaceBinding = await ensureConversationWorkspaceBinding(conversationRef);
-  const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
 
   logRendererChatSendLifecycleTrace({
     action: 'send-start',
@@ -311,11 +307,8 @@ async function prepareDesktopChatSend({
       .buildDeferredQueryModelSelection(config),
     resources,
     sendLifecycle,
-    sessionInfo,
     text,
-    timestamp,
     turnId,
-    turnRef: turnId,
     workspacePath: workspaceBinding.workspacePath || null,
   };
 }
@@ -333,7 +326,7 @@ async function dispatchPreparedDesktopChatTurn(
       conversationRef: preparedTurn.conversationRef,
       workspacePath: preparedTurn.workspacePath,
       resources: preparedTurn.resources,
-      turnRef: preparedTurn.turnRef,
+      turnRef: preparedTurn.turnId,
     });
     logRendererChatSendLifecycleTrace({
       action: 'query-dispatched',
@@ -345,11 +338,11 @@ async function dispatchPreparedDesktopChatTurn(
   } catch (error) {
     dependencies.clearPendingTurn({
       conversationRef: preparedTurn.conversationRef,
-      turnRef: preparedTurn.turnRef,
+      turnRef: preparedTurn.turnId,
     });
     DesktopPendingTurnRuntimeClient.clear({
       conversationRef: preparedTurn.conversationRef,
-      turnRef: preparedTurn.turnRef,
+      turnRef: preparedTurn.turnId,
     });
     throw error;
   }
