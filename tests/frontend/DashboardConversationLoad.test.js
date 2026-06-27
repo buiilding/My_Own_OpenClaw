@@ -207,6 +207,17 @@ describe('desktopDashboardConversationLoadRuntime', () => {
     expect(getTitleVisibilityPollConversationRef(userAction)).toBeNull();
     expect(userAction).not.toHaveProperty('reloadReason');
 
+    const userMetadataAction = resolveRecentConversationEventAction({
+      type: 'user_message_metadata',
+      conversationRef: 'conv-user',
+      payload: {
+        workspace_path: '/work/project-alpha',
+      },
+    });
+    expect(shouldReloadRecentConversationsForEventAction(userMetadataAction)).toBe(true);
+    expect(getTitleVisibilityPollConversationRef(userMetadataAction)).toBeNull();
+    expect(userMetadataAction).not.toHaveProperty('reloadReason');
+
     const assistantAction = resolveRecentConversationEventAction({
       type: 'assistant_message',
       conversationRef: ' conv-assistant ',

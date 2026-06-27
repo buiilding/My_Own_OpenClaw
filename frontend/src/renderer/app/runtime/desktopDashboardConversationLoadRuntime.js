@@ -194,7 +194,7 @@ function removePinnedConversationRef(pinnedConversationRefs, conversationRef) {
 function resolveRecentConversationEventAction(event) {
   const eventType = normalizeOptionalString(event?.type);
   const conversationRef = normalizeOptionalString(event?.conversationRef);
-  if (eventType === 'user_message') {
+  if (eventType === 'user_message' || eventType === 'user_message_metadata') {
     return {
       action: RECENT_CONVERSATION_EVENT_ACTION.RELOAD,
       conversationRef: null,
