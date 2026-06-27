@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: route composer attachment payload construction through
+  `DesktopChatSendPayloadRuntime.normalizeOutgoingPayload(...)`, removing the
+  duplicate clipboard/readable-file handle normalizer from
+  `DesktopMessageInputRuntime`. No migration required.
 - frontend/response-overlay: remove the exported no-view SDK live-turn
   `reasoningText` helper from the current-turn message runtime; the response
   overlay now keeps its temporary raw thinking fallback local to its own

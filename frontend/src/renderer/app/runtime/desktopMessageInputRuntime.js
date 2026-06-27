@@ -2,68 +2,29 @@
  * Provides renderer outgoing message payload normalization for send surfaces.
  */
 
+import { DesktopChatSendPayloadRuntime } from './desktopChatSendPayloadRuntime';
+
+const {
+  normalizeOutgoingPayload,
+} = DesktopChatSendPayloadRuntime;
+
 function normalizeMessageForSend(inputValue) {
   const trimmed = inputValue.trim();
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function exactNonEmptyString(value) {
-  return typeof value === 'string' && value.length > 0 && value === value.trim()
-    ? value
-    : null;
-}
-
-function isClipboardImage(clipboardImage) {
-  return Boolean(clipboardImage && typeof clipboardImage === 'object' && exactNonEmptyString(clipboardImage.base64));
-}
-
-function normalizeClipboardImage(clipboardImage) {
-  if (!isClipboardImage(clipboardImage)) {
-    return null;
-  }
-  const base64 = exactNonEmptyString(clipboardImage.base64);
-  const contentType = exactNonEmptyString(clipboardImage.contentType);
-  const filename = exactNonEmptyString(clipboardImage.filename);
-  const normalizedImage = {
-    base64,
-  };
-  if (contentType) {
-    normalizedImage.contentType = contentType;
-  }
-  if (filename) {
-    normalizedImage.filename = filename;
-  }
-  return normalizedImage;
-}
-
-function normalizeClipboardImages(clipboardImages) {
-  if (!Array.isArray(clipboardImages)) {
-    return [];
-  }
-  return clipboardImages
-    .map((image) => normalizeClipboardImage(image))
-    .filter(Boolean);
-}
-
-function isReadableFileAttachment(readableFile) {
-  return Boolean(
-    readableFile
-    && typeof readableFile === 'object'
-    && exactNonEmptyString(readableFile.filePath)
-    && exactNonEmptyString(readableFile.filename),
+function hasComposerResources(clipboardImages, readableFiles) {
+  return (
+    Array.isArray(clipboardImages)
+    && clipboardImages.length > 0
+  ) || (
+    Array.isArray(readableFiles)
+    && readableFiles.length > 0
   );
 }
 
-function normalizeReadableFiles(readableFiles) {
-  if (!Array.isArray(readableFiles)) {
-    return [];
-  }
-  return readableFiles
-    .filter((readableFile) => isReadableFileAttachment(readableFile))
-    .map((readableFile) => ({
-      filePath: exactNonEmptyString(readableFile.filePath),
-      filename: exactNonEmptyString(readableFile.filename),
-    }));
+function hasNormalizedResources(payload) {
+  return payload.clipboardImages.length > 0 || payload.readableFiles.length > 0;
 }
 
 function buildOutgoingMessage(
@@ -77,23 +38,27 @@ function buildOutgoingMessage(
   }
 
   const normalizedText = normalizeMessageForSend(inputValue);
-  const normalizedClipboardImages = normalizeClipboardImages(clipboardImages);
-  const normalizedReadableFiles = normalizeReadableFiles(readableFiles);
-  const hasAttachments = normalizedClipboardImages.length > 0 || normalizedReadableFiles.length > 0;
+  const hasResources = hasComposerResources(clipboardImages, readableFiles);
 
-  if (!normalizedText && !hasAttachments) {
+  if (!normalizedText && !hasResources) {
     return null;
   }
 
-  if (!hasAttachments) {
+  if (!hasResources) {
     return normalizedText;
   }
 
-  return {
+  const outgoingPayload = normalizeOutgoingPayload({
     text: normalizedText || 'Please review the attached files.',
-    clipboardImages: normalizedClipboardImages,
-    readableFiles: normalizedReadableFiles,
-  };
+    clipboardImages,
+    readableFiles,
+  });
+
+  if (!outgoingPayload || !hasNormalizedResources(outgoingPayload)) {
+    return normalizedText;
+  }
+
+  return outgoingPayload;
 }
 
 function focusTextInputAtEnd(input) {

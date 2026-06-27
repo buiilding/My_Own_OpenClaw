@@ -19,16 +19,17 @@ The core rule is: the composer owns selection and preview; renderer send prepara
 flowchart LR
     A["MessageInput paste or file picker"] --> B["clipboardImages and readableFiles state"]
     B --> C["DesktopMessageInputRuntime.buildOutgoingMessage"]
-    C --> D["useChatMessageSender"]
-    D --> E["typed TurnInputResource handles"]
-    E --> F["DesktopLiveTurnRuntimeClient.sendQuery"]
-    F --> G["Electron query IPC preserves SDK-only resources"]
-    G --> H["SDK ConversationRuntime base user row"]
-    H --> I["SDK DefaultTurnResourceResolvers"]
-    I --> J["backend-compatible payload fields"]
-    J --> K["Backend query_execution_inputs"]
-    K --> L["model image/content context"]
-    H --> M["SDK display rows and continuity replay helpers"]
+    C --> D["DesktopChatSendPayloadRuntime.normalizeOutgoingPayload"]
+    D --> E["useChatMessageSender"]
+    E --> F["typed TurnInputResource handles"]
+    F --> G["DesktopLiveTurnRuntimeClient.sendQuery"]
+    G --> H["Electron query IPC preserves SDK-only resources"]
+    H --> I["SDK ConversationRuntime base user row"]
+    I --> J["SDK DefaultTurnResourceResolvers"]
+    J --> K["backend-compatible payload fields"]
+    K --> L["Backend query_execution_inputs"]
+    L --> M["model image/content context"]
+    I --> N["SDK display rows and continuity replay helpers"]
 ```
 
 ## Fast Owner Map
@@ -71,6 +72,9 @@ Clipboard image IPC trust boundary:
 2. Preserve composer payload shape.
    - `DesktopMessageInputRuntime.buildOutgoingMessage(...)` may return a string for text-only sends.
    - It must return an object payload when images or readable files are attached.
+   - It delegates resource-array normalization to
+     `DesktopChatSendPayloadRuntime.normalizeOutgoingPayload(...)` instead of
+     duplicating clipboard/readable-file handle rules.
    - Renderer send payload normalization accepts only `text`,
      `clipboardImages[]`, and `readableFiles[]`; extra fields are rejected
      without naming removed screenshot or attachment aliases in the send
