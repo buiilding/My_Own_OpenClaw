@@ -265,7 +265,7 @@ function buildBaseMessageFields(entry, liveTurnContext) {
   return {
     id: entry.id,
     sourceEventType: readExactSdkString(entry.sourceEventType),
-    sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel,
+    sourceChannel: liveTurnContext?.sourceChannel || sdkCurrentTurnSourceChannel,
     turnRef: entry.turnRef || liveTurnContext?.turnRef || undefined,
     modelId: entry.modelId || null,
     modelProvider: entry.modelProvider || null,
@@ -353,7 +353,7 @@ function buildToolOutputMessage(entry, liveTurnContext) {
     id: entry.id,
     outputText: text,
     sourceEventType: readExactSdkString(entry.sourceEventType) || 'tool_output',
-    sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel,
+    sourceChannel: liveTurnContext?.sourceChannel || sdkCurrentTurnSourceChannel,
     attachments,
     toolMetadata: asRecord(entry.toolMetadata),
     toolName,
@@ -424,12 +424,10 @@ function buildConversationViewLiveTurnMessages(conversationView = null) {
   const liveTurnContext = {
     conversationRef: conversationView?.conversationRef || null,
     turnRef: conversationView?.liveTurn?.turnRef || null,
+    sourceChannel: sdkConversationViewSourceChannel,
   };
   return entries
-    .map((entry) => buildChatMessageFromLiveTurnEntry({
-      ...entry,
-      sourceChannel: sdkConversationViewSourceChannel,
-    }, liveTurnContext))
+    .map((entry) => buildChatMessageFromLiveTurnEntry(entry, liveTurnContext))
     .filter(Boolean);
 }
 

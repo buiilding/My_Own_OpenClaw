@@ -383,6 +383,10 @@ or error rows by the renderer. Live-entry `sourceEventType` values follow the
 same exactness rule; invalid labels fall back to the generic source for the
 rendered live row instead of being preserved or trimmed as authored SDK event
 identity.
+Renderer live-entry adapters assign their own presentation `sourceChannel`
+based on whether the input came from no-view SDK current-turn presentation or
+first-class `ConversationView.liveTurn.entries`; live entry payloads cannot
+override that channel to enter or leave the live-row visibility path.
 Streaming assistant display rows keep exact SDK-authored
 `metadata.sourceEventType` when present and otherwise use the generic
 `assistant_message` display-row type; padded or empty source event metadata

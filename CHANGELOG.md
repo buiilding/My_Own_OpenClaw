@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: reject padded SDK live-entry `sourceEventType` labels
   instead of preserving them as renderer-visible source identity. No migration
   required.
+- frontend/projection: assign SDK live-entry `sourceChannel` from the renderer
+  adapter path instead of letting live entry payloads override visibility tags.
+  No migration required.
 - frontend/projection: reject padded SDK display-row `sourceEventType` metadata
   instead of treating it as authored event identity. No migration required.
 - frontend/actions: keep SDK replay action targets named as row ids through
