@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/thread-presentation: pass a pre-gated projection conversation ref
+  into live-row filtering so partial `ConversationView` objects cannot reclaim
+  thread live-row authority or suppress the no-view SDK fallback. No migration
+  required.
 - frontend/lifecycle: route visible-turn `ConversationView` shape checks through
   `DesktopConversationViewWorkspaceRuntime`, keeping lifecycle projection on the
   same shared SDK view gate as chat presentation and surface selectors. No

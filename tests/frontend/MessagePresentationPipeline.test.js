@@ -568,6 +568,52 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
+  test('buildThreadPresentationMessages does not let partial ConversationView refs gate fallback live rows', () => {
+    const rawRow = {
+      id: 'raw-user-row',
+      sender: 'user',
+      text: 'raw prompt',
+      turnRef: 'turn-live',
+    };
+    const partialConversationView = {
+      conversationRef: 'conv-other',
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries: [{
+          id: 'partial-view-entry-ignored',
+          type: 'llm-text',
+          text: 'partial view answer',
+        }],
+      },
+    };
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-live',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'live-entry',
+          type: 'llm-text',
+          text: 'live fallback answer',
+          turnRef: 'turn-live',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages([rawRow], {
+      conversationView: partialConversationView,
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      rawRow,
+      expect.objectContaining({
+        id: 'live-entry',
+        text: 'live fallback answer',
+        sourceChannel: 'sdk:current-turn',
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages keeps malformed ConversationView envelopes on no-view fallback path', () => {
     const rawRow = {
       id: 'raw-user-row',

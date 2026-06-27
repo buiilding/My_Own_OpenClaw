@@ -225,19 +225,17 @@ function resolveCurrentTurnMessages({
 function selectVisibleCurrentTurnMessages({
   messages,
   liveTurnMessages,
-  sdkLiveTurn,
-  conversationView,
+  projectionConversationRefValue,
   activeConversationRef,
 }) {
   if (!Array.isArray(liveTurnMessages) || liveTurnMessages.length === 0) {
     return [];
   }
-  const rawProjectionConversationRef = conversationView?.conversationRef || sdkLiveTurn?.conversationRef;
-  const hasProjectionConversationRef = rawProjectionConversationRef !== null
-    && rawProjectionConversationRef !== undefined;
+  const hasProjectionConversationRef = projectionConversationRefValue !== null
+    && projectionConversationRefValue !== undefined;
   const hasActiveConversationRef = activeConversationRef !== null
     && activeConversationRef !== undefined;
-  const projectionConversationRef = readExactRef(rawProjectionConversationRef);
+  const projectionConversationRef = readExactRef(projectionConversationRefValue);
   const normalizedActiveConversationRef = readExactRef(activeConversationRef);
   if (
     (hasProjectionConversationRef && !projectionConversationRef)
@@ -297,11 +295,13 @@ function buildThreadPresentationMessages(
     sdkLiveTurn,
     conversationView: effectiveConversationView,
   });
+  const projectionConversationRefValue = hasConversationView
+    ? effectiveConversationView?.conversationRef
+    : sdkLiveTurn?.conversationRef;
   const liveMessages = selectVisibleCurrentTurnMessages({
     messages: baseMessages,
     liveTurnMessages: resolvedCurrentTurnMessages,
-    sdkLiveTurn,
-    conversationView: effectiveConversationView,
+    projectionConversationRefValue,
     activeConversationRef,
   });
   if (liveMessages.length === 0) {

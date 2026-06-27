@@ -4105,7 +4105,10 @@ describe('renderer chat runtime boundary', () => {
     expect(threadPresentationRuntimeSource).toContain('const value = readExactRef(record?.[key]);');
     expect(threadPresentationRuntimeSource).toContain('return readExactRef(message?.correlationId)');
     expect(threadPresentationRuntimeSource).toContain('const liveId = readExactRef(liveMessage?.id);');
-    expect(threadPresentationRuntimeSource).toContain('const projectionConversationRef = readExactRef(');
+    expect(threadPresentationRuntimeSource).toContain('const projectionConversationRef = readExactRef(projectionConversationRefValue)');
+    expect(threadPresentationRuntimeSource).toContain('const projectionConversationRefValue = hasConversationView');
+    expect(threadPresentationRuntimeSource).not.toContain('conversationView?.conversationRef || sdkLiveTurn?.conversationRef');
+    expect(threadPresentationRuntimeSource).not.toContain('rawProjectionConversationRef');
     expect(threadPresentationRuntimeSource).toContain('const normalizedActiveConversationRef = readExactRef(activeConversationRef)');
     expect(threadPresentationRuntimeSource).toContain('const liveTurnRef = readExactRef(liveMessages[0]?.turnRef)');
     expect(threadPresentationRuntimeSource).toContain('if (readExactRef(messages[index]?.turnRef) === liveTurnRef)');
