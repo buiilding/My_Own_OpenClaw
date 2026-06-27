@@ -28,6 +28,10 @@ All notable changes to WindieOS will be documented in this file.
   SDK presentation-entry ownership, keeping raw current-turn text/tool fields as
   legacy fallback context instead of the source for tracking side effects. No
   migration required.
+- frontend/send: add direct send-preparation runtime coverage proving normal
+  pending bridge payloads stay identity/text only while typed SDK resources
+  carry attachment intent without renderer display lifecycle fields. No
+  migration required.
 - frontend/live-turn: remove the generic renderer metadata pass-through from
   `DesktopLiveTurnRuntimeClient.sendQuery`, leaving normal sends to cross the
   SDK command boundary with typed resources rather than attachment or capture

@@ -131,7 +131,7 @@ Clipboard image IPC trust boundary:
 | File picker image/readable bucketing | `cd frontend && npm run test -- MessageInput FileAttachmentUtils` |
 | Outgoing composer payload shape | `cd frontend && npm run test -- DesktopMessageInputRuntime MessageInput` |
 | Sender payload normalization | `cd frontend && npm run test -- DesktopChatSendPayloadRuntime DesktopChatSendStateRuntime` |
-| Sender upload/query payload path | `cd frontend && npm run test -- ChatMessageSender AgentSdkConversationRuntime RuntimeEndpointStore ArtifactImageUtils` |
+| Sender upload/query payload path | `cd frontend && npm run test -- DesktopChatSendPreparationRuntime ChatMessageSender AgentSdkConversationRuntime RuntimeEndpointStore ArtifactImageUtils` |
 | Main-process query payload normalization | `cd frontend && npm run test -- IpcQueryRuntime` |
 | Backend screenshot/query input resolution | `./scripts/python-in-env backend pytest tests/backend/test_query_execution_inputs.py` |
 | Artifact route/store behavior | `./scripts/python-in-env backend pytest tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py` |

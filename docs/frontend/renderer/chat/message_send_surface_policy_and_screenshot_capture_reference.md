@@ -307,6 +307,15 @@ Fatal failure:
 - no renderer-owned pending visual attachment state before SDK projection
 - clipboard payload flow (base64 + content type + filename) becomes SDK resources
 
+`DesktopChatSendPreparationRuntime.test.ts` verifies the owning runtime directly:
+
+- pending bridge payloads carry only conversation/turn/user-row identity, text,
+  and timestamp
+- prepared sends produce typed SDK turn resources without renderer display
+  attachment ids, preview sources, screenshot aliases, or `attachments[]`
+- pre-SDK dispatch failures clear the matching pending bridge locally and
+  through the Electron pending-turn broadcast facade
+
 `MessageInput.test.jsx` verifies:
 
 - trimmed send text
