@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: add boundary coverage that rejects renderer display attachment
+  fields such as `previewSrc`, `displayAttachmentId`, screenshot aliases, and
+  attachment summaries from send preparation and send payload normalization.
+  No migration required.
 - frontend/tool-output: remove legacy top-level `toolName`, `executionTime`,
   and `success` from the tool-output message-state helper so SDK
   `toolOutputDetails` remains the only tool detail payload. No migration

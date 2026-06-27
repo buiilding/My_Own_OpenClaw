@@ -105,6 +105,10 @@ Clipboard image IPC trust boundary:
      descriptors with renderer preview, display-lifecycle, screenshot-alias, or
      attachment-summary fields are rejected rather than stripped into a sendable
      resource.
+   - Boundary tests must fail if send preparation or send payload normalization
+     reintroduces renderer display fields such as `previewSrc`,
+     `displayAttachmentId`, `attachments`, `displayAttachments`,
+     `screenshotRef`, `screenshotUrl`, or `attachmentFilenames`.
    - SDK resource resolvers upload images, preserve content type, and choose a deterministic filename when none is provided.
 
 4. Preserve readable-file behavior.

@@ -2838,6 +2838,7 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('readSdkDisplayAttachments');
     expect(sendPreparationSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
     expect(sendPreparationSource).not.toContain('displayAttachmentId');
+    expect(sendPreparationSource).not.toContain('previewSrc');
     expect(sendPreparationSource).not.toContain('attachments:');
     expect(sendPreparationSource).not.toContain('attachmentFilenames');
     expect(sendPreparationSource).not.toContain('{ attachmentFilenames, attachment_filenames');
@@ -2864,6 +2865,9 @@ describe('renderer chat runtime boundary', () => {
     expect(payloadRuntimeSource).not.toContain("'attachmentFilenames'");
     expect(payloadRuntimeSource).not.toContain("'screenshotRef'");
     expect(payloadRuntimeSource).not.toContain("'screenshotRefs'");
+    expect(payloadRuntimeSource).not.toContain("'screenshotUrl'");
+    expect(payloadRuntimeSource).not.toContain("'displayAttachmentId'");
+    expect(payloadRuntimeSource).not.toContain("'previewSrc'");
     expect(payloadRuntimeSource).not.toContain("'displayAttachments'");
     expect(payloadRuntimeSource).not.toContain('export function normalizeOutgoingPayload');
     expect(payloadRuntimeSource).not.toContain('export function normalizeAttachmentFilenames');

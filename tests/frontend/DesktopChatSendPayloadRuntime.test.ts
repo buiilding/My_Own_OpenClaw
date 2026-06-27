@@ -82,9 +82,20 @@ describe('desktopChatSendPayloadRuntime', () => {
   });
 
   test('rejects payload objects with unsupported fields by positive send contract', () => {
-    expect(normalizeOutgoingPayload({
-      text: 'hello',
-      legacyRendererField: 'artifact-1',
-    } as any)).toBeNull();
+    for (const unsupportedField of [
+      'attachments',
+      'attachmentFilenames',
+      'displayAttachmentId',
+      'displayAttachments',
+      'previewSrc',
+      'screenshotRef',
+      'screenshotRefs',
+      'screenshotUrl',
+    ]) {
+      expect(normalizeOutgoingPayload({
+        text: 'hello',
+        [unsupportedField]: 'artifact-1',
+      } as any)).toBeNull();
+    }
   });
 });
