@@ -37,6 +37,13 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
         source: 'user_included',
         status: 'unknown',
       },
+      {
+        id: ' padded-id ',
+        kind: 'image',
+        source: 'replay',
+        status: 'ready',
+        screenshotRef: 'artifact-padded-id',
+      },
     ])).toEqual([
       expect.objectContaining({
         id: 'attachment-ready',
@@ -60,9 +67,9 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
       kind: 'image',
       source: 'replay',
       status: 'ready',
-      contentType: ' image/png ',
-      screenshotRef: ' artifact-ready ',
-      screenshotUrl: ' https://cdn.example/ready.png ',
+      contentType: 'image/png',
+      screenshotRef: 'artifact-ready',
+      screenshotUrl: 'https://cdn.example/ready.png',
     })).toEqual({
       id: 'attachment-ready',
       status: 'ready',
@@ -80,6 +87,31 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
       kind: 'screenshot_request',
       source: 'camera_button',
       status: 'pending_capture',
+    })).toBeNull();
+  });
+
+  test('does not repair padded SDK image source fields', () => {
+    expect(readSdkImageAttachmentSource({
+      id: 'attachment-ready',
+      kind: 'image',
+      source: 'replay',
+      status: 'ready',
+      contentType: ' image/png ',
+      screenshotRef: ' artifact-ready ',
+      screenshotUrl: ' https://cdn.example/ready.png ',
+    })).toEqual({
+      id: 'attachment-ready',
+      status: 'ready',
+      artifactId: null,
+      url: null,
+      contentType: null,
+    });
+    expect(readSdkImageAttachmentSource({
+      id: ' attachment-ready ',
+      kind: 'image',
+      source: 'replay',
+      status: 'ready',
+      screenshotRef: 'artifact-ready',
     })).toBeNull();
   });
 

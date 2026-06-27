@@ -89,6 +89,9 @@ validation and artifact image-source extraction for typed SDK descriptors. It
 does not publish image-count, ready-image, or lifecycle summary helpers. Token
 estimates read only the projected SDK `attachments[]` list; legacy screenshot
 arrays remain SDK/replay compatibility input, not a renderer token-count source.
+Attachment ids and artifact image-source fields must be exact non-empty SDK
+strings; the renderer drops padded or empty ids/refs/URLs instead of trimming
+them into valid display inputs.
 
 - primary display field: `attachments[]`
 - backend/replay compatibility input before renderer projection:

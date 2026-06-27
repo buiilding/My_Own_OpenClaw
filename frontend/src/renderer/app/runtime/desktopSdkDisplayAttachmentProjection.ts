@@ -20,9 +20,9 @@ function recordFromUnknown(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function optionalTrimmedString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim().length > 0
-    ? value.trim()
+function optionalExactString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
     : null;
 }
 
@@ -30,7 +30,7 @@ function isSdkDisplayAttachment(value: unknown): value is SdkDisplayAttachment {
   const record = recordFromUnknown(value);
   return Boolean(
     record
-    && typeof record.id === 'string'
+    && optionalExactString(record.id) !== null
     && (record.kind === 'image' || record.kind === 'screenshot_request')
     && (
       record.source === 'user_included'
@@ -68,11 +68,11 @@ function readSdkImageAttachmentSource(value: unknown): SdkDisplayImageAttachment
     return null;
   }
   return {
-    id: value.id.trim(),
+    id: value.id,
     status: value.status,
-    artifactId: optionalTrimmedString(value.screenshotRef),
-    url: optionalTrimmedString(value.screenshotUrl),
-    contentType: optionalTrimmedString(value.contentType),
+    artifactId: optionalExactString(value.screenshotRef),
+    url: optionalExactString(value.screenshotUrl),
+    contentType: optionalExactString(value.contentType),
   };
 }
 

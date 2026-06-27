@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: reject padded SDK display attachment ids and
+  artifact image-source fields instead of trimming them into valid renderer
+  display fetches. No migration required.
 - frontend/projection: stop relabeling streaming SDK assistant display rows as
   `assistant_delta`; the display adapter now preserves SDK-authored
   `metadata.sourceEventType` or the generic row type while deriving completion

@@ -987,6 +987,7 @@ describe('renderer chat runtime boundary', () => {
     expect(resolvedAttachmentSource).not.toContain('function isSdkImageAttachment');
     expect(resolvedAttachmentSource).toContain('DesktopArtifactRuntimeClient.inferArtifactRefFromUrl');
     expect(resolvedAttachmentSource).toContain('DesktopArtifactRuntimeClient.fetchArtifactImage');
+    expect(resolvedAttachmentSource).not.toContain('artifactId.trim()');
     expect(replayActionsSource).not.toContain('DesktopArtifactRuntimeClient.resolveReplayScreenshotState');
     expect(composerAttachmentSource).toContain('DesktopArtifactRuntimeClient.resolveArtifactImageExtension');
     expect(chatStreamEventPayloadSource).not.toContain('buildRemoteScreenshotAttachment');
@@ -3808,6 +3809,8 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('row.metadata?.requestId ?? row.metadata?.correlationId');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.toolName\n      ?');
     expect(displayAttachmentProjectionSource).toContain('readSdkDisplayAttachments');
+    expect(displayAttachmentProjectionSource).toContain('optionalExactString');
+    expect(displayAttachmentProjectionSource).not.toContain('optionalTrimmedString');
     expect(displayAttachmentProjectionSource).not.toContain('countDisplayImageAttachments');
     expect(displayAttachmentProjectionSource).not.toContain('hasReadyDisplayImageAttachment');
     expect(displayAttachmentProjectionSource).not.toContain('summarizeSdkDisplayAttachments');
