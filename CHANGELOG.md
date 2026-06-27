@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/docs: keep the dashboard recent-conversation open-flow reference on
+  `DesktopConversationLibraryClient.loadConversationView(...)` and guard it in
+  the dashboard boundary test so resume docs cannot reintroduce display-row to
+  message-list projection. No migration required.
 - frontend/tests: make dashboard cached `ConversationView` fixtures use the
   complete SDK view envelope before asserting open-flow preservation, matching
   the shared ConversationView gate. No migration required.

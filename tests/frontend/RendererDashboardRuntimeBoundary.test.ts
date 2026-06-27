@@ -12,6 +12,7 @@ const dashboardConversationDocs = [
   'docs/frontend/renderer/dashboard_memory_management_and_resume_reference.md',
   'docs/frontend/renderer/dashboard/shell/dashboard_section_router_and_placeholder_panel_contract_reference.md',
   'docs/frontend/renderer/dashboard/shell/dashboard_conversation_hook_search_polling_and_group_bucket_contract_reference.md',
+  'docs/frontend/renderer/dashboard/shell/dashboard_recent_conversation_loader_retry_and_title_visibility_poll_runtime_reference.md',
   'docs/frontend/renderer/transcript_session_and_rehydrate_reference.md',
 ];
 
@@ -39,9 +40,11 @@ describe('renderer dashboard runtime boundary', () => {
       'GET_CHAT_EVENTS',
       'DesktopConversationLibraryClient.loadDisplayRows',
       'load the canonical SDK conversation event log',
+      'loads SDK `displayRows` and converts them to visible chat messages',
       'project SDK display messages for the renderer',
       'replace renderer chat store with projected SDK display messages',
       'replace chat store message list',
+      'convert display rows into renderer-owned chat messages',
     ];
     const offenders: string[] = [];
     const combinedDocs: string[] = [];

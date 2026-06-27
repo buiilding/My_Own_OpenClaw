@@ -154,12 +154,22 @@ visibility.
 
 `handleOpenConversation(conversation)`:
 
-1. loads the SDK conversation snapshot through `conversation.load`
-2. loads SDK `displayRows` and converts them to visible chat messages
-3. resolves workspace binding from SDK snapshot metadata
-4. updates transcript session + active conversation refs
-5. writes projected rows into chat workspace and resets `isSending` /
-   `thinkingStatus`
+1. resolves and stores the dashboard workspace binding for the selected
+   conversation
+2. updates transcript session + active conversation refs
+3. applies the dashboard-open workspace reset plan only when there is no cached
+   complete SDK `ConversationView`
+4. loads the canonical SDK `ConversationView` through
+   `DesktopConversationLibraryClient.loadConversationView(...)`
+5. stores the loaded view with
+   `setChatConversationView(conversationView, conversationRef)`
+6. resets `isSending`, `thinkingStatus`, and token counts without projecting
+   `ConversationView.displayRows` into chat-store `messages`
+
+Dashboard open keeps normal chat rendering on `ConversationView.displayRows`
+through the shared presentation/view projection path. The hook must not convert
+display rows into chat-store message-list state or revive the removed
+`loadDisplayRows` facade.
 
 Failure is reported via `recentConversationsError`.
 
