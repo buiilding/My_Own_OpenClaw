@@ -449,7 +449,9 @@ calls cannot combine `ConversationView` with raw messages or the no-view
 `sdkLiveTurn` fallback; it also delegates that decision to the shared workspace
 gate instead of keeping a local view-shape predicate. Response-overlay surface
 state applies the same guard before resolving overlay entries and dismissal
-targets. The view plus pending bridge own visible lifecycle and stop authority.
+targets. The React overlay component renders, traces, and resolves transparency
+from those selected `responseOverlayEntries`, not the broader surface `messages`
+fallback. The view plus pending bridge own visible lifecycle and stop authority.
 The interface presentation adapter also requires the complete SDK
 `ConversationView` envelope through the shared workspace gate before it blanks
 the no-view `sdkLiveTurn` fallback or passes a view to the thread presenter, so

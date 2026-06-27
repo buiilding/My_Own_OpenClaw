@@ -3427,6 +3427,10 @@ describe('renderer chat runtime boundary', () => {
     expect(syncSource).toContain('setResponseboxSizeValues');
     expect(syncSource).not.toContain('setResponseboxSize({');
     expect(overlaySource).not.toContain('currentTurnProjection');
+    expect(overlaySource).not.toContain('resolveConversationToolSchemas(messages)');
+    expect(overlaySource).not.toContain('messageCount: messages.length');
+    expect(overlaySource).not.toContain('messages.length,');
+    expect(overlaySource).toContain('resolveConversationToolSchemas(responseOverlayEntries)');
     expect(viewModelSource).toContain('resolveResponseOverlaySurfaceState');
     expect(viewModelSource).toContain('resolveResponseOverlayPresentationStateForSurfaceState');
     expect(viewModelSource).toContain('responseOverlaySurfaceState');

@@ -33,9 +33,6 @@ const {
 
 function MinimalResponseOverlay() {
   const chatSurfaceState = useChatStore(useShallow(selectLiveTurnSurfaceState));
-  const {
-    messages,
-  } = chatSurfaceState;
   const shellRef = useRef(null);
   const responseboxHitTestActiveRef = useRef(null);
   const lastLoggedSurfaceStateRef = useRef('');
@@ -71,8 +68,8 @@ function MinimalResponseOverlay() {
     responseEntrySignature,
   });
   const conversationToolSchemas = useMemo(
-    () => DesktopMessageTransparencyRuntime.resolveConversationToolSchemas(messages),
-    [messages],
+    () => DesktopMessageTransparencyRuntime.resolveConversationToolSchemas(responseOverlayEntries),
+    [responseOverlayEntries],
   );
 
   useResponseOverlayWindowSync({
@@ -151,7 +148,7 @@ function MinimalResponseOverlay() {
         text: latestResponseText,
         type: latestResponseType,
       },
-      messageCount: messages.length,
+      messageCount: responseOverlayEntryCount,
       overlayLayoutMode,
       responseOverlayEntryCount,
       responseVisible,
@@ -171,7 +168,6 @@ function MinimalResponseOverlay() {
     latestResponseOverlayEntryId,
     latestResponseText,
     latestResponseType,
-    messages.length,
     responseOverlayEntryCount,
     awaitingVisible,
     responseVisible,

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: resolve minimal response-overlay transparency and trace
+  counts from selected overlay entries instead of the broader surface message
+  fallback, keeping SDK `ConversationView` overlay rendering from reopening raw
+  message authority. No migration required.
 - frontend/tests: remove legacy screenshot-alias projection from no-view overlay
   test utilities and keep pending-turn fixtures attachment-free, matching the
   SDK-owned attachment display boundary. No migration required.
