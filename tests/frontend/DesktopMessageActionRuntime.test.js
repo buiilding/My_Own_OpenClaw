@@ -84,6 +84,10 @@ describe('desktopMessageActionRuntime', () => {
   });
 
   test('resolves replay action availability from SDK row actions only', () => {
+    expect(DesktopMessageActionRuntime.resolveReplayTargetRowId('row-1')).toBe('row-1');
+    expect(DesktopMessageActionRuntime.resolveReplayTargetRowId(' row-1 ')).toBeNull();
+    expect(DesktopMessageActionRuntime.resolveReplayTargetRowId('')).toBeNull();
+
     expect(DesktopMessageActionRuntime.resolveMessageReplayActions({
       id: 'assistant-visible',
       actions: {

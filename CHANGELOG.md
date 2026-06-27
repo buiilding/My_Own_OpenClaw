@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/actions: route direct assistant/user edit-retry button target checks
+  through `DesktopMessageActionRuntime.resolveReplayTargetRowId`, so replay
+  controls fail closed for missing or padded SDK row targets even outside the
+  normal `MessageList` path. No migration required.
 - frontend/attachments: make `AttachmentRendererRegistry` render only
   already-validated SDK attachment descriptors from `AttachmentList`, keeping
   preview/lifecycle validation centralized in the SDK display attachment

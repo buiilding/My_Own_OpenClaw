@@ -451,7 +451,9 @@ through to chat-message props and do not trim, repair, or reconstruct action
 target ids. Renderer action-control helpers also reject padded or empty target
 ids instead of normalizing them; missing or invalid row action booleans or
 target row ids on SDK display rows mean the command is unavailable rather than
-defaulting to a renderer heuristic.
+defaulting to a renderer heuristic. The low-level action buttons use the same
+shared runtime target-id reader, so direct component renders cannot show
+edit/retry controls from padded or missing SDK row targets.
 Renderer message-list controls apply the same rule for all rows: copy and
 feedback remain renderer-local affordances, but edit/resend and Try again are
 shown only when row `actions.canEdit`/`actions.editTargetRowId` or

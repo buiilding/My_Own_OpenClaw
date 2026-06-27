@@ -57,7 +57,10 @@ function messageActionFlag(message, key) {
 }
 
 function messageActionTargetId(message, key) {
-  const value = message?.actions?.[key];
+  return resolveReplayTargetRowId(message?.actions?.[key]);
+}
+
+function resolveReplayTargetRowId(value) {
   return typeof value === 'string' && value.length > 0 && value === value.trim() ? value : null;
 }
 
@@ -74,6 +77,7 @@ function resolveMessageReplayActions(message) {
 
 export const DesktopMessageActionRuntime = Object.freeze({
   clearMessageActionTimer,
+  resolveReplayTargetRowId,
   resolveMessageReplayActions,
   scheduleMessageActionTimer,
 });

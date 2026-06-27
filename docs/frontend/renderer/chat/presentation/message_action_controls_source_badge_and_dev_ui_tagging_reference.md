@@ -40,7 +40,11 @@ Replay actions fail closed unless the SDK row provides both the availability
 boolean and the corresponding target row id. Renderer presentation code must
 not recover missing `retryTargetRowId` or `editTargetRowId` from the rendered
 message id, and component props keep those targets named as row ids while
-passing them to replay callbacks.
+passing them to replay callbacks. Low-level assistant/user action components
+also resolve their target ids through
+`DesktopMessageActionRuntime.resolveReplayTargetRowId(...)`, so direct renders
+with missing, padded, or empty SDK targets fail closed before showing replay
+controls.
 
 Assistant action row render conditions:
 

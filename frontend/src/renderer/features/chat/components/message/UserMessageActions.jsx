@@ -5,6 +5,7 @@
 import PropTypes from 'prop-types';
 import { Check, Copy, Pencil } from 'lucide-react';
 import { useCopyMessageAction } from '../../hooks/useCopyMessageAction';
+import { DesktopMessageActionRuntime } from '../../../../app/runtime/desktopMessageActionRuntime';
 
 function UserMessageActions({
   messageId,
@@ -17,12 +18,14 @@ function UserMessageActions({
     messageText,
     warningPrefix: 'UserMessageActions',
   });
+  const resolvedEditTargetRowId = DesktopMessageActionRuntime.resolveReplayTargetRowId(editTargetRowId);
+  const canRenderEdit = canEdit && Boolean(resolvedEditTargetRowId);
 
   const handleEdit = () => {
-    if (!canEdit || !editTargetRowId || typeof onEdit !== 'function') {
+    if (!canRenderEdit || typeof onEdit !== 'function') {
       return;
     }
-    onEdit(messageId, messageText, editTargetRowId);
+    onEdit(messageId, messageText, resolvedEditTargetRowId);
   };
 
   return (
@@ -36,7 +39,7 @@ function UserMessageActions({
       >
         {copySuccess ? <Check size={16} /> : <Copy size={16} />}
       </button>
-      {canEdit ? (
+      {canRenderEdit ? (
         <button
           type="button"
           className="user-action-btn"

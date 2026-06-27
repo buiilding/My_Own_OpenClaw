@@ -4079,6 +4079,14 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/message/MessageItem.jsx'),
       'utf8',
     );
+    const assistantMessageActionsSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/AssistantMessageActions.jsx'),
+      'utf8',
+    );
+    const userMessageActionsSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/UserMessageActions.jsx'),
+      'utf8',
+    );
     const sourceChannelPath = path.join(chatRoot, 'utils/message/sourceChannels.js');
 
     expect(projectionRuntimeSource).toContain('sourceEventType');
@@ -4332,6 +4340,7 @@ describe('renderer chat runtime boundary', () => {
     expect(messageListSource).toContain('assistantRetryTargetRowId={retryTargetRowId}');
     expect(messageListSource).toContain('userEditTargetRowId={editTargetRowId}');
     expect(messageActionRuntimeSource).toContain('resolveMessageReplayActions');
+    expect(messageActionRuntimeSource).toContain('resolveReplayTargetRowId');
     expect(messageActionRuntimeSource).toContain("messageActionFlag(message, 'canRetry')");
     expect(messageActionRuntimeSource).toContain("messageActionFlag(message, 'canEdit')");
     expect(messageActionRuntimeSource).toContain('value === value.trim()');
@@ -4351,6 +4360,10 @@ describe('renderer chat runtime boundary', () => {
     expect(messageItemSource).toContain('canEditMessage');
     expect(messageItemSource).toContain('canTryAgain={canRetryMessage}');
     expect(messageItemSource).toContain('canEdit={canEditMessage}');
+    expect(assistantMessageActionsSource).toContain('DesktopMessageActionRuntime.resolveReplayTargetRowId(retryTargetRowId)');
+    expect(userMessageActionsSource).toContain('DesktopMessageActionRuntime.resolveReplayTargetRowId(editTargetRowId)');
+    expect(assistantMessageActionsSource).not.toContain('!retryTargetRowId');
+    expect(userMessageActionsSource).not.toContain('!editTargetRowId');
     expect(chatRevisionActionRuntimeSource).toContain('buildRevisionCheckoutCommand');
     expect(chatRevisionActionRuntimeSource).toContain('DesktopConversationContinuityService.listRevisions');
     expect(chatRevisionActionRuntimeSource).toContain('DesktopConversationContinuityService.checkoutRevision');

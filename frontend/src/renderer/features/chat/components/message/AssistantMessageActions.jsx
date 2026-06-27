@@ -27,6 +27,8 @@ function AssistantMessageActions({
   });
   const revealTimerRef = useRef(null);
   const [isRevealed, setIsRevealed] = useState(false);
+  const resolvedRetryTargetRowId = DesktopMessageActionRuntime.resolveReplayTargetRowId(retryTargetRowId);
+  const canRenderTryAgain = canTryAgain && Boolean(resolvedRetryTargetRowId);
 
   useEffect(() => {
     DesktopMessageActionRuntime.clearMessageActionTimer({
@@ -62,10 +64,10 @@ function AssistantMessageActions({
   };
 
   const handleTryAgain = () => {
-    if (disabled || !canTryAgain || !retryTargetRowId || typeof onTryAgain !== 'function') {
+    if (disabled || !canRenderTryAgain || typeof onTryAgain !== 'function') {
       return;
     }
-    onTryAgain(retryTargetRowId);
+    onTryAgain(resolvedRetryTargetRowId);
   };
 
   return (
@@ -105,7 +107,7 @@ function AssistantMessageActions({
           >
             <ThumbsDown size={16} />
           </button>
-          {canTryAgain ? (
+          {canRenderTryAgain ? (
             <button
               type="button"
               className="assistant-action-btn"

@@ -13,6 +13,8 @@ import {
 } from '@testing-library/react';
 
 import MessageList from '../../frontend/src/renderer/features/chat/components/MessageList';
+import AssistantMessageActions from '../../frontend/src/renderer/features/chat/components/message/AssistantMessageActions';
+import UserMessageActions from '../../frontend/src/renderer/features/chat/components/message/UserMessageActions';
 
 const mockIsDevUiEnabled = jest.fn(() => false);
 
@@ -276,6 +278,29 @@ describe('MessageList assistant actions', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-original');
+  });
+
+  test('direct assistant actions fail closed without an exact SDK retry target id', () => {
+    jest.useFakeTimers();
+    const onAssistantTryAgain = jest.fn();
+
+    render(
+      <AssistantMessageActions
+        messageId="assistant-visible"
+        messageText="final answer"
+        canTryAgain
+        retryTargetRowId=" assistant-original "
+        onTryAgain={onAssistantTryAgain}
+      />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(screen.getByRole('button', { name: 'Copy assistant message' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
+    expect(onAssistantTryAgain).not.toHaveBeenCalled();
   });
 
   test('does not show retry when SDK omits the retry target id', () => {
@@ -697,6 +722,24 @@ describe('MessageList assistant actions', () => {
     await waitFor(() => {
       expect(screen.queryByRole('group', { name: 'Edit user message' })).not.toBeInTheDocument();
     });
+  });
+
+  test('direct user actions fail closed without an exact SDK edit target id', () => {
+    const onUserEdit = jest.fn();
+
+    render(
+      <UserMessageActions
+        messageId="user-visible"
+        messageText="old text"
+        canEdit
+        editTargetRowId=" user-original "
+        onEdit={onUserEdit}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Copy user message' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit and resend' })).not.toBeInTheDocument();
+    expect(onUserEdit).not.toHaveBeenCalled();
   });
 
   test('user edit cancel closes inline composer without sending', () => {
