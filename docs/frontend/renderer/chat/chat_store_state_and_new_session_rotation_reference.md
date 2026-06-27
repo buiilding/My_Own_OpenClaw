@@ -102,7 +102,8 @@ SDK current-turn presentation entries provide narrow `toolCallDetails` and
 turn row construction passes those SDK-authored details through with typed
 `attachments[]`; `DesktopSdkToolDetailProjection.sanitizeSdkToolDetailRecord(...)`
 remains a compatibility guard only for legacy/no-presentation tool detail
-shapes.
+shapes. Live entry `type` dispatch is exact: padded SDK entry types are not
+trimmed into tool/thinking/progress rows by renderer presentation.
 
 `streamTracking` fields capture turn identity, phase, counters, and timestamps per workspace:
 

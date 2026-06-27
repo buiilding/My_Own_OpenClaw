@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: stop trimming SDK live-entry `type` values into tool or
+  thinking rows; padded or empty live entry types now fall back to assistant
+  text. No migration required.
 - frontend/projection: reject padded SDK display-row `sourceEventType` metadata
   instead of treating it as authored event identity. No migration required.
 - frontend/actions: keep SDK replay action targets named as row ids through

@@ -61,7 +61,9 @@ function resolveNoViewSdkLiveTurnThinkingText(sdkLiveTurn = null) {
 }
 
 function normalizeEntryType(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : 'llm-text';
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : 'llm-text';
 }
 
 function buildProjectedToolCallMessage({

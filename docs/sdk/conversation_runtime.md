@@ -376,6 +376,10 @@ tool-output, and progress rows. Producers must normalize those rows before they
 reach `ConversationView`; the renderer may only stringify SDK-declared
 structured tool rows such as tool calls and bundle outputs for component
 compatibility.
+Current-turn and `ConversationView.liveTurn.entries[]` type discriminators are
+SDK-authored exact strings; padded or empty entry `type` values fall back to
+generic assistant text rather than being trimmed into tool, thinking, progress,
+or error rows by the renderer.
 Streaming assistant display rows keep exact SDK-authored
 `metadata.sourceEventType` when present and otherwise use the generic
 `assistant_message` display-row type; padded or empty source event metadata
