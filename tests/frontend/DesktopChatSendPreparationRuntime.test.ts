@@ -143,6 +143,8 @@ describe('DesktopChatSendPreparationRuntime', () => {
           displayAttachmentId: 'renderer-display-id',
           previewSrc: 'data:image/png;base64,preview',
           screenshotRef: 'artifact-legacy',
+        }, {
+          base64: 'image-without-metadata',
         }],
         readableFiles: [{
           filePath: '/workspace/project/notes.txt',
@@ -205,6 +207,11 @@ describe('DesktopChatSendPreparationRuntime', () => {
         base64: 'image-base64',
         contentType: 'image/png',
         filename: 'shot.png',
+        required: true,
+      },
+      {
+        kind: 'clipboard_image',
+        base64: 'image-without-metadata',
         required: true,
       },
       {

@@ -96,6 +96,14 @@ function exactNonEmptyString(value: unknown): string | null {
     : null;
 }
 
+function optionalExactResourceField<TKey extends string>(
+  key: TKey,
+  value: unknown,
+): { [K in TKey]: string } | Record<string, never> {
+  const exactValue = exactNonEmptyString(value);
+  return exactValue ? { [key]: exactValue } as { [K in TKey]: string } : {};
+}
+
 function buildTurnInputResources({
   readableFiles,
   clipboardImages,
@@ -124,8 +132,8 @@ function buildTurnInputResources({
     resources.push({
       kind: 'clipboard_image',
       base64: clipboardImage.base64,
-      contentType: clipboardImage.contentType ?? null,
-      filename: clipboardImage.filename ?? null,
+      ...optionalExactResourceField('contentType', clipboardImage.contentType),
+      ...optionalExactResourceField('filename', clipboardImage.filename),
       required: true,
     });
   }

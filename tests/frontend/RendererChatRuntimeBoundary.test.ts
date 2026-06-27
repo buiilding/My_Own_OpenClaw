@@ -2894,6 +2894,11 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('attachmentFilenames');
     expect(sendPreparationSource).not.toContain('{ attachmentFilenames, attachment_filenames');
     expect(sendPreparationSource).not.toContain('workspacePath: workspaceBinding.workspacePath || null');
+    expect(sendPreparationSource).toContain('function optionalExactResourceField');
+    expect(sendPreparationSource).toContain("...optionalExactResourceField('contentType', clipboardImage.contentType)");
+    expect(sendPreparationSource).toContain("...optionalExactResourceField('filename', clipboardImage.filename)");
+    expect(sendPreparationSource).not.toContain('contentType: clipboardImage.contentType ?? null');
+    expect(sendPreparationSource).not.toContain('filename: clipboardImage.filename ?? null');
     expect(senderTestSource).toContain('function expectPendingBridgeUserMessage');
     expect(senderTestSource).not.toContain('function expectOptimisticUserMessage');
     expect(senderTestSource).not.toContain('attachments: null');

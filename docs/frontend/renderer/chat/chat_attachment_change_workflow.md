@@ -99,7 +99,9 @@ Clipboard image IPC trust boundary:
    - Typed resource handle strings are exact. The renderer rejects padded
      `base64`, `filePath`, and `filename` values instead of trimming them into
      SDK resources; malformed optional clipboard metadata is omitted so SDK
-     resource resolution can choose fallback names.
+     resource resolution can choose fallback names. Prepared resources do not
+     publish explicit `null` placeholders for missing optional clipboard
+     metadata.
    - Workspace bindings follow the same exact rule during send preparation:
      padded workspace paths do not enter the prepared handoff or the workspace
      SDK resource list.

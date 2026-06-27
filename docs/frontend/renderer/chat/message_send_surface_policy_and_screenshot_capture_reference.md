@@ -105,6 +105,8 @@ default-text send when the payload normalizer strips all resource handles.
 - optional `contentType`: forwarded only when exact non-empty
 - optional `filename`: forwarded only when exact non-empty; otherwise SDK resource
   resolution chooses fallback naming
+- missing optional metadata fields are omitted from prepared resources instead of
+  serialized as explicit `null` placeholders
 
 ## MessageInput -> Sender Coupling
 
@@ -172,6 +174,9 @@ When attachment(s) exist:
    Turn resources do not accept caller-owned display attachment ids; SDK turn
    processing assigns stable display attachment ids before producing live
    visual attachment projection state.
+   Clipboard image resource metadata is positive-only: exact `contentType` and
+   `filename` values are included, while missing or malformed optional metadata
+   fields are omitted.
    Send preparation only includes a workspace path or workspace SDK resource
    when the binding is already exact and non-empty; padded bindings are omitted
    from the prepared handoff instead of being carried until command dispatch.

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: omit missing optional clipboard image `contentType` and
+  `filename` fields from prepared SDK resources instead of publishing explicit
+  `null` placeholders, keeping send preparation on the positive resource
+  contract. No migration required.
 - frontend/trace: make the chat-store provider trace read model publish only
   exact no-view fallback active-turn and last-message metadata, so padded raw
   message sender/type/ref/source labels are reported as missing at the adapter
