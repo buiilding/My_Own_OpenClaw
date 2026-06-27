@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: stop stamping private renderer replay-step markers onto
+  rejected SDK replay command errors, and keep replay trace `action` values as
+  timeline event names with `replayAction` carrying `retry`/`edit_resend`.
+  Replay failures now remain trace/status outcomes around untouched SDK errors.
+  No migration required.
 - frontend/send: route composer attachment payload construction through
   `DesktopChatSendPayloadRuntime.normalizeOutgoingPayload(...)`, removing the
   duplicate clipboard/readable-file handle normalizer from

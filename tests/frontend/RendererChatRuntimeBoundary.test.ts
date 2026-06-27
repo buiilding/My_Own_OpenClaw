@@ -2201,6 +2201,8 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('messageId.trim()');
     expect(replayRuntimeSource).not.toContain('editedText.trim');
     expect(replayRuntimeSource).not.toContain('normalizedEditedText');
+    expect(replayRuntimeSource).not.toContain('__desktopRuntimeReplayStep');
+    expect(replayRuntimeSource).toContain('replayAction: action');
     expect(replayRuntimeSource).not.toContain('resolveReplayRetryMessageIndexes');
     expect(replayRuntimeSource).toContain('DesktopConversationReplayRuntime');
     expect(replayRuntimeSource).not.toContain('export function findReplayEditableUserMessageIndex');

@@ -166,7 +166,11 @@ flowchart LR
      renderer-cut prefixes, or clearing renderer replay pending state. Do not
      restore event-log cutting through `conversation.rewrite_after_event`, SDK
      `prepareEditAndResend`, SDK `prepareRetryTurn`, or durable row replacement
-     from React.
+     from React. Renderer replay diagnostics must also leave rejected SDK error
+     objects untouched; trace event `action` values name the renderer timeline
+     event, while `replayAction` carries `retry` or `edit_resend` command kind
+     when needed instead of stamping private renderer markers onto SDK command
+     errors.
    - Replay target ids are exact SDK display-row ids from action metadata.
      Renderer replay facades reject padded or empty ids instead of trimming
      them into targets. Edit text is forwarded as UI intent from the inline

@@ -398,4 +398,34 @@ describe('desktopConversationReplayRuntime', () => {
     }));
     errorSpy.mockRestore();
   });
+
+  test('records SDK replay failures without mutating rejected SDK errors', async () => {
+    const chatStoreBundle = createChatStore();
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const sdkReplayError = new Error('sdk replay failed');
+    DesktopConversationContinuityService.retryTurn.mockRejectedValue(sdkReplayError);
+
+    await expect(executeReplayAction(replayArgs({
+      action: 'retry',
+      targetRowId: 'assistant-1',
+      chatStoreBundle,
+    }))).resolves.toBe(false);
+
+    expect(sdkReplayError).not.toHaveProperty('__desktopRuntimeReplayStep');
+    expect(DesktopRendererTraceRuntime.logRendererReplayTrace).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'sdk_replay_failed',
+      conversationRef: 'conv-replay',
+      errorKind: 'Error',
+      replayAction: 'retry',
+      replaySucceeded: false,
+      targetRowId: 'assistant-1',
+    }));
+    expect(DesktopRendererTraceRuntime.logRendererReplayTrace).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'replay_failed_cleanup',
+      conversationRef: 'conv-replay',
+      errorKind: 'Error',
+      targetRowId: 'assistant-1',
+    }));
+    errorSpy.mockRestore();
+  });
 });

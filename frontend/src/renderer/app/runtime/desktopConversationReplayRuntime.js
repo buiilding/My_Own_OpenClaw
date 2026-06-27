@@ -117,7 +117,7 @@ async function executeReplayIntent({
     try {
       logReplayTimeline('sdk_replay_sent', {
         conversationRef,
-        action,
+        replayAction: action,
         targetRowId,
       });
       if (action === 'edit_resend') {
@@ -136,21 +136,18 @@ async function executeReplayIntent({
       }
       logReplayTimeline('sdk_replay_done', {
         conversationRef,
-        action,
+        replayAction: action,
         replaySucceeded: true,
         targetRowId,
       });
     } catch (sdkReplayError) {
       logReplayTimeline('sdk_replay_failed', {
         conversationRef,
-        action,
+        replayAction: action,
         replaySucceeded: false,
         errorKind: traceErrorKind(sdkReplayError),
         targetRowId,
       });
-      if (sdkReplayError && typeof sdkReplayError === 'object') {
-        sdkReplayError.__desktopRuntimeReplayStep = 'send';
-      }
       throw sdkReplayError;
     }
     return true;
