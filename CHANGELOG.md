@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/message-content: stop advertising legacy tool-output metadata props
+  on the generic MessageContent prop contract; tool output details remain
+  explicit SDK `toolOutputDetails` only. No migration required.
 - frontend/tool-output: narrow the ToolOutputMessage component contract to the
   fields it renders, so legacy `toolName`, `executionTime`, and `success`
   props cannot act as alternate detail inputs. No migration required.

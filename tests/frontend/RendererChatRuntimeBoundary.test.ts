@@ -1503,6 +1503,10 @@ describe('renderer chat runtime boundary', () => {
     expect(messageContentSource).not.toContain('screenshotContentType: PropTypes');
     expect(messageContentSource).not.toContain('screenshot: PropTypes');
     expect(messageContentSource).not.toContain('modelFacingToolCall: PropTypes');
+    expect(messageContentSource).not.toContain('toolMetadata: PropTypes');
+    expect(messageContentSource).not.toContain('toolName: PropTypes');
+    expect(messageContentSource).not.toContain('executionTime: PropTypes');
+    expect(messageContentSource).not.toContain('success: PropTypes');
     expect(toolCallMessageSource).toContain('message.toolCallDisplayText');
     expect(toolCallMessageSource).not.toContain('message.modelFacingToolCall');
     expect(toolCallMessageSource).not.toContain('modelFacingToolCall: PropTypes');
