@@ -26,6 +26,9 @@ All notable changes to WindieOS will be documented in this file.
   intent, deriving replacement turn refs, replay payload resources, and model
   behavior from the SDK display timeline and normal send path instead of
   caller-supplied overrides. No migration required for Electron callers.
+- frontend/attachments: remove the message-row attachment visibility facade so
+  CSS class assembly trusts already-projected `attachments[]` instead of
+  revalidating SDK attachment lifecycle state. No migration required.
 - frontend/revisions: require exact conversation refs, revision ids, optional
   fork cut row ids, and explicit fork conversation refs inside the desktop
   continuity facade before invoking SDK revision commands, so direct facade

@@ -14,7 +14,6 @@ title: "Thinking Display Overflow, Message Content/Class Assembly, and Stream To
 - `frontend/src/renderer/features/chat/components/MessageList.jsx`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/app/runtime/desktopMessageAttachmentPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageContentRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`
@@ -24,7 +23,6 @@ title: "Thinking Display Overflow, Message Content/Class Assembly, and Stream To
 - `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`
 - `tests/frontend/ThinkingDisplay.test.jsx`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
-- `tests/frontend/DesktopMessageAttachmentPresentationRuntime.test.js`
 - `tests/frontend/DesktopMessageContentRuntime.test.js`
 - `tests/frontend/DesktopMessageClassRuntime.test.js`
 - `tests/frontend/DesktopMessageListRuntime.test.js`
@@ -130,20 +128,16 @@ instead.
   `attachments[]`
 
 Attachment presence for row classes follows the already-projected typed
-`attachments[]` list; the class helper does not classify SDK attachment
-lifecycle state. User-message and tool-output visual routing use SDK-owned
-descriptors through `AttachmentList` / `AttachmentRendererRegistry`.
+`attachments[]` list; the class helper only checks whether that normalized
+array is non-empty and does not classify SDK attachment lifecycle state.
+User-message and tool-output visual routing use SDK-owned descriptors through
+`AttachmentList` / `AttachmentRendererRegistry`.
 `AttachmentList` is the only React message-content component that imports the
 SDK display attachment projection helper; `UserMessage` and `ToolOutputMessage`
 pass row `attachments[]` through so they do not duplicate descriptor validation
 or attachment lifecycle gating.
-`DesktopMessageAttachmentPresentationRuntime` is the app-runtime visibility
-facade for row class helpers. It centralizes the single
-`DesktopSdkDisplayAttachmentProjection.readSdkDisplayAttachments(...)` call for
-message row presentation classification, so class helpers do not duplicate SDK
-descriptor validation or know attachment lifecycle details. Content-kind
-routing treats every user row as a user message; `AttachmentList` returns null
-when the row has no valid visible descriptors.
+Content-kind routing treats every user row as a user message; `AttachmentList`
+returns null when the row has no valid visible descriptors.
 The React-only async artifact image fetch/cache hook remains in
 `frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js`.
 

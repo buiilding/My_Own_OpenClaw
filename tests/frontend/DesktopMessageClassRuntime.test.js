@@ -55,7 +55,7 @@ describe('desktopMessageClassRuntime', () => {
     ).toBe('message message-assistant message-type-tool-output');
   });
 
-  test('does not include attachment class for malformed attachment descriptors', () => {
+  test('trusts projected attachment props instead of revalidating lifecycle descriptors', () => {
     expect(
       buildMessageClassName({
         sender: 'assistant',
@@ -69,7 +69,7 @@ describe('desktopMessageClassRuntime', () => {
           screenshotRef: 'artifact-123',
         }],
       }),
-    ).toBe('message message-assistant message-type-tool-output');
+    ).toBe('message message-assistant message-type-tool-output message-has-attachment');
   });
 
   test('does not include streaming class for complete assistant messages', () => {

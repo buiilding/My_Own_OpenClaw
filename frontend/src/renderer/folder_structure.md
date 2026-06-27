@@ -49,7 +49,6 @@ frontend/src/renderer/
 |   |   |-- desktopLiveTurnSurfaceRuntime.js # Renderer SDK current-turn surface/overlay preflight state facade
 |   |   |-- desktopRendererTraceRuntime.ts # Renderer stream/chat-pill/overlay live-surface diagnostic trace facade
 |   |   |-- desktopManualCompactionRuntime.js # Renderer manual compaction command orchestration facade
-|   |   |-- desktopMessageAttachmentPresentationRuntime.js # Renderer message attachment visibility facade
 |   |   |-- desktopMessageClassRuntime.js # Renderer message row class-name assembly facade
 |   |   |-- desktopMessageInputRuntime.js # Renderer outgoing message payload normalization facade
 |   |   |-- desktopMessageListRuntime.js # Renderer message-list scroll/action/compaction presentation state facade
