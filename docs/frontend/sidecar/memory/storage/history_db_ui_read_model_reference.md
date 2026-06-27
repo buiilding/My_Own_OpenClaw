@@ -14,9 +14,10 @@ title: "History DB UI Read Model Reference"
 local store for visible conversation history. By default that root is
 `desktop-runtime`, for example
 `~/Library/Application Support/desktop-runtime/history/history.db` on macOS. It
-is separate from episodic and semantic memory databases: chat replay rows are
-not memories, and memory retrieval rows are not the source of truth for the
-sidebar or opened chat transcript.
+is separate from episodic and semantic memory databases: chat replay rows,
+display timeline checkpoints, and model-history checkpoints are not memories,
+and memory retrieval rows are not the source of truth for the sidebar or opened
+chat transcript.
 
 ## Read Model
 
@@ -71,10 +72,15 @@ directory, not the host-skinned diagnostics directory.
 If a UI prototype reads SQLite directly, it should read
 `conversation_display_messages`, not raw `conversation_events`. Raw events remain
 the append-only ledger for replay, traces, rehydrate, compaction, and debugging.
+The dashboard conversation list uses SDK/store APIs that may also consider
+active `conversation_display_timeline` checkpoints when raw events are absent.
+Therefore destructive chat-history clear must delete display timeline and
+model-history checkpoint rows along with raw events.
 
 ## Storage Separation
 
-- `history/history.db`: visible conversation history and conversation metadata.
+- `history/history.db`: visible conversation history, display timeline
+  checkpoints, model-history checkpoints, and conversation metadata.
 - Episodic memory store: recalled experiences and summarized episode records.
 - Semantic memory store: extracted durable facts and embeddings.
 

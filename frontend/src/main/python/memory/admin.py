@@ -21,7 +21,11 @@ if TYPE_CHECKING:
 from memory.record_kinds import (
     INTERACTION_RECORD_KIND,
 )
-from memory.chat_event_store import init_chat_event_schema
+from memory.chat_event_store import (
+    CONVERSATION_DISPLAY_TIMELINE_TABLE,
+    CONVERSATION_MODEL_HISTORY_TABLE,
+    init_chat_event_schema,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +95,8 @@ async def clear_local_memory(store: "LocalMemoryStore", user_id: str) -> Dict[st
 async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[str, int]:
     """Clear chat event history, revision metadata, and titles while preserving memory rows."""
     chat_events_deleted = 0
+    conversation_display_rows_deleted = 0
+    conversation_model_history_rows_deleted = 0
     conversation_revisions_deleted = 0
     conversation_titles_deleted = 0
     history_db_path = store.history_db_path
@@ -103,6 +109,20 @@ async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[st
             (user_id,),
         )
         chat_events_deleted = (
+            cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+        )
+        await cursor.execute(
+            f"DELETE FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE} WHERE user_id = ?",
+            (user_id,),
+        )
+        conversation_display_rows_deleted = (
+            cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+        )
+        await cursor.execute(
+            f"DELETE FROM {CONVERSATION_MODEL_HISTORY_TABLE} WHERE user_id = ?",
+            (user_id,),
+        )
+        conversation_model_history_rows_deleted = (
             cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
         )
         await cursor.execute(
@@ -130,14 +150,18 @@ async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[st
         await conn.commit()
 
     logger.info(
-        "Cleared chat history for user_id=%s (chat_events=%s revisions=%s titles=%s)",
+        "Cleared chat history for user_id=%s (chat_events=%s display_rows=%s model_history_rows=%s revisions=%s titles=%s)",
         user_id,
         chat_events_deleted,
+        conversation_display_rows_deleted,
+        conversation_model_history_rows_deleted,
         conversation_revisions_deleted,
         conversation_titles_deleted,
     )
     return {
         "deleted_count": int(chat_events_deleted),
+        "deleted_display_row_count": int(conversation_display_rows_deleted),
+        "deleted_model_history_row_count": int(conversation_model_history_rows_deleted),
         "deleted_revision_count": int(conversation_revisions_deleted),
         "deleted_title_count": int(conversation_titles_deleted),
     }

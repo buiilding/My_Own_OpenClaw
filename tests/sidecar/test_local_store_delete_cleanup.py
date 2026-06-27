@@ -485,6 +485,82 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(
                 "2026-03-11T00:00:00+00:00",
             ),
         )
+        conn.execute(
+            """
+            INSERT INTO conversation_display_timeline (
+                user_id, conversation_id, revision_id, row_index, row_id, role, row_type,
+                content, turn_ref, metadata, reason, base_revision_id, created_at, active
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "user-1",
+                "conv-1",
+                "rev-display",
+                0,
+                "row-user",
+                "user",
+                "user_message",
+                '"display-only chat"',
+                "turn-1",
+                "{}",
+                "send",
+                None,
+                "2026-03-11T00:00:00+00:00",
+                1,
+            ),
+        )
+        conn.execute(
+            """
+            INSERT INTO conversation_model_history (
+                user_id, conversation_id, revision_id, checkpoint_id, row_index, row_id,
+                role, message_type, content, tool_call_id, tool_calls, tool_name,
+                image_refs, compaction_facts, source_display_row_ids, created_at, active
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "user-1",
+                "conv-1",
+                "rev-model",
+                "checkpoint-1",
+                0,
+                "model-row-user",
+                "user",
+                "text",
+                '"model history chat"',
+                None,
+                "[]",
+                None,
+                "[]",
+                "{}",
+                "[]",
+                "2026-03-11T00:00:00+00:00",
+                1,
+            ),
+        )
+        conn.execute(
+            """
+            INSERT INTO conversation_display_timeline (
+                user_id, conversation_id, revision_id, row_index, row_id, role, row_type,
+                content, turn_ref, metadata, reason, base_revision_id, created_at, active
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "user-2",
+                "conv-other",
+                "rev-other",
+                0,
+                "row-other",
+                "user",
+                "user_message",
+                '"other user chat"',
+                "turn-other",
+                "{}",
+                "send",
+                None,
+                "2026-03-11T00:00:00+00:00",
+                1,
+            ),
+        )
         conn.commit()
     await append_chat_event(
         db_path=str(store.history_db_path),
@@ -535,6 +611,8 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(
 
     assert result == {
         "deleted_count": 1,
+        "deleted_display_row_count": 1,
+        "deleted_model_history_row_count": 1,
         "deleted_revision_count": 1,
         "deleted_title_count": 1,
     }
@@ -553,9 +631,17 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(
         remaining_revisions = conn.execute(
             "SELECT COUNT(*) FROM conversation_revisions"
         ).fetchone()[0]
+        remaining_display_rows = conn.execute(
+            "SELECT user_id, conversation_id FROM conversation_display_timeline ORDER BY user_id"
+        ).fetchall()
+        remaining_model_history_rows = conn.execute(
+            "SELECT COUNT(*) FROM conversation_model_history"
+        ).fetchone()[0]
     assert remaining_rows == [("interaction-1", "interaction", 0)]
     assert remaining_titles == 0
     assert remaining_revisions == 0
+    assert remaining_display_rows == [("user-2", "conv-other")]
+    assert remaining_model_history_rows == 0
 
 
 @pytest.mark.asyncio

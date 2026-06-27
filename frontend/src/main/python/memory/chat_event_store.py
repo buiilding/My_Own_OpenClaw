@@ -84,7 +84,9 @@ async def _select_current_revision_node(
     conversation_id: str,
     require_display_timeline: bool = False,
 ) -> Optional[Any]:
-    display_clause = "AND r.display_timeline_id IS NOT NULL" if require_display_timeline else ""
+    display_clause = (
+        "AND r.display_timeline_id IS NOT NULL" if require_display_timeline else ""
+    )
     await cursor.execute(
         f"""
         SELECT r.revision_id, r.parent_revision_id, r.operation,
@@ -228,8 +230,7 @@ def _resolve_producer_fields(
 
 
 async def _create_revision_graph_table(conn: Any) -> None:
-    await conn.execute(
-        f"""
+    await conn.execute(f"""
         CREATE TABLE IF NOT EXISTS {CONVERSATION_REVISIONS_TABLE} (
             user_id TEXT NOT NULL,
             conversation_id TEXT NOT NULL,
@@ -243,8 +244,7 @@ async def _create_revision_graph_table(conn: Any) -> None:
             active INTEGER NOT NULL DEFAULT 1,
             PRIMARY KEY (user_id, conversation_id, revision_id)
         )
-        """
-    )
+        """)
 
 
 async def _ensure_revision_graph_schema(conn: Any) -> None:
@@ -267,8 +267,7 @@ async def _ensure_revision_graph_schema(conn: Any) -> None:
             f"ALTER TABLE {CONVERSATION_REVISIONS_TABLE} RENAME TO {legacy_table}"
         )
         await _create_revision_graph_table(conn)
-        await conn.execute(
-            f"""
+        await conn.execute(f"""
             INSERT OR REPLACE INTO {CONVERSATION_REVISIONS_TABLE}
             (user_id, conversation_id, revision_id, parent_revision_id,
              operation, display_timeline_id, model_history_checkpoint_id,
@@ -277,8 +276,7 @@ async def _ensure_revision_graph_schema(conn: Any) -> None:
                    'send', revision_id, NULL, updated_at, updated_at, 1
             FROM {legacy_table}
             WHERE revision_id IS NOT NULL AND revision_id != ''
-            """
-        )
+            """)
         await conn.execute(f"DROP TABLE IF EXISTS {legacy_table}")
         return
     await _create_revision_graph_table(conn)
@@ -373,8 +371,7 @@ async def init_chat_event_schema(db_path: str) -> None:
 
     async with aiosqlite.connect(db_path) as conn:
         cursor = await conn.cursor()
-        await cursor.execute(
-            """
+        await cursor.execute("""
             CREATE TABLE IF NOT EXISTS conversation_events (
                 id TEXT PRIMARY KEY,
                 user_id TEXT NOT NULL,
@@ -398,8 +395,7 @@ async def init_chat_event_schema(db_path: str) -> None:
                 event_payload TEXT NOT NULL,
                 compaction_checkpoint TEXT
             )
-            """
-        )
+            """)
         await _ensure_event_column(
             cursor, CONVERSATION_EVENTS_TABLE, "attachments", "TEXT"
         )
@@ -415,38 +411,27 @@ async def init_chat_event_schema(db_path: str) -> None:
         await _ensure_event_column(
             cursor, CONVERSATION_EVENTS_TABLE, "producer_sequence", "INTEGER"
         )
-        await cursor.execute(
-            """
+        await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_conversation_events_order
             ON conversation_events(user_id, conversation_id, message_index, timestamp)
-            """
-        )
-        await cursor.execute(
-            """
+            """)
+        await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_conversation_events_timestamp
             ON conversation_events(user_id, timestamp)
-            """
-        )
-        await cursor.execute(
-            """
+            """)
+        await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_conversation_events_type
             ON conversation_events(user_id, conversation_id, event_type, timestamp)
-            """
-        )
-        await cursor.execute(
-            """
+            """)
+        await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_conversation_events_turn
             ON conversation_events(user_id, conversation_id, turn_ref, message_index)
-            """
-        )
-        await cursor.execute(
-            """
+            """)
+        await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_conversation_events_producer_order
             ON conversation_events(user_id, conversation_id, turn_ref, producer, producer_sequence)
-            """
-        )
-        await cursor.execute(
-            f"""
+            """)
+        await cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS {CONVERSATION_DISPLAY_TIMELINE_TABLE} (
                 user_id TEXT NOT NULL,
                 conversation_id TEXT NOT NULL,
@@ -464,17 +449,13 @@ async def init_chat_event_schema(db_path: str) -> None:
                 active INTEGER NOT NULL DEFAULT 1,
                 PRIMARY KEY (user_id, conversation_id, revision_id, row_index)
             )
-            """
-        )
-        await cursor.execute(
-            f"""
+            """)
+        await cursor.execute(f"""
             CREATE INDEX IF NOT EXISTS idx_conversation_display_timeline_active
             ON {CONVERSATION_DISPLAY_TIMELINE_TABLE}
             (user_id, conversation_id, revision_id, active, created_at)
-            """
-        )
-        await cursor.execute(
-            f"""
+            """)
+        await cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS {CONVERSATION_MODEL_HISTORY_TABLE} (
                 user_id TEXT NOT NULL,
                 conversation_id TEXT NOT NULL,
@@ -495,36 +476,26 @@ async def init_chat_event_schema(db_path: str) -> None:
                 active INTEGER NOT NULL DEFAULT 1,
                 PRIMARY KEY (user_id, conversation_id, checkpoint_id, row_index)
             )
-            """
-        )
-        await cursor.execute(
-            f"""
+            """)
+        await cursor.execute(f"""
             CREATE INDEX IF NOT EXISTS idx_conversation_model_history_active
             ON {CONVERSATION_MODEL_HISTORY_TABLE}
             (user_id, conversation_id, revision_id, active, created_at)
-            """
-        )
+            """)
         await _ensure_revision_graph_schema(conn)
-        await cursor.execute(
-            """
+        await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_conversation_revisions_updated
             ON conversation_revisions(user_id, updated_at)
-            """
-        )
-        await cursor.execute(
-            """
+            """)
+        await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_conversation_revisions_active
             ON conversation_revisions(user_id, conversation_id, active, updated_at)
-            """
-        )
-        await cursor.execute(
-            """
+            """)
+        await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_conversation_revisions_parent
             ON conversation_revisions(user_id, conversation_id, parent_revision_id)
-            """
-        )
-        await cursor.execute(
-            """
+            """)
+        await cursor.execute("""
             CREATE TABLE IF NOT EXISTS conversations (
                 user_id TEXT NOT NULL,
                 conversation_id TEXT NOT NULL,
@@ -542,16 +513,12 @@ async def init_chat_event_schema(db_path: str) -> None:
                 deleted_at TEXT,
                 PRIMARY KEY (user_id, conversation_id)
             )
-            """
-        )
-        await cursor.execute(
-            """
+            """)
+        await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_conversations_updated
             ON conversations(user_id, updated_at)
-            """
-        )
-        await cursor.execute(
-            """
+            """)
+        await cursor.execute("""
             CREATE TABLE IF NOT EXISTS conversation_turns (
                 user_id TEXT NOT NULL,
                 conversation_id TEXT NOT NULL,
@@ -568,16 +535,12 @@ async def init_chat_event_schema(db_path: str) -> None:
                 memory_retrieval_status TEXT,
                 PRIMARY KEY (user_id, conversation_id, turn_ref)
             )
-            """
-        )
-        await cursor.execute(
-            """
+            """)
+        await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_conversation_turns_order
             ON conversation_turns(user_id, conversation_id, started_at)
-            """
-        )
-        await cursor.execute(
-            """
+            """)
+        await cursor.execute("""
             CREATE TABLE IF NOT EXISTS conversation_titles (
                 user_id TEXT NOT NULL,
                 conversation_id TEXT NOT NULL,
@@ -588,14 +551,11 @@ async def init_chat_event_schema(db_path: str) -> None:
                 updated_at TEXT NOT NULL,
                 PRIMARY KEY (user_id, conversation_id)
             )
-            """
-        )
-        await cursor.execute(
-            """
+            """)
+        await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_conversation_titles_updated_at
             ON conversation_titles(updated_at)
-            """
-        )
+            """)
         await _create_read_model_views(cursor)
         await conn.commit()
 
@@ -613,8 +573,7 @@ async def _ensure_event_column(
 
 
 async def _create_read_model_views(cursor: Any) -> None:
-    await cursor.execute(
-        f"""
+    await cursor.execute(f"""
         CREATE VIEW IF NOT EXISTS {CONVERSATION_DISPLAY_MESSAGES_VIEW} AS
         SELECT
             id AS event_id,
@@ -644,15 +603,13 @@ async def _create_read_model_views(cursor: Any) -> None:
           AND conversation_id IS NOT NULL
           AND content IS NOT NULL
           AND content != ''
-        """
-    )
+        """)
 
 
 async def _rebuild_materialized_conversation_indexes(cursor: Any) -> None:
     await cursor.execute(f"DELETE FROM {CONVERSATIONS_TABLE}")
     await cursor.execute(f"DELETE FROM {CONVERSATION_TURNS_TABLE}")
-    await cursor.execute(
-        f"""
+    await cursor.execute(f"""
         INSERT INTO {CONVERSATIONS_TABLE}
         (user_id, conversation_id, status, title, created_at, updated_at,
          last_message, event_count, turn_count, workspace_path, workspace_name,
@@ -728,10 +685,8 @@ async def _rebuild_materialized_conversation_indexes(cursor: Any) -> None:
         FROM {CONVERSATION_EVENTS_TABLE} e
         WHERE e.conversation_id IS NOT NULL
         GROUP BY e.user_id, e.conversation_id
-        """
-    )
-    await cursor.execute(
-        f"""
+        """)
+    await cursor.execute(f"""
         INSERT INTO {CONVERSATION_TURNS_TABLE}
         (user_id, conversation_id, turn_ref, status, started_at, completed_at,
          model_provider, model_id, user_event_id, assistant_event_id,
@@ -765,8 +720,7 @@ async def _rebuild_materialized_conversation_indexes(cursor: Any) -> None:
         WHERE e.conversation_id IS NOT NULL
           AND e.turn_ref IS NOT NULL
         GROUP BY e.user_id, e.conversation_id, e.turn_ref
-        """
-    )
+        """)
 
 
 async def _refresh_conversation_indexes(
@@ -1987,6 +1941,10 @@ async def clear_chat_events(*, db_path: str, user_id: str) -> int:
                 (user_id,),
             )
             await cursor.execute(
+                f"DELETE FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE} WHERE user_id = ?",
+                (user_id,),
+            )
+            await cursor.execute(
                 f"DELETE FROM {CONVERSATION_MODEL_HISTORY_TABLE} WHERE user_id = ?",
                 (user_id,),
             )
@@ -1996,6 +1954,10 @@ async def clear_chat_events(*, db_path: str, user_id: str) -> int:
             )
             await cursor.execute(
                 f"DELETE FROM {CONVERSATIONS_TABLE} WHERE user_id = ?",
+                (user_id,),
+            )
+            await cursor.execute(
+                f"DELETE FROM {CONVERSATION_TITLES_TABLE} WHERE user_id = ?",
                 (user_id,),
             )
             await conn.commit()

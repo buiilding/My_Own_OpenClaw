@@ -235,7 +235,9 @@ permission presentation.
 
 2. `Nuke chats`
    - invokes SDK-shaped `conversations.clearAll` through the memory runtime client
-   - deletes transcript chat history only
+   - deletes transcript chat history, display timeline checkpoints,
+     model-history checkpoints, revisions, titles, turns, and conversation
+     metadata only
    - receives the dashboard effective user id, with `default_user` treated as
      non-actionable, so destructive deletion targets the same user whose
      conversations are listed in the sidebar

@@ -10,6 +10,7 @@ ensure_frontend_python_path()
 
 from memory.chat_event_store import (  # noqa: E402
     append_chat_event,
+    clear_chat_events,
     get_conversation_revision,
     list_conversation_revisions,
     load_display_timeline,
@@ -29,9 +30,7 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
     await init_chat_event_schema(str(db_path))
 
     with sqlite3.connect(db_path) as conn:
-        objects = dict(
-            conn.execute(
-                """
+        objects = dict(conn.execute("""
                 SELECT name, type
                 FROM sqlite_master
                 WHERE name IN (
@@ -44,9 +43,7 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
                     'conversation_titles',
                     'conversation_display_messages'
                 )
-                """
-            ).fetchall()
-        )
+                """).fetchall())
 
     assert objects["conversation_events"] == "table"
     assert objects["conversation_display_timeline"] == "table"
@@ -58,8 +55,7 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
     assert objects["conversation_display_messages"] == "view"
     with sqlite3.connect(db_path) as conn:
         revision_columns = {
-            row[1]
-            for row in conn.execute("PRAGMA table_info(conversation_revisions)")
+            row[1] for row in conn.execute("PRAGMA table_info(conversation_revisions)")
         }
     assert {
         "parent_revision_id",
@@ -69,6 +65,99 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
         "created_at",
         "active",
     }.issubset(revision_columns)
+
+
+@pytest.mark.asyncio
+async def test_clear_chat_events_removes_display_and_model_history_rows(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "memory.db")
+    await init_episodic_schema(db_path)
+    await init_chat_event_schema(db_path)
+
+    await append_chat_event(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        event_type="user_message",
+        role="user",
+        content="hello",
+        timestamp="2026-05-17T12:00:00+00:00",
+        message_index=None,
+        revision_id="rev-1",
+        turn_ref="turn-1",
+        tool_name=None,
+        correlation_id=None,
+        workspace_path=None,
+        workspace_name=None,
+        metadata={},
+        attachments=[],
+        event_payload={
+            "eventId": "evt-user",
+            "type": "user_message",
+            "conversationRef": "conv-1",
+            "revisionId": "rev-1",
+            "timestamp": "2026-05-17T12:00:00+00:00",
+            "source": "sdk",
+            "payload": {"text": "hello"},
+        },
+    )
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-display",
+        revision_id="rev-display",
+        rows=[
+            {
+                "id": "display-row",
+                "role": "user",
+                "type": "user_message",
+                "content": "display only",
+            }
+        ],
+    )
+    await replace_model_history_checkpoint(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-display",
+        revision_id="rev-model",
+        checkpoint_id="checkpoint-1",
+        rows=[
+            {
+                "id": "model-row",
+                "role": "user",
+                "message_type": "user_query",
+                "content": "model only",
+            }
+        ],
+    )
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-2",
+        conversation_id="conv-other",
+        revision_id="rev-other",
+        rows=[
+            {
+                "id": "other-row",
+                "role": "user",
+                "type": "user_message",
+                "content": "other user",
+            }
+        ],
+    )
+
+    deleted = await clear_chat_events(db_path=db_path, user_id="user-1")
+
+    assert deleted == 1
+    assert await list_conversations(db_path=db_path, user_id="user-1", limit=10) == []
+    assert [
+        conversation["conversation_id"]
+        for conversation in await list_conversations(
+            db_path=db_path,
+            user_id="user-2",
+            limit=10,
+        )
+    ] == ["conv-other"]
 
 
 @pytest.mark.asyncio
@@ -173,8 +262,7 @@ async def test_chat_event_store_round_trips_display_timeline(tmp_path: Path):
 async def test_chat_event_store_migrates_legacy_revision_table(tmp_path: Path):
     db_path = tmp_path / "history.db"
     with sqlite3.connect(db_path) as conn:
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE conversation_revisions (
                 user_id TEXT NOT NULL,
                 conversation_id TEXT NOT NULL,
@@ -182,15 +270,12 @@ async def test_chat_event_store_migrates_legacy_revision_table(tmp_path: Path):
                 updated_at TEXT NOT NULL,
                 PRIMARY KEY (user_id, conversation_id)
             )
-            """
-        )
-        conn.execute(
-            """
+            """)
+        conn.execute("""
             INSERT INTO conversation_revisions
             (user_id, conversation_id, revision_id, updated_at)
             VALUES ('user-1', 'conv-1', 'rev-legacy', '2026-06-22T11:00:00+00:00')
-            """
-        )
+            """)
 
     await init_chat_event_schema(str(db_path))
     revision = await get_conversation_revision(
@@ -536,8 +621,7 @@ async def test_chat_event_store_recovers_stale_parent_active_display_revision(
         rows=[],
     )
     with sqlite3.connect(db_path) as conn:
-        conn.execute(
-            """
+        conn.execute("""
             UPDATE conversation_revisions
             SET active = CASE revision_id
                 WHEN 'rev-parent' THEN 1
@@ -548,8 +632,7 @@ async def test_chat_event_store_recovers_stale_parent_active_display_revision(
                 ELSE updated_at
             END
             WHERE user_id = 'user-1' AND conversation_id = 'conv-1'
-            """
-        )
+            """)
 
     active = await load_display_timeline(
         db_path=db_path,
@@ -838,14 +921,12 @@ async def test_chat_event_store_display_messages_view_filters_visible_rows(
                 ),
             ],
         )
-        rows = conn.execute(
-            """
+        rows = conn.execute("""
             SELECT event_id, display_role, event_type, content, message_index
             FROM conversation_display_messages
             WHERE conversation_id = 'conv-1'
             ORDER BY message_index ASC
-            """
-        ).fetchall()
+            """).fetchall()
 
     assert rows == [
         ("evt-user", "user", "user_message", "hello", 1),

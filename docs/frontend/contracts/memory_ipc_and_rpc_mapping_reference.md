@@ -35,7 +35,9 @@ Memory storage and retrieval:
 - Electron main maps those commands to public Agent SDK APIs.
 - Python-backed memory RPC names remain implementation details behind the SDK local
   runtime.
-- Chat clear uses SDK-shaped `conversations.clearAll`.
+- Chat clear uses SDK-shaped `conversations.clearAll` and removes chat-derived
+  history rows, display timeline checkpoints, model-history checkpoints,
+  revisions, titles, turns, and conversation metadata for the active user.
 
 Chat history is stored in `conversation_events`, not as memory rows. Memory rows are for episodic interaction memory and semantic memory.
 
@@ -91,6 +93,8 @@ SDK/local-runtime camelCase to Python JSON-RPC snake_case conversions include:
   and compaction checkpoints.
 - `conversation_model_history`: bounded model-facing checkpoints used for
   normal backend resume.
+- `conversation_display_timeline`: SDK display checkpoints used by replay,
+  edit/resend, retry, and the sidebar fallback when raw events are absent.
 - `episodic.db` memory rows with `record_kind='interaction'`: completed user+assistant memory pairs used by the Episodic Memory view and semantic summarizer.
 - `semantic.db` memory rows: extracted durable facts and summaries.
 
@@ -128,7 +132,9 @@ command boundaries.
   timeline checkpoints.
 - `conversation.model_history.replace/load` stores and reads bounded
   provider-neutral model-history checkpoints for backend resume.
-- These commands do not delete or rewrite `conversation_events` rows.
+- These commands do not delete or rewrite `conversation_events` rows. Chat
+  history clearing deletes their checkpoint rows because they are
+  chat-derived history, not episodic or semantic memory.
 
 ### `conversation.list`
 
@@ -144,6 +150,14 @@ command boundaries.
 ### `conversation.delete`
 
 - deletes `conversation_events` for one conversation
+- does not delete episodic or semantic memory rows
+
+### `clear_chat_history`
+
+- deletes all user-scoped chat history surfaces:
+  `conversation_events`, `conversation_display_timeline`,
+  `conversation_model_history`, `conversation_revisions`,
+  `conversation_titles`, `conversation_turns`, and `conversations`
 - does not delete episodic or semantic memory rows
 
 ### `store_memory_by_embedding`

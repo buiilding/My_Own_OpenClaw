@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- local-runtime/memory: make chat-history clear remove SDK display timeline and
+  model-history checkpoint rows along with raw events, revisions, titles, turns,
+  and conversation metadata, so Memory > Delete chats no longer leaves
+  display-only conversations in the sidebar. No migration required.
 - frontend/settings: make Memory > Delete chats use the same effective
   non-`default_user` dashboard identity as the sidebar conversation list and
   force-refresh recent chats after a successful clear, so stale or wrong-user
