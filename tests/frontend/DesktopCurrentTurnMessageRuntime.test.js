@@ -158,6 +158,47 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     expect(toolMessage).not.toHaveProperty('toolCallDetails');
   });
 
+  test('drops legacy no-presentation tool events with malformed SDK row ids', () => {
+    const messages = buildNoViewSdkLiveTurnMessages({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-live',
+      phase: 'tool_call',
+      toolEvents: [
+        {
+          id: ' tool-padded ',
+          kind: 'tool_call',
+          toolName: 'read_file',
+        },
+        {
+          id: '',
+          kind: 'tool_output',
+          toolName: 'read_file',
+          text: 'empty id output',
+        },
+        {
+          id: { value: 'tool-object' },
+          kind: 'tool_progress',
+          text: 'object id progress',
+        },
+        {
+          id: 'tool-exact',
+          kind: 'tool_call',
+          toolName: 'read_file',
+        },
+      ],
+    });
+
+    expect(messages).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'conv-1:turn-live:tool:tool-exact',
+        type: 'tool-call',
+      }),
+    ]));
+    expect(messages.map((message) => message.id)).not.toContain('conv-1:turn-live:tool: tool-padded ');
+    expect(messages.map((message) => message.text)).not.toContain('empty id output');
+    expect(messages.map((message) => message.text)).not.toContain('object id progress');
+  });
+
   test('keeps legacy no-presentation tool-event attachments out of live rows', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',

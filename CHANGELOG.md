@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: require exact non-empty legacy no-presentation
+  `toolEvents[].id` before projecting fallback tool rows, removing the renderer
+  index-based id synthesis path. No migration required.
 - frontend/live-turn: require exact non-empty SDK live-entry ids before
   projecting no-view or `ConversationView` live entries into renderer chat
   messages, keeping padded or malformed entry ids from becoming visible row

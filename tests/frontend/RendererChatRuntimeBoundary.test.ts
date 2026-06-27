@@ -3892,6 +3892,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('turnRef: entry.turnRef || liveTurnContext?.turnRef || undefined');
     expect(source).not.toContain('turnRef: entry.turnRef || liveTurnContext?.turnRef || null');
     expect(source).not.toContain('readExactSdkString(entry.turnRef)');
+    expect(source).toContain('const toolEventId = readExactSdkString(toolEventRecord?.id);');
+    expect(source).toContain('if (!toolEventRecord || !toolEventId)');
+    expect(source).not.toContain('id: toolEvent.id || index');
     expect(source).toContain('turnRef: readExactSdkString(liveTurnContext?.turnRef) || undefined');
     expect(source).toContain('turnRef: readExactSdkString(liveTurnContext?.turnRef),');
     expect(source).toContain('conversationRef: readExactSdkString(conversationView?.conversationRef)');

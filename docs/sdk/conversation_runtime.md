@@ -493,10 +493,12 @@ Tool live-entry identity fields such as `correlationId`, `requestId`, and
 `bundleId` are exact SDK strings in renderer presentation; padded or empty
 values are ignored rather than trimmed into duplicate-detection keys. Legacy
 no-view SDK `toolEvents` use the same exact rule when projected into renderer
-correlation ids, so fallback current-turn rows do not repair malformed tool
-identity either. Live-entry and legacy no-view `toolEvents` tool names follow
-the same rule: padded names are ignored instead of being trimmed into visible
-tool labels or fallback status text. Live-entry and legacy no-view tool detail
+correlation ids, and legacy `toolEvents` need exact non-empty `id` fields before
+they can become fallback tool rows, so fallback current-turn rows do not repair
+malformed tool identity or synthesize ids from event indexes. Live-entry and
+legacy no-view `toolEvents` tool names follow the same rule: padded names are
+ignored instead of being trimmed into visible tool labels or fallback status
+text. Live-entry and legacy no-view tool detail
 metadata comes only from SDK-authored `toolCallDetails`/`toolOutputDetails`;
 renderer text fallbacks may label a tool row, but they must not synthesize
 detail records from a bare tool name. Tool output React components follow the

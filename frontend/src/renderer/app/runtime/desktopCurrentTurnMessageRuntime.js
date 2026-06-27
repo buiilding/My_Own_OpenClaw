@@ -223,10 +223,15 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
   }
 
   if (hasToolEvents) {
-    toolEvents.forEach((toolEvent, index) => {
+    toolEvents.forEach((toolEvent) => {
+      const toolEventRecord = asRecord(toolEvent);
+      const toolEventId = readExactSdkString(toolEventRecord?.id);
+      if (!toolEventRecord || !toolEventId) {
+        return;
+      }
       const projectedToolEvent = {
-        ...toolEvent,
-        id: toolEvent.id || index,
+        ...toolEventRecord,
+        id: toolEventId,
       };
       const message = buildProjectedToolMessage({
         baseId,
