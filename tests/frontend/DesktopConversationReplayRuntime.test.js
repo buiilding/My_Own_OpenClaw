@@ -329,7 +329,10 @@ describe('desktopConversationReplayRuntime', () => {
       action: 'replay_failed_cleanup',
       conversationRef: null,
       errorKind: 'MissingConversationRef',
-      targetUserMessageId: 'assistant-1',
+      targetRowId: 'assistant-1',
+    }));
+    expect(DesktopRendererTraceRuntime.logRendererReplayTrace).not.toHaveBeenCalledWith(expect.objectContaining({
+      targetUserMessageId: expect.any(String),
     }));
     errorSpy.mockRestore();
   });
