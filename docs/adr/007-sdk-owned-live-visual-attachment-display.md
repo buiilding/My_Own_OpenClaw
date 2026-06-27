@@ -138,6 +138,12 @@ MessageRow
 The registry dispatches by SDK attachment `kind`, `status`, and, where needed,
 `source`. It is not a state authority and must not merge screenshot metadata or
 publish aggregate attachment lifecycle summaries.
+Renderer projection adapters may drop malformed SDK descriptors before they
+reach components, but only as display-contract validation: materializing images
+need an exact preview source, ready images need an exact artifact ref or URL,
+and screenshot request placeholders must be camera-button descriptors. The
+renderer must not repair incomplete lifecycle state into another status or
+infer visuals from screenshot aliases.
 
 ## Persistence And Privacy
 

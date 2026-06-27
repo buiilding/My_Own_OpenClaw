@@ -3894,6 +3894,11 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('row.metadata?.requestId ?? row.metadata?.correlationId');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.toolName\n      ?');
     expect(displayAttachmentProjectionSource).toContain('readSdkDisplayAttachments');
+    expect(displayAttachmentProjectionSource).toContain('function isDisplayableImageAttachment');
+    expect(displayAttachmentProjectionSource).toContain('function isDisplayableScreenshotRequestAttachment');
+    expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.previewSrc)');
+    expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.screenshotRef)');
+    expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.screenshotUrl)');
     expect(displayAttachmentProjectionSource).toContain('optionalExactString');
     expect(displayAttachmentProjectionSource).not.toContain('optionalTrimmedString');
     expect(displayAttachmentProjectionSource).not.toContain('countDisplayImageAttachments');

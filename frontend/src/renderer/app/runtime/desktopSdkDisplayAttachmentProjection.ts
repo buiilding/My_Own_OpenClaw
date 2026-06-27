@@ -26,6 +26,33 @@ function optionalExactString(value: unknown): string | null {
     : null;
 }
 
+function isDisplayableImageAttachment(record: Record<string, unknown>): boolean {
+  if (record.status === 'materializing') {
+    return (
+      record.source === 'user_included'
+      && optionalExactString(record.previewSrc) !== null
+    );
+  }
+  if (record.status === 'ready') {
+    return (
+      optionalExactString(record.screenshotRef) !== null
+      || optionalExactString(record.screenshotUrl) !== null
+    );
+  }
+  return record.status === 'failed';
+}
+
+function isDisplayableScreenshotRequestAttachment(record: Record<string, unknown>): boolean {
+  return (
+    record.source === 'camera_button'
+    && (
+      record.status === 'pending_capture'
+      || record.status === 'materializing'
+      || record.status === 'failed'
+    )
+  );
+}
+
 function isSdkDisplayAttachment(value: unknown): value is SdkDisplayAttachment {
   const record = recordFromUnknown(value);
   return Boolean(
@@ -43,6 +70,11 @@ function isSdkDisplayAttachment(value: unknown): value is SdkDisplayAttachment {
       || record.status === 'pending_capture'
       || record.status === 'ready'
       || record.status === 'failed'
+    )
+    && (
+      record.kind === 'image'
+        ? isDisplayableImageAttachment(record)
+        : isDisplayableScreenshotRequestAttachment(record)
     ),
   );
 }

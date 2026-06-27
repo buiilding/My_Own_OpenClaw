@@ -464,7 +464,11 @@ content-kind classification, row-class tagging, and token-cost estimation
 through the SDK attachment projection helper, but they must not expose
 aggregate lifecycle summaries that make the renderer a second attachment state
 authority. Malformed or padded attachment descriptors are dropped before they
-can affect those presentation decisions.
+can affect those presentation decisions. The renderer does not repair malformed
+attachment lifecycle records: materializing images without exact preview
+sources, ready images without exact artifact refs or URLs, and non-camera
+screenshot-request placeholders are omitted instead of being coerced into
+another display status.
 Renderer replay/provider diagnostics that need display-row counts, latest row
 shape, or live-turn identity ask
 `DesktopConversationDisplayProjection.buildConversationViewTraceSummary(...)`

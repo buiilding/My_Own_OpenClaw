@@ -95,7 +95,10 @@ presence through this projection helper instead of inspecting raw attachment
 arrays, so padded or malformed descriptors cannot become attachment UI state.
 Attachment ids and artifact image-source fields must be exact non-empty SDK
 strings; the renderer drops padded or empty ids/refs/URLs instead of trimming
-them into valid display inputs.
+them into valid display inputs. Lifecycle descriptors must also be complete:
+materializing images require an exact `previewSrc`, ready images require an
+exact `screenshotRef` or `screenshotUrl`, and screenshot-request placeholders
+must come from the camera-button source.
 
 - primary display field: `attachments[]`
 - backend/replay compatibility input before renderer projection:

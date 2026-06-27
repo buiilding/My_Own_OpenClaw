@@ -38,6 +38,43 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
         status: 'unknown',
       },
       {
+        id: 'missing-ready-source',
+        kind: 'image',
+        source: 'user_included',
+        status: 'ready',
+      },
+      {
+        id: 'missing-materializing-preview',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+      },
+      {
+        id: 'padded-materializing-preview',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        previewSrc: ' data:image/png;base64,padded ',
+      },
+      {
+        id: 'image-pending',
+        kind: 'image',
+        source: 'camera_button',
+        status: 'pending_capture',
+      },
+      {
+        id: 'ready-screenshot-request',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'ready',
+      },
+      {
+        id: 'tool-screenshot-request',
+        kind: 'screenshot_request',
+        source: 'tool_result',
+        status: 'pending_capture',
+      },
+      {
         id: ' padded-id ',
         kind: 'image',
         source: 'replay',
@@ -90,6 +127,64 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
     })).toBeNull();
   });
 
+  test('keeps only complete SDK attachment lifecycle descriptors', () => {
+    expect(readSdkDisplayAttachments([
+      {
+        id: 'image-preview',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        previewSrc: 'data:image/png;base64,preview',
+      },
+      {
+        id: 'image-ready-ref',
+        kind: 'image',
+        source: 'camera_button',
+        status: 'ready',
+        screenshotRef: 'artifact-ready',
+      },
+      {
+        id: 'image-ready-url',
+        kind: 'image',
+        source: 'tool_result',
+        status: 'ready',
+        screenshotUrl: 'https://cdn.example/ready.png',
+      },
+      {
+        id: 'image-failed',
+        kind: 'image',
+        source: 'user_included',
+        status: 'failed',
+      },
+      {
+        id: 'request-pending',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'pending_capture',
+      },
+      {
+        id: 'request-materializing',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'materializing',
+      },
+      {
+        id: 'request-failed',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'failed',
+      },
+    ])).toEqual([
+      expect.objectContaining({ id: 'image-preview' }),
+      expect.objectContaining({ id: 'image-ready-ref' }),
+      expect.objectContaining({ id: 'image-ready-url' }),
+      expect.objectContaining({ id: 'image-failed' }),
+      expect.objectContaining({ id: 'request-pending' }),
+      expect.objectContaining({ id: 'request-materializing' }),
+      expect.objectContaining({ id: 'request-failed' }),
+    ]);
+  });
+
   test('does not repair padded SDK image source fields', () => {
     expect(readSdkImageAttachmentSource({
       id: 'attachment-ready',
@@ -99,10 +194,19 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
       contentType: ' image/png ',
       screenshotRef: ' artifact-ready ',
       screenshotUrl: ' https://cdn.example/ready.png ',
+    })).toBeNull();
+    expect(readSdkImageAttachmentSource({
+      id: 'attachment-ready',
+      kind: 'image',
+      source: 'replay',
+      status: 'ready',
+      contentType: ' image/png ',
+      screenshotRef: 'artifact-ready',
+      screenshotUrl: ' https://cdn.example/ready.png ',
     })).toEqual({
       id: 'attachment-ready',
       status: 'ready',
-      artifactId: null,
+      artifactId: 'artifact-ready',
       url: null,
       contentType: null,
     });

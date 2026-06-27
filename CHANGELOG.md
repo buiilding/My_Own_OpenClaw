@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: drop incomplete SDK attachment lifecycle descriptors in
+  the renderer projection adapter instead of letting malformed ready,
+  materializing, or screenshot-request records become display state. No
+  migration required.
 - frontend/replay: stop trimming edited replay text in the renderer before
   dispatching SDK edit/resend commands, leaving text normalization and
   non-empty validation with SDK replay. No migration required.
