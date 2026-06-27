@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: regenerate the CommonJS conversation runtime from the narrowed replay
+  source so CJS `editAndResend`/`retryTurn` ignore caller replay payload,
+  model, and replacement turn-ref overrides, matching SDK-owned replay
+  semantics. No migration required.
 - frontend/main: drop caller-supplied screenshot, attachment, and capture
   aliases from Agent SDK runtime send commands whenever typed SDK turn
   resources are present, leaving SDK resource resolution as the only source of

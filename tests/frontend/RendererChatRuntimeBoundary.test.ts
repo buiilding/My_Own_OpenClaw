@@ -2114,6 +2114,14 @@ describe('renderer chat runtime boundary', () => {
       sdkConversationRuntimeSource.indexOf('  async editAndResend(input: EditAndResendInput)'),
       sdkConversationRuntimeSource.indexOf('  private shouldStopSupersededTurn'),
     );
+    const cjsConversationRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/cjs/runtime/ConversationRuntime.js'),
+      'utf8',
+    );
+    const cjsReplayCommandSource = cjsConversationRuntimeSource.slice(
+      cjsConversationRuntimeSource.indexOf('    async editAndResend(input)'),
+      cjsConversationRuntimeSource.indexOf('    shouldStopSupersededTurn'),
+    );
     const transcriptRuntimeDocSource = await fs.readFile(
       path.resolve(__dirname, '../../docs/frontend/renderer/transcript_session_and_rehydrate_reference.md'),
       'utf8',
@@ -2312,6 +2320,13 @@ describe('renderer chat runtime boundary', () => {
     expect(sdkReplayCommandSource).not.toContain('input.payload');
     expect(sdkReplayCommandSource).not.toContain('input.model');
     expect(sdkReplayCommandSource).not.toContain('input.turnRef');
+    expect(cjsConversationRuntimeSource).not.toContain('function mergeReplayPayload');
+    expect(cjsReplayCommandSource).not.toContain('mergeReplayPayload');
+    expect(cjsReplayCommandSource).not.toContain('input.payload');
+    expect(cjsReplayCommandSource).not.toContain('input.model');
+    expect(cjsReplayCommandSource).not.toContain('input.turnRef');
+    expect(cjsReplayCommandSource).toContain('async retryTurn(input)');
+    expect(cjsReplayCommandSource).not.toContain('async retryTurn(input = {})');
     expect(transcriptRuntimeDocSource).toContain('SDK replay commands own target-row selection');
     expect(transcriptRuntimeDocSource).not.toContain('DesktopConversationReplayRuntime owns replay row selection');
     expect(transcriptRuntimeDocSource).not.toContain('prepared\n  desktop-turn shaping');

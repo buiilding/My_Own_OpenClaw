@@ -1380,6 +1380,10 @@ screenshot resolution inside the SDK command. Replay command callers must not
 infer or forward screenshot aliases; the SDK does not merge caller replay
 payload fields, so absent or stale caller payload fields cannot erase or
 replace prior resolved resources.
+The checked-in CommonJS SDK runtime artifact must preserve this same contract
+as the TypeScript source because Electron dev/runtime paths may load the CJS
+export; CJS replay commands must not reintroduce caller payload, model, or
+replacement turn-ref overrides.
 
 The Electron renderer does not publish a replay-specific pending turn, retained
 display prefix, separate replacement query, renderer replay payload, or
