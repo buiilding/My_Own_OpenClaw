@@ -397,6 +397,23 @@ class AgentSession:
         async with self._lock:
             SessionConfigRuntime.apply(self, new_cfg)
 
+    async def try_update_config(self, new_cfg: AppConfig) -> bool:
+        """
+        Apply config only when the session lock is immediately available.
+
+        Settings websocket handlers must not wait behind a long-running query:
+        those waiting handlers count against the per-connection task pool that
+        tool-result messages need to unblock the query.
+        """
+        if self._lock.locked():
+            return False
+        await self._lock.acquire()
+        try:
+            SessionConfigRuntime.apply(self, new_cfg)
+            return True
+        finally:
+            self._lock.release()
+
     def _switch_conversation_ref(self, conversation_ref: str) -> None:
         """Switch active conversation and clear history when thread changes."""
         if self.runtime.active_conversation_ref == conversation_ref:

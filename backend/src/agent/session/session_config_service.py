@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import logging
 from collections.abc import Iterable
@@ -47,6 +48,8 @@ class SessionConfigService:
         self.client_operating_systems: dict[str, str] = {}
         self.client_tool_manifests: dict[str, Any] = {}
         self.agent_definitions: dict[str, Any] = {}
+        self._user_config_versions: dict[str, int] = {}
+        self._deferred_update_tasks: dict[str, asyncio.Task[None]] = {}
 
     def set_base_config(self, config: AppConfig) -> None:
         self._base_config = config
@@ -334,6 +337,38 @@ class SessionConfigService:
         if not updates:
             return
 
+        user_lock = await self._registry.get_user_lock(user_id)
+        async with user_lock:
+            changed_override_keys = self._merge_user_config_overrides(
+                user_id,
+                updates,
+            )
+            if changed_override_keys:
+                self._user_config_versions[user_id] = (
+                    self._user_config_versions.get(user_id, 0) + 1
+                )
+            sessions = list(self._registry.get_user_sessions(user_id).values())
+            updated_config = self.build_effective_config(user_id) if sessions else None
+
+        if not sessions or updated_config is None:
+            return
+
+        deferred_needed = False
+        for session in sessions:
+            if not self._session_config_differs(session, updated_config):
+                continue
+            applied = await self._try_update_session_config(session, updated_config)
+            if not applied:
+                deferred_needed = True
+
+        if deferred_needed:
+            self._schedule_deferred_session_config_update(user_id)
+
+    def _merge_user_config_overrides(
+        self,
+        user_id: str,
+        updates: dict[str, Any],
+    ) -> bool:
         overrides = self.user_config_overrides.setdefault(user_id, {})
         changed_override_keys = False
         for key, value in updates.items():
@@ -342,30 +377,63 @@ class SessionConfigService:
             if overrides.get(key) != value:
                 overrides[key] = value
                 changed_override_keys = True
+        return changed_override_keys
 
-        user_sessions = self._registry.get_user_sessions(user_id)
-        if not user_sessions:
-            if not changed_override_keys:
-                return
+    @staticmethod
+    def _session_config_differs(session: "AgentSession", config: AppConfig) -> bool:
+        return session.cfg.model_dump() != config.model_dump()
+
+    @staticmethod
+    async def _try_update_session_config(
+        session: "AgentSession",
+        config: AppConfig,
+    ) -> bool:
+        try_update_config = getattr(session, "try_update_config", None)
+        if callable(try_update_config):
+            return bool(await try_update_config(config))
+        await session.update_config(config)
+        return True
+
+    def _schedule_deferred_session_config_update(self, user_id: str) -> None:
+        existing_task = self._deferred_update_tasks.get(user_id)
+        if existing_task is not None and not existing_task.done():
             return
+        task = asyncio.create_task(
+            self._run_deferred_session_config_update(user_id),
+            name=f"session-config-update:{user_id}",
+        )
+        self._deferred_update_tasks[user_id] = task
 
-        user_lock = await self._registry.get_user_lock(user_id)
-        async with user_lock:
-            user_sessions = self._registry.get_user_sessions(user_id)
-            if not user_sessions:
-                return
+    async def _run_deferred_session_config_update(self, user_id: str) -> None:
+        try:
+            while True:
+                user_lock = await self._registry.get_user_lock(user_id)
+                async with user_lock:
+                    version = self._user_config_versions.get(user_id, 0)
+                    sessions = list(self._registry.get_user_sessions(user_id).values())
+                    updated_config = (
+                        self.build_effective_config(user_id) if sessions else None
+                    )
 
-            updated_config = self.build_effective_config(user_id)
-            sessions_needing_update = [
-                session
-                for session in user_sessions.values()
-                if session.cfg.model_dump() != updated_config.model_dump()
-            ]
-            if not sessions_needing_update:
-                return
+                if updated_config is not None:
+                    for session in sessions:
+                        if self._session_config_differs(session, updated_config):
+                            await session.update_config(updated_config)
 
-            for session in sessions_needing_update:
-                await session.update_config(updated_config)
+                async with user_lock:
+                    if version == self._user_config_versions.get(user_id, 0):
+                        return
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception(
+                "Deferred session config update failed for user %s",
+                user_id,
+            )
+        finally:
+            current_task = asyncio.current_task()
+            if self._deferred_update_tasks.get(user_id) is current_task:
+                self._deferred_update_tasks.pop(user_id, None)
 
     async def update_all_sessions_config(self, config: AppConfig) -> None:
         self.set_base_config(config)
@@ -398,3 +466,7 @@ class SessionConfigService:
         self.user_config_overrides.pop(user_id, None)
         self.agent_definitions.pop(user_id, None)
         self.client_tool_manifests.pop(user_id, None)
+        self._user_config_versions.pop(user_id, None)
+        deferred_task = self._deferred_update_tasks.pop(user_id, None)
+        if deferred_task is not None and not deferred_task.done():
+            deferred_task.cancel()

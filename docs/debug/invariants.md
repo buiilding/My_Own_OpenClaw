@@ -70,6 +70,13 @@ this page.
   runs before the backend query dispatch for SDK callers. Model selection must
   not be smuggled through backend query payload fields. See the Settings startup
   and Model send selection rows in the [User-Facing Regression Pack](user_facing_regression_pack.md).
+- Backend `update-settings` handlers must not wait behind a long-running active
+  agent query while still counted as websocket route-dispatch tasks. Client
+  settings patches may update user overrides immediately, but active-session
+  config rewiring must use the non-blocking session apply path and coalesce a
+  deferred apply when the session lock is owned by the query. Otherwise repeated
+  settings sync can fill the websocket task pool and reject the `tool-result`
+  control messages needed to unblock the query.
 - Renderer current-turn tool-call projections must preserve request/correlation
   identity from the event or its payload before transcript presentation runs.
   Materialized `ConversationView.displayRows` and transient `liveTurn` rows need

@@ -157,6 +157,17 @@ Per-session client settings update path:
 - `executor.interaction_loop.llm_handler.llm_client`
 - prompt constructor + conversation context coordinator
 
+Active-query safety:
+
+- `update-settings` websocket handlers must not wait behind a long-running
+  query while still occupying a route-dispatch task slot.
+- When an active session lock is immediately available, settings rewiring
+  applies synchronously through the non-blocking session apply path.
+- When a query owns the session lock, `SessionConfigService` records the user
+  override, returns from the handler path, and coalesces one deferred config
+  rewire task for that user. The deferred task waits outside the websocket
+  handler and applies the latest config version when the session is available.
+
 Global config change path:
 
 - `ConfigurationService` notifies subscribers.

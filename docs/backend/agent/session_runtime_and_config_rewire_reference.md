@@ -163,6 +163,18 @@ This avoids:
 - transcript rehydrate races with active turn history writes
 - conversation thread switch races on shared history state
 
+Websocket task-pool safety:
+
+- `update-settings` handlers use `try_update_config(...)` for active sessions
+  so they do not wait behind a long-running query while occupying one of the
+  websocket route-dispatch task slots.
+- If the session lock is busy, `SessionConfigService` stores the user override
+  immediately and schedules one coalesced deferred rewire task per user. That
+  background task waits outside the websocket handler and applies the latest
+  config version when the session lock becomes available.
+- This preserves the no-race config rewire contract without allowing repeated
+  settings sync messages to starve tool-result or stop-query control traffic.
+
 ## Conversation Thread Switching
 
 `process_query(..., conversation_ref=...)` calls `_switch_conversation_ref(...)`:
