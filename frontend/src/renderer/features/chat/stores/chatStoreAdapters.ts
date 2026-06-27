@@ -18,7 +18,10 @@ import {
   resolveWorkspaceMutationTarget,
   resolveWorkspaceKey,
 } from '../../../app/runtime/desktopChatWorkspaceStateRuntime';
-import type { ChatWorkspaceState } from '../../../app/runtime/desktopChatWorkspaceStateRuntime';
+import type {
+  ChatWorkspaceReadModelState,
+  ChatWorkspaceState,
+} from '../../../app/runtime/desktopChatWorkspaceStateRuntime';
 import {
   DesktopStopTurnRuntime,
 } from '../../../app/runtime/desktopStopTurnRuntime';
@@ -187,7 +190,7 @@ function readWorkspaceStateFromChatStore(
 
 function getProjectedWorkspaceReadModelFromChatStore(
   conversationRef?: string | null,
-): ChatWorkspaceState {
+): ChatWorkspaceReadModelState {
   return projectWorkspaceReadModelState(
     readWorkspaceStateFromChatStore(conversationRef),
   );
@@ -195,13 +198,13 @@ function getProjectedWorkspaceReadModelFromChatStore(
 
 export function getChatStreamWorkspaceReadModelFromChatStore(
   conversationRef?: string | null,
-): ChatWorkspaceState {
+): ChatWorkspaceReadModelState {
   return getProjectedWorkspaceReadModelFromChatStore(conversationRef);
 }
 
 export function getCurrentTurnProjectionWorkspaceReadModelFromChatStore(
   conversationRef?: string | null,
-): ChatWorkspaceState {
+): ChatWorkspaceReadModelState {
   return getProjectedWorkspaceReadModelFromChatStore(conversationRef);
 }
 

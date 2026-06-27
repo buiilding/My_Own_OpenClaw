@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: type public projected workspace readers as
+  `ChatWorkspaceReadModelState`, keeping raw workspace state as an internal
+  mutation detail of chat-store adapters. No migration required.
 - frontend/chat-store: keep the generic projected workspace read helper private
   to chat-store adapters and route stream/current-turn projection hooks through
   purpose-named projected read adapters. No migration required.
