@@ -180,7 +180,6 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
     sourceChannel: sdkDisplayRowsSourceChannel,
     attachments,
     toolName: rowToolName(row),
-    success: typeof row.metadata?.success === 'boolean' ? row.metadata.success : null,
     correlationId: rowCorrelationId(row),
     toolOutputDetails,
     turnRef: rowTurnRef(row),

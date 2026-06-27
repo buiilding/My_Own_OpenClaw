@@ -4261,6 +4261,7 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('turnRef: row.turnRef ?? undefined');
     expect(projectionRuntimeSource).toContain('row.metadata?.toolCallDetails');
     expect(projectionRuntimeSource).toContain('row.metadata?.toolOutputDetails');
+    expect(projectionRuntimeSource).not.toContain('row.metadata?.success');
     expect(projectionRuntimeSource).not.toContain('recordFromUnknown(row.metadata?.toolCallDetails)');
     expect(projectionRuntimeSource).not.toContain('recordFromUnknown(row.metadata?.toolOutputDetails)');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.requestId');

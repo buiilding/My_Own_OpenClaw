@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: keep SDK display-row tool-output success scoped to
+  sanitized `toolOutputDetails`, so raw row metadata cannot create legacy
+  top-level renderer success props. No migration required.
 - frontend/chat-store: omit the raw `isSending` storage latch from projected
   workspace read models so UI selectors cannot treat it as normal busy-state
   authority beside SDK view and pending-bridge lifecycle. No migration required.
