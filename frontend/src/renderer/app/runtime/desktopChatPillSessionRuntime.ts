@@ -7,6 +7,9 @@ import {
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
 } from './desktopMessageSendUiRuntime';
+import type {
+  ConversationView,
+} from './desktopConversationRuntimeContracts';
 import {
   DesktopConversationViewWorkspaceRuntime,
 } from './desktopConversationViewWorkspaceRuntime';
@@ -36,24 +39,8 @@ type ChatPillCurrentTurnProjection = {
   turnRef?: string | null;
 } | null | undefined;
 
-type ChatPillConversationView = {
-  actions?: Record<string, unknown> | null;
-  conversationRef?: string | null;
-  displayRows?: unknown[] | null;
-  liveTurn?: {
-    canStop?: boolean | null;
-    phase?: string | null;
-    turnRef?: string | null;
-  } | null;
-  surfaces?: {
-    pill?: {
-      mode?: string | null;
-    } | null;
-  } | null;
-} | null | undefined;
-
 type ChatPillSurfaceState = {
-  conversationView?: ChatPillConversationView;
+  conversationView?: unknown;
   messages?: unknown[] | null;
   sdkLiveTurn?: ChatPillCurrentTurnProjection;
 } | null | undefined;
@@ -97,15 +84,15 @@ function normalizeOptionalString(value: unknown): string | null {
   return readExactNonEmptyString(value);
 }
 
-function resolveViewLiveTurnRef(conversationView: ChatPillConversationView): string | null {
+function resolveViewLiveTurnRef(conversationView: ConversationView | null): string | null {
   return normalizeOptionalTurnRef(conversationView?.liveTurn?.turnRef);
 }
 
-function resolveViewLiveTurnPhase(conversationView: ChatPillConversationView): string | null {
+function resolveViewLiveTurnPhase(conversationView: ConversationView | null): string | null {
   return normalizeOptionalString(conversationView?.liveTurn?.phase);
 }
 
-function resolveViewPillMode(conversationView: ChatPillConversationView): string | null {
+function resolveViewPillMode(conversationView: ConversationView | null): string | null {
   return normalizeOptionalString(conversationView?.surfaces?.pill?.mode);
 }
 
@@ -213,7 +200,7 @@ function buildChatPillLifecycleTraceSnapshot({
   const sdkLiveTurn = chatSurfaceState?.sdkLiveTurn ?? null;
   const candidateConversationView = chatSurfaceState?.conversationView ?? null;
   const conversationView = hasWorkspaceConversationView({ conversationView: candidateConversationView })
-    ? candidateConversationView
+    ? candidateConversationView as ConversationView
     : null;
   const viewTurnRef = resolveViewLiveTurnRef(conversationView);
   const hasConversationView = Boolean(conversationView);
@@ -272,7 +259,7 @@ function buildChatPillStateTraceSnapshot({
   const sdkLiveTurn = chatSurfaceState?.sdkLiveTurn ?? null;
   const candidateConversationView = chatSurfaceState?.conversationView ?? null;
   const conversationView = hasWorkspaceConversationView({ conversationView: candidateConversationView })
-    ? candidateConversationView
+    ? candidateConversationView as ConversationView
     : null;
   const hasConversationView = Boolean(conversationView);
   const rendererFallbackMessages = hasConversationView

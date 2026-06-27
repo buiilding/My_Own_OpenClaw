@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pill: make chat-pill lifecycle/state trace helpers consume the SDK
+  `ConversationView` type after the shared full-envelope gate instead of
+  carrying a pill-local partial view shape. No migration required.
 - frontend/chat-store: publish `conversationView: null` from projected
   workspace read models unless the full SDK ConversationView envelope is
   present, keeping partial SDK-looking objects off stream/current-turn read

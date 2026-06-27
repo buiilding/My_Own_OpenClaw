@@ -607,7 +607,10 @@ workspace `streamTracking`; overlay diagnostics should use the selected
 `chatSurfaceState`/visible lifecycle instead of reopening store runtime state
 as a surface input. Minimal pill state traces follow the same split: raw
 surface message counts are no-view fallback diagnostics only, and a valid SDK
-`ConversationView` blanks them before trace payload construction.
+`ConversationView` blanks them before trace payload construction. The pill
+runtime treats inbound `conversationView` as unknown until the shared full SDK
+view-envelope gate accepts it, then reads the SDK `ConversationView` type
+directly instead of maintaining a separate pill-local partial view shape.
 
 ## New Chat Session Lifecycle
 

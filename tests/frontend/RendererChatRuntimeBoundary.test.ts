@@ -191,9 +191,13 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(pillSessionRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(pillSessionRuntimeSource).toContain('ConversationView');
     expect(pillSessionRuntimeSource).toContain(
       'hasWorkspaceConversationView({ conversationView: candidateConversationView })',
     );
+    expect(pillSessionRuntimeSource).not.toContain('type ChatPillConversationView');
+    expect(pillSessionRuntimeSource).not.toContain('conversationView?: ChatPillConversationView');
+    expect(pillSessionRuntimeSource).not.toContain('displayRows?: unknown[] | null');
     expect(pillSessionRuntimeSource).not.toContain('function isConversationView');
     expect(pillSessionRuntimeSource).not.toContain('Array.isArray(value.displayRows)');
     expect(pillSessionRuntimeSource).not.toContain('isObjectRecord(value.liveTurn)');
