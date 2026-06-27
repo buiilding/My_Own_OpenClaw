@@ -192,17 +192,15 @@ function prepareReplayActionIntent({
 }
 
 function resolveReplayModelSelection({
-  config = null,
   deferredQueryModelSelection,
 } = {}) {
   return deferredQueryModelSelection
-    ?? DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection(config);
+    ?? DesktopRendererConfigRuntimeClient.readDeferredQueryModelSelection();
 }
 
 async function executeReplayAction({
   action,
   assistantMessageId = null,
-  config = null,
   deferredQueryModelSelection,
   editedText = null,
   replayUiContext = null,
@@ -225,7 +223,6 @@ async function executeReplayAction({
     : null;
   return executeReplayIntent({
     deferredQueryModelSelection: resolveReplayModelSelection({
-      config,
       deferredQueryModelSelection,
     }),
     intent,

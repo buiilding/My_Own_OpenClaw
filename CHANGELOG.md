@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: keep replay hooks from subscribing to renderer config or
+  passing config through SDK replay intent; the replay runtime facade now reads
+  optional model command data behind the app-runtime boundary. No migration
+  required.
 - frontend/chat-interface: require the full SDK `ConversationView` envelope
   before ChatInterface presentation treats `conversationView` as the normal read
   model, keeping partial objects on the no-view message/live-turn fallback path.

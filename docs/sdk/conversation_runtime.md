@@ -545,8 +545,11 @@ conversation ref only, without depending on projected workspace reads, the full
 chat-store object, or `getState()` contract. It leaves replay failure display
 to SDK/main conversation events rather than publishing a renderer-local row.
 Replay execution does not accept a caller-supplied active-conversation override.
-It may pass a model override as command data, but it must not call the renderer
-settings facade to apply that model before dispatch.
+It may pass a model override as command data, but React replay hooks do not read
+renderer config context or pass config through the UI intent call. The replay
+runtime facade reads optional model command data behind the app-runtime boundary
+and must not call the renderer settings facade to apply that model before
+dispatch.
 SDK replay commands own the durable child revision, model-selection application
 through `send()`, and provider-safe replacement history.
 Thread presentation no longer accepts caller-built `currentTurnMessages` as an
@@ -1237,9 +1240,10 @@ must not erase prior resolved resources without an explicit removal operation.
 
 The Electron renderer does not publish a replay-specific pending turn, retained
 display prefix, or separate replacement query. It passes row intent, edited
-text when applicable, workspace context, optional model override data, user id,
-conversation ref, and no renderer-owned replacement turn ref into the SDK
-command. Renderer replay diagnostics name that target as a generic
+text when applicable, workspace context, optional model override data read by
+the replay runtime facade, user id, conversation ref, and no renderer-owned
+replacement turn ref into the SDK command. Renderer replay diagnostics name
+that target as a generic
 `targetRowId`; edit and retry both map it to the SDK command's `messageId`
 field without classifying the row as a user-message target. It must not call
 the renderer settings facade to pre-apply the replay model; the SDK command

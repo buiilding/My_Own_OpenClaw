@@ -226,7 +226,6 @@ describe('renderer chat runtime boundary', () => {
       'hooks/useChatMessageSender.ts',
       'hooks/useChatStream.ts',
       'hooks/useChatSurfaceController.js',
-      'hooks/useConversationReplayActions.js',
     ];
     const runtimeClientSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient.js'),
@@ -244,6 +243,8 @@ describe('renderer chat runtime boundary', () => {
     }
     expect(runtimeClientSource).toContain('useAppConfigContext');
     expect(runtimeClientSource).toContain('useDesktopRendererConfigContext');
+    expect(runtimeClientSource).toContain('readDeferredQueryModelSelection');
+    expect(runtimeClientSource).toContain('DesktopRendererConfigStorageRuntime.loadConfigFromStorage');
     expect(runtimeClientSource).not.toContain('export function useDesktopRendererConfigContext');
   });
 
@@ -2007,7 +2008,13 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('prepareReplayEditIntent');
     expect(source).not.toContain('prepareReplayRetryIntent');
     expect(source).not.toContain('executeReplayActionFromChatStore');
-    expect(replayRuntimeSource).toContain('buildDeferredQueryModelSelection');
+    expect(source).not.toContain('desktopRendererConfigRuntimeClient');
+    expect(source).not.toContain('DesktopRendererConfigRuntimeClient');
+    expect(source).not.toContain('config,');
+    expect(source).not.toContain('config:');
+    expect(replayRuntimeSource).toContain('readDeferredQueryModelSelection');
+    expect(replayRuntimeSource).not.toContain('config,');
+    expect(replayRuntimeSource).not.toContain('config = null');
     expect(chatStoreAdaptersSource).not.toContain('editUserMessageReplayFromChatStore');
     expect(chatStoreAdaptersSource).not.toContain('retryAssistantMessageReplayFromChatStore');
     expect(chatStoreAdaptersSource).not.toContain('export function executeReplayActionFromChatStore');

@@ -16,17 +16,7 @@ import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
-
-let mockRendererConfig = {
-  model_provider: 'anthropic',
-  selected_model_id: 'claude-sonnet-4-5',
-};
-
-jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
-  useAppConfigContext: jest.fn(() => ({
-    config: mockRendererConfig,
-  })),
-}));
+import { DesktopRendererConfigStorageRuntime } from '../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime';
 
 let mockConversationRef = 'conv-existing';
 
@@ -75,10 +65,10 @@ const mockGetConversationWorkspaceBinding = DesktopWorkspaceRuntimeClient.getCon
 describe('useConversationReplayActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRendererConfig = {
+    DesktopRendererConfigStorageRuntime.saveConfigToStorage({
       model_provider: 'anthropic',
       selected_model_id: 'claude-sonnet-4-5',
-    };
+    });
     mockConversationRef = 'conv-existing';
     jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel) => {
       if (channel === INVOKE_CHANNELS.DELETE_CHAT_CONVERSATION) {
