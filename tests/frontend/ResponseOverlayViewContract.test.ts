@@ -28,6 +28,31 @@ describe('desktopResponseOverlayViewRuntime', () => {
     resolveResponseOverlayWindowSizeIdentity,
   } = DesktopResponseOverlayViewRuntime;
 
+  function conversationView({
+    conversationRef = 'conv-view',
+    displayRows = [],
+    liveTurn = {},
+    surfaces = {
+      dashboard: { mode: 'normal', visible: true },
+      pill: { mode: 'normal', visible: true },
+      responseOverlay: { mode: 'hidden', visible: false },
+    },
+    actions = {
+      canEdit: false,
+      canRetry: false,
+      canFork: false,
+    },
+  } = {}) {
+    return {
+      conversationRef,
+      revisionId: null,
+      displayRows,
+      liveTurn,
+      surfaces,
+      actions,
+    };
+  }
+
   test('builds exact response overlay dismissal keys', () => {
     expect(buildResponseOverlayDismissalKey({
       conversationRef: 'conv-overlay',
@@ -516,7 +541,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
 
   test('selects conversation view live-turn entries before raw projection rows', () => {
     expect(resolveResponseOverlayEntries({
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-view',
         liveTurn: {
           turnRef: 'turn-view',
@@ -526,7 +551,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
             text: 'from view',
           }],
         },
-      },
+      }),
       sdkLiveTurn: {
         conversationRef: 'conv-raw',
         turnRef: 'turn-raw',
@@ -545,7 +570,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
 
   test('keeps materialized current-turn tool rows visible in the response overlay', () => {
     const entries = resolveResponseOverlayEntries({
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-view',
         displayRows: [
           {
@@ -606,7 +631,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
             turnRef: 'turn-view',
           }],
         },
-      },
+      }),
       liveTurnPresentationInput: {
         source: 'conversation-view',
       },
@@ -635,7 +660,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
 
   test('keeps same-type live tool entries that are not materialized display rows', () => {
     const entries = resolveResponseOverlayEntries({
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-view',
         displayRows: [
           {
@@ -682,7 +707,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
             },
           ],
         },
-      },
+      }),
       liveTurnPresentationInput: {
         source: 'conversation-view',
       },
@@ -696,13 +721,13 @@ describe('desktopResponseOverlayViewRuntime', () => {
 
   test('does not require a source flag before ConversationView blocks raw overlay rows', () => {
     expect(resolveResponseOverlayEntries({
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-view',
         liveTurn: {
           turnRef: 'turn-view',
           entries: [],
         },
-      },
+      }),
       sdkLiveTurn: {
         conversationRef: 'conv-raw',
         turnRef: 'turn-raw',
@@ -718,6 +743,40 @@ describe('desktopResponseOverlayViewRuntime', () => {
         actions: {
           canEdit: true,
           canRetry: true,
+        },
+      },
+      sdkLiveTurn: {
+        conversationRef: 'conv-raw',
+        turnRef: 'turn-raw',
+        phase: 'streaming',
+        assistantText: 'raw fallback remains visible',
+      },
+      liveTurnPresentationInput: {},
+    })).toEqual([
+      expect.objectContaining({
+        text: 'raw fallback remains visible',
+      }),
+    ]);
+  });
+
+  test('falls back to raw overlay rows for malformed ConversationView envelopes', () => {
+    expect(resolveResponseOverlayEntries({
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: {
+          turnRef: 'turn-view',
+          entries: [{
+            id: 'entry-view',
+            kind: 'assistant_text',
+            text: 'from malformed view',
+          }],
+        },
+        surfaces: {
+          responseOverlay: {
+            mode: 'response',
+            visible: true,
+            turnRef: 'turn-view',
+          },
         },
       },
       sdkLiveTurn: {
@@ -769,7 +828,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
 
   test('suppresses response entries during local pending bridge display', () => {
     expect(resolveResponseOverlayEntries({
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-view',
         liveTurn: {
           turnRef: 'turn-view',
@@ -779,7 +838,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
             text: 'from view',
           }],
         },
-      },
+      }),
       liveTurnPresentationInput: {
         source: 'conversation-view',
         useLocalPendingTurn: true,
@@ -795,7 +854,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
           sender: 'assistant',
           text: 'stale renderer answer',
         }],
-        conversationView: {
+        conversationView: conversationView({
           conversationRef: 'conv-view',
           liveTurn: {
             turnRef: 'turn-view',
@@ -815,7 +874,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
               conversationRef: 'conv-view',
             },
           },
-        },
+        }),
         sdkLiveTurn: null,
       },
     });
@@ -900,16 +959,18 @@ describe('desktopResponseOverlayViewRuntime', () => {
           conversationRef: 'conv-view',
           turnRef: 'turn-pending',
         },
-        conversationView: {
+        conversationView: conversationView({
           conversationRef: 'conv-view',
-          liveTurn: null,
+          liveTurn: {},
           surfaces: {
+            dashboard: { mode: 'normal', visible: true },
+            pill: { mode: 'normal', visible: true },
             responseOverlay: {
               mode: 'hidden',
               visible: false,
             },
           },
-        },
+        }),
         sdkLiveTurn: {
           conversationRef: 'conv-view',
           turnRef: 'turn-sdk',
@@ -962,6 +1023,46 @@ describe('desktopResponseOverlayViewRuntime', () => {
     });
     expect(state.pendingTurn).toEqual(expect.objectContaining({
       turnRef: 'turn-pending',
+    }));
+  });
+
+  test('projects awaiting presentation from pending turn without renderer message rows', () => {
+    const responseOverlaySurfaceState = resolveResponseOverlaySurfaceState({
+      chatSurfaceState: {
+        messages: [],
+        pendingTurn: {
+          conversationRef: 'conv-pending',
+          turnRef: 'turn-pending',
+          text: 'pending prompt',
+          timestamp: '2026-06-25T12:00:00.000Z',
+        },
+      },
+    });
+
+    const presentationState = resolveResponseOverlayPresentationStateForSurfaceState({
+      currentTurnPresentationState: {
+        activeResponse: null,
+        hasVisibleReply: false,
+        visibleResponse: null,
+        chatboxSurfaceState: 'compact',
+      },
+      responseOverlaySurfaceState,
+    });
+
+    expect(responseOverlaySurfaceState.useLocalPendingTurn).toBe(true);
+    expect(responseOverlaySurfaceState.responseOverlayMessages).toEqual([]);
+    expect(presentationState).toEqual(expect.objectContaining({
+      awaitingDotTargetMessageId: null,
+      isBusy: true,
+      overlayIntent: expect.objectContaining({
+        mode: 'awaiting',
+        staleGuardRef: 'renderer-send-preflight',
+        turnRef: 'turn-pending',
+      }),
+      visibleTurnLifecycle: expect.objectContaining({
+        status: 'local_pending',
+        turnRef: 'turn-pending',
+      }),
     }));
   });
 

@@ -953,7 +953,10 @@ describe('renderer app runtime boundary', () => {
     expect(responseViewRuntimeSource).toContain('resolveDismissedResponseOverlayEntryId');
     expect(responseViewRuntimeSource).toContain('resolveResponseOverlayEntries');
     expect(responseViewRuntimeSource).toContain('resolveResponseOverlayPresentationState');
+    expect(responseViewRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(responseViewRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
     expect(responseViewRuntimeSource).not.toContain('export function resolveResponseOverlayViewContract');
+    expect(responseViewRuntimeSource).not.toContain('function isConversationView');
     expect(responseViewRuntimeSource).not.toContain('view.actions');
     expect(responseViewRuntimeSource).toContain('desktopResponseOverlayLayoutRuntime');
     expect(responseViewRuntimeSource).toContain('desktopCurrentTurnMessageRuntime');
@@ -2064,7 +2067,8 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceRuntimeSource).toContain("source: 'conversation-view'");
     expect(responseViewRuntimeSource).toContain('buildSdkLiveTurnMessages');
     expect(responseViewRuntimeSource).toContain('resolveNoViewSdkLiveTurnThinkingText');
-    expect(responseViewRuntimeSource).toContain('isConversationView(conversationView)');
+    expect(responseViewRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(responseViewRuntimeSource).not.toContain('function isConversationView');
     expect(responseViewRuntimeSource).not.toContain('buildConversationViewLiveTurnMessages');
     expect(responseViewRuntimeSource).not.toContain('buildCurrentTurnMessagesFromPresentation');
     expect(responseViewRuntimeSource).not.toContain('buildLegacyNoPresentationCurrentTurnMessages');

@@ -8,6 +8,7 @@ import { DesktopCurrentTurnPresentationRuntime } from './desktopCurrentTurnPrese
 import { DesktopLiveTurnSurfaceRuntime } from './desktopLiveTurnSurfaceRuntime';
 import { DesktopVisibleTurnLifecycleRuntime } from './desktopVisibleTurnLifecycleRuntime';
 import { DesktopConversationDisplayProjection } from './desktopConversationDisplayProjection';
+import { DesktopConversationViewWorkspaceRuntime } from './desktopConversationViewWorkspaceRuntime';
 import type { ConversationView } from './desktopConversationRuntimeContracts';
 
 const AWAITING_VISIBLE_LIFECYCLE_STATUSES = new Set(['local_pending', 'awaiting']);
@@ -33,6 +34,9 @@ const {
 const {
   buildConversationViewTurnChatMessages,
 } = DesktopConversationDisplayProjection;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 type CurrentTurnPresentationStateLike = {
   visibleTurnLifecycle?: {
@@ -176,16 +180,7 @@ function stringField(
   return null;
 }
 
-function isConversationView(value: unknown): boolean {
-  const view = recordFromUnknown(value);
-  return Boolean(
-    view.conversationRef
-      || view.liveTurn
-      || view.surfaces,
-  );
-}
-
-function conversationViewLiveTurnRef(conversationView: unknown): string | null {
+function conversationViewLiveTurnRef(conversationView: ConversationView): string | null {
   const view = recordFromUnknown(conversationView);
   const liveTurn = recordFromUnknown(view.liveTurn);
   const surfaces = recordFromUnknown(view.surfaces);
@@ -197,13 +192,13 @@ function conversationViewLiveTurnRef(conversationView: unknown): string | null {
   );
 }
 
-function responseOverlayDisplayRowMessages(conversationView: unknown): ResponseOverlayEntryLike[] {
+function responseOverlayDisplayRowMessages(conversationView: ConversationView): ResponseOverlayEntryLike[] {
   const liveTurnRef = conversationViewLiveTurnRef(conversationView);
   if (!liveTurnRef) {
     return [];
   }
   return buildConversationViewTurnChatMessages({
-    conversationView: isConversationView(conversationView) ? conversationView as ConversationView : null,
+    conversationView,
     turnRef: liveTurnRef,
   })
     .filter(isVisibleResponseOverlayMessage);
@@ -313,10 +308,10 @@ function liveEntryMaterializedByDisplayRows(
   return Boolean(type && materializedTypes.has(type));
 }
 
-function mergeConversationViewOverlayMessages(conversationView: unknown): ResponseOverlayEntryLike[] {
+function mergeConversationViewOverlayMessages(conversationView: ConversationView): ResponseOverlayEntryLike[] {
   const displayMessages = responseOverlayDisplayRowMessages(conversationView);
   const liveMessages = buildSdkLiveTurnMessages({
-    conversationView: isConversationView(conversationView) ? conversationView : null,
+    conversationView,
     sdkLiveTurn: null,
   }).filter(isVisibleResponseOverlayMessage);
   if (displayMessages.length === 0) {
@@ -687,8 +682,8 @@ function resolveResponseOverlaySurfaceState({
   chatSurfaceState?: unknown;
 } = {}) {
   const surfaceState = recordFromUnknown(chatSurfaceState);
-  const conversationView = isConversationView(surfaceState.conversationView)
-    ? surfaceState.conversationView
+  const conversationView = hasWorkspaceConversationView({ conversationView: surfaceState.conversationView })
+    ? surfaceState.conversationView as ConversationView
     : null;
   const messages = conversationView
     ? []
@@ -758,8 +753,8 @@ function resolveResponseOverlayEntries({
   if (liveTurnPresentationInput.useLocalPendingTurn) {
     return [];
   }
-  if (isConversationView(conversationView)) {
-    return mergeConversationViewOverlayMessages(conversationView);
+  if (hasWorkspaceConversationView({ conversationView })) {
+    return mergeConversationViewOverlayMessages(conversationView as ConversationView);
   }
   return buildSdkLiveTurnMessages({
     conversationView: null,

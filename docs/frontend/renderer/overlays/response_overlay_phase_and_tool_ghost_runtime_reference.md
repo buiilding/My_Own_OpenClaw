@@ -61,8 +61,8 @@ Current-turn entry construction:
   live-only tool call. The overlay must not depend only on `liveTurn.entries`,
   because materialized tool rows are intentionally removed from live entries to
   avoid duplicate dashboard cards. The overlay runtime treats `ConversationView`
-  as the read-model object and does not use `displayRows` as a view-shape guard;
-  display-row access stays inside the projection adapter.
+  as the read-model object only after the shared workspace view gate accepts a
+  complete SDK envelope; display-row access stays inside the projection adapter.
 - the response overlay filters those current-turn messages through
   `DesktopCurrentTurnMessageRuntime.isVisibleResponseOverlayMessage(...)`
   instead of carrying an inline assistant-message scanner after the latest user

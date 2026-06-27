@@ -99,7 +99,6 @@ describe('ChatBoxResponse state behavior', () => {
       userMessageId: 'user-pending',
       text: 'run command',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
       ...overrides,
     };
   }

@@ -3403,6 +3403,9 @@ describe('renderer chat runtime boundary', () => {
     expect(viewModelSource).not.toContain('conversationView = null');
     expect(responseViewRuntimeSource).not.toContain('traceState');
     expect(responseViewRuntimeSource).not.toContain('projectionInput');
+    expect(responseViewRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(responseViewRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(responseViewRuntimeSource).not.toContain('function isConversationView');
     expect(responseViewRuntimeSource).toContain('buildConversationViewTurnChatMessages');
     expect(responseViewRuntimeSource).not.toContain('buildChatMessagesFromSdkDisplayRows');
     expect(responseViewRuntimeSource).not.toContain('view.displayRows');
