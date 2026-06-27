@@ -113,7 +113,9 @@ containing SDK live turn's `turnRef` over entry-level payload refs. Live tool
 identity fields such as `correlationId`, `requestId`, and `bundleId` are exact;
 padded values fall through instead of becoming renderer dedupe keys. Thread
 dedupe checks live row ids with the same exactness, so malformed padded live ids
-cannot suppress SDK display rows.
+cannot suppress SDK display rows. Thread live/display dedupe also compares
+materialized and live turn refs exactly; padded turn refs are not trimmed into
+same-turn duplicate evidence.
 
 `streamTracking` fields capture turn identity, phase, counters, and timestamps per workspace:
 

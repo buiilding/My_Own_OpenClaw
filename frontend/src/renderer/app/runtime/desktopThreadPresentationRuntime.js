@@ -115,8 +115,8 @@ function belongsToLatestUserTurn(messages, message) {
 }
 
 function sameTurnRef(left, right) {
-  const leftTurnRef = normalizeRef(left);
-  const rightTurnRef = normalizeRef(right);
+  const leftTurnRef = readExactRef(left);
+  const rightTurnRef = readExactRef(right);
   return Boolean(leftTurnRef && rightTurnRef && leftTurnRef === rightTurnRef);
 }
 

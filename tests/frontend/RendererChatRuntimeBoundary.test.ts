@@ -3846,6 +3846,10 @@ describe('renderer chat runtime boundary', () => {
     expect(threadPresentationRuntimeSource).toContain('function readExactRef(value)');
     expect(threadPresentationRuntimeSource).toContain('const liveId = readExactRef(liveMessage?.id);');
     expect(threadPresentationRuntimeSource).not.toContain('const liveId = normalizeRef(liveMessage?.id);');
+    expect(threadPresentationRuntimeSource).toContain('const leftTurnRef = readExactRef(left);');
+    expect(threadPresentationRuntimeSource).toContain('const rightTurnRef = readExactRef(right);');
+    expect(threadPresentationRuntimeSource).not.toContain('const leftTurnRef = normalizeRef(left);');
+    expect(threadPresentationRuntimeSource).not.toContain('const rightTurnRef = normalizeRef(right);');
     expect(threadPresentationRuntimeSource).not.toContain('function resolveToolName');
     expect(threadPresentationRuntimeSource).not.toContain('resolveToolName(message)');
     expect(chatInterfaceSource).toContain('DesktopChatInterfacePresentationRuntime');

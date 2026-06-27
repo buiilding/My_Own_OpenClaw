@@ -395,7 +395,9 @@ Tool live-entry identity fields such as `correlationId`, `requestId`, and
 values are ignored rather than trimmed into duplicate-detection keys.
 Thread presentation duplicate suppression also treats live row ids as exact SDK
 identity; padded live ids do not suppress materialized display rows by being
-trimmed into a match.
+trimmed into a match. Materialized and live turn refs use the same exact
+comparison for duplicate suppression, so padded turn refs are not repaired into
+same-turn matches that can hide SDK live rows.
 Streaming assistant display rows keep exact SDK-authored
 `metadata.sourceEventType` when present and otherwise use the generic
 `assistant_message` display-row type; padded or empty source event metadata
