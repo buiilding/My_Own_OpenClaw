@@ -30,7 +30,7 @@ function conversationViewWithRows(displayRows: unknown[]) {
     conversationRef: 'conv-1',
     revisionId: 'rev-1',
     displayRows,
-    liveTurn: null,
+    liveTurn: {},
     surfaces: {},
     actions: {},
   };
@@ -98,7 +98,7 @@ describe('desktopConversationDisplayProjection', () => {
           type: 'user_message',
           content: 'inspect recent commits',
         }],
-        liveTurn: null,
+        liveTurn: {},
         surfaces: {},
         actions: {},
       },
@@ -145,6 +145,35 @@ describe('desktopConversationDisplayProjection', () => {
       conversationView: conversationViewWithRows([]),
       turnRef: 'turn-2',
     })).toEqual([]);
+  });
+
+  test('refuses partial ConversationView objects as direct projection input', () => {
+    const partialView = {
+      conversationRef: 'conv-1',
+      displayRows: [{
+        id: 'row-user',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'partial display row',
+      }],
+    };
+
+    expect(buildConversationViewChatMessages({
+      conversationView: partialView as never,
+    })).toEqual([]);
+    expect(buildConversationViewTurnChatMessages({
+      conversationView: partialView as never,
+      turnRef: 'turn-1',
+    })).toEqual([]);
+    expect(buildConversationViewTraceSummary(partialView as never)).toEqual({
+      displayRowCount: 0,
+      liveTurnPhase: null,
+      liveTurnRef: null,
+      lastMessage: null,
+    });
   });
 
   test('does not repair padded turn refs when projecting a ConversationView turn', () => {
@@ -675,7 +704,7 @@ describe('desktopConversationDisplayProjection', () => {
         type: 'user_message',
         content: 'edited prompt',
       }],
-      liveTurn: null,
+      liveTurn: {},
       surfaces: {},
       actions: {},
     };
@@ -730,7 +759,7 @@ describe('desktopConversationDisplayProjection', () => {
         type: 'assistant_message',
         content: 'SDK answer',
       }],
-      liveTurn: null,
+      liveTurn: {},
       surfaces: {},
       actions: {},
     };

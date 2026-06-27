@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/conversation-view: require the shared complete SDK
+  `ConversationView` envelope before display projection helpers render rows or
+  trace summaries, preventing partial display-row objects from becoming a
+  second chat read model. No migration required.
 - frontend/display-rows: allowlist exact SDK row replay action props when
   projecting display rows so renderer chat messages no longer receive raw
   `row.actions` metadata or repaired edit/retry target ids. No migration

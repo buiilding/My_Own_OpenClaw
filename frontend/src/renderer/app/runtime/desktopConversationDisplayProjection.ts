@@ -13,6 +13,9 @@ import {
 import {
   DesktopConversationDisplayRowLookupRuntime,
 } from './desktopConversationDisplayRowLookupRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
 const {
   buildChatMessagesFromSdkDisplayRows,
@@ -24,6 +27,9 @@ const {
   findConversationViewUserDisplayRowForTurn,
   hasConversationViewUserDisplayRows,
 } = DesktopConversationDisplayRowLookupRuntime;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 type PendingTurnLike = {
   conversationRef?: string | null;
@@ -77,6 +83,12 @@ type ConversationViewTraceSource = {
   } | null;
 } | null | undefined;
 
+function sdkConversationViewEnvelope(value: ConversationView | null | undefined): ConversationView | null {
+  return hasWorkspaceConversationView({ conversationView: value })
+    ? value as ConversationView
+    : null;
+}
+
 function exactTurnRef(turnRef: string | null | undefined): string | null {
   return typeof turnRef === 'string' && turnRef.length > 0 && turnRef === turnRef.trim()
     ? turnRef
@@ -94,15 +106,16 @@ function resolveTraceTextLength(value: unknown): number {
 function buildConversationViewTraceSummary(
   conversationView: ConversationViewTraceSource,
 ): ConversationViewTraceSummary {
-  const displayRows = Array.isArray(conversationView?.displayRows)
-    ? conversationView.displayRows
+  const view = sdkConversationViewEnvelope(conversationView as ConversationView | null | undefined);
+  const displayRows = Array.isArray(view?.displayRows)
+    ? view.displayRows
     : [];
   const latestRow = displayRows[displayRows.length - 1] ?? null;
   const latestRecord = latestRow as Record<string, unknown> | null;
   return {
     displayRowCount: displayRows.length,
-    liveTurnPhase: normalizeTraceString(conversationView?.liveTurn?.phase),
-    liveTurnRef: exactTurnRef(conversationView?.liveTurn?.turnRef),
+    liveTurnPhase: normalizeTraceString(view?.liveTurn?.phase),
+    liveTurnRef: exactTurnRef(view?.liveTurn?.turnRef),
     lastMessage: latestRecord
       ? {
         sender: normalizeTraceString(latestRecord.role) || normalizeTraceString(latestRecord.sender),
@@ -120,11 +133,12 @@ function buildConversationViewTurnChatMessages({
   turnRef = null,
 }: BuildConversationViewTurnMessagesInput): ChatMessage[] {
   const targetTurnRef = exactTurnRef(turnRef);
-  if (!conversationView || !targetTurnRef || typeof conversationView !== 'object') {
+  const view = sdkConversationViewEnvelope(conversationView);
+  if (!view || !targetTurnRef) {
     return [];
   }
-  const displayRows = Array.isArray(conversationView.displayRows)
-    ? conversationView.displayRows.filter((row) => exactTurnRef(row.turnRef) === targetTurnRef)
+  const displayRows = Array.isArray(view.displayRows)
+    ? view.displayRows.filter((row) => exactTurnRef(row.turnRef) === targetTurnRef)
     : [];
   if (displayRows.length === 0) {
     return [];
@@ -244,11 +258,12 @@ function buildConversationViewChatMessages({
   pendingTurn = null,
   rendererAnnotations = [],
 }: BuildConversationViewMessagesInput): ChatMessage[] {
-  if (!conversationView || typeof conversationView !== 'object') {
+  const view = sdkConversationViewEnvelope(conversationView);
+  if (!view) {
     return [];
   }
-  const displayRows = Array.isArray(conversationView.displayRows)
-    ? conversationView.displayRows
+  const displayRows = Array.isArray(view.displayRows)
+    ? view.displayRows
     : [];
   const sdkMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
   const annotatedSdkMessages = mergeRendererAnnotationsIntoSdkMessages(
@@ -257,7 +272,7 @@ function buildConversationViewChatMessages({
   );
   const pendingTurnRef = normalizePendingTurnRef(pendingTurn);
   const hasSdkUserRowForPendingTurn = Boolean(
-    pendingTurnRef && findConversationViewUserDisplayRowForTurn(conversationView, pendingTurnRef),
+    pendingTurnRef && findConversationViewUserDisplayRowForTurn(view, pendingTurnRef),
   );
   return appendPendingBridgeUserMessages(
     annotatedSdkMessages,

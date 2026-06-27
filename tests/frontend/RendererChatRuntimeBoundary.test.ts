@@ -1217,7 +1217,13 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).toContain('appendPendingBridgeUserMessages');
     expect(displayProjectionSource).toContain('pendingBridgeUserMessages');
     expect(displayProjectionSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
+    expect(displayProjectionSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(displayProjectionSource).toContain('hasWorkspaceConversationView({ conversationView: value })');
+    expect(displayProjectionSource).toContain('function sdkConversationViewEnvelope');
+    expect(displayProjectionSource).toContain('const view = sdkConversationViewEnvelope(conversationView)');
     expect(displayProjectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
+    expect(displayProjectionSource).not.toContain('function isConversationView(value)');
+    expect(displayProjectionSource).not.toContain('conversationView.displayRows');
     expect(sdkDisplayProjectionRuntimeSource).toContain('buildChatMessagesFromSdkDisplayRows');
     expect(sdkDisplayProjectionRuntimeSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
     await expect(fs.stat(legacySdkDisplayProjectionAdapterPath)).rejects.toThrow();
@@ -4439,7 +4445,8 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationDisplayProjectionSource).not.toContain('emptyRendererMessageAnnotations');
     expect(conversationDisplayProjectionSource).not.toContain('hasRendererMessageAnnotations');
     expect(conversationDisplayProjectionSource).toContain('findConversationViewUserDisplayRowForTurn');
-    expect(conversationDisplayProjectionSource).toContain('findConversationViewUserDisplayRowForTurn(conversationView, pendingTurnRef)');
+    expect(conversationDisplayProjectionSource).toContain('findConversationViewUserDisplayRowForTurn(view, pendingTurnRef)');
+    expect(conversationDisplayProjectionSource).toContain('sdkConversationViewEnvelope(conversationView)');
     expect(conversationDisplayProjectionSource).not.toContain('sdkUserTurnRefs');
     expect(conversationDisplayProjectionSource).not.toContain('projectedUserTurns');
     expect(conversationDisplayProjectionSource).toContain('DesktopConversationDisplayRowLookupRuntime');
