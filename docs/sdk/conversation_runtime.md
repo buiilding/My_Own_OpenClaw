@@ -622,6 +622,10 @@ Thread presentation no longer accepts caller-built `currentTurnMessages` as an
 alternate live-row input; no-view live rows must come from the SDK current-turn
 projection/presentation adapter, and `ConversationView` remains the normal
 read model once present.
+That adapter requires the shared complete `ConversationView` envelope before a
+view can suppress no-view current-turn fallback rows. Partial view-shaped
+inputs stay on the no-view fallback path instead of claiming live-row
+authority.
 When a caller supplies `ConversationView`, thread presentation accepts only
 SDK display-row messages plus the explicit renderer pending-send bridge as its
 base rows. Raw renderer transcript rows are ignored in that mode so view-owned

@@ -666,7 +666,10 @@ describe('renderer app runtime boundary', () => {
 
     expect(currentTurnMessageSource).toContain('desktopChatMessageRuntimeClient');
     expect(currentTurnMessageSource).toContain('desktopPresentationSourceChannels');
+    expect(currentTurnMessageSource).toContain('desktopConversationViewWorkspaceRuntime');
+    expect(currentTurnMessageSource).toContain('hasWorkspaceConversationView({ conversationView })');
     expect(currentTurnMessageSource).not.toContain('desktopArtifactRuntimeClient');
+    expect(currentTurnMessageSource).not.toContain('conversationView && typeof conversationView');
     expect(currentTurnMessageSource).toContain('DesktopCurrentTurnMessageRuntime');
     expect(currentTurnMessageSource).toContain('isVisibleResponseOverlayMessage');
     expect(currentTurnMessageSource).toContain('isResponseOverlayProgressMessage');

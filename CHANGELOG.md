@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - frontend/current-turn: require the shared complete `ConversationView` gate
+  before SDK live-row projection suppresses no-view current-turn fallback rows.
+  No migration required.
+- frontend/current-turn: require the shared complete `ConversationView` gate
   before accepting `view` payloads from current-turn IPC normalization, keeping
   partial envelopes on the no-view event path. No migration required.
 - frontend/send: route first-message send-state checks through the shared

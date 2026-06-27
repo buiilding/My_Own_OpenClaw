@@ -6,6 +6,9 @@ import { DesktopChatMessageRuntimeClient } from './desktopChatMessageRuntimeClie
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
 import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
 import { DesktopSdkToolDetailProjection } from './desktopSdkToolDetailProjection';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
 const {
   buildToolCallChatMessageState,
@@ -17,6 +20,9 @@ const {
 const {
   sanitizeSdkToolDetailRecord,
 } = DesktopSdkToolDetailProjection;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 const sdkConversationViewSourceChannel = DesktopPresentationSourceChannels
@@ -444,11 +450,13 @@ function buildSdkLiveTurnMessages({
   conversationView = null,
   sdkLiveTurn = null,
 } = {}) {
-  const conversationViewMessages = buildConversationViewLiveTurnMessages(conversationView);
+  const hasConversationView = hasWorkspaceConversationView({ conversationView });
+  const effectiveConversationView = hasConversationView ? conversationView : null;
+  const conversationViewMessages = buildConversationViewLiveTurnMessages(effectiveConversationView);
   if (conversationViewMessages.length > 0) {
     return conversationViewMessages;
   }
-  if (conversationView && typeof conversationView === 'object') {
+  if (hasConversationView) {
     return [];
   }
   return buildNoViewSdkLiveTurnMessages(sdkLiveTurn);

@@ -6,9 +6,23 @@ const {
   buildNoViewSdkLiveTurnMessages,
   buildConversationViewLiveTurnMessages,
   buildCurrentTurnMessagesFromPresentation,
+  buildSdkLiveTurnMessages,
 } = DesktopCurrentTurnMessageRuntime;
 
 describe('DesktopCurrentTurnMessageRuntime', () => {
+  function conversationViewWithLiveEntries(entries) {
+    return {
+      conversationRef: 'conv-view',
+      displayRows: [],
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries,
+      },
+      surfaces: {},
+      actions: {},
+    };
+  }
+
   test('uses containing current-turn identity instead of live entry turn refs', () => {
     const messages = buildCurrentTurnMessagesFromPresentation({
       turnRef: 'turn-live',
@@ -229,5 +243,58 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
       sourceChannel: 'sdk:current-turn',
     }));
     expect(toolMessage).not.toHaveProperty('attachments');
+  });
+
+  test('buildSdkLiveTurnMessages falls back to no-view live turn for partial ConversationView input', () => {
+    const messages = buildSdkLiveTurnMessages({
+      conversationView: {
+        conversationRef: 'conv-partial',
+        displayRows: [],
+        liveTurn: {
+          entries: [],
+        },
+        surfaces: {},
+      },
+      sdkLiveTurn: {
+        conversationRef: 'conv-raw',
+        turnRef: 'turn-raw',
+        phase: 'streaming',
+        presentation: {
+          entries: [{
+            id: 'entry-raw',
+            type: 'llm-text',
+            text: 'raw current turn still owns no-view path',
+          }],
+        },
+      },
+    });
+
+    expect(messages).toEqual([
+      expect.objectContaining({
+        id: 'entry-raw',
+        sourceChannel: 'sdk:current-turn',
+        text: 'raw current turn still owns no-view path',
+      }),
+    ]);
+  });
+
+  test('buildSdkLiveTurnMessages suppresses no-view fallback for a complete empty ConversationView', () => {
+    const messages = buildSdkLiveTurnMessages({
+      conversationView: conversationViewWithLiveEntries([]),
+      sdkLiveTurn: {
+        conversationRef: 'conv-raw',
+        turnRef: 'turn-raw',
+        phase: 'streaming',
+        presentation: {
+          entries: [{
+            id: 'entry-raw',
+            type: 'llm-text',
+            text: 'stale raw current turn',
+          }],
+        },
+      },
+    });
+
+    expect(messages).toEqual([]);
   });
 });
