@@ -210,6 +210,12 @@ function getProjectedWorkspaceReadModelFromChatStore(
   );
 }
 
+function exactProviderTraceString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function buildChatStreamWorkspaceReadModel(
   workspace: ChatWorkspaceReadModelState,
 ): ChatStreamWorkspaceReadModel {
@@ -256,14 +262,14 @@ function buildChatProviderTraceWorkspaceReadModel(
       ? buildConversationViewTraceSummary(workspace.conversationView)
       : null,
     messageCount: workspace.messages.length,
-    activeTurnRef: workspace.streamTracking.activeTurnRef,
+    activeTurnRef: exactProviderTraceString(workspace.streamTracking.activeTurnRef),
     lastMessage: lastMessage
       ? {
-        sender: lastMessage.sender,
-        type: lastMessage.type ?? null,
+        sender: exactProviderTraceString(lastMessage.sender),
+        type: exactProviderTraceString(lastMessage.type),
         textLength: typeof lastMessage.text === 'string' ? lastMessage.text.length : 0,
-        turnRef: lastMessage.turnRef ?? null,
-        sourceEventType: lastMessage.sourceEventType ?? null,
+        turnRef: exactProviderTraceString(lastMessage.turnRef),
+        sourceEventType: exactProviderTraceString(lastMessage.sourceEventType),
       }
       : null,
   };

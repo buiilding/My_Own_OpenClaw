@@ -259,6 +259,37 @@ describe('chatStore', () => {
     });
   });
 
+  test('provider trace fallback metadata is exact at the store adapter boundary', () => {
+    setMessagesInChatStore([
+      {
+        id: 'raw-message',
+        sender: ' assistant ' as never,
+        type: ' assistant_message ' as never,
+        text: 'raw answer',
+        turnRef: ' turn-raw ',
+        sourceEventType: ' streaming-response ',
+      },
+    ], 'conv-trace-exact');
+    updateStreamTrackingInChatStore((current) => ({
+      ...current,
+      activeTurnRef: ' turn-raw ',
+      phase: 'streaming',
+    }), 'conv-trace-exact');
+
+    expect(getChatProviderTraceWorkspaceSnapshotFromChatStore('conv-trace-exact')).toEqual({
+      activeConversationRef: null,
+      workspaceMessageCount: 1,
+      activeTurnRef: null,
+      lastMessage: {
+        sender: null,
+        type: null,
+        textLength: 'raw answer'.length,
+        turnRef: null,
+        sourceEventType: null,
+      },
+    });
+  });
+
   test('chat stream read model omits raw workspace message and view authority', () => {
     setMessagesInChatStore([
       {

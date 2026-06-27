@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/trace: make the chat-store provider trace read model publish only
+  exact no-view fallback active-turn and last-message metadata, so padded raw
+  message sender/type/ref/source labels are reported as missing at the adapter
+  boundary. No migration required.
 - frontend/chat: require SDK live-entry `modelId` and `modelProvider` values to
   be exact before projecting them onto renderer message props, so padded
   provider/model metadata is ignored instead of preserved. No migration

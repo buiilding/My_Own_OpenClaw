@@ -2773,6 +2773,13 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('conversationViewTraceSummary: hasConversationView');
     expect(chatStoreAdaptersSource).toContain('workspace: buildChatProviderTraceWorkspaceReadModel(');
     expect(chatStoreAdaptersSource).toContain('messageCount: workspace.messages.length');
+    expect(chatStoreAdaptersSource).toContain('function exactProviderTraceString(value: unknown): string | null');
+    expect(chatStoreAdaptersSource).toContain('activeTurnRef: exactProviderTraceString(workspace.streamTracking.activeTurnRef)');
+    expect(chatStoreAdaptersSource).toContain('turnRef: exactProviderTraceString(lastMessage.turnRef)');
+    expect(chatStoreAdaptersSource).toContain('sourceEventType: exactProviderTraceString(lastMessage.sourceEventType)');
+    expect(chatStoreAdaptersSource).not.toContain('activeTurnRef: workspace.streamTracking.activeTurnRef');
+    expect(chatStoreAdaptersSource).not.toContain('turnRef: lastMessage.turnRef ?? null');
+    expect(chatStoreAdaptersSource).not.toContain('sourceEventType: lastMessage.sourceEventType ?? null');
     expect(clientSource).toContain('SEND_CHANNELS.LIVE_SURFACE_TRACE');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/chatStream/chatStreamDebugTrace.ts'),
