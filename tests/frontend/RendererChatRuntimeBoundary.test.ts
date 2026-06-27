@@ -2064,6 +2064,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs'),
       'utf8',
     );
+    const directWakeUpAgentAdapterSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs'),
+      'utf8',
+    );
     const sdkConversationRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/ConversationRuntime.ts'),
       'utf8',
@@ -2256,6 +2260,10 @@ describe('renderer chat runtime boundary', () => {
     expect(ipcSdkCommandHandlerSource).not.toContain('model: cloneJsonObject(payload.model)');
     expect(ipcSdkCommandHandlerSource).not.toContain('turnRef,\n        payload:');
     expect(ipcSdkCommandHandlerSource).toContain("messageId: requireExactCommandString(payload, 'messageId', 'message id')");
+    expect(directWakeUpAgentAdapterSource).toContain('function resolveExactReplayConversationRef');
+    expect(directWakeUpAgentAdapterSource).toContain("readExactReplayCommandString(options.messageId, 'message id')");
+    expect(directWakeUpAgentAdapterSource).toContain('const displayConversationRef = resolveExactReplayConversationRef(options)');
+    expect(directWakeUpAgentAdapterSource).not.toContain('messageId: options.messageId');
     expect(sdkConversationRuntimeSource).toContain('export type EditAndResendInput = {\n  messageId: string;\n  text: string;\n};');
     expect(sdkConversationRuntimeSource).toContain('export type RetryTurnInput = {\n  messageId: string;\n};');
     expect(sdkReplayCommandSource).not.toContain('const replayPayload = mergeReplayPayload');

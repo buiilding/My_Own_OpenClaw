@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: require exact direct AgentClient replay conversation refs
+  and target row ids before selecting a conversation runtime handle, keeping
+  main-process replay bridges from trimming malformed renderer intent. No
+  migration required.
 - frontend/chat-store: stop exporting the raw workspace getter from production
   chat-store adapters, keeping raw workspace inspection in frontend test
   utilities while feature code stays on projected read models. No migration

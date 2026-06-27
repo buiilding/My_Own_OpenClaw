@@ -593,6 +593,37 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     expect(runtime.load).toHaveBeenCalledTimes(2);
   });
 
+  test('rejects padded direct replay identities before selecting a runtime handle', async () => {
+    const runtime = createRuntime();
+    const agent = createAgent(() => runtime);
+    const adapter = createDirectWakeUpAgentAdapter({
+      agent,
+      deps: createDeps(),
+    });
+    agent.conversation.mockClear();
+    runtime.editAndResend.mockClear();
+    runtime.retryTurn.mockClear();
+
+    await expect(adapter.editAndResend({
+      conversationRef: ' conv-replay ',
+      messageId: 'row-user',
+      text: 'edited text',
+    })).rejects.toThrow('Agent SDK replay commands require exact conversation reference.');
+    await expect(adapter.editAndResend({
+      conversationRef: 'conv-replay',
+      messageId: ' row-user ',
+      text: 'edited text',
+    })).rejects.toThrow('Agent SDK replay commands require exact message id.');
+    await expect(adapter.retryTurn({
+      conversationRef: 'conv-replay',
+      messageId: '',
+    })).rejects.toThrow('Agent SDK replay commands require exact message id.');
+
+    expect(agent.conversation).not.toHaveBeenCalled();
+    expect(runtime.editAndResend).not.toHaveBeenCalled();
+    expect(runtime.retryTurn).not.toHaveBeenCalled();
+  });
+
   test('forwards revision checkout and fork commands through the selected conversation handle', async () => {
     const runtime = createRuntime();
     const agent = createAgent(() => runtime);

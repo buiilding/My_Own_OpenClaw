@@ -159,7 +159,10 @@ flowchart LR
      well: they accept exact user/conversation/target identity plus edit text,
      do not build replay runtime payloads, attach query runtime context, trace
      runtime sends, or forward caller-supplied `payload`, `model`, or `turnRef`
-     fields, and retry requires an exact target row id.
+     fields, and retry requires an exact target row id. Direct AgentClient
+     wake-up replay commands use the same exact conversation-ref and target-row
+     gates before selecting a conversation runtime handle; they must not trim
+     padded replay identities into SDK command input.
      Chat-store adapters should not export replay wrapper commands, active-scope
      helpers for replay, or projected workspace rows; the store shape and
      `getState()` contract must not be passed into the replay runtime.
