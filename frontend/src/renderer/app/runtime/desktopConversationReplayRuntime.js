@@ -38,8 +38,12 @@ function traceErrorKind(error) {
   if (!error) {
     return null;
   }
-  if (typeof error.name === 'string' && error.name.trim()) {
-    return error.name.trim();
+  if (
+    typeof error.name === 'string'
+    && error.name.length > 0
+    && error.name === error.name.trim()
+  ) {
+    return error.name;
   }
   return error instanceof Error ? 'Error' : typeof error;
 }

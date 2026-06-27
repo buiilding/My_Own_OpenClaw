@@ -183,7 +183,9 @@ flowchart LR
      objects untouched; trace event `action` values name the renderer timeline
      event, while `replayAction` carries `retry` or `edit_resend` command kind
      when needed instead of stamping private renderer markers onto SDK command
-     errors.
+     errors. SDK error `name` values are trace labels only when they are already
+     exact non-empty strings; padded names fall back to the generic error kind
+     instead of being trimmed into a repaired diagnostic label.
    - Replay target ids are exact SDK display-row ids from action metadata.
      Renderer replay facades reject padded or empty ids instead of trimming
      them into targets. Edit text is forwarded as UI intent from the inline

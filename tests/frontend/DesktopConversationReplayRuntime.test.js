@@ -431,6 +431,7 @@ describe('desktopConversationReplayRuntime', () => {
     const chatStoreBundle = createChatStore();
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const sdkReplayError = new Error('sdk replay failed');
+    sdkReplayError.name = ' SDKReplayError ';
     DesktopConversationContinuityService.retryTurn.mockRejectedValue(sdkReplayError);
 
     await expect(executeReplayAction(replayArgs({
@@ -453,6 +454,9 @@ describe('desktopConversationReplayRuntime', () => {
       conversationRef: 'conv-replay',
       errorKind: 'Error',
       targetRowId: 'assistant-1',
+    }));
+    expect(DesktopRendererTraceRuntime.logRendererReplayTrace).not.toHaveBeenCalledWith(expect.objectContaining({
+      errorKind: 'SDKReplayError',
     }));
     errorSpy.mockRestore();
   });

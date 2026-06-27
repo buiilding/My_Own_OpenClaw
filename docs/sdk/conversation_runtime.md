@@ -673,6 +673,9 @@ Replay execution does not accept a caller-supplied active-conversation override.
 The replay runtime treats transcript/session/store conversation refs as exact
 identity values; padded refs are missing scope, not repaired active
 conversations.
+Replay diagnostic error-kind labels follow the same rule for SDK command error
+names: exact non-empty names may be logged, while padded names fall back to the
+generic `Error` label instead of being trimmed into renderer-owned diagnostics.
 It does not read renderer config context, pass selected-model overrides, or call
 the renderer settings facade before dispatch. SDK replay commands own the
 durable child revision, any model-selection application through `send()`, and

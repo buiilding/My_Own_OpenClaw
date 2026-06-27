@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: require SDK replay failure `error.name` labels to be exact
+  before using them in renderer diagnostics, so padded names fall back to the
+  generic `Error` kind instead of being trimmed into repaired trace metadata. No
+  migration required.
 - frontend/send: omit missing optional clipboard image `contentType` and
   `filename` fields from prepared SDK resources instead of publishing explicit
   `null` placeholders, keeping send preparation on the positive resource
