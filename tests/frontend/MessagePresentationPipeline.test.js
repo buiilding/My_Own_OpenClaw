@@ -604,6 +604,47 @@ describe('desktopThreadPresentationRuntime', () => {
     expect(rendered[1].toolCallDetails).not.toHaveProperty('structuredPayload');
   });
 
+  test('buildThreadPresentationMessages does not repair padded SDK live identity fields', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:tool:tool-1',
+          type: 'tool-call',
+          text: 'Using read_file',
+          sourceEventType: 'tool_call',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+          correlationId: ' corr-read ',
+          requestId: 'req-read',
+          bundleId: 'bundle-read',
+          toolCallDetails: {
+            requestId: ' corr-read ',
+            correlationId: 'wrong-detail-correlation',
+          },
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered[1]).toEqual(expect.objectContaining({
+      sender: 'assistant',
+      type: 'tool-call',
+      correlationId: 'req-read',
+    }));
+    expect(rendered[1].correlationId).not.toBe('corr-read');
+    expect(rendered[1].correlationId).not.toBe(' corr-read ');
+  });
+
   test('buildThreadPresentationMessages keeps live attachments out of tool details', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Capture screen', turnRef: 'turn-1' },

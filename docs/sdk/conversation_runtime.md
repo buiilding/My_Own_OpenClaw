@@ -390,6 +390,9 @@ override that channel to enter or leave the live-row visibility path.
 Projected live rows also prefer the containing SDK live-turn `turnRef` over any
 entry-level `turnRef`, so stale entry payload identity cannot move a current
 live row onto an older turn.
+Tool live-entry identity fields such as `correlationId`, `requestId`, and
+`bundleId` are exact SDK strings in renderer presentation; padded or empty
+values are ignored rather than trimmed into duplicate-detection keys.
 Streaming assistant display rows keep exact SDK-authored
 `metadata.sourceEventType` when present and otherwise use the generic
 `assistant_message` display-row type; padded or empty source event metadata

@@ -3839,7 +3839,8 @@ describe('renderer chat runtime boundary', () => {
     expect(displayAttachmentProjectionSource).not.toContain('countLegacyScreenshotAttachments');
     expect(currentTurnMessageRuntimeSource).toContain('readSdkDisplayAttachments');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveEntryCorrelationId(entry)');
-    expect(currentTurnMessageRuntimeSource).toContain('normalizeOptionalText(entry.requestId)');
+    expect(currentTurnMessageRuntimeSource).toContain('readExactSdkString(entry.requestId)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('normalizeOptionalText(entry.requestId)');
     expect(currentTurnMessageRuntimeSource).not.toContain('function normalizeDisplayAttachments');
     expect(threadPresentationRuntimeSource).toContain('function toolMessageIdentity(message)');
     expect(threadPresentationRuntimeSource).not.toContain('function resolveToolName');

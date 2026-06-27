@@ -52,9 +52,9 @@ function readExactSdkString(value) {
 
 function resolveEntryCorrelationId(entry) {
   return (
-    normalizeOptionalText(entry.correlationId)
-    || normalizeOptionalText(entry.requestId)
-    || normalizeOptionalText(entry.bundleId)
+    readExactSdkString(entry.correlationId)
+    || readExactSdkString(entry.requestId)
+    || readExactSdkString(entry.bundleId)
     || null
   );
 }
