@@ -21,6 +21,9 @@ All notable changes to WindieOS will be documented in this file.
   the ChatInterface presentation cache; legacy current-turn fallback snapshots
   now stay opaque until the thread presenter fallback consumes them. No
   migration required.
+- frontend/compaction: stop synthesizing compacted replay revision ids in the
+  renderer stream payload adapter; compacted replay persistence now requires
+  SDK/event revision identity. No migration required.
 - frontend/live-turn: remove the generic renderer metadata pass-through from
   `DesktopLiveTurnRuntimeClient.sendQuery`, leaving normal sends to cross the
   SDK command boundary with typed resources rather than attachment or capture

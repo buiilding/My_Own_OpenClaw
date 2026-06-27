@@ -451,6 +451,8 @@ describe('renderer chat runtime boundary', () => {
     expect(payloadRuntimeSource).toContain('replacement_history_entries');
     expect(payloadRuntimeSource).toContain('replacement_history_preview');
     expect(payloadRuntimeSource).toContain('summary_preview');
+    expect(payloadRuntimeSource).toContain('sourceRevisionId');
+    expect(payloadRuntimeSource).not.toContain('rev-compaction-');
     expect(payloadRuntimeSource).toContain('toolSchemas');
     expect(payloadRuntimeSource).toContain('export const DesktopChatStreamEventPayloadRuntime = Object.freeze');
     expect(payloadRuntimeSource).toContain('resolveConversationStreamEventPayload');

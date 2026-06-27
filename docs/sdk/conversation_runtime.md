@@ -1201,7 +1201,8 @@ renderer handlers do not need to unwrap `payload.sourceEvent`. Applied compactio
 payloads also expose replay fields (`entries`, `entryCount`, `complete`,
 `active`, `sourceRevisionId`, `sourceTurnRef`, and `createdAt`) so store
 adapters can use the persisted `compaction_applied` event itself as the compacted
-rehydrate base.
+rehydrate base. Renderer adapters must not synthesize replacement revision ids
+when that SDK/event revision identity is absent.
 
 After applied manual compaction, backend also emits a `model-history-updated`
 checkpoint for the active revision. That checkpoint is the normal resume source:

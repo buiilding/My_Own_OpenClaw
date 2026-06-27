@@ -387,7 +387,10 @@ SDK dispatch behavior:
 - SDK `compaction_started` from backend `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
 - SDK `compaction_applied` from backend `context-compaction-completed`: replaces in-progress compaction thinking with a terminal `Conversation history compacted.` status and marks source as `context-compaction-completed`
   - in dev UI, also stores compaction debug payload including the full summary text plus the replacement-history preview (summary message + kept tail messages)
-  - when SDK payload includes replacement history, builds a compacted replay snapshot from the SDK event and persists it through the renderer app-runtime facade instead of unwrapping a backend-wire event
+  - when SDK payload includes replacement history and SDK/event revision identity,
+    builds a compacted replay snapshot from the SDK event and persists it
+    through the renderer app-runtime facade instead of unwrapping a backend-wire
+    event or synthesizing renderer-owned revision ids
 - SDK `compaction_skipped` from backend `context-compaction-completed` with `skipped_reason`: clears only an active compaction status/debug payload. It does not render a compacted-history panel, persist replay rows, or clear unrelated active thinking/tool state.
 - SDK `compaction_failed` from backend `context-compaction-failed`: replaces compaction thinking with terminal failure text (backend error string when available, otherwise `Conversation compaction failed.`) and marks source as `context-compaction-failed`
 - SDK presentation tool entries from the conversation runtime projection:
