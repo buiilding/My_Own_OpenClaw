@@ -77,6 +77,9 @@ execution is not a renderer provider concern.
 
 - direct `ChatProvider` coverage exists in `tests/frontend/ChatProvider.test.jsx` for flag wiring and transcript-session conversation sync
 - boundary coverage rejects `ChatContext.jsx`, `EMPTY_CHAT_CONTEXT`, and raw lifecycle fields in provider trace snapshots
+- provider trace snapshots accept SDK `ConversationView` summaries only through
+  the shared workspace view gate, so partial renderer objects do not become
+  debug read-model authority
 
 ## Drift Hotspots
 

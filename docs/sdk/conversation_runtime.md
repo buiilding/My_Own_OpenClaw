@@ -525,9 +525,12 @@ Renderer replay/provider diagnostics that need display-row counts, latest row
 shape, or live-turn identity ask
 `DesktopConversationDisplayProjection.buildConversationViewTraceSummary(...)`
 for a trace summary instead of scanning `ConversationView.displayRows`
-directly. Replay projection traces apply the same exact turn-ref rule to
-pending, live, and stream-tracking inputs; padded refs are reported as missing
-instead of being trimmed into same-turn diagnostic matches.
+directly. Provider trace snapshots call that summary only after the shared
+workspace `ConversationView` gate accepts a complete SDK view envelope; partial
+objects fall back to the no-view raw workspace trace path instead of becoming
+debug read-model authority. Replay projection traces apply the same exact
+turn-ref rule to pending, live, and stream-tracking inputs; padded refs are
+reported as missing instead of being trimmed into same-turn diagnostic matches.
 Renderer token-usage presentation may estimate image cost from SDK
 `attachments[]`, but only by counting SDK image descriptors in
 `materializing` or `ready` states; pending screenshot requests and failed

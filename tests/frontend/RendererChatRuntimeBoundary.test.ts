@@ -2519,10 +2519,12 @@ describe('renderer chat runtime boundary', () => {
     expect(chatProviderSource).not.toContain('phase: workspace.streamTracking.phase');
     expect(providerTraceRuntimeSource).toContain('export const DesktopChatProviderTraceRuntime = Object.freeze');
     expect(providerTraceRuntimeSource).toContain('buildChatProviderTraceWorkspaceSnapshot');
-    expect(providerTraceRuntimeSource).toContain('function hasConversationView');
+    expect(providerTraceRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(providerTraceRuntimeSource).toContain('hasWorkspaceConversationView(workspace)');
     expect(providerTraceRuntimeSource).toContain('buildConversationViewTraceSummary');
     expect(providerTraceRuntimeSource).toContain('value.length > 0 && value === value.trim()');
     expect(providerTraceRuntimeSource).not.toContain("value.trim() ? value.trim() : null");
+    expect(providerTraceRuntimeSource).not.toContain("Boolean(workspace?.conversationView && typeof workspace.conversationView === 'object')");
     expect(providerTraceRuntimeSource).not.toContain('turnRef: lastMessage.turnRef || null');
     expect(providerTraceRuntimeSource).not.toContain('sourceEventType: lastMessage.sourceEventType || null');
     expect(providerTraceRuntimeSource).not.toContain('conversationView?.displayRows');

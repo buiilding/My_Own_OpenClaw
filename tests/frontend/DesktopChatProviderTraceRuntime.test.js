@@ -8,6 +8,33 @@ const {
   buildChatProviderTraceWorkspaceSnapshot,
 } = DesktopChatProviderTraceRuntime;
 
+function conversationView({
+  conversationRef = 'conv-provider',
+  displayRows = [],
+  liveTurn = {
+    turnRef: 'turn-view',
+  },
+  surfaces = {
+    dashboard: { mode: 'normal', visible: true },
+    pill: { mode: 'normal', visible: true },
+    responseOverlay: { mode: 'hidden', visible: false },
+  },
+  actions = {
+    canEdit: false,
+    canRetry: false,
+    canFork: false,
+  },
+} = {}) {
+  return {
+    conversationRef,
+    revisionId: null,
+    displayRows,
+    liveTurn,
+    surfaces,
+    actions,
+  };
+}
+
 describe('DesktopChatProviderTraceRuntime', () => {
   test('builds trace snapshots from ConversationView before raw workspace messages', () => {
     expect(buildChatProviderTraceWorkspaceSnapshot({
@@ -23,10 +50,7 @@ describe('DesktopChatProviderTraceRuntime', () => {
         streamTracking: {
           activeTurnRef: 'turn-stale',
         },
-        conversationView: {
-          liveTurn: {
-            turnRef: 'turn-view',
-          },
+        conversationView: conversationView({
           displayRows: [{
             id: 'view-row',
             role: 'assistant',
@@ -35,7 +59,7 @@ describe('DesktopChatProviderTraceRuntime', () => {
             turnRef: 'turn-view',
             sourceEventType: 'assistant-message-full',
           }],
-        },
+        }),
       },
     })).toEqual({
       activeConversationRef: 'conv-provider',
@@ -66,10 +90,10 @@ describe('DesktopChatProviderTraceRuntime', () => {
         streamTracking: {
           activeTurnRef: 'turn-stale',
         },
-        conversationView: {
-          liveTurn: null,
+        conversationView: conversationView({
+          liveTurn: {},
           displayRows: [],
-        },
+        }),
       },
     })).toEqual({
       activeConversationRef: 'conv-provider',
@@ -95,6 +119,45 @@ describe('DesktopChatProviderTraceRuntime', () => {
           activeTurnRef: 'turn-raw',
         },
         conversationView: null,
+      },
+    })).toEqual({
+      activeConversationRef: 'conv-provider',
+      workspaceMessageCount: 1,
+      activeTurnRef: 'turn-raw',
+      lastMessage: {
+        sender: 'assistant',
+        type: 'llm-text',
+        textLength: 'raw answer'.length,
+        turnRef: 'turn-raw',
+        sourceEventType: 'streaming-response',
+      },
+    });
+  });
+
+  test('falls back to raw workspace fields for incomplete ConversationView envelopes', () => {
+    expect(buildChatProviderTraceWorkspaceSnapshot({
+      activeConversationRef: 'conv-provider',
+      workspace: {
+        messages: [{
+          id: 'raw-message',
+          sender: 'assistant',
+          type: 'llm-text',
+          text: 'raw answer',
+          turnRef: 'turn-raw',
+          sourceEventType: 'streaming-response',
+        }],
+        streamTracking: {
+          activeTurnRef: 'turn-raw',
+        },
+        conversationView: {
+          displayRows: [{
+            id: 'view-row',
+            role: 'assistant',
+            type: 'assistant_message',
+            content: 'partial view answer',
+            turnRef: 'turn-view',
+          }],
+        },
       },
     })).toEqual({
       activeConversationRef: 'conv-provider',

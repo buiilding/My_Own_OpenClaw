@@ -5,10 +5,16 @@
 import {
   DesktopConversationDisplayProjection,
 } from './desktopConversationDisplayProjection';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
 const {
   buildConversationViewTraceSummary,
 } = DesktopConversationDisplayProjection;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 function normalizeTraceString(value) {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
@@ -16,12 +22,8 @@ function normalizeTraceString(value) {
     : null;
 }
 
-function hasConversationView(workspace) {
-  return Boolean(workspace?.conversationView && typeof workspace.conversationView === 'object');
-}
-
 function resolveTraceLastMessage(workspace) {
-  if (hasConversationView(workspace)) {
+  if (hasWorkspaceConversationView(workspace)) {
     return buildConversationViewTraceSummary(workspace.conversationView).lastMessage;
   }
   const messages = Array.isArray(workspace?.messages) ? workspace.messages : [];
@@ -36,7 +38,7 @@ function resolveTraceLastMessage(workspace) {
 }
 
 function resolveTraceActiveTurnRef(workspace) {
-  if (hasConversationView(workspace)) {
+  if (hasWorkspaceConversationView(workspace)) {
     return buildConversationViewTraceSummary(workspace.conversationView).liveTurnRef;
   }
   return (
@@ -45,7 +47,7 @@ function resolveTraceActiveTurnRef(workspace) {
 }
 
 function resolveTraceMessageCount(workspace) {
-  if (hasConversationView(workspace)) {
+  if (hasWorkspaceConversationView(workspace)) {
     return buildConversationViewTraceSummary(workspace.conversationView).displayRowCount;
   }
   const messages = Array.isArray(workspace?.messages) ? workspace.messages : [];
