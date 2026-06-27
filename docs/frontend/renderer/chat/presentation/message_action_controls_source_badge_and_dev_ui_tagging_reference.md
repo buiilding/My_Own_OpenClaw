@@ -153,7 +153,7 @@ Per-message token telemetry tag:
 - tags are intentionally approximate (`tokens~ ...`) and currently emitted for:
   - user rows: `txt:<n> img(est):<n> total:<n>`
     - text source precedence: `fullUserMessage.content` -> `message.text`
-    - image estimate: `85` tokens per screenshot attachment
+    - image estimate: `85` tokens per projected SDK attachment
   - tool rows (`tool-call`, `tool-output`): `tokens~ <n>` from model-facing payload text.
 
 `DesktopDevUiRuntime.isDevUiEnabled()` contract:

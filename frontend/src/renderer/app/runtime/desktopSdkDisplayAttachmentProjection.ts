@@ -63,23 +63,6 @@ function isDisplayImageAttachment(value: unknown): boolean {
   );
 }
 
-function isReadyDisplayImageAttachment(value: unknown): boolean {
-  const record = recordFromUnknown(value);
-  return Boolean(
-    record
-    && record.kind === 'image'
-    && record.status === 'ready',
-  );
-}
-
-function countDisplayImageAttachments(value: unknown): number {
-  return readSdkDisplayAttachments(value).filter(isDisplayImageAttachment).length;
-}
-
-function hasReadyDisplayImageAttachment(value: unknown): boolean {
-  return readSdkDisplayAttachments(value).some(isReadyDisplayImageAttachment);
-}
-
 function readSdkImageAttachmentSource(value: unknown): SdkDisplayImageAttachmentSource | null {
   if (!isSdkDisplayAttachment(value) || !isDisplayImageAttachment(value)) {
     return null;
@@ -94,8 +77,6 @@ function readSdkImageAttachmentSource(value: unknown): SdkDisplayImageAttachment
 }
 
 export const DesktopSdkDisplayAttachmentProjection = Object.freeze({
-  countDisplayImageAttachments,
-  hasReadyDisplayImageAttachment,
   readSdkImageAttachmentSource,
   readSdkDisplayAttachments,
 });

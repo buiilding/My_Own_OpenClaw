@@ -28,7 +28,13 @@ describe('MessageSourceBadge', () => {
           sourceChannel: 'sdk:conversation-event',
           text: 'short',
           fullUserMessage: { content: '12345678' },
-          screenshotRef: 'shot-1',
+          attachments: [{
+            id: 'attachment-shot-1',
+            kind: 'image',
+            source: 'camera_button',
+            status: 'ready',
+            screenshotRef: 'shot-1',
+          }],
         }}
       />,
     );

@@ -1375,7 +1375,8 @@ describe('renderer chat runtime boundary', () => {
     expect(messageTypeSource).not.toContain('screenshots?:');
     expect(tokenUsageRuntimeSource).toContain('tokens(provider)');
     expect(tokenUsageRuntimeSource).toContain('message?.attachments');
-    expect(tokenUsageRuntimeSource).toContain('countDisplayImageAttachments');
+    expect(tokenUsageRuntimeSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(tokenUsageRuntimeSource).not.toContain('countDisplayImageAttachments');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshots');
     expect(tokenUsageRuntimeSource).not.toContain('countLegacyScreenshotAttachments');
     expect(tokenUsageRuntimeSource).not.toContain('screenshotRef');
@@ -1428,7 +1429,8 @@ describe('renderer chat runtime boundary', () => {
     expect(messageContentSource).not.toContain('utils/message/messageScreenshots');
     expect(classRuntimeSource).toContain('DesktopMessageClassRuntime');
     expect(classRuntimeSource).toContain('hasVisualAttachment');
-    expect(classRuntimeSource).toContain('hasReadyDisplayImageAttachment');
+    expect(classRuntimeSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(classRuntimeSource).not.toContain('hasReadyDisplayImageAttachment');
     expect(classRuntimeSource).not.toContain('screenshotRef');
     expect(classRuntimeSource).not.toContain('screenshotUrl');
     expect(classRuntimeSource).not.toContain('message.screenshot');
@@ -3741,6 +3743,8 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('row.metadata?.requestId ?? row.metadata?.correlationId');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.toolName\n      ?');
     expect(displayAttachmentProjectionSource).toContain('readSdkDisplayAttachments');
+    expect(displayAttachmentProjectionSource).not.toContain('countDisplayImageAttachments');
+    expect(displayAttachmentProjectionSource).not.toContain('hasReadyDisplayImageAttachment');
     expect(displayAttachmentProjectionSource).not.toContain('summarizeSdkDisplayAttachments');
     expect(displayAttachmentProjectionSource).not.toContain('materializingPreviewCount');
     expect(displayAttachmentProjectionSource).not.toContain('pendingScreenshotRequestCount');

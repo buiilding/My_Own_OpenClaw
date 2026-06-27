@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: remove renderer aggregate attachment lifecycle helpers
+  from message class and token usage presentation; those facades now consume
+  only the projected SDK `attachments[]` list. No migration required.
 - frontend/chat-store: keep the raw active workspace selector private to the
   workspace runtime so chat UI selectors consume the cached read-model entry
   point instead. No migration required.

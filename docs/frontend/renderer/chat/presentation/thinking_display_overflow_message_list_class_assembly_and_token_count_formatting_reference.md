@@ -124,11 +124,13 @@ instead.
 - always: `message`, `message-${sender}`
 - `message-streaming` for unfinished assistant LLM rows
 - `message-type-${type}` for typed rows (`tool-call`, `tool-output`, `error`, etc.)
-- `message-has-screenshot` when typed ready image attachments resolve true
+- `message-has-screenshot` when the projected row carries typed SDK
+  `attachments[]`
 
-Screenshot presence for row classes is resolved from typed `attachments[]`;
-user-message and tool-output visual routing use SDK-owned descriptors through
-`AttachmentList` / `AttachmentRendererRegistry`.
+Screenshot presence for row classes follows the already-projected typed
+`attachments[]` list; the class helper does not classify SDK attachment
+lifecycle state. User-message and tool-output visual routing use SDK-owned
+descriptors through `AttachmentList` / `AttachmentRendererRegistry`.
 The React-only async artifact image fetch/cache hook remains in
 `frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js`.
 
@@ -138,9 +140,10 @@ Current runtime keeps token usage in chat store/state:
 
 - `chatStore.ts` holds `tokenCounts` payload from backend.
 - `useChatStream` handles `token-count` events and calls `setTokenCounts`.
-- dev token image estimates count SDK typed image `attachments[]` only; legacy
-  `screenshots[]` and whole-message `screenshotRef`/`screenshotUrl` aliases are
-  not renderer presentation or token-estimate authorities.
+- dev token image estimates count projected SDK `attachments[]` entries only;
+  legacy `screenshots[]` and whole-message `screenshotRef`/`screenshotUrl`
+  aliases are not renderer presentation or token-estimate authorities. The
+  token helper does not classify SDK attachment lifecycle state.
 - React message prop contracts advertise typed `attachments[]`, not
   whole-message screenshot aliases.
 - `DesktopAttachmentImageRuntime` resolves image refs/URLs only from typed SDK

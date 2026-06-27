@@ -26,7 +26,7 @@ describe('desktopMessageClassRuntime', () => {
     ).toBe('message message-assistant message-streaming');
   });
 
-  test('includes message type and screenshot classes for typed ready attachments', () => {
+  test('includes message type and screenshot classes for typed SDK attachments', () => {
     expect(
       buildMessageClassName({
         sender: 'assistant',
@@ -34,10 +34,9 @@ describe('desktopMessageClassRuntime', () => {
         text: 'result',
         attachments: [{
           id: 'tool-output:attachment:000',
-          kind: 'image',
-          source: 'tool_result',
-          status: 'ready',
-          screenshotRef: 'artifact-123',
+          kind: 'screenshot_request',
+          source: 'camera_button',
+          status: 'pending_capture',
         }],
       }),
     ).toBe(

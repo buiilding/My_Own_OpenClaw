@@ -2,13 +2,8 @@
  * Provides renderer message token usage tags for presentation surfaces.
  */
 
-import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
-
 const APPROX_CHARS_PER_TOKEN = 4;
 const APPROX_IMAGE_TOKENS_PER_SCREENSHOT = 85;
-const {
-  countDisplayImageAttachments,
-} = DesktopSdkDisplayAttachmentProjection;
 
 function normalizeText(value) {
   if (typeof value !== 'string') {
@@ -33,7 +28,7 @@ function estimateTextTokens(text) {
 }
 
 function resolveUserImageAttachmentCount(message) {
-  return countDisplayImageAttachments(message?.attachments);
+  return Array.isArray(message?.attachments) ? message.attachments.length : 0;
 }
 
 function resolveUserText(message) {

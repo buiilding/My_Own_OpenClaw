@@ -7,8 +7,6 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopSdkDisplayAttachmentProjection';
 
 const {
-  countDisplayImageAttachments,
-  hasReadyDisplayImageAttachment,
   readSdkImageAttachmentSource,
   readSdkDisplayAttachments,
 } = DesktopSdkDisplayAttachmentProjection;
@@ -54,35 +52,6 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
   test('returns an empty attachment list for non-array input', () => {
     expect(readSdkDisplayAttachments(null)).toEqual([]);
     expect(readSdkDisplayAttachments({ attachments: [] })).toEqual([]);
-  });
-
-  test('centralizes display image counts and ready image checks', () => {
-    const attachments = [
-      {
-        id: 'attachment-ready',
-        kind: 'image',
-        source: 'replay',
-        status: 'ready',
-        screenshotRef: 'artifact-ready',
-      },
-      {
-        id: 'attachment-materializing',
-        kind: 'image',
-        source: 'user_included',
-        status: 'materializing',
-        previewSrc: 'blob:preview',
-      },
-      {
-        id: 'attachment-pending',
-        kind: 'screenshot_request',
-        source: 'camera_button',
-        status: 'pending_capture',
-      },
-    ];
-
-    expect(countDisplayImageAttachments(attachments)).toBe(2);
-    expect(hasReadyDisplayImageAttachment(attachments)).toBe(true);
-    expect(hasReadyDisplayImageAttachment([attachments[1], attachments[2]])).toBe(false);
   });
 
   test('reads image source fields only from typed SDK image attachments', () => {
