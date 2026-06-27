@@ -96,10 +96,11 @@ current-turn projection does not keep a separate attachment descriptor
 validator. Artifact image rendering also receives normalized SDK image source
 fields from `DesktopSdkDisplayAttachmentProjection.readSdkImageAttachmentSource(...)`
 instead of validating attachment lifecycle fields in the React hook.
-SDK current-turn tool detail rows sanitize attachment, model-facing, raw payload,
-and screenshot compatibility fields through
-`DesktopSdkToolDetailProjection.sanitizeSdkToolDetailRecord(...)`, keeping
-current-turn row construction on typed SDK presentation fields.
+SDK current-turn presentation entries provide narrow `toolCallDetails` and
+`toolOutputDetails` records instead of raw payload mirrors. Renderer current-
+turn row construction consumes those SDK-authored details and typed
+`attachments[]`; `DesktopSdkToolDetailProjection.sanitizeSdkToolDetailRecord(...)`
+remains a compatibility guard for legacy/no-presentation tool detail shapes.
 
 `streamTracking` fields capture turn identity, phase, counters, and timestamps per workspace:
 

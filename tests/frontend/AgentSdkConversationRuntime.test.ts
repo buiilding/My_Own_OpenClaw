@@ -1033,8 +1033,18 @@ describe('Agent SDK conversation runtime core', () => {
             screenshotRef: 'artifact-tool-live',
           }),
         ],
+        toolOutputDetails: expect.objectContaining({
+          toolName: 'screenshot',
+          requestId: 'req-shot',
+          success: true,
+        }),
       }),
     ]);
+    const [entry] = projection.presentation.entries;
+    expect(entry?.toolOutputDetails).not.toHaveProperty('attachments');
+    expect(entry?.toolOutputDetails).not.toHaveProperty('screenshot_ref');
+    expect(entry?.toolOutputDetails).not.toHaveProperty('screenshotRef');
+    expect(entry?.toolOutputDetails).not.toHaveProperty('result');
   });
 
   test('orphan empty-chat greeting is not display or rehydrate history', () => {
@@ -1388,7 +1398,9 @@ describe('Agent SDK conversation runtime core', () => {
           correlationId: 'corr-read',
           success: true,
           toolOutputDetails: expect.objectContaining({
-            output: 'README contents',
+            toolName: 'read_file',
+            requestId: 'req-read',
+            success: true,
           }),
         }),
         expect.objectContaining({ type: 'llm-text', text: 'Done.', sourceChannel: 'sdk:current-turn' }),

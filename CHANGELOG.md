@@ -32,8 +32,8 @@ All notable changes to WindieOS will be documented in this file.
   `attachments[]` descriptors whose `kind` is `image`, leaving pending or
   failed screenshot request descriptors as display state. No migration required.
 - frontend/replay: remove chat-store replay wrapper exports; the replay hook
-  now calls the renderer replay runtime entrypoint directly and passes the chat
-  store only as an injected UI-state dependency. No migration required.
+  now calls the renderer replay runtime entrypoint directly and passes only a
+  narrow UI-state adapter. No migration required.
 - frontend/current-turn: keep the raw no-presentation current-turn fallback
   builder private to the message runtime; tests and callers now use the public
   no-view SDK live-turn facade. No migration required.
@@ -246,6 +246,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/live-turn: render legacy no-view tool outputs from SDK-provided
   `toolEvent.text` instead of reconstructing display text from
   `toolOutputDetails` result payloads. No migration required.
+- sdk/live-turn: project current-turn `toolCallDetails` and `toolOutputDetails`
+  from SDK-authored display detail fields instead of raw event payloads, leaving
+  attachments and screenshot refs on their typed channels. No migration
+  required.
 - sdk/frontend: add SDK-authored `displayCorrelationId` on display-row
   metadata and make the renderer display-row adapter read only that field for
   component correlation identity, removing request/bundle/tool-call fallback

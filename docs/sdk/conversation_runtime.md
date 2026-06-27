@@ -217,9 +217,11 @@ UI adapters:
   preview text from recovery previews or normalized tool identity/arguments, so
   renderer adapters should render live tool calls and tool outputs from entry
   `text` and typed display fields instead of decoding `modelFacingToolCall`,
-  `toolOutputDetails`, backend-wire event payloads, or whole-message screenshot
-  aliases. Screenshot aliases remain compatibility metadata for replay/provider
-  boundaries.
+  backend-wire event payloads, or whole-message screenshot aliases. Entry
+  `toolCallDetails` and `toolOutputDetails` are narrow display details, not raw
+  payload mirrors; attachment descriptors and screenshot refs stay on
+  `attachments[]` or compatibility fields. Screenshot aliases remain
+  compatibility metadata for replay/provider boundaries.
 
 Runtime snapshots also expose `snapshot.view`, and callers may use
 `conversation.getView()` or `conversation.subscribeView(...)` for the Phase 0
