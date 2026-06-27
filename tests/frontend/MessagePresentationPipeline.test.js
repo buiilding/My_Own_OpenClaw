@@ -1057,6 +1057,51 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
+  test('buildThreadPresentationMessages does not repair padded tool detail ids for dedupe', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+      {
+        id: 'materialized-tool-call',
+        sender: 'assistant',
+        text: 'Using read_file',
+        type: 'tool-call',
+        turnRef: 'turn-1',
+        correlationId: ' req-read ',
+        toolCallDetails: { requestId: ' req-read ' },
+      },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: 'live-tool-call',
+          type: 'tool-call',
+          text: 'Using read_file',
+          sourceEventType: 'tool_call',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+          requestId: 'req-read',
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered).toEqual([
+      ...messages,
+      expect.objectContaining({
+        id: 'live-tool-call',
+        type: 'tool-call',
+        correlationId: 'req-read',
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages drops current-turn thinking once assistant text is materialized', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },

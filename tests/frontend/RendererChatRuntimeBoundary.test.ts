@@ -3854,8 +3854,11 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnMessageRuntimeSource).not.toContain('function normalizeDisplayAttachments');
     expect(threadPresentationRuntimeSource).toContain('function toolMessageIdentity(message)');
     expect(threadPresentationRuntimeSource).toContain('function readExactRef(value)');
+    expect(threadPresentationRuntimeSource).toContain('const value = readExactRef(record?.[key]);');
+    expect(threadPresentationRuntimeSource).toContain('return readExactRef(message?.correlationId)');
     expect(threadPresentationRuntimeSource).toContain('const liveId = readExactRef(liveMessage?.id);');
     expect(threadPresentationRuntimeSource).not.toContain('const liveId = normalizeRef(liveMessage?.id);');
+    expect(threadPresentationRuntimeSource).not.toContain('return normalizeRef(message?.correlationId)');
     expect(threadPresentationRuntimeSource).toContain('const leftTurnRef = readExactRef(left);');
     expect(threadPresentationRuntimeSource).toContain('const rightTurnRef = readExactRef(right);');
     expect(threadPresentationRuntimeSource).not.toContain('const leftTurnRef = normalizeRef(left);');

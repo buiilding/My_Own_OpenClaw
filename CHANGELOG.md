@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: reject repaired turn refs during thread live/display
   dedupe so padded materialized refs cannot suppress SDK live rows. No
   migration required.
+- frontend/projection: reject repaired nested tool detail ids during thread
+  live/display dedupe so padded SDK detail identity cannot suppress live tool
+  rows. No migration required.
 - frontend/projection: reject padded SDK display-row `sourceEventType` metadata
   instead of treating it as authored event identity. No migration required.
 - frontend/projection: reject padded SDK display-row `displayCorrelationId`

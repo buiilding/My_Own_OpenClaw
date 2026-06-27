@@ -132,9 +132,9 @@ function asRecord(value) {
 
 function stringField(record, ...keys) {
   for (const key of keys) {
-    const value = record?.[key];
-    if (typeof value === 'string' && value.trim()) {
-      return value.trim();
+    const value = readExactRef(record?.[key]);
+    if (value) {
+      return value;
     }
   }
   return null;
@@ -169,7 +169,7 @@ function identityFromToolRecord(record) {
 }
 
 function toolMessageIdentity(message) {
-  return normalizeRef(message?.correlationId)
+  return readExactRef(message?.correlationId)
     || identityFromToolRecord(asRecord(message?.toolCallDetails))
     || identityFromToolRecord(asRecord(message?.toolOutputDetails))
     || identityFromToolRecord(asRecord(message?.toolMetadata));
