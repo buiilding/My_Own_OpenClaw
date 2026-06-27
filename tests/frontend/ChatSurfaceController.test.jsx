@@ -99,6 +99,51 @@ describe('useChatSurfaceController', () => {
     expect(result.current.currentTurnPresentationState.awaitingDotTargetMessageId).toBeNull();
   });
 
+  test('keeps partial ConversationView objects on the no-view surface path', () => {
+    const { result } = renderController({
+      props: {
+        conversationView: {
+          conversationRef: 'conv-1',
+          liveTurn: {
+            turnRef: 'turn-view',
+            entries: [{
+              id: 'view-entry-ignored',
+              type: 'llm-text',
+              text: 'partial view answer',
+            }],
+          },
+        },
+        sdkLiveTurn: {
+          phase: 'streaming',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          assistantText: 'streaming response',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+          presentation: {
+            entries: [{
+              id: 'live-entry',
+              type: 'llm-text',
+              text: 'live fallback answer',
+            }],
+          },
+        },
+      },
+    });
+
+    expect(result.current).toMatchObject({
+      isBusy: true,
+      canStop: false,
+      surfaceSource: 'sdk-current-turn',
+      visibleTurnLifecycle: expect.objectContaining({
+        status: 'active',
+        source: 'sdk',
+        turnRef: 'turn-1',
+      }),
+    });
+  });
+
   test('prefers SDK current-turn completion over stale stream phases', () => {
     const { result } = renderController({
       props: {

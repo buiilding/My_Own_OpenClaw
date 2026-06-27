@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: require complete SDK `ConversationView` envelopes in
+  thread, chat-surface, live-turn surface, and visible-lifecycle helpers before
+  suppressing no-view fallback messages, `sdkLiveTurn`, or pending bridge state.
+  No migration required.
 - frontend/send: normalize live-turn SDK resource arrays at the renderer command
   facade, dropping malformed handles and renderer preview/display lifecycle
   fields before `conversation.send`. No migration required.

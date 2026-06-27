@@ -41,8 +41,19 @@ function readExactRef(value) {
     : null;
 }
 
-function isConversationView(value) {
+function isObjectRecord(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function isConversationView(value) {
+  return Boolean(
+    isObjectRecord(value)
+      && readExactRef(value.conversationRef)
+      && Array.isArray(value.displayRows)
+      && isObjectRecord(value.liveTurn)
+      && isObjectRecord(value.surfaces)
+      && isObjectRecord(value.actions),
+  );
 }
 
 function isRendererPendingBridgeMessage(message) {
@@ -287,19 +298,20 @@ function buildThreadPresentationMessages(
   } = {},
 ) {
   const hasConversationView = isConversationView(conversationView);
+  const effectiveConversationView = hasConversationView ? conversationView : null;
   const inputMessages = Array.isArray(messages) ? messages : [];
   const baseMessages = hasConversationView
     ? inputMessages.filter(isConversationViewBaseMessage)
     : inputMessages;
   const resolvedCurrentTurnMessages = resolveCurrentTurnMessages({
     sdkLiveTurn,
-    conversationView,
+    conversationView: effectiveConversationView,
   });
   const liveMessages = selectVisibleCurrentTurnMessages({
     messages: baseMessages,
     liveTurnMessages: resolvedCurrentTurnMessages,
     sdkLiveTurn,
-    conversationView,
+    conversationView: effectiveConversationView,
     activeConversationRef,
   });
   if (liveMessages.length === 0) {

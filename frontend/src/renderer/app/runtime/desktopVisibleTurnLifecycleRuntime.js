@@ -18,6 +18,10 @@ function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function isObjectRecord(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
 function readExactIdentityString(value) {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
     ? value
@@ -286,7 +290,14 @@ function resolveConversationViewLifecycleStatus(conversationView) {
 }
 
 function isConversationView(value) {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+  return Boolean(
+    isObjectRecord(value)
+      && normalizeConversationRef(value.conversationRef)
+      && Array.isArray(value.displayRows)
+      && isObjectRecord(value.liveTurn)
+      && isObjectRecord(value.surfaces)
+      && isObjectRecord(value.actions),
+  );
 }
 
 function resolveVisibleTurnLifecycle({
@@ -303,9 +314,12 @@ function resolveVisibleTurnLifecycle({
     normalizedPendingTurn,
     sdkLiveTurn,
   );
-  const viewStatus = resolveConversationViewLifecycleStatus(conversationView);
+  const effectiveConversationView = isConversationView(conversationView)
+    ? conversationView
+    : null;
+  const viewStatus = resolveConversationViewLifecycleStatus(effectiveConversationView);
   const sameTurnConversationViewReplacement = (
-    canConversationViewReplacePendingTurn(normalizedPendingTurn, conversationView)
+    canConversationViewReplacePendingTurn(normalizedPendingTurn, effectiveConversationView)
     && viewStatus !== 'idle'
   );
 
@@ -323,16 +337,16 @@ function resolveVisibleTurnLifecycle({
     };
   }
 
-  if (conversationView && viewStatus !== 'idle') {
-    const liveTurn = conversationView.liveTurn || {};
+  if (effectiveConversationView && viewStatus !== 'idle') {
+    const liveTurn = effectiveConversationView.liveTurn || {};
     const entries = Array.isArray(liveTurn.entries) ? liveTurn.entries : [];
     return {
       status: viewStatus,
       source: 'conversation-view',
-      conversationRef: normalizeConversationRef(conversationView.conversationRef),
+      conversationRef: normalizeConversationRef(effectiveConversationView.conversationRef),
       turnRef: normalizeTurnRef(liveTurn.turnRef),
       awaitingAnchor: viewStatus === 'awaiting'
-        ? findConversationViewAwaitingAnchor(conversationView, normalizedPendingTurn)
+        ? findConversationViewAwaitingAnchor(effectiveConversationView, normalizedPendingTurn)
         : null,
       entries,
       terminalReason: liveTurn.isTerminal === true ? 'complete' : null,
@@ -341,11 +355,11 @@ function resolveVisibleTurnLifecycle({
     };
   }
 
-  if (isConversationView(conversationView)) {
+  if (effectiveConversationView) {
     return {
       status: 'idle',
       source: 'conversation-view',
-      conversationRef: normalizeConversationRef(conversationView.conversationRef) || normalizedActiveConversationRef,
+      conversationRef: normalizeConversationRef(effectiveConversationView.conversationRef) || normalizedActiveConversationRef,
       turnRef: null,
       awaitingAnchor: null,
       entries: [],

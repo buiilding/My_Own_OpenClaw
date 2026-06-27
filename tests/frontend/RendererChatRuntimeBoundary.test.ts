@@ -150,15 +150,22 @@ describe('renderer chat runtime boundary', () => {
     expect(surfaceRuntimeSource).toContain('resolveVisibleTurnLifecycle');
     expect(surfaceRuntimeSource).toContain('resolveLiveTurnPresentationInput');
     expect(surfaceRuntimeSource).toContain('buildChatSurfaceControllerStateFromSurfaceState');
-    expect(surfaceRuntimeSource).toContain('const conversationView = isObject(surfaceState.conversationView)');
+    expect(surfaceRuntimeSource).toContain('function isConversationView(value)');
+    expect(surfaceRuntimeSource).toContain('readExactRef(value.conversationRef)');
+    expect(surfaceRuntimeSource).toContain('Array.isArray(value.displayRows)');
+    expect(surfaceRuntimeSource).toContain('isObject(value.liveTurn)');
+    expect(surfaceRuntimeSource).toContain('isObject(value.surfaces)');
+    expect(surfaceRuntimeSource).toContain('isObject(value.actions)');
+    expect(surfaceRuntimeSource).toContain('const conversationView = isConversationView(surfaceState.conversationView)');
     expect(surfaceRuntimeSource).not.toContain('sdkLiveTurn: hasConversationView ? null : surfaceState.sdkLiveTurn ?? null');
     expect(surfaceRuntimeSource).not.toContain('surfaceState.currentTurnProjection');
     expect(surfaceRuntimeSource).toContain('const rendererFallbackMessages = hasConversationView');
     expect(surfaceRuntimeSource).toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');
     expect(surfaceRuntimeSource).toContain('sdkLiveTurn: effectiveSdkLiveTurn');
     expect(surfaceRuntimeSource).toContain('messages: rendererFallbackMessages');
-    expect(surfaceRuntimeSource).toContain('conversationView?.surfaces');
-    expect(surfaceRuntimeSource).toContain('conversationView?.liveTurn?.canStop');
+    expect(surfaceRuntimeSource).toContain('resolveConversationViewSurfaceMode(');
+    expect(surfaceRuntimeSource).toContain('effectiveConversationView,');
+    expect(surfaceRuntimeSource).toContain('effectiveConversationView?.liveTurn?.canStop');
     expect(surfaceRuntimeSource).not.toContain('features/chat');
   });
 

@@ -66,6 +66,21 @@ function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function isObjectRecord(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function isConversationView(value) {
+  return Boolean(
+    isObjectRecord(value)
+      && normalizeConversationRef(value.conversationRef)
+      && Array.isArray(value.displayRows)
+      && isObjectRecord(value.liveTurn)
+      && isObjectRecord(value.surfaces)
+      && isObjectRecord(value.actions),
+  );
+}
+
 function mapSdkLiveTurnPhase(phase) {
   return SDK_LIVE_TURN_PHASE_TO_SURFACE_PHASE[normalizePhase(phase)] ?? null;
 }
@@ -189,20 +204,15 @@ function resolveConversationViewSurfacePhase(conversationView) {
 }
 
 function hasConversationViewLiveTurn(conversationView) {
+  if (!isConversationView(conversationView)) {
+    return false;
+  }
   const liveTurn = conversationView?.liveTurn;
   const responseOverlaySurface = conversationView?.surfaces?.responseOverlay;
   return Boolean(
-    conversationView
-      && typeof conversationView === 'object'
-      && (
-        liveTurn
-        || responseOverlaySurface
-      ),
+    liveTurn
+      || responseOverlaySurface,
   );
-}
-
-function isConversationView(value) {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
 function resolveSdkOverlayIntent(presentation, sdkLiveTurn) {

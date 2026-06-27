@@ -27,6 +27,23 @@ function isObject(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
+function readExactRef(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
+function isConversationView(value) {
+  return Boolean(
+    isObject(value)
+      && readExactRef(value.conversationRef)
+      && Array.isArray(value.displayRows)
+      && isObject(value.liveTurn)
+      && isObject(value.surfaces)
+      && isObject(value.actions),
+  );
+}
+
 function resolveSurfaceConversationRef({
   conversationView = null,
   sdkLiveTurn = null,
@@ -55,25 +72,26 @@ function buildChatSurfaceControllerState({
   sdkLiveTurn = null,
   sessionConversationRef = null,
 } = {}) {
-  const hasConversationView = isObject(conversationView);
+  const hasConversationView = isConversationView(conversationView);
+  const effectiveConversationView = hasConversationView ? conversationView : null;
   const rendererFallbackMessages = hasConversationView
     ? []
     : Array.isArray(messages) ? messages : [];
   const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
     activeConversationRef: resolveSurfaceConversationRef({
-      conversationView,
+      conversationView: effectiveConversationView,
       sdkLiveTurn: effectiveSdkLiveTurn,
       sessionConversationRef,
     }),
     pendingTurn,
     sdkLiveTurn: effectiveSdkLiveTurn,
-    conversationView,
+    conversationView: effectiveConversationView,
     messages: rendererFallbackMessages,
   });
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
     sdkLiveTurn: effectiveSdkLiveTurn,
-    conversationView,
+    conversationView: effectiveConversationView,
     pendingTurn,
     messages: rendererFallbackMessages,
     visibleTurnLifecycle,
@@ -86,7 +104,7 @@ function buildChatSurfaceControllerState({
     visibleTurnLifecycle,
   );
   const viewSurfaceMode = resolveConversationViewSurfaceMode(
-    conversationView,
+    effectiveConversationView,
     conversationViewSurface,
   );
   const isLocalPending = liveTurnPresentationInput.useLocalPendingTurn === true;
@@ -98,7 +116,7 @@ function buildChatSurfaceControllerState({
   const canStop = isLocalPending
     ? true
     : hasConversationView
-      ? conversationView?.liveTurn?.canStop === true
+      ? effectiveConversationView?.liveTurn?.canStop === true
       : false;
 
   return {
@@ -118,7 +136,7 @@ function buildChatSurfaceControllerStateFromSurfaceState({
   sessionConversationRef = null,
 } = {}) {
   const surfaceState = isObject(chatSurfaceState) ? chatSurfaceState : {};
-  const conversationView = isObject(surfaceState.conversationView)
+  const conversationView = isConversationView(surfaceState.conversationView)
     ? surfaceState.conversationView
     : null;
   return buildChatSurfaceControllerState({

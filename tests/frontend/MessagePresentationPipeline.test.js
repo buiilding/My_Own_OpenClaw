@@ -10,6 +10,19 @@ const {
   buildThreadPresentationMessages,
 } = DesktopThreadPresentationRuntime;
 
+function conversationViewFixture(overrides = {}) {
+  return {
+    conversationRef: 'conv-1',
+    displayRows: [],
+    liveTurn: {
+      entries: [],
+    },
+    surfaces: {},
+    actions: {},
+    ...overrides,
+  };
+}
+
 describe('desktopThreadPresentationRuntime', () => {
   test('buildThreadPresentationMessages keeps durable row order without tool-log filtering', () => {
     const messages = [
@@ -385,8 +398,7 @@ describe('desktopThreadPresentationRuntime', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-view' },
     ];
-    const conversationView = {
-      conversationRef: 'conv-1',
+    const conversationView = conversationViewFixture({
       liveTurn: {
         turnRef: 'turn-view',
         entries: [{
@@ -397,7 +409,7 @@ describe('desktopThreadPresentationRuntime', () => {
           turnRef: 'turn-view',
         }],
       },
-    };
+    });
     const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-stale',
@@ -446,8 +458,7 @@ describe('desktopThreadPresentationRuntime', () => {
       text: 'stale raw prompt',
       turnRef: 'turn-view',
     };
-    const conversationView = {
-      conversationRef: 'conv-1',
+    const conversationView = conversationViewFixture({
       liveTurn: {
         turnRef: 'turn-view',
         entries: [{
@@ -458,7 +469,7 @@ describe('desktopThreadPresentationRuntime', () => {
           turnRef: 'turn-view',
         }],
       },
-    };
+    });
 
     expect(buildThreadPresentationMessages([
       rawRow,
@@ -493,13 +504,12 @@ describe('desktopThreadPresentationRuntime', () => {
       sourceChannel: 'renderer-local',
       sourceEventType: 'renderer-compose',
     };
-    const conversationView = {
-      conversationRef: 'conv-1',
+    const conversationView = conversationViewFixture({
       liveTurn: {
         turnRef: 'turn-view',
         entries: [],
       },
-    };
+    });
 
     expect(buildThreadPresentationMessages([
       rawRow,
@@ -509,6 +519,52 @@ describe('desktopThreadPresentationRuntime', () => {
       activeConversationRef: 'conv-1',
     })).toEqual([
       pendingBridgeRow,
+    ]);
+  });
+
+  test('buildThreadPresentationMessages keeps partial ConversationView objects on no-view fallback path', () => {
+    const rawRow = {
+      id: 'raw-user-row',
+      sender: 'user',
+      text: 'raw prompt',
+      turnRef: 'turn-live',
+    };
+    const partialConversationView = {
+      conversationRef: 'conv-1',
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries: [{
+          id: 'view-entry-ignored',
+          type: 'llm-text',
+          text: 'partial view answer',
+        }],
+      },
+    };
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-live',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'live-entry',
+          type: 'llm-text',
+          text: 'live fallback answer',
+          turnRef: 'turn-live',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages([rawRow], {
+      conversationView: partialConversationView,
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      rawRow,
+      expect.objectContaining({
+        id: 'live-entry',
+        text: 'live fallback answer',
+        sourceChannel: 'sdk:current-turn',
+      }),
     ]);
   });
 

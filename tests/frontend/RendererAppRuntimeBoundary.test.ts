@@ -691,6 +691,14 @@ describe('renderer app runtime boundary', () => {
     expect(threadPresentationSource).toContain('desktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopThreadPresentationRuntime');
+    expect(threadPresentationSource).toContain('function isConversationView(value)');
+    expect(threadPresentationSource).toContain('readExactRef(value.conversationRef)');
+    expect(threadPresentationSource).toContain('Array.isArray(value.displayRows)');
+    expect(threadPresentationSource).toContain('isObjectRecord(value.liveTurn)');
+    expect(threadPresentationSource).toContain('isObjectRecord(value.surfaces)');
+    expect(threadPresentationSource).toContain('isObjectRecord(value.actions)');
+    expect(threadPresentationSource).toContain('const effectiveConversationView = hasConversationView ? conversationView : null');
+    expect(threadPresentationSource).toContain('conversationView: effectiveConversationView');
     expect(threadPresentationSource).not.toContain('buildLegacyNoPresentationCurrentTurnMessages');
     expect(threadPresentationSource).not.toContain('buildCurrentTurnMessagesFromPresentation');
     expect(threadPresentationSource).not.toContain('buildConversationViewLiveTurnMessages');
@@ -793,6 +801,8 @@ describe('renderer app runtime boundary', () => {
     expect(chatSurfaceControllerSource).not.toContain('resolveCurrentTurnPresentationState');
     expect(chatSurfaceRuntimeSource).toContain('DesktopCurrentTurnPresentationRuntime');
     expect(chatSurfaceRuntimeSource).toContain('resolveCurrentTurnPresentationState');
+    expect(chatSurfaceRuntimeSource).toContain('function isConversationView(value)');
+    expect(chatSurfaceRuntimeSource).toContain('const hasConversationView = isConversationView(conversationView)');
     expect(chatSurfaceControllerSource).not.toContain('useCurrentTurnPresentationState');
     expect(chatSurfaceControllerSource).not.toContain('resolveSdkCurrentTurnPresentationState');
     expect(chatInterfacePresentationSource).toContain('desktopThreadPresentationRuntime');
