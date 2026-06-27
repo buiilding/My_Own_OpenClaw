@@ -301,7 +301,7 @@ describe('desktopConversationReplayRuntime', () => {
     expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
   });
 
-  test('resolves replay session and model selection behind the runtime boundary', async () => {
+  test('resolves replay session behind the runtime boundary without forwarding model overrides', async () => {
     const chatStoreBundle = createChatStore();
     const callerModel = {
       modelProvider: 'caller-provider',
@@ -320,7 +320,7 @@ describe('desktopConversationReplayRuntime', () => {
         conversationRef: 'conv-caller-session',
         userId: 'user-caller',
       },
-      deferredQueryModelSelection: callerModel,
+      model: callerModel,
     }))).resolves.toBe(true);
 
     const replayCommand = DesktopConversationContinuityService.retryTurn.mock.calls[0][0];
@@ -333,7 +333,7 @@ describe('desktopConversationReplayRuntime', () => {
       conversationRef: 'conv-caller-session',
       userId: 'user-caller',
     }));
-    expect(replayCommand.model).not.toEqual(callerModel);
+    expect(replayCommand).not.toHaveProperty('model');
   });
 
   test('returns undefined for empty replay row targets without dispatching SDK commands', async () => {

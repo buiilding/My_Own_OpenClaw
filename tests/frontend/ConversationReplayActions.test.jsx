@@ -15,7 +15,6 @@ import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
-import { DesktopRendererConfigStorageRuntime } from '../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime';
 
 let mockConversationRef = 'conv-existing';
 
@@ -56,10 +55,6 @@ const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.update
 describe('useConversationReplayActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    DesktopRendererConfigStorageRuntime.saveConfigToStorage({
-      model_provider: 'anthropic',
-      selected_model_id: 'claude-sonnet-4-5',
-    });
     mockConversationRef = 'conv-existing';
     jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel) => {
       if (channel === INVOKE_CHANNELS.DELETE_CHAT_CONVERSATION) {
@@ -97,11 +92,8 @@ describe('useConversationReplayActions', () => {
       conversationRef: 'conv-existing',
       userId: 'user-1',
       messageId: 'assistant-1',
-      model: {
-        modelProvider: 'anthropic',
-        modelId: 'claude-sonnet-4-5',
-      },
     }));
+    expect(mockRetryTurn.mock.calls[0][0]).not.toHaveProperty('model');
     expect(mockRetryTurn.mock.calls[0][0]).not.toHaveProperty('turnRef');
     expect(mockRetryTurn).toHaveBeenCalledTimes(1);
     expect(useChatStore.getState().getWorkspaceState('conv-existing').pendingTurn).toBeNull();
@@ -119,11 +111,8 @@ describe('useConversationReplayActions', () => {
       userId: 'user-1',
       messageId: 'renderer-user-2',
       text: ' edited second question ',
-      model: {
-        modelProvider: 'anthropic',
-        modelId: 'claude-sonnet-4-5',
-      },
     }));
+    expect(mockEditAndResend.mock.calls[0][0]).not.toHaveProperty('model');
     expect(mockEditAndResend.mock.calls[0][0]).not.toHaveProperty('turnRef');
     expect(mockRetryTurn).not.toHaveBeenCalled();
     expect(useChatStore.getState().getWorkspaceState('conv-existing').pendingTurn).toBeNull();

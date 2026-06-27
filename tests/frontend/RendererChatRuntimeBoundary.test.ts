@@ -2055,7 +2055,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopRendererConfigRuntimeClient');
     expect(source).not.toContain('config,');
     expect(source).not.toContain('config:');
-    expect(replayRuntimeSource).toContain('readDeferredQueryModelSelection');
+    expect(replayRuntimeSource).not.toContain('readDeferredQueryModelSelection');
+    expect(replayRuntimeSource).not.toContain('DesktopRendererConfigRuntimeClient');
     expect(replayRuntimeSource).not.toContain('config,');
     expect(replayRuntimeSource).not.toContain('config = null');
     expect(chatStoreAdaptersSource).not.toContain('editUserMessageReplayFromChatStore');
@@ -2123,7 +2124,9 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('activeConversationRef,');
     expect(replayRuntimeSource).not.toContain('sessionInfo = null');
     expect(replayRuntimeSource).toContain('const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();');
-    expect(replayRuntimeSource).toContain('const modelSelection = resolveReplayModelSelection();');
+    expect(replayRuntimeSource).not.toContain('const modelSelection = resolveReplayModelSelection();');
+    expect(replayRuntimeSource).not.toContain('resolveReplayModelSelection');
+    expect(replayRuntimeSource).not.toContain('model: modelSelection');
     expect(replayRuntimeSource).not.toContain('modelSelection,\n  sessionInfo');
     expect(replayRuntimeSource).not.toContain('modelSelection: resolveReplayModelSelection()');
     expect(replayRuntimeSource).not.toContain('sessionInfo: resolvedSessionInfo');

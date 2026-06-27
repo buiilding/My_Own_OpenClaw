@@ -6,7 +6,6 @@ import { DesktopConversationContinuityService } from './desktopConversationConti
 import {
   DesktopConversationSessionRuntime,
 } from './desktopConversationSessionRuntime';
-import { DesktopRendererConfigRuntimeClient } from './desktopRendererConfigRuntimeClient';
 import { DesktopRendererTraceRuntime } from './desktopRendererTraceRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 
@@ -94,7 +93,6 @@ async function executeReplayIntent({
     targetRowId,
   } = intent;
   const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
-  const modelSelection = resolveReplayModelSelection();
   const conversationRef = resolveExistingConversationRef(sessionInfo.conversationRef);
   if (!conversationRef) {
     console.error(`[ChatInterface] ${errorPrefix}: missing active conversation`);
@@ -128,14 +126,12 @@ async function executeReplayIntent({
           conversationRef,
           messageId: targetRowId,
           text: queryText,
-          model: modelSelection || undefined,
         });
       } else {
         await DesktopConversationContinuityService.retryTurn({
           userId: sessionInfo.userId,
           conversationRef,
           messageId: targetRowId,
-          model: modelSelection || undefined,
         });
       }
       logReplayTimeline('sdk_replay_done', {
@@ -181,10 +177,6 @@ function prepareReplayActionIntent({
     return prepareReplayRetryIntent({ targetRowId });
   }
   return null;
-}
-
-function resolveReplayModelSelection() {
-  return DesktopRendererConfigRuntimeClient.readDeferredQueryModelSelection();
 }
 
 async function executeReplayAction({

@@ -586,13 +586,10 @@ Replay execution does not accept a caller-supplied active-conversation override.
 The replay runtime treats transcript/session/store conversation refs as exact
 identity values; padded refs are missing scope, not repaired active
 conversations.
-It may pass a model override as command data, but React replay hooks do not read
-renderer config context or pass config through the UI intent call. The replay
-runtime facade reads optional model command data behind the app-runtime boundary
-and must not call the renderer settings facade to apply that model before
-dispatch.
-SDK replay commands own the durable child revision, model-selection application
-through `send()`, and provider-safe replacement history.
+It does not read renderer config context, pass selected-model overrides, or call
+the renderer settings facade before dispatch. SDK replay commands own the
+durable child revision, any model-selection application through `send()`, and
+provider-safe replacement history.
 Thread presentation no longer accepts caller-built `currentTurnMessages` as an
 alternate live-row input; no-view live rows must come from the SDK current-turn
 projection/presentation adapter, and `ConversationView` remains the normal
@@ -1286,18 +1283,18 @@ must not infer or forward screenshot aliases; absent renderer payload fields
 must not erase prior resolved resources without an explicit removal operation.
 
 The Electron renderer does not publish a replay-specific pending turn, retained
-display prefix, separate replacement query, or renderer replay payload. It
-passes row intent, edited text when applicable, optional model override data
-read by the replay runtime facade, user id, conversation ref, and no
-renderer-owned replacement turn ref into the SDK command. Renderer replay
-diagnostics name
+display prefix, separate replacement query, renderer replay payload, or
+selected-model override. It passes row intent, edited text when applicable,
+user id, conversation ref, and no renderer-owned replacement turn ref into the
+SDK command. Renderer replay diagnostics name
 that target as a generic
 `targetRowId`; edit and retry both map it to the SDK command's `messageId`
 field without classifying the row as a user-message target. It must not call
-the renderer settings facade to pre-apply the replay model; the SDK command
-applies model selection inside the replacement `send()` path. The SDK command
-chooses the replacement turn ref. If the SDK command cannot resolve the stored
-target row or fails, the renderer records replay diagnostics and returns
+the renderer settings facade or read renderer config to pre-apply the replay
+model; the SDK command applies any model selection inside the replacement
+`send()` path. The SDK command chooses the replacement turn ref. If the SDK
+command cannot resolve the stored target row or fails, the renderer records
+replay diagnostics and returns
 failure without rolling its own display replacement, failure row, or resource
 restoration. Typed
 visual `attachments[]`, screenshot descriptors, preview bytes, ready artifact
