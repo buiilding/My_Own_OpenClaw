@@ -99,7 +99,9 @@ derives only from `row.isStreaming`.
 It also must not synthesize missing model-facing tool-call objects from
 metadata-only rows; SDK display rows should provide that semantic object when
 it is part of the row contract, and renderer projection keeps metadata as
-display/details only.
+display/details only. Tool-call and tool-output card text is likewise
+SDK-authored string row content; the renderer adapter drops structured row
+content instead of JSON-stringifying it into a display fallback.
 `DesktopSdkDisplayAttachmentProjection` owns renderer-side display attachment
 validation and artifact image-source extraction for typed SDK descriptors. It
 does not publish image-count, ready-image, or lifecycle summary helpers. Token

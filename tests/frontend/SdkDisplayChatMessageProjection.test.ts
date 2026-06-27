@@ -29,11 +29,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         index: 1,
         role: 'assistant',
         type: 'tool_call',
-        content: {
-          id: 'call-1',
-          name: 'read_file',
-          arguments: { path: 'package.json' },
-        },
+        content: 'read_file {"path":"package.json"}',
         metadata: {
           revisionId: 'rev-1',
           timestamp: '2026-05-15T12:00:01.000Z',
@@ -103,7 +99,8 @@ describe('sdkDisplayChatMessageProjection', () => {
         sender: 'assistant',
         type: 'tool-call',
         correlationId: 'req-1',
-        toolCallDisplayText: expect.stringContaining('"name": "read_file"'),
+        text: 'read_file {"path":"package.json"}',
+        toolCallDisplayText: 'read_file {"path":"package.json"}',
       }),
       expect.objectContaining({
         id: 'msg-tool-output',
@@ -148,9 +145,33 @@ describe('sdkDisplayChatMessageProjection', () => {
         content: { output: 'renderer must not recover this' },
       },
       {
-        id: 'msg-tool-progress-object-content',
+        id: 'msg-tool-call-object-content',
         conversationRef: 'conv-sdk',
         index: 3,
+        role: 'assistant',
+        type: 'tool_call',
+        content: {
+          id: 'call-1',
+          name: 'renderer_must_not_recover_this',
+          arguments: { path: 'package.json' },
+        },
+      },
+      {
+        id: 'msg-tool-bundle-output-object-content',
+        conversationRef: 'conv-sdk',
+        index: 4,
+        role: 'tool',
+        type: 'tool_bundle_output',
+        content: {
+          step_results: [{
+            output: 'renderer must not recover this',
+          }],
+        },
+      },
+      {
+        id: 'msg-tool-progress-object-content',
+        conversationRef: 'conv-sdk',
+        index: 5,
         role: 'assistant',
         type: 'tool_progress',
         content: { progress: 'renderer must not recover this' },
@@ -171,48 +192,49 @@ describe('sdkDisplayChatMessageProjection', () => {
         text: '',
       }),
       expect.objectContaining({
+        id: 'msg-tool-call-object-content',
+        text: '',
+      }),
+      expect.objectContaining({
+        id: 'msg-tool-bundle-output-object-content',
+        text: '',
+      }),
+      expect.objectContaining({
         id: 'msg-tool-progress-object-content',
         text: '',
       }),
     ]);
+    expect(messages[3]).not.toHaveProperty('toolCallDisplayText');
   });
 
-  test('keeps SDK-declared structured tool display rows visible', () => {
+  test('keeps SDK-declared string tool display rows visible', () => {
     const [toolCall, toolBundleOutput] = buildChatMessagesFromSdkDisplayRows([
       {
-        id: 'msg-tool-call-structured-content',
+        id: 'msg-tool-call-string-content',
         conversationRef: 'conv-sdk',
         index: 0,
         role: 'assistant',
         type: 'tool_call',
-        content: {
-          id: 'call-1',
-          name: 'read_file',
-          arguments: { path: 'package.json' },
-        },
+        content: 'read_file {"path":"package.json"}',
       },
       {
-        id: 'msg-tool-bundle-output-structured-content',
+        id: 'msg-tool-bundle-output-string-content',
         conversationRef: 'conv-sdk',
         index: 1,
         role: 'tool',
         type: 'tool_bundle_output',
-        content: {
-          step_results: [{
-            output: 'package contents',
-          }],
-        },
+        content: 'bundle output: package contents',
       },
     ]);
 
     expect(toolCall).toEqual(expect.objectContaining({
-      id: 'msg-tool-call-structured-content',
-      text: expect.stringContaining('"name": "read_file"'),
-      toolCallDisplayText: expect.stringContaining('"path": "package.json"'),
+      id: 'msg-tool-call-string-content',
+      text: 'read_file {"path":"package.json"}',
+      toolCallDisplayText: 'read_file {"path":"package.json"}',
     }));
     expect(toolBundleOutput).toEqual(expect.objectContaining({
-      id: 'msg-tool-bundle-output-structured-content',
-      text: expect.stringContaining('"step_results"'),
+      id: 'msg-tool-bundle-output-string-content',
+      text: 'bundle output: package contents',
     }));
   });
 
@@ -1243,11 +1265,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         index: 0,
         role: 'assistant',
         type: 'tool_call',
-        content: {
-          id: 'call-1',
-          name: 'read_file',
-          arguments: { path: 'package.json' },
-        },
+        content: 'read_file {"path":"package.json"}',
         metadata: {
           revisionId: 'rev-1',
           timestamp: '2026-05-15T12:00:01.000Z',
@@ -1272,7 +1290,7 @@ describe('sdkDisplayChatMessageProjection', () => {
 
     expect(message).toEqual(expect.objectContaining({
       id: 'msg-tool-call-details',
-      toolCallDisplayText: expect.stringContaining('"name": "read_file"'),
+      toolCallDisplayText: 'read_file {"path":"package.json"}',
       toolCallDetails: {
         toolName: 'read_file',
         requestId: 'req-1',

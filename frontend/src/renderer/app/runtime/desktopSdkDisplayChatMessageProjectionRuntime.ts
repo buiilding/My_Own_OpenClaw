@@ -25,13 +25,6 @@ function displayTextFromStringRowContent(content: unknown): string {
   return typeof content === 'string' ? content : '';
 }
 
-function displayTextFromStructuredRowContent(content: unknown): string {
-  if (typeof content === 'string') {
-    return content;
-  }
-  return JSON.stringify(content, null, 2) ?? '';
-}
-
 function rowTimestamp(row: SdkDisplayRow): string {
   return typeof row.metadata?.timestamp === 'string' ? row.metadata.timestamp : '';
 }
@@ -133,7 +126,7 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
 }
 
 function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
-  const text = displayTextFromStructuredRowContent(row.content);
+  const text = displayTextFromStringRowContent(row.content);
   const toolCallDetails = sanitizeSdkToolDetailRecord(row.metadata?.toolCallDetails);
   const base = buildToolCallChatMessageState({
     id: row.id,
@@ -157,9 +150,7 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
   const toolOutputDetails = sanitizeSdkToolDetailRecord(row.metadata?.toolOutputDetails);
   const base = buildToolOutputChatMessageState({
     id: row.id,
-    outputText: row.type === 'tool_bundle_output'
-      ? displayTextFromStructuredRowContent(row.content)
-      : displayTextFromStringRowContent(row.content),
+    outputText: displayTextFromStringRowContent(row.content),
     sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
     attachments,

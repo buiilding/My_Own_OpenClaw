@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display-rows: require SDK-authored string row content for renderer
+  tool-call and tool-output card text, dropping structured row content instead
+  of JSON-stringifying it in the display-row adapter. No migration required.
 - frontend/pending-turn: normalize pending-turn broadcasts at the renderer IPC
   adapter so partial or attachment-bearing pending payloads no longer reach the
   chat-store bridge. No migration required.
