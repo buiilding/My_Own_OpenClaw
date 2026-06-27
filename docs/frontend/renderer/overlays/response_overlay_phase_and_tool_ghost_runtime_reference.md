@@ -118,7 +118,10 @@ Phase ownership boundary:
   metadata for refs, stale guards, dismissal, and trace context. Overlay refs
   are accepted only when exact; padded SDK current-turn, `ConversationView`, or
   overlay-intent refs are ignored instead of repaired into response-overlay
-  turn, conversation, or guard identity.
+  turn, conversation, or guard identity. Dismissal keys and native responsebox
+  window guard/size identity use the same exact-only rule, so padded
+  conversation, turn, guard, stale-guard, or response-entry refs become `null`
+  or fall back to the previous exact guard snapshot instead of being trimmed.
 - React chat surfaces do not subscribe to generic `response-overlay-phase`
   changes for runtime state. Renderer send preflight is represented as a
   pending user turn in chat state and over `windie:pending-turn`; this keeps the
@@ -184,11 +187,13 @@ Contract ownership:
   owns the dismissal target projection from SDK overlay intent, current-turn
   refs, latest response entry id, and stale guard ref.
 - `DesktopResponseOverlayViewRuntime.buildResponseOverlayDismissalKey(...)`
-  owns normalized response-overlay dismissal key construction, and
+  owns exact response-overlay dismissal key construction, and
   `DesktopResponseOverlayViewRuntime.buildDismissResponseOverlayAction(...)`
   builds the store dismissal target plus responsebox hide values for manual
   close actions. `chatStore.ts` persists dismissed keys, but it does not define
-  the conversation/turn/entry key contract.
+  the conversation/turn/entry key contract. Padded conversation, turn,
+  guard, or response-entry refs are not trimmed into dismissal keys or native
+  responsebox hide IPC values.
 - `DesktopResponseOverlayViewRuntime.resolveResponseOverlayEntries(...)` owns
   response-entry derivation across SDK `ConversationView.liveTurn`, SDK
   current-turn presentation rows, raw SDK live-turn fallback rows, and local

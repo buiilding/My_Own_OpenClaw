@@ -130,6 +130,16 @@ function normalizeUnknownString(value: unknown): string | null {
   return typeof value === 'string' ? normalizeString(value) : null;
 }
 
+function exactIdentityString(value: string | null | undefined): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
+function exactUnknownIdentityString(value: unknown): string | null {
+  return typeof value === 'string' ? exactIdentityString(value) : null;
+}
+
 function normalizeCount(value: number | null | undefined): number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0
     ? Math.floor(value)
@@ -327,13 +337,13 @@ function buildResponseOverlayDismissalKey({
   turnRef,
   responseEntryId,
 }: ResponseOverlayDismissalInput): string | null {
-  const normalizedResponseEntryId = normalizeString(responseEntryId);
+  const normalizedResponseEntryId = exactIdentityString(responseEntryId);
   if (!normalizedResponseEntryId) {
     return null;
   }
   return [
-    normalizeString(conversationRef) || '',
-    normalizeString(turnRef) || '',
+    exactIdentityString(conversationRef) || '',
+    exactIdentityString(turnRef) || '',
     normalizedResponseEntryId,
   ].join('\u0001');
 }
@@ -371,7 +381,7 @@ function resolveDismissedResponseOverlayEntryId(
   state: ResponseOverlayDismissalState,
   input: ResponseOverlayDismissalInput | null | undefined,
 ): string | null {
-  const responseEntryId = normalizeString(input?.responseEntryId);
+  const responseEntryId = exactIdentityString(input?.responseEntryId);
   if (!responseEntryId || !isResponseOverlayEntryDismissedInState(state, {
     conversationRef: input?.conversationRef,
     turnRef: input?.turnRef,
@@ -386,7 +396,7 @@ function buildDismissResponseOverlayAction({
   responseEntryId = null,
   responseOverlayDismissalTarget = null,
 }: DismissResponseOverlayActionInput = {}) {
-  const normalizedResponseEntryId = normalizeString(responseEntryId);
+  const normalizedResponseEntryId = exactIdentityString(responseEntryId);
   if (!responseOverlayDismissalTarget || !normalizedResponseEntryId) {
     return null;
   }
@@ -397,8 +407,8 @@ function buildDismissResponseOverlayAction({
   return {
     dismissalTarget,
     responseboxDismissalValues: {
-      turnRef: normalizeString(dismissalTarget.turnRef),
-      guardRef: normalizeString(dismissalTarget.guardRef),
+      turnRef: exactIdentityString(dismissalTarget.turnRef),
+      guardRef: exactIdentityString(dismissalTarget.guardRef),
     },
   };
 }
@@ -540,14 +550,14 @@ function resolveResponseOverlayWindowGuardSnapshot({
   overlayIntent = null,
   previousSnapshot = null,
 }: ResponseOverlayWindowGuardSnapshotInput = {}): ResponseOverlayWindowGuardSnapshot {
-  const currentConversationRef = normalizeUnknownString(overlayIntent?.conversationRef);
-  const currentTurnRef = normalizeUnknownString(overlayIntent?.turnRef);
+  const currentConversationRef = exactUnknownIdentityString(overlayIntent?.conversationRef);
+  const currentTurnRef = exactUnknownIdentityString(overlayIntent?.turnRef);
   const currentStaleGuardRef = (
-    normalizeUnknownString(overlayIntent?.staleGuardRef)
+    exactUnknownIdentityString(overlayIntent?.staleGuardRef)
     || currentTurnRef
   );
-  const previousTurnRef = normalizeString(previousSnapshot?.turnRef);
-  const previousStaleGuardRef = normalizeString(previousSnapshot?.staleGuardRef);
+  const previousTurnRef = exactIdentityString(previousSnapshot?.turnRef);
+  const previousStaleGuardRef = exactIdentityString(previousSnapshot?.staleGuardRef);
 
   if (currentTurnRef || currentStaleGuardRef) {
     return {
@@ -571,14 +581,14 @@ function resolveResponseOverlayWindowSizeIdentity({
   overlayIntent?: ResponseOverlayWindowGuardSnapshotInput['overlayIntent'];
   guardSnapshot?: Partial<ResponseOverlayWindowGuardSnapshot> | null;
 } = {}): ResponseOverlayWindowGuardSnapshot {
-  const intentConversationRef = normalizeUnknownString(overlayIntent?.conversationRef);
-  const intentTurnRef = normalizeUnknownString(overlayIntent?.turnRef);
-  const guardTurnRef = normalizeString(guardSnapshot?.turnRef);
+  const intentConversationRef = exactUnknownIdentityString(overlayIntent?.conversationRef);
+  const intentTurnRef = exactUnknownIdentityString(overlayIntent?.turnRef);
+  const guardTurnRef = exactIdentityString(guardSnapshot?.turnRef);
   const turnRef = intentTurnRef || guardTurnRef;
   const staleGuardRef = (
-    normalizeUnknownString(overlayIntent?.staleGuardRef)
+    exactUnknownIdentityString(overlayIntent?.staleGuardRef)
     || intentTurnRef
-    || normalizeString(guardSnapshot?.staleGuardRef)
+    || exactIdentityString(guardSnapshot?.staleGuardRef)
     || guardTurnRef
   );
 
@@ -602,14 +612,14 @@ function buildResponseOverlayWindowSizeTraceValues({
 }: ResponseOverlayWindowSizeRuntimeInput) {
   return {
     action,
-    conversationRef: normalizeString(sizeIdentity?.conversationRef),
+    conversationRef: exactIdentityString(sizeIdentity?.conversationRef),
     visible: visible === true,
     layoutMode,
     responseVisible,
     thinkingText,
     compactHover: Boolean(compactHover),
-    turnRef: normalizeString(sizeIdentity?.turnRef),
-    staleGuardRef: normalizeString(sizeIdentity?.staleGuardRef),
+    turnRef: exactIdentityString(sizeIdentity?.turnRef),
+    staleGuardRef: exactIdentityString(sizeIdentity?.staleGuardRef),
     width,
     height,
   };
@@ -633,8 +643,8 @@ function buildResponseOverlayWindowSizeValues({
     visible: visible === true,
     width,
     height,
-    turnRef: normalizeString(sizeIdentity?.turnRef),
-    staleGuardRef: normalizeString(sizeIdentity?.staleGuardRef),
+    turnRef: exactIdentityString(sizeIdentity?.turnRef),
+    staleGuardRef: exactIdentityString(sizeIdentity?.staleGuardRef),
   };
   if (visible === true) {
     values.compactHover = Boolean(compactHover);
@@ -648,9 +658,9 @@ function buildResponseOverlayWindowLifecycleTraceValues({
 }: ResponseOverlayWindowLifecycleRuntimeInput) {
   return {
     action,
-    conversationRef: normalizeString(guardSnapshot?.conversationRef),
-    turnRef: normalizeString(guardSnapshot?.turnRef),
-    staleGuardRef: normalizeString(guardSnapshot?.staleGuardRef),
+    conversationRef: exactIdentityString(guardSnapshot?.conversationRef),
+    turnRef: exactIdentityString(guardSnapshot?.turnRef),
+    staleGuardRef: exactIdentityString(guardSnapshot?.staleGuardRef),
   };
 }
 

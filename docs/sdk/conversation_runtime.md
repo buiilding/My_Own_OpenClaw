@@ -270,6 +270,10 @@ Desktop live-surface overlay identity accepts only exact SDK refs from
 `snapshot.currentTurn.presentation.overlayIntent`; padded refs are ignored
 instead of being trimmed into response-overlay turn, conversation, or guard
 identity.
+Renderer response-overlay dismissal keys and native responsebox window
+guard/size values apply that same exact-only rule, rejecting padded
+conversation, turn, guard, stale-guard, and response-entry refs instead of
+repairing them into persisted dismissal state or IPC payloads.
 Renderer pending-turn state remains a short pre-view bridge immediately after
 send acceptance; raw current-turn snapshots and idle conversation refs must not
 enable Stop or become the main-process stop target, even before a view arrives.

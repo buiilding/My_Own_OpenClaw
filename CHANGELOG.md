@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: reject repaired response-overlay dismissal and responsebox
+  window identity refs instead of trimming padded turn, guard, conversation, or
+  entry ids into persisted dismissal keys or native window IPC values. No
+  migration required.
 - frontend/projection: reject repaired thread presentation conversation and turn
   refs when gating or placing SDK live rows, so padded refs cannot alter live
   row visibility or ordering. No migration required.

@@ -3313,6 +3313,15 @@ describe('renderer chat runtime boundary', () => {
     expect(responseViewRuntimeSource).toContain('buildConversationViewTurnChatMessages');
     expect(responseViewRuntimeSource).not.toContain('buildChatMessagesFromSdkDisplayRows');
     expect(responseViewRuntimeSource).not.toContain('view.displayRows');
+    expect(responseViewRuntimeSource).toContain('function exactIdentityString');
+    expect(responseViewRuntimeSource).toContain('exactUnknownIdentityString(overlayIntent?.turnRef)');
+    expect(responseViewRuntimeSource).toContain('turnRef: exactIdentityString(sizeIdentity?.turnRef)');
+    expect(responseViewRuntimeSource).toContain('guardRef: exactIdentityString(dismissalTarget.guardRef)');
+    expect(responseViewRuntimeSource).not.toContain('turnRef: normalizeString(dismissalTarget.turnRef)');
+    expect(responseViewRuntimeSource).not.toContain('guardRef: normalizeString(dismissalTarget.guardRef)');
+    expect(responseViewRuntimeSource).not.toContain('normalizeUnknownString(overlayIntent?.turnRef)');
+    expect(responseViewRuntimeSource).not.toContain('turnRef: normalizeString(sizeIdentity?.turnRef)');
+    expect(responseViewRuntimeSource).not.toContain('turnRef: normalizeString(guardSnapshot?.turnRef)');
     expect(responseViewRuntimeSource).toContain('const messages = conversationView');
     expect(responseViewRuntimeSource).toContain('const sdkLiveTurn = conversationView ? null : surfaceState.sdkLiveTurn ?? null;');
     expect(viewModelSource).not.toContain('currentTurnProjection');

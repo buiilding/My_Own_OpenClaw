@@ -28,15 +28,15 @@ describe('desktopResponseOverlayViewRuntime', () => {
     resolveResponseOverlayWindowSizeIdentity,
   } = DesktopResponseOverlayViewRuntime;
 
-  test('builds normalized response overlay dismissal keys', () => {
+  test('builds exact response overlay dismissal keys', () => {
     expect(buildResponseOverlayDismissalKey({
-      conversationRef: ' conv-overlay ',
-      turnRef: ' turn-overlay ',
-      responseEntryId: ' assistant-entry ',
+      conversationRef: 'conv-overlay',
+      turnRef: 'turn-overlay',
+      responseEntryId: 'assistant-entry',
     })).toBe('conv-overlay\u0001turn-overlay\u0001assistant-entry');
 
     expect(buildResponseOverlayDismissalKey({
-      responseEntryId: ' assistant-entry ',
+      responseEntryId: 'assistant-entry',
     })).toBe('\u0001\u0001assistant-entry');
 
     expect(buildResponseOverlayDismissalKey({
@@ -44,13 +44,28 @@ describe('desktopResponseOverlayViewRuntime', () => {
       turnRef: 'turn-overlay',
       responseEntryId: '   ',
     })).toBeNull();
+    expect(buildResponseOverlayDismissalKey({
+      conversationRef: ' conv-overlay ',
+      turnRef: 'turn-overlay',
+      responseEntryId: 'assistant-entry',
+    })).toBe('\u0001turn-overlay\u0001assistant-entry');
+    expect(buildResponseOverlayDismissalKey({
+      conversationRef: 'conv-overlay',
+      turnRef: ' turn-overlay ',
+      responseEntryId: 'assistant-entry',
+    })).toBe('conv-overlay\u0001\u0001assistant-entry');
+    expect(buildResponseOverlayDismissalKey({
+      conversationRef: 'conv-overlay',
+      turnRef: 'turn-overlay',
+      responseEntryId: ' assistant-entry ',
+    })).toBeNull();
   });
 
   test('owns response overlay dismissal state updates and reads', () => {
     const dismissalTarget = {
-      conversationRef: ' conv-overlay ',
-      turnRef: ' turn-overlay ',
-      responseEntryId: ' assistant-entry ',
+      conversationRef: 'conv-overlay',
+      turnRef: 'turn-overlay',
+      responseEntryId: 'assistant-entry',
     };
     const initialState = {
       dismissedResponseOverlayEntries: {
@@ -96,6 +111,13 @@ describe('desktopResponseOverlayViewRuntime', () => {
       update || {},
       {
         ...dismissalTarget,
+        responseEntryId: ' assistant-entry ',
+      },
+    )).toBeNull();
+    expect(resolveDismissedResponseOverlayEntryId(
+      update || {},
+      {
+        ...dismissalTarget,
         responseEntryId: 'missing-entry',
       },
     )).toBeNull();
@@ -108,21 +130,41 @@ describe('desktopResponseOverlayViewRuntime', () => {
   test('builds close actions for response overlay dismissal and responsebox hide', () => {
     expect(buildDismissResponseOverlayAction({
       responseOverlayDismissalTarget: {
-        conversationRef: ' conv-overlay ',
-        turnRef: ' turn-overlay ',
-        guardRef: ' guard-overlay ',
+        conversationRef: 'conv-overlay',
+        turnRef: 'turn-overlay',
+        guardRef: 'guard-overlay',
       },
-      responseEntryId: ' entry-overlay ',
+      responseEntryId: 'entry-overlay',
     })).toEqual({
       dismissalTarget: {
-        conversationRef: ' conv-overlay ',
-        turnRef: ' turn-overlay ',
-        guardRef: ' guard-overlay ',
+        conversationRef: 'conv-overlay',
+        turnRef: 'turn-overlay',
+        guardRef: 'guard-overlay',
         responseEntryId: 'entry-overlay',
       },
       responseboxDismissalValues: {
         turnRef: 'turn-overlay',
         guardRef: 'guard-overlay',
+      },
+    });
+
+    expect(buildDismissResponseOverlayAction({
+      responseOverlayDismissalTarget: {
+        conversationRef: 'conv-overlay',
+        turnRef: ' turn-overlay ',
+        guardRef: ' guard-overlay ',
+      },
+      responseEntryId: 'entry-overlay',
+    })).toEqual({
+      dismissalTarget: {
+        conversationRef: 'conv-overlay',
+        turnRef: ' turn-overlay ',
+        guardRef: ' guard-overlay ',
+        responseEntryId: 'entry-overlay',
+      },
+      responseboxDismissalValues: {
+        turnRef: null,
+        guardRef: null,
       },
     });
 
@@ -270,8 +312,8 @@ describe('desktopResponseOverlayViewRuntime', () => {
 
     const activeSnapshot = resolveResponseOverlayWindowGuardSnapshot({
       overlayIntent: {
-        conversationRef: ' conv-active ',
-        turnRef: ' turn-active ',
+        conversationRef: 'conv-active',
+        turnRef: 'turn-active',
       },
       previousSnapshot: initialSnapshot,
     });
@@ -292,8 +334,8 @@ describe('desktopResponseOverlayViewRuntime', () => {
 
     expect(resolveResponseOverlayWindowGuardSnapshot({
       overlayIntent: {
-        conversationRef: ' conv-guard ',
-        staleGuardRef: ' guard-only ',
+        conversationRef: 'conv-guard',
+        staleGuardRef: 'guard-only',
       },
       previousSnapshot: activeSnapshot,
     })).toEqual({
@@ -301,14 +343,27 @@ describe('desktopResponseOverlayViewRuntime', () => {
       turnRef: null,
       staleGuardRef: 'guard-only',
     });
+
+    expect(resolveResponseOverlayWindowGuardSnapshot({
+      overlayIntent: {
+        conversationRef: ' conv-current ',
+        turnRef: ' turn-current ',
+        staleGuardRef: ' guard-current ',
+      },
+      previousSnapshot: activeSnapshot,
+    })).toEqual({
+      conversationRef: null,
+      turnRef: 'turn-active',
+      staleGuardRef: 'turn-active',
+    });
   });
 
   test('resolves response overlay native size identity from SDK intent before guard fallback', () => {
     expect(resolveResponseOverlayWindowSizeIdentity({
       overlayIntent: {
-        conversationRef: ' conv-current ',
-        turnRef: ' turn-current ',
-        staleGuardRef: ' guard-current ',
+        conversationRef: 'conv-current',
+        turnRef: 'turn-current',
+        staleGuardRef: 'guard-current',
       },
       guardSnapshot: {
         turnRef: 'turn-previous',
@@ -335,8 +390,8 @@ describe('desktopResponseOverlayViewRuntime', () => {
 
     expect(resolveResponseOverlayWindowSizeIdentity({
       overlayIntent: {
-        conversationRef: ' conv-current ',
-        turnRef: ' turn-current ',
+        conversationRef: 'conv-current',
+        turnRef: 'turn-current',
       },
       guardSnapshot: {
         turnRef: 'turn-previous',
@@ -347,14 +402,31 @@ describe('desktopResponseOverlayViewRuntime', () => {
       turnRef: 'turn-current',
       staleGuardRef: 'turn-current',
     });
+
+    expect(resolveResponseOverlayWindowSizeIdentity({
+      overlayIntent: {
+        conversationRef: ' conv-current ',
+        turnRef: ' turn-current ',
+        staleGuardRef: ' guard-current ',
+      },
+      guardSnapshot: {
+        conversationRef: 'conv-previous',
+        turnRef: 'turn-previous',
+        staleGuardRef: 'guard-previous',
+      },
+    })).toEqual({
+      conversationRef: null,
+      turnRef: 'turn-previous',
+      staleGuardRef: 'guard-previous',
+    });
   });
 
   test('builds response overlay window trace and IPC values from runtime identity', () => {
     const sizeIdentity = resolveResponseOverlayWindowSizeIdentity({
       overlayIntent: {
-        conversationRef: ' conv-current ',
-        turnRef: ' turn-current ',
-        staleGuardRef: ' guard-current ',
+        conversationRef: 'conv-current',
+        turnRef: 'turn-current',
+        staleGuardRef: 'guard-current',
       },
     });
 
@@ -416,15 +488,29 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(buildResponseOverlayWindowLifecycleTraceValues({
       action: 'mount',
       guardSnapshot: {
-        conversationRef: ' conv-current ',
-        turnRef: ' turn-current ',
-        staleGuardRef: ' guard-current ',
+        conversationRef: 'conv-current',
+        turnRef: 'turn-current',
+        staleGuardRef: 'guard-current',
       },
     })).toEqual({
       action: 'mount',
       conversationRef: 'conv-current',
       turnRef: 'turn-current',
       staleGuardRef: 'guard-current',
+    });
+
+    expect(buildResponseOverlayWindowLifecycleTraceValues({
+      action: 'mount',
+      guardSnapshot: {
+        conversationRef: ' conv-current ',
+        turnRef: ' turn-current ',
+        staleGuardRef: ' guard-current ',
+      },
+    })).toEqual({
+      action: 'mount',
+      conversationRef: null,
+      turnRef: null,
+      staleGuardRef: null,
     });
   });
 

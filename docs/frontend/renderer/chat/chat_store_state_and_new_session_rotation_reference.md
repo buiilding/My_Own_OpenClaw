@@ -334,11 +334,15 @@ trimmed into no-view/pending routing state.
   registry adapter methods or add a second Zustand-owned copy; it only injects
   registry dependencies into message mutation helpers that need to index
   hydrated message rows.
-- response-overlay dismissal state is persisted by the store, but normalized
+- response-overlay dismissal state is persisted by the store, but exact
   conversation/turn/entry dismissal-key construction plus state update/read
   helpers live in `DesktopResponseOverlayViewRuntime`; the store only binds
   those helpers to Zustand, and response-overlay view models ask the runtime
   for the dismissed response id instead of reading dismissal keys directly.
+  The runtime uses exact conversation, turn, guard, stale-guard, and
+  response-entry ids for response-overlay dismissal and native responsebox
+  window identity; padded refs are not trimmed into persisted dismissal keys,
+  guard snapshots, size values, or hide IPC values.
 
 No-op guards reduce unnecessary re-renders on high-frequency stream paths.
 
