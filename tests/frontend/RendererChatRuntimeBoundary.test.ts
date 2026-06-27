@@ -4445,6 +4445,8 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('const hasSameTurnUserDisplayRow = displayRows.some');
     expect(visibleLifecycleRuntimeSource).toContain('findConversationViewUserDisplayRowForTurn');
     expect(visibleLifecycleRuntimeSource).toContain('DesktopConversationDisplayRowLookupRuntime');
+    expect(visibleLifecycleRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(visibleLifecycleRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
     expect(visibleLifecycleRuntimeSource).toContain('function readExactIdentityString');
     expect(visibleLifecycleRuntimeSource).toContain('function readExactLifecycleString');
     expect(visibleLifecycleRuntimeSource).toContain('return readExactIdentityString(value);');
@@ -4460,6 +4462,7 @@ describe('renderer chat runtime boundary', () => {
       'const responseOverlayMode = normalizeString(conversationView?.surfaces?.responseOverlay?.mode);',
     );
     expect(visibleLifecycleRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
+    expect(visibleLifecycleRuntimeSource).not.toContain('function isConversationView');
     expect(visibleLifecycleRuntimeSource).not.toContain('function isConversationViewUserDisplayRow');
     expect(visibleLifecycleRuntimeSource).not.toContain('conversationView.displayRows.length - 1');
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBridgeRuntime');

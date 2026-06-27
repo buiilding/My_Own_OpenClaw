@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/lifecycle: route visible-turn `ConversationView` shape checks through
+  `DesktopConversationViewWorkspaceRuntime`, keeping lifecycle projection on the
+  same shared SDK view gate as chat presentation and surface selectors. No
+  migration required.
 - frontend/revisions: prepare checkout/fork commands inside
   `DesktopChatRevisionActionRuntime` menu rows, so `ChatInterface` and header
   controls no longer extract revision ids or raw revision records from menu

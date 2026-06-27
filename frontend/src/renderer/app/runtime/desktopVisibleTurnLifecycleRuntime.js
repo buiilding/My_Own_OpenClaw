@@ -8,6 +8,9 @@ import {
 import {
   DesktopChatPendingTurnStateRuntime,
 } from './desktopChatPendingTurnStateRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
 const TERMINAL_PHASES = new Set(['complete', 'error']);
 const ACTIVE_PROGRESS_PHASES = new Set(['tool_call', 'tool_output']);
@@ -19,13 +22,12 @@ const {
 const {
   normalizePendingTurn,
 } = DesktopChatPendingTurnStateRuntime;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
-function isObjectRecord(value) {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
 function readExactIdentityString(value) {
@@ -279,17 +281,6 @@ function resolveConversationViewLifecycleStatus(conversationView) {
   return 'idle';
 }
 
-function isConversationView(value) {
-  return Boolean(
-    isObjectRecord(value)
-      && normalizeConversationRef(value.conversationRef)
-      && Array.isArray(value.displayRows)
-      && isObjectRecord(value.liveTurn)
-      && isObjectRecord(value.surfaces)
-      && isObjectRecord(value.actions),
-  );
-}
-
 function resolveVisibleTurnLifecycle({
   activeConversationRef = null,
   conversationView = null,
@@ -304,7 +295,7 @@ function resolveVisibleTurnLifecycle({
     normalizedPendingTurn,
     sdkLiveTurn,
   );
-  const effectiveConversationView = isConversationView(conversationView)
+  const effectiveConversationView = hasWorkspaceConversationView({ conversationView })
     ? conversationView
     : null;
   const viewStatus = resolveConversationViewLifecycleStatus(effectiveConversationView);

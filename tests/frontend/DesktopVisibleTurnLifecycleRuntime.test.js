@@ -813,6 +813,55 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
   });
 
+  test('ignores partial ConversationView shapes before visible lifecycle projection', () => {
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [],
+        liveTurn: {
+          turnRef: 'turn-partial-view',
+          phase: 'streaming',
+          isBusy: true,
+          entries: [{
+            id: 'view-entry',
+            type: 'llm-text',
+            text: 'partial view should not own lifecycle',
+          }],
+        },
+        surfaces: {
+          responseOverlay: {
+            mode: 'response',
+            visible: true,
+            turnRef: 'turn-partial-view',
+          },
+        },
+      },
+      sdkLiveTurn: projection({
+        conversationRef: 'conv-1',
+        turnRef: 'turn-sdk',
+        phase: 'streaming',
+        presentation: {
+          entries: [{
+            id: 'sdk-entry',
+            type: 'llm-text',
+            text: 'sdk fallback owns lifecycle',
+          }],
+        },
+      }),
+    })).toMatchObject({
+      status: 'active',
+      source: 'sdk',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-sdk',
+      entries: [{
+        id: 'sdk-entry',
+        type: 'llm-text',
+        text: 'sdk fallback owns lifecycle',
+      }],
+    });
+  });
+
   test('adapts visible lifecycle into overlay-compatible presentation fields for surface consumers', () => {
     const visibleLifecycle = resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
