@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tool-details: allow only explicit SDK display-detail fields through
+  renderer tool card metadata, so new raw payload, provider, attachment, or
+  screenshot-alias fields cannot leak through by default. No migration required.
 - frontend/chat-store: treat workspace conversation refs as exact identities
   instead of trimming them, so padded refs cannot be repaired into active
   workspace or mutation authority. No migration required.

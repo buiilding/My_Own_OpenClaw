@@ -219,7 +219,9 @@ UI adapters:
   `text` and typed display fields instead of decoding `modelFacingToolCall`,
   backend-wire event payloads, or whole-message screenshot aliases. Entry
   `toolCallDetails` and `toolOutputDetails` are narrow display details, not raw
-  payload mirrors; attachment descriptors and screenshot refs stay on
+  payload mirrors; renderer adapters preserve only explicit display detail
+  fields such as tool/request/correlation ids, source event type, display
+  source, and success. Attachment descriptors and screenshot refs stay on
   `attachments[]` or compatibility fields. Screenshot aliases remain
   compatibility metadata for replay/provider boundaries.
 - Legacy no-view current-turn fallback rows are text/status continuity only for
@@ -235,10 +237,10 @@ capabilities into one conversation-scoped object:
 
 Display rows carry SDK-authored `metadata.toolCallDetails` and
 `metadata.toolOutputDetails` for renderer tool cards. Renderer adapters should
-pass those detail records through as component metadata and must not rebuild
-them by copying request ids, bundle ids, tool-call ids, raw payloads, structured
-payloads, attachment aliases, or provider/model fields out of generic row
-metadata.
+copy only the SDK display-detail allowlist into component metadata and must not
+rebuild details by copying request ids, bundle ids, tool-call ids, raw payloads,
+structured payloads, attachment aliases, or provider/model fields out of
+generic row metadata.
 
 ```text
 ConversationView = displayRows + liveTurn + surfaces + actions

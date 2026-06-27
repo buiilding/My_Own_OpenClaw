@@ -108,6 +108,11 @@ arrays remain SDK/replay compatibility input, not a renderer token-count source.
 Renderer message content-kind and row-class helpers also route attachment
 presence through this projection helper instead of inspecting raw attachment
 arrays, so padded or malformed descriptors cannot become attachment UI state.
+Renderer tool-detail projection is allowlist-based: tool detail panels may
+receive exact SDK display-detail fields such as tool/request/correlation ids,
+source event type, display source, and success, but raw payloads, provider
+metadata, attachment descriptors, and screenshot aliases do not pass through as
+generic detail records.
 Attachment ids and artifact image-source fields must be exact non-empty SDK
 strings; the renderer drops padded or empty ids/refs/URLs instead of trimming
 them into valid display inputs. Lifecycle descriptors must also be complete:

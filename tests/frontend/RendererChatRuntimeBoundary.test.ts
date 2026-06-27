@@ -1993,10 +1993,10 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('desktopConversationReplayRuntime');
     expect(source).toContain('DesktopConversationReplayRuntime');
     expect(source).not.toContain('DesktopChatSendPreparationRuntime');
-    expect(source).toContain("} from '../stores/chatStoreAdapters';");
-    expect(source).toContain('getActiveConversationRefFromChatStore');
+    expect(source).not.toContain("} from '../stores/chatStoreAdapters';");
+    expect(source).not.toContain('getActiveConversationRefFromChatStore');
     expect(source).not.toContain('getProjectedWorkspaceReadModelFromChatStore');
-    expect(source).toContain('replayUiContext');
+    expect(source).not.toContain('replayUiContext');
     expect(source).not.toContain('useChatStore');
     expect(source).not.toContain('chatStore:');
     expect(source).not.toContain('useChatStore((state)');
@@ -2080,10 +2080,11 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('buildReplayPendingPublication');
     expect(replayRuntimeSource).toContain('executeReplayAction');
     expect(replayRuntimeSource).toContain('executeReplayIntent');
-    expect(replayRuntimeSource).toContain('replayUiContext');
+    expect(replayRuntimeSource).not.toContain('replayUiContext');
+    expect(replayRuntimeSource).toContain('DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.editAndResend');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.retryTurn');
-    expect(replayRuntimeSource).toContain('storeConversationRef');
+    expect(replayRuntimeSource).not.toContain('storeConversationRef');
     expect(replayRuntimeSource).toContain('targetRowId');
     expect(replayRuntimeSource).toContain('messageId: targetRowId');
     expect(replayRuntimeSource).not.toContain('targetUserMessageId');
@@ -3789,7 +3790,13 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('modelFacingToolCall');
     expect(source).not.toContain('screenshotRef');
     expect(source).not.toContain('screenshotUrl');
-    expect(toolDetailProjectionSource).toContain('screenshotRef');
+    expect(toolDetailProjectionSource).toContain('sdkToolDetailDisplayStringKeys');
+    expect(toolDetailProjectionSource).toContain("'toolName'");
+    expect(toolDetailProjectionSource).toContain("'requestId'");
+    expect(toolDetailProjectionSource).not.toContain('screenshotRef');
+    expect(toolDetailProjectionSource).not.toContain('screenshot_ref');
+    expect(toolDetailProjectionSource).not.toContain('modelFacingToolCall');
+    expect(toolDetailProjectionSource).not.toContain('Object.entries(record)');
     expect(toolDetailProjectionSource).toContain('sanitizeSdkToolDetailRecord');
   });
 
