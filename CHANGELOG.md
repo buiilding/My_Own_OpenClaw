@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/revisions: require exact conversation refs, revision ids, optional
+  fork cut row ids, and explicit fork conversation refs inside the desktop
+  continuity facade before invoking SDK revision commands, so direct facade
+  callers cannot trim padded identity into checkout/list/fork requests. No
+  migration required.
 - frontend/attachments: sanitize SDK display attachment descriptors at the
   renderer gate before passing them to message components, preserving only the
   typed display allowlist and dropping raw screenshot aliases, preview bytes in

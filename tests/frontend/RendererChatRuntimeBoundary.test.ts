@@ -2182,6 +2182,11 @@ describe('renderer chat runtime boundary', () => {
     expect(continuityServiceSource).not.toContain('input.model');
     expect(continuityServiceSource).toContain("exactReplayCommandString(input.conversationRef, 'conversation reference')");
     expect(continuityServiceSource).toContain("exactReplayCommandString(input.messageId, 'message id')");
+    expect(continuityServiceSource).toContain("exactRevisionCommandString(input.conversationRef, 'conversation reference')");
+    expect(continuityServiceSource).toContain("exactRevisionCommandString(input.revisionId, 'revision id')");
+    expect(continuityServiceSource).toContain("exactRevisionCommandString(input.sourceRevisionId, 'source revision id')");
+    expect(continuityServiceSource).toContain("optionalExactRevisionCommandString(input.cutAfterRowId, 'cut row id')");
+    expect(continuityServiceSource).toContain("optionalExactRevisionCommandString(\n      input.newConversationRef,\n      'new conversation reference',\n    )");
     expect(continuityServiceSource).not.toContain('input.conversationRef.trim');
     expect(continuityServiceSource).not.toContain('input.messageId.trim');
     expect(replayRuntimeSource).not.toContain('const replayTurnRef = crypto.randomUUID');

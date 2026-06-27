@@ -82,6 +82,20 @@ function exactReplayCommandString(value: unknown, label: string): string {
   throw new Error(`Desktop replay command requires exact ${label}.`);
 }
 
+function exactRevisionCommandString(value: unknown, label: string): string {
+  if (typeof value === 'string' && value.length > 0 && value === value.trim()) {
+    return value;
+  }
+  throw new Error(`Desktop revision command requires exact ${label}.`);
+}
+
+function optionalExactRevisionCommandString(value: unknown, label: string): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  return exactRevisionCommandString(value, label);
+}
+
 const desktopConversationContinuityService = new ConversationContinuityService({
   storeFactory: ({ userId }) => createDesktopConversationStore(userId),
   transportFactory: ({ workspacePath }) => createDesktopRuntimeTransport(workspacePath ?? null),
@@ -123,12 +137,14 @@ export const DesktopConversationContinuityService = {
   },
 
   async checkoutRevision(input: CheckoutRevisionCommandInput): Promise<CheckoutRevisionResult> {
+    const conversationRef = exactRevisionCommandString(input.conversationRef, 'conversation reference');
+    const revisionId = exactRevisionCommandString(input.revisionId, 'revision id');
     return invokeAgentSdkCommand<CheckoutRevisionResult>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_CHECKOUT_REVISION,
       {
         userId: input.userId,
-        conversationRef: input.conversationRef,
-        revisionId: input.revisionId,
+        conversationRef,
+        revisionId,
       },
     );
   },
@@ -138,11 +154,12 @@ export const DesktopConversationContinuityService = {
     conversationRef: string,
     limit: number = 50,
   ): Promise<ConversationRevision[]> {
+    const exactConversationRef = exactRevisionCommandString(conversationRef, 'conversation reference');
     const revisions = await invokeAgentSdkCommand<ConversationRevision[]>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_LIST_REVISIONS,
       {
         userId,
-        conversationRef,
+        conversationRef: exactConversationRef,
         limit,
       },
     );
@@ -150,14 +167,20 @@ export const DesktopConversationContinuityService = {
   },
 
   async forkConversation(input: ForkConversationCommandInput): Promise<ForkConversationResult> {
-    const newConversationRef = optionalString(input.newConversationRef);
+    const conversationRef = exactRevisionCommandString(input.conversationRef, 'conversation reference');
+    const sourceRevisionId = exactRevisionCommandString(input.sourceRevisionId, 'source revision id');
+    const cutAfterRowId = optionalExactRevisionCommandString(input.cutAfterRowId, 'cut row id');
+    const newConversationRef = optionalExactRevisionCommandString(
+      input.newConversationRef,
+      'new conversation reference',
+    );
     return invokeAgentSdkCommand<ForkConversationResult>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_FORK,
       {
         userId: input.userId,
-        conversationRef: input.conversationRef,
-        sourceRevisionId: input.sourceRevisionId,
-        cutAfterRowId: input.cutAfterRowId ?? null,
+        conversationRef,
+        sourceRevisionId,
+        cutAfterRowId,
         ...(newConversationRef ? { newConversationRef } : {}),
       },
     );

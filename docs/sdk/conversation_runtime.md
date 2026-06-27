@@ -895,6 +895,11 @@ active revision marking. Padded or empty revision ids and conversation refs fail
 closed instead of being trimmed into SDK checkout/fork command inputs, while
 React renders the item and passes only the selected prepared command back to the
 app-runtime executor.
+The desktop continuity facade enforces the same exact-only identity contract
+before invoking SDK revision commands, including list/checkout conversation
+refs, checkout revision ids, fork source revision ids, optional fork cut row
+ids, and explicit fork conversation refs. Direct facade callers cannot bypass
+the menu adapter by sending padded revision command identity.
 Renderer
 app-runtime facades should not expose direct display timeline
 load/replace helpers to React; low-level timeline mutation remains SDK/main
