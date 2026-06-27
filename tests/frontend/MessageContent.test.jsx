@@ -320,7 +320,7 @@ describe('MessageContent', () => {
     expect(screen.getByText(/"request_id": "req-1"/)).toBeInTheDocument();
   });
 
-  test('tool output fallback details sanitize SDK-owned metadata channels', () => {
+  test('tool output details do not fall back to legacy tool metadata', () => {
     render(
       <MessageContent
         message={{
@@ -353,7 +353,11 @@ describe('MessageContent', () => {
 
     const details = document.querySelector('.tool-details-content');
     expect(details).not.toBeNull();
-    expect(details.textContent).toContain('"requestId": "req-shot"');
+    expect(details.textContent).toBe('{}');
+    expect(details.textContent).not.toContain('"requestId": "req-shot"');
+    expect(details.textContent).not.toContain('"tool_name"');
+    expect(details.textContent).not.toContain('"execution_time"');
+    expect(details.textContent).not.toContain('"success"');
     expect(details.textContent).not.toContain('"attachments"');
     expect(details.textContent).not.toContain('"modelId"');
     expect(details.textContent).not.toContain('"modelProvider"');

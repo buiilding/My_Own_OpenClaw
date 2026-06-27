@@ -2761,10 +2761,14 @@ describe('renderer chat runtime boundary', () => {
     expect(attachmentRegistrySource).not.toContain('setLastVisibleSrc');
     expect(toolOutputSource).toContain('DesktopSdkDisplayAttachmentProjection');
     expect(toolOutputSource).toContain('readSdkDisplayAttachments(message.attachments)');
-    expect(toolOutputSource).toContain('DesktopSdkToolDetailProjection');
-    expect(toolOutputSource).toContain('sanitizeSdkToolDetailRecord(message.toolMetadata)');
     expect(toolOutputSource).toContain('displayAttachments.length > 0');
     expect(toolOutputSource).not.toContain('Array.isArray(message.attachments) ? message.attachments : []');
+    expect(toolOutputSource).not.toContain('DesktopSdkToolDetailProjection');
+    expect(toolOutputSource).not.toContain('sanitizeSdkToolDetailRecord(message.toolMetadata)');
+    expect(toolOutputSource).not.toContain('fallbackToolMetadata');
+    expect(toolOutputSource).not.toContain('tool_name: message.toolName');
+    expect(toolOutputSource).not.toContain('execution_time: message.executionTime');
+    expect(toolOutputSource).not.toContain('success: message.success');
     expect(toolOutputSource).not.toContain('metadata: message.toolMetadata || null');
     expect(toolOutputSource).toContain('AttachmentList');
     expect(toolOutputSource).not.toContain('useResolvedMessageScreenshotSrc');

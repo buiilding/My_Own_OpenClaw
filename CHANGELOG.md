@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tool-output: stop rebuilding missing tool output details from legacy
+  `toolMetadata`, `toolName`, `executionTime`, or `success` props in React;
+  detail panels now rely on SDK-authored `toolOutputDetails`. No migration
+  required.
 - frontend/live-tools: stop synthesizing live tool detail metadata from legacy
   fallback tool names; renderer tool details now come only from SDK-authored
   `toolCallDetails` and `toolOutputDetails`. No migration required.

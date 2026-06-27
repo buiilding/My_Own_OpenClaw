@@ -131,8 +131,10 @@ of trimming malformed tool ids into rendered rows. Live-entry and legacy
 no-view `toolEvents` tool names are also exact; padded names are ignored instead
 of becoming visible labels or fallback tool text. Tool detail metadata comes
 only from SDK-authored `toolCallDetails`/`toolOutputDetails`; renderer fallback
-text does not synthesize detail records from a bare tool name. Thread dedupe
-checks live row ids and nested tool detail identity with the same exactness, so malformed padded
+text does not synthesize detail records from a bare tool name. Tool output
+components also do not rebuild missing details from legacy `toolMetadata`,
+`toolName`, `executionTime`, or `success` props. Thread dedupe checks live row
+ids and nested tool detail identity with the same exactness, so malformed padded
 live ids or `toolCallDetails`/`toolOutputDetails` ids cannot suppress SDK
 display rows. Thread live/display dedupe also compares materialized and live
 turn refs exactly; padded turn refs are not trimmed into same-turn duplicate

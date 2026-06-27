@@ -112,7 +112,9 @@ Renderer tool-detail projection is allowlist-based: tool detail panels may
 receive exact SDK display-detail fields such as tool/request/correlation ids,
 source event type, display source, and success, but raw payloads, provider
 metadata, attachment descriptors, and screenshot aliases do not pass through as
-generic detail records.
+generic detail records. Tool output components do not reconstruct missing
+details from legacy `toolMetadata`, `toolName`, `executionTime`, or `success`
+props; `toolOutputDetails` is the SDK-owned detail payload.
 Attachment ids and artifact image-source fields must be exact non-empty SDK
 strings; the renderer drops padded or empty ids/refs/URLs instead of trimming
 them into valid display inputs. Lifecycle descriptors must also be complete:

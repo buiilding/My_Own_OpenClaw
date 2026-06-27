@@ -494,7 +494,10 @@ the same rule: padded names are ignored instead of being trimmed into visible
 tool labels or fallback status text. Live-entry and legacy no-view tool detail
 metadata comes only from SDK-authored `toolCallDetails`/`toolOutputDetails`;
 renderer text fallbacks may label a tool row, but they must not synthesize
-detail records from a bare tool name.
+detail records from a bare tool name. Tool output React components follow the
+same rule: when `toolOutputDetails` is absent, they show an empty details panel
+instead of rebuilding details from legacy `toolMetadata`, `toolName`,
+`executionTime`, or `success` props.
 Thread presentation duplicate suppression also treats live row ids and tool
 detail identity fields as exact SDK identity; padded live ids or nested
 `toolCallDetails`/`toolOutputDetails` ids do not suppress materialized display
