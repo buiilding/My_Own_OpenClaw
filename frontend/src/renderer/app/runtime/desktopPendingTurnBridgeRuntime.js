@@ -8,13 +8,32 @@ function readExactIdentityString(value) {
     : null;
 }
 
-function buildPendingTurn({
-  conversationRef,
-  text,
-  timestamp,
-  turnRef,
-  userMessageId = null,
-}) {
+const pendingTurnBridgeFields = new Set([
+  'conversationRef',
+  'text',
+  'timestamp',
+  'turnRef',
+  'userMessageId',
+]);
+
+function hasOnlyPendingTurnBridgeFields(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  return Object.keys(value).every((key) => pendingTurnBridgeFields.has(key));
+}
+
+function buildPendingTurn(input) {
+  if (!hasOnlyPendingTurnBridgeFields(input)) {
+    return null;
+  }
+  const {
+    conversationRef,
+    text,
+    timestamp,
+    turnRef,
+    userMessageId = null,
+  } = input;
   const normalizedConversationRef = readExactIdentityString(conversationRef);
   const normalizedTurnRef = readExactIdentityString(turnRef);
   const normalizedText = typeof text === 'string' ? text : null;

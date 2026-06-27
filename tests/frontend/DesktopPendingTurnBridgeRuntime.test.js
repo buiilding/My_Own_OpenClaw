@@ -71,14 +71,14 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
     })).toBeNull();
   });
 
-  test('builds a renderer-local pending user row without an attachment field', () => {
+  test('rejects pending bridge inputs with extra display fields', () => {
     const pendingUserRow = DesktopPendingTurnBridgeRuntime.buildPendingTurnUserMessage({
       conversationRef: 'conv-pending',
       turnRef: 'turn-pending',
       userMessageId: 'user-pending',
       text: 'hello',
       timestamp: '2026-06-25T12:00:00.000Z',
-      attachments: [{
+      visualFields: [{
         id: 'image-1',
         kind: 'image',
         source: 'user_included',
@@ -86,16 +86,6 @@ describe('DesktopPendingTurnBridgeRuntime', () => {
       }],
     });
 
-    expect(pendingUserRow).toEqual({
-      id: 'user-pending',
-      text: 'hello',
-      sender: 'user',
-      turnRef: 'turn-pending',
-      sourceEventType: 'renderer-compose',
-      sourceChannel: 'renderer-local',
-      isComplete: true,
-      timestamp: '2026-06-25T12:00:00.000Z',
-    });
-    expect(pendingUserRow).not.toHaveProperty('attachments');
+    expect(pendingUserRow).toBeNull();
   });
 });

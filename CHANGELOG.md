@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pending-turn: require renderer pending-bridge payloads to use only
+  the small identity/text field set, so display-lifecycle data cannot be
+  stripped into a local pending user row. No migration required.
 - frontend/projection: keep SDK display-row tool-output success scoped to
   sanitized `toolOutputDetails`, so raw row metadata cannot create legacy
   top-level renderer success props. No migration required.

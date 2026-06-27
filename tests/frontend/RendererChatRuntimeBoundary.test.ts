@@ -4900,6 +4900,8 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('features/chat');
     expect(chatStoreSource).not.toContain("sourceEventType: 'renderer-compose'");
     expect(pendingBridgeSource).toContain("sourceEventType: 'renderer-compose'");
+    expect(pendingBridgeSource).toContain('hasOnlyPendingTurnBridgeFields');
+    expect(pendingBridgeSource).toContain('pendingTurnBridgeFields');
     expect(pendingBridgeSource).not.toContain('attachments: null');
     expect(pendingBridgeSource).not.toContain('attachmentFilenames');
     expect(pendingBridgeSource).not.toContain('readSdkDisplayAttachments');
