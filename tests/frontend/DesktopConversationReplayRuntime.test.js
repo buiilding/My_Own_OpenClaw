@@ -11,9 +11,6 @@ import {
 import {
   DesktopTranscriptSessionRuntimeClient,
 } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
-import {
-  DesktopWorkspaceRuntimeClient,
-} from '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
   DesktopConversationContinuityService: {
@@ -36,13 +33,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
       userId: 'user-1',
     })),
     updateTranscriptSession: jest.fn(),
-  },
-}));
-
-jest.mock('../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient', () => ({
-  DesktopWorkspaceRuntimeClient: {
-    getConversationWorkspaceBinding: jest.fn(() => ({ workspacePath: null })),
-    setConversationWorkspaceBinding: jest.fn(),
   },
 }));
 
@@ -99,7 +89,6 @@ describe('desktopConversationReplayRuntime', () => {
       conversationRef: 'conv-replay',
       userId: 'user-1',
     });
-    DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding.mockReturnValue({ workspacePath: null });
   });
 
   afterEach(() => {
@@ -398,7 +387,6 @@ describe('desktopConversationReplayRuntime', () => {
     expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
     expect(DesktopConversationContinuityService.editAndResend).not.toHaveBeenCalled();
     expect(DesktopTranscriptSessionRuntimeClient.updateTranscriptSession).not.toHaveBeenCalled();
-    expect(DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding).not.toHaveBeenCalled();
     expect(DesktopRendererTraceRuntime.logRendererReplayTrace).toHaveBeenCalledWith(expect.objectContaining({
       action: 'replay_failed_cleanup',
       conversationRef: null,

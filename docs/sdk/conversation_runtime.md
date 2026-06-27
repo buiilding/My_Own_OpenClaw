@@ -1285,10 +1285,11 @@ must not infer or forward screenshot aliases; absent renderer payload fields
 must not erase prior resolved resources without an explicit removal operation.
 
 The Electron renderer does not publish a replay-specific pending turn, retained
-display prefix, or separate replacement query. It passes row intent, edited
-text when applicable, workspace context, optional model override data read by
-the replay runtime facade, user id, conversation ref, and no renderer-owned
-replacement turn ref into the SDK command. Renderer replay diagnostics name
+display prefix, separate replacement query, or renderer replay payload. It
+passes row intent, edited text when applicable, optional model override data
+read by the replay runtime facade, user id, conversation ref, and no
+renderer-owned replacement turn ref into the SDK command. Renderer replay
+diagnostics name
 that target as a generic
 `targetRowId`; edit and retry both map it to the SDK command's `messageId`
 field without classifying the row as a user-message target. It must not call

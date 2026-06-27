@@ -15,7 +15,6 @@ import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
-import { DesktopWorkspaceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
 import { DesktopRendererConfigStorageRuntime } from '../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime';
 
 let mockConversationRef = 'conv-existing';
@@ -48,19 +47,11 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
-jest.mock('../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient', () => ({
-  DesktopWorkspaceRuntimeClient: {
-    getConversationWorkspaceBinding: jest.fn(() => ({ workspacePath: null })),
-    setConversationWorkspaceBinding: jest.fn(),
-  },
-}));
-
 const mockEditAndResend = DesktopConversationContinuityService.editAndResend;
 const mockRetryTurn = DesktopConversationContinuityService.retryTurn;
 const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef;
 const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo;
 const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession;
-const mockGetConversationWorkspaceBinding = DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding;
 
 describe('useConversationReplayActions', () => {
   beforeEach(() => {
@@ -85,7 +76,6 @@ describe('useConversationReplayActions', () => {
       turnRef: input.turnRef ?? 'sdk-replay-turn',
       queryMessageId: `${input.turnRef ?? 'sdk-replay-turn'}-sdk-evt-000002-user_message`,
     }));
-    mockGetConversationWorkspaceBinding.mockReturnValue({ workspacePath: null });
     useChatStore.setState({ activeConversationRef: null });
   });
 
@@ -148,27 +138,19 @@ describe('useConversationReplayActions', () => {
 
     expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
       messageId: 'assistant-with-attachments',
-      payload: {},
     }));
-    expect(mockRetryTurn.mock.calls[0][0].payload).not.toHaveProperty('screenshot_ref');
-    expect(mockRetryTurn.mock.calls[0][0].payload).not.toHaveProperty('screenshot_refs');
-    expect(mockRetryTurn.mock.calls[0][0].payload).not.toHaveProperty('attachment_filenames');
+    expect(mockRetryTurn.mock.calls[0][0]).not.toHaveProperty('payload');
     expect(useChatStore.getState().getWorkspaceState('conv-existing').messages).toEqual([]);
   });
 
-  test('adds workspace path payload only as renderer IPC context', async () => {
-    mockGetConversationWorkspaceBinding.mockReturnValue({ workspacePath: '/tmp/workspace-a' });
+  test('does not add renderer workspace payload to replay commands', async () => {
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
       await result.current.handleEditFromUser('renderer-user-1', 'edited question');
     });
 
-    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
-      payload: {
-        workspace_path: '/tmp/workspace-a',
-      },
-    }));
+    expect(mockEditAndResend.mock.calls[0][0]).not.toHaveProperty('payload');
   });
 
   test('does not create a conversation when no replay scope exists', async () => {

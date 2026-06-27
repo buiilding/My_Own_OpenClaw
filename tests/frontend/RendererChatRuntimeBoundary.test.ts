@@ -2974,7 +2974,9 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('addMessage');
     expect(replayRuntimeSource).not.toContain('failureMessages');
     expect(replayRuntimeSource).not.toContain('renderer-replay');
-    expect(replayRuntimeSource).toContain('DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding');
+    expect(replayRuntimeSource).not.toContain('DesktopWorkspaceRuntimeClient');
+    expect(replayRuntimeSource).not.toContain('getConversationWorkspaceBinding');
+    expect(replayRuntimeSource).not.toContain('workspace_path');
     expect(replayRuntimeSource).toContain('desktopConversationSessionRuntime');
     expect(replayActionsSource).not.toContain('utils/session/conversationRef');
     expect(newChatSessionSource).toContain('DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding');

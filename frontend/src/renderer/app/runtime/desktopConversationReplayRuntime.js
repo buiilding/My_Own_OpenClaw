@@ -9,7 +9,6 @@ import {
 import { DesktopRendererConfigRuntimeClient } from './desktopRendererConfigRuntimeClient';
 import { DesktopRendererTraceRuntime } from './desktopRendererTraceRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
-import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
 
 const {
   applyRendererConversationSelection,
@@ -107,7 +106,6 @@ async function executeReplayIntent({
     });
     return false;
   }
-  const workspaceBinding = DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding(conversationRef);
   applyRendererConversationSelection({
     conversationRef,
     userId: sessionInfo.userId || undefined,
@@ -118,9 +116,6 @@ async function executeReplayIntent({
     targetRowId,
   });
   try {
-    const sdkReplayPayload = {
-      ...(workspaceBinding.workspacePath ? { workspace_path: workspaceBinding.workspacePath } : {}),
-    };
     try {
       logReplayTimeline('sdk_replay_sent', {
         conversationRef,
@@ -133,7 +128,6 @@ async function executeReplayIntent({
           conversationRef,
           messageId: targetRowId,
           text: queryText,
-          payload: sdkReplayPayload,
           model: modelSelection || undefined,
         });
       } else {
@@ -141,7 +135,6 @@ async function executeReplayIntent({
           userId: sessionInfo.userId,
           conversationRef,
           messageId: targetRowId,
-          payload: sdkReplayPayload,
           model: modelSelection || undefined,
         });
       }

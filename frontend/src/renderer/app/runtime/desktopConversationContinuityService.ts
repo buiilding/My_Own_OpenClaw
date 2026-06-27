@@ -95,8 +95,8 @@ export const DesktopConversationContinuityService = {
         conversationRef: input.conversationRef,
         messageId: input.messageId,
         text: input.text,
-        payload: input.payload,
-        model: input.model,
+        ...(input.payload !== undefined ? { payload: input.payload } : {}),
+        ...(input.model !== undefined ? { model: input.model } : {}),
       },
     );
   },
@@ -108,8 +108,8 @@ export const DesktopConversationContinuityService = {
         userId: input.userId,
         conversationRef: input.conversationRef,
         messageId: input.messageId,
-        payload: input.payload,
-        model: input.model,
+        ...(input.payload !== undefined ? { payload: input.payload } : {}),
+        ...(input.model !== undefined ? { model: input.model } : {}),
       },
     );
   },

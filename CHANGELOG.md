@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: stop adding renderer workspace payload context to retry and
+  edit/resend commands; replay commands now pass row intent while SDK/main
+  runtime context and target display rows own payload reconstruction. No
+  migration required.
 - frontend/stop: publish no stop target when neither SDK `ConversationView` nor
   the renderer pending bridge is stoppable; renderer and Electron main no
   longer carry active-conversation idle fallback identities through Stop
