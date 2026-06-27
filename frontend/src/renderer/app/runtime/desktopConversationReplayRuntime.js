@@ -22,6 +22,12 @@ function readExactReplayConversationRef(value) {
     : null;
 }
 
+function readExactReplayTargetRowId(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function resolveExistingConversationRef(sessionConversationRef) {
   return readExactReplayConversationRef(DesktopTranscriptSessionRuntimeClient.getActiveConversationRef())
     || readExactReplayConversationRef(sessionConversationRef)
@@ -133,13 +139,28 @@ async function executeReplayAction({
   if (action !== 'edit_resend' && action !== 'retry') {
     return undefined;
   }
+  const exactTargetRowId = readExactReplayTargetRowId(targetRowId);
+  if (!exactTargetRowId) {
+    const errorPrefix = action === 'edit_resend'
+      ? 'Failed to edit user message'
+      : 'Failed to retry assistant message';
+    console.error(`[ChatInterface] ${errorPrefix}: missing replay target row`);
+    logRendererReplayTrace({
+      action: 'replay_failed_cleanup',
+      conversationRef: null,
+      errorKind: 'MissingReplayTargetRowId',
+      replayAction: action,
+      targetRowId,
+    });
+    return false;
+  }
   return executeReplayIntent({
     action,
     errorPrefix: action === 'edit_resend'
       ? 'Failed to edit user message'
       : 'Failed to retry assistant message',
     queryText: editedText,
-    targetRowId,
+    targetRowId: exactTargetRowId,
   });
 }
 

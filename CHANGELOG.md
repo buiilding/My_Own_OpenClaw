@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: reject missing or padded replay target row ids in the
+  renderer replay runtime before invoking the continuity service or SDK command
+  bridge. No migration required.
 - frontend/projection: map SDK display rows directly to renderer chat-message
   props instead of routing through legacy transcript message-state builders, so
   the display-row adapter stays a narrow SDK row-to-component-props bridge. No

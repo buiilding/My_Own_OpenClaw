@@ -337,10 +337,12 @@ trimmed into no-view/pending routing state.
   chat-store active conversation refs as command scope.
   `desktopConversationReplayRuntime` passes only the UI replay action, target
   row id, edited text when applicable, and session identity to SDK command
-  APIs; the renderer continuity facade rejects empty or padded command ids
-  before IPC without repairing them. SDK runtime owns target-row lookup, child
-  display revision cuts, supersession, replacement display rows, edit-text
-  normalization/validation, and display-row `attachments[]`. The legacy
+  APIs; it rejects missing or padded target row ids before invoking the
+  continuity service, and the renderer continuity facade also rejects empty or
+  padded command ids before IPC without repairing them. SDK runtime owns
+  target-row lookup, child display revision cuts, supersession, replacement
+  display rows, edit-text normalization/validation, and display-row
+  `attachments[]`. The legacy
   replay-pending reducer and renderer superseded-turn ledger have been removed;
   renderer pending state is now only the normal post-send bridge.
   `useConversationReplayActions(...)` passes replay intent to

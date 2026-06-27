@@ -336,12 +336,9 @@ describe('desktopConversationReplayRuntime', () => {
     expect(replayCommand).not.toHaveProperty('model');
   });
 
-  test('forwards empty replay row targets to the continuity command guard', async () => {
+  test('rejects empty replay row targets before SDK dispatch', async () => {
     const chatStoreBundle = createChatStore();
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    DesktopConversationContinuityService.retryTurn.mockRejectedValueOnce(
-      new Error('Desktop replay command requires exact message id.'),
-    );
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
@@ -350,21 +347,22 @@ describe('desktopConversationReplayRuntime', () => {
       targetRowId: ' ',
     }))).resolves.toBe(false);
 
-    expect(DesktopConversationContinuityService.retryTurn).toHaveBeenCalledWith(expect.objectContaining({
-      messageId: ' ',
+    expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
+    expect(DesktopConversationContinuityService.editAndResend).not.toHaveBeenCalled();
+    expect(DesktopTranscriptSessionRuntimeClient.updateTranscriptSession).not.toHaveBeenCalled();
+    expect(DesktopRendererTraceRuntime.logRendererReplayTrace).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'replay_failed_cleanup',
+      conversationRef: null,
+      errorKind: 'MissingReplayTargetRowId',
+      replayAction: 'retry',
+      targetRowId: ' ',
     }));
     errorSpy.mockRestore();
   });
 
-  test('forwards padded replay row targets without repairing them', async () => {
+  test('rejects padded replay row targets before SDK dispatch without repairing them', async () => {
     const chatStoreBundle = createChatStore();
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    DesktopConversationContinuityService.retryTurn.mockRejectedValueOnce(
-      new Error('Desktop replay command requires exact message id.'),
-    );
-    DesktopConversationContinuityService.editAndResend.mockRejectedValueOnce(
-      new Error('Desktop replay command requires exact message id.'),
-    );
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
@@ -378,12 +376,22 @@ describe('desktopConversationReplayRuntime', () => {
       editedText: 'edited question',
     }))).resolves.toBe(false);
 
-    expect(DesktopConversationContinuityService.retryTurn).toHaveBeenCalledWith(expect.objectContaining({
-      messageId: ' assistant-1 ',
+    expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
+    expect(DesktopConversationContinuityService.editAndResend).not.toHaveBeenCalled();
+    expect(DesktopTranscriptSessionRuntimeClient.updateTranscriptSession).not.toHaveBeenCalled();
+    expect(DesktopRendererTraceRuntime.logRendererReplayTrace).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'replay_failed_cleanup',
+      conversationRef: null,
+      errorKind: 'MissingReplayTargetRowId',
+      replayAction: 'retry',
+      targetRowId: ' assistant-1 ',
     }));
-    expect(DesktopConversationContinuityService.editAndResend).toHaveBeenCalledWith(expect.objectContaining({
-      messageId: ' user-1 ',
-      text: 'edited question',
+    expect(DesktopRendererTraceRuntime.logRendererReplayTrace).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'replay_failed_cleanup',
+      conversationRef: null,
+      errorKind: 'MissingReplayTargetRowId',
+      replayAction: 'edit_resend',
+      targetRowId: ' user-1 ',
     }));
     errorSpy.mockRestore();
   });
