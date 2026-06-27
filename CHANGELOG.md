@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: require direct Agent SDK revision command identities
+  (`conversationRef`, `revisionId`, `baseRevisionId`, `sourceRevisionId`,
+  `cutAfterRowId`, and `newConversationRef`) to be exact before main invokes
+  display-timeline, checkout, replace, or fork SDK APIs. No migration required.
 - frontend/overlay: make response-overlay tool-row materialization compare only
   exact SDK tool identities, so padded correlation or tool-detail ids are not
   trimmed into display/live row dedupe decisions. No migration required.

@@ -170,6 +170,10 @@ flowchart LR
      load/replace helpers to React. Low-level display timeline operations remain
      SDK/main-owner diagnostics and command-handler concerns; normal UI paths
      use SDK intent commands such as retry, edit/resend, checkout, and fork.
+     Direct Electron-main display timeline, checkout, replace, and fork command
+     handlers apply the same exact-identity rule to conversation refs, revision
+     ids, fork row ids, and new child conversation refs; padded values are
+     rejected instead of being trimmed into SDK revision API inputs.
    - If the SDK replay command fails, record renderer replay diagnostics and
      return failure without publishing a renderer-local chat row, restoring
      renderer-cut prefixes, or clearing renderer replay pending state. Do not

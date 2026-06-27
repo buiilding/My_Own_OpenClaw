@@ -507,6 +507,10 @@ target row ids on SDK display rows mean the command is unavailable rather than
 defaulting to a renderer heuristic. The low-level action buttons use the same
 shared runtime target-id reader, so direct component renders cannot show
 edit/retry controls from padded or missing SDK row targets.
+Direct Electron-main SDK revision commands follow that exactness rule for
+display timeline, checkout, replace, and fork identity fields: conversation
+refs, revision ids, fork cut-row ids, and new conversation refs must already be
+exact non-empty strings before main invokes SDK revision APIs.
 Renderer message-list controls apply the same rule for all rows: copy and
 feedback remain renderer-local affordances, but edit/resend and Try again are
 shown only when row `actions.canEdit`/`actions.editTargetRowId` or

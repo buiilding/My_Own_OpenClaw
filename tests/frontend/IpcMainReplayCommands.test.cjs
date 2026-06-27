@@ -527,6 +527,96 @@ describe('ipc.cjs replay command handling', () => {
     });
   });
 
+  test('rejects padded revision command identities instead of repairing them', async () => {
+    const sdk = installMockAgentClient();
+    const bridge = initIpc();
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.loadDisplayTimeline',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        revisionId: ' rev-child ',
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact revision id.',
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.checkoutRevision',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        revisionId: ' rev-child ',
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact revision id.',
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.listRevisions',
+      {
+        userId: 'registered-user-1',
+        conversationRef: ' conv-ipc-display ',
+        limit: 25,
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact conversation reference.',
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.fork',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        sourceRevisionId: ' rev-display ',
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact source revision id.',
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.fork',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        sourceRevisionId: 'rev-display',
+        cutAfterRowId: ' row-cut ',
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact cut row id.',
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.fork',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        sourceRevisionId: 'rev-display',
+        newConversationRef: ' conv-new ',
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact new conversation reference.',
+    });
+
+    expect(sdk.runtime.loadDisplayTimeline).not.toHaveBeenCalled();
+    expect(sdk.runtime.checkoutRevision).not.toHaveBeenCalled();
+    expect(sdk.agent.listConversationRevisions).not.toHaveBeenCalled();
+    expect(sdk.runtime.fork).not.toHaveBeenCalled();
+  });
+
   test('routes revision list lookup through the Agent SDK', async () => {
     const sdk = installMockAgentClient();
     const bridge = initIpc();
