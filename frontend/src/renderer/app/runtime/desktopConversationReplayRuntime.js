@@ -42,8 +42,8 @@ function prepareReplayEditIntent({ userMessageId, editedText }) {
   return {
     action: 'edit_resend',
     errorPrefix: 'Failed to edit user message',
-    messageId: normalizedMessageId,
     queryText: normalizedEditedText,
+    targetRowId: normalizedMessageId,
   };
 }
 
@@ -55,7 +55,7 @@ function prepareReplayRetryIntent({ assistantMessageId }) {
   return {
     action: 'retry',
     errorPrefix: 'Failed to retry assistant message',
-    messageId: normalizedMessageId,
+    targetRowId: normalizedMessageId,
   };
 }
 
@@ -120,8 +120,8 @@ async function executeReplayIntent({
   const {
     action,
     errorPrefix,
-    messageId,
     queryText,
+    targetRowId,
   } = intent;
   const conversationRef = resolveExistingConversationRef(
     sessionInfo.conversationRef,
@@ -133,7 +133,7 @@ async function executeReplayIntent({
       action: 'replay_failed_cleanup',
       conversationRef: null,
       errorKind: 'MissingConversationRef',
-      targetUserMessageId: messageId,
+      targetRowId,
     });
     return false;
   }
@@ -145,7 +145,7 @@ async function executeReplayIntent({
   });
   logReplayTimeline(replayUiContext, 'replay_start', {
     conversationRef,
-    targetUserMessageId: messageId,
+    targetRowId,
   });
   try {
     const sdkReplayPayload = {
@@ -155,13 +155,13 @@ async function executeReplayIntent({
       logReplayTimeline(replayUiContext, 'sdk_replay_sent', {
         conversationRef,
         action,
-        targetUserMessageId: messageId,
+        targetRowId,
       });
       if (action === 'edit_resend') {
         await DesktopConversationContinuityService.editAndResend({
           userId: sessionInfo.userId,
           conversationRef,
-          messageId,
+          messageId: targetRowId,
           text: queryText,
           payload: sdkReplayPayload,
           model: deferredQueryModelSelection || undefined,
@@ -170,7 +170,7 @@ async function executeReplayIntent({
         await DesktopConversationContinuityService.retryTurn({
           userId: sessionInfo.userId,
           conversationRef,
-          messageId,
+          messageId: targetRowId,
           payload: sdkReplayPayload,
           model: deferredQueryModelSelection || undefined,
         });
@@ -179,7 +179,7 @@ async function executeReplayIntent({
         conversationRef,
         action,
         replaySucceeded: true,
-        targetUserMessageId: messageId,
+        targetRowId,
       });
     } catch (sdkReplayError) {
       logReplayTimeline(replayUiContext, 'sdk_replay_failed', {
@@ -187,7 +187,7 @@ async function executeReplayIntent({
         action,
         replaySucceeded: false,
         errorKind: traceErrorKind(sdkReplayError),
-        targetUserMessageId: messageId,
+        targetRowId,
       });
       if (sdkReplayError && typeof sdkReplayError === 'object') {
         sdkReplayError.__desktopRuntimeReplayStep = 'send';
@@ -200,7 +200,7 @@ async function executeReplayIntent({
     logReplayTimeline(replayUiContext, 'replay_failed_cleanup', {
       conversationRef,
       errorKind: traceErrorKind(error),
-      targetUserMessageId: messageId,
+      targetRowId,
     });
     return false;
   }

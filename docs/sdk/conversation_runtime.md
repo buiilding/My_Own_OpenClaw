@@ -1100,12 +1100,15 @@ The Electron renderer does not publish a replay-specific pending turn, retained
 display prefix, or separate replacement query. It passes row intent, edited
 text when applicable, workspace context, optional model override data, user id,
 conversation ref, and no renderer-owned replacement turn ref into the SDK
-command. It must not call the renderer settings facade to pre-apply the replay
-model; the SDK command applies model selection inside the replacement
-`send()` path. The SDK command chooses the replacement turn ref. If the SDK
-command cannot resolve the stored target row or fails, the renderer records
-replay diagnostics and returns failure without rolling its own display
-replacement, failure row, or resource restoration. Typed
+command. Renderer replay diagnostics name that target as a generic
+`targetRowId`; edit and retry both map it to the SDK command's `messageId`
+field without classifying the row as a user-message target. It must not call
+the renderer settings facade to pre-apply the replay model; the SDK command
+applies model selection inside the replacement `send()` path. The SDK command
+chooses the replacement turn ref. If the SDK command cannot resolve the stored
+target row or fails, the renderer records replay diagnostics and returns
+failure without rolling its own display replacement, failure row, or resource
+restoration. Typed
 visual `attachments[]`, screenshot descriptors, preview bytes, ready artifact
 refs, and replacement event ids remain SDK display-row state.
 

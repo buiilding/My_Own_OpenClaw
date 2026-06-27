@@ -1996,6 +1996,9 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.editAndResend');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.retryTurn');
     expect(replayRuntimeSource).toContain('storeConversationRef');
+    expect(replayRuntimeSource).toContain('targetRowId');
+    expect(replayRuntimeSource).toContain('messageId: targetRowId');
+    expect(replayRuntimeSource).not.toContain('targetUserMessageId');
     expect(replayRuntimeSource).not.toContain('chatStore');
     expect(replayRuntimeSource).not.toContain('.getState()');
     expect(replayRuntimeSource).not.toContain('activeConversationRef,');

@@ -223,11 +223,13 @@ shapes.
   narrow `chatStoreAdapters.ts` UI context for active conversation and
   projected workspace trace reads. `chatStoreAdapters.ts` does not expose
   replay wrapper commands. The replay runtime derives deferred SDK model
-  selection as command data before dispatching SDK commands. It must not call
-  the renderer settings facade to apply the model directly or depend on the
-  full Zustand store object. Replay requires an existing conversation ref from
-  the transcript session or chat-store active workspace; it must not create a
-  fresh conversation for a row id the SDK cannot resolve.
+  selection as command data before dispatching SDK commands, and its trace
+  metadata names edit/retry targets as generic SDK `targetRowId` values before
+  mapping them into the SDK command `messageId` field. It must not call the
+  renderer settings facade to apply the model directly or depend on the full
+  Zustand store object. Replay requires an existing conversation ref from the
+  transcript session or chat-store active workspace; it must not create a fresh
+  conversation for a row id the SDK cannot resolve.
 - `clearPendingTurnInChatStore(...)` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn.
   Pending-turn clear matching, broadcast action branching, and workspace

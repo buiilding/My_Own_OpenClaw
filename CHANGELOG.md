@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: name renderer replay diagnostics around generic SDK
+  `targetRowId` values while still dispatching the SDK command `messageId`,
+  avoiding user-row-only target semantics in edit/retry tracing. No migration
+  required.
 - frontend/stop: reject padded `ConversationView` and pending bridge stop
   target refs instead of trimming them into SDK stop commands or
   pending-bridge cleanup. No migration required.
