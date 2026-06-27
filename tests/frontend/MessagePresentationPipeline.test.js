@@ -568,6 +568,50 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
+  test('buildThreadPresentationMessages keeps malformed ConversationView envelopes on no-view fallback path', () => {
+    const rawRow = {
+      id: 'raw-user-row',
+      sender: 'user',
+      text: 'raw prompt',
+      turnRef: 'turn-live',
+    };
+    const conversationView = conversationViewFixture({
+      conversationRef: ' conv-1 ',
+      liveTurn: [],
+      displayRows: [{
+        id: 'view-entry-ignored',
+        sender: 'assistant',
+        text: 'malformed view answer',
+      }],
+    });
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-live',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'live-entry',
+          type: 'llm-text',
+          text: 'live fallback answer',
+          turnRef: 'turn-live',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages([rawRow], {
+      conversationView,
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      rawRow,
+      expect.objectContaining({
+        id: 'live-entry',
+        text: 'live fallback answer',
+        sourceChannel: 'sdk:current-turn',
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages uses SDK live-entry fields for tool identity', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },

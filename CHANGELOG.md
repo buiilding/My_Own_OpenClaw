@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/chat: harden the shared `ConversationView` workspace gate so padded
   conversation refs and array-shaped view records stay on the no-view fallback
   path. No migration required.
+- frontend/presentation: route main-thread and chat-interface
+  `ConversationView` authority checks through the shared workspace gate instead
+  of local renderer predicates. No migration required.
 - frontend/attachments: reject inline `data:` URLs on ready SDK image
   attachments, keeping volatile preview bytes on materializing `previewSrc`
   only while ready images resolve through artifact refs or non-inline URLs. No

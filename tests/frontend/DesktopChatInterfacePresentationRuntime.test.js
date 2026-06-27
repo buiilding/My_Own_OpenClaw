@@ -334,6 +334,59 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     ]));
   });
 
+  test('keeps malformed conversation view envelopes on the no-view fallback path', () => {
+    const messages = [{
+      id: 'raw-user-row',
+      sender: 'user',
+      text: 'raw prompt',
+      turnRef: 'turn-live',
+    }];
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: sdkConversationView({
+        conversationRef: ' conv-1 ',
+        revisionId: 'rev-malformed',
+        liveTurn: [],
+        displayRows: [{
+          id: 'view-row-ignored',
+          conversationRef: ' conv-1 ',
+          turnRef: 'turn-live',
+          index: 0,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'malformed view answer',
+        }],
+      }),
+      messages,
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-live',
+        phase: 'streaming',
+        presentation: {
+          entries: [{
+            id: 'live-entry',
+            type: 'llm-text',
+            text: 'fallback live answer',
+            turnRef: 'turn-live',
+          }],
+        },
+      },
+    });
+
+    expect(state.activeRevisionId).toBeNull();
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'raw-user-row',
+        text: 'raw prompt',
+      }),
+      expect.objectContaining({
+        id: 'live-entry',
+        text: 'fallback live answer',
+        sourceChannel: 'sdk:current-turn',
+      }),
+    ]);
+  });
+
   test('keeps no-view SDK presentation cached across ignored raw live-turn changes', () => {
     const messages = [];
     const rendererAnnotations = [];

@@ -8,6 +8,9 @@ import {
 import {
   DesktopConversationDisplayProjection,
 } from './desktopConversationDisplayProjection';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
 const {
   buildThreadPresentationMessages,
@@ -16,23 +19,9 @@ const {
   buildConversationViewChatMessages,
   buildPendingBridgeChatMessages,
 } = DesktopConversationDisplayProjection;
-
-function isObjectRecord(value) {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
-function isConversationView(value) {
-  if (!isObjectRecord(value)) {
-    return false;
-  }
-  return Boolean(
-    readExactIdentityString(value.conversationRef)
-      && Array.isArray(value.displayRows)
-      && isObjectRecord(value.liveTurn)
-      && isObjectRecord(value.surfaces)
-      && isObjectRecord(value.actions),
-  );
-}
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 function readExactIdentityString(value) {
   if (typeof value !== 'string' || value.length === 0 || value !== value.trim()) {
@@ -125,7 +114,7 @@ function buildChatInterfacePresentationState({
   rendererAnnotations = [],
   sdkLiveTurn = null,
 } = {}) {
-  const hasConversationView = isConversationView(conversationView);
+  const hasConversationView = hasWorkspaceConversationView({ conversationView });
   const effectiveConversationView = hasConversationView ? conversationView : null;
   const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
   const effectiveMessages = hasConversationView ? null : messages;
@@ -206,7 +195,7 @@ function resolveConversationViewStoreRef({
   targetConversationRef = null,
   view = null,
 } = {}) {
-  if (!isConversationView(view)) {
+  if (!hasWorkspaceConversationView({ conversationView: view })) {
     return null;
   }
   const viewConversationRef = readExactIdentityString(view.conversationRef);

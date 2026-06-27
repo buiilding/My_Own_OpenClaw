@@ -437,14 +437,15 @@ calls cannot combine `ConversationView` with raw messages or the no-view
 before resolving overlay entries and dismissal targets. The view plus pending
 bridge own visible lifecycle and stop authority.
 The interface presentation adapter also requires the complete SDK
-`ConversationView` envelope before it blanks the no-view `sdkLiveTurn` fallback
-or passes a view to the thread presenter, so partial objects cannot suppress raw
-fallback rows and stale raw current-turn rows cannot re-enter through the
-presentation layer after a real view exists.
+`ConversationView` envelope through the shared workspace gate before it blanks
+the no-view `sdkLiveTurn` fallback or passes a view to the thread presenter, so
+partial objects cannot suppress raw fallback rows and stale raw current-turn
+rows cannot re-enter through the presentation layer after a real view exists.
 The thread presenter enforces the same read-model boundary for direct
-app-runtime callers: with `ConversationView` present, its base rows must be
-SDK display-row messages or the explicit renderer pending bridge. Untagged raw
-chat-store rows are ignored before live-row insertion and duplicate checks.
+app-runtime callers through that shared gate: with `ConversationView` present,
+its base rows must be SDK display-row messages or the explicit renderer pending
+bridge. Untagged raw chat-store rows are ignored before live-row insertion and
+duplicate checks.
 The conversation projection-stream hook applies the same rule when it needs
 workspace context for stale-turn checks and projection diagnostics: it wraps raw store
 workspace reads with `projectWorkspaceReadModelState(...)`, so projection-stream
@@ -557,9 +558,10 @@ Workspace-binding invariant:
 presentation view model. It combines SDK `ConversationView`, the no-view
 current-turn bridge, stored messages, the local pending bridge, and
 SDK display-row `actions` into `renderedMessages`, edit/retry availability, and
-active revision id. It treats `conversationView` as SDK-owned input only after
-the full envelope is present (`conversationRef`, `displayRows`, `liveTurn`,
-`surfaces`, and `actions`). When a view exists, it builds base thread messages from
+active revision id. It delegates the SDK-owned input decision to
+`DesktopConversationViewWorkspaceRuntime.hasWorkspaceConversationView(...)` so
+presentation does not duplicate `ConversationView` shape authority. When a view
+exists, it builds base thread messages from
 `ConversationView.displayRows` through
 `DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`
 and passes only renderer annotation records selected by the surface/interface

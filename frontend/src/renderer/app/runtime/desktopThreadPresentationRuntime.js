@@ -6,6 +6,9 @@ import {
   DesktopCurrentTurnMessageRuntime,
 } from './desktopCurrentTurnMessageRuntime';
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
 const {
   buildSdkLiveTurnMessages,
@@ -14,6 +17,9 @@ const {
   isSdkDisplayRowsSourceChannel,
   isSdkLiveTurnSourceChannel,
 } = DesktopPresentationSourceChannels;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 function findLastUserIndex(messages) {
   if (!Array.isArray(messages)) {
@@ -39,21 +45,6 @@ function readExactRef(value) {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
     ? value
     : null;
-}
-
-function isObjectRecord(value) {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
-function isConversationView(value) {
-  return Boolean(
-    isObjectRecord(value)
-      && readExactRef(value.conversationRef)
-      && Array.isArray(value.displayRows)
-      && isObjectRecord(value.liveTurn)
-      && isObjectRecord(value.surfaces)
-      && isObjectRecord(value.actions),
-  );
 }
 
 function isRendererPendingBridgeMessage(message) {
@@ -297,7 +288,7 @@ function buildThreadPresentationMessages(
     activeConversationRef = null,
   } = {},
 ) {
-  const hasConversationView = isConversationView(conversationView);
+  const hasConversationView = hasWorkspaceConversationView({ conversationView });
   const effectiveConversationView = hasConversationView ? conversationView : null;
   const inputMessages = Array.isArray(messages) ? messages : [];
   const baseMessages = hasConversationView
