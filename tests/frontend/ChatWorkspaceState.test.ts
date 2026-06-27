@@ -222,6 +222,7 @@ describe('chatWorkspaceState', () => {
 
     expect(readModel).not.toBe(workspace);
     expect(readModel.messages).toBe(workspace.messages);
+    expect(readModel).not.toHaveProperty('isSending');
     expect(readModel).not.toHaveProperty('currentTurnProjection');
     expect(readModel.sdkLiveTurn).toBe(workspace.sdkLiveTurn);
     expect(readModel.rendererAnnotations).toEqual([]);
@@ -285,6 +286,7 @@ describe('chatWorkspaceState', () => {
 
     expect(readModel).not.toBe(workspace);
     expect(readModel.messages).toEqual([]);
+    expect(readModel).not.toHaveProperty('isSending');
     expect(readModel).not.toHaveProperty('currentTurnProjection');
     expect(readModel.sdkLiveTurn).toBeNull();
     expect(readModel.thinkingStatus).toBeNull();

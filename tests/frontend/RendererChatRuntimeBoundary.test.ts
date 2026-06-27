@@ -4750,6 +4750,9 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateRuntimeSource).toContain('buildWorkspaceUpdate');
     expect(chatWorkspaceStateRuntimeSource).toContain('resolveWorkspaceMutationTarget');
     expect(chatWorkspaceStateRuntimeSource).toContain('projectWorkspaceReadModelState');
+    expect(chatWorkspaceStateRuntimeSource).toContain("Pick<\n  ChatWorkspaceState");
+    expect(chatWorkspaceStateRuntimeSource).toContain("| 'pendingTurn'");
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('...workspace,\n    messages: hasConversationView');
     expect(chatWorkspaceStateRuntimeSource).toContain('selectActiveWorkspaceReadModelState');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('function isActiveWorkspaceRef');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('isActiveWorkspaceRef,');

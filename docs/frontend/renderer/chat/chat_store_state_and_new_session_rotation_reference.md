@@ -82,7 +82,11 @@ generic projected workspace read helper remains private to
 `chatStoreAdapters.ts`. Those public projected getters return
 purpose-shaped stream/current-turn read models, not the raw
 `ChatWorkspaceState`, so callers do not type against raw fallback fields as
-durable chat authority or casually reach across SDK-view boundaries. Raw
+durable chat authority or casually reach across SDK-view boundaries. The
+projected workspace read model is assembled from an allowlist of fields and
+does not expose the raw `isSending` storage latch; visible busy/typing state is
+derived by lifecycle/surface runtimes from the pending bridge and SDK view/live
+turn state. Raw
 workspace inspection is test-only and lives in
 `tests/frontend/chatStoreTestUtils.ts`; production adapters keep raw workspace
 reads private to projected selectors and mutation helpers.

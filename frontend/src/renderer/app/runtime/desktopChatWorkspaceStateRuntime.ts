@@ -57,7 +57,19 @@ interface ChatWorkspaceStoreSnapshot {
   workspaces?: Record<string, ChatWorkspaceState>;
 }
 
-export type ChatWorkspaceReadModelState = ChatWorkspaceState & {
+export type ChatWorkspaceReadModelState = Pick<
+  ChatWorkspaceState,
+  | 'messages'
+  | 'rendererAnnotations'
+  | 'thinkingStatus'
+  | 'thinkingSourceEventType'
+  | 'compactionDebugInfo'
+  | 'tokenCounts'
+  | 'streamTracking'
+  | 'sdkLiveTurn'
+  | 'conversationView'
+  | 'pendingTurn'
+> & {
   rendererAnnotations: RendererMessageAnnotation[];
 };
 
@@ -231,7 +243,6 @@ export function projectWorkspaceReadModelState(
   }
   const hasConversationView = hasWorkspaceConversationView(workspace);
   const readModelWorkspace = {
-    ...workspace,
     messages: hasConversationView ? emptyChatMessages : workspace.messages,
     thinkingStatus: hasConversationView ? null : workspace.thinkingStatus,
     thinkingSourceEventType: hasConversationView ? null : workspace.thinkingSourceEventType,
@@ -244,6 +255,8 @@ export function projectWorkspaceReadModelState(
     rendererAnnotations: hasConversationView
       ? readRendererAnnotations(workspace)
       : emptyRendererAnnotations,
+    conversationView: workspace.conversationView,
+    pendingTurn: workspace.pendingTurn,
   };
   workspaceReadModelCache.set(workspace, readModelWorkspace);
   return readModelWorkspace;

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: omit the raw `isSending` storage latch from projected
+  workspace read models so UI selectors cannot treat it as normal busy-state
+  authority beside SDK view and pending-bridge lifecycle. No migration required.
 - frontend/send: preserve SDK-generated `attachment_context` whitespace through
   renderer transport and Electron main IPC instead of trimming hidden file
   context as if it were identity metadata. No migration required.
