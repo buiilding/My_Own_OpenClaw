@@ -438,9 +438,11 @@ array as the normal current-turn shape and must not require raw `assistantText`
 or `toolEvents` when presentation exists. The raw field requirement remains
 only for legacy no-presentation snapshots.
 Renderer presentation caches follow the same split: presentation-backed
-snapshots are keyed by SDK presentation identity and live-turn refs, while raw
-`assistantText`, `reasoningText`, `toolEvents`, and `lastError` participate only
-in the explicitly named legacy no-presentation cache path.
+snapshots are keyed by SDK presentation identity and exact live-turn refs,
+phase labels, and presentation error text; malformed padded values are not
+cache invalidation signals. Raw `assistantText`, `reasoningText`, `toolEvents`,
+and `lastError` participate only in the explicitly named legacy no-presentation
+cache path.
 The renderer does not expose a reusable raw `reasoningText` helper from its
 current-turn message adapter; the response-overlay runtime owns its local
 no-view thinking-text fallback until that surface is fully view-backed.

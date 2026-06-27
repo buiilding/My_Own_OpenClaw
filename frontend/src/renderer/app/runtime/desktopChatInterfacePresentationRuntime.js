@@ -72,21 +72,24 @@ function buildSdkLiveTurnCacheKey(sdkLiveTurn) {
   const presentationEntries = Array.isArray(presentation?.entries)
     ? presentation.entries
     : null;
+  const conversationRef = readExactIdentityString(liveTurn.conversationRef);
+  const turnRef = readExactIdentityString(liveTurn.turnRef);
+  const phase = readExactIdentityString(liveTurn.phase);
   if (presentation) {
     return {
-      conversationRef: liveTurn.conversationRef ?? null,
-      turnRef: liveTurn.turnRef ?? null,
-      phase: liveTurn.phase ?? null,
+      conversationRef,
+      turnRef,
+      phase,
       presentation,
       presentationEntries,
-      presentationLastError: presentation.lastError ?? null,
+      presentationLastError: readExactIdentityString(presentation.lastError),
       legacyNoPresentation: null,
     };
   }
   return {
-    conversationRef: liveTurn.conversationRef ?? null,
-    turnRef: liveTurn.turnRef ?? null,
-    phase: liveTurn.phase ?? null,
+    conversationRef,
+    turnRef,
+    phase,
     presentation: null,
     presentationEntries: null,
     presentationLastError: null,

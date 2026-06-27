@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: key no-view SDK presentation caches with exact live-turn refs,
+  phase labels, and presentation error text, so malformed padded SDK strings do
+  not churn ChatInterface presentation state. No migration required.
 - frontend/overlay: require response-overlay source-tag detection to use exact
   SDK `sourceEventType` labels, so padded labels are ignored instead of being
   trimmed into overlay response eligibility. No migration required.

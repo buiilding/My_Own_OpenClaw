@@ -246,9 +246,12 @@ trimmed into no-view/pending routing state.
   runtime builds ConversationView live rows through a separate view-owned
   thread path, so SDK view live entries do not pass through renderer no-view
   duplicate or latest-user fallback heuristics. It memoizes legacy
-  no-presentation current turns as opaque live-turn snapshots; raw fallback
-  fields such as `assistantText`, `reasoningText`, `toolEvents`, and
-  `lastError` are interpreted only by the thread presenter fallback path. The
+  no-presentation current turns as opaque live-turn snapshots. Presentation
+  cache keys accept only exact SDK live-turn refs, phase labels, and
+  presentation error text, so malformed padded values do not churn presentation
+  state. Raw fallback fields such as `assistantText`, `reasoningText`,
+  `toolEvents`, and `lastError` are interpreted only by the thread presenter
+  fallback path. The
   current-turn message runtime does not export a standalone
   raw `reasoningText` accessor; the response-overlay runtime owns its temporary
   no-view thinking fallback locally until that surface is fully SDK-view-owned.

@@ -483,6 +483,45 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     ]);
   });
 
+  test('keeps no-view SDK presentation cached across malformed live-turn identity changes', () => {
+    const messages = [];
+    const rendererAnnotations = [];
+    const presentation = {
+      entries: [{
+        id: 'live-answer',
+        type: 'llm-text',
+        text: 'presentation answer',
+      }],
+    };
+    const firstState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: null,
+      messages,
+      rendererAnnotations,
+      sdkLiveTurn: {
+        conversationRef: ' conv-1',
+        turnRef: ' turn-1',
+        phase: ' streaming',
+        presentation,
+      },
+    });
+    const secondState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: null,
+      messages,
+      rendererAnnotations,
+      sdkLiveTurn: {
+        conversationRef: 'conv-1 ',
+        turnRef: 'turn-1 ',
+        phase: 'streaming ',
+        presentation,
+      },
+    });
+
+    expect(secondState).toBe(firstState);
+    expect(secondState.renderedMessages).toEqual([]);
+  });
+
   test('updates no-view SDK presentation when presentation entries change', () => {
     const firstState = buildChatInterfacePresentationState({
       activeConversationRef: 'conv-1',
