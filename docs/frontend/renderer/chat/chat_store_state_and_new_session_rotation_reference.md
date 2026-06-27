@@ -181,6 +181,10 @@ trimmed into no-view/pending routing state.
   surface messages with the empty view-owned list or nulling the no-view
   `sdkLiveTurn`, so direct selector callers cannot make partial
   `conversationView` objects suppress no-view state.
+- Stop-target resolution and stopped-turn workspace cleanup also use the shared
+  SDK view-shape predicate before treating `conversationView` as stop
+  authority or suppressing no-view `sdkLiveTurn`, leaving partial objects on
+  the no-view/pending fallback path.
 - `setMessagesInChatStore(...)` no-ops when array reference is unchanged; when hydrating a concrete
   conversation workspace, it records message `turnRef` values through the
   app-runtime turn-routing registry so later turn-scoped stream events can

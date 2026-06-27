@@ -23,6 +23,8 @@ function conversationView({
 } = {}) {
   return {
     conversationRef,
+    revisionId: null,
+    displayRows: [],
     liveTurn: {
       turnRef,
       phase,
@@ -36,6 +38,21 @@ function conversationView({
       pill: {
         mode: phase === 'complete' || phase === 'idle' ? 'idle' : 'busy',
       },
+      dashboard: {
+        mode: phase === 'complete' || phase === 'idle' ? 'idle' : 'busy',
+      },
+      responseOverlay: {
+        mode: phase === 'complete' || phase === 'idle' ? 'hidden' : 'response',
+        visible: phase !== 'complete' && phase !== 'idle',
+        guardRef: turnRef,
+        ownerConversationRef: conversationRef,
+        turnRef,
+      },
+    },
+    actions: {
+      canEdit: false,
+      canRetry: false,
+      canFork: false,
     },
   };
 }
@@ -169,6 +186,21 @@ describe('desktopStopTurnRuntime', () => {
     })).toEqual({
       source: 'idle',
       conversationRef: 'conv-view',
+      turnRef: null,
+      canStop: false,
+    });
+  });
+
+  test('resolveStopTurnTarget does not treat display timeline rows as ConversationView authority', () => {
+    expect(resolveStopTurnTarget({
+      conversationView: {
+        conversationRef: 'conv-display-timeline',
+        rows: [],
+      },
+      conversationRef: 'conv-session',
+    })).toEqual({
+      source: 'idle',
+      conversationRef: 'conv-session',
       turnRef: null,
       canStop: false,
     });
@@ -559,6 +591,33 @@ describe('desktopStopTurnRuntime', () => {
       stoppedAt: '2026-06-25T12:01:00.000Z',
       turnRef: 'turn-stop',
     })).toBeNull();
+  });
+
+  test('buildStoppedTurnWorkspaceMutation does not treat display timeline rows as ConversationView authority', () => {
+    const nextWorkspace = buildStoppedTurnWorkspaceMutation({
+      conversationRef: 'conv-stop',
+      currentWorkspace: workspace({
+        conversationView: {
+          conversationRef: 'conv-stop',
+          rows: [],
+        },
+        pendingTurn: null,
+      }),
+      stoppedAt: '2026-06-25T12:01:00.000Z',
+      turnRef: 'turn-stop',
+    });
+
+    expect(nextWorkspace).toEqual(expect.objectContaining({
+      sdkLiveTurn: expect.objectContaining({
+        conversationRef: 'conv-stop',
+        turnRef: 'turn-stop',
+        phase: 'complete',
+      }),
+      streamTracking: expect.objectContaining({
+        phase: 'complete',
+        lastEventType: 'stop-query',
+      }),
+    }));
   });
 
   test('buildStoppedTurnWorkspaceMutation clears pending bridge under ConversationView without raw fallback', () => {

@@ -5,11 +5,17 @@
 import {
   DesktopChatWorkspaceStateRuntime,
 } from './desktopChatWorkspaceStateRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
 const {
   buildNoViewSdkLiveTurnStorageUpdate,
   readNoViewSdkLiveTurnStorage,
 } = DesktopChatWorkspaceStateRuntime;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 function readExactNonEmptyRef(value) {
   return typeof value === 'string' && value && value.trim() === value ? value : null;
@@ -95,8 +101,8 @@ function doesPendingTurnMatch(pendingTurn, input = null) {
   );
 }
 
-function hasConversationView(value) {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+function isSdkConversationView(conversationView) {
+  return hasWorkspaceConversationView({ conversationView });
 }
 
 function resolveStoppedAt(stoppedAt) {
@@ -122,8 +128,8 @@ function buildStoppedTurnWorkspaceMutation({
   if (!target.conversationRef || !target.turnRef) {
     return null;
   }
-  const hasWorkspaceConversationView = hasConversationView(currentWorkspace.conversationView);
-  const workspaceSdkLiveTurn = hasWorkspaceConversationView
+  const hasSdkConversationView = hasWorkspaceConversationView(currentWorkspace);
+  const workspaceSdkLiveTurn = hasSdkConversationView
     ? null
     : readNoViewSdkLiveTurnStorage(currentWorkspace);
   const isWorkspaceSdkLiveTurnTarget = doesSdkLiveTurnMatch(workspaceSdkLiveTurn, target);
@@ -143,7 +149,7 @@ function buildStoppedTurnWorkspaceMutation({
   const nextStoppedAt = resolveStoppedAt(stoppedAt);
   const nextWorkspace = buildNoViewSdkLiveTurnStorageUpdate(
     currentWorkspace,
-    hasWorkspaceConversationView ? null : nextSdkLiveTurn,
+    hasSdkConversationView ? null : nextSdkLiveTurn,
   );
   return {
     ...nextWorkspace,
@@ -258,8 +264,7 @@ function isPendingTurn(value) {
 
 function isStoppableConversationView(conversationView) {
   return Boolean(
-    conversationView
-      && typeof conversationView === 'object'
+    isSdkConversationView(conversationView)
       && conversationView.liveTurn?.canStop === true
       && readExactNonEmptyRef(conversationView.conversationRef)
       && readExactNonEmptyRef(conversationView.liveTurn?.turnRef)
@@ -280,7 +285,7 @@ function resolveStopTurnTarget({
     };
   }
 
-  if (conversationView && typeof conversationView === 'object') {
+  if (isSdkConversationView(conversationView)) {
     if (isPendingTurn(pendingTurn)) {
       return {
         source: 'pending-turn',

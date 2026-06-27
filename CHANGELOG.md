@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stop: route stop-target and stopped-turn workspace ConversationView
+  checks through the shared SDK view-shape predicate, so display-timeline
+  `rows` payloads cannot claim stop authority or suppress no-view live-turn
+  cleanup. No migration required.
 - frontend/selectors: make shared chat surface selectors use the SDK
   ConversationView shape predicate before suppressing no-view messages or
   `sdkLiveTurn`, keeping partial objects on the no-view path. No migration
