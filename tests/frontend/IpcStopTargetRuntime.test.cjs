@@ -26,6 +26,8 @@ function conversationView({
 } = {}) {
   return {
     conversationRef,
+    revisionId: null,
+    displayRows: [],
     liveTurn: {
       turnRef,
       phase,
@@ -36,6 +38,12 @@ function conversationView({
       lastError: null,
     },
     surfaces: {
+      pill: {
+        mode: phase === 'streaming' ? 'busy' : 'idle',
+      },
+      dashboard: {
+        mode: phase === 'streaming' ? 'busy' : 'idle',
+      },
       responseOverlay: {
         mode: phase === 'streaming' ? 'response' : 'hidden',
         visible: phase === 'streaming',
@@ -43,6 +51,11 @@ function conversationView({
         ownerConversationRef: conversationRef,
         turnRef,
       },
+    },
+    actions: {
+      canEdit: false,
+      canRetry: false,
+      canFork: false,
     },
   };
 }
@@ -110,6 +123,24 @@ describe('ipc_stop_target_runtime', () => {
         turnRef: 'turn-pending',
       },
     }).resolve()).toBeNull();
+  });
+
+  test('partial ConversationView objects do not suppress pending stop fallback', () => {
+    expect(createResolverRuntime({
+      latestConversationView: {
+        conversationRef: 'conv-pending',
+        rows: [],
+      },
+      latestPendingTurn: {
+        conversationRef: 'conv-pending',
+        turnRef: 'turn-pending',
+      },
+    }).resolve()).toEqual({
+      source: 'pending-turn',
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+      canStop: true,
+    });
   });
 
   test('does not expose missing SDK view state as a fallback stop target', () => {
@@ -256,6 +287,9 @@ describe('ipc_stop_target_runtime', () => {
     expect(mainSource).not.toContain('triggerMainStopTarget({');
     expect(helperSource).toContain('function createMainStopTargetRuntime');
     expect(helperSource).toContain('latestConversationView:');
+    expect(helperSource).toContain('function isSdkConversationView');
+    expect(helperSource).toContain('Array.isArray(conversationView.displayRows)');
+    expect(helperSource).toContain("typeof conversationView.actions === 'object'");
     expect(helperSource).toContain("source: 'conversation-view'");
     expect(helperSource).not.toContain('latestCurrentTurnProjection:');
     expect(helperSource).not.toContain('latestSdkLiveTurn:');

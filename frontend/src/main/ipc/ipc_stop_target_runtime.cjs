@@ -15,12 +15,25 @@ function isPendingTurn(value) {
   );
 }
 
-function isStoppableConversationView(conversationView) {
+function isSdkConversationView(conversationView) {
   return Boolean(
     conversationView
       && typeof conversationView === 'object'
-      && conversationView.liveTurn?.canStop === true
       && readExactNonEmptyString(conversationView.conversationRef)
+      && Array.isArray(conversationView.displayRows)
+      && conversationView.liveTurn
+      && typeof conversationView.liveTurn === 'object'
+      && conversationView.surfaces
+      && typeof conversationView.surfaces === 'object'
+      && conversationView.actions
+      && typeof conversationView.actions === 'object'
+  );
+}
+
+function isStoppableConversationView(conversationView) {
+  return Boolean(
+    isSdkConversationView(conversationView)
+      && conversationView.liveTurn?.canStop === true
       && readExactNonEmptyString(conversationView.liveTurn?.turnRef)
   );
 }
@@ -47,7 +60,7 @@ function resolveMainStopTarget({
     };
   }
 
-  if (latestConversationView && typeof latestConversationView === 'object') {
+  if (isSdkConversationView(latestConversationView)) {
     if (pendingTurnMatchesConversationView(latestConversationView, latestPendingTurn)) {
       return {
         source: 'pending-turn',

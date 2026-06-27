@@ -241,7 +241,9 @@ trimmed into no-view/pending routing state.
 - Stop-target resolution and stopped-turn workspace cleanup also use the shared
   SDK view-shape predicate before treating `conversationView` as stop
   authority or suppressing no-view `sdkLiveTurn`, leaving partial objects on
-  the no-view/pending fallback path.
+  the no-view/pending fallback path. Electron main-process global stop uses
+  the same full SDK view-envelope gate before letting `latestConversationView`
+  suppress a pending bridge stop target.
 - `setMessagesInChatStore(...)` no-ops when array reference is unchanged; when hydrating a concrete
   conversation workspace, it records message `turnRef` values through the
   app-runtime turn-routing registry so later turn-scoped stream events can

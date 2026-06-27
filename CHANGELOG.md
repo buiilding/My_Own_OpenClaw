@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stop: require the main-process stop target resolver to see a full
+  SDK `ConversationView` envelope before it suppresses pending-bridge stop
+  fallback. No migration required.
 - frontend/chat: make chat interface selectors null no-view thinking,
   compaction, and token state whenever `ConversationView` is authoritative so
   direct selector callers cannot mix SDK display rows with renderer fallback
