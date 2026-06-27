@@ -222,6 +222,10 @@ UI adapters:
   payload mirrors; attachment descriptors and screenshot refs stay on
   `attachments[]` or compatibility fields. Screenshot aliases remain
   compatibility metadata for replay/provider boundaries.
+- Legacy no-view current-turn fallback rows are text/status continuity only for
+  renderer migration. Attachment display for live tool output must come from
+  SDK presentation entries or `ConversationView.liveTurn.entries`, not raw
+  `currentTurn.toolEvents`.
 
 Runtime snapshots also expose `snapshot.view`, and callers may use
 `conversation.getView()` or `conversation.subscribeView(...)` for the Phase 0

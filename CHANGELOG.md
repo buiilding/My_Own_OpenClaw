@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: stop projecting attachments from legacy no-view
+  current-turn `toolEvents`; live attachments now surface only through SDK
+  presentation entries or `ConversationView` live-turn entries. No migration
+  required.
 - frontend/runtime: route visible lifecycle and Stop pending-turn authority
   through the strict pending bridge validator so attachment-bearing or partial
   pending-shaped objects cannot drive local typing or stop state. No migration

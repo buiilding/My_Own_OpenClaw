@@ -111,7 +111,6 @@ function buildProjectedToolOutputMessage({
   const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);
   const toolName = resolveToolName(toolEvent.toolName);
   const correlationId = resolveToolEventCorrelationId(toolEvent);
-  const attachments = readSdkDisplayAttachments(toolEvent.attachments);
   const outputText = normalizeText(toolEvent.text)
     || (toolName ? `${toolName} completed` : 'Tool completed');
   return buildToolOutputChatMessageState({
@@ -119,7 +118,7 @@ function buildProjectedToolOutputMessage({
     outputText,
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
-    attachments,
+    attachments: [],
     toolMetadata: asObject(toolEvent.toolMetadata),
     toolName,
     executionTime: typeof toolEvent.executionTime === 'number' ? toolEvent.executionTime : null,

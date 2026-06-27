@@ -64,6 +64,9 @@ Clipboard image IPC trust boundary:
    - Selected image file: image bucket that becomes `clipboardImages[]`.
    - Selected readable file: `readableFiles[]`.
    - Query screenshot: sender-triggered screenshot capture, not a composer preview.
+   - Live tool-output image: SDK presentation or `ConversationView` live-turn
+     `attachments[]`. Legacy no-view current-turn `toolEvents` are text/status
+     fallback only and must not publish attachment descriptors.
 
 2. Preserve composer payload shape.
    - `DesktopMessageInputRuntime.buildOutgoingMessage(...)` may return a string for text-only sends.
