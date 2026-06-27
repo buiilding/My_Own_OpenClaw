@@ -60,6 +60,10 @@ function rowCorrelationId(row: SdkDisplayRow): string | null {
   return exactNonEmptyString(row.metadata?.displayCorrelationId);
 }
 
+function rowTurnRef(row: SdkDisplayRow): string | null {
+  return exactNonEmptyString(row.turnRef);
+}
+
 function isSdkDisplayRowStreaming(row: SdkDisplayRow): boolean {
   return 'isStreaming' in row && row.isStreaming === true;
 }
@@ -74,7 +78,7 @@ function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
     id: row.id,
     text: displayTextFromStringRowContent(row.content),
     sender: 'user',
-    turnRef: row.turnRef ?? null,
+    turnRef: rowTurnRef(row),
     sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
     timestamp: rowTimestamp(row),
@@ -94,7 +98,7 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
     text: displayTextFromStringRowContent(row.content),
     sourceEventType,
     sourceChannel: sdkDisplayRowsSourceChannel,
-    turnRef: row.turnRef ?? null,
+    turnRef: rowTurnRef(row),
     isComplete: !isSdkDisplayRowStreaming(row),
     thinkingText,
     thinkingSourceEventType: thinkingText ? 'reasoning_delta' : null,
@@ -116,7 +120,7 @@ function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
     correlationId: rowCorrelationId(row),
     sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
-    turnRef: row.turnRef ?? null,
+    turnRef: rowTurnRef(row),
     isComplete: true,
   }) as ChatMessage;
   return withRowActions({
@@ -140,7 +144,7 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
     success: typeof row.metadata?.success === 'boolean' ? row.metadata.success : null,
     correlationId: rowCorrelationId(row),
     toolOutputDetails,
-    turnRef: row.turnRef ?? null,
+    turnRef: rowTurnRef(row),
     isComplete: true,
     preserveNullToolMetadata: false,
     preserveNullToolOutputDetails: false,
@@ -159,7 +163,7 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
     type: 'search-source',
     sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
-    turnRef: row.turnRef ?? undefined,
+    turnRef: rowTurnRef(row) ?? undefined,
     timestamp: rowTimestamp(row),
     toolName: row.metadata?.toolName ?? undefined,
     toolMetadata: recordFromUnknown(row.metadata?.toolCallDetails ?? row.metadata?.toolOutputDetails),

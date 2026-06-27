@@ -328,6 +328,69 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
+  test('does not expose padded display row turn refs as renderer identity', () => {
+    const messages = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-user-padded-turn',
+        conversationRef: 'conv-sdk',
+        turnRef: ' turn-1 ',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'hello',
+      },
+      {
+        id: 'msg-assistant-padded-turn',
+        conversationRef: 'conv-sdk',
+        turnRef: ' turn-1 ',
+        index: 1,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'hi',
+      },
+      {
+        id: 'msg-tool-call-padded-turn',
+        conversationRef: 'conv-sdk',
+        turnRef: ' turn-1 ',
+        index: 2,
+        role: 'assistant',
+        type: 'tool_call',
+        content: { name: 'read_file' },
+      },
+      {
+        id: 'msg-tool-output-padded-turn',
+        conversationRef: 'conv-sdk',
+        turnRef: ' turn-1 ',
+        index: 3,
+        role: 'tool',
+        type: 'tool_output',
+        content: 'done',
+      },
+      {
+        id: 'msg-tool-progress-padded-turn',
+        conversationRef: 'conv-sdk',
+        turnRef: ' turn-1 ',
+        index: 4,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Working',
+      },
+    ]);
+
+    expect(messages.map((message) => message.id)).toEqual([
+      'msg-user-padded-turn',
+      'msg-assistant-padded-turn',
+      'msg-tool-call-padded-turn',
+      'msg-tool-output-padded-turn',
+      'msg-tool-progress-padded-turn',
+    ]);
+    for (const message of messages) {
+      expect(message.turnRef).toBeFalsy();
+      expect(message).not.toEqual(expect.objectContaining({ turnRef: ' turn-1 ' }));
+      expect(message).not.toEqual(expect.objectContaining({ turnRef: 'turn-1' }));
+    }
+  });
+
   test('passes through SDK row action metadata and replay target ids', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {

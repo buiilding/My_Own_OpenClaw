@@ -32,6 +32,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: reject padded SDK display-row `displayCorrelationId`
   metadata instead of exposing malformed tool identity as renderer
   correlation ids. No migration required.
+- frontend/projection: reject padded SDK display-row `turnRef` values instead
+  of exposing malformed turn identity in renderer chat-message props. No
+  migration required.
 - frontend/actions: keep SDK replay action targets named as row ids through
   renderer message-list and action props instead of relabeling them as message
   ids. No migration required.
