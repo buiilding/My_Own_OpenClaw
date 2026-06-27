@@ -4217,7 +4217,11 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).toContain('chatInterfacePresentationCache.messages === effectiveMessages');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildSdkLiveTurnCacheKey');
     expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurnPresentationEntries');
-    expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurnLegacyNoPresentationAssistantText');
+    expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurnLegacyNoPresentation');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('liveTurn.assistantText');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('liveTurn.reasoningText');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('liveTurn.toolEvents');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('liveTurn.lastError');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('sdkLiveTurnAssistantText');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('sdkLiveTurnReasoningText');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('sdkLiveTurnToolEvents');

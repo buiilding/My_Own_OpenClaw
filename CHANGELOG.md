@@ -17,6 +17,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/token-tags: stop estimating user image tokens from SDK attachment
   lifecycle descriptors in the renderer dev token tag; attachment lifecycle now
   stays on the SDK display/rendering path. No migration required.
+- frontend/presentation: stop naming raw no-presentation current-turn fields in
+  the ChatInterface presentation cache; legacy current-turn fallback snapshots
+  now stay opaque until the thread presenter fallback consumes them. No
+  migration required.
 - frontend/live-turn: remove the generic renderer metadata pass-through from
   `DesktopLiveTurnRuntimeClient.sendQuery`, leaving normal sends to cross the
   SDK command boundary with typed resources rather than attachment or capture

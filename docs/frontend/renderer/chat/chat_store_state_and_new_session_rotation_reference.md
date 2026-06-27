@@ -196,7 +196,11 @@ trimmed into no-view/pending routing state.
   before using view display rows, active revision, or view cache identity, and
   passes `null` to the thread presenter for partial objects. Invalid
   `conversationView` values stay on the no-view messages/`sdkLiveTurn` fallback
-  path and do not churn the view-owned presentation cache.
+  path and do not churn the view-owned presentation cache. The presentation
+  runtime memoizes legacy no-presentation current turns as opaque live-turn
+  snapshots; raw fallback fields such as `assistantText`, `reasoningText`,
+  `toolEvents`, and `lastError` are interpreted only by the thread presenter
+  fallback path.
 - Stop-target resolution and stopped-turn workspace cleanup also use the shared
   SDK view-shape predicate before treating `conversationView` as stop
   authority or suppressing no-view `sdkLiveTurn`, leaving partial objects on

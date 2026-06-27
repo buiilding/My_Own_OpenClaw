@@ -45,10 +45,7 @@ let chatInterfacePresentationCache = {
   sdkLiveTurnPresentation: null,
   sdkLiveTurnPresentationEntries: null,
   sdkLiveTurnPresentationLastError: null,
-  sdkLiveTurnLegacyNoPresentationAssistantText: null,
-  sdkLiveTurnLegacyNoPresentationReasoningText: null,
-  sdkLiveTurnLegacyNoPresentationToolEvents: null,
-  sdkLiveTurnLegacyNoPresentationLastError: null,
+  sdkLiveTurnLegacyNoPresentation: null,
   state: null,
 };
 
@@ -68,10 +65,7 @@ function buildSdkLiveTurnCacheKey(sdkLiveTurn) {
       presentation: null,
       presentationEntries: null,
       presentationLastError: null,
-      legacyNoPresentationAssistantText: null,
-      legacyNoPresentationReasoningText: null,
-      legacyNoPresentationToolEvents: null,
-      legacyNoPresentationLastError: null,
+      legacyNoPresentation: null,
     };
   }
   const presentation = recordOrNull(liveTurn.presentation);
@@ -86,10 +80,7 @@ function buildSdkLiveTurnCacheKey(sdkLiveTurn) {
       presentation,
       presentationEntries,
       presentationLastError: presentation.lastError ?? null,
-      legacyNoPresentationAssistantText: null,
-      legacyNoPresentationReasoningText: null,
-      legacyNoPresentationToolEvents: null,
-      legacyNoPresentationLastError: null,
+      legacyNoPresentation: null,
     };
   }
   return {
@@ -99,10 +90,7 @@ function buildSdkLiveTurnCacheKey(sdkLiveTurn) {
     presentation: null,
     presentationEntries: null,
     presentationLastError: null,
-    legacyNoPresentationAssistantText: liveTurn.assistantText,
-    legacyNoPresentationReasoningText: liveTurn.reasoningText,
-    legacyNoPresentationToolEvents: liveTurn.toolEvents,
-    legacyNoPresentationLastError: liveTurn.lastError,
+    legacyNoPresentation: liveTurn,
   };
 }
 
@@ -135,14 +123,8 @@ function buildChatInterfacePresentationState({
     && chatInterfacePresentationCache.sdkLiveTurnPresentation === sdkLiveTurnCacheKey.presentation
     && chatInterfacePresentationCache.sdkLiveTurnPresentationEntries === sdkLiveTurnCacheKey.presentationEntries
     && chatInterfacePresentationCache.sdkLiveTurnPresentationLastError === sdkLiveTurnCacheKey.presentationLastError
-    && chatInterfacePresentationCache.sdkLiveTurnLegacyNoPresentationAssistantText
-      === sdkLiveTurnCacheKey.legacyNoPresentationAssistantText
-    && chatInterfacePresentationCache.sdkLiveTurnLegacyNoPresentationReasoningText
-      === sdkLiveTurnCacheKey.legacyNoPresentationReasoningText
-    && chatInterfacePresentationCache.sdkLiveTurnLegacyNoPresentationToolEvents
-      === sdkLiveTurnCacheKey.legacyNoPresentationToolEvents
-    && chatInterfacePresentationCache.sdkLiveTurnLegacyNoPresentationLastError
-      === sdkLiveTurnCacheKey.legacyNoPresentationLastError
+    && chatInterfacePresentationCache.sdkLiveTurnLegacyNoPresentation
+      === sdkLiveTurnCacheKey.legacyNoPresentation
   ) {
     return chatInterfacePresentationCache.state;
   }
@@ -181,10 +163,7 @@ function buildChatInterfacePresentationState({
     sdkLiveTurnPresentation: sdkLiveTurnCacheKey.presentation,
     sdkLiveTurnPresentationEntries: sdkLiveTurnCacheKey.presentationEntries,
     sdkLiveTurnPresentationLastError: sdkLiveTurnCacheKey.presentationLastError,
-    sdkLiveTurnLegacyNoPresentationAssistantText: sdkLiveTurnCacheKey.legacyNoPresentationAssistantText,
-    sdkLiveTurnLegacyNoPresentationReasoningText: sdkLiveTurnCacheKey.legacyNoPresentationReasoningText,
-    sdkLiveTurnLegacyNoPresentationToolEvents: sdkLiveTurnCacheKey.legacyNoPresentationToolEvents,
-    sdkLiveTurnLegacyNoPresentationLastError: sdkLiveTurnCacheKey.legacyNoPresentationLastError,
+    sdkLiveTurnLegacyNoPresentation: sdkLiveTurnCacheKey.legacyNoPresentation,
     state,
   };
   return state;
