@@ -10,6 +10,7 @@ import {
 import {
   acceptPendingTurnInChatStore,
   applyPendingTurnBroadcastToChatStore,
+  getWorkspaceStateFromChatStore,
   setNoViewSdkLiveTurnInChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import {
@@ -114,7 +115,7 @@ function resetStore() {
 }
 
 function getActiveWorkspace() {
-  return useChatStore.getState().getWorkspaceState();
+  return getWorkspaceStateFromChatStore();
 }
 
 function currentTurnWithPresentation() {

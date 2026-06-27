@@ -45,6 +45,7 @@ import {
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   clearPendingTurnInChatStore,
+  getWorkspaceStateFromChatStore,
   setConversationViewInChatStore,
   setNoViewSdkLiveTurnInChatStore,
   setIsSendingInChatStore,
@@ -241,7 +242,7 @@ export function setChatState(messages) {
 
 export function emitOverlayPhase(phase) {
   act(() => {
-    const workspace = useChatStore.getState().getWorkspaceState();
+    const workspace = getWorkspaceStateFromChatStore();
     const currentTurnProjection = buildCurrentTurnProjection(workspace.messages || [], phase);
     setNoViewSdkLiveTurnInChatStore(currentTurnProjection);
     setConversationViewInChatStore(null);

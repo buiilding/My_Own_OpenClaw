@@ -12,29 +12,39 @@ title: "Stream Message Updater Selector Contract Reference"
 
 - `frontend/src/renderer/features/chat/hooks/chatStream/useStreamMessageUpdaters.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatWorkspaceMessageRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
+- `frontend/src/renderer/features/chat/stores/chatStoreAdapters.ts`
 - `tests/frontend/DesktopChatStreamMessageUpdateRuntime.test.ts`
 
 ## Hook Responsibility
 
-`useStreamMessageUpdaters(updateMessage)` provides selector-backed update helpers that resolve message ids from current store state at call time.
+`useStreamMessageUpdaters(updateStreamTargetMessage)` provides intent-backed
+update helpers. The hook builds app-runtime stream targets and leaves row lookup
+to the chat-store adapter/runtime path.
 
 Returned helpers:
 
 - `updateLastMessageBySender(sender, updates, turnRef?, conversationRef?)`
-- `updateFirstMessageBySender(sender, updates, conversationRef?)`
 - `updateLastAssistantLlmTextMessage(updates, turnRef?, conversationRef?)`
 
-All helpers call provided `updateMessage(id, updates)` only when a message id is found.
+All helpers call the provided `updateStreamTargetMessage(target, updates,
+conversationRef)` with a target descriptor. The adapter/runtime resolves the
+current row id and no-ops when no matching message is found.
 
 ## Selector Source of Truth
 
-Hook reads live workspace messages from `useChatStore.getState().getWorkspaceState(conversationRef).messages` per invocation.
+The hook does not read `useChatStore` directly. It builds target descriptors
+with `DesktopChatStreamMessageUpdateRuntime` and delegates live workspace
+message selection to
+`DesktopChatWorkspaceMessageRuntime.buildUpdateStreamTargetMessageStateUpdate(...)`
+through `updateStreamTargetMessageInChatStore(...)`.
 
 Implications:
 
 - avoids stale closure snapshots from render-time arrays
+- keeps raw workspace reads out of React stream hooks
 - update targeting follows latest stream-mutated state in the resolved conversation workspace
 
 ## Target Resolution Semantics
@@ -52,15 +62,9 @@ Turn-scoped metadata must not fall back to another same-sender row. Delayed or
 replayed metadata for an absent turn is dropped instead of mutating a different
 turn's transcript transparency.
 
-### `updateFirstMessageBySender`
-
-- uses `DesktopChatStreamMessageUpdateRuntime.findFirstMessageIdBySender(...)`
-- no turn scoping
-- no-op when no sender match
-
 ### `updateLastAssistantLlmTextMessage`
 
-- uses `DesktopChatStreamMessageUpdateRuntime.findLastAssistantLlmTextMessageId(messages, turnRef?)`
+- uses `DesktopChatStreamMessageUpdateRuntime.buildLastAssistantLlmTextStreamTarget(...)`
 - turn-scoped lookup first when `turnRef` provided
 - no-op when no candidate
 
@@ -77,7 +81,7 @@ Benefits:
 ## Drift Hotspots
 
 1. Adding sender-only fallback for non-empty `turnRef` metadata can retarget updates to wrong turn rows.
-2. Switching from `getState()` to captured messages can reintroduce stale-update races under rapid stream events.
+2. Reintroducing `useChatStore.getState()` reads in the hook can reclaim row lookup from the app-runtime adapter path.
 3. Diverging selector utility contracts from hook assumptions can produce silent no-op updates.
 
 ## Coverage Notes

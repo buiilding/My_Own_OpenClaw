@@ -14,6 +14,7 @@ import {
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   acceptPendingTurnInChatStore,
+  getWorkspaceStateFromChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 
@@ -104,7 +105,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       });
     });
 
-    const workspace = useChatStore.getState().getWorkspaceState('conv-1');
+    const workspace = getWorkspaceStateFromChatStore('conv-1');
     expect(workspace.conversationView).toBe(conversationView);
     expect(workspace.pendingTurn).toBeNull();
     expect(workspace.sdkLiveTurn).toBeNull();
@@ -160,7 +161,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       });
     });
 
-    const workspace = useChatStore.getState().getWorkspaceState('conv-1');
+    const workspace = getWorkspaceStateFromChatStore('conv-1');
     expect(workspace.conversationView).toBe(conversationView);
     expect(workspace.sdkLiveTurn).toBeNull();
     expect(selectChatInterfaceState(useChatStore.getState()).renderedMessages).toEqual([
@@ -208,7 +209,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     });
 
     const storeState = useChatStore.getState();
-    const workspace = storeState.getWorkspaceState('conv-1');
+    const workspace = getWorkspaceStateFromChatStore('conv-1');
     expect(workspace.pendingTurn).toEqual(expect.objectContaining({
       turnRef: 'turn-awaiting',
     }));
@@ -234,8 +235,8 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       workspaceTurnRef: string | null;
       pendingTurnRef: string | null;
     }> = [];
-    const unsubscribe = useChatStore.subscribe((state) => {
-      const workspace = state.getWorkspaceState('conv-1');
+    const unsubscribe = useChatStore.subscribe(() => {
+      const workspace = getWorkspaceStateFromChatStore('conv-1');
       observedSnapshots.push({
         workspaceTurnRef: workspace.sdkLiveTurn?.turnRef ?? null,
         pendingTurnRef: workspace.pendingTurn?.turnRef ?? null,
@@ -277,7 +278,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       ]),
     );
     const state = useChatStore.getState();
-    const workspace = state.getWorkspaceState('conv-1');
+    const workspace = getWorkspaceStateFromChatStore('conv-1');
     expect(state).not.toHaveProperty('latestCurrentTurnProjection');
     expect(workspace.sdkLiveTurn).toEqual(expect.objectContaining({
       turnRef: 'turn-new',

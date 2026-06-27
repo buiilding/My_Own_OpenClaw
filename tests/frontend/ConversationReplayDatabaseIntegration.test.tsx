@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Covers conversation replay database integration. behavior in the frontend test suite.
  */
 
@@ -20,6 +20,7 @@ import {
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   clearMessagesInChatStore,
+  getWorkspaceStateFromChatStore,
   setMessagesInChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import {
@@ -460,7 +461,7 @@ function renderReplayHook(messages: Array<Record<string, unknown>>) {
 }
 
 function expectReplaySendErrorMessage(prefixMessages: Array<Record<string, unknown>> = []): void {
-  expect(useChatStore.getState().getWorkspaceState('conv-replay-db').messages).toEqual([
+  expect(getWorkspaceStateFromChatStore('conv-replay-db').messages).toEqual([
     ...prefixMessages,
     expect.objectContaining({
       sender: 'assistant',
@@ -759,7 +760,7 @@ describe('conversation replay database integration', () => {
       'stored-user-2',
       'stored-assistant-2',
     ]);
-    expect(useChatStore.getState().getWorkspaceState('conv-replay-db').messages).toEqual([
+    expect(getWorkspaceStateFromChatStore('conv-replay-db').messages).toEqual([
       ...messages,
       expect.objectContaining({
         sender: 'assistant',

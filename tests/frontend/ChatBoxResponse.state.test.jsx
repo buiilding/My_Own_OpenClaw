@@ -25,6 +25,7 @@ import {
   acceptPendingTurnInChatStore,
   acceptStoppedTurnInChatStore,
   clearPendingTurnInChatStore,
+  getWorkspaceStateFromChatStore,
   setConversationViewInChatStore,
   setNoViewSdkLiveTurnInChatStore,
   setIsSendingInChatStore,
@@ -44,7 +45,7 @@ describe('ChatBoxResponse state behavior', () => {
   });
 
   function getActiveWorkspace() {
-    return useChatStore.getState().getWorkspaceState();
+    return getWorkspaceStateFromChatStore();
   }
 
   function sdkPresentationProjection({

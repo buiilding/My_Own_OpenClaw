@@ -17,6 +17,7 @@ import {
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   acceptPendingTurnInChatStore,
+  getWorkspaceStateFromChatStore,
   setIsSendingInChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { useChatSurfaceController } from '../../frontend/src/renderer/features/chat/hooks/useChatSurfaceController';
@@ -30,7 +31,7 @@ const mockSend = jest.fn();
 const mockRunManualCompaction = jest.fn();
 
 function getActiveWorkspace() {
-  return useChatStore.getState().getWorkspaceState();
+  return getWorkspaceStateFromChatStore();
 }
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({

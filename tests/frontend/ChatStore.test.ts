@@ -12,6 +12,7 @@ import {
   applyPendingTurnBroadcastToChatStore,
   clearMessagesInChatStore,
   clearPendingTurnInChatStore,
+  getWorkspaceStateFromChatStore,
   setNoViewSdkLiveTurnInChatStore,
   setIsSendingInChatStore,
   setMessagesInChatStore,
@@ -34,7 +35,7 @@ const {
 } = DesktopChatTurnConversationRefRuntime;
 
 function getActiveWorkspace() {
-  return useChatStore.getState().getWorkspaceState();
+  return getWorkspaceStateFromChatStore();
 }
 
 describe('chatStore', () => {
@@ -107,9 +108,7 @@ describe('chatStore', () => {
       isComplete: true,
     });
 
-    const updated = useChatStore
-      .getState()
-      .getWorkspaceState()
+    const updated = getWorkspaceStateFromChatStore()
       .messages
       .find((message) => message.id === 'assistant-2');
 
@@ -256,7 +255,7 @@ describe('chatStore', () => {
         id: 'init-message',
       }),
     ]);
-    expect(useChatStore.getState().getWorkspaceState('conv-other').messages).toEqual([
+    expect(getWorkspaceStateFromChatStore('conv-other').messages).toEqual([
       expect.objectContaining({
         id: 'stale-workspace-message',
         text: 'offscreen',
@@ -319,9 +318,9 @@ describe('chatStore', () => {
 
     const state = useChatStore.getState();
     expect(state).not.toHaveProperty('latestCurrentTurnProjection');
-    expect(state.getWorkspaceState().sdkLiveTurn).toBe(userProjection);
+    expect(getWorkspaceStateFromChatStore().sdkLiveTurn).toBe(userProjection);
     expect(
-      state.getWorkspaceState('conv-agent-internal').sdkLiveTurn,
+      getWorkspaceStateFromChatStore('conv-agent-internal').sdkLiveTurn,
     ).toBe(internalProjection);
   });
 
@@ -337,7 +336,7 @@ describe('chatStore', () => {
     useChatStore.getState().setActiveConversationRef('conv-other');
 
     const state = useChatStore.getState();
-    const activeWorkspace = state.getWorkspaceState();
+    const activeWorkspace = getWorkspaceStateFromChatStore();
     expect(state.activeConversationRef).toBe('conv-other');
     expect(activeWorkspace.isSending).toBe(true);
     expect(activeWorkspace.thinkingStatus).toBe('thinking elsewhere');
@@ -356,8 +355,8 @@ describe('chatStore', () => {
 
     const state = useChatStore.getState();
     expect(state.activeConversationRef).toBeNull();
-    expect(state.getWorkspaceState().isSending).toBe(false);
-    expect(state.getWorkspaceState('conv-other').isSending).toBe(true);
+    expect(getWorkspaceStateFromChatStore().isSending).toBe(false);
+    expect(getWorkspaceStateFromChatStore('conv-other').isSending).toBe(true);
   });
 
   test('acceptPendingTurn stores bridge state without mutating raw messages', () => {
@@ -370,7 +369,7 @@ describe('chatStore', () => {
     });
 
     const state = useChatStore.getState();
-    const activeWorkspace = state.getWorkspaceState();
+    const activeWorkspace = getWorkspaceStateFromChatStore();
     expect(state.activeConversationRef).toBe('conv-pending');
     expect(activeWorkspace.isSending).toBe(true);
     expect(activeWorkspace.pendingTurn).toEqual(expect.objectContaining({
@@ -428,7 +427,7 @@ describe('chatStore', () => {
 
     acceptPendingTurnInChatStore(pendingTurn);
     const beforeState = useChatStore.getState();
-    const beforeMessages = beforeState.getWorkspaceState().messages;
+    const beforeMessages = getWorkspaceStateFromChatStore().messages;
 
     applyPendingTurnBroadcastToChatStore({
       kind: 'pending',
@@ -437,8 +436,8 @@ describe('chatStore', () => {
 
     const afterState = useChatStore.getState();
     expect(afterState).toBe(beforeState);
-    expect(afterState.getWorkspaceState().messages).toBe(beforeMessages);
-    expect(afterState.getWorkspaceState().messages).toEqual([]);
+    expect(getWorkspaceStateFromChatStore().messages).toBe(beforeMessages);
+    expect(getWorkspaceStateFromChatStore().messages).toEqual([]);
   });
 
   test('setCurrentTurnProjection keeps matching pending turn until SDK visible content arrives', () => {
@@ -468,7 +467,7 @@ describe('chatStore', () => {
     });
 
     const state = useChatStore.getState();
-    const activeWorkspace = state.getWorkspaceState();
+    const activeWorkspace = getWorkspaceStateFromChatStore();
     expect(activeWorkspace.pendingTurn).toEqual(expect.objectContaining({
       conversationRef: 'conv-sdk',
       turnRef: 'turn-sdk',
@@ -504,7 +503,7 @@ describe('chatStore', () => {
     });
 
     const state = useChatStore.getState();
-    const activeWorkspace = state.getWorkspaceState();
+    const activeWorkspace = getWorkspaceStateFromChatStore();
     expect(activeWorkspace.pendingTurn).toEqual(expect.objectContaining({
       conversationRef: 'conv-sdk-idle',
       turnRef: 'turn-sdk-idle',
@@ -555,7 +554,7 @@ describe('chatStore', () => {
     });
 
     const state = useChatStore.getState();
-    const activeWorkspace = state.getWorkspaceState();
+    const activeWorkspace = getWorkspaceStateFromChatStore();
     expect(activeWorkspace.pendingTurn).toBeNull();
     expect(activeWorkspace.isSending).toBe(false);
     expect(activeWorkspace.thinkingStatus).toBeNull();

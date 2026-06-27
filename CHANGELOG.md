@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/store: remove the raw `getWorkspaceState` method from the Zustand
+  chat-store surface and keep raw workspace reads behind
+  `chatStoreAdapters.ts`; UI selectors continue to consume projected read
+  models. No migration required.
 - frontend/live-turn: move the legacy tool-event attachment regression to the
   current-turn message runtime and pin no-view tool events as text/status-only
   fallback rows; live attachments still come from SDK presentation entries,

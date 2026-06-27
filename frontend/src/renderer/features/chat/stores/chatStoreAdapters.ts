@@ -174,7 +174,9 @@ export function getActiveConversationRefFromChatStore(): string | null {
 export function getWorkspaceStateFromChatStore(
   conversationRef?: string | null,
 ): ChatWorkspaceState {
-  return useChatStore.getState().getWorkspaceState(conversationRef);
+  const state = useChatStore.getState();
+  const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+  return readWorkspaceState(state, workspaceRef);
 }
 
 export function getProjectedWorkspaceReadModelFromChatStore(

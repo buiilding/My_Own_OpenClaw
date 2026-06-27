@@ -13,6 +13,7 @@ import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
+  getWorkspaceStateFromChatStore,
   setMessagesInChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { normalizeBackendEventToConversationEvent } from '../../packages/windie-sdk-js/src/transport/backendEventNormalizer';
@@ -71,13 +72,13 @@ export function resetChatStreamTestState() {
 }
 
 export function getActiveWorkspaceStateForTest() {
-  return useChatStore.getState().getWorkspaceState();
+  return getWorkspaceStateFromChatStore();
 }
 
 export function setActiveWorkspaceStateForTest(update: Record<string, unknown>) {
   const store = useChatStore.getState();
   const workspaceRef = store.activeConversationRef || '__default__';
-  const workspace = store.getWorkspaceState();
+  const workspace = getWorkspaceStateFromChatStore();
   useChatStore.setState({
     workspaces: {
       ...store.workspaces,

@@ -3,6 +3,9 @@
  */
 
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  getWorkspaceStateFromChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { DesktopChatStreamEventRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime';
 import {
   DesktopChatTurnConversationRefRuntime,
@@ -55,7 +58,7 @@ function pendingTurn(turnRef = 'turn-new', conversationRef = 'conv-default') {
 }
 
 function getWorkspaceState(conversationRef?: string | null) {
-  return useChatStore.getState().getWorkspaceState(conversationRef);
+  return getWorkspaceStateFromChatStore(conversationRef);
 }
 
 function shouldIgnore(event: ReturnType<typeof createEvent>, conversationRef?: string | null): boolean {

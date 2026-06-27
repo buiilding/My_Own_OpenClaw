@@ -10,6 +10,7 @@ import {
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   clearMessagesInChatStore,
+  getWorkspaceStateFromChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
@@ -19,7 +20,7 @@ import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/render
 let mockConversationRef = 'conv-existing';
 
 function getActiveWorkspace() {
-  return useChatStore.getState().getWorkspaceState();
+  return getWorkspaceStateFromChatStore();
 }
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
@@ -96,7 +97,7 @@ describe('useConversationReplayActions', () => {
     expect(mockRetryTurn.mock.calls[0][0]).not.toHaveProperty('model');
     expect(mockRetryTurn.mock.calls[0][0]).not.toHaveProperty('turnRef');
     expect(mockRetryTurn).toHaveBeenCalledTimes(1);
-    expect(useChatStore.getState().getWorkspaceState('conv-existing').pendingTurn).toBeNull();
+    expect(getWorkspaceStateFromChatStore('conv-existing').pendingTurn).toBeNull();
   });
 
   test('routes edit row-target intent through the SDK edit-and-resend command', async () => {
@@ -115,7 +116,7 @@ describe('useConversationReplayActions', () => {
     expect(mockEditAndResend.mock.calls[0][0]).not.toHaveProperty('model');
     expect(mockEditAndResend.mock.calls[0][0]).not.toHaveProperty('turnRef');
     expect(mockRetryTurn).not.toHaveBeenCalled();
-    expect(useChatStore.getState().getWorkspaceState('conv-existing').pendingTurn).toBeNull();
+    expect(getWorkspaceStateFromChatStore('conv-existing').pendingTurn).toBeNull();
   });
 
   test('leaves replay attachments and target-row resources to SDK resolution', async () => {
@@ -129,7 +130,7 @@ describe('useConversationReplayActions', () => {
       messageId: 'assistant-with-attachments',
     }));
     expect(mockRetryTurn.mock.calls[0][0]).not.toHaveProperty('payload');
-    expect(useChatStore.getState().getWorkspaceState('conv-existing').messages).toEqual([]);
+    expect(getWorkspaceStateFromChatStore('conv-existing').messages).toEqual([]);
   });
 
   test('does not add renderer workspace payload to replay commands', async () => {

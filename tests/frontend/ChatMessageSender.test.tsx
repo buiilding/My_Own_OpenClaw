@@ -11,6 +11,7 @@ import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
+  getWorkspaceStateFromChatStore,
   setConversationViewInChatStore,
   setMessagesInChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
@@ -74,7 +75,7 @@ const { buildChatInterfacePresentationState } = DesktopChatInterfacePresentation
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 
 function getActiveWorkspace() {
-  return useChatStore.getState().getWorkspaceState();
+  return getWorkspaceStateFromChatStore();
 }
 
 function createInitialStreamTracking() {
