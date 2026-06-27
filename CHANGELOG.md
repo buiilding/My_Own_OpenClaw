@@ -29,6 +29,9 @@ All notable changes to WindieOS will be documented in this file.
   migration required.
 - frontend/projection: reject padded SDK display-row `sourceEventType` metadata
   instead of treating it as authored event identity. No migration required.
+- frontend/projection: reject padded SDK display-row `displayCorrelationId`
+  metadata instead of exposing malformed tool identity as renderer
+  correlation ids. No migration required.
 - frontend/actions: keep SDK replay action targets named as row ids through
   renderer message-list and action props instead of relabeling them as message
   ids. No migration required.

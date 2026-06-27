@@ -3818,8 +3818,10 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain("row.type === 'assistant_message' && row.isStreaming ? 'assistant_delta'");
     expect(projectionRuntimeSource).not.toContain("sourceEventType !== 'assistant_delta'");
     expect(projectionRuntimeSource).toContain('isComplete: !isSdkDisplayRowStreaming(row)');
-    expect(projectionRuntimeSource).toContain('row.metadata?.displayCorrelationId ?? null');
-    expect(projectionRuntimeSource).toContain('row.metadata?.displayCorrelationId ?? undefined');
+    expect(projectionRuntimeSource).toContain('function exactNonEmptyString(value: unknown)');
+    expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.displayCorrelationId);');
+    expect(projectionRuntimeSource).not.toContain('row.metadata?.displayCorrelationId ?? null');
+    expect(projectionRuntimeSource).not.toContain('row.metadata?.displayCorrelationId ?? undefined');
     expect(projectionRuntimeSource).toContain('row.metadata?.toolCallDetails');
     expect(projectionRuntimeSource).toContain('row.metadata?.toolOutputDetails');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.requestId');

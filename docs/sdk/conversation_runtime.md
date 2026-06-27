@@ -408,7 +408,10 @@ Streaming assistant display rows keep exact SDK-authored
 `assistant_message` display-row type; padded or empty source event metadata
 falls back to the row type instead of being repaired. Renderer completion state
 comes from the SDK row's `isStreaming` flag, not from relabeling the row as an
-`assistant_delta` event.
+`assistant_delta` event. Display-row tool identity follows the same exactness
+rule: `metadata.displayCorrelationId` becomes a renderer `correlationId` only
+when it is an exact non-empty SDK string; padded values are ignored instead of
+being trimmed into duplicate-detection keys.
 Renderer display-row and live-turn adapters also keep SDK attachment
 descriptors on the typed `attachments[]` prop only. Renderer attachment helpers
 may perform narrow component checks such as artifact image-source resolution,

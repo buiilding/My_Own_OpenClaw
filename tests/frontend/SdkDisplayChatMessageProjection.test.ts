@@ -252,6 +252,55 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
+  test('does not expose padded display correlation ids as renderer tool identity', () => {
+    const messages = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-tool-call-padded-correlation',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_call',
+        content: { name: 'read_file' },
+        metadata: {
+          displayCorrelationId: ' req-1 ',
+        },
+      },
+      {
+        id: 'msg-tool-output-padded-correlation',
+        conversationRef: 'conv-sdk',
+        index: 1,
+        role: 'tool',
+        type: 'tool_output',
+        content: 'done',
+        metadata: {
+          displayCorrelationId: ' req-1 ',
+        },
+      },
+      {
+        id: 'msg-tool-progress-padded-correlation',
+        conversationRef: 'conv-sdk',
+        index: 2,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Working',
+        metadata: {
+          displayCorrelationId: ' req-1 ',
+        },
+      },
+    ]);
+
+    expect(messages).toEqual([
+      expect.not.objectContaining({ correlationId: ' req-1 ' }),
+      expect.not.objectContaining({ correlationId: ' req-1 ' }),
+      expect.not.objectContaining({ correlationId: ' req-1 ' }),
+    ]);
+    expect(messages).toEqual([
+      expect.not.objectContaining({ correlationId: 'req-1' }),
+      expect.not.objectContaining({ correlationId: 'req-1' }),
+      expect.not.objectContaining({ correlationId: 'req-1' }),
+    ]);
+  });
+
   test('preserves user row turn refs so replay pending rows dedupe after SDK projection', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {

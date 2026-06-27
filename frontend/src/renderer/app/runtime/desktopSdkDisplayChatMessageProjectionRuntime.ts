@@ -50,8 +50,14 @@ function rowSourceEventType(row: SdkDisplayRow): string {
   return row.type;
 }
 
+function exactNonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function rowCorrelationId(row: SdkDisplayRow): string | null {
-  return row.metadata?.displayCorrelationId ?? null;
+  return exactNonEmptyString(row.metadata?.displayCorrelationId);
 }
 
 function isSdkDisplayRowStreaming(row: SdkDisplayRow): boolean {
@@ -157,7 +163,7 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
     timestamp: rowTimestamp(row),
     toolName: row.metadata?.toolName ?? undefined,
     toolMetadata: recordFromUnknown(row.metadata?.toolCallDetails ?? row.metadata?.toolOutputDetails),
-    correlationId: row.metadata?.displayCorrelationId ?? undefined,
+    correlationId: rowCorrelationId(row) ?? undefined,
   }, row);
 }
 
