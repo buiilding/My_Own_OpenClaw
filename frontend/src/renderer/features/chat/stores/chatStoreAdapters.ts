@@ -228,7 +228,6 @@ function buildCurrentTurnProjectionWorkspaceReadModel(
 ): CurrentTurnProjectionWorkspaceReadModel {
   return {
     conversationView: workspace.conversationView,
-    messageCount: workspace.messages.length,
     pendingTurn: workspace.pendingTurn
       ? {
         turnRef: workspace.pendingTurn.turnRef,

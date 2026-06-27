@@ -47,7 +47,6 @@ type StreamTrackingLike = {
 
 export type CurrentTurnProjectionWorkspaceReadModel = {
   conversationView?: ConversationViewLike;
-  messageCount: number;
   pendingTurn?: PendingTurnLike;
   sdkLiveTurn?: CurrentTurnLike;
   streamTracking: StreamTrackingLike;
@@ -130,9 +129,6 @@ function buildReplayProjectionTracePayload({
   const streamActiveTurnRef = hasConversationView
     ? currentTurnRef
     : normalizeTurnRef(workspace.streamTracking?.activeTurnRef);
-  const messageCount = hasConversationView
-    ? 0
-    : workspace.messageCount;
   const displayRowCount = viewTrace?.displayRowCount ?? 0;
   return {
     action,
@@ -142,7 +138,6 @@ function buildReplayProjectionTracePayload({
     currentTurnPhase,
     streamActiveTurnRef,
     streamPhase: hasConversationView ? currentTurnPhase : workspace.streamTracking?.phase ?? null,
-    messageCount,
     displayRowCount,
     pendingPresent: Boolean(pendingTurnRef),
     pendingMatchesNewTurn: Boolean(

@@ -1293,8 +1293,7 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionStreamRuntimeSource).toContain('workspace.sdkLiveTurn?.turnRef');
     expect(projectionStreamRuntimeSource).not.toContain('workspace.currentTurnProjection');
     expect(projectionStreamRuntimeSource).not.toContain('workspace.conversationView.displayRows.length');
-    expect(projectionStreamRuntimeSource).toContain('messageCount = hasConversationView');
-    expect(projectionStreamRuntimeSource).toContain(': workspace.messageCount');
+    expect(projectionStreamRuntimeSource).not.toContain('workspace.messageCount');
     expect(projectionStreamRuntimeSource).not.toContain('messages: ChatMessage[]');
     expect(projectionStreamRuntimeSource).not.toContain('workspace.messages');
     expect(projectionStreamRuntimeSource).toContain('streamPhase: hasConversationView ? currentTurnPhase : workspace.streamTracking?.phase ?? null');
@@ -4669,7 +4668,12 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('function buildCurrentTurnProjectionWorkspaceReadModel');
     expect(chatStoreAdaptersSource).toContain('return buildChatStreamWorkspaceReadModel(');
     expect(chatStoreAdaptersSource).toContain('return buildCurrentTurnProjectionWorkspaceReadModel(');
-    expect(chatStoreAdaptersSource).toContain('messageCount: workspace.messages.length');
+    const currentTurnReadModelSource = chatStoreAdaptersSource.slice(
+      chatStoreAdaptersSource.indexOf('function buildCurrentTurnProjectionWorkspaceReadModel'),
+      chatStoreAdaptersSource.indexOf('function buildChatProviderTraceWorkspaceReadModel'),
+    );
+    expect(currentTurnReadModelSource).not.toContain('messageCount');
+    expect(currentTurnReadModelSource).not.toContain('workspace.messages');
     expect(chatStoreAdaptersSource).toContain('ChatStreamWorkspaceReadModel,\n} from');
     expect(chatStoreAdaptersSource).toContain('CurrentTurnProjectionWorkspaceReadModel,\n} from');
     expect(chatStoreAdaptersSource).toContain('getChatStreamWorkspaceReadModelFromChatStore');

@@ -329,7 +329,7 @@ describe('chatStore', () => {
     expect(readModel).not.toHaveProperty('sdkLiveTurn');
   });
 
-  test('current-turn projection read model carries counts instead of raw messages', () => {
+  test('current-turn projection read model omits raw message state', () => {
     setMessagesInChatStore([
       {
         id: 'raw-message',
@@ -366,7 +366,6 @@ describe('chatStore', () => {
 
     expect(readModel).toEqual(expect.objectContaining({
       conversationView: null,
-      messageCount: 1,
       pendingTurn: {
         turnRef: 'turn-pending',
       },
@@ -380,6 +379,7 @@ describe('chatStore', () => {
       }),
       thinkingStatus: null,
     }));
+    expect(readModel).not.toHaveProperty('messageCount');
     expect(readModel).not.toHaveProperty('messages');
     expect(readModel).not.toHaveProperty('rendererAnnotations');
     expect(readModel).not.toHaveProperty('thinkingSourceEventType');

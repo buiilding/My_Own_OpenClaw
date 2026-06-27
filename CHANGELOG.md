@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: remove raw-message counts from the SDK current-turn
+  projection workspace read model; replay diagnostics now rely on SDK view row
+  counts or renderer trace defaults while provider traces keep their explicit
+  no-view message snapshot. No migration required.
 - frontend/send: add boundary coverage that rejects renderer display attachment
   fields such as `previewSrc`, `displayAttachmentId`, screenshot aliases, and
   attachment summaries from send preparation and send payload normalization.

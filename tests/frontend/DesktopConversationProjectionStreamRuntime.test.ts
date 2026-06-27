@@ -20,7 +20,6 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       action: 'sdk_current_turn_applied',
       conversationRef: 'conv-1',
       workspace: {
-        messages: [{ id: 'm-1', sender: 'user', text: 'hello' }],
         pendingTurn: { turnRef: 'turn-new' },
         sdkLiveTurn: {
           turnRef: 'turn-new',
@@ -44,8 +43,23 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       pendingMatchesNewTurn: true,
       currentMatchesNewTurn: true,
       currentMatchesOldTurn: false,
-      messageCount: 1,
+      displayRowCount: 0,
     }));
+    expect(buildReplayProjectionTracePayload({
+      action: 'sdk_current_turn_applied',
+      conversationRef: 'conv-1',
+      workspace: {
+        pendingTurn: { turnRef: 'turn-new' },
+        sdkLiveTurn: {
+          turnRef: 'turn-new',
+          phase: 'streaming',
+        },
+        streamTracking: {
+          activeTurnRef: 'turn-new',
+          phase: 'streaming',
+        },
+      },
+    })).not.toHaveProperty('messageCount');
   });
 
   test('does not repair padded replay trace turn refs into matches', () => {
@@ -53,7 +67,6 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       action: 'sdk_current_turn_applied',
       conversationRef: 'conv-1',
       workspace: {
-        messages: [],
         pendingTurn: { turnRef: ' turn-new ' },
         sdkLiveTurn: {
           turnRef: ' turn-new ',
@@ -103,7 +116,6 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
             canFork: true,
           },
         },
-        messages: [{ id: 'stale-message', sender: 'user', text: 'stale' }],
         pendingTurn: { turnRef: 'turn-new' },
         sdkLiveTurn: {
           turnRef: 'turn-stale',
@@ -126,7 +138,6 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       currentMatchesOldTurn: true,
       currentMatchesNewTurn: false,
       displayRowCount: 2,
-      messageCount: 0,
     }));
   });
 
@@ -154,7 +165,6 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
             canFork: false,
           },
         },
-        messages: [],
         pendingTurn: null,
         sdkLiveTurn: {
           turnRef: 'turn-stale',
@@ -183,7 +193,6 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
             { id: 'partial-view-row' },
           ],
         },
-        messages: [{ id: 'raw-message', sender: 'user', text: 'raw fallback' }],
         pendingTurn: { turnRef: 'turn-new' },
         sdkLiveTurn: {
           turnRef: 'turn-raw',
@@ -205,7 +214,6 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       currentMatchesOldTurn: true,
       currentMatchesNewTurn: false,
       displayRowCount: 0,
-      messageCount: 1,
     }));
   });
 
@@ -214,7 +222,6 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
       action: 'sdk_replay_after_cleanup',
       conversationRef: 'conv-1',
       workspace: {
-        messages: [],
         pendingTurn: { turnRef: 'turn-new' },
         sdkLiveTurn: {
           turnRef: 'turn-old',
@@ -243,7 +250,6 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
   test('applies accepted current-turn projection events through runtime side effects', () => {
     const deps = {
       getWorkspaceState: jest.fn(() => ({
-        messages: [],
         pendingTurn: null,
         sdkLiveTurn: {
           turnRef: 'turn-1',
