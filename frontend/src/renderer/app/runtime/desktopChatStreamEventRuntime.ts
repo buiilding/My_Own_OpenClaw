@@ -27,11 +27,11 @@ const {
 } = DesktopChatStreamTerminalHandoffRuntime;
 
 type ShouldIgnoreForStaleTurnDeps = {
-  getWorkspaceState: (conversationRef?: string | null) => StreamGuardWorkspace;
+  getWorkspaceState: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel;
 };
 
 type ResolveTerminalCompletionDeps = {
-  getWorkspaceState: (conversationRef?: string | null) => StreamCompletionWorkspace;
+  getWorkspaceState: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel;
 };
 
 type ResolveThinkingSourceDeps = {
@@ -49,7 +49,16 @@ type ConversationStreamEventIdentityEvent = {
   turnRef?: string | null;
 };
 
-type StreamCompletionWorkspace = StreamGuardWorkspace;
+export type ChatStreamWorkspaceReadModel = StreamGuardWorkspace & {
+  conversationView?: {
+    liveTurn?: {
+      turnRef?: string | null;
+    } | null;
+  } | null;
+  thinkingSourceEventType?: string | null;
+};
+
+type StreamCompletionWorkspace = ChatStreamWorkspaceReadModel;
 
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
@@ -98,17 +107,11 @@ function resolveWorkspaceThinkingSourceEventType(
   return optionalString(sourceEventType);
 }
 
-function resolveWorkspaceViewLiveTurnRef(workspace: StreamGuardWorkspace | null | undefined): string | null {
-  return normalizeTurnRef((workspace as {
-      conversationView?: {
-        liveTurn?: {
-          turnRef?: string | null;
-        } | null;
-      } | null;
-    } | null | undefined)?.conversationView?.liveTurn?.turnRef);
+function resolveWorkspaceViewLiveTurnRef(workspace: ChatStreamWorkspaceReadModel | null | undefined): string | null {
+  return normalizeTurnRef(workspace?.conversationView?.liveTurn?.turnRef);
 }
 
-function resolveWorkspaceActiveTurnRef(workspace: StreamGuardWorkspace | null | undefined): string | null {
+function resolveWorkspaceActiveTurnRef(workspace: ChatStreamWorkspaceReadModel | null | undefined): string | null {
   return (
     resolveWorkspaceViewLiveTurnRef(workspace)
     || normalizeTurnRef(workspace?.streamTracking?.activeTurnRef)

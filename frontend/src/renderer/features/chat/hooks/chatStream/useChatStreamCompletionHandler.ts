@@ -4,15 +4,17 @@
 
 import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
-import type { ChatWorkspaceReadModelState } from '../../../../app/runtime/desktopChatWorkspaceStateRuntime';
-import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
+import {
+  DesktopChatStreamEventRuntime,
+  type ChatStreamWorkspaceReadModel,
+} from '../../../../app/runtime/desktopChatStreamEventRuntime';
 
 const {
   resolveTurnCompletedStreamEventState,
 } = DesktopChatStreamEventRuntime;
 
 type UseChatStreamCompletionHandlerOptions = {
-  getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceReadModelState;
+  getWorkspaceState: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel;
   recordTrackingEvent: (
     eventType: string,
     turnRef: string | null | undefined,

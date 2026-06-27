@@ -80,11 +80,12 @@ projected workspace read-model helper. Chat stream and SDK current-turn
 projection hooks likewise use purpose-named projected workspace getters; the
 generic projected workspace read helper remains private to
 `chatStoreAdapters.ts`. Those public projected getters return
-`ChatWorkspaceReadModelState`, not the raw `ChatWorkspaceState`, so callers do
-not type against raw fallback fields as durable chat authority. Raw workspace
-inspection is test-only and lives in `tests/frontend/chatStoreTestUtils.ts`;
-production adapters keep raw workspace reads private to projected selectors and
-mutation helpers.
+purpose-shaped stream/current-turn read models, not the raw
+`ChatWorkspaceState`, so callers do not type against raw fallback fields as
+durable chat authority or casually reach across SDK-view boundaries. Raw
+workspace inspection is test-only and lives in
+`tests/frontend/chatStoreTestUtils.ts`; production adapters keep raw workspace
+reads private to projected selectors and mutation helpers.
 Dashboard conversation-open reset code does not receive a raw workspace getter
 from `DashboardShell`. It calls the chat-store clear adapter with
 `preserveConversationView: true`; the clear-message app-runtime owner decides

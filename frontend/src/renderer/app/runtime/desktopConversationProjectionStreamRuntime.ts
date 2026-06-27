@@ -48,7 +48,7 @@ type StreamTrackingLike = {
   phase: StreamPhase;
 };
 
-type ProjectionWorkspace = {
+export type CurrentTurnProjectionWorkspaceReadModel = {
   conversationView?: ConversationViewLike;
   messages: ChatMessage[];
   pendingTurn?: PendingTurnLike;
@@ -58,7 +58,7 @@ type ProjectionWorkspace = {
 };
 
 type CurrentTurnProjectionStreamDeps = {
-  getWorkspaceState: (conversationRef?: string | null) => ProjectionWorkspace;
+  getWorkspaceState: (conversationRef?: string | null) => CurrentTurnProjectionWorkspaceReadModel;
   setNoViewSdkLiveTurn: (
     currentTurn: SdkLiveTurnEffectsInput,
     conversationRef?: string | null,
@@ -80,7 +80,7 @@ type ReplayProjectionTracePayloadInput = {
   action: string;
   conversationRef: string;
   values?: Partial<RendererReplayTraceValues>;
-  workspace: ProjectionWorkspace;
+  workspace: CurrentTurnProjectionWorkspaceReadModel;
 };
 
 const {
@@ -170,7 +170,7 @@ function buildReplayProjectionTracePayload({
 function logReplayProjectionTrace(
   action: string,
   conversationRef: string,
-  workspace: ProjectionWorkspace,
+  workspace: CurrentTurnProjectionWorkspaceReadModel,
   values: Partial<RendererReplayTraceValues> = {},
 ): void {
   logRendererReplayTrace(buildReplayProjectionTracePayload({

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: narrow stream and current-turn store adapter read types
+  to purpose-shaped runtime read models instead of exposing the full projected
+  workspace type to hooks. No migration required.
 - frontend/send: require live-turn command resources to match the positive SDK
   resource key set, dropping descriptors with renderer preview/lifecycle or
   attachment alias fields instead of stripping them into `conversation.send`

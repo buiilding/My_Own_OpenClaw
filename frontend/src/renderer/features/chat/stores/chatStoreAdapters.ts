@@ -52,12 +52,18 @@ import {
 import {
   DesktopChatProviderTraceRuntime,
 } from '../../../app/runtime/desktopChatProviderTraceRuntime';
+import type {
+  ChatStreamWorkspaceReadModel,
+} from '../../../app/runtime/desktopChatStreamEventRuntime';
 import {
   DesktopCurrentTurnWorkspaceRuntime,
 } from '../../../app/runtime/desktopCurrentTurnWorkspaceRuntime';
 import {
   DesktopConversationViewWorkspaceRuntime,
 } from '../../../app/runtime/desktopConversationViewWorkspaceRuntime';
+import type {
+  CurrentTurnProjectionWorkspaceReadModel,
+} from '../../../app/runtime/desktopConversationProjectionStreamRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 import {
   selectChatSendReadModel,
@@ -198,13 +204,13 @@ function getProjectedWorkspaceReadModelFromChatStore(
 
 export function getChatStreamWorkspaceReadModelFromChatStore(
   conversationRef?: string | null,
-): ChatWorkspaceReadModelState {
+): ChatStreamWorkspaceReadModel {
   return getProjectedWorkspaceReadModelFromChatStore(conversationRef);
 }
 
 export function getCurrentTurnProjectionWorkspaceReadModelFromChatStore(
   conversationRef?: string | null,
-): ChatWorkspaceReadModelState {
+): CurrentTurnProjectionWorkspaceReadModel {
   return getProjectedWorkspaceReadModelFromChatStore(conversationRef);
 }
 
