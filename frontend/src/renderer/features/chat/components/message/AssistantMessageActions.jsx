@@ -17,7 +17,7 @@ function AssistantMessageActions({
   disabled = false,
   visible = true,
   canTryAgain = false,
-  retryTargetMessageId = null,
+  retryTargetRowId = null,
   onFeedbackChange,
   onTryAgain,
 }) {
@@ -62,10 +62,10 @@ function AssistantMessageActions({
   };
 
   const handleTryAgain = () => {
-    if (disabled || !canTryAgain || !retryTargetMessageId || typeof onTryAgain !== 'function') {
+    if (disabled || !canTryAgain || !retryTargetRowId || typeof onTryAgain !== 'function') {
       return;
     }
-    onTryAgain(retryTargetMessageId);
+    onTryAgain(retryTargetRowId);
   };
 
   return (
@@ -130,7 +130,7 @@ AssistantMessageActions.propTypes = {
   disabled: PropTypes.bool,
   visible: PropTypes.bool,
   canTryAgain: PropTypes.bool,
-  retryTargetMessageId: PropTypes.string,
+  retryTargetRowId: PropTypes.string,
   onFeedbackChange: PropTypes.func,
   onTryAgain: PropTypes.func,
 };

@@ -356,10 +356,11 @@ For the Phase 4 action migration, renderer chat surfaces no longer turn
 global message-list gate. `snapshot.view.displayRows[]` carries row `actions`
 metadata with `canEdit`/`editTargetRowId` for user rows and
 `canRetry`/`retryTargetRowId` for terminal assistant rows. The renderer projects
-those row targets into chat messages so a replacement row can remain the visible
-edit surface while replay targets the SDK-provided original row identity;
-row-level SDK action metadata gates whether the edit/resend or Try again
-controls are shown. Renderer display-row adapters pass SDK `row.actions`
+those row targets into chat messages and keeps renderer action props named as
+row targets so a replacement row can remain the visible edit surface while
+replay targets the SDK-provided original row identity; row-level SDK action
+metadata gates whether the edit/resend or Try again controls are shown.
+Renderer display-row adapters pass SDK `row.actions`
 through to chat-message props and do not trim, repair, or reconstruct action
 target ids. Renderer action-control helpers also reject padded or empty target
 ids instead of normalizing them; missing or invalid row action booleans or

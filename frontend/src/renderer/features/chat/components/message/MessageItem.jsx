@@ -26,14 +26,14 @@ const MessageItem = memo(function MessageItem({
   disableAssistantActions,
   canRetryMessage = false,
   canEditMessage = false,
-  assistantRetryTargetMessageId = null,
+  assistantRetryTargetRowId = null,
   onAssistantFeedbackChange,
   onAssistantTryAgain,
   isUserEditing,
   userEditDraft,
   isUserEditSubmitting,
   onUserEditDraftChange,
-  userEditTargetMessageId = null,
+  userEditTargetRowId = null,
   onStartUserEdit,
   onCancelUserEdit,
   onSubmitUserEdit,
@@ -79,7 +79,7 @@ const MessageItem = memo(function MessageItem({
           disabled={disableAssistantActions}
           visible={!disableAssistantActions}
           canTryAgain={canRetryMessage}
-          retryTargetMessageId={assistantRetryTargetMessageId}
+          retryTargetRowId={assistantRetryTargetRowId}
           onFeedbackChange={onAssistantFeedbackChange}
           onTryAgain={onAssistantTryAgain}
         />
@@ -89,7 +89,7 @@ const MessageItem = memo(function MessageItem({
           messageId={message.id}
           messageText={message.text}
           canEdit={canEditMessage}
-          editTargetMessageId={userEditTargetMessageId}
+          editTargetRowId={userEditTargetRowId}
           onEdit={onStartUserEdit}
         />
       ) : null}
@@ -112,14 +112,14 @@ MessageItem.propTypes = {
   disableAssistantActions: PropTypes.bool,
   canRetryMessage: PropTypes.bool,
   canEditMessage: PropTypes.bool,
-  assistantRetryTargetMessageId: PropTypes.string,
+  assistantRetryTargetRowId: PropTypes.string,
   onAssistantFeedbackChange: PropTypes.func,
   onAssistantTryAgain: PropTypes.func,
   isUserEditing: PropTypes.bool,
   userEditDraft: PropTypes.string,
   isUserEditSubmitting: PropTypes.bool,
   onUserEditDraftChange: PropTypes.func,
-  userEditTargetMessageId: PropTypes.string,
+  userEditTargetRowId: PropTypes.string,
   onStartUserEdit: PropTypes.func,
   onCancelUserEdit: PropTypes.func,
   onSubmitUserEdit: PropTypes.func,

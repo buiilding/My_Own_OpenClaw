@@ -10,7 +10,7 @@ function UserMessageActions({
   messageId,
   messageText = '',
   canEdit = false,
-  editTargetMessageId = null,
+  editTargetRowId = null,
   onEdit = null,
 }) {
   const { copySuccess, handleCopy } = useCopyMessageAction({
@@ -19,10 +19,10 @@ function UserMessageActions({
   });
 
   const handleEdit = () => {
-    if (!canEdit || !editTargetMessageId || typeof onEdit !== 'function') {
+    if (!canEdit || !editTargetRowId || typeof onEdit !== 'function') {
       return;
     }
-    onEdit(messageId, messageText, editTargetMessageId);
+    onEdit(messageId, messageText, editTargetRowId);
   };
 
   return (
@@ -55,7 +55,7 @@ UserMessageActions.propTypes = {
   messageId: PropTypes.string.isRequired,
   messageText: PropTypes.string,
   canEdit: PropTypes.bool,
-  editTargetMessageId: PropTypes.string,
+  editTargetRowId: PropTypes.string,
   onEdit: PropTypes.func,
 };
 

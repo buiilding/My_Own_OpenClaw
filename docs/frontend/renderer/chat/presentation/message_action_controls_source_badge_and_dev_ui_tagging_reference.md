@@ -39,7 +39,8 @@ parsing `actions.canRetry`, `actions.canEdit`, `retryTargetRowId`, or
 Replay actions fail closed unless the SDK row provides both the availability
 boolean and the corresponding target row id. Renderer presentation code must
 not recover missing `retryTargetRowId` or `editTargetRowId` from the rendered
-message id.
+message id, and component props keep those targets named as row ids while
+passing them to replay callbacks.
 
 Assistant action row render conditions:
 
@@ -87,7 +88,9 @@ Buttons:
 Behavior:
 
 - copy uses same shared hook contract as assistant row
-- edit forwards `(messageId, messageText)` to parent, which opens inline edit composer in `MessageList`
+- edit forwards `(messageId, messageText, editTargetRowId)` to parent; `MessageList`
+  uses the visible message id only for inline editor state and sends the SDK row
+  target id to replay callbacks
 
 ## Shared Copy Hook Contract (`useCopyMessageAction`)
 

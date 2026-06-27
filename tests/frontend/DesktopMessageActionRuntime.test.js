@@ -95,8 +95,8 @@ describe('desktopMessageActionRuntime', () => {
     })).toEqual({
       canRetryMessage: true,
       canEditMessage: false,
-      retryTargetMessageId: 'assistant-original',
-      editTargetMessageId: 'user-original',
+      retryTargetRowId: 'assistant-original',
+      editTargetRowId: 'user-original',
     });
 
     expect(DesktopMessageActionRuntime.resolveMessageReplayActions({
@@ -108,8 +108,8 @@ describe('desktopMessageActionRuntime', () => {
     })).toEqual({
       canRetryMessage: false,
       canEditMessage: false,
-      retryTargetMessageId: null,
-      editTargetMessageId: null,
+      retryTargetRowId: null,
+      editTargetRowId: null,
     });
 
     expect(DesktopMessageActionRuntime.resolveMessageReplayActions({
@@ -123,8 +123,8 @@ describe('desktopMessageActionRuntime', () => {
     })).toEqual({
       canRetryMessage: false,
       canEditMessage: false,
-      retryTargetMessageId: null,
-      editTargetMessageId: null,
+      retryTargetRowId: null,
+      editTargetRowId: null,
     });
   });
 });
