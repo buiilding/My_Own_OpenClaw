@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: remove the `preserveRendererAnnotations` switch from
+  ConversationView display projection, so explicit `rendererAnnotations` are
+  always the only renderer-local decoration channel beside SDK display rows. No
+  migration required.
 - frontend/lifecycle: drop `ConversationView.liveTurn.turnRef` from idle
   visible lifecycle output, so stale SDK live-turn identity does not leak
   through idle renderer surface state. No migration required.

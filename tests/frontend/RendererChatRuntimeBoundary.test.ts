@@ -1186,6 +1186,7 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).not.toContain('findPendingOptimisticUserMessage');
     expect(displayProjectionSource).not.toContain('currentMessage.id === pendingTurn?.userMessageId');
     expect(displayProjectionSource).not.toContain('rendererAnnotations.length > 0 ? rendererAnnotations : currentMessages');
+    expect(displayProjectionSource).not.toContain('preserveRendererAnnotations');
     expect(displayProjectionSource).not.toContain('currentMessages');
     expect(displayProjectionSource).not.toContain('export function mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).not.toContain('export {\n  buildChatMessagesFromSdkDisplayRows');

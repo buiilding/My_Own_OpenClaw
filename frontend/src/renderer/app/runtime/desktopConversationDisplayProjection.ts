@@ -41,7 +41,6 @@ type RendererMessageAnnotation = {
 type BuildConversationViewMessagesInput = {
   conversationView?: ConversationView | null;
   pendingTurn?: PendingTurnLike;
-  preserveRendererAnnotations?: boolean;
   rendererAnnotations?: RendererMessageAnnotation[];
 };
 
@@ -243,7 +242,6 @@ function buildPendingBridgeChatMessages({
 function buildConversationViewChatMessages({
   conversationView = null,
   pendingTurn = null,
-  preserveRendererAnnotations = false,
   rendererAnnotations = [],
 }: BuildConversationViewMessagesInput): ChatMessage[] {
   if (!conversationView || typeof conversationView !== 'object') {
@@ -253,12 +251,10 @@ function buildConversationViewChatMessages({
     ? conversationView.displayRows
     : [];
   const sdkMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
-  const annotatedSdkMessages = preserveRendererAnnotations
-    ? mergeRendererAnnotationsIntoSdkMessages(
-      sdkMessages,
-      rendererAnnotations,
-    )
-    : sdkMessages;
+  const annotatedSdkMessages = mergeRendererAnnotationsIntoSdkMessages(
+    sdkMessages,
+    rendererAnnotations,
+  );
   const pendingTurnRef = normalizePendingTurnRef(pendingTurn);
   const hasSdkUserRowForPendingTurn = Boolean(
     pendingTurnRef && findConversationViewUserDisplayRowForTurn(conversationView, pendingTurnRef),

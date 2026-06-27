@@ -531,7 +531,9 @@ active revision id. When a view exists, it builds base thread messages from
 `ConversationView.displayRows` through
 `DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`
 and passes only renderer annotation records selected by the surface/interface
-selector boundary for assistant feedback. The
+selector boundary for assistant feedback. The projection helper always applies
+those explicit annotation records to matching assistant SDK rows; callers do
+not select an alternate annotation-preservation mode. The
 pending bridge is projected from `pendingTurn` through
 `DesktopConversationDisplayProjection.buildPendingBridgeChatMessages(...)` for
 the no-view path and

@@ -147,7 +147,6 @@ function buildChatInterfacePresentationState({
     ? buildConversationViewChatMessages({
       conversationView,
       pendingTurn,
-      preserveRendererAnnotations: true,
       rendererAnnotations,
     })
     : buildPendingBridgeChatMessages({

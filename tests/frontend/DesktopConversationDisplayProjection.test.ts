@@ -364,7 +364,6 @@ describe('desktopConversationDisplayProjection', () => {
         type: 'assistant_message',
         content: 'Visible answer',
       }]),
-      preserveRendererAnnotations: true,
       rendererAnnotations,
     })).toEqual([
       expect.objectContaining({
@@ -383,7 +382,6 @@ describe('desktopConversationDisplayProjection', () => {
         type: 'assistant_message',
         content: 'Visible answer',
       }]),
-      preserveRendererAnnotations: true,
       rendererAnnotations,
     })[0];
     expect(projected).not.toHaveProperty('systemPrompt');
@@ -403,7 +401,6 @@ describe('desktopConversationDisplayProjection', () => {
         type: 'user_message',
         content: 'user prompt',
       }]),
-      preserveRendererAnnotations: true,
       rendererAnnotations: [{
         id: 'user-1',
         feedback: 'like',
@@ -439,7 +436,6 @@ describe('desktopConversationDisplayProjection', () => {
         content: 'Visible answer',
         feedback: 'like',
       }]),
-      preserveRendererAnnotations: true,
       rendererAnnotations: annotations,
     })[0]).toEqual(expect.objectContaining({
       id: 'assistant-1',
@@ -458,7 +454,6 @@ describe('desktopConversationDisplayProjection', () => {
         type: 'tool_call',
         content: '',
       }]),
-      preserveRendererAnnotations: true,
       rendererAnnotations: [{
         id: 'turn-1-sdk-evt-000002-user_message',
         feedback: 'like',
@@ -508,7 +503,6 @@ describe('desktopConversationDisplayProjection', () => {
         text: 'inspect recent commits',
         timestamp: '2026-06-25T12:00:00.000Z',
       },
-      preserveRendererAnnotations: true,
     })).toEqual([
       expect.objectContaining(pendingUser),
       expect.objectContaining({
@@ -537,7 +531,6 @@ describe('desktopConversationDisplayProjection', () => {
         text: 'inspect recent commits',
         timestamp: '2026-06-25T12:00:00.000Z',
       },
-      preserveRendererAnnotations: false,
     })).toEqual([
       expect.objectContaining({
         id: 'turn-1-sdk-evt-000002-user_message',
@@ -569,7 +562,6 @@ describe('desktopConversationDisplayProjection', () => {
         userMessageId: 'pending-user',
         text: 'partial pending prompt',
       },
-      preserveRendererAnnotations: true,
     })).toEqual([
       expect.objectContaining({
         id: 'tool-row',
@@ -607,7 +599,6 @@ describe('desktopConversationDisplayProjection', () => {
         text: 'edited prompt',
         timestamp: '2026-06-25T12:00:00.000Z',
       },
-      preserveRendererAnnotations: true,
     })).toEqual([expect.objectContaining(sdkUserSameTurn)]);
   });
 
@@ -629,7 +620,6 @@ describe('desktopConversationDisplayProjection', () => {
         text: 'edited prompt',
         timestamp: '2026-06-25T12:00:00.000Z',
       },
-      preserveRendererAnnotations: true,
     })).toEqual([
       expect.objectContaining({
         id: 'sdk-user-edit',
@@ -671,7 +661,6 @@ describe('desktopConversationDisplayProjection', () => {
         text: 'edited prompt',
         timestamp: '2026-06-25T12:00:00.000Z',
       },
-      preserveRendererAnnotations: true,
     })).toEqual([
       expect.objectContaining({
         id: 'sdk-user-edit',
@@ -688,11 +677,9 @@ describe('desktopConversationDisplayProjection', () => {
         text: 'edited prompt',
         timestamp: '2026-06-25T12:00:00.000Z',
       },
-      preserveRendererAnnotations: true,
     })[0]).not.toHaveProperty('attachments');
     expect(buildConversationViewChatMessages({
       conversationView,
-      preserveRendererAnnotations: false,
     })).toEqual([
       expect.objectContaining({
         id: 'sdk-user-edit',
@@ -726,7 +713,6 @@ describe('desktopConversationDisplayProjection', () => {
         id: 'assistant-1',
         feedback: 'like',
       }],
-      preserveRendererAnnotations: true,
     })).toEqual([
       expect.objectContaining({
         id: 'assistant-1',
@@ -754,7 +740,6 @@ describe('desktopConversationDisplayProjection', () => {
         text: 'stale renderer text',
         tokenCounts: { total_tokens: 42 },
       } as never],
-      preserveRendererAnnotations: true,
     })[0];
 
     expect(projected).toEqual(expect.objectContaining({
@@ -786,7 +771,6 @@ describe('desktopConversationDisplayProjection', () => {
         type: 'user_message',
         content: 'Please review the attached files.',
       }]),
-      preserveRendererAnnotations: true,
       rendererAnnotations: [],
     });
 
