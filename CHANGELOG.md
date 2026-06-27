@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tool-identity: stop using legacy `toolMetadata` as a thread dedupe
+  or response-overlay materialization identity fallback; renderer tool identity
+  now comes only from exact `correlationId`, `toolCallDetails`, or
+  `toolOutputDetails`. No migration required.
 - frontend/tool-output: stop rebuilding missing tool output details from legacy
   `toolMetadata`, `toolName`, `executionTime`, or `success` props in React;
   detail panels now rely on SDK-authored `toolOutputDetails`. No migration

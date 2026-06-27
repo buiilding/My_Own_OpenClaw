@@ -51,7 +51,6 @@ type ResponseOverlayEntryLike = {
   correlationId?: string | null;
   id?: string | null;
   toolCallDetails?: Record<string, unknown> | null;
-  toolMetadata?: Record<string, unknown> | null;
   toolOutputDetails?: Record<string, unknown> | null;
   text?: string | null;
   type?: string | null;
@@ -266,8 +265,7 @@ function identityFromToolRecord(record: Record<string, unknown> | null): string 
 function toolOverlayMessageIdentity(message: ResponseOverlayEntryLike): string | null {
   return normalizeString(message.correlationId)
     ?? identityFromToolRecord(recordFromUnknown(message.toolCallDetails))
-    ?? identityFromToolRecord(recordFromUnknown(message.toolOutputDetails))
-    ?? identityFromToolRecord(recordFromUnknown(message.toolMetadata));
+    ?? identityFromToolRecord(recordFromUnknown(message.toolOutputDetails));
 }
 
 function toolOverlayTypesMatch(

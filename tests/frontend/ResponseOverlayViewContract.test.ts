@@ -719,6 +719,57 @@ describe('desktopResponseOverlayViewRuntime', () => {
     ]);
   });
 
+  test('does not use legacy tool metadata to materialize live overlay tools', () => {
+    const entries = resolveResponseOverlayEntries({
+      conversationView: conversationView({
+        conversationRef: 'conv-view',
+        displayRows: [
+          {
+            id: 'row-tool-call-a',
+            conversationRef: 'conv-view',
+            turnRef: 'turn-view',
+            index: 0,
+            role: 'assistant',
+            type: 'tool_call',
+            content: {
+              id: 'tool-a',
+              name: 'screenshot',
+              arguments: {},
+            },
+            metadata: {
+              toolMetadata: {
+                requestId: 'tool-a',
+              },
+            },
+          },
+        ],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'tool',
+          isBusy: true,
+          entries: [
+            {
+              id: 'live-tool-call-a',
+              type: 'tool-call',
+              text: 'Using screenshot',
+              sourceEventType: 'tool_call',
+              correlationId: 'tool-a',
+              turnRef: 'turn-view',
+            },
+          ],
+        },
+      }),
+      liveTurnPresentationInput: {
+        source: 'conversation-view',
+      },
+    });
+
+    expect(entries.map((entry) => entry.id)).toEqual([
+      'row-tool-call-a',
+      'live-tool-call-a',
+    ]);
+  });
+
   test('does not require a source flag before ConversationView blocks raw overlay rows', () => {
     expect(resolveResponseOverlayEntries({
       conversationView: conversationView({

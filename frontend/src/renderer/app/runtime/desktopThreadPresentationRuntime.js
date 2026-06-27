@@ -169,8 +169,7 @@ function identityFromToolRecord(record) {
 function toolMessageIdentity(message) {
   return readExactRef(message?.correlationId)
     || identityFromToolRecord(asRecord(message?.toolCallDetails))
-    || identityFromToolRecord(asRecord(message?.toolOutputDetails))
-    || identityFromToolRecord(asRecord(message?.toolMetadata));
+    || identityFromToolRecord(asRecord(message?.toolOutputDetails));
 }
 
 function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {

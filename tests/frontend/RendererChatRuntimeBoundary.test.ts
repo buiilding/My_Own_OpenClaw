@@ -3420,6 +3420,7 @@ describe('renderer chat runtime boundary', () => {
     expect(responseViewRuntimeSource).toContain('buildConversationViewTurnChatMessages');
     expect(responseViewRuntimeSource).not.toContain('buildChatMessagesFromSdkDisplayRows');
     expect(responseViewRuntimeSource).not.toContain('view.displayRows');
+    expect(responseViewRuntimeSource).not.toContain('toolMetadata');
     expect(responseViewRuntimeSource).toContain('function exactIdentityString');
     expect(responseViewRuntimeSource).toContain('exactUnknownIdentityString(overlayIntent?.turnRef)');
     expect(responseViewRuntimeSource).toContain('turnRef: exactIdentityString(sizeIdentity?.turnRef)');
@@ -4067,6 +4068,7 @@ describe('renderer chat runtime boundary', () => {
     expect(threadPresentationRuntimeSource).toContain('function toolMessageIdentity(message)');
     expect(threadPresentationRuntimeSource).toContain('function readExactRef(value)');
     expect(threadPresentationRuntimeSource).not.toContain('function normalizeRef(value)');
+    expect(threadPresentationRuntimeSource).not.toContain('identityFromToolRecord(asRecord(message?.toolMetadata))');
     expect(threadPresentationRuntimeSource).toContain('const value = readExactRef(record?.[key]);');
     expect(threadPresentationRuntimeSource).toContain('return readExactRef(message?.correlationId)');
     expect(threadPresentationRuntimeSource).toContain('const liveId = readExactRef(liveMessage?.id);');

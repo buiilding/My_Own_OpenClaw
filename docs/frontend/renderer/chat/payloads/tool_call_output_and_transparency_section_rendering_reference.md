@@ -133,21 +133,17 @@ Displayed output precedence:
 Details payload precedence:
 
 1. object `message.toolOutputDetails`
-2. synthesized object from:
-- `toolName`
-- `executionTime`
-- `success`
-- `toolMetadata`
+2. empty object when SDK-authored details are absent
 
 SDK display-row and live-turn adapters sanitize SDK-authored
 `toolCallDetails` and `toolOutputDetails` before those records reach the
 component detail panels. Generic details must not carry provider-facing
 payloads, raw payload mirrors, screenshot aliases, model metadata, or typed
 attachment lifecycle descriptors; those stay on SDK display fields such as
-`attachments[]` or compatibility-only SDK/backend paths. When the
-tool-output component builds its legacy fallback details from top-level fields,
-it also sanitizes `message.toolMetadata` through the shared SDK tool-detail
-projection helper before nesting it under `metadata`.
+`attachments[]` or compatibility-only SDK/backend paths. Tool-output components
+do not rebuild missing details from `toolMetadata`, `toolName`,
+`executionTime`, or `success`; SDK `toolOutputDetails` is the only details
+payload authority.
 
 Visible tool-output screenshots render through the same typed attachment path as
 user visuals:

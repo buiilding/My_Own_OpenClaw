@@ -497,7 +497,10 @@ renderer text fallbacks may label a tool row, but they must not synthesize
 detail records from a bare tool name. Tool output React components follow the
 same rule: when `toolOutputDetails` is absent, they show an empty details panel
 instead of rebuilding details from legacy `toolMetadata`, `toolName`,
-`executionTime`, or `success` props.
+`executionTime`, or `success` props. Thread duplicate suppression and response
+overlay live/display materialization also ignore legacy `toolMetadata`; tool
+identity comes from exact `correlationId`, `toolCallDetails`, or
+`toolOutputDetails` only.
 Thread presentation duplicate suppression also treats live row ids and tool
 detail identity fields as exact SDK identity; padded live ids or nested
 `toolCallDetails`/`toolOutputDetails` ids do not suppress materialized display
