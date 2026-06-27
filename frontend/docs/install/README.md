@@ -44,7 +44,7 @@ surface.
 
 ## Related Docs
 
-- [Platform Setup: Backend + Frontend](../getting-started/platform_setup_backend_frontend.md)
+- Platform Setup: Backend + Frontend (private backend docs)
 - [Installation Guide](../getting-started/installation.md)
 - [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md)
 - [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md)

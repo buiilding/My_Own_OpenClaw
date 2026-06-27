@@ -14,7 +14,7 @@ This is the compact local docs directory. For the complete canonical navigation 
 
 - [Documentation Hub](docs_hub.md) - agent-facing subsystem, code-root, and validation routing.
 - [Quick Start](quick_start.md) - fastest local run path.
-- [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) - source environment setup.
+- Platform Setup: Backend + Frontend (private backend docs) - source environment setup.
 - [Product Overview](product_overview.md) - non-technical product shape.
 - [Code Change Surface Index](../reference/code_change_surface_index.md) - feature request to source roots, tests, docs, and validation.
 - [Agent Runtime Ownership and Change Routing](../development/agent_runtime_ownership_and_change_routing.md) - AGENTS.md runtime owner matrix and change-routing table.

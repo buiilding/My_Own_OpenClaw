@@ -35,7 +35,7 @@ Electron main, renderer, and local-runtime Python code must not import backend c
 - [Docs Directory](docs_directory.md) for the compact route map to the most-used docs.
 - [Product Overview](product_overview.md) for the non-technical product shape.
 - [Quick Start](quick_start.md) for the local run path.
-- [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) for environment setup.
+- Platform Setup: Backend + Frontend (private backend docs) for environment setup.
 - [Concepts Hub](../concepts/README.md) for product/system mental models before implementation details.
 - [Sessions and Conversations](../concepts/sessions_and_conversations.md) for user/session/conversation identity, transcript replay, backend rehydrate, and wrong-thread debugging.
 - [Session and Conversation Identity Change Workflow](../memory/session_conversation_identity_change_workflow.md) for `user_id`, `session_id`, `conversation_ref`, `turn_ref`, transcript-session sync, replay, rehydrate, stale-event filtering, and wrong-conversation bugs.
