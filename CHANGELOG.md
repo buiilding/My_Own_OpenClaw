@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/response-overlay: remove the exported no-view SDK live-turn
+  `reasoningText` helper from the current-turn message runtime; the response
+  overlay now keeps its temporary raw thinking fallback local to its own
+  no-view path. No migration required.
 - frontend/live-turn: require exact no-view SDK `turnRef` values before the
   legacy no-presentation fallback projects rows, removing the synthetic
   `conversation:turn:*` live-row id path. No migration required.

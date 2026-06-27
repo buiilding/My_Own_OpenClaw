@@ -18,7 +18,6 @@ const {
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
   isVisibleResponseOverlayMessage,
-  resolveNoViewSdkLiveTurnThinkingText,
 } = DesktopCurrentTurnMessageRuntime;
 const {
   resolveResponseOverlayDismissalTarget,
@@ -181,6 +180,18 @@ function recordFromUnknown(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function resolveNoViewResponseOverlayThinkingText(sdkLiveTurn: unknown): string {
+  const liveTurn = recordFromUnknown(sdkLiveTurn);
+  if (isRecord(liveTurn.presentation)) {
+    return '';
+  }
+  return normalizeUnknownString(liveTurn.reasoningText) || '';
 }
 
 function stringField(
@@ -714,7 +725,7 @@ function resolveResponseOverlayThinkingText({
   if (thinkingText) {
     return thinkingText;
   }
-  return resolveNoViewSdkLiveTurnThinkingText(sdkLiveTurn);
+  return resolveNoViewResponseOverlayThinkingText(sdkLiveTurn);
 }
 
 function resolveResponseOverlaySurfaceState({

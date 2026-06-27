@@ -64,13 +64,6 @@ function resolveToolEventCorrelationId(toolEvent) {
   );
 }
 
-function resolveNoViewSdkLiveTurnThinkingText(sdkLiveTurn = null) {
-  if (hasPresentationObject(sdkLiveTurn)) {
-    return '';
-  }
-  return normalizeOptionalText(asRecord(sdkLiveTurn)?.reasoningText) || '';
-}
-
 function normalizeEntryType(value) {
   return readExactSdkString(value) || 'llm-text';
 }
@@ -525,5 +518,4 @@ export const DesktopCurrentTurnMessageRuntime = Object.freeze({
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
   isVisibleResponseOverlayMessage,
-  resolveNoViewSdkLiveTurnThinkingText,
 });

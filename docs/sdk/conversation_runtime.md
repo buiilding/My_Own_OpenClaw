@@ -399,6 +399,9 @@ Renderer presentation caches follow the same split: presentation-backed
 snapshots are keyed by SDK presentation identity and live-turn refs, while raw
 `assistantText`, `reasoningText`, `toolEvents`, and `lastError` participate only
 in the explicitly named legacy no-presentation cache path.
+The renderer does not expose a reusable raw `reasoningText` helper from its
+current-turn message adapter; the response-overlay runtime owns its local
+no-view thinking-text fallback until that surface is fully view-backed.
 For the Phase 3 transcript migration, Electron renderer projects dashboard
 messages from `snapshot.view.displayRows` when a current-turn payload includes
 the view, and dashboard busy state reads `snapshot.view.surfaces.dashboard.mode`.

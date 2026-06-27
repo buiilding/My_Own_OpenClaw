@@ -2070,7 +2070,8 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceRuntimeSource).toContain('resolveConversationViewOverlayIntent');
     expect(liveSurfaceRuntimeSource).toContain("source: 'conversation-view'");
     expect(responseViewRuntimeSource).toContain('buildSdkLiveTurnMessages');
-    expect(responseViewRuntimeSource).toContain('resolveNoViewSdkLiveTurnThinkingText');
+    expect(responseViewRuntimeSource).toContain('resolveNoViewResponseOverlayThinkingText');
+    expect(responseViewRuntimeSource).not.toContain('resolveNoViewSdkLiveTurnThinkingText');
     expect(responseViewRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
     expect(responseViewRuntimeSource).not.toContain('function isConversationView');
     expect(responseViewRuntimeSource).not.toContain('buildConversationViewLiveTurnMessages');

@@ -202,7 +202,9 @@ trimmed into no-view/pending routing state.
   runtime memoizes legacy no-presentation current turns as opaque live-turn
   snapshots; raw fallback fields such as `assistantText`, `reasoningText`,
   `toolEvents`, and `lastError` are interpreted only by the thread presenter
-  fallback path.
+  fallback path. The current-turn message runtime does not export a standalone
+  raw `reasoningText` accessor; the response-overlay runtime owns its temporary
+  no-view thinking fallback locally until that surface is fully SDK-view-owned.
 - Stop-target resolution and stopped-turn workspace cleanup also use the shared
   SDK view-shape predicate before treating `conversationView` as stop
   authority or suppressing no-view `sdkLiveTurn`, leaving partial objects on
