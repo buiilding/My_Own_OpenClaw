@@ -55,11 +55,6 @@ describe('DesktopConversationContinuityService', () => {
           conversationRef: 'conv-display',
           messageId: 'row-user',
           text: 'edited text',
-          payload: { screenshot_refs: ['artifact-one'] },
-          model: {
-            modelProvider: 'anthropic',
-            modelId: 'claude-sonnet-4-5',
-          },
         },
       });
     } finally {
@@ -104,11 +99,6 @@ describe('DesktopConversationContinuityService', () => {
           userId: 'user-1',
           conversationRef: 'conv-display',
           messageId: 'row-assistant',
-          payload: { screenshot_ref: 'artifact-one' },
-          model: {
-            modelProvider: 'anthropic',
-            modelId: 'claude-sonnet-4-5',
-          },
         },
       });
     } finally {

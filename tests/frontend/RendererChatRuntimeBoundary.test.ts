@@ -2133,6 +2133,10 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('deferredQueryModelSelection');
     expect(replayRuntimeSource).not.toContain('DesktopSettingsRuntimeClient');
     expect(replayRuntimeSource).not.toContain('.setModel(');
+    expect(continuityServiceSource).not.toContain('type EditAndResendCommandInput = Omit<EditAndResendInput');
+    expect(continuityServiceSource).not.toContain('type RetryTurnCommandInput = Omit<RetryTurnInput');
+    expect(continuityServiceSource).not.toContain('input.payload');
+    expect(continuityServiceSource).not.toContain('input.model');
     expect(replayRuntimeSource).not.toContain('const replayTurnRef = crypto.randomUUID');
     expect(replayRuntimeSource).toContain('MissingConversationRef');
     expect(replayRuntimeSource).not.toContain('turnRef: replayTurnRef');
@@ -2176,8 +2180,8 @@ describe('renderer chat runtime boundary', () => {
     expect(transcriptRuntimeDocSource).not.toContain('DesktopConversationReplayRuntime owns replay row selection');
     expect(transcriptRuntimeDocSource).not.toContain('prepared\n  desktop-turn shaping');
     expect(continuityServiceSource).not.toContain('turnRef: input.turnRef');
-    expect(continuityServiceSource).toContain("Omit<EditAndResendInput, 'turnRef'>");
-    expect(continuityServiceSource).toContain("Omit<RetryTurnInput, 'turnRef'>");
+    expect(continuityServiceSource).toContain('messageId: string;');
+    expect(continuityServiceSource).toContain('text: string;');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/conversationReplayToolMessages.js'),
     )).rejects.toThrow();

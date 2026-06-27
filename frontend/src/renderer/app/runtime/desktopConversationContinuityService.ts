@@ -7,10 +7,8 @@ import {
   type ListConversationOptions,
   type CheckoutRevisionInput,
   type CheckoutRevisionResult,
-  type EditAndResendInput,
   type ForkConversationInput,
   type ForkConversationResult,
-  type RetryTurnInput,
   type ConversationMetadata,
   type ConversationRevision,
   type ConversationMetadataInvalidationListener,
@@ -44,14 +42,17 @@ const {
   metadataListToDashboardConversations,
 } = DesktopDashboardConversationLoadRuntime;
 
-type EditAndResendCommandInput = Omit<EditAndResendInput, 'turnRef'> & {
+type EditAndResendCommandInput = {
   userId: string;
   conversationRef: string;
+  messageId: string;
+  text: string;
 };
 
-type RetryTurnCommandInput = Omit<RetryTurnInput, 'turnRef'> & {
+type RetryTurnCommandInput = {
   userId: string;
   conversationRef: string;
+  messageId: string;
 };
 
 type CheckoutRevisionCommandInput = CheckoutRevisionInput & {
@@ -95,8 +96,6 @@ export const DesktopConversationContinuityService = {
         conversationRef: input.conversationRef,
         messageId: input.messageId,
         text: input.text,
-        ...(input.payload !== undefined ? { payload: input.payload } : {}),
-        ...(input.model !== undefined ? { model: input.model } : {}),
       },
     );
   },
@@ -108,8 +107,6 @@ export const DesktopConversationContinuityService = {
         userId: input.userId,
         conversationRef: input.conversationRef,
         messageId: input.messageId,
-        ...(input.payload !== undefined ? { payload: input.payload } : {}),
-        ...(input.model !== undefined ? { model: input.model } : {}),
       },
     );
   },

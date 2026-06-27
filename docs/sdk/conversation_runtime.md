@@ -1286,7 +1286,8 @@ The Electron renderer does not publish a replay-specific pending turn, retained
 display prefix, separate replacement query, renderer replay payload, or
 selected-model override. It passes row intent, edited text when applicable,
 user id, conversation ref, and no renderer-owned replacement turn ref into the
-SDK command. Renderer replay diagnostics name
+SDK command through a renderer continuity facade that does not expose replay
+payload or model fields. Renderer replay diagnostics name
 that target as a generic
 `targetRowId`; edit and retry both map it to the SDK command's `messageId`
 field without classifying the row as a user-message target. It must not call

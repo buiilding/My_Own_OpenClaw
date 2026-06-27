@@ -148,6 +148,9 @@ flowchart LR
      renderer config or call the renderer settings facade to apply the model
      before dispatch; SDK replay commands apply any model selection through
      their normal `send()` path.
+     Renderer continuity service replay methods expose only user id,
+     conversation ref, target row id, and edited text; they must not forward
+     replay payloads, attachment aliases, turn refs, or model overrides.
      Chat-store adapters should not export replay wrapper commands, active-scope
      helpers for replay, or projected workspace rows; the store shape and
      `getState()` contract must not be passed into the replay runtime.

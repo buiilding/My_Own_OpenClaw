@@ -63,13 +63,15 @@ this page.
   SDK session definitions; each replay turn attaches the current
   Electron-generated `payload.agent_definition` from the live desktop UI config
   store.
-- Selected chat models must be applied before inference starts: normal sends,
-  retry/edit replay, and manual compaction await the SDK settings ACK, while
-  retry/edit replay also carries the model through SDK replay commands into
-  `ConversationRuntime.send()`, where the same per-turn `setModel(...)` gate
-  runs before the backend query dispatch for SDK callers. Model selection must
-  not be smuggled through backend query payload fields. See the Settings startup
-  and Model send selection rows in the [User-Facing Regression Pack](user_facing_regression_pack.md).
+- Selected chat models must be applied before inference starts: normal sends
+  and manual compaction await the SDK settings ACK through their renderer
+  orchestration paths, while renderer retry/edit replay passes only row intent
+  and session identity to SDK commands. SDK callers that provide explicit replay
+  model command data still apply it inside `ConversationRuntime.send()`, where
+  the per-turn `setModel(...)` gate runs before backend query dispatch. Model
+  selection must not be smuggled through backend query payload fields or
+  renderer replay facades. See the Settings startup and Model send selection
+  rows in the [User-Facing Regression Pack](user_facing_regression_pack.md).
 - Renderer current-turn tool-call projections must preserve request/correlation
   identity from the event or its payload before transcript presentation runs.
   Materialized `ConversationView.displayRows` and transient `liveTurn` rows need

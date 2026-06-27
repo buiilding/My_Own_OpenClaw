@@ -10,6 +10,10 @@ All notable changes to WindieOS will be documented in this file.
   retry/edit replay commands, leaving replay dispatch as row intent plus
   session identity while SDK commands own model application. No migration
   required.
+- frontend/replay: narrow `DesktopConversationContinuityService` retry/edit
+  methods so renderer UI callers cannot forward replay payloads, attachment
+  aliases, or model overrides through the SDK command bridge. No migration
+  required.
 - frontend/live-turn: remove the generic renderer metadata pass-through from
   `DesktopLiveTurnRuntimeClient.sendQuery`, leaving normal sends to cross the
   SDK command boundary with typed resources rather than attachment or capture
