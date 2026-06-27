@@ -203,6 +203,42 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
+  test('buildThreadPresentationMessages does not preserve padded SDK live source event types', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_output',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:tool-output',
+          type: 'tool-output',
+          text: 'Tool completed',
+          sourceEventType: ' tool_output ',
+          sourceChannel: 'sdk:current-turn',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      messages[0],
+      expect.objectContaining({
+        id: 'conv-1:turn-1:tool-output',
+        sender: 'assistant',
+        type: 'tool-output',
+        sourceEventType: 'tool_output',
+        text: 'Tool completed',
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages derives current-turn rows only when SDK presentation is absent', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },

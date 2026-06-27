@@ -379,7 +379,10 @@ compatibility.
 Current-turn and `ConversationView.liveTurn.entries[]` type discriminators are
 SDK-authored exact strings; padded or empty entry `type` values fall back to
 generic assistant text rather than being trimmed into tool, thinking, progress,
-or error rows by the renderer.
+or error rows by the renderer. Live-entry `sourceEventType` values follow the
+same exactness rule; invalid labels fall back to the generic source for the
+rendered live row instead of being preserved or trimmed as authored SDK event
+identity.
 Streaming assistant display rows keep exact SDK-authored
 `metadata.sourceEventType` when present and otherwise use the generic
 `assistant_message` display-row type; padded or empty source event metadata

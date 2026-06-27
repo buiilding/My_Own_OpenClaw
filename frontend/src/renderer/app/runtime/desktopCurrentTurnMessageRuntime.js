@@ -44,6 +44,12 @@ function normalizeOptionalText(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function readExactSdkString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function resolveEntryCorrelationId(entry) {
   return (
     normalizeOptionalText(entry.correlationId)
@@ -61,9 +67,7 @@ function resolveNoViewSdkLiveTurnThinkingText(sdkLiveTurn = null) {
 }
 
 function normalizeEntryType(value) {
-  return typeof value === 'string' && value.length > 0 && value === value.trim()
-    ? value
-    : 'llm-text';
+  return readExactSdkString(value) || 'llm-text';
 }
 
 function buildProjectedToolCallMessage({
@@ -260,7 +264,7 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
 function buildBaseMessageFields(entry, liveTurnContext) {
   return {
     id: entry.id,
-    sourceEventType: entry.sourceEventType || null,
+    sourceEventType: readExactSdkString(entry.sourceEventType),
     sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel,
     turnRef: entry.turnRef || liveTurnContext?.turnRef || undefined,
     modelId: entry.modelId || null,
@@ -280,7 +284,7 @@ function buildThinkingMessage(entry, liveTurnContext) {
     sender: 'assistant',
     type: 'llm-text',
     thinkingText,
-    thinkingSourceEventType: entry.sourceEventType || 'reasoning_delta',
+    thinkingSourceEventType: readExactSdkString(entry.sourceEventType) || 'reasoning_delta',
     isComplete: false,
   };
 }
@@ -348,7 +352,7 @@ function buildToolOutputMessage(entry, liveTurnContext) {
   return buildToolOutputChatMessageState({
     id: entry.id,
     outputText: text,
-    sourceEventType: entry.sourceEventType || 'tool_output',
+    sourceEventType: readExactSdkString(entry.sourceEventType) || 'tool_output',
     sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel,
     attachments,
     toolMetadata: asRecord(entry.toolMetadata),

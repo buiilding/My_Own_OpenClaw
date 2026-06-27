@@ -3601,9 +3601,13 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);');
     expect(source).toContain('toolCallDetails: sanitizeSdkToolDetailRecord(asRecord(entry.toolCallDetails))');
     expect(source).toContain('toolOutputDetails: sanitizeSdkToolDetailRecord(asRecord(entry.toolOutputDetails))');
+    expect(source).toContain('function readExactSdkString(value)');
     expect(source).toContain('value.length > 0');
     expect(source).toContain('value === value.trim()');
     expect(source).not.toContain("return typeof value === 'string' && value.trim() ? value.trim() : 'llm-text';");
+    expect(source).not.toContain('sourceEventType: entry.sourceEventType || null');
+    expect(source).not.toContain("thinkingSourceEventType: entry.sourceEventType || 'reasoning_delta'");
+    expect(source).not.toContain("sourceEventType: entry.sourceEventType || 'tool_output'");
     expect(source).not.toContain('const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);');
     expect(source).toContain('buildLegacyNoPresentationCurrentTurnMessages');
     expect(source).toContain('buildNoViewSdkLiveTurnMessages');
