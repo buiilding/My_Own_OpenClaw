@@ -3862,6 +3862,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSdkDisplayAttachmentProjection.ts'),
       'utf8',
     );
+    const attachmentRegistrySource = await fs.readFile(
+      path.join(chatRoot, 'components/message/content/AttachmentRendererRegistry.jsx'),
+      'utf8',
+    );
     const currentTurnMessageRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js'),
       'utf8',
@@ -3972,6 +3976,9 @@ describe('renderer chat runtime boundary', () => {
     expect(displayAttachmentProjectionSource).toContain('readSdkDisplayAttachments');
     expect(displayAttachmentProjectionSource).toContain('function isDisplayableImageAttachment');
     expect(displayAttachmentProjectionSource).toContain('function isDisplayableScreenshotRequestAttachment');
+    expect(displayAttachmentProjectionSource).toContain('function isReadyDisplayImageAttachment');
+    expect(displayAttachmentProjectionSource).toContain("status: 'ready'");
+    expect(displayAttachmentProjectionSource).toContain("&& record.status === 'ready'");
     expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.previewSrc)');
     expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.screenshotRef)');
     expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.screenshotUrl)');
@@ -3985,6 +3992,11 @@ describe('renderer chat runtime boundary', () => {
     expect(displayAttachmentProjectionSource).not.toContain('failedAttachmentCount');
     expect(displayAttachmentProjectionSource).not.toContain('screenshot_refs');
     expect(displayAttachmentProjectionSource).not.toContain('countLegacyScreenshotAttachments');
+    expect(attachmentRegistrySource).toContain('function MaterializingImageAttachment');
+    expect(attachmentRegistrySource).toContain('function ReadyImageAttachment');
+    expect(attachmentRegistrySource).toContain("attachment.kind === 'image' && attachment.status === 'materializing'");
+    expect(attachmentRegistrySource).toContain("attachment.kind === 'image' && attachment.status === 'ready'");
+    expect(attachmentRegistrySource).not.toContain("attachment.status === 'materializing'\n    ? attachment.previewSrc");
     expect(currentTurnMessageRuntimeSource).toContain('readSdkDisplayAttachments');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveEntryCorrelationId(entry)');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveToolEventCorrelationId(toolEvent)');

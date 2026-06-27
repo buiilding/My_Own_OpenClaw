@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: keep materializing SDK image previews out of the
+  artifact image resolver path; preview rendering now uses SDK `previewSrc`
+  directly while artifact/source resolution is ready-only. No migration
+  required.
 - frontend/replay: keep replay hooks from subscribing to renderer config or
   passing config through SDK replay intent; the replay runtime facade now reads
   optional model command data behind the app-runtime boundary. No migration

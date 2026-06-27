@@ -75,6 +75,11 @@ describe('AttachmentList', () => {
       'data:image/png;base64,first',
       'resolved://artifact-camera',
     ]);
+    expect(mockUseResolvedAttachmentImageSrc).toHaveBeenCalledTimes(1);
+    expect(mockUseResolvedAttachmentImageSrc).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'attachment-2',
+      status: 'ready',
+    }));
     expect(screen.getByText('Screenshot pending')).toBeInTheDocument();
     expect(screen.getByText('Attachment unavailable')).toBeInTheDocument();
   });
@@ -181,6 +186,7 @@ describe('AttachmentList', () => {
     );
 
     expect(screen.getByRole('img')).toHaveAttribute('src', 'data:image/png;base64,preview');
+    expect(mockUseResolvedAttachmentImageSrc).not.toHaveBeenCalled();
 
     rerender(
       <AttachmentList
@@ -197,6 +203,7 @@ describe('AttachmentList', () => {
     );
 
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(mockUseResolvedAttachmentImageSrc).toHaveBeenCalledTimes(1);
 
     mockUseResolvedAttachmentImageSrc.mockReturnValue('resolved://artifact-ready');
     rerender(
@@ -214,6 +221,11 @@ describe('AttachmentList', () => {
     );
 
     expect(screen.getByRole('img')).toHaveAttribute('src', 'resolved://artifact-ready');
+    expect(mockUseResolvedAttachmentImageSrc).toHaveBeenCalledTimes(2);
+    expect(mockUseResolvedAttachmentImageSrc).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'attachment-stable',
+      status: 'ready',
+    }));
   });
 });
 

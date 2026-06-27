@@ -509,6 +509,9 @@ those presentation decisions. The renderer does not repair malformed attachment
 lifecycle records: materializing images without exact preview sources, ready
 images without exact artifact refs or URLs, and non-camera screenshot-request
 placeholders are omitted instead of being coerced into another display status.
+Artifact image-source resolution is ready-only; materializing previews render
+directly from the SDK descriptor's exact `previewSrc` and do not enter the
+artifact resolver path.
 Renderer replay/provider diagnostics that need display-row counts, latest row
 shape, or live-turn identity ask
 `DesktopConversationDisplayProjection.buildConversationViewTraceSummary(...)`

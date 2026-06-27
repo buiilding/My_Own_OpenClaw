@@ -9,17 +9,17 @@ import {
   DesktopAttachmentImageRuntime,
 } from '../../../../../app/runtime/desktopAttachmentImageRuntime';
 
+function isExactNonEmptyString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim();
+}
+
 function normalizeSurfaceClass(surface) {
   return typeof surface === 'string' && /^[a-z0-9_-]+$/i.test(surface)
     ? surface
     : 'dashboard';
 }
 
-function ImageAttachment({ attachment, surface = 'dashboard' }) {
-  const resolvedArtifactSrc = DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc(attachment);
-  const src = attachment.status === 'materializing'
-    ? attachment.previewSrc
-    : resolvedArtifactSrc;
+function AttachmentImageFrame({ src, surface = 'dashboard' }) {
   const surfaceClass = normalizeSurfaceClass(surface);
 
   const handleContextMenu = useCallback((event) => {
@@ -46,6 +46,25 @@ function ImageAttachment({ attachment, surface = 'dashboard' }) {
         />
       </div>
     </div>
+  );
+}
+
+function MaterializingImageAttachment({ attachment, surface = 'dashboard' }) {
+  return (
+    <AttachmentImageFrame
+      src={isExactNonEmptyString(attachment.previewSrc) ? attachment.previewSrc : null}
+      surface={surface}
+    />
+  );
+}
+
+function ReadyImageAttachment({ attachment, surface = 'dashboard' }) {
+  const resolvedArtifactSrc = DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc(attachment);
+  return (
+    <AttachmentImageFrame
+      src={resolvedArtifactSrc}
+      surface={surface}
+    />
   );
 }
 
@@ -81,8 +100,11 @@ export default function AttachmentRendererRegistry({ attachment, surface = 'dash
   if (attachment.kind === 'screenshot_request') {
     return <PendingScreenshotAttachment surface={surface} />;
   }
-  if (attachment.kind === 'image') {
-    return <ImageAttachment attachment={attachment} surface={surface} />;
+  if (attachment.kind === 'image' && attachment.status === 'materializing') {
+    return <MaterializingImageAttachment attachment={attachment} surface={surface} />;
+  }
+  if (attachment.kind === 'image' && attachment.status === 'ready') {
+    return <ReadyImageAttachment attachment={attachment} surface={surface} />;
   }
   return null;
 }
@@ -98,7 +120,17 @@ const attachmentShape = PropTypes.shape({
   errorCode: PropTypes.string,
 });
 
-ImageAttachment.propTypes = {
+AttachmentImageFrame.propTypes = {
+  src: PropTypes.string,
+  surface: PropTypes.string,
+};
+
+MaterializingImageAttachment.propTypes = {
+  attachment: attachmentShape.isRequired,
+  surface: PropTypes.string,
+};
+
+ReadyImageAttachment.propTypes = {
   attachment: attachmentShape.isRequired,
   surface: PropTypes.string,
 };

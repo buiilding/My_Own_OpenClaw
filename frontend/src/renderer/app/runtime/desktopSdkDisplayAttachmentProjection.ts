@@ -8,7 +8,7 @@ import type {
 
 type SdkDisplayImageAttachmentSource = {
   id: string;
-  status: SdkDisplayAttachment['status'];
+  status: 'ready';
   artifactId: string | null;
   url: string | null;
   contentType: string | null;
@@ -83,25 +83,22 @@ function readSdkDisplayAttachments(value: unknown): SdkDisplayAttachment[] {
   return Array.isArray(value) ? value.filter(isSdkDisplayAttachment) : [];
 }
 
-function isDisplayImageAttachment(value: unknown): boolean {
+function isReadyDisplayImageAttachment(value: unknown): boolean {
   const record = recordFromUnknown(value);
   return Boolean(
     record
     && record.kind === 'image'
-    && (
-      record.status === 'materializing'
-      || record.status === 'ready'
-    ),
+    && record.status === 'ready',
   );
 }
 
 function readSdkImageAttachmentSource(value: unknown): SdkDisplayImageAttachmentSource | null {
-  if (!isSdkDisplayAttachment(value) || !isDisplayImageAttachment(value)) {
+  if (!isSdkDisplayAttachment(value) || !isReadyDisplayImageAttachment(value)) {
     return null;
   }
   return {
     id: value.id,
-    status: value.status,
+    status: 'ready',
     artifactId: optionalExactString(value.screenshotRef),
     url: optionalExactString(value.screenshotUrl),
     contentType: optionalExactString(value.contentType),

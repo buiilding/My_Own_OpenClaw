@@ -115,6 +115,13 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
       contentType: 'image/png',
     });
     expect(readSdkImageAttachmentSource({
+      id: 'attachment-materializing',
+      kind: 'image',
+      source: 'user_included',
+      status: 'materializing',
+      previewSrc: 'data:image/png;base64,preview',
+    })).toBeNull();
+    expect(readSdkImageAttachmentSource({
       id: 'message-row',
       screenshotRef: 'artifact-row-alias',
       screenshotUrl: 'https://cdn.example/row-alias.png',

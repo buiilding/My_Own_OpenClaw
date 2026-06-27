@@ -63,7 +63,10 @@ resolution stays behind attachment descriptors.
 while SDK attachment lifecycle changes. A materializing preview renders only
 while the descriptor remains `status: "materializing"`, and a ready image
 renders only after the artifact/image resolver returns a source for the current
-SDK descriptor.
+SDK descriptor. Materializing previews are rendered directly from the SDK
+descriptor's exact `previewSrc`; they do not enter
+`DesktopAttachmentImageRuntime`, whose artifact/image source reader is limited
+to ready SDK image descriptors.
 Tool-output attachment chrome is also gated on
 `DesktopSdkDisplayAttachmentProjection.readSdkDisplayAttachments(...)`; raw
 `message.attachments` arrays that contain only malformed descriptors must not
@@ -110,7 +113,9 @@ strings; the renderer drops padded or empty ids/refs/URLs instead of trimming
 them into valid display inputs. Lifecycle descriptors must also be complete:
 materializing images require an exact `previewSrc`, ready images require an
 exact `screenshotRef` or `screenshotUrl`, and screenshot-request placeholders
-must come from the camera-button source.
+must come from the camera-button source. Artifact image-source extraction is
+ready-only; materializing preview bytes stay a display field on the attachment
+descriptor and are not treated as resolvable artifact state.
 
 - primary display field: `attachments[]`
 - backend/replay compatibility input before renderer projection:
