@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: stop projecting SDK live-entry `toolMetadata` into
+  current-turn tool rows; live rows now keep explicit `toolCallDetails` and
+  `toolOutputDetails` as the only SDK-authored detail payloads. No migration
+  required.
 - frontend/replay: remove replay-runtime target-row id preparation so edit and
   retry actions forward UI row intent unchanged to the continuity command
   facade, where exact command id guards run before SDK IPC. No migration

@@ -98,7 +98,7 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     });
   });
 
-  test('sanitizes live presentation tool metadata before renderer rows', () => {
+  test('ignores live presentation tool metadata while preserving explicit details', () => {
     const messages = buildCurrentTurnMessagesFromPresentation({
       turnRef: 'turn-live',
       presentation: {
@@ -106,6 +106,12 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
           id: 'entry-tool-output',
           type: 'tool-output',
           text: 'done',
+          toolOutputDetails: {
+            requestId: 'req-output',
+            toolName: 'read_file',
+            success: true,
+            rawPayload: { hidden: true },
+          },
           toolMetadata: {
             requestId: 'req-1',
             toolName: 'read_file',
@@ -128,24 +134,23 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
 
     expect(messages.find(message => message.id === 'entry-tool-output')).toEqual(
       expect.objectContaining({
-        toolMetadata: {
-          requestId: 'req-1',
+        toolOutputDetails: {
+          requestId: 'req-output',
           toolName: 'read_file',
           success: true,
         },
       }),
     );
-    expect(messages.find(message => message.id === 'entry-tool-output')?.toolMetadata)
-      .not.toHaveProperty('payload');
-    expect(messages.find(message => message.id === 'entry-tool-output')?.toolMetadata)
-      .not.toHaveProperty('screenshotRef');
+    expect(messages.find(message => message.id === 'entry-tool-output')).not.toHaveProperty('toolMetadata');
+    expect(messages.find(message => message.id === 'entry-tool-output')?.toolOutputDetails)
+      .not.toHaveProperty('rawPayload');
     expect(messages.find(message => message.id === 'entry-tool-progress')).toEqual(
       expect.objectContaining({
-        toolMetadata: {
-          displayCorrelationId: 'progress-1',
-        },
+        id: 'entry-tool-progress',
+        type: 'tool-progress',
       }),
     );
+    expect(messages.find(message => message.id === 'entry-tool-progress')).not.toHaveProperty('toolMetadata');
   });
 
   test('uses containing ConversationView live-turn identity for tool outputs', () => {
