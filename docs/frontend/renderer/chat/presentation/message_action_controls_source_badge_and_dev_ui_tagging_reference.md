@@ -39,9 +39,10 @@ parsing `actions.canRetry`, `actions.canEdit`, `retryTargetRowId`, or
 Replay actions fail closed unless the SDK row provides both the availability
 boolean and the corresponding target row id. Renderer presentation code must
 not recover missing `retryTargetRowId` or `editTargetRowId` from the rendered
-message id, and component props keep those targets named as row ids while
-passing them to replay callbacks. Low-level assistant/user action components
-also resolve their target ids through
+message id, and projection drops replay metadata attached to the wrong row kind
+instead of moving it to another message. Component props keep those targets
+named as row ids while passing them to replay callbacks. Low-level
+assistant/user action components also resolve their target ids through
 `DesktopMessageActionRuntime.resolveReplayTargetRowId(...)`, so direct renders
 with missing, padded, or empty SDK targets fail closed before showing replay
 controls.

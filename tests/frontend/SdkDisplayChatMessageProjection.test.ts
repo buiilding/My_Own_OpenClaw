@@ -571,7 +571,7 @@ describe('sdkDisplayChatMessageProjection', () => {
     expect(messages[0]).not.toEqual(expect.objectContaining({ toolName: 'read_file' }));
   });
 
-  test('allowlists exact SDK row replay actions without repairing target ids', () => {
+  test('allowlists exact SDK row replay actions for matching row kinds only', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {
         id: 'visible-user-row',
@@ -585,7 +585,7 @@ describe('sdkDisplayChatMessageProjection', () => {
           canEdit: true,
           editTargetRowId: 'original-user-row',
           canRetry: true,
-          retryTargetRowId: ' original-assistant-row ',
+          retryTargetRowId: 'original-assistant-row',
           modelFacingPayload: { ignored: true },
         },
       },
@@ -601,7 +601,7 @@ describe('sdkDisplayChatMessageProjection', () => {
           canRetry: true,
           retryTargetRowId: 'original-assistant-row',
           canEdit: true,
-          editTargetRowId: ' original-user-row ',
+          editTargetRowId: 'original-user-row',
           raw: { ignored: true },
         },
       },
@@ -618,6 +618,21 @@ describe('sdkDisplayChatMessageProjection', () => {
           retryTargetRowId: ' padded-assistant-row ',
         },
       },
+      {
+        id: 'tool-progress-action-row',
+        conversationRef: 'conv-sdk',
+        turnRef: 'turn-visible',
+        index: 3,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'still working',
+        actions: {
+          canEdit: true,
+          editTargetRowId: 'original-user-row',
+          canRetry: true,
+          retryTargetRowId: 'original-assistant-row',
+        },
+      },
     ])).toEqual([
       expect.objectContaining({
         id: 'visible-user-row',
@@ -632,6 +647,9 @@ describe('sdkDisplayChatMessageProjection', () => {
           canRetry: true,
           retryTargetRowId: 'original-assistant-row',
         },
+      }),
+      expect.not.objectContaining({
+        actions: expect.anything(),
       }),
       expect.not.objectContaining({
         actions: expect.anything(),

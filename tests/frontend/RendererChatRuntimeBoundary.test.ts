@@ -4182,6 +4182,10 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).toContain('withRowActions');
     expect(projectionRuntimeSource).toContain('function rowReplayActions(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain('const actions = rowReplayActions(row);');
+    expect(projectionRuntimeSource).toContain('function isUserReplayActionRow(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain("return row.type === 'user_message' && row.role === 'user';");
+    expect(projectionRuntimeSource).toContain('function isAssistantReplayActionRow(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain("return row.type === 'assistant_message' && row.role === 'assistant';");
     expect(projectionRuntimeSource).toContain('actionRecord.canEdit === true && editTargetRowId');
     expect(projectionRuntimeSource).toContain('actionRecord.canRetry === true && retryTargetRowId');
     expect(projectionRuntimeSource).not.toContain('actions: row.actions');

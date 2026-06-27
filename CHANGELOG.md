@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: keep SDK row replay metadata scoped to matching row kinds
+  during display projection, so edit actions only survive on user rows and
+  retry actions only survive on assistant rows. No migration required.
 - frontend/stop: require pending-turn stop fallback to match the active SDK
   `ConversationView` conversation when view state exists, preventing stale
   cross-conversation pending bridges from becoming Stop targets. No migration

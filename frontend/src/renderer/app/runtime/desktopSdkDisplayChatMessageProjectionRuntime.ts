@@ -71,6 +71,14 @@ function isSdkDisplayRowStreaming(row: SdkDisplayRow): boolean {
   return 'isStreaming' in row && row.isStreaming === true;
 }
 
+function isUserReplayActionRow(row: SdkDisplayRow): boolean {
+  return row.type === 'user_message' && row.role === 'user';
+}
+
+function isAssistantReplayActionRow(row: SdkDisplayRow): boolean {
+  return row.type === 'assistant_message' && row.role === 'assistant';
+}
+
 function rowReplayActions(row: SdkDisplayRow): ChatMessage['actions'] | null {
   const source = row.actions;
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
@@ -80,11 +88,11 @@ function rowReplayActions(row: SdkDisplayRow): ChatMessage['actions'] | null {
   const actions: NonNullable<ChatMessage['actions']> = {};
   const editTargetRowId = exactNonEmptyString(actionRecord.editTargetRowId);
   const retryTargetRowId = exactNonEmptyString(actionRecord.retryTargetRowId);
-  if (actionRecord.canEdit === true && editTargetRowId) {
+  if (isUserReplayActionRow(row) && actionRecord.canEdit === true && editTargetRowId) {
     actions.canEdit = true;
     actions.editTargetRowId = editTargetRowId;
   }
-  if (actionRecord.canRetry === true && retryTargetRowId) {
+  if (isAssistantReplayActionRow(row) && actionRecord.canRetry === true && retryTargetRowId) {
     actions.canRetry = true;
     actions.retryTargetRowId = retryTargetRowId;
   }
