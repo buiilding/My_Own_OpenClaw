@@ -412,7 +412,9 @@ Tool live-entry identity fields such as `correlationId`, `requestId`, and
 values are ignored rather than trimmed into duplicate-detection keys. Legacy
 no-view SDK `toolEvents` use the same exact rule when projected into renderer
 correlation ids, so fallback current-turn rows do not repair malformed tool
-identity either.
+identity either. Live-entry and legacy no-view `toolEvents` tool names follow
+the same rule: padded names are ignored instead of being trimmed into visible
+tool labels or fallback status text.
 Thread presentation duplicate suppression also treats live row ids and tool
 detail identity fields as exact SDK identity; padded live ids or nested
 `toolCallDetails`/`toolOutputDetails` ids do not suppress materialized display

@@ -32,10 +32,6 @@ function asRecord(value) {
     : null;
 }
 
-function readString(value) {
-  return typeof value === 'string' ? value : null;
-}
-
 function normalizeText(value) {
   return typeof value === 'string' && value.trim() ? value : '';
 }
@@ -79,12 +75,16 @@ function normalizeEntryType(value) {
   return readExactSdkString(value) || 'llm-text';
 }
 
+function resolveToolName(value) {
+  return readExactSdkString(value);
+}
+
 function buildProjectedToolCallMessage({
   baseId,
   turnRef,
   toolEvent,
 }) {
-  const toolName = readString(toolEvent.toolName) || '';
+  const toolName = resolveToolName(toolEvent.toolName) || '';
   const toolCallDetails = asObject(toolEvent.toolCallDetails) || (toolName ? { toolName } : null);
   const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);
   const correlationId = resolveToolEventCorrelationId(toolEvent);
@@ -109,7 +109,7 @@ function buildProjectedToolOutputMessage({
 }) {
   const toolOutputDetails = asObject(toolEvent.toolOutputDetails) || {};
   const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);
-  const toolName = readString(toolEvent.toolName);
+  const toolName = resolveToolName(toolEvent.toolName);
   const correlationId = resolveToolEventCorrelationId(toolEvent);
   const attachments = readSdkDisplayAttachments(toolEvent.attachments);
   const outputText = normalizeText(toolEvent.text)
@@ -139,7 +139,7 @@ function buildProjectedToolProgressMessage({
 }) {
   const text = typeof toolEvent?.text === 'string' && toolEvent.text.trim()
     ? toolEvent.text
-    : (typeof toolEvent?.toolName === 'string' ? toolEvent.toolName : '');
+    : (resolveToolName(toolEvent?.toolName) || '');
   if (!text) {
     return null;
   }
@@ -151,7 +151,7 @@ function buildProjectedToolProgressMessage({
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
     turnRef: turnRef || undefined,
-    toolName: toolEvent.toolName || undefined,
+    toolName: resolveToolName(toolEvent.toolName) || undefined,
     success: toolEvent.status === 'success' ? true : undefined,
     toolMetadata: toolEvent.toolMetadata || null,
   };
@@ -318,7 +318,7 @@ function buildErrorMessage(entry, liveTurnContext) {
 }
 
 function buildToolCallMessage(entry, liveTurnContext) {
-  const toolName = normalizeOptionalText(entry.toolName);
+  const toolName = resolveToolName(entry.toolName);
   const text = normalizeText(entry.text);
   const displayText = text || (toolName ? `Using ${toolName}` : 'Using tool');
 
@@ -332,7 +332,7 @@ function buildToolCallMessage(entry, liveTurnContext) {
 }
 
 function buildToolProgressMessage(entry, liveTurnContext) {
-  const text = normalizeText(entry.text) || normalizeOptionalText(entry.toolName);
+  const text = normalizeText(entry.text) || resolveToolName(entry.toolName);
   if (!text) {
     return null;
   }
@@ -341,13 +341,13 @@ function buildToolProgressMessage(entry, liveTurnContext) {
     text,
     sender: 'assistant',
     type: 'search-source',
-    toolName: entry.toolName || undefined,
+    toolName: resolveToolName(entry.toolName) || undefined,
     toolMetadata: entry.toolMetadata || null,
   };
 }
 
 function buildToolOutputMessage(entry, liveTurnContext) {
-  const toolName = normalizeOptionalText(entry.toolName);
+  const toolName = resolveToolName(entry.toolName);
   const text = normalizeText(entry.text) || (toolName ? `${toolName} completed` : 'Tool completed');
   const attachments = readSdkDisplayAttachments(entry.attachments);
   return buildToolOutputChatMessageState({

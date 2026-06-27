@@ -3858,10 +3858,13 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnMessageRuntimeSource).toContain('readSdkDisplayAttachments');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveEntryCorrelationId(entry)');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveToolEventCorrelationId(toolEvent)');
+    expect(currentTurnMessageRuntimeSource).toContain('function resolveToolName(value)');
     expect(currentTurnMessageRuntimeSource).toContain('readExactSdkString(entry.requestId)');
     expect(currentTurnMessageRuntimeSource).toContain('readExactSdkString(toolEvent.requestId)');
     expect(currentTurnMessageRuntimeSource).toContain('readExactSdkString(toolEvent.bundleId)');
     expect(currentTurnMessageRuntimeSource).not.toContain('normalizeOptionalText(entry.requestId)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('normalizeOptionalText(entry.toolName)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('readString(toolEvent.toolName)');
     expect(currentTurnMessageRuntimeSource).not.toContain('readString(toolEvent.requestId)');
     expect(currentTurnMessageRuntimeSource).not.toContain('function normalizeDisplayAttachments');
     expect(threadPresentationRuntimeSource).toContain('function toolMessageIdentity(message)');

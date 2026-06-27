@@ -194,6 +194,53 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     expect(messages.map(message => message.correlationId)).not.toContain('request-bundle-1');
   });
 
+  test('buildNoViewSdkLiveTurnMessages does not repair padded legacy tool event names', () => {
+    const messages = buildNoViewSdkLiveTurnMessages({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      assistantText: '',
+      reasoningText: null,
+      lastError: null,
+      toolEvents: [
+        {
+          id: 'tool-call-1',
+          kind: 'tool_call',
+          toolName: ' read_file ',
+          requestId: 'request-tool-1',
+        },
+        {
+          id: 'tool-output-1',
+          kind: 'tool_output',
+          toolName: ' screenshot ',
+          requestId: 'request-tool-2',
+        },
+        {
+          id: 'tool-progress-1',
+          kind: 'tool_progress',
+          toolName: ' web_search ',
+        },
+      ],
+    });
+
+    expect(messages).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'tool-call',
+        text: 'Using tool',
+      }),
+      expect.objectContaining({
+        type: 'tool-output',
+        text: 'Tool completed',
+      }),
+    ]));
+    expect(messages.some(message => message.id.includes('tool-progress-1'))).toBe(false);
+    expect(messages.map(message => message.toolName)).not.toContain('read_file');
+    expect(messages.map(message => message.toolName)).not.toContain(' read_file ');
+    expect(messages.map(message => message.toolName)).not.toContain('screenshot');
+    expect(messages.map(message => message.toolName)).not.toContain(' screenshot ');
+    expect(messages.map(message => message.text)).not.toContain(' web_search ');
+  });
+
   test('buildNoViewSdkLiveTurnMessages uses presentation-backed current turns before legacy fallback', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',

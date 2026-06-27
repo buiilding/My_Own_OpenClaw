@@ -645,6 +645,59 @@ describe('desktopThreadPresentationRuntime', () => {
     expect(rendered[1].correlationId).not.toBe(' corr-read ');
   });
 
+  test('buildThreadPresentationMessages does not repair padded SDK live tool names', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [
+          {
+            id: 'conv-1:turn-1:tool:tool-call-1',
+            type: 'tool-call',
+            text: '',
+            sourceEventType: 'tool_call',
+            turnRef: 'turn-1',
+            toolName: ' read_file ',
+            requestId: 'req-read',
+          },
+          {
+            id: 'conv-1:turn-1:tool:tool-output-1',
+            type: 'tool-output',
+            text: '',
+            sourceEventType: 'tool_output',
+            turnRef: 'turn-1',
+            toolName: ' screenshot ',
+            requestId: 'req-shot',
+          },
+        ],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'tool-call',
+        text: 'Using tool',
+      }),
+      expect.objectContaining({
+        type: 'tool-output',
+        text: 'Tool completed',
+      }),
+    ]));
+    expect(rendered.map(message => message.toolName)).not.toContain('read_file');
+    expect(rendered.map(message => message.toolName)).not.toContain(' read_file ');
+    expect(rendered.map(message => message.toolName)).not.toContain('screenshot');
+    expect(rendered.map(message => message.toolName)).not.toContain(' screenshot ');
+  });
+
   test('buildThreadPresentationMessages keeps live attachments out of tool details', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Capture screen', turnRef: 'turn-1' },

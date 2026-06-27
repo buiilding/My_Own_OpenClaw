@@ -113,7 +113,9 @@ containing SDK live turn's `turnRef` over entry-level payload refs. Live tool
 identity fields such as `correlationId`, `requestId`, and `bundleId` are exact;
 padded values fall through instead of becoming renderer dedupe keys. The legacy
 no-view SDK `toolEvents` fallback uses the same exact correlation rule instead
-of trimming malformed tool ids into rendered rows. Thread dedupe checks live row
+of trimming malformed tool ids into rendered rows. Live-entry and legacy
+no-view `toolEvents` tool names are also exact; padded names are ignored instead
+of becoming visible labels or fallback tool text. Thread dedupe checks live row
 ids and nested tool detail identity with the same exactness, so malformed padded
 live ids or `toolCallDetails`/`toolOutputDetails` ids cannot suppress SDK
 display rows. Thread live/display dedupe also compares materialized and live
