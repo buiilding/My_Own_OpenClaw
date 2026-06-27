@@ -694,6 +694,69 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(entries).toHaveLength(3);
   });
 
+  test('does not repair padded ConversationView overlay refs into display-row selection', () => {
+    const displayRows = [
+      {
+        id: 'row-assistant-final',
+        conversationRef: 'conv-view',
+        turnRef: 'turn-view',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'Materialized assistant response.',
+      },
+    ];
+
+    expect(resolveResponseOverlayEntries({
+      conversationView: conversationView({
+        conversationRef: 'conv-view',
+        displayRows,
+        liveTurn: {
+          turnRef: ' turn-view ',
+          phase: 'complete',
+          isBusy: false,
+          entries: [],
+        },
+        surfaces: {
+          dashboard: { mode: 'normal', visible: true },
+          pill: { mode: 'normal', visible: true },
+          responseOverlay: {
+            mode: 'response',
+            visible: true,
+            turnRef: null,
+          },
+        },
+      }),
+      liveTurnPresentationInput: {
+        source: 'conversation-view',
+      },
+    })).toEqual([]);
+
+    expect(resolveResponseOverlayEntries({
+      conversationView: conversationView({
+        conversationRef: 'conv-view',
+        displayRows,
+        liveTurn: {
+          phase: 'complete',
+          isBusy: false,
+          entries: [],
+        },
+        surfaces: {
+          dashboard: { mode: 'normal', visible: true },
+          pill: { mode: 'normal', visible: true },
+          responseOverlay: {
+            mode: 'response',
+            visible: true,
+            turnRef: ' turn-view ',
+          },
+        },
+      }),
+      liveTurnPresentationInput: {
+        source: 'conversation-view',
+      },
+    })).toEqual([]);
+  });
+
   test('keeps same-type live tool entries that are not materialized display rows', () => {
     const entries = resolveResponseOverlayEntries({
       conversationView: conversationView({

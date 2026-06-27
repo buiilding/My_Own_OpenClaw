@@ -213,8 +213,8 @@ function conversationViewLiveTurnRef(conversationView: ConversationView): string
   const surfaces = recordFromUnknown(view.surfaces);
   const responseOverlay = recordFromUnknown(surfaces.responseOverlay);
   return (
-    normalizeUnknownString(liveTurn.turnRef)
-    || normalizeUnknownString(responseOverlay.turnRef)
+    exactUnknownIdentityString(liveTurn.turnRef)
+    || exactUnknownIdentityString(responseOverlay.turnRef)
     || null
   );
 }

@@ -3701,10 +3701,14 @@ describe('renderer chat runtime boundary', () => {
     expect(responseViewRuntimeSource).not.toContain('toolMetadata');
     expect(responseViewRuntimeSource).toContain('function exactIdentityString');
     expect(responseViewRuntimeSource).toContain('exactUnknownIdentityString(overlayIntent?.turnRef)');
+    expect(responseViewRuntimeSource).toContain('exactUnknownIdentityString(liveTurn.turnRef)');
+    expect(responseViewRuntimeSource).toContain('exactUnknownIdentityString(responseOverlay.turnRef)');
     expect(responseViewRuntimeSource).toContain('turnRef: exactIdentityString(sizeIdentity?.turnRef)');
     expect(responseViewRuntimeSource).toContain('guardRef: exactIdentityString(dismissalTarget.guardRef)');
     expect(responseViewRuntimeSource).not.toContain('turnRef: normalizeString(dismissalTarget.turnRef)');
     expect(responseViewRuntimeSource).not.toContain('guardRef: normalizeString(dismissalTarget.guardRef)');
+    expect(responseViewRuntimeSource).not.toContain('normalizeUnknownString(liveTurn.turnRef)');
+    expect(responseViewRuntimeSource).not.toContain('normalizeUnknownString(responseOverlay.turnRef)');
     expect(responseViewRuntimeSource).not.toContain('normalizeUnknownString(overlayIntent?.turnRef)');
     expect(responseViewRuntimeSource).not.toContain('turnRef: normalizeString(sizeIdentity?.turnRef)');
     expect(responseViewRuntimeSource).not.toContain('turnRef: normalizeString(guardSnapshot?.turnRef)');

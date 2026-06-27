@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: require ConversationView response-overlay display-row
+  selection to use exact SDK turn refs, so padded `liveTurn.turnRef` or surface
+  `turnRef` values do not trim into materialized response-overlay rows. No
+  migration required.
 - sdk: regenerate the CommonJS conversation runtime from the narrowed replay
   source so CJS `editAndResend`/`retryTurn` ignore caller replay payload,
   model, and replacement turn-ref overrides, matching SDK-owned replay
