@@ -24,6 +24,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/compaction: stop synthesizing compacted replay revision ids in the
   renderer stream payload adapter; compacted replay persistence now requires
   SDK/event revision identity. No migration required.
+- frontend/live-turn: align stream side-effect regression fixtures and docs with
+  SDK presentation-entry ownership, keeping raw current-turn text/tool fields as
+  legacy fallback context instead of the source for tracking side effects. No
+  migration required.
 - frontend/live-turn: remove the generic renderer metadata pass-through from
   `DesktopLiveTurnRuntimeClient.sendQuery`, leaving normal sends to cross the
   SDK command boundary with typed resources rather than attachment or capture

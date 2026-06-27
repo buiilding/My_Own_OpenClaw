@@ -176,9 +176,9 @@ Reset/start contract:
 
 Automatic updates:
 
-- SDK `currentTurn.assistantText` growth records a `streaming-response` tracking event, increments `chunkCount`, sets first chunk timestamp, and defaults phase to `streaming`
-- SDK `currentTurn.reasoningText` growth records an `llm-thought` tracking event
-- SDK `currentTurn.toolEvents` growth records `tool-call`, `tool-output`, or `web-search-progress` tracking and increments tool counters
+- SDK presentation `llm-text` entry growth records a `streaming-response` tracking event, increments `chunkCount`, sets first chunk timestamp, and defaults phase to `streaming`
+- SDK presentation `thinking` entry growth records an `llm-thought` tracking event
+- SDK presentation tool entries record `tool-call`, `tool-output`, or `web-search-progress` tracking and increment tool counters
 - SDK `currentTurn.phase='complete'` records `streaming-complete`, clears send/thinking state, and stamps completion timestamp when missing
 - SDK `currentTurn.phase='error'` records `error`, clears send/thinking state, stores `lastError`, and stamps completion timestamp when missing
 
@@ -208,15 +208,15 @@ Dashboard/pill presentation note:
 - initialize thinking fallback for non-thinking-text models
 - reset stream tracking for new turn
 
-SDK current-turn reasoning text:
+SDK current-turn thinking presentation:
 
-- accumulate transient thinking status from `currentTurn.reasoningText`
+- accumulate transient thinking status from SDK presentation `thinking` entries
 - keep `llm-thought` as the UI/tracking source label
 
-SDK current-turn assistant text:
+SDK current-turn assistant presentation:
 
 - clear sending latch
-- record `streaming-response` tracking from `currentTurn.assistantText` growth
+- record `streaming-response` tracking from SDK presentation `llm-text` entry growth
 - dashboard and response overlay render the assistant text from the SDK projection rather than backend-wire chunks
 
 Compaction events:
@@ -224,7 +224,7 @@ Compaction events:
 - run through the shared turn-scoped handler wrapper
 - update thinking status/source with compaction start/success/failure messaging
 
-SDK current-turn tool events:
+SDK current-turn tool presentation:
 
 - clear transient thinking state for executable local-runtime tool rows. Backend-owned
   synthetic tool calls projected with `executionSkipped === true`
@@ -235,7 +235,7 @@ SDK current-turn tool events:
   renders current-turn tool-call/tool-output/tool-progress rows from the SDK
   projection. Rehydrate history groups OpenAI-native progress-only search into a
   synthetic paired Windie `web_search` tool call/output.
-- record active tool phase tracking from `currentTurn.toolEvents`
+- record active tool phase tracking from SDK presentation tool entries
 
 SDK current-turn terminal phase:
 
