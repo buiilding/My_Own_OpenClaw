@@ -210,7 +210,7 @@ function getProjectedWorkspaceReadModelFromChatStore(
   );
 }
 
-function exactProviderTraceString(value: unknown): string | null {
+function exactReadModelString(value: unknown): string | null {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
     ? value
     : null;
@@ -222,11 +222,11 @@ function buildChatStreamWorkspaceReadModel(
   return {
     pendingTurn: workspace.pendingTurn
       ? {
-        turnRef: workspace.pendingTurn.turnRef,
+        turnRef: exactReadModelString(workspace.pendingTurn.turnRef),
       }
       : null,
     streamTracking: workspace.streamTracking,
-    thinkingSourceEventType: workspace.thinkingSourceEventType,
+    thinkingSourceEventType: exactReadModelString(workspace.thinkingSourceEventType),
     viewLiveTurnRef: readConversationViewLiveTurnRef(workspace.conversationView),
   };
 }
@@ -238,13 +238,13 @@ function buildCurrentTurnProjectionWorkspaceReadModel(
     conversationView: workspace.conversationView,
     pendingTurn: workspace.pendingTurn
       ? {
-        turnRef: workspace.pendingTurn.turnRef,
+        turnRef: exactReadModelString(workspace.pendingTurn.turnRef),
       }
       : null,
     sdkLiveTurn: workspace.sdkLiveTurn
       ? {
-        phase: workspace.sdkLiveTurn.phase,
-        turnRef: workspace.sdkLiveTurn.turnRef,
+        phase: exactReadModelString(workspace.sdkLiveTurn.phase),
+        turnRef: exactReadModelString(workspace.sdkLiveTurn.turnRef),
       }
       : null,
     streamTracking: workspace.streamTracking,
@@ -262,14 +262,14 @@ function buildChatProviderTraceWorkspaceReadModel(
       ? buildConversationViewTraceSummary(workspace.conversationView)
       : null,
     messageCount: workspace.messages.length,
-    activeTurnRef: exactProviderTraceString(workspace.streamTracking.activeTurnRef),
+    activeTurnRef: exactReadModelString(workspace.streamTracking.activeTurnRef),
     lastMessage: lastMessage
       ? {
-        sender: exactProviderTraceString(lastMessage.sender),
-        type: exactProviderTraceString(lastMessage.type),
+        sender: exactReadModelString(lastMessage.sender),
+        type: exactReadModelString(lastMessage.type),
         textLength: typeof lastMessage.text === 'string' ? lastMessage.text.length : 0,
-        turnRef: exactProviderTraceString(lastMessage.turnRef),
-        sourceEventType: exactProviderTraceString(lastMessage.sourceEventType),
+        turnRef: exactReadModelString(lastMessage.turnRef),
+        sourceEventType: exactReadModelString(lastMessage.sourceEventType),
       }
       : null,
   };

@@ -637,10 +637,12 @@ workspace `ConversationView` gate accepts a complete SDK view envelope; partial
 objects fall back to the no-view raw workspace trace path instead of becoming
 debug read-model authority. The chat-store provider trace adapter applies that
 same exact string rule before publishing no-view fallback active-turn and
-last-message sender/type/ref/source labels. Replay projection traces apply the
-same exact string rule to pending, live, stream-tracking, live-turn phase,
-latest-row sender, type, and source-event inputs; padded values are reported as missing
-instead of being trimmed into same-turn diagnostic matches.
+last-message sender/type/ref/source labels. The stream/current-turn chat-store
+adapters apply the same rule before publishing fallback pending refs, no-view
+`sdkLiveTurn` refs/phases, and thinking source labels. Replay projection traces
+apply the same exact string rule to pending, live, stream-tracking, live-turn
+phase, latest-row sender, type, and source-event inputs; padded values are
+reported as missing instead of being trimmed into same-turn diagnostic matches.
 Renderer token-usage presentation may estimate image cost from SDK
 `attachments[]`, but only by counting SDK image descriptors in
 `materializing` or `ready` states; pending screenshot requests and failed

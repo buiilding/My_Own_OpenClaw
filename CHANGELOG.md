@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: exact-gate stream/current-turn fallback pending refs,
+  live-turn refs/phases, and thinking source labels at the adapter boundary, so
+  padded raw fallback metadata is reported as missing before projection
+  runtimes see it. No migration required.
 - frontend/replay: require SDK replay failure `error.name` labels to be exact
   before using them in renderer diagnostics, so padded names fall back to the
   generic `Error` kind instead of being trimmed into repaired trace metadata. No

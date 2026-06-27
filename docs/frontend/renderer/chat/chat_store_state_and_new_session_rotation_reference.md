@@ -93,7 +93,11 @@ chat-stream read model exposes only pending-turn identity, stream-tracking
 state, a purpose-named `viewLiveTurnRef`, and thinking source labels; the view
 turn ref is read through the ConversationView workspace runtime's exact SDK
 identity gate rather than by publishing nested `ConversationView.liveTurn`
-shape. It does not carry raw messages, renderer annotations, the no-view
+shape. The adapter also exact-gates fallback pending turn refs, no-view
+`sdkLiveTurn` refs/phases, and thinking source labels before publishing
+stream/current-turn read models, so padded fallback values leave the adapter as
+missing instead of being repaired. It does not carry raw messages, renderer
+annotations, the no-view
 `sdkLiveTurn`, or the full or partial `ConversationView` payload. The
 current-turn projection read model keeps
 the SDK view envelope needed for trace summaries, pending turn identity,

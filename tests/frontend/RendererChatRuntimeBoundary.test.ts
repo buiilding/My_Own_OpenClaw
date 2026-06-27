@@ -2775,10 +2775,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('conversationViewTraceSummary: hasConversationView');
     expect(chatStoreAdaptersSource).toContain('workspace: buildChatProviderTraceWorkspaceReadModel(');
     expect(chatStoreAdaptersSource).toContain('messageCount: workspace.messages.length');
-    expect(chatStoreAdaptersSource).toContain('function exactProviderTraceString(value: unknown): string | null');
-    expect(chatStoreAdaptersSource).toContain('activeTurnRef: exactProviderTraceString(workspace.streamTracking.activeTurnRef)');
-    expect(chatStoreAdaptersSource).toContain('turnRef: exactProviderTraceString(lastMessage.turnRef)');
-    expect(chatStoreAdaptersSource).toContain('sourceEventType: exactProviderTraceString(lastMessage.sourceEventType)');
+    expect(chatStoreAdaptersSource).toContain('function exactReadModelString(value: unknown): string | null');
+    expect(chatStoreAdaptersSource).toContain('activeTurnRef: exactReadModelString(workspace.streamTracking.activeTurnRef)');
+    expect(chatStoreAdaptersSource).toContain('turnRef: exactReadModelString(lastMessage.turnRef)');
+    expect(chatStoreAdaptersSource).toContain('sourceEventType: exactReadModelString(lastMessage.sourceEventType)');
     expect(chatStoreAdaptersSource).not.toContain('activeTurnRef: workspace.streamTracking.activeTurnRef');
     expect(chatStoreAdaptersSource).not.toContain('turnRef: lastMessage.turnRef ?? null');
     expect(chatStoreAdaptersSource).not.toContain('sourceEventType: lastMessage.sourceEventType ?? null');
@@ -4782,7 +4782,11 @@ describe('renderer chat runtime boundary', () => {
       chatStoreAdaptersSource.indexOf('function buildChatStreamWorkspaceReadModel'),
       chatStoreAdaptersSource.indexOf('function buildCurrentTurnProjectionWorkspaceReadModel'),
     );
+    expect(chatStreamReadModelSource).toContain('turnRef: exactReadModelString(workspace.pendingTurn.turnRef)');
+    expect(chatStreamReadModelSource).toContain('thinkingSourceEventType: exactReadModelString(workspace.thinkingSourceEventType)');
     expect(chatStreamReadModelSource).toContain('viewLiveTurnRef: readConversationViewLiveTurnRef(workspace.conversationView)');
+    expect(chatStreamReadModelSource).not.toContain('turnRef: workspace.pendingTurn.turnRef');
+    expect(chatStreamReadModelSource).not.toContain('thinkingSourceEventType: workspace.thinkingSourceEventType');
     expect(chatStreamReadModelSource).not.toContain('workspace.conversationView?.liveTurn?.turnRef');
     expect(conversationViewWorkspaceRuntimeSource).toContain('function readConversationViewLiveTurnRef');
     expect(conversationViewWorkspaceRuntimeSource).toContain('return isConversationView(conversationView)');
@@ -4792,6 +4796,12 @@ describe('renderer chat runtime boundary', () => {
       chatStoreAdaptersSource.indexOf('function buildCurrentTurnProjectionWorkspaceReadModel'),
       chatStoreAdaptersSource.indexOf('function buildChatProviderTraceWorkspaceReadModel'),
     );
+    expect(currentTurnReadModelSource).toContain('turnRef: exactReadModelString(workspace.pendingTurn.turnRef)');
+    expect(currentTurnReadModelSource).toContain('phase: exactReadModelString(workspace.sdkLiveTurn.phase)');
+    expect(currentTurnReadModelSource).toContain('turnRef: exactReadModelString(workspace.sdkLiveTurn.turnRef)');
+    expect(currentTurnReadModelSource).not.toContain('turnRef: workspace.pendingTurn.turnRef');
+    expect(currentTurnReadModelSource).not.toContain('phase: workspace.sdkLiveTurn.phase');
+    expect(currentTurnReadModelSource).not.toContain('turnRef: workspace.sdkLiveTurn.turnRef');
     expect(currentTurnReadModelSource).not.toContain('messageCount');
     expect(currentTurnReadModelSource).not.toContain('workspace.messages');
     expect(chatStoreAdaptersSource).toContain('ChatStreamWorkspaceReadModel,\n} from');

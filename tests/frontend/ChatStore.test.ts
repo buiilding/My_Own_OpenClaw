@@ -523,6 +523,65 @@ describe('chatStore', () => {
     expect(readModel).not.toHaveProperty('thinkingSourceEventType');
   });
 
+  test('projected stream and current-turn read models exact-gate fallback labels', () => {
+    const workspaceRef = 'conv-padded-read-model';
+    const initialStreamTracking = getActiveWorkspace().streamTracking;
+
+    useChatStore.setState((state) => ({
+      ...state,
+      activeConversationRef: workspaceRef,
+      workspaces: {
+        ...state.workspaces,
+        [workspaceRef]: {
+          messages: [],
+          rendererAnnotations: [],
+          isSending: false,
+          thinkingStatus: 'thinking',
+          thinkingSourceEventType: ' assistant_delta ',
+          compactionDebugInfo: null,
+          tokenCounts: null,
+          streamTracking: initialStreamTracking,
+          sdkLiveTurn: {
+            conversationRef: workspaceRef,
+            turnRef: ' turn-live ',
+            phase: ' streaming ',
+            assistantText: 'raw answer',
+            reasoningText: null,
+            toolEvents: [],
+            lastError: null,
+          } as never,
+          conversationView: null,
+          pendingTurn: {
+            conversationRef: workspaceRef,
+            turnRef: ' turn-pending ',
+            userMessageId: 'pending-user',
+            text: 'pending prompt',
+            timestamp: '2026-06-27T12:00:00.000Z',
+          },
+        },
+      },
+    }));
+
+    const streamReadModel = getChatStreamWorkspaceReadModelFromChatStore(workspaceRef) as Record<string, unknown>;
+    const currentTurnReadModel = getCurrentTurnProjectionWorkspaceReadModelFromChatStore(workspaceRef) as Record<string, unknown>;
+
+    expect(streamReadModel).toEqual(expect.objectContaining({
+      pendingTurn: {
+        turnRef: null,
+      },
+      thinkingSourceEventType: null,
+    }));
+    expect(currentTurnReadModel).toEqual(expect.objectContaining({
+      pendingTurn: {
+        turnRef: null,
+      },
+      sdkLiveTurn: {
+        phase: null,
+        turnRef: null,
+      },
+    }));
+  });
+
   test('clearMessages resets to an empty message list', () => {
     setIsSendingInChatStore(true);
     addMessageToChatStore({
