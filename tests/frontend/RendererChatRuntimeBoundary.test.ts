@@ -1234,6 +1234,8 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).toContain('appendPendingBridgeUserMessages');
     expect(displayProjectionSource).toContain('pendingBridgeUserMessages');
+    expect(displayProjectionSource).toContain('pendingTurnMatchesConversationView');
+    expect(displayProjectionSource).toContain('viewPendingTurn');
     expect(displayProjectionSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
     expect(displayProjectionSource).toContain('DesktopConversationViewWorkspaceRuntime');
     expect(displayProjectionSource).toContain('hasWorkspaceConversationView({ conversationView: value })');

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: keep the renderer pending bridge beside
+  `ConversationView` rows only when the bridge `conversationRef` exactly
+  matches the SDK view, so cross-conversation or padded pending state cannot
+  enter the authoritative chat read model. No migration required.
 - frontend/query: align Electron main renderer-query preparation with the
   exact SDK transport contract by rejecting padded `query_message_id` values
   and omitting padded `attachment_filenames[]` entries instead of trimming them.

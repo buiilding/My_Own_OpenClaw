@@ -196,6 +196,48 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     ]);
   });
 
+  test('keeps cross-conversation pending bridge out of ConversationView rendering', () => {
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-view',
+      conversationView: {
+        conversationRef: 'conv-view',
+        revisionId: 'rev-1',
+        displayRows: [{
+          id: 'view-row',
+          conversationRef: 'conv-view',
+          turnRef: 'turn-view',
+          index: 0,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'view answer',
+        }],
+        liveTurn: {
+          entries: [],
+        },
+        surfaces: {},
+        actions: {
+          canEdit: true,
+          canRetry: true,
+        },
+      },
+      messages: [],
+      pendingTurn: {
+        conversationRef: 'conv-other',
+        turnRef: 'turn-pending',
+        userMessageId: 'pending-user',
+        text: 'pending prompt from another conversation',
+        timestamp: '2026-06-25T12:00:00.000Z',
+      },
+    });
+
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'view-row',
+        text: 'view answer',
+      }),
+    ]);
+  });
+
   test('projects no-view pending bridge without mutating raw messages', () => {
     const messages = [{
       id: 'old-user-row',

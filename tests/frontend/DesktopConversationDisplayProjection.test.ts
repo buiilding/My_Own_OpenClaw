@@ -608,6 +608,58 @@ describe('desktopConversationDisplayProjection', () => {
     ]);
   });
 
+  test('does not append cross-conversation pending bridge rows to ConversationView messages', () => {
+    expect(buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'view-assistant',
+        conversationRef: 'conv-view',
+        turnRef: 'turn-view',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'view answer',
+      }]),
+      pendingTurn: {
+        conversationRef: 'conv-other',
+        turnRef: 'turn-pending',
+        userMessageId: 'pending-user',
+        text: 'pending prompt from another conversation',
+        timestamp: '2026-06-25T12:00:00.000Z',
+      },
+    })).toEqual([
+      expect.objectContaining({
+        id: 'view-assistant',
+        text: 'view answer',
+      }),
+    ]);
+  });
+
+  test('does not repair padded pending conversation refs beside ConversationView messages', () => {
+    expect(buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'view-assistant',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-view',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'view answer',
+      }]),
+      pendingTurn: {
+        conversationRef: ' conv-1 ',
+        turnRef: 'turn-pending',
+        userMessageId: 'pending-user',
+        text: 'pending prompt with repaired ref',
+        timestamp: '2026-06-25T12:00:00.000Z',
+      },
+    })).toEqual([
+      expect.objectContaining({
+        id: 'view-assistant',
+        text: 'view answer',
+      }),
+    ]);
+  });
+
   test('does not synthesize a pending bridge from partial pending state', () => {
     expect(buildConversationViewChatMessages({
       conversationView: conversationViewWithRows([{

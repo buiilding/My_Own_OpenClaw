@@ -163,6 +163,27 @@ function normalizePendingTurnRef(pendingTurn: PendingTurnLike): string | null {
   return exactTurnRef(pendingTurn?.turnRef);
 }
 
+function normalizePendingConversationRef(pendingTurn: PendingTurnLike): string | null {
+  return typeof pendingTurn?.conversationRef === 'string'
+    && pendingTurn.conversationRef.length > 0
+    && pendingTurn.conversationRef === pendingTurn.conversationRef.trim()
+    ? pendingTurn.conversationRef
+    : null;
+}
+
+function pendingTurnMatchesConversationView(
+  conversationView: ConversationView,
+  pendingTurn: PendingTurnLike,
+): boolean {
+  const viewConversationRef = typeof conversationView.conversationRef === 'string'
+    && conversationView.conversationRef.length > 0
+    && conversationView.conversationRef === conversationView.conversationRef.trim()
+    ? conversationView.conversationRef
+    : null;
+  const pendingConversationRef = normalizePendingConversationRef(pendingTurn);
+  return Boolean(viewConversationRef && pendingConversationRef && viewConversationRef === pendingConversationRef);
+}
+
 function pendingBridgeUserMessages(
   baseMessages: ChatMessage[],
   pendingTurn: PendingTurnLike,
@@ -269,13 +290,16 @@ function buildConversationViewChatMessages({
     sdkMessages,
     rendererAnnotations,
   );
-  const pendingTurnRef = normalizePendingTurnRef(pendingTurn);
+  const viewPendingTurn = pendingTurnMatchesConversationView(view, pendingTurn)
+    ? pendingTurn
+    : null;
+  const pendingTurnRef = normalizePendingTurnRef(viewPendingTurn);
   const hasSdkUserRowForPendingTurn = Boolean(
     pendingTurnRef && findConversationViewUserDisplayRowForTurn(view, pendingTurnRef),
   );
   return appendPendingBridgeUserMessages(
     annotatedSdkMessages,
-    pendingTurn,
+    viewPendingTurn,
     hasSdkUserRowForPendingTurn,
   );
 }
