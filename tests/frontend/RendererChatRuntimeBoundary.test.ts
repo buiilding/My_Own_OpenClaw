@@ -2476,9 +2476,10 @@ describe('renderer chat runtime boundary', () => {
     expect(senderHookSource).not.toContain('getState().messages');
     expect(senderHookSource).not.toContain('preparedTurn.conversationRef');
     expect(senderHookSource).not.toContain('preparedTurn.turnRef');
-    expect(selectorRuntimeSource).toContain('const messages = conversationView ? [] : activeWorkspace.messages;');
+    expect(selectorRuntimeSource).toContain('const surfaceState = projectDesktopChatSurfaceState({');
     expect(selectorRuntimeSource).toContain('hasPriorUserMessages({');
     expect(selectorRuntimeSource).toContain('hasPriorUserMessages: true');
+    expect(selectorRuntimeSource).not.toContain('const messages = conversationView ? [] : activeWorkspace.messages;');
     expect(selectorRuntimeSource).not.toContain('hasConversationView(conversationView) ? emptyChatMessages : activeWorkspace.messages');
     expect(selectorRuntimeSource).not.toContain('messages: conversationView ? activeWorkspace.messages : emptyChatMessages');
     expect(sendPreparationSource).toContain('desktopChatSendPayloadRuntime');

@@ -532,6 +532,17 @@ describe('chatSelectors', () => {
     });
   });
 
+  test('send read model helper consumes surface-sanitized no-view messages', () => {
+    expect(buildChatSendReadModelSelectorState({
+      activeWorkspace: createWorkspace({
+        messages: [{ id: 'user-1', text: 'raw no-view question', sender: 'user' }],
+        conversationView: null,
+      }),
+    })).toEqual({
+      hasPriorUserMessages: true,
+    });
+  });
+
   test('keeps raw send history only for the no-view fallback path', () => {
     const messages = [{ id: 'user-1', text: 'question', sender: 'user' }];
     expect(selectChatSendReadModel({
