@@ -3,7 +3,14 @@
  */
 
 import PropTypes from 'prop-types';
+import {
+  DesktopSdkDisplayAttachmentProjection,
+} from '../../../../../app/runtime/desktopSdkDisplayAttachmentProjection';
 import AttachmentRendererRegistry from './AttachmentRendererRegistry';
+
+const {
+  readSdkDisplayAttachments,
+} = DesktopSdkDisplayAttachmentProjection;
 
 function normalizeSurfaceClass(surface) {
   return typeof surface === 'string' && /^[a-z0-9_-]+$/i.test(surface)
@@ -12,11 +19,7 @@ function normalizeSurfaceClass(surface) {
 }
 
 export default function AttachmentList({ attachments = [], surface = 'dashboard' }) {
-  const visibleAttachments = attachments.filter((attachment) => (
-    attachment
-    && typeof attachment.id === 'string'
-    && attachment.id.length > 0
-  ));
+  const visibleAttachments = readSdkDisplayAttachments(attachments);
   if (visibleAttachments.length === 0) {
     return null;
   }
@@ -36,11 +39,6 @@ export default function AttachmentList({ attachments = [], surface = 'dashboard'
 }
 
 AttachmentList.propTypes = {
-  attachments: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    kind: PropTypes.oneOf(['image', 'screenshot_request']).isRequired,
-    source: PropTypes.oneOf(['user_included', 'camera_button', 'tool_result', 'replay']).isRequired,
-    status: PropTypes.oneOf(['materializing', 'pending_capture', 'ready', 'failed']).isRequired,
-  })),
+  attachments: PropTypes.arrayOf(PropTypes.object),
   surface: PropTypes.string,
 };

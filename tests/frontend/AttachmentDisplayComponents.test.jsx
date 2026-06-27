@@ -79,6 +79,45 @@ describe('AttachmentList', () => {
     expect(screen.getByText('Attachment unavailable')).toBeInTheDocument();
   });
 
+  test('drops malformed attachment descriptors before rendering', () => {
+    render(
+      <AttachmentList
+        attachments={[
+          {
+            id: 'legacy-row-alias',
+            screenshotRef: 'artifact-legacy',
+          },
+          {
+            id: ' padded-id ',
+            kind: 'image',
+            source: 'user_included',
+            status: 'materializing',
+            previewSrc: 'data:image/png;base64,padded-id',
+          },
+          {
+            id: 'missing-ready-source',
+            kind: 'image',
+            source: 'camera_button',
+            status: 'ready',
+          },
+          {
+            id: 'attachment-ready',
+            kind: 'image',
+            source: 'replay',
+            status: 'ready',
+            screenshotRef: 'artifact-ready',
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getAllByRole('img')).toHaveLength(1);
+    expect(screen.getByRole('img')).toHaveAttribute('src', 'resolved://artifact-ready');
+    expect(new Set(mockUseResolvedAttachmentImageSrc.mock.calls.map(([attachment]) => attachment.id))).toEqual(
+      new Set(['attachment-ready']),
+    );
+  });
+
   test('omits pending and failed non-image states in compact surfaces', () => {
     render(
       <AttachmentList

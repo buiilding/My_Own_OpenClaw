@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: route `AttachmentList` inputs through the SDK display
+  attachment projection helper so malformed component-level descriptors cannot
+  render or infer screenshot visuals. No migration required.
 - frontend/surfaces: reject padded SDK live-turn phases and response-overlay
   surface modes in live-surface projection instead of trimming them into
   awaiting or response overlay state. No migration required.

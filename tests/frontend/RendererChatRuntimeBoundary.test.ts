@@ -2661,6 +2661,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/message/content/AttachmentRendererRegistry.jsx'),
       'utf8',
     );
+    const attachmentListSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/content/AttachmentList.jsx'),
+      'utf8',
+    );
     const clientSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts'),
       'utf8',
@@ -2678,6 +2682,9 @@ describe('renderer chat runtime boundary', () => {
     expect(userMessageSource).toContain('AttachmentList');
     expect(userMessageSource).not.toContain('attachmentFilenames');
     expect(userMessageSource).not.toContain('user-file-attachments');
+    expect(attachmentListSource).toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(attachmentListSource).toContain('readSdkDisplayAttachments(attachments)');
+    expect(attachmentListSource).not.toContain('typeof attachment.id === \'string\'');
     expect(attachmentRegistrySource).toContain('DesktopArtifactRuntimeClient.showImageContextMenu');
     expect(toolOutputSource).toContain('AttachmentList');
     expect(toolOutputSource).not.toContain('useResolvedMessageScreenshotSrc');
