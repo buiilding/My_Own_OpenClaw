@@ -48,7 +48,11 @@ describe('useChatStreamMetadataHandlers', () => {
       expect.objectContaining({
         toolSchemas: [{ type: 'function', function: { name: 'tool-a', parameters: { type: 'object' } } }],
       }),
-      'turn-1',
+      expect.objectContaining({
+        conversationRef: 'conversation-1',
+        turnRef: 'turn-1',
+        turnRefForUpdate: 'turn-1',
+      }),
       'conversation-1',
     );
     expect(recordTrackingEvent).toHaveBeenCalledTimes(4);

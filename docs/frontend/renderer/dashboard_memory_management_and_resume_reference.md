@@ -81,9 +81,9 @@ Conversation resume now lives in shell + `useDashboardConversations` (consumed b
 Resume call chain:
 
 - sidebar rows and search rows call `onOpenConversation(...)`
-- `useDashboardConversations` loads display rows through
-  `DesktopConversationLibraryClient.loadDisplayRows(...)`, which invokes the
-  SDK-shaped `conversation.loadDisplay` command through `windie:invoke`
+- `useDashboardConversations` loads the SDK `ConversationView` through
+  `DesktopConversationLibraryClient.loadConversationView(...)`, which invokes
+  the SDK-shaped `conversation.loadDisplay` command through `windie:invoke`
 - shell marks backend inference state as unknown so the continuity runtime can lazily rehydrate before the next backend-dependent action
 - shell synchronizes transcript state and chat store
 
@@ -91,7 +91,7 @@ Conversation runtime methods used by this surface:
 
 - `DesktopConversationLibraryClient.listMetadata(...)` -> `conversations.list`
 - `DesktopConversationLibraryClient.searchConversations(...)` -> `conversations.search`
-- `DesktopConversationLibraryClient.loadDisplayRows(...)` -> `conversation.loadDisplay`
+- `DesktopConversationLibraryClient.loadConversationView(...)` -> `conversation.loadDisplay`
 - `DesktopConversationLibraryClient.deleteConversation(...)` -> `conversations.delete`
 
 ## Shared Session Identity Contract

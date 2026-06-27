@@ -7,7 +7,7 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 
 const {
-  buildCurrentTurnMessagesFromProjection,
+  buildLegacyNoPresentationCurrentTurnMessages,
   isResponseCloseable,
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
@@ -59,8 +59,8 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     expect(isResponseOverlaySourceTaggedMessage({ sourceEventType: '   ' })).toBe(false);
   });
 
-  test('buildCurrentTurnMessagesFromProjection creates overlay-ready active turn messages', () => {
-    const messages = buildCurrentTurnMessagesFromProjection({
+  test('buildLegacyNoPresentationCurrentTurnMessages creates overlay-ready active turn messages', () => {
+    const messages = buildLegacyNoPresentationCurrentTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'tool_call',
@@ -95,8 +95,86 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     ]));
   });
 
-  test('buildCurrentTurnMessagesFromProjection renders tool-bundle-output step content', () => {
-    const messages = buildCurrentTurnMessagesFromProjection({
+  test('buildLegacyNoPresentationCurrentTurnMessages preserves payload request ids for tool correlation', () => {
+    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      assistantText: '',
+      reasoningText: null,
+      lastError: null,
+      toolEvents: [{
+        id: 'tool-1',
+        kind: 'tool_call',
+        payload: {
+          toolName: 'read_file',
+          requestId: 'request-tool-1',
+        },
+      }],
+    });
+
+    expect(messages).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'tool-call',
+        text: 'Using read_file',
+        correlationId: 'request-tool-1',
+      }),
+    ]));
+  });
+
+  test('buildLegacyNoPresentationCurrentTurnMessages prefers explicit tool correlation ids', () => {
+    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      assistantText: '',
+      reasoningText: null,
+      lastError: null,
+      toolEvents: [{
+        id: 'tool-1',
+        kind: 'tool_call',
+        toolName: 'read_file',
+        correlationId: 'corr-tool-1',
+        payload: {
+          requestId: 'request-tool-1',
+        },
+      }],
+    });
+
+    expect(messages).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'tool-call',
+        correlationId: 'corr-tool-1',
+      }),
+    ]));
+  });
+
+  test('buildLegacyNoPresentationCurrentTurnMessages ignores presentation-backed current turns', () => {
+    const messages = buildLegacyNoPresentationCurrentTurnMessages({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      assistantText: 'stale raw fallback',
+      reasoningText: 'stale raw reasoning',
+      toolEvents: [{
+        id: 'tool-1',
+        kind: 'tool_call',
+        toolName: 'read_file',
+      }],
+      presentation: {
+        entries: [{
+          id: 'entry-1',
+          type: 'llm-text',
+          text: 'SDK presentation owns this',
+        }],
+      },
+    });
+
+    expect(messages).toEqual([]);
+  });
+
+  test('buildLegacyNoPresentationCurrentTurnMessages renders SDK tool-output text', () => {
+    const messages = buildLegacyNoPresentationCurrentTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'tool_output',
@@ -108,6 +186,7 @@ describe('desktopCurrentTurnMessageRuntime', () => {
         kind: 'tool_output',
         toolName: 'tool_bundle',
         status: 'success',
+        text: 'read_file #1\nREADME contents',
         toolOutputDetails: {
           bundleId: 'bundle-read',
           stepResults: [{

@@ -29,7 +29,9 @@ title: "Chat Interface Header Controls, Model Selection, and Compaction Rehydrat
 
 `ChatInterface` derives loop state via:
 
-- `useChatSurfaceController({ messages, currentTurnProjection, pendingTurn, ... })`
+- `useChatSurfaceController({ chatSurfaceState, ... })`, where
+  `chatSurfaceState` comes from `selectChatInterfaceState(...)`, which applies
+  `DesktopChatSurfaceSelectorRuntime` outside the component
 - `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
   inside that controller uses the app-runtime default visible-assistant reply
   types, keeping the raw type set private to
@@ -42,12 +44,25 @@ Derived flags:
 - `awaitingDotTargetMessageId` comes from the shared current-turn presentation
   contract and is the concrete dashboard awaiting-dot render target
 
+## Presentation Read Model
+
+`selectChatInterfaceState(...)` calls
+`DesktopChatInterfacePresentationRuntime.buildChatInterfacePresentationState(...)`
+before `ChatInterface` renders. The component receives rendered thread rows,
+action gating, active revision id, and selected stop target props. When a
+`ConversationView` exists, that runtime projects SDK display rows so React does
+not choose between SDK view rows and raw store messages. Replay actions no
+longer receive a selector row model; they pass row ids/text through
+`desktopConversationReplayRuntime` and SDK commands resolve the authoritative
+display rows.
+
 ## Stop Query Contract
 
 Dashboard stop behavior is owned by `useStopTurnHandler(...)`:
 
 1. no-op when not busy
-2. resolve stop target from SDK current turn, then pending turn, then idle
+2. receive a selected `stopTurnTarget` from `selectChatInterfaceState(...)`
+   for SDK `ConversationView`, pending-turn bridge, or idle authority
 3. classify the target with `DesktopStopTurnRuntime` predicates before
    current-turn and pending-turn side effects
 4. atomically accept the stopped turn in chat store with `acceptStoppedTurn(...)`
@@ -55,8 +70,13 @@ Dashboard stop behavior is owned by `useStopTurnHandler(...)`:
 6. call `DesktopLiveTurnRuntimeClient.stop(...)` with the resolved
    conversation ref and turn ref
 
-`DesktopStopTurnRuntime.buildStoppedCurrentTurnProjection(...)` terminalizes
-the stopped SDK projection without restamping SDK `typingVisible` or
+The hook consumes the selected target only. Raw `ConversationView`, pending-turn,
+or session conversation refs stay in the selector runtime so React event
+handlers do not run a second stop-target authority beside the SDK view/pending
+bridge selection.
+
+`DesktopStopTurnRuntime.buildStoppedSdkLiveTurn(...)` terminalizes
+the stopped SDK live turn without restamping SDK `typingVisible` or
 `overlayVisible`; renderer visible lifecycle owns post-stop typing and response
 visibility from terminal phase and visible entries.
 
@@ -116,11 +136,12 @@ Model dropdown:
 - grouping/label/default selection should prefer runtime family metadata (`family_id`, `family_label`, `default_model_id`, `default_reasoning_mode`, `reasoning_modes`) when present instead of reconstructing families from display-name text
 - when the selected model exposes multiple reasoning levels, model selection preserves the current reasoning mode when possible (fallback: `medium`, then first available)
 - backend session model selection is synced and awaited through
-  `DesktopSettingsRuntimeClient.setModel(...)` on the next send/manual-compaction
-  path; retry/edit replay carries the selected model in its SDK replay command
-  payload, and `ConversationRuntime.editAndResend(...)` / `retryTurn(...)`
-  forward it into `ConversationRuntime.send()`, where the SDK applies the model
-  before inference without adding model fields to backend query payloads
+  `DesktopSettingsRuntimeClient.setModel(...)` on the next send,
+  retry/edit-replay, or manual-compaction path. Retry/edit replay also carries
+  the selected model in its SDK replay command payload, and
+  `ConversationRuntime.editAndResend(...)` / `retryTurn(...)` forward it into
+  `ConversationRuntime.send()`, where the SDK applies the model before
+  inference without adding model fields to backend query payloads.
 
 Reasoning mode dropdown (conditional):
 

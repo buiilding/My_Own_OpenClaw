@@ -18,10 +18,10 @@ const {
   buildRendererChatPillLifecycleTracePayload,
   buildRendererChatPillResetTracePayload,
   buildRendererCurrentTurnAppliedTracePayload,
-  buildRendererDisplayRowsProjectionTracePayload,
   buildRendererReplayTracePayload,
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
+  buildRendererOverlayViewModelTraceSignature,
   buildRendererOverlayViewModelTracePayload,
   buildRendererResponseOverlayHitTestTracePayload,
   buildRendererResponseOverlayTypingRenderedTracePayload,
@@ -34,7 +34,6 @@ const {
   logRendererChatPillLifecycleTrace,
   logRendererChatPillResetTrace,
   logRendererCurrentTurnAppliedTrace,
-  logRendererDisplayRowsProjectionTrace,
   logRendererReplayTrace,
   logRendererOverlayViewModelTrace,
   logRendererOverlayViewModelResolvedTrace,
@@ -117,48 +116,6 @@ describe('desktopRendererTraceRuntime', () => {
     expect(mockSendLiveSurfaceTrace.mock.calls[0]?.[0]).not.toHaveProperty('phase');
   });
 
-  test('builds and emits display-row projection image-count traces', () => {
-    setSearch('?debug_live_surface=1&view=main');
-
-    expect(buildRendererDisplayRowsProjectionTracePayload({
-      source: 'sdk-display-rows-stream',
-      conversationRef: 'conv-1',
-      rowCount: 2,
-      sdkUserRowCount: 1,
-      sdkUserRowsWithImages: 1,
-      sdkUserImageCount: 1,
-      sdkMessageCount: 2,
-      sdkProjectedUserImageCount: 1,
-      currentMessageCount: 1,
-      currentOptimisticUserCount: 1,
-      mergedMessageCount: 2,
-      mergedUserImageCount: 1,
-    })).toEqual(expect.objectContaining({
-      source: 'sdk-display-rows-stream',
-      conversationRef: 'conv-1',
-      sdkUserImageCount: 1,
-      currentOptimisticUserCount: 1,
-      mergedUserImageCount: 1,
-    }));
-
-    logRendererDisplayRowsProjectionTrace({
-      source: 'sdk-display-rows-stream',
-      conversationRef: 'conv-1',
-      rowCount: 2,
-      sdkUserRowCount: 1,
-      sdkUserImageCount: 1,
-      mergedUserImageCount: 1,
-    });
-
-    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
-      event: 'renderer.display_rows.projected',
-      source: 'sdk-display-rows-stream',
-      conversationRef: 'conv-1',
-      sdkUserImageCount: 1,
-      mergedUserImageCount: 1,
-    }));
-  });
-
   test('builds chat send lifecycle trace payloads', () => {
     expect(buildRendererChatSendLifecycleTracePayload({
       action: 'query-dispatched',
@@ -188,7 +145,7 @@ describe('desktopRendererTraceRuntime', () => {
       streamActiveTurnRef: ' turn-old ',
       streamPhase: ' awaiting-first-chunk ',
       targetUserMessageId: ' user-row-1 ',
-      replacementRowCount: '2',
+      projectedRowCount: '2',
       sourceRowCount: '4',
       messageCount: '2',
       pendingMatchesNewTurn: true,
@@ -206,9 +163,8 @@ describe('desktopRendererTraceRuntime', () => {
       latestCurrentTurnPhase: null,
       streamActiveTurnRef: 'turn-old',
       streamPhase: 'awaiting-first-chunk',
-      supersededTurnRef: null,
       targetUserMessageId: 'user-row-1',
-      replacementRowCount: 2,
+      projectedRowCount: 2,
       sourceRowCount: 4,
       messageCount: 2,
       displayRowCount: 0,
@@ -352,9 +308,6 @@ describe('desktopRendererTraceRuntime', () => {
       currentTurn: {
         turnRef: ' turn-1 ',
         phase: ' streaming ',
-        assistantText: 'answer',
-        reasoningText: 'step',
-        toolEvents: [{ id: 'tool-1' }, { id: 'tool-2' }],
         presentation: {
           overlayIntent: {
             mode: ' response ',
@@ -362,7 +315,12 @@ describe('desktopRendererTraceRuntime', () => {
             turnRef: ' turn-intent ',
           },
           hasVisibleContent: true,
-          entries: [{ id: 'entry-1' }],
+          entries: [
+            { id: 'entry-1', type: 'llm-text', text: 'answer' },
+            { id: 'entry-2', type: 'thinking', text: 'step' },
+            { id: 'tool-1', type: 'tool-call', text: 'Using tool' },
+            { id: 'tool-2', type: 'tool-output', text: 'Tool done' },
+          ],
         },
       },
       skipDerivedSideEffects: true,
@@ -374,7 +332,7 @@ describe('desktopRendererTraceRuntime', () => {
       overlayMode: 'response',
       guardRef: 'guard-1',
       hasVisibleContent: true,
-      entryCount: 1,
+      entryCount: 4,
       assistantLength: 6,
       reasoningLength: 4,
       toolEventCount: 2,
@@ -390,9 +348,9 @@ describe('desktopRendererTraceRuntime', () => {
       currentTurn: {
         turnRef: 'turn-1',
         phase: 'awaiting',
-        assistantText: '',
-        reasoningText: '',
-        toolEvents: [],
+        presentation: {
+          entries: [],
+        },
       },
       skipDerivedSideEffects: false,
     });
@@ -565,14 +523,11 @@ describe('desktopRendererTraceRuntime', () => {
   test('builds response overlay rendered-typing live trace payloads', () => {
     expect(buildRendererResponseOverlayTypingRenderedTracePayload({
       typingRendered: false,
-      currentTurnProjection: {
-        turnRef: ' turn-projection ',
-        conversationRef: ' conv-projection ',
-        phase: ' streaming ',
-      },
+      phase: ' streaming ',
       currentTurnId: ' turn-fallback ',
       overlayIntent: {
         mode: ' response ',
+        conversationRef: ' conv-projected ',
         turnRef: ' turn-intent ',
         staleGuardRef: ' guard-intent ',
       },
@@ -584,8 +539,8 @@ describe('desktopRendererTraceRuntime', () => {
     })).toEqual({
       source: 'minimal-response-overlay',
       reason: 'awaiting-indicator-not-rendered',
-      turnRef: 'turn-projection',
-      conversationRef: 'conv-projection',
+      turnRef: 'turn-fallback',
+      conversationRef: 'conv-projected',
       phase: 'streaming',
       overlayMode: 'response',
       guardRef: 'guard-intent',
@@ -596,6 +551,41 @@ describe('desktopRendererTraceRuntime', () => {
       entryCount: 2,
       hasVisibleContent: true,
     });
+
+    expect(buildRendererResponseOverlayTypingRenderedTracePayload({
+      typingRendered: true,
+      conversationRef: ' conv-explicit ',
+      turnRef: ' turn-explicit ',
+      phase: ' awaiting ',
+      overlayLayoutMode: 'awaiting-typing',
+    })).toMatchObject({
+      turnRef: 'turn-explicit',
+      conversationRef: 'conv-explicit',
+      phase: 'awaiting',
+      layoutMode: 'awaiting-typing',
+    });
+  });
+
+  test('ignores stale raw current-turn projection in rendered-typing traces', () => {
+    expect(buildRendererResponseOverlayTypingRenderedTracePayload({
+      typingRendered: true,
+      sdkLiveTurn: {
+        turnRef: ' turn-stale ',
+        conversationRef: ' conv-stale ',
+        phase: ' streaming ',
+      },
+      currentTurnId: ' turn-rendered ',
+      phase: ' awaiting ',
+      overlayLayoutMode: 'awaiting-typing',
+      isVisible: true,
+      awaitingVisible: true,
+      responseVisible: false,
+    } as never)).toEqual(expect.objectContaining({
+      turnRef: 'turn-rendered',
+      conversationRef: null,
+      phase: 'awaiting',
+      guardRef: 'turn-rendered',
+    }));
   });
 
   test('builds response surface snapshot trace payloads', () => {
@@ -653,16 +643,18 @@ describe('desktopRendererTraceRuntime', () => {
     setSearch('?debug_live_surface=1&view=minimal-response-overlay');
 
     logRendererResponseOverlayHitTestTrace({
-      conversationRef: 'conv-hit',
+      overlayIntent: {
+        conversationRef: 'conv-hit',
+      },
       active: false,
     });
     logRendererResponseOverlayTypingRenderedTrace({
       typingRendered: true,
-      currentTurnProjection: {
-        turnRef: 'turn-rendered',
+      currentTurnId: 'turn-rendered',
+      overlayIntent: {
         conversationRef: 'conv-rendered',
-        phase: 'awaiting',
       },
+      phase: 'awaiting',
       overlayLayoutMode: 'awaiting-typing',
       isVisible: true,
       awaitingVisible: true,
@@ -686,23 +678,11 @@ describe('desktopRendererTraceRuntime', () => {
   });
 
   test('builds response overlay view-model live trace payloads', () => {
-    expect(buildRendererOverlayViewModelTracePayload({
-      currentTurnProjection: {
-        conversationRef: ' conv-projection ',
-        turnRef: ' turn-projection ',
-        phase: ' streaming ',
-      },
+    const tracePayload = buildRendererOverlayViewModelTracePayload({
       pendingTurn: {
         conversationRef: ' conv-pending ',
         turnRef: ' turn-pending ',
         userMessageId: ' user-pending ',
-      },
-      streamTracking: {
-        activeTurnRef: ' turn-stream ',
-        phase: ' awaiting-first-chunk ',
-        lastEventType: ' assistant_delta ',
-        eventCount: 7,
-        chunkCount: 2,
       },
       visibleTurnLifecycle: {
         status: ' awaiting ',
@@ -737,18 +717,15 @@ describe('desktopRendererTraceRuntime', () => {
       },
       useSdkLiveTurnPresentation: true,
       useLocalPendingTurn: false,
-    })).toEqual({
+    });
+
+    expect(tracePayload).toEqual({
       source: 'renderer-overlay-view-model',
-      turnRef: 'turn-projection',
-      conversationRef: 'conv-projection',
-      phase: 'streaming',
+      turnRef: 'turn-lifecycle',
+      conversationRef: 'conv-lifecycle',
+      phase: 'awaiting-first-chunk',
       pendingTurnRef: 'turn-pending',
       pendingUserMessageId: 'user-pending',
-      streamActiveTurnRef: 'turn-stream',
-      streamPhase: 'awaiting-first-chunk',
-      streamLastEventType: 'assistant_delta',
-      streamEventCount: 7,
-      streamChunkCount: 2,
       visibleLifecycleStatus: 'awaiting',
       visibleLifecycleSource: 'sdk',
       visibleLifecycleTurnRef: 'turn-lifecycle',
@@ -769,6 +746,63 @@ describe('desktopRendererTraceRuntime', () => {
       useSdkLiveTurnPresentation: true,
       useLocalPendingTurn: false,
     });
+    expect(buildRendererOverlayViewModelTraceSignature(tracePayload)).toBe(JSON.stringify(tracePayload));
+  });
+
+  test('ignores stale raw current-turn projection in overlay view-model traces', () => {
+    expect(buildRendererOverlayViewModelTracePayload({
+      sdkLiveTurn: {
+        conversationRef: ' conv-stale ',
+        turnRef: ' turn-stale ',
+        phase: ' streaming ',
+      },
+      pendingTurn: {
+        conversationRef: ' conv-pending ',
+        turnRef: ' turn-pending ',
+        userMessageId: ' user-pending ',
+      },
+      currentTurnPhase: 'awaiting',
+      responseOverlayEntries: [],
+      viewIntent: {
+        awaitingVisible: true,
+        responseVisible: false,
+        visibleResponse: null,
+        latestResponseOverlayEntryId: null,
+      },
+      useSdkLiveTurnPresentation: false,
+      useLocalPendingTurn: true,
+    } as never)).toEqual(expect.objectContaining({
+      turnRef: 'turn-pending',
+      conversationRef: 'conv-pending',
+      guardRef: 'turn-pending',
+      pendingTurnRef: 'turn-pending',
+      phase: 'awaiting',
+      useLocalPendingTurn: true,
+    }));
+  });
+
+  test('does not fall back to raw current-turn projection identity in overlay view-model traces', () => {
+    expect(buildRendererOverlayViewModelTracePayload({
+      sdkLiveTurn: {
+        conversationRef: ' conv-stale ',
+        turnRef: ' turn-stale ',
+        phase: ' streaming ',
+      },
+      responseOverlayEntries: [],
+      viewIntent: {
+        awaitingVisible: false,
+        responseVisible: false,
+        visibleResponse: null,
+        latestResponseOverlayEntryId: null,
+      },
+      useSdkLiveTurnPresentation: false,
+      useLocalPendingTurn: false,
+    } as never)).toEqual(expect.objectContaining({
+      turnRef: null,
+      conversationRef: null,
+      phase: null,
+      guardRef: null,
+    }));
   });
 
   test('resolves response overlay view-model trace event labels and reasons', () => {

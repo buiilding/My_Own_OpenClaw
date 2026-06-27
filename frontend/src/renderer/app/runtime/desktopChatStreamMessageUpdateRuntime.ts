@@ -4,18 +4,14 @@
 
 import type { ToolSchema } from '../../types/toolSchemas';
 import { DesktopChatMessageRuntimeClient } from './desktopChatMessageRuntimeClient';
+import type {
+  ChatMessage,
+} from './desktopChatMessageTypes';
 
 const {
   normalizeIncomingText,
   normalizeToolSchemaList,
 } = DesktopChatMessageRuntimeClient;
-
-type ChatStreamMessageTarget = {
-  id: string;
-  sender?: string | null;
-  type?: string | null;
-  turnRef?: string | null;
-};
 
 type SystemPromptPayload = {
   content?: unknown;
@@ -31,6 +27,10 @@ type AssistantMessageFullPayload = {
   content?: unknown;
 };
 
+type ConversationStreamEventIdentity = {
+  turnRefForUpdate?: string | null;
+};
+
 function normalizeToolSchemas(value: unknown): ToolSchema[] | undefined {
   return normalizeToolSchemaList(value);
 }
@@ -39,57 +39,6 @@ function buildToolSchemasUpdate(payload: { tool_schemas?: unknown } | null | und
   return {
     toolSchemas: normalizeToolSchemas(payload?.tool_schemas),
   };
-}
-
-function findLastMessage(
-  messages: ChatStreamMessageTarget[],
-  predicate: (message: ChatStreamMessageTarget) => boolean,
-): ChatStreamMessageTarget | null {
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index];
-    if (predicate(message)) {
-      return message;
-    }
-  }
-  return null;
-}
-
-function findLastMessageIdBySender(
-  messages: ChatStreamMessageTarget[],
-  sender: string,
-  turnRef?: string,
-): string | null {
-  const lastMessage = findLastMessage(
-    messages,
-    (message) => (
-      message.sender === sender
-      && (!turnRef || message.turnRef === turnRef)
-    ),
-  );
-  return lastMessage ? lastMessage.id : null;
-}
-
-function findLastAssistantLlmTextMessageId(
-  messages: ChatStreamMessageTarget[],
-  turnRef?: string,
-): string | null {
-  const lastMessage = findLastMessage(
-    messages,
-    (message) => (
-      message.sender === 'assistant'
-      && message.type === 'llm-text'
-      && (!turnRef || message.turnRef === turnRef)
-    ),
-  );
-  return lastMessage ? lastMessage.id : null;
-}
-
-function findFirstMessageIdBySender(
-  messages: ChatStreamMessageTarget[],
-  sender: string,
-): string | null {
-  const firstMessage = messages.find((message) => message.sender === sender);
-  return firstMessage ? firstMessage.id : null;
 }
 
 function buildSystemPromptUpdate(payload: SystemPromptPayload | null | undefined) {
@@ -115,12 +64,31 @@ function buildAssistantMessageFullUpdate(payload: AssistantMessageFullPayload | 
   };
 }
 
+function buildLastBySenderStreamTarget(
+  sender: ChatMessage['sender'],
+  eventIdentity: ConversationStreamEventIdentity | null | undefined,
+) {
+  return {
+    kind: 'last_by_sender' as const,
+    sender,
+    turnRef: eventIdentity?.turnRefForUpdate ?? undefined,
+  };
+}
+
+function buildLastAssistantLlmTextStreamTarget(
+  eventIdentity: ConversationStreamEventIdentity | null | undefined,
+) {
+  return {
+    kind: 'last_assistant_llm_text' as const,
+    turnRef: eventIdentity?.turnRefForUpdate ?? undefined,
+  };
+}
+
 export const DesktopChatStreamMessageUpdateRuntime = Object.freeze({
   buildToolSchemasUpdate,
-  findLastMessageIdBySender,
-  findLastAssistantLlmTextMessageId,
-  findFirstMessageIdBySender,
   buildSystemPromptUpdate,
   buildUserMessageFullUpdate,
   buildAssistantMessageFullUpdate,
+  buildLastBySenderStreamTarget,
+  buildLastAssistantLlmTextStreamTarget,
 });

@@ -12,7 +12,7 @@ title: "Stream Event State Machine"
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
-- `frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopSdkLiveTurnEffectsRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
@@ -164,7 +164,7 @@ Extra error gate:
 Transition reducer is centralized in
 `DesktopChatStreamTrackingRuntime.applyTrackingEvent(...)`. SDK
 current-turn projection deltas are converted into those tracking events by
-`DesktopCurrentTurnProjectionEffectsRuntime`; `useConversationRuntimeProjectionStream`
+`DesktopSdkLiveTurnEffectsRuntime`; `useConversationRuntimeProjectionStream`
 owns subscription, cursor storage, and stale projection acceptance, while
 `desktopConversationDisplayProjection.ts` owns display-row merging.
 
@@ -187,8 +187,8 @@ renderer `pendingTurn.turnRef`. Bare `isSending=true` and stale thinking copy
 are diagnostic compatibility state and do not record another terminal tracking
 event by themselves.
 
-SDK current-turn projection side effects run stale-turn checks against the
-workspace snapshot captured before `setCurrentTurnProjection(...)` stores the
+SDK live-turn side effects run stale-turn checks against the
+workspace snapshot captured before `setNoViewSdkLiveTurnInChatStore(...)` stores the
 new projection. This preserves renderer pending-turn handoff evidence for the
 guard even when storing an authoritative same-turn projection clears
 `pendingTurn`.

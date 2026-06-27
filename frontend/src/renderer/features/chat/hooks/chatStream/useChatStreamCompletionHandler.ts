@@ -3,15 +3,12 @@
  */
 
 import { useCallback } from 'react';
-import { useChatStore } from '../../stores/chatStore';
+import { getWorkspaceStateFromChatStore } from '../../stores/chatStoreAdapters';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
 
 const {
-  isTurnCompletedConversationStreamEvent,
-  resolveConversationStreamEventConversationRef,
-  resolveConversationStreamEventTurnRef,
-  shouldRecordTerminalCompletionTracking,
+  resolveTurnCompletedStreamEventState,
 } = DesktopChatStreamEventRuntime;
 
 type UseChatStreamCompletionHandlerOptions = {
@@ -36,21 +33,26 @@ export const useChatStreamCompletionHandler = ({
   setThinkingSourceEventType,
 }: UseChatStreamCompletionHandlerOptions) => {
   return useCallback((event: ConversationEvent, conversationRef: string | null) => {
-    if (!isTurnCompletedConversationStreamEvent(event)) {
+    const completionState = resolveTurnCompletedStreamEventState(
+      event,
+      conversationRef,
+      {
+        getWorkspaceState: getWorkspaceStateFromChatStore,
+      },
+    );
+    if (!completionState) {
       return;
     }
-    const resolvedConversationRef = conversationRef ?? resolveConversationStreamEventConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(resolvedConversationRef);
-    const eventTurnRef = resolveConversationStreamEventTurnRef(event);
-    const shouldRecordTerminalTracking = shouldRecordTerminalCompletionTracking(
-      workspace,
-      eventTurnRef,
-    );
+    const {
+      conversationRef: resolvedConversationRef,
+      shouldRecordTerminalTracking,
+      turnRef,
+    } = completionState;
     setIsSending(false, resolvedConversationRef);
     setThinkingStatus(null, resolvedConversationRef);
     setThinkingSourceEventType(null, resolvedConversationRef);
     if (shouldRecordTerminalTracking) {
-      recordTrackingEvent('streaming-complete', eventTurnRef, {
+      recordTrackingEvent('streaming-complete', turnRef, {
         phase: 'complete',
       }, resolvedConversationRef);
     }

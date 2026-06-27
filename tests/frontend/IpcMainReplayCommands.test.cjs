@@ -67,7 +67,7 @@ describe('ipc.cjs replay command handling', () => {
         modelHistoryCheckpoint: null,
       })),
       fork: jest.fn(async input => ({
-        conversationRef: input.newConversationRef,
+        conversationRef: input.newConversationRef || 'conv-forked',
         revisionId: 'rev-forked',
         sourceConversationRef: 'conv-ipc-display',
         sourceRevisionId: input.sourceRevisionId || 'rev-display',
@@ -542,7 +542,6 @@ describe('ipc.cjs replay command handling', () => {
         userId: 'registered-user-1',
         conversationRef: 'conv-ipc-display',
         sourceRevisionId: 'rev-display',
-        newConversationRef: 'conv-forked',
       },
     )).resolves.toEqual({
       ok: true,
@@ -558,7 +557,6 @@ describe('ipc.cjs replay command handling', () => {
     expect(sdk.runtime.fork).toHaveBeenCalledWith({
       sourceRevisionId: 'rev-display',
       cutAfterRowId: undefined,
-      newConversationRef: 'conv-forked',
     });
   });
 

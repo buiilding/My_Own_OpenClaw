@@ -8,11 +8,12 @@ import {
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
 
 const {
-  buildConversationViewLiveTurnMessages,
-  buildCurrentTurnMessagesFromPresentation,
-  buildCurrentTurnMessagesFromProjection,
+  buildSdkLiveTurnMessages,
 } = DesktopCurrentTurnMessageRuntime;
-const { isSdkLiveTurnSourceChannel } = DesktopPresentationSourceChannels;
+const {
+  isSdkDisplayRowsSourceChannel,
+  isSdkLiveTurnSourceChannel,
+} = DesktopPresentationSourceChannels;
 
 function findLastUserIndex(messages) {
   if (!Array.isArray(messages)) {
@@ -36,6 +37,25 @@ function normalizeText(value) {
 
 function normalizeRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function isConversationView(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function isRendererPendingBridgeMessage(message) {
+  return (
+    message?.sender === 'user'
+    && message?.sourceChannel === 'renderer-local'
+    && message?.sourceEventType === 'renderer-compose'
+  );
+}
+
+function isConversationViewBaseMessage(message) {
+  return (
+    isSdkDisplayRowsSourceChannel(message?.sourceChannel)
+    || isRendererPendingBridgeMessage(message)
+  );
 }
 
 function isTextlessCurrentTurnThinkingMessage(message) {
@@ -103,7 +123,6 @@ function resolveToolName(message) {
     message?.toolName,
     message?.toolCallDetails?.toolName,
     message?.toolOutputDetails?.toolName,
-    message?.modelFacingToolCall?.name,
   ];
   for (const candidate of candidates) {
     const normalized = normalizeRef(candidate);
@@ -155,40 +174,27 @@ function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
 }
 
 function resolveCurrentTurnMessages({
-  currentTurnMessages = [],
-  currentTurnProjection = null,
+  sdkLiveTurn = null,
   conversationView = null,
 }) {
-  const conversationViewMessages = buildConversationViewLiveTurnMessages(conversationView);
-  if (conversationViewMessages.length > 0) {
-    return conversationViewMessages;
-  }
-  if (conversationView && typeof conversationView === 'object') {
-    return [];
-  }
-  const presentationMessages = buildCurrentTurnMessagesFromPresentation(currentTurnProjection);
-  if (presentationMessages.length > 0) {
-    return presentationMessages;
-  }
-  const projectionFallbackMessages = buildCurrentTurnMessagesFromProjection(currentTurnProjection);
-  if (projectionFallbackMessages.length > 0) {
-    return projectionFallbackMessages;
-  }
-  return Array.isArray(currentTurnMessages) ? currentTurnMessages : [];
+  return buildSdkLiveTurnMessages({
+    conversationView,
+    sdkLiveTurn,
+  });
 }
 
 function selectVisibleCurrentTurnMessages({
   messages,
-  currentTurnMessages,
-  currentTurnProjection,
+  liveTurnMessages,
+  sdkLiveTurn,
   conversationView,
   activeConversationRef,
 }) {
-  if (!Array.isArray(currentTurnMessages) || currentTurnMessages.length === 0) {
+  if (!Array.isArray(liveTurnMessages) || liveTurnMessages.length === 0) {
     return [];
   }
   const projectionConversationRef = normalizeRef(
-    conversationView?.conversationRef || currentTurnProjection?.conversationRef,
+    conversationView?.conversationRef || sdkLiveTurn?.conversationRef,
   );
   const normalizedActiveConversationRef = normalizeRef(activeConversationRef);
   if (
@@ -198,7 +204,7 @@ function selectVisibleCurrentTurnMessages({
   ) {
     return [];
   }
-  return currentTurnMessages.filter((message) => (
+  return liveTurnMessages.filter((message) => (
     isVisibleCurrentTurnMessage(message)
     && belongsToLatestUserTurn(messages, message)
     && !(
@@ -228,22 +234,24 @@ function resolveLiveMessageInsertIndex(messages, liveMessages) {
 function buildThreadPresentationMessages(
   messages,
   {
-    currentTurnMessages = [],
-    currentTurnProjection = null,
+    sdkLiveTurn = null,
     conversationView = null,
     activeConversationRef = null,
   } = {},
 ) {
-  const baseMessages = Array.isArray(messages) ? messages : [];
+  const hasConversationView = isConversationView(conversationView);
+  const inputMessages = Array.isArray(messages) ? messages : [];
+  const baseMessages = hasConversationView
+    ? inputMessages.filter(isConversationViewBaseMessage)
+    : inputMessages;
   const resolvedCurrentTurnMessages = resolveCurrentTurnMessages({
-    currentTurnMessages,
-    currentTurnProjection,
+    sdkLiveTurn,
     conversationView,
   });
   const liveMessages = selectVisibleCurrentTurnMessages({
     messages: baseMessages,
-    currentTurnMessages: resolvedCurrentTurnMessages,
-    currentTurnProjection,
+    liveTurnMessages: resolvedCurrentTurnMessages,
+    sdkLiveTurn,
     conversationView,
     activeConversationRef,
   });

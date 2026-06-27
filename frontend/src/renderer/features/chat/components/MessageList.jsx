@@ -14,10 +14,14 @@ import messageShapePropType from './message/messageShapePropType';
 import MessageItem from './message/MessageItem';
 import { DesktopMessageListRuntime } from '../../../app/runtime/desktopMessageListRuntime';
 import { DesktopMessageTransparencyRuntime } from '../../../app/runtime/desktopMessageTransparencyRuntime';
+import { DesktopMessageActionRuntime } from '../../../app/runtime/desktopMessageActionRuntime';
 import { useMessageListAutoScroll } from '../hooks/useMessageListAutoScroll';
 import { DesktopDevUiRuntime } from '../../../app/runtime/desktopDevUiRuntime';
 
 const { isDevUiEnabled } = DesktopDevUiRuntime;
+const {
+  resolveMessageReplayActions,
+} = DesktopMessageActionRuntime;
 
 function MessageList({
   messages,
@@ -32,8 +36,6 @@ function MessageList({
   enableAgentLoopAutoScroll = false,
   enableAssistantActions = false,
   enableUserActions = false,
-  canRetryMessages = true,
-  canEditMessages = true,
   disableAssistantActions = false,
   onAssistantFeedbackChange,
   onAssistantTryAgain,
@@ -56,13 +58,13 @@ function MessageList({
   });
 
   const handleStartUserEdit = useCallback((messageId, messageText, editTargetMessageId = null) => {
-    if (!canEditMessages || submittingUserEdit) {
+    if (submittingUserEdit) {
       return;
     }
     setEditingUserMessageId(messageId);
     setEditingUserReplayTargetMessageId(editTargetMessageId || messageId);
     setEditingUserDraft(messageText || '');
-  }, [canEditMessages, submittingUserEdit]);
+  }, [submittingUserEdit]);
 
   const handleCancelUserEdit = useCallback(() => {
     if (submittingUserEdit) {
@@ -126,15 +128,14 @@ function MessageList({
     [messages],
   );
 
-  const messageActionFlag = useCallback((message, key, fallback) => {
-    const value = message?.actions?.[key];
-    return typeof value === 'boolean' ? value : fallback;
-  }, []);
-
   const renderedMessages = useMemo(
     () => messages.flatMap((msg) => {
-      const canRetryMessage = canRetryMessages && messageActionFlag(msg, 'canRetry', true);
-      const canEditMessage = canEditMessages && messageActionFlag(msg, 'canEdit', true);
+      const {
+        canRetryMessage,
+        canEditMessage,
+        retryTargetMessageId,
+        editTargetMessageId,
+      } = resolveMessageReplayActions(msg);
       const nodes = [
         (
           <MessageItem
@@ -149,13 +150,15 @@ function MessageList({
             disableAssistantActions={disableAssistantActions}
             canRetryMessage={canRetryMessage}
             canEditMessage={canEditMessage}
+            assistantRetryTargetMessageId={retryTargetMessageId}
             onAssistantFeedbackChange={onAssistantFeedbackChange}
             onAssistantTryAgain={onAssistantTryAgain}
             isUserEditing={editingUserMessageId === msg.id}
             userEditDraft={editingUserDraft}
             isUserEditSubmitting={submittingUserEdit}
             onUserEditDraftChange={setEditingUserDraft}
-            onStartUserEdit={canEditMessages ? handleStartUserEdit : null}
+            userEditTargetMessageId={editTargetMessageId}
+            onStartUserEdit={handleStartUserEdit}
             onCancelUserEdit={handleCancelUserEdit}
             onSubmitUserEdit={handleSubmitUserEdit}
           />
@@ -191,10 +194,7 @@ function MessageList({
       awaitingDotTargetMessageId,
       enableAssistantActions,
       enableUserActions,
-      canRetryMessages,
-      canEditMessages,
       disableAssistantActions,
-      messageActionFlag,
       onAssistantFeedbackChange,
       onAssistantTryAgain,
       editingUserMessageId,
@@ -316,8 +316,6 @@ MessageList.propTypes = {
   enableAgentLoopAutoScroll: PropTypes.bool,
   enableAssistantActions: PropTypes.bool,
   enableUserActions: PropTypes.bool,
-  canRetryMessages: PropTypes.bool,
-  canEditMessages: PropTypes.bool,
   disableAssistantActions: PropTypes.bool,
   onAssistantFeedbackChange: PropTypes.func,
   onAssistantTryAgain: PropTypes.func,

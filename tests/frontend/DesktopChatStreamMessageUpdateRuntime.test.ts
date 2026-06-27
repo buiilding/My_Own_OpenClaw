@@ -6,33 +6,13 @@ import { DesktopChatStreamMessageUpdateRuntime } from '../../frontend/src/render
 
 const {
   buildAssistantMessageFullUpdate,
+  buildLastAssistantLlmTextStreamTarget,
+  buildLastBySenderStreamTarget,
   buildSystemPromptUpdate,
   buildUserMessageFullUpdate,
-  findLastAssistantLlmTextMessageId,
-  findFirstMessageIdBySender,
-  findLastMessageIdBySender,
 } = DesktopChatStreamMessageUpdateRuntime;
 
 describe('desktopChatStreamMessageUpdateRuntime', () => {
-  const messages = [
-    { id: 'u1', sender: 'user', text: 'hello', turnRef: 'turn-1' },
-    { id: 'a1', sender: 'assistant', text: 'one', type: 'llm-text', isComplete: true, turnRef: 'turn-1' },
-    { id: 'u2', sender: 'user', text: 'again', turnRef: 'turn-2' },
-    { id: 'a2', sender: 'assistant', text: 'two', type: 'tool-output', turnRef: 'turn-2' },
-    { id: 'a3', sender: 'assistant', text: 'three', type: 'llm-text', isComplete: false, turnRef: 'turn-2' },
-  ] as any;
-
-  test('findLastMessageIdBySender and findFirstMessageIdBySender select expected ids', () => {
-    expect(findFirstMessageIdBySender(messages, 'user')).toBe('u1');
-    expect(findLastMessageIdBySender(messages, 'user')).toBe('u2');
-    expect(findFirstMessageIdBySender(messages, 'assistant')).toBe('a1');
-    expect(findLastMessageIdBySender(messages, 'assistant')).toBe('a3');
-    expect(findLastMessageIdBySender(messages, 'assistant', 'turn-1')).toBe('a1');
-    expect(findLastMessageIdBySender(messages, 'assistant', 'turn-3')).toBeNull();
-    expect(findLastAssistantLlmTextMessageId(messages, 'turn-2')).toBe('a3');
-    expect(findFirstMessageIdBySender([], 'assistant')).toBeNull();
-  });
-
   test('payload update builders normalize missing or non-string content', () => {
     expect(
       buildSystemPromptUpdate({
@@ -105,6 +85,26 @@ describe('desktopChatStreamMessageUpdateRuntime', () => {
       content: 'Wave 👋 then lone \udc9d',
     })).toEqual({
       content: 'Wave 👋 then lone \uFFFD',
+    });
+  });
+
+  test('builds stream update targets from runtime-owned event identity', () => {
+    expect(buildLastBySenderStreamTarget('user', {
+      turnRefForUpdate: 'turn-1',
+    })).toEqual({
+      kind: 'last_by_sender',
+      sender: 'user',
+      turnRef: 'turn-1',
+    });
+    expect(buildLastAssistantLlmTextStreamTarget({
+      turnRefForUpdate: 'turn-2',
+    })).toEqual({
+      kind: 'last_assistant_llm_text',
+      turnRef: 'turn-2',
+    });
+    expect(buildLastAssistantLlmTextStreamTarget(null)).toEqual({
+      kind: 'last_assistant_llm_text',
+      turnRef: undefined,
     });
   });
 });

@@ -2,15 +2,25 @@
  * Covers chat message sender. behavior in the frontend test suite.
  */
 
-import { act, renderHook } from '@testing-library/react';
+import {
+  act,
+  renderHook,
+} from '@testing-library/react';
 import { useChatMessageSender } from '../../frontend/src/renderer/features/chat/hooks/useChatMessageSender';
 import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  setConversationViewInChatStore,
+  setMessagesInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { DesktopLiveTurnRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
+import {
+  DesktopChatInterfacePresentationRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime';
 
 let mockRendererConfig: Record<string, unknown> = {
   include_query_screenshot: true,
@@ -23,20 +33,6 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
     config: mockRendererConfig,
   })),
 }));
-
-jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => {
-  const desktopRuntimeSkin = {
-    chat: {
-      sendFailureMessage: "Sample app isn't connected right now. Try again when the connection is restored.",
-    },
-  };
-  return {
-    desktopRuntimeSkin,
-    DesktopRuntimeSkin: {
-      desktopRuntimeSkin,
-    },
-  };
-});
 
 let mockActiveConversationRef: string | null = null;
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
@@ -74,7 +70,12 @@ const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getAc
 const mockSetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.setActiveConversationRef as jest.Mock;
 const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock;
 const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo as jest.Mock;
+const { buildChatInterfacePresentationState } = DesktopChatInterfacePresentationRuntime;
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
+
+function getActiveWorkspace() {
+  return useChatStore.getState().getWorkspaceState();
+}
 
 function createInitialStreamTracking() {
   return {
@@ -124,23 +125,20 @@ describe('useChatMessageSender', () => {
     text: string,
     conversationRef: string,
     expectedResources: unknown[] | null = null,
-    expectedMetadata: Record<string, unknown> | null = null,
   ) {
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
     const call = mockSendQuery.mock.calls[0][0];
     expect(call.text).toBe(text);
     expect(call.conversationRef).toBe(conversationRef);
     expect(call.turnRef).toBe('msg-1');
-    expect(call.screenshotRef ?? null).toBeNull();
-    expect(call.screenshotUrl ?? null).toBeNull();
-    expect(call.screenshotRefs ?? null).toBeNull();
-    expect(call.captureMeta ?? null).toBeNull();
-    expect(call.attachmentContext ?? null).toBeNull();
+    expect(call).not.toHaveProperty('screenshotRef');
+    expect(call).not.toHaveProperty('screenshotUrl');
+    expect(call).not.toHaveProperty('screenshotRefs');
+    expect(call).not.toHaveProperty('captureMeta');
+    expect(call).not.toHaveProperty('attachmentContext');
+    expect(call).not.toHaveProperty('metadata');
     if (expectedResources) {
       expect(call.resources).toEqual(expectedResources);
-    }
-    if (expectedMetadata) {
-      expect(call.metadata).toEqual(expectedMetadata);
     }
   }
 
@@ -151,12 +149,18 @@ describe('useChatMessageSender', () => {
     );
   }
 
-  function expectOptimisticUserMessage(
-    text: string,
-    attachmentFilenames: string[] | null = null,
-    attachments: unknown[] | null = null,
-  ) {
-    expect(useChatStore.getState().messages).toEqual([
+  function expectPendingBridgeUserMessage(text: string) {
+    const activeWorkspace = getActiveWorkspace();
+    expect(activeWorkspace.messages).toEqual([]);
+    const renderedMessages = buildChatInterfacePresentationState({
+      activeConversationRef: useChatStore.getState().activeConversationRef,
+      conversationView: activeWorkspace.conversationView,
+      messages: activeWorkspace.messages,
+      pendingTurn: activeWorkspace.pendingTurn,
+      rendererAnnotations: [],
+      sdkLiveTurn: activeWorkspace.sdkLiveTurn,
+    }).renderedMessages;
+    expect(renderedMessages).toEqual([
       expect.objectContaining({
         id: 'msg-1-sdk-evt-000002-user_message',
         sender: 'user',
@@ -165,10 +169,10 @@ describe('useChatMessageSender', () => {
         sourceEventType: 'renderer-compose',
         sourceChannel: 'renderer-local',
         isComplete: true,
-        attachmentFilenames,
-        attachments,
+        attachments: null,
       }),
     ]);
+    return renderedMessages[0];
   }
 
   beforeEach(() => {
@@ -190,27 +194,20 @@ describe('useChatMessageSender', () => {
     const streamTracking = createInitialStreamTracking();
     useChatStore.setState({
       activeConversationRef: null,
-      turnConversationRefs: {},
       workspaces: {
         [DEFAULT_CHAT_WORKSPACE_REF]: {
           messages: [],
           isSending: false,
           thinkingStatus: null,
           thinkingSourceEventType: null,
+          compactionDebugInfo: null,
           tokenCounts: null,
           streamTracking,
-          currentTurnProjection: null,
+          sdkLiveTurn: null,
+          conversationView: null,
           pendingTurn: null,
         },
       },
-      messages: [],
-      isSending: false,
-      thinkingStatus: null,
-      thinkingSourceEventType: null,
-      tokenCounts: null,
-      streamTracking,
-      currentTurnProjection: null,
-      pendingTurn: null,
     });
 
     jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('msg-1');
@@ -299,7 +296,7 @@ describe('useChatMessageSender', () => {
     );
   });
 
-  test('shows an optimistic user row before async send preparation finishes', async () => {
+  test('shows a pending-bridge user row before async send preparation finishes', async () => {
     mockActiveConversationRef = 'conv_existing';
     let resolvePermission: ((value: unknown) => void) | null = null;
     const permissionPromise = new Promise((resolve) => {
@@ -325,8 +322,8 @@ describe('useChatMessageSender', () => {
       await Promise.resolve();
     });
 
-    expectOptimisticUserMessage('hello while prepping');
-    expect(useChatStore.getState().isSending).toBe(true);
+    expectPendingBridgeUserMessage('hello while prepping');
+    expect(getActiveWorkspace().isSending).toBe(true);
     expect(mockSendQuery).not.toHaveBeenCalled();
 
     resolvePermission?.({ success: true });
@@ -442,7 +439,6 @@ describe('useChatMessageSender', () => {
 
     expectSingleSendQueryCall('hello', 'conv_msg-1', [{
       kind: 'query_screenshot_request',
-      displayAttachmentId: 'msg-1:attachment:000',
       isFirstUserMessage: true,
       reason: 'query_send_with_capture',
       required: false,
@@ -450,25 +446,73 @@ describe('useChatMessageSender', () => {
   });
 
   test('uses non-first capture path when user message already exists', async () => {
-    useChatStore.setState({
-      messages: [
-        {
-          id: 'existing-user',
-          text: 'previous',
-          sender: 'user',
-        },
-      ],
-      isSending: false,
-      thinkingStatus: null,
-      tokenCounts: null,
-    });
+    setMessagesInChatStore([
+      {
+        id: 'existing-user',
+        text: 'previous',
+        sender: 'user',
+      },
+    ]);
 
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'second');
 
     expectSingleSendQueryCall('second', 'conv_msg-1', [{
       kind: 'query_screenshot_request',
-      displayAttachmentId: 'msg-1:attachment:000',
+      isFirstUserMessage: false,
+      reason: 'query_send_with_capture',
+      required: false,
+    }]);
+  });
+
+  test('uses sdk conversation view rows to detect prior user messages', async () => {
+    useChatStore.getState().setActiveConversationRef('conv-existing');
+    setConversationViewInChatStore({
+      conversationRef: 'conv-existing',
+      revisionId: 'rev-existing',
+      displayRows: [{
+        id: 'view-user-row',
+        conversationRef: 'conv-existing',
+        turnRef: 'turn-existing',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'previous from sdk view',
+      }],
+      liveTurn: {
+        turnRef: null,
+        phase: 'idle',
+        entries: [],
+        isBusy: false,
+        isTerminal: true,
+        canStop: false,
+        lastError: null,
+      },
+      surfaces: {
+        pill: { mode: 'idle' },
+        dashboard: { mode: 'idle' },
+        responseOverlay: {
+          mode: 'hidden',
+          visible: false,
+          guardRef: null,
+          ownerConversationRef: 'conv-existing',
+          turnRef: null,
+        },
+      },
+      actions: {
+        canEdit: true,
+        canRetry: true,
+        canFork: true,
+      },
+    } as any, 'conv-existing');
+
+    expect(getActiveWorkspace().messages).toEqual([]);
+
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+    await sendText(result, 'second from resumed view');
+
+    expectSingleSendQueryCall('second from resumed view', 'conv-existing', [{
+      kind: 'query_screenshot_request',
       isFirstUserMessage: false,
       reason: 'query_send_with_capture',
       required: false,
@@ -504,40 +548,23 @@ describe('useChatMessageSender', () => {
 
     expectSingleSendQueryCall('hello', 'conv_msg-1', [{
       kind: 'query_screenshot_request',
-      displayAttachmentId: 'msg-1:attachment:000',
       isFirstUserMessage: true,
       reason: 'query_send_with_capture',
       required: false,
     }]);
   });
 
-  test('sends screenshot capture request to the SDK after showing an optimistic row', async () => {
+  test('sends screenshot capture request to the SDK without renderer-owned attachment state', async () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'hello');
 
     expectSingleSendQueryCall('hello', 'conv_msg-1', [{
       kind: 'query_screenshot_request',
-      displayAttachmentId: 'msg-1:attachment:000',
       isFirstUserMessage: true,
       reason: 'query_send_with_capture',
       required: false,
     }]);
-    expectOptimisticUserMessage('hello', null, [
-      expect.objectContaining({
-        id: 'msg-1:attachment:000',
-        kind: 'screenshot_request',
-        source: 'camera_button',
-        status: 'pending_capture',
-      }),
-    ]);
-    expect(useChatStore.getState().messages[0].attachments).toEqual([
-      expect.objectContaining({
-        id: 'msg-1:attachment:000',
-        kind: 'screenshot_request',
-        source: 'camera_button',
-        status: 'pending_capture',
-      }),
-    ]);
+    expect(expectPendingBridgeUserMessage('hello').attachments).toBeNull();
     expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
   });
@@ -548,19 +575,11 @@ describe('useChatMessageSender', () => {
 
     expectSingleSendQueryCall('hello auto screenshot', 'conv_msg-1', [{
       kind: 'query_screenshot_request',
-      displayAttachmentId: 'msg-1:attachment:000',
       isFirstUserMessage: true,
       reason: 'query_send_with_capture',
       required: false,
     }]);
-    expectOptimisticUserMessage('hello auto screenshot', null, [
-      expect.objectContaining({
-        id: 'msg-1:attachment:000',
-        kind: 'screenshot_request',
-        source: 'camera_button',
-        status: 'pending_capture',
-      }),
-    ]);
+    expectPendingBridgeUserMessage('hello auto screenshot');
   });
 
   test('sends pasted clipboard image as a SDK resource handle', async () => {
@@ -579,25 +598,13 @@ describe('useChatMessageSender', () => {
 
     expectSingleSendQueryCall('Please inspect this image', 'conv_msg-1', [{
       kind: 'clipboard_image',
-      displayAttachmentId: 'msg-1:attachment:000',
       base64: 'clipboard-image-base64',
       contentType: 'image/png',
       filename: 'clipboard-image.png',
       required: true,
-    }], {
-      attachment_filenames: ['clipboard-image.png'],
-    });
-    expectOptimisticUserMessage('Please inspect this image', ['clipboard-image.png'], [
-      {
-        id: 'msg-1:attachment:000',
-        kind: 'image',
-        source: 'user_included',
-        status: 'materializing',
-        filename: 'clipboard-image.png',
-        contentType: 'image/png',
-        previewSrc: 'data:image/png;base64,clipboard-image-base64',
-      },
-    ]);
+    }]);
+    expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('attachmentFilenames');
+    expectPendingBridgeUserMessage('Please inspect this image');
   });
 
   test('sends pasted image before camera screenshot request for mixed visual sends', async () => {
@@ -617,7 +624,6 @@ describe('useChatMessageSender', () => {
     expectSingleSendQueryCall('Please inspect this image and screen', 'conv_msg-1', [
       {
         kind: 'clipboard_image',
-        displayAttachmentId: 'msg-1:attachment:000',
         base64: 'clipboard-image-base64',
         contentType: 'image/png',
         filename: 'clipboard-image.png',
@@ -625,28 +631,13 @@ describe('useChatMessageSender', () => {
       },
       {
         kind: 'query_screenshot_request',
-        displayAttachmentId: 'msg-1:attachment:001',
         isFirstUserMessage: true,
         reason: 'query_send_with_capture',
         required: false,
       },
-    ], {
-      attachment_filenames: ['clipboard-image.png'],
-    });
-    expectOptimisticUserMessage('Please inspect this image and screen', ['clipboard-image.png'], [
-      expect.objectContaining({
-        id: 'msg-1:attachment:000',
-        kind: 'image',
-        source: 'user_included',
-        status: 'materializing',
-      }),
-      expect.objectContaining({
-        id: 'msg-1:attachment:001',
-        kind: 'screenshot_request',
-        source: 'camera_button',
-        status: 'pending_capture',
-      }),
     ]);
+    expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('attachmentFilenames');
+    expectPendingBridgeUserMessage('Please inspect this image and screen');
   });
 
   test('sends multiple pasted clipboard images as SDK resource handles', async () => {
@@ -671,7 +662,6 @@ describe('useChatMessageSender', () => {
     expectSingleSendQueryCall('Please inspect both images', 'conv_msg-1', [
       {
         kind: 'clipboard_image',
-        displayAttachmentId: 'msg-1:attachment:000',
         base64: 'clipboard-image-base64-1',
         contentType: 'image/png',
         filename: 'clipboard-image-1.png',
@@ -679,39 +669,14 @@ describe('useChatMessageSender', () => {
       },
       {
         kind: 'clipboard_image',
-        displayAttachmentId: 'msg-1:attachment:001',
         base64: 'clipboard-image-base64-2',
         contentType: 'image/jpeg',
         filename: 'clipboard-image-2.jpg',
         required: true,
       },
-    ], {
-      attachment_filenames: ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
-    });
-    expectOptimisticUserMessage(
-      'Please inspect both images',
-      ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
-      [
-        {
-          id: 'msg-1:attachment:000',
-          kind: 'image',
-          source: 'user_included',
-          status: 'materializing',
-          filename: 'clipboard-image-1.png',
-          contentType: 'image/png',
-          previewSrc: 'data:image/png;base64,clipboard-image-base64-1',
-        },
-        {
-          id: 'msg-1:attachment:001',
-          kind: 'image',
-          source: 'user_included',
-          status: 'materializing',
-          filename: 'clipboard-image-2.jpg',
-          contentType: 'image/jpeg',
-          previewSrc: 'data:image/jpeg;base64,clipboard-image-base64-2',
-        },
-      ],
-    );
+    ]);
+    expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('attachmentFilenames');
+    expectPendingBridgeUserMessage('Please inspect both images');
   });
 
   test('sends selected non-image files as required SDK resource handles', async () => {
@@ -751,11 +716,10 @@ describe('useChatMessageSender', () => {
       filePath: '/tmp/notes.txt',
       filename: 'notes.txt',
       required: true,
-    }], {
-      attachment_filenames: ['notes.txt'],
-    });
+    }]);
+    expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('attachmentFilenames');
 
-    expectOptimisticUserMessage('Summarize the attached file', ['notes.txt']);
+    expectPendingBridgeUserMessage('Summarize the attached file');
   });
 
   test('does not block renderer send when selected file resolution will happen in SDK', async () => {
@@ -798,13 +762,12 @@ describe('useChatMessageSender', () => {
       filePath: '/tmp/private.txt',
       filename: 'private.txt',
       required: true,
-    }], {
-      attachment_filenames: ['private.txt'],
-    });
-    expectOptimisticUserMessage('Summarize the attached file', ['private.txt']);
+    }]);
+    expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('attachmentFilenames');
+    expectPendingBridgeUserMessage('Summarize the attached file');
   });
 
-  test('resets sending state and appends error message when send fails', async () => {
+  test('clears pending bridge without appending a renderer error row when send fails', async () => {
     mockSendQuery.mockRejectedValue(new Error('send failed'));
 
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
@@ -820,15 +783,10 @@ describe('useChatMessageSender', () => {
 
     expect(thrownError?.message).toBe('send failed');
 
-    expect(useChatStore.getState().isSending).toBe(false);
-    const messages = useChatStore.getState().messages;
-    expect(messages.at(-1)).toEqual(
-      expect.objectContaining({
-        sender: 'assistant',
-        type: 'error',
-        text: "Sample app isn't connected right now. Try again when the connection is restored.",
-      }),
-    );
+    const activeWorkspace = getActiveWorkspace();
+    expect(activeWorkspace.isSending).toBe(false);
+    expect(activeWorkspace.pendingTurn).toBeNull();
+    expect(activeWorkspace.messages).toEqual([]);
   });
 
   test('reuses existing conversation ref and synchronizes renderer stores immediately', async () => {

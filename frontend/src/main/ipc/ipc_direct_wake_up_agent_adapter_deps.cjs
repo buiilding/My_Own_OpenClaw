@@ -7,7 +7,7 @@ function createDirectWakeUpAgentAdapterDepsRuntime(deps = {}) {
     const {
       broadcastToRenderers,
       resolveRuntimeConversationRef,
-      setLatestCurrentTurnProjection,
+      setLatestSdkLiveTurn,
       setLatestConversationView,
       getLatestPendingTurn,
       pendingTurnMatchesCurrentTurn,
@@ -29,7 +29,7 @@ function createDirectWakeUpAgentAdapterDepsRuntime(deps = {}) {
     return {
       broadcastToRenderers,
       resolveRuntimeConversationRef,
-      setLatestCurrentTurnProjection,
+      setLatestSdkLiveTurn,
       setLatestConversationView,
       getLatestPendingTurn,
       pendingTurnMatchesCurrentTurn,

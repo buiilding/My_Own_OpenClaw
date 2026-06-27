@@ -34,6 +34,15 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 playback cleanup, app config, and sender options. It delegates preparation and
 final live-turn dispatch to `DesktopChatSendPreparationRuntime`, which returns a
 `PreparedDesktopChatTurn` before calling the backend-facing live-turn runtime.
+The hook reads send-history inputs through
+`getChatSendReadModelFromChatStore()` in `chatStoreAdapters.ts` instead of the
+full `selectChatInterfaceState(...)` UI selector or raw top-level
+`chatStore.messages` / `chatStore.conversationView`, so send preparation sees
+only a boolean first-user-message predicate and React chat hooks do not call
+`useChatStore.getState()` directly for send-only raw state.
+`DesktopChatSendPreparationRuntime.prepareDesktopChatSend(...)` accepts that
+state through one `getSendReadModel` dependency rather than split
+message/view callbacks.
 Retry and edit/resend replay actions also adapt their continuity-prepared
 turns into this same dispatch shape, with transcript recording disabled because
 continuity preparation has already rewritten the replay projection.
@@ -74,11 +83,10 @@ Normalized shape:
 
 Invalid object payloads are ignored (no send side effect).
 
-`DesktopChatSendPayloadRuntime.normalizeOutgoingPayload(...)` owns payload
-shape normalization and
-`DesktopChatSendPayloadRuntime.normalizeAttachmentFilenames(...)` owns
-attachment filename projection. The raw helper functions stay private behind the
-renderer app-runtime facade.
+`DesktopChatSendPayloadRuntime.normalizeOutgoingPayload(...)` owns renderer
+payload shape normalization. The renderer does not project attachment filenames
+for normal sends; filenames travel only as fields on typed SDK resources and are
+resolved into visible metadata by SDK resource handling.
 
 `clipboardImages[]` metadata fields:
 
@@ -119,17 +127,39 @@ When attachment(s) exist:
      no longer awaits a main-process session snapshot before composing the local
      pending row.
 4. accept the pending turn locally and send `windie:pending-turn` so Electron
-   main can broadcast/replay the optimistic user row across renderer windows.
+   main can broadcast/replay the pending user row across renderer windows.
+   The pending bridge carries identity, text, and timestamp only; SDK display
+   projection owns visible filename/image/screenshot attachment states and
+   preview/ready artifact descriptors. Renderer `UserMessage` display consumes
+   typed SDK `attachments[]` only and does not render filename metadata as a
+   separate attachment fallback. `DesktopPendingTurnBridgeRuntime` owns
+   pending-turn payload construction for normal sends, and the renderer-local
+   pending user row is projected only from that normalized payload shape.
+   Normal sends preserve any existing `ConversationView` in chat-store state
+   and store only `pendingTurn` for the short pre-SDK handoff. Presentation
+   projects that bridge beside no-view history or SDK display rows until the
+   next SDK view arrives; accepting the pending turn does not append a
+   renderer-composed row into raw workspace `messages`. The bridge only fills
+   an absent user row; once the SDK display row for that turn exists, the SDK
+   row is authoritative and renderer attachment state is not copied forward.
+   Replay sends intentionally clear the old view when publishing replacement
+   rows so stale suffix rows do not remain visible while SDK edit/retry commands
+   complete.
 5. run send-surface window policy only (optional return-to-chatbox behavior).
 6. build typed SDK turn resources:
    - `clipboard_image` for pasted/selected images
    - `readable_file` for selected non-image files
    - `query_screenshot_request` when overlay/config policy asks for a query screenshot
    - `workspace` when the conversation has a workspace binding
+   Renderer resources do not assign `displayAttachmentId`; SDK turn processing
+   assigns stable display attachment ids before producing live visual
+   attachment projection state.
 7. call `DesktopLiveTurnRuntimeClient.sendQuery` with text, conversation ref,
-   turn ref, display-safe metadata, and resources.
-8. Electron main preserves `resources`/`metadata` for SDK `send()` while keeping
-   them out of the backend query allowlist.
+   turn ref, and typed resources. Normal sends do not build a renderer-owned
+   filename payload or metadata object for filenames.
+8. Electron main preserves `resources` for SDK `send()` while keeping them out
+   of the backend query allowlist; SDK resource resolution owns user-row
+   metadata updates.
 9. SDK `ConversationRuntime.send()` emits `turn_started` and base
    `user_message` before resource resolution.
 10. SDK resource resolvers read files, upload clipboard images, capture query
@@ -141,13 +171,22 @@ When attachment(s) exist:
 
 Steps 1-6 produce a `PreparedDesktopChatTurn`. The final dispatch helper applies
 deferred model selection and sends the prepared SDK turn input through
-`DesktopLiveTurnRuntimeClient.sendQuery`. Replay-prepared turns may still pass
-stored screenshot refs as legacy resolved payload because replay reuses durable
-transcript metadata rather than composer resources.
+`DesktopLiveTurnRuntimeClient.sendQuery`. If dispatch fails before SDK turn
+authority opens, the helper clears the short pending bridge from chat store and
+main-process pending-turn state using the prepared turn identity; React sender
+hooks do not inspect `PreparedDesktopChatTurn` refs for failure cleanup.
+Replay-prepared turns may still pass stored screenshot refs as legacy resolved
+payload because replay reuses durable transcript metadata rather than composer
+resources.
 
-`DesktopChatSendStateRuntime.hasUserMessages(...)` owns the first-user-message
-predicate used by send preparation. The raw predicate stays private behind the
-renderer app-runtime facade.
+`DesktopChatSendStateRuntime.hasPriorUserMessages(...)` owns the
+first-user-message predicate used by the send read-model selector. When a SDK
+`ConversationView.displayRows` snapshot exists, the predicate reads user rows
+from that view instead of treating `chatStore.messages` as competing durable
+history; `chatStore.messages` remains only the no-view historical fallback, and
+pending-send identity travels separately as `pendingTurn`.
+`DesktopChatSendPreparationRuntime` receives only the resolved boolean, not the
+view rows or raw messages.
 
 Send lifecycle chat-pill traces go through `DesktopRendererTraceRuntime`.
 `DesktopChatSendPreparationRuntime` reports send-start,
@@ -197,13 +236,16 @@ Capture path specifics:
   - `screenshotRef`/`screenshotUrl` artifact attachment only (no base64)
 - SDK upload/materialization treats either shape as valid screenshot context and
   keeps user-row metadata stable.
+- first-message decisions use `ConversationView.displayRows` whenever a view
+  object exists; direct app-runtime callers do not fall back to raw
+  chat-store messages under a partial view shape.
 
 ## SDK User Row Contract
 
 SDK base user row includes:
 
 - `text`
-- optional `attachmentFilenames[]` for picker/clipboard filenames
+- live visual attachment placeholders from typed SDK resources when applicable
 
 SDK `user_message_metadata` patches later add resolved screenshot refs,
 attachment filenames, capture metadata, or resource failures. Final backend
@@ -223,7 +265,9 @@ Fatal failure:
 - required clipboard-image upload failure
 - `DesktopLiveTurnRuntimeClient.sendQuery` throw
 - sender clears the matching renderer `pendingTurn`
-- appends assistant error message (`Failed to send message. Please try again.`)
+- visible failure display arrives through the SDK/main `turn_error`
+  conversation event path; the sender does not append a renderer-local error
+  row
 - error rethrown
 
 ## Test-Backed Invariants
@@ -234,6 +278,7 @@ Fatal failure:
 - first-message screenshot resource flag behavior
 - screenshot resource skip for main-window sends
 - no renderer capture/read/upload before SDK send
+- no renderer-owned pending visual attachment state before SDK projection
 - clipboard payload flow (base64 + content type + filename) becomes SDK resources
 
 `MessageInput.test.jsx` verifies:
@@ -256,4 +301,4 @@ Fatal failure:
 - [Frontend Renderer Chat Docs Hub](README.md)
 - [Chat Attachment Change Workflow](chat_attachment_change_workflow.md)
 - [Chat Store State and New Session Rotation Reference](chat_store_state_and_new_session_rotation_reference.md)
-- [Chat Common Actions Selector Boundary and Message-Input Send Guard Reference](presentation/chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)
+- [Chat Stream Store Adapter Boundary and Message-Input Send Guard Reference](presentation/chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)

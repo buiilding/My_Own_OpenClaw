@@ -13,11 +13,6 @@ describe('toolCallChatMessageState', () => {
     expect(buildToolCallChatMessageState({
       text: 'tool call text',
       toolCallDisplayText: 'tool call text',
-      modelFacingToolCall: {
-        id: 'call-1',
-        name: 'browser.open',
-        arguments: { url: 'https://example.com' },
-      },
       toolCallDetails: {
         tool_name: 'browser.open',
       },
@@ -34,11 +29,6 @@ describe('toolCallChatMessageState', () => {
       sender: 'assistant',
       type: 'tool-call',
       toolCallDisplayText: 'tool call text',
-      modelFacingToolCall: {
-        id: 'call-1',
-        name: 'browser.open',
-        arguments: { url: 'https://example.com' },
-      },
       toolCallDetails: {
         tool_name: 'browser.open',
       },

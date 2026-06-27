@@ -12,7 +12,7 @@ export type StreamPhase = 'idle'
   | 'complete'
   | 'error';
 
-type StreamTracking = {
+export type StreamTracking = {
   activeTurnRef: string | null;
   phase: StreamPhase;
   startedAt: string | null;
@@ -28,6 +28,30 @@ type StreamTracking = {
   lastError: string | null;
 };
 
+type StreamTrackingWorkspace = {
+  streamTracking: StreamTracking;
+};
+
+type StreamTrackingStateSnapshot = {
+  activeConversationRef: string | null;
+};
+
+type StreamTrackingStateDependencies<
+  TState extends StreamTrackingStateSnapshot,
+  TWorkspace extends StreamTrackingWorkspace,
+> = {
+  buildWorkspaceUpdate: (
+    state: TState,
+    workspaceRef: string,
+    workspace: TWorkspace,
+  ) => Partial<TState> | TState;
+  readWorkspaceState: (state: TState, workspaceRef: string) => TWorkspace;
+  resolveWorkspaceKey: (
+    requestedConversationRef: string | null | undefined,
+    activeConversationRef: string | null,
+  ) => string;
+};
+
 export type StreamTrackingOptions = {
   phase?: StreamPhase;
   chunkSize?: number;
@@ -36,6 +60,24 @@ export type StreamTrackingOptions = {
   errorText?: string | null;
   resetForTurn?: boolean;
 };
+
+function createInitialStreamTracking(): StreamTracking {
+  return {
+    activeTurnRef: null,
+    phase: 'idle',
+    startedAt: null,
+    firstChunkAt: null,
+    completedAt: null,
+    lastEventAt: null,
+    lastEventType: null,
+    eventCount: 0,
+    chunkCount: 0,
+    toolCallCount: 0,
+    toolOutputCount: 0,
+    lastChunkSize: 0,
+    lastError: null,
+  };
+}
 
 function createTrackingForNewTurn(
   eventType: StreamTrackingEventType,
@@ -124,6 +166,34 @@ function applyTrackingEvent(
   return next;
 }
 
+function buildUpdateStreamTrackingStateUpdate<
+  TState extends StreamTrackingStateSnapshot,
+  TWorkspace extends StreamTrackingWorkspace,
+>({
+  conversationRef = null,
+  deps,
+  state,
+  updater,
+}: {
+  conversationRef?: string | null;
+  deps: StreamTrackingStateDependencies<TState, TWorkspace>;
+  state: TState;
+  updater: (current: StreamTracking) => StreamTracking;
+}): Partial<TState> | TState | null {
+  const targetWorkspaceRef = deps.resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+  const currentWorkspace = deps.readWorkspaceState(state, targetWorkspaceRef);
+  const nextStreamTracking = updater(currentWorkspace.streamTracking);
+  if (nextStreamTracking === currentWorkspace.streamTracking) {
+    return null;
+  }
+  return deps.buildWorkspaceUpdate(state, targetWorkspaceRef, {
+    ...currentWorkspace,
+    streamTracking: nextStreamTracking,
+  });
+}
+
 export const DesktopChatStreamTrackingRuntime = Object.freeze({
   applyTrackingEvent,
+  createInitialStreamTracking,
+  buildUpdateStreamTrackingStateUpdate,
 });

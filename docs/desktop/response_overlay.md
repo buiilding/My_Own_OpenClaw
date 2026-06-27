@@ -24,11 +24,19 @@ The response overlay displays live assistant output and transient tool/progress 
 
 ## Runtime Model
 
-The renderer displays SDK `currentTurnProjection`:
+The renderer view model receives selector-projected `chatSurfaceState` and
+prefers SDK `ConversationView` live-turn/surface state when present. Raw
+`currentTurnProjection` is only part of that selector-projected fallback before
+the normal view exists:
 
 - `phase` decides awaiting/streaming/tool/terminal presentation
 - `assistantText` and `toolEvents` decide response content
 - `reasoningText` decides thinking copy
+
+When a `ConversationView` exists, the overlay transcript reads same-turn
+materialized `displayRows` first and appends only live-turn entries not already
+represented by those rows. This keeps tool call/output cards visible in the
+floating overlay without reintroducing duplicate tool rows into the dashboard.
 
 Main process phase updates control native response-window visibility. They do
 not decide renderer typing state, response content, closeability, stop/busy

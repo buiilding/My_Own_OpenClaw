@@ -2,254 +2,275 @@
  * Provides renderer conversation replay projection helpers.
  */
 
-import { DesktopConversationRuntimeContracts } from './desktopConversationRuntimeContracts';
+import { DesktopConversationContinuityService } from './desktopConversationContinuityService';
+import {
+  DesktopConversationSessionRuntime,
+} from './desktopConversationSessionRuntime';
+import {
+  DesktopConversationProjectionStreamRuntime,
+} from './desktopConversationProjectionStreamRuntime';
+import { DesktopRendererConfigRuntimeClient } from './desktopRendererConfigRuntimeClient';
+import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
+import {
+  projectWorkspaceReadModelState,
+} from './desktopChatWorkspaceStateRuntime';
+import { DesktopRendererTraceRuntime } from './desktopRendererTraceRuntime';
+import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
+import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
 
 const {
-  resolveCorrelationId,
-  resolveToolBundleCorrelationId,
-  resolveToolCallCorrelationId,
-  resolveToolOutputCorrelationId,
-} = DesktopConversationRuntimeContracts;
+  applyRendererConversationSelection,
+  resolveRendererConversationSessionSnapshot,
+} = DesktopConversationSessionRuntime;
+const {
+  logRendererReplayTrace,
+} = DesktopRendererTraceRuntime;
+const {
+  buildReplayProjectionTracePayload,
+} = DesktopConversationProjectionStreamRuntime;
 
-const TOOL_CALL_MESSAGE_TYPES = new Set(['tool-call', 'tool-bundle']);
-const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);
-
-function normalizeReplayMessageType(message) {
-  if (!message || typeof message !== 'object') {
-    return '';
-  }
-  return typeof message.type === 'string'
-    ? message.type.trim().toLowerCase()
-    : '';
+function normalizeReplayMessageId(messageId) {
+  return typeof messageId === 'string' ? messageId.trim() : '';
 }
 
-function resolveReplayToolMessageCorrelationId(message) {
-  if (!message || typeof message !== 'object') {
+function prepareReplayEditIntent({ userMessageId, editedText }) {
+  const normalizedEditedText = typeof editedText === 'string'
+    ? editedText.trim()
+    : '';
+  const normalizedMessageId = normalizeReplayMessageId(userMessageId);
+  if (!normalizedEditedText || !normalizedMessageId) {
     return null;
   }
-  const messageType = normalizeReplayMessageType(message);
-  const toolCallDetailsId = (
-    message.toolCallDetails
-    && typeof message.toolCallDetails === 'object'
-    && !Array.isArray(message.toolCallDetails)
-    && typeof message.toolCallDetails.id === 'string'
-      ? message.toolCallDetails.id
-      : null
-  );
-  const toolOutputDetailsId = (
-    message.toolOutputDetails
-    && typeof message.toolOutputDetails === 'object'
-    && !Array.isArray(message.toolOutputDetails)
-    && typeof message.toolOutputDetails.id === 'string'
-      ? message.toolOutputDetails.id
-      : null
-  );
-  const sdkResolvedId = messageType === 'tool-bundle'
-    ? resolveToolBundleCorrelationId(message.toolCallDetails)
-    : (
-        messageType === 'tool-output'
-          ? resolveToolOutputCorrelationId(message.toolOutputDetails)
-          : resolveToolCallCorrelationId(message.toolCallDetails)
-      );
-  return resolveCorrelationId(
-    message.correlationId,
-    sdkResolvedId,
-    toolCallDetailsId,
-    toolOutputDetailsId,
-    message?.modelFacingToolCall?.id,
-  );
+  return {
+    action: 'edit_resend',
+    errorPrefix: 'Failed to edit user message',
+    messageId: normalizedMessageId,
+    queryText: normalizedEditedText,
+  };
 }
 
-function isReplayToolCallMessage(message) {
-  return TOOL_CALL_MESSAGE_TYPES.has(normalizeReplayMessageType(message));
+function prepareReplayRetryIntent({ assistantMessageId }) {
+  const normalizedMessageId = normalizeReplayMessageId(assistantMessageId);
+  if (!normalizedMessageId) {
+    return null;
+  }
+  return {
+    action: 'retry',
+    errorPrefix: 'Failed to retry assistant message',
+    messageId: normalizedMessageId,
+  };
 }
 
-function isReplayToolOutputMessage(message) {
-  return TOOL_OUTPUT_MESSAGE_TYPES.has(normalizeReplayMessageType(message));
+function resolveExistingConversationRef(sessionConversationRef, storeConversationRef) {
+  return resolveRendererConversationSessionSnapshot({
+    transcriptConversationRef: DesktopTranscriptSessionRuntimeClient.getActiveConversationRef() || sessionConversationRef,
+    storeConversationRef,
+  }).conversationRef;
 }
 
-function isReplayUserMessage(message) {
-  return message?.sender === 'user';
+function traceErrorKind(error) {
+  if (!error) {
+    return null;
+  }
+  if (typeof error.name === 'string' && error.name.trim()) {
+    return error.name.trim();
+  }
+  return error instanceof Error ? 'Error' : typeof error;
 }
 
-function isReplayAssistantMessage(message) {
-  return message?.sender === 'assistant';
-}
-
-function findReplayEditableUserMessageIndex(messages, userMessageId) {
-  if (!Array.isArray(messages) || typeof userMessageId !== 'string' || !userMessageId) {
-    return -1;
-  }
-  return messages.findIndex(
-    (message) => message?.id === userMessageId && isReplayUserMessage(message),
-  );
-}
-
-function resolveReplayRetryMessageIndexes(messages, assistantMessageId) {
-  if (!Array.isArray(messages) || typeof assistantMessageId !== 'string' || !assistantMessageId) {
-    return { assistantIndex: -1, userIndex: -1 };
-  }
-  const assistantIndex = messages.findIndex(
-    (message) => message?.id === assistantMessageId && isReplayAssistantMessage(message),
-  );
-  if (assistantIndex < 0) {
-    return { assistantIndex: -1, userIndex: -1 };
-  }
-  for (let index = assistantIndex; index >= 0; index -= 1) {
-    if (isReplayUserMessage(messages[index])) {
-      return { assistantIndex, userIndex: index };
-    }
-  }
-  return { assistantIndex, userIndex: -1 };
-}
-
-function findMatchingPendingToolCallIndex(pendingCalls, outputCorrelationId) {
-  if (!Array.isArray(pendingCalls) || pendingCalls.length === 0) {
-    return -1;
-  }
-
-  if (outputCorrelationId) {
-    const sameIdIndex = pendingCalls.findIndex((entry) => entry.correlationId === outputCorrelationId);
-    if (sameIdIndex >= 0) {
-      return sameIdIndex;
-    }
-    const idlessIndex = pendingCalls.findIndex((entry) => !entry.correlationId);
-    if (idlessIndex >= 0) {
-      return idlessIndex;
-    }
-    return -1;
-  }
-
-  const idlessIndex = pendingCalls.findIndex((entry) => !entry.correlationId);
-  if (idlessIndex >= 0) {
-    return idlessIndex;
-  }
-  return -1;
-}
-
-function buildReplayContextMessages(messages) {
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return [];
-  }
-
-  const pendingToolCalls = [];
-  const keepToolMessageIndexes = new Set();
-
-  messages.forEach((message, index) => {
-    if (isReplayToolCallMessage(message)) {
-      pendingToolCalls.push({
-        index,
-        correlationId: resolveReplayToolMessageCorrelationId(message),
-      });
-      return;
-    }
-    if (!isReplayToolOutputMessage(message)) {
-      return;
-    }
-    const outputCorrelationId = resolveReplayToolMessageCorrelationId(message);
-    const pendingIndex = findMatchingPendingToolCallIndex(
-      pendingToolCalls,
-      outputCorrelationId,
-    );
-    if (pendingIndex < 0) {
-      return;
-    }
-    const [matchedCall] = pendingToolCalls.splice(pendingIndex, 1);
-    keepToolMessageIndexes.add(matchedCall.index);
-    keepToolMessageIndexes.add(index);
+function replayTraceSnapshot(chatStore, conversationRef) {
+  const state = chatStore.getState();
+  const rawWorkspace = typeof state.getWorkspaceState === 'function'
+    ? state.getWorkspaceState(conversationRef)
+    : state;
+  const workspace = projectWorkspaceReadModelState(rawWorkspace);
+  const tracePayload = buildReplayProjectionTracePayload({
+    action: 'replay_trace_snapshot',
+    conversationRef,
+    workspace,
   });
-
-  return messages.filter((message, index) => {
-    if (!isReplayToolCallMessage(message) && !isReplayToolOutputMessage(message)) {
-      return true;
-    }
-    return keepToolMessageIndexes.has(index);
-  });
+  return Object.fromEntries(
+    Object.entries(tracePayload).filter(
+      ([key]) => key !== 'action' && key !== 'conversationRef',
+    ),
+  );
 }
 
-function buildReplayPreparationPayload({
-  screenshotRef,
-  screenshotUrl,
-}) {
-  const payload = {};
-  if (screenshotRef) {
-    payload.screenshot_ref = screenshotRef;
-  }
-  if (screenshotUrl) {
-    payload.screenshot_url = screenshotUrl;
-  }
-  return payload;
-}
-
-function buildReplayPendingTurn({
-  attachmentFilenames = null,
-  attachments = null,
+function logReplayTimeline(chatStore, action, {
   conversationRef,
-  text,
-  timestamp,
-  turnRef,
+  ...values
+}) {
+  logRendererReplayTrace({
+    action,
+    conversationRef,
+    ...replayTraceSnapshot(chatStore, conversationRef),
+    ...values,
+  });
+}
+
+async function executeReplayIntent({
+  activeConversationRef,
+  chatStore,
+  deferredQueryModelSelection,
+  intent,
+  sessionInfo,
+}) {
+  if (!intent || !chatStore || typeof chatStore.getState !== 'function') {
+    return false;
+  }
+  const {
+    action,
+    errorPrefix,
+    messageId,
+    queryText,
+  } = intent;
+  const conversationRef = resolveExistingConversationRef(
+    sessionInfo.conversationRef,
+    activeConversationRef,
+  );
+  if (!conversationRef) {
+    console.error(`[ChatInterface] ${errorPrefix}: missing active conversation`);
+    logRendererReplayTrace({
+      action: 'replay_failed_cleanup',
+      conversationRef: null,
+      errorKind: 'MissingConversationRef',
+      targetUserMessageId: messageId,
+    });
+    return false;
+  }
+  const workspaceBinding = DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding(conversationRef);
+  applyRendererConversationSelection({
+    conversationRef,
+    userId: sessionInfo.userId || undefined,
+    updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
+  });
+  logReplayTimeline(chatStore, 'replay_start', {
+    conversationRef,
+    targetUserMessageId: messageId,
+  });
+  try {
+    const sdkReplayPayload = {
+      ...(workspaceBinding.workspacePath ? { workspace_path: workspaceBinding.workspacePath } : {}),
+    };
+    try {
+      if (deferredQueryModelSelection) {
+        await DesktopSettingsRuntimeClient.setModel(deferredQueryModelSelection);
+      }
+      logReplayTimeline(chatStore, 'sdk_replay_sent', {
+        conversationRef,
+        action,
+        targetUserMessageId: messageId,
+      });
+      if (action === 'edit_resend') {
+        await DesktopConversationContinuityService.editAndResend({
+          userId: sessionInfo.userId,
+          conversationRef,
+          messageId,
+          text: queryText,
+          payload: sdkReplayPayload,
+          model: deferredQueryModelSelection || undefined,
+        });
+      } else {
+        await DesktopConversationContinuityService.retryTurn({
+          userId: sessionInfo.userId,
+          conversationRef,
+          messageId,
+          payload: sdkReplayPayload,
+          model: deferredQueryModelSelection || undefined,
+        });
+      }
+      logReplayTimeline(chatStore, 'sdk_replay_done', {
+        conversationRef,
+        action,
+        replaySucceeded: true,
+        targetUserMessageId: messageId,
+      });
+    } catch (sdkReplayError) {
+      logReplayTimeline(chatStore, 'sdk_replay_failed', {
+        conversationRef,
+        action,
+        replaySucceeded: false,
+        errorKind: traceErrorKind(sdkReplayError),
+        targetUserMessageId: messageId,
+      });
+      if (sdkReplayError && typeof sdkReplayError === 'object') {
+        sdkReplayError.__desktopRuntimeReplayStep = 'send';
+      }
+      throw sdkReplayError;
+    }
+    return true;
+  } catch (error) {
+    console.error(`[ChatInterface] ${errorPrefix}:`, error);
+    logReplayTimeline(chatStore, 'replay_failed_cleanup', {
+      conversationRef,
+      errorKind: traceErrorKind(error),
+      targetUserMessageId: messageId,
+    });
+    return false;
+  }
+}
+
+function prepareReplayActionIntent({
+  action,
+  assistantMessageId,
+  editedText,
   userMessageId,
 }) {
-  const normalizedUserMessageId = typeof userMessageId === 'string' && userMessageId.trim()
-    ? userMessageId.trim()
-    : `${turnRef}-sdk-evt-000002-user_message`;
-  return {
-    conversationRef,
-    turnRef,
-    userMessageId: normalizedUserMessageId,
-    text,
-    timestamp,
-    attachmentFilenames: Array.isArray(attachmentFilenames) && attachmentFilenames.length > 0
-      ? attachmentFilenames
-      : null,
-    attachments: Array.isArray(attachments) && attachments.length > 0
-      ? attachments
-      : null,
-  };
+  if (action === 'edit_resend') {
+    return prepareReplayEditIntent({ userMessageId, editedText });
+  }
+  if (action === 'retry') {
+    return prepareReplayRetryIntent({ assistantMessageId });
+  }
+  return null;
 }
 
-function buildReplayPendingUserMessage(pendingTurn) {
-  if (!pendingTurn || typeof pendingTurn !== 'object') {
-    return null;
-  }
-  return {
-    id: pendingTurn.userMessageId,
-    text: pendingTurn.text,
-    sender: 'user',
-    turnRef: pendingTurn.turnRef,
-    sourceEventType: 'renderer-compose',
-    sourceChannel: 'renderer-local',
-    isComplete: true,
-    timestamp: pendingTurn.timestamp,
-    attachmentFilenames: pendingTurn.attachmentFilenames,
-    attachments: pendingTurn.attachments ?? null,
-  };
+function resolveReplayModelSelection({
+  config = null,
+  deferredQueryModelSelection,
+} = {}) {
+  return deferredQueryModelSelection
+    ?? DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection(config);
 }
 
-function buildReplayMessagesWithPendingTurn(messages, pendingTurn) {
-  const replayMessages = Array.isArray(messages) ? messages : [];
-  const pendingUserMessage = buildReplayPendingUserMessage(pendingTurn);
-  if (!pendingUserMessage?.id) {
-    return replayMessages;
+async function executeReplayAction({
+  action,
+  activeConversationRef,
+  assistantMessageId = null,
+  config = null,
+  chatStore,
+  deferredQueryModelSelection,
+  editedText = null,
+  sessionInfo = null,
+  userMessageId = null,
+}) {
+  const intent = prepareReplayActionIntent({
+    action,
+    assistantMessageId,
+    editedText,
+    userMessageId,
+  });
+  if (!intent) {
+    return undefined;
   }
-  const existingMessageIndex = replayMessages.findIndex(
-    (message) => message?.id === pendingUserMessage.id,
-  );
-  if (existingMessageIndex < 0) {
-    return [...replayMessages, pendingUserMessage];
-  }
-  return replayMessages.map((message, index) => (
-    index === existingMessageIndex
-      ? { ...message, ...pendingUserMessage }
-      : message
-  ));
+  const resolvedSessionInfo = sessionInfo
+    || DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
+  const storeState = chatStore && typeof chatStore.getState === 'function'
+    ? chatStore.getState()
+    : null;
+  const resolvedActiveConversationRef = activeConversationRef ?? storeState?.activeConversationRef ?? null;
+  return executeReplayIntent({
+    activeConversationRef: resolvedActiveConversationRef,
+    chatStore,
+    deferredQueryModelSelection: resolveReplayModelSelection({
+      config,
+      deferredQueryModelSelection,
+    }),
+    intent,
+    sessionInfo: resolvedSessionInfo,
+  });
 }
 
 export const DesktopConversationReplayRuntime = Object.freeze({
-  buildReplayMessagesWithPendingTurn,
-  buildReplayPendingTurn,
-  buildReplayContextMessages,
-  buildReplayPreparationPayload,
-  findReplayEditableUserMessageIndex,
-  resolveReplayRetryMessageIndexes,
+  executeReplayAction,
 });

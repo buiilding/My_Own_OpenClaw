@@ -217,7 +217,7 @@ export type ReplaceRowsInput = {
 export type ForkConversationInput = {
   sourceRevisionId?: string | null;
   cutAfterRowId?: string | null;
-  newConversationRef: string;
+  newConversationRef?: string | null;
 };
 
 export type ForkConversationResult = {
@@ -1243,12 +1243,10 @@ export class SdkConversationRuntime {
   }
 
   async fork(input: ForkConversationInput): Promise<ForkConversationResult> {
-    const newConversationRef = typeof input.newConversationRef === 'string'
+    const requestedConversationRef = typeof input.newConversationRef === 'string'
       ? input.newConversationRef.trim()
-      : '';
-    if (!newConversationRef) {
-      throw new Error('fork requires newConversationRef');
-    }
+      : null;
+    const newConversationRef = requestedConversationRef || createRuntimeId('conv');
     if (newConversationRef === this.options.conversationRef) {
       throw new Error('fork requires a distinct newConversationRef');
     }

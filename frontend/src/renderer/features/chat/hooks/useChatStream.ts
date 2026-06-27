@@ -7,10 +7,19 @@ import type { ConversationEvent } from '../../../app/runtime/desktopConversation
 import {
   useChatStore,
 } from '../stores/chatStore';
+import {
+  getActiveConversationRefFromChatStore,
+  getWorkspaceStateFromChatStore,
+  setCompactionDebugInfoInChatStore,
+  setIsSendingInChatStore,
+  setThinkingSourceEventTypeInChatStore,
+  setThinkingStatusInChatStore,
+  updateStreamTrackingInChatStore,
+  updateStreamTargetMessageInChatStore,
+} from '../stores/chatStoreAdapters';
 import { DesktopRendererConfigRuntimeClient } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopModelThinkingRuntime } from '../../../app/runtime/desktopModelThinkingRuntime';
 import { type TranscriptModelContext } from '../../../app/runtime/desktopChatStreamModelContextRuntime';
-import { useChatCommonActions } from './useChatCommonActions';
 import { useStreamMessageUpdaters } from './chatStream/useStreamMessageUpdaters';
 import { DesktopRendererHooksRuntimeClient } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
 import { useChatStreamTerminalHandlers } from './chatStream/useChatStreamTerminalHandlers';
@@ -25,6 +34,9 @@ import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desk
 import {
   DesktopChatStreamEventRuntime,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
+import {
+  DesktopChatTurnConversationRefRuntime,
+} from '../../../app/runtime/desktopChatTurnConversationRefRuntime';
 import {
   type StreamTrackingEventType,
   type StreamTrackingOptions,
@@ -50,21 +62,16 @@ const {
   isUserMessageMetadataConversationStreamEvent,
   isUsageUpdatedConversationStreamEvent,
   recordTrackingEvent: recordTrackingEventRuntime,
-  resolveConversationStreamEventConversationRef,
-  shouldIgnoreConversationEventForStaleTurn,
+  resolveConversationStreamEventIdentity,
+  resolveWorkspaceThinkingSourceEventType,
+  shouldIgnoreConversationEventIdentityForStaleTurn,
 } = DesktopChatStreamEventRuntime;
+const {
+  registerRendererTurnConversationRef,
+} = DesktopChatTurnConversationRefRuntime;
 
 export function useChatStream(enableTranscript: boolean = true) {
-  const {
-    updateMessage,
-    setIsSending,
-    setThinkingStatus,
-    setThinkingSourceEventType,
-  } = useChatCommonActions();
-  const setCompactionDebugInfo = useChatStore((state) => state.setCompactionDebugInfo);
-  const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
-  const registerTurnConversationRef = useChatStore((state) => state.registerTurnConversationRef);
   const { config, availableModels } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const modelCapabilities = useMemo(() => DesktopModelThinkingRuntime.resolveThinkingCapabilities(
     config?.selected_model_id || null,
@@ -84,38 +91,40 @@ export function useChatStream(enableTranscript: boolean = true) {
     options: StreamTrackingOptions = {},
     conversationRef?: string | null,
   ) => recordTrackingEventRuntime(
-    updateStreamTracking,
+    updateStreamTrackingInChatStore,
     eventType,
     turnRef,
     options,
     conversationRef,
-  ), [updateStreamTracking]);
+  ), []);
 
   // Active-turn gating is shared across most handlers so late events from older turns
   // never mutate the current workspace stream state.
-  const shouldIgnoreSdkEventForStaleTurn = useCallback((
-    event: { turnRef?: string | null },
+  const shouldIgnoreSdkEventIdentityForStaleTurn = useCallback((
+    eventIdentity: ReturnType<typeof resolveConversationStreamEventIdentity>,
     conversationRef?: string | null,
-  ): boolean => shouldIgnoreConversationEventForStaleTurn(event, conversationRef, {
-    getWorkspaceState: useChatStore.getState().getWorkspaceState,
+  ): boolean => shouldIgnoreConversationEventIdentityForStaleTurn(eventIdentity, conversationRef, {
+    getWorkspaceState: getWorkspaceStateFromChatStore,
   }), []);
 
   const {
     updateLastMessageBySender,
     updateLastAssistantLlmTextMessage,
-  } = useStreamMessageUpdaters(updateMessage);
+  } = useStreamMessageUpdaters(updateStreamTargetMessageInChatStore);
 
   const {
     handleContextCompactionStarted,
     handleContextCompactionCompleted,
     handleContextCompactionFailed,
   } = useChatStreamCompactionHandlers({
-    setThinkingStatus,
-    setThinkingSourceEventType,
+    setThinkingStatus: setThinkingStatusInChatStore,
+    setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,
     getThinkingSourceEventType: (conversationRef?: string | null) => (
-      useChatStore.getState().getWorkspaceState(conversationRef).thinkingSourceEventType
+      resolveWorkspaceThinkingSourceEventType(conversationRef, {
+        getWorkspaceState: getWorkspaceStateFromChatStore,
+      })
     ),
-    setCompactionDebugInfo,
+    setCompactionDebugInfo: setCompactionDebugInfoInChatStore,
     recordTrackingEvent,
   });
 
@@ -125,7 +134,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleAssistantMessageFull,
     handleToolSchemas,
   } = useChatStreamMetadataHandlers({
-    shouldIgnoreForStaleTurn: shouldIgnoreSdkEventForStaleTurn,
+    shouldIgnoreForStaleTurn: shouldIgnoreSdkEventIdentityForStaleTurn,
     updateLastMessageBySender,
     updateLastAssistantLlmTextMessage,
     recordTrackingEvent,
@@ -134,16 +143,16 @@ export function useChatStream(enableTranscript: boolean = true) {
   const handleLocalUserMessage = useChatStreamLocalUserHandler({
     modelContextRef,
     recordTrackingEvent,
-    setIsSending,
-    setThinkingSourceEventType,
-    setThinkingStatus,
+    setIsSending: setIsSendingInChatStore,
+    setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,
+    setThinkingStatus: setThinkingStatusInChatStore,
   });
 
   const processStreamingComplete = useChatStreamCompletionHandler({
     recordTrackingEvent,
-    setIsSending,
-    setThinkingSourceEventType,
-    setThinkingStatus,
+    setIsSending: setIsSendingInChatStore,
+    setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,
+    setThinkingStatus: setThinkingStatusInChatStore,
   });
 
   const {
@@ -151,6 +160,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleTokenCount,
   } = useChatStreamTerminalHandlers({
     recordTrackingEvent,
+    updateStreamTargetMessage: updateStreamTargetMessageInChatStore,
   });
 
   const dispatchConversationEvent = useCallback((
@@ -163,12 +173,16 @@ export function useChatStream(enableTranscript: boolean = true) {
     if (!isSupportedConversationStreamEvent(event)) {
       return false;
     }
-    if (shouldIgnoreSdkEventForStaleTurn(event, conversationRef)) {
+    const eventIdentity = resolveConversationStreamEventIdentity(
+      event,
+      conversationRef,
+    );
+    if (shouldIgnoreSdkEventIdentityForStaleTurn(eventIdentity, eventIdentity.conversationRef)) {
       return true;
     }
-    const eventConversationRef = resolveConversationStreamEventConversationRef(event) ?? conversationRef;
+    const resolvedEventConversationRef = eventIdentity.conversationRef;
     if (isLocalUserMessageConversationStreamEvent(event)) {
-      handleLocalUserMessage(event, eventConversationRef);
+      handleLocalUserMessage(event, resolvedEventConversationRef);
       return true;
     }
     if (isToolDisplayOnlyConversationStreamEvent(event)) {
@@ -204,14 +218,14 @@ export function useChatStream(enableTranscript: boolean = true) {
       return true;
     }
     if (isTurnErrorConversationStreamEvent(event)) {
-      handleError(event, eventConversationRef);
+      handleError(event, resolvedEventConversationRef);
       return true;
     }
     if (isUsageUpdatedConversationStreamEvent(event)) {
-      handleTokenCount(event, eventConversationRef);
+      handleTokenCount(event, resolvedEventConversationRef);
       return true;
     }
-    processStreamingComplete(event, eventConversationRef);
+    processStreamingComplete(event, resolvedEventConversationRef);
     return true;
   }, [
     handleAssistantMessageFull,
@@ -225,15 +239,15 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleToolSchemas,
     handleUserMessageFull,
     processStreamingComplete,
-    shouldIgnoreSdkEventForStaleTurn,
+    shouldIgnoreSdkEventIdentityForStaleTurn,
   ]);
 
   useEffect(() => {
     const removeListener = DesktopConversationRuntimeEventClient.onConversationEvent((data: unknown) => {
       handleConversationEventIngress(data as ConversationEvent, {
-        getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
+        getActiveConversationRef: getActiveConversationRefFromChatStore,
         setActiveConversationRef,
-        registerTurnConversationRef,
+        registerTurnConversationRef: registerRendererTurnConversationRef,
         enableTranscript,
         dispatchConversationEvent,
       });
@@ -245,7 +259,6 @@ export function useChatStream(enableTranscript: boolean = true) {
   }, [
     enableTranscript,
     dispatchConversationEvent,
-    registerTurnConversationRef,
     setActiveConversationRef,
   ]);
 }

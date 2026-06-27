@@ -52,7 +52,26 @@ function scheduleMessageActionTimer({
   return timerRef.current;
 }
 
+function messageActionFlag(message, key) {
+  return message?.actions?.[key] === true;
+}
+
+function messageActionTargetId(message, key) {
+  const value = message?.actions?.[key];
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function resolveMessageReplayActions(message) {
+  return {
+    canRetryMessage: messageActionFlag(message, 'canRetry'),
+    canEditMessage: messageActionFlag(message, 'canEdit'),
+    retryTargetMessageId: messageActionTargetId(message, 'retryTargetRowId') || message?.id || null,
+    editTargetMessageId: messageActionTargetId(message, 'editTargetRowId') || message?.id || null,
+  };
+}
+
 export const DesktopMessageActionRuntime = Object.freeze({
   clearMessageActionTimer,
+  resolveMessageReplayActions,
   scheduleMessageActionTimer,
 });

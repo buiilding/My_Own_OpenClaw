@@ -49,20 +49,22 @@ export type RendererResponseOverlayLifecycleTraceValues = {
 export type RendererResponseOverlayHitTestTraceValues = {
   source?: string;
   conversationRef?: unknown;
+  overlayIntent?: {
+    conversationRef?: unknown;
+  } | null;
   active?: boolean;
 };
 
 export type RendererResponseOverlayTypingRenderedTraceValues = {
   source?: string;
   typingRendered?: boolean;
-  currentTurnProjection?: {
-    turnRef?: unknown;
-    conversationRef?: unknown;
-    phase?: unknown;
-  } | null;
+  conversationRef?: unknown;
+  turnRef?: unknown;
+  phase?: unknown;
   currentTurnId?: unknown;
   overlayIntent?: {
     mode?: unknown;
+    conversationRef?: unknown;
     turnRef?: unknown;
     staleGuardRef?: unknown;
   } | null;
@@ -108,12 +110,12 @@ export type RendererReplayTraceValues = {
   latestCurrentTurnPhase?: unknown;
   streamActiveTurnRef?: unknown;
   streamPhase?: unknown;
-  supersededTurnRef?: unknown;
   targetUserMessageId?: unknown;
-  replacementRowCount?: unknown;
+  projectedRowCount?: unknown;
   sourceRowCount?: unknown;
   messageCount?: unknown;
   displayRowCount?: unknown;
+  shouldApplyMessages?: boolean;
   pendingMatchesNewTurn?: boolean;
   currentMatchesNewTurn?: boolean;
   currentMatchesOldTurn?: boolean;
@@ -153,9 +155,6 @@ export type RendererCurrentTurnAppliedTraceValues = {
   currentTurn?: {
     turnRef?: unknown;
     phase?: unknown;
-    assistantText?: unknown;
-    reasoningText?: unknown;
-    toolEvents?: readonly unknown[];
     presentation?: {
       overlayIntent?: {
         mode?: unknown;
@@ -167,25 +166,6 @@ export type RendererCurrentTurnAppliedTraceValues = {
     } | null;
   } | null;
   skipDerivedSideEffects?: boolean;
-};
-
-export type RendererDisplayRowsProjectionTraceValues = {
-  source?: string;
-  conversationRef?: unknown;
-  currentMessageCount?: unknown;
-  currentOptimisticUserCount?: unknown;
-  mergedMessageCount?: unknown;
-  mergedUserImageCount?: unknown;
-  mergedUserMessageCount?: unknown;
-  mergedUserMessagesWithImages?: unknown;
-  rowCount?: unknown;
-  sdkMessageCount?: unknown;
-  sdkProjectedUserImageCount?: unknown;
-  sdkProjectedUserMessageCount?: unknown;
-  sdkProjectedUserMessagesWithImages?: unknown;
-  sdkUserImageCount?: unknown;
-  sdkUserRowCount?: unknown;
-  sdkUserRowsWithImages?: unknown;
 };
 
 export type RendererResponseOverlayStateTraceValues = {
@@ -230,22 +210,10 @@ export type RendererResponseSurfaceSnapshotTraceValues = {
 };
 
 export type RendererOverlayViewModelTraceValues = {
-  currentTurnProjection?: {
-    turnRef?: unknown;
-    conversationRef?: unknown;
-    phase?: unknown;
-  } | null;
   pendingTurn?: {
     turnRef?: unknown;
     conversationRef?: unknown;
     userMessageId?: unknown;
-  } | null;
-  streamTracking?: {
-    activeTurnRef?: unknown;
-    phase?: unknown;
-    lastEventType?: unknown;
-    eventCount?: unknown;
-    chunkCount?: unknown;
   } | null;
   visibleTurnLifecycle?: {
     status?: unknown;
@@ -463,6 +431,19 @@ function logRendererResponseOverlayLifecycleTrace(
   );
 }
 
+function resolveRendererResponseOverlayConversationRef(values: {
+  conversationRef?: unknown;
+  overlayIntent?: {
+    conversationRef?: unknown;
+  } | null;
+}): string | null {
+  return (
+    traceString(values.conversationRef)
+    || traceString(values.overlayIntent?.conversationRef)
+    || null
+  );
+}
+
 function buildRendererResponseOverlayHitTestTracePayload(
   values: RendererResponseOverlayHitTestTraceValues,
 ): Record<string, unknown> {
@@ -481,7 +462,7 @@ function logRendererResponseOverlayHitTestTrace(
   logRendererLiveSurfaceTrace(
     'response_overlay.hit_test.set',
     buildRendererResponseOverlayHitTestTracePayload(values),
-    traceString(values.conversationRef) || null,
+    resolveRendererResponseOverlayConversationRef(values),
   );
 }
 
@@ -489,19 +470,25 @@ function buildRendererResponseOverlayTypingRenderedTracePayload(
   values: RendererResponseOverlayTypingRenderedTraceValues,
 ): Record<string, unknown> {
   const typingRendered = values.typingRendered === true;
-  const currentTurnProjection = values.currentTurnProjection;
   const overlayIntent = values.overlayIntent;
   const turnRef = (
-    traceString(currentTurnProjection?.turnRef)
+    traceString(values.turnRef)
     || traceString(values.currentTurnId)
     || null
+  );
+  const conversationRef = (
+    resolveRendererResponseOverlayConversationRef(values)
+  );
+  const phase = (
+    traceString(values.phase)
+    || 'idle'
   );
   return {
     source: traceString(values.source) || 'minimal-response-overlay',
     reason: typingRendered ? 'awaiting-indicator-rendered' : 'awaiting-indicator-not-rendered',
     turnRef,
-    conversationRef: traceString(currentTurnProjection?.conversationRef) || null,
-    phase: traceString(currentTurnProjection?.phase) || 'idle',
+    conversationRef,
+    phase,
     overlayMode: (
       traceString(overlayIntent?.mode)
       || traceString(values.overlayLayoutMode)
@@ -510,7 +497,6 @@ function buildRendererResponseOverlayTypingRenderedTracePayload(
     guardRef: (
       traceString(overlayIntent?.staleGuardRef)
       || traceString(overlayIntent?.turnRef)
-      || traceString(currentTurnProjection?.turnRef)
       || traceString(values.currentTurnId)
       || null
     ),
@@ -530,7 +516,7 @@ function logRendererResponseOverlayTypingRenderedTrace(
   logRendererLiveSurfaceTrace(
     typingRendered ? 'typing.rendered.show' : 'typing.rendered.hide',
     buildRendererResponseOverlayTypingRenderedTracePayload(values),
-    traceString(values.currentTurnProjection?.conversationRef) || null,
+    resolveRendererResponseOverlayConversationRef(values),
   );
 }
 
@@ -676,9 +662,8 @@ function buildRendererReplayTracePayload(
     latestCurrentTurnPhase: traceString(values.latestCurrentTurnPhase) || null,
     streamActiveTurnRef: traceString(values.streamActiveTurnRef) || null,
     streamPhase: traceString(values.streamPhase) || null,
-    supersededTurnRef: traceString(values.supersededTurnRef) || null,
     targetUserMessageId: traceString(values.targetUserMessageId) || null,
-    replacementRowCount: traceNumberOrZero(values.replacementRowCount),
+    projectedRowCount: traceNumberOrZero(values.projectedRowCount),
     sourceRowCount: traceNumberOrZero(values.sourceRowCount),
     messageCount: traceNumberOrZero(values.messageCount),
     displayRowCount: traceNumberOrZero(values.displayRowCount),
@@ -777,6 +762,26 @@ function buildRendererCurrentTurnAppliedTracePayload(
   const currentTurn = values.currentTurn;
   const presentation = currentTurn?.presentation;
   const overlayIntent = presentation?.overlayIntent;
+  const entries = Array.isArray(presentation?.entries) ? presentation.entries : [];
+  const entryRecords = entries
+    .filter((entry): entry is Record<string, unknown> => Boolean(
+      entry && typeof entry === 'object' && !Array.isArray(entry),
+    ));
+  const assistantLength = entryRecords
+    .filter((entry) => entry.type === 'llm-text')
+    .reduce((total, entry) => (
+      total + (typeof entry.text === 'string' ? entry.text.length : 0)
+    ), 0);
+  const reasoningLength = entryRecords
+    .filter((entry) => entry.type === 'thinking')
+    .reduce((total, entry) => (
+      total + (typeof entry.text === 'string' ? entry.text.length : 0)
+    ), 0);
+  const toolEventCount = entryRecords.filter((entry) => (
+    entry.type === 'tool-call'
+    || entry.type === 'tool-output'
+    || entry.type === 'tool-progress'
+  )).length;
   return {
     source: traceString(values.source) || 'sdk:current-turn',
     turnRef: traceString(currentTurn?.turnRef) || null,
@@ -790,14 +795,10 @@ function buildRendererCurrentTurnAppliedTracePayload(
       || null
     ),
     hasVisibleContent: presentation?.hasVisibleContent === true,
-    entryCount: Array.isArray(presentation?.entries) ? presentation.entries.length : 0,
-    assistantLength: typeof currentTurn?.assistantText === 'string'
-      ? currentTurn.assistantText.length
-      : 0,
-    reasoningLength: typeof currentTurn?.reasoningText === 'string'
-      ? currentTurn.reasoningText.length
-      : 0,
-    toolEventCount: Array.isArray(currentTurn?.toolEvents) ? currentTurn.toolEvents.length : 0,
+    entryCount: entries.length,
+    assistantLength,
+    reasoningLength,
+    toolEventCount,
     staleSideEffectsSkipped: values.skipDerivedSideEffects === true,
   };
 }
@@ -808,39 +809,6 @@ function logRendererCurrentTurnAppliedTrace(
   logRendererLiveSurfaceTrace(
     'renderer.current_turn.applied',
     buildRendererCurrentTurnAppliedTracePayload(values),
-    traceString(values.conversationRef) || null,
-  );
-}
-
-function buildRendererDisplayRowsProjectionTracePayload(
-  values: RendererDisplayRowsProjectionTraceValues,
-): Record<string, unknown> {
-  return {
-    source: traceString(values.source) || 'sdk-display-rows',
-    conversationRef: traceString(values.conversationRef) || null,
-    rowCount: traceNumberOrZero(values.rowCount),
-    sdkUserRowCount: traceNumberOrZero(values.sdkUserRowCount),
-    sdkUserRowsWithImages: traceNumberOrZero(values.sdkUserRowsWithImages),
-    sdkUserImageCount: traceNumberOrZero(values.sdkUserImageCount),
-    sdkMessageCount: traceNumberOrZero(values.sdkMessageCount),
-    sdkProjectedUserMessageCount: traceNumberOrZero(values.sdkProjectedUserMessageCount),
-    sdkProjectedUserMessagesWithImages: traceNumberOrZero(values.sdkProjectedUserMessagesWithImages),
-    sdkProjectedUserImageCount: traceNumberOrZero(values.sdkProjectedUserImageCount),
-    currentMessageCount: traceNumberOrZero(values.currentMessageCount),
-    currentOptimisticUserCount: traceNumberOrZero(values.currentOptimisticUserCount),
-    mergedMessageCount: traceNumberOrZero(values.mergedMessageCount),
-    mergedUserMessageCount: traceNumberOrZero(values.mergedUserMessageCount),
-    mergedUserMessagesWithImages: traceNumberOrZero(values.mergedUserMessagesWithImages),
-    mergedUserImageCount: traceNumberOrZero(values.mergedUserImageCount),
-  };
-}
-
-function logRendererDisplayRowsProjectionTrace(
-  values: RendererDisplayRowsProjectionTraceValues,
-): void {
-  logRendererLiveSurfaceTrace(
-    'renderer.display_rows.projected',
-    buildRendererDisplayRowsProjectionTracePayload(values),
     traceString(values.conversationRef) || null,
   );
 }
@@ -868,9 +836,7 @@ function logRendererResponseSurfaceRenderTrace(
 function buildRendererOverlayViewModelTracePayload(
   values: RendererOverlayViewModelTraceValues,
 ): Record<string, unknown> {
-  const currentTurnProjection = values.currentTurnProjection;
   const pendingTurn = values.pendingTurn;
-  const streamTracking = values.streamTracking;
   const visibleTurnLifecycle = values.visibleTurnLifecycle;
   const overlayIntent = values.overlayIntent;
   const currentTurnPresentationState = values.currentTurnPresentationState;
@@ -878,24 +844,28 @@ function buildRendererOverlayViewModelTracePayload(
     ? values.responseOverlayEntries
     : [];
   const viewIntent = values.viewIntent;
+  const visibleLifecycleTurnRef = traceString(visibleTurnLifecycle?.turnRef);
+  const visibleLifecycleConversationRef = traceString(visibleTurnLifecycle?.conversationRef);
+  const pendingTurnRef = traceString(pendingTurn?.turnRef);
+  const pendingConversationRef = traceString(pendingTurn?.conversationRef);
+  const overlayIntentTurnRef = traceString(overlayIntent?.turnRef);
   return {
     source: 'renderer-overlay-view-model',
-    turnRef: traceString(currentTurnProjection?.turnRef) || null,
-    conversationRef: (
-      traceString(currentTurnProjection?.conversationRef)
-      || traceString(pendingTurn?.conversationRef)
-      || traceString(overlayIntent?.conversationRef)
-      || traceString(visibleTurnLifecycle?.conversationRef)
+    turnRef: (
+      visibleLifecycleTurnRef
+      || overlayIntentTurnRef
+      || pendingTurnRef
       || null
     ),
-    phase: traceString(currentTurnProjection?.phase) || traceString(values.currentTurnPhase) || null,
-    pendingTurnRef: traceString(pendingTurn?.turnRef) || null,
+    conversationRef: (
+      visibleLifecycleConversationRef
+      || traceString(overlayIntent?.conversationRef)
+      || pendingConversationRef
+      || null
+    ),
+    phase: traceString(values.currentTurnPhase) || null,
+    pendingTurnRef: pendingTurnRef || null,
     pendingUserMessageId: traceString(pendingTurn?.userMessageId) || null,
-    streamActiveTurnRef: traceString(streamTracking?.activeTurnRef) || null,
-    streamPhase: traceString(streamTracking?.phase) || null,
-    streamLastEventType: traceString(streamTracking?.lastEventType) || null,
-    streamEventCount: traceNumberOrZero(streamTracking?.eventCount),
-    streamChunkCount: traceNumberOrZero(streamTracking?.chunkCount),
     visibleLifecycleStatus: traceString(visibleTurnLifecycle?.status) || null,
     visibleLifecycleSource: traceString(visibleTurnLifecycle?.source) || null,
     visibleLifecycleTurnRef: traceString(visibleTurnLifecycle?.turnRef) || null,
@@ -906,8 +876,9 @@ function buildRendererOverlayViewModelTracePayload(
     overlayMode: traceString(overlayIntent?.mode) || null,
     guardRef: (
       traceString(overlayIntent?.staleGuardRef)
-      || traceString(overlayIntent?.turnRef)
-      || traceString(currentTurnProjection?.turnRef)
+      || overlayIntentTurnRef
+      || visibleLifecycleTurnRef
+      || pendingTurnRef
       || null
     ),
     awaitingVisible: viewIntent?.awaitingVisible === true,
@@ -924,6 +895,12 @@ function buildRendererOverlayViewModelTracePayload(
     useSdkLiveTurnPresentation: values.useSdkLiveTurnPresentation === true,
     useLocalPendingTurn: values.useLocalPendingTurn === true,
   };
+}
+
+function buildRendererOverlayViewModelTraceSignature(
+  tracePayload: Record<string, unknown>,
+): string {
+  return JSON.stringify(tracePayload);
 }
 
 function buildRendererOverlayTypingTraceEvent(
@@ -1014,10 +991,10 @@ export const DesktopRendererTraceRuntime = Object.freeze({
   buildRendererChatPillStateTracePayload,
   buildRendererChatSendLifecycleTracePayload,
   buildRendererCurrentTurnAppliedTracePayload,
-  buildRendererDisplayRowsProjectionTracePayload,
   buildRendererReplayTracePayload,
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
+  buildRendererOverlayViewModelTraceSignature,
   buildRendererOverlayViewModelTracePayload,
   buildRendererResponseOverlayHitTestTracePayload,
   buildRendererResponseOverlayStateTracePayload,
@@ -1034,7 +1011,6 @@ export const DesktopRendererTraceRuntime = Object.freeze({
   logRendererChatPillTrace,
   logRendererChatSendLifecycleTrace,
   logRendererCurrentTurnAppliedTrace,
-  logRendererDisplayRowsProjectionTrace,
   logRendererReplayTrace,
   logRendererLiveSurfaceTrace,
   logRendererOverlayViewModelResolvedTrace,

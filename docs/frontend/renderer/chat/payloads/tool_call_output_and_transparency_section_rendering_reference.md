@@ -147,7 +147,7 @@ SDK tool_output/tool_bundle_output metadata.attachments[]
 -> renderer ChatMessage.attachments
 -> ToolOutputMessage
 -> AttachmentList / AttachmentRendererRegistry
--> useResolvedArtifactImageSrc(attachment)
+-> useResolvedAttachmentImageSrc(attachment)
 ```
 
 Renderer tool-output components do not infer display visuals from
@@ -173,7 +173,7 @@ by the message content components listed above.
 The old standalone screenshot-source test path `MessageScreenshotSrc.test.js`
 and the whole-message `DesktopMessageScreenshotRuntime` path were removed.
 Screenshot source selection is covered through typed attachment rendering,
-`desktopResolvedMessageScreenshotsRuntime.js`, and attachment/artifact tests.
+`desktopAttachmentImageRuntime.js`, and attachment/artifact tests.
 Stale searches for either removed helper should route here.
 
 ## Tool Call Card Contract
@@ -181,18 +181,27 @@ Stale searches for either removed helper should route here.
 Primary preview payload:
 
 1. `message.toolCallDisplayText` string
-2. object `message.modelFacingToolCall` serialized as pretty JSON
 
 Details panel payload:
 
 1. object `message.toolCallDetails`
 
-This separation keeps default view aligned with the SDK-projected
-model-facing call while preserving raw execution payload in details. Recovery
-preview and display-only execution state come from SDK current-turn fields such
-as `rawToolCallPreview`, `rawArgumentsPreview`, `parseError`,
+SDK display-row and live-turn projection must set the preview text from SDK
+display content and must not forward provider-facing `modelFacingToolCall` as a
+renderer chat message prop. Tool-call render, find, and estimated-token helpers
+use `toolCallDisplayText` only; they do not serialize provider-facing payloads
+as a fallback. `ConversationView.displayRows` and SDK live entries remain
+display contracts, not provider-payload recovery channels. Recovery preview and
+display-only execution state come from SDK current-turn fields such as
+`rawToolCallPreview`, `rawArgumentsPreview`, `parseError`,
 `toolCallValidationFailed`, and `executionSkipped`, not from backend-shaped
-metadata keys in renderer message helpers.
+metadata keys in renderer message helpers. Transcript helper state must return
+display text, sanitized details, and correlation ids only; it must not return a
+model-facing tool-call object for renderer chat messages.
+SDK current-turn presentation entries own live tool-call preview text. Renderer
+current-turn adapters may pass SDK `text`, recovery previews, normalized
+`toolArguments`, and sanitized details through the transcript helper, but they
+must not read `modelFacingToolCall` to reconstruct the card body.
 When the renderer includes the display-only marker in the pretty-printed
 model-facing payload, it uses the neutral `execution_skipped` field.
 

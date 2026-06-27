@@ -3,13 +3,39 @@
  */
 
 import {
-  buildResponseOverlayDismissalKey,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  acceptPendingTurnInChatStore,
+  acceptStoppedTurnInChatStore,
+  addMessageToChatStore,
+  applyPendingTurnBroadcastToChatStore,
+  clearMessagesInChatStore,
+  clearPendingTurnInChatStore,
+  setNoViewSdkLiveTurnInChatStore,
+  setIsSendingInChatStore,
+  setMessagesInChatStore,
+  setThinkingSourceEventTypeInChatStore,
+  setThinkingStatusInChatStore,
+  setTokenCountsInChatStore,
+  updateMessageInChatStore,
+  updateStreamTrackingInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
+import {
+  DesktopChatTurnConversationRefRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime';
 import {
   createAssistantSeedMessage,
   resetChatStoreForTests,
 } from './chatStoreTestUtils';
+
+const {
+  resolveRendererConversationRefForTurn,
+} = DesktopChatTurnConversationRefRuntime;
+
+function getActiveWorkspace() {
+  return useChatStore.getState().getWorkspaceState();
+}
 
 describe('chatStore', () => {
   beforeEach(() => {
@@ -22,13 +48,13 @@ describe('chatStore', () => {
   });
 
   test('addMessage appends to message list', () => {
-    useChatStore.getState().addMessage({
+    addMessageToChatStore({
       id: 'user-1',
       text: 'hello',
       sender: 'user',
     });
 
-    const messages = useChatStore.getState().messages;
+    const messages = getActiveWorkspace().messages;
     expect(messages).toHaveLength(2);
     expect(messages[1]).toEqual(
       expect.objectContaining({
@@ -40,7 +66,7 @@ describe('chatStore', () => {
   });
 
   test('addMessage replaces an existing message with the same id', () => {
-    useChatStore.getState().addMessage({
+    addMessageToChatStore({
       id: 'bundle-output-1',
       text: 'first projection',
       sender: 'tool',
@@ -48,7 +74,7 @@ describe('chatStore', () => {
       sourceEventType: 'tool_output',
     });
 
-    useChatStore.getState().addMessage({
+    addMessageToChatStore({
       id: 'bundle-output-1',
       text: 'updated projection',
       sender: 'tool',
@@ -56,7 +82,7 @@ describe('chatStore', () => {
       sourceEventType: 'tool_bundle_output',
     });
 
-    const messages = useChatStore.getState().messages;
+    const messages = getActiveWorkspace().messages;
     expect(messages).toHaveLength(2);
     expect(messages[1]).toEqual(
       expect.objectContaining({
@@ -69,20 +95,21 @@ describe('chatStore', () => {
   });
 
   test('updateMessage merges updates for matching id', () => {
-    useChatStore.getState().addMessage({
+    addMessageToChatStore({
       id: 'assistant-2',
       text: 'partial',
       sender: 'assistant',
       isComplete: false,
     });
 
-    useChatStore.getState().updateMessage('assistant-2', {
+    updateMessageInChatStore('assistant-2', {
       text: 'complete',
       isComplete: true,
     });
 
     const updated = useChatStore
       .getState()
+      .getWorkspaceState()
       .messages
       .find((message) => message.id === 'assistant-2');
 
@@ -95,24 +122,24 @@ describe('chatStore', () => {
   });
 
   test('updateMessage is a no-op when id does not exist', () => {
-    const before = useChatStore.getState().messages;
+    const before = getActiveWorkspace().messages;
 
-    useChatStore.getState().updateMessage('missing-id', {
+    updateMessageInChatStore('missing-id', {
       text: 'no-op',
     });
 
-    const after = useChatStore.getState().messages;
+    const after = getActiveWorkspace().messages;
     expect(after).toBe(before);
   });
 
   test('setMessages is a no-op when given existing array reference', () => {
-    const before = useChatStore.getState().messages;
-    useChatStore.getState().setMessages(before);
-    expect(useChatStore.getState().messages).toBe(before);
+    const before = getActiveWorkspace().messages;
+    setMessagesInChatStore(before);
+    expect(getActiveWorkspace().messages).toBe(before);
   });
 
   test('setMessages indexes hydrated turn refs for targeted conversations', () => {
-    useChatStore.getState().setMessages([
+    setMessagesInChatStore([
       {
         id: 'assistant-turn-message',
         text: 'streamed elsewhere',
@@ -121,9 +148,9 @@ describe('chatStore', () => {
       },
     ], 'conv-other');
 
-    expect(useChatStore.getState().resolveConversationRefForTurn('turn-elsewhere')).toBe('conv-other');
-    expect(useChatStore.getState().resolveConversationRefForTurn(' turn-elsewhere ')).toBe('conv-other');
-    expect(useChatStore.getState().messages).toEqual([
+    expect(resolveRendererConversationRefForTurn('turn-elsewhere')).toBe('conv-other');
+    expect(resolveRendererConversationRefForTurn(' turn-elsewhere ')).toBe('conv-other');
+    expect(getActiveWorkspace().messages).toEqual([
       expect.objectContaining({
         id: 'init-message',
       }),
@@ -136,9 +163,8 @@ describe('chatStore', () => {
       turnRef: ' turn-overlay ',
       responseEntryId: ' assistant-entry ',
     };
-    const dismissalKey = buildResponseOverlayDismissalKey(dismissalTarget);
+    const dismissalKey = 'conv-overlay\u0001turn-overlay\u0001assistant-entry';
 
-    expect(dismissalKey).toBe('conv-overlay\u0001turn-overlay\u0001assistant-entry');
     expect(useChatStore.getState().isResponseOverlayEntryDismissed(dismissalTarget)).toBe(false);
 
     useChatStore.getState().dismissResponseOverlayEntry(dismissalTarget);
@@ -151,15 +177,15 @@ describe('chatStore', () => {
 
   test('setIsSending is a no-op when value is unchanged', () => {
     const beforeSnapshot = useChatStore.getState();
-    useChatStore.getState().setIsSending(false);
+    setIsSendingInChatStore(false);
     const afterSnapshot = useChatStore.getState();
     expect(afterSnapshot).toBe(beforeSnapshot);
   });
 
-  test('setThinkingStatus is a no-op when value is unchanged', () => {
-    useChatStore.setState({ thinkingStatus: 'thinking' });
+  test('setThinkingStatusInChatStore is a no-op when value is unchanged', () => {
+    setThinkingStatusInChatStore('thinking');
     const beforeSnapshot = useChatStore.getState();
-    useChatStore.getState().setThinkingStatus('thinking');
+    setThinkingStatusInChatStore('thinking');
     const afterSnapshot = useChatStore.getState();
     expect(afterSnapshot).toBe(beforeSnapshot);
   });
@@ -174,33 +200,33 @@ describe('chatStore', () => {
       conversation_tokens: 7,
       usage_source: 'provider' as const,
     };
-    useChatStore.setState({ tokenCounts });
+    setTokenCountsInChatStore(tokenCounts);
     const beforeSnapshot = useChatStore.getState();
-    useChatStore.getState().setTokenCounts(tokenCounts);
+    setTokenCountsInChatStore(tokenCounts);
     const afterSnapshot = useChatStore.getState();
     expect(afterSnapshot).toBe(beforeSnapshot);
   });
 
   test('clearMessages resets to an empty message list', () => {
-    useChatStore.getState().setIsSending(true);
-    useChatStore.getState().addMessage({
+    setIsSendingInChatStore(true);
+    addMessageToChatStore({
       id: 'user-1',
       text: 'hello',
       sender: 'user',
     });
 
-    useChatStore.getState().clearMessages();
-    const firstReset = useChatStore.getState();
+    clearMessagesInChatStore();
+    const firstReset = getActiveWorkspace();
     expect(firstReset.messages).toHaveLength(0);
     expect(firstReset.isSending).toBe(false);
 
-    useChatStore.getState().clearMessages();
-    const secondReset = useChatStore.getState().messages;
+    clearMessagesInChatStore();
+    const secondReset = getActiveWorkspace().messages;
     expect(secondReset).toHaveLength(0);
   });
 
-  test('updateStreamTracking applies updater result', () => {
-    useChatStore.getState().updateStreamTracking((current) => ({
+  test('updateStreamTrackingInChatStore applies updater result', () => {
+    updateStreamTrackingInChatStore((current) => ({
       ...current,
       phase: 'streaming',
       activeTurnRef: 'turn-1',
@@ -208,7 +234,7 @@ describe('chatStore', () => {
       eventCount: current.eventCount + 1,
     }));
 
-    expect(useChatStore.getState().streamTracking).toEqual(
+    expect(getActiveWorkspace().streamTracking).toEqual(
       expect.objectContaining({
         phase: 'streaming',
         activeTurnRef: 'turn-1',
@@ -218,14 +244,14 @@ describe('chatStore', () => {
     );
   });
 
-  test('workspace-targeted mutations do not overwrite the active projected state', () => {
-    useChatStore.getState().addMessage({
+  test('workspace-targeted mutations do not overwrite the active workspace state', () => {
+    addMessageToChatStore({
       id: 'stale-workspace-message',
       text: 'offscreen',
       sender: 'assistant',
     }, 'conv-other');
 
-    expect(useChatStore.getState().messages).toEqual([
+    expect(getActiveWorkspace().messages).toEqual([
       expect.objectContaining({
         id: 'init-message',
       }),
@@ -285,24 +311,24 @@ describe('chatStore', () => {
     };
 
     useChatStore.getState().setActiveConversationRef('conv-user');
-    useChatStore.getState().setCurrentTurnProjection(userProjection, 'conv-user');
-    useChatStore.getState().setCurrentTurnProjection(
+    setNoViewSdkLiveTurnInChatStore(userProjection, 'conv-user');
+    setNoViewSdkLiveTurnInChatStore(
       internalProjection,
       'conv-agent-internal',
     );
 
     const state = useChatStore.getState();
     expect(state).not.toHaveProperty('latestCurrentTurnProjection');
-    expect(state.currentTurnProjection).toBe(userProjection);
+    expect(state.getWorkspaceState().sdkLiveTurn).toBe(userProjection);
     expect(
-      state.getWorkspaceState('conv-agent-internal').currentTurnProjection,
+      state.getWorkspaceState('conv-agent-internal').sdkLiveTurn,
     ).toBe(internalProjection);
   });
 
-  test('switching active conversation projects that workspace state into the top-level fields', () => {
-    useChatStore.getState().setIsSending(true, 'conv-other');
-    useChatStore.getState().setThinkingStatus('thinking elsewhere', 'conv-other');
-    useChatStore.getState().addMessage({
+  test('switching active conversation exposes that workspace through the workspace reader', () => {
+    setIsSendingInChatStore(true, 'conv-other');
+    setThinkingStatusInChatStore('thinking elsewhere', 'conv-other');
+    addMessageToChatStore({
       id: 'other-message',
       text: 'other workspace',
       sender: 'assistant',
@@ -311,10 +337,11 @@ describe('chatStore', () => {
     useChatStore.getState().setActiveConversationRef('conv-other');
 
     const state = useChatStore.getState();
+    const activeWorkspace = state.getWorkspaceState();
     expect(state.activeConversationRef).toBe('conv-other');
-    expect(state.isSending).toBe(true);
-    expect(state.thinkingStatus).toBe('thinking elsewhere');
-    expect(state.messages).toEqual([
+    expect(activeWorkspace.isSending).toBe(true);
+    expect(activeWorkspace.thinkingStatus).toBe('thinking elsewhere');
+    expect(activeWorkspace.messages).toEqual([
       expect.objectContaining({
         id: 'other-message',
         text: 'other workspace',
@@ -322,58 +349,30 @@ describe('chatStore', () => {
     ]);
   });
 
-  test('acceptPendingTurn adds the optimistic user row and marks the conversation busy', () => {
-    useChatStore.getState().acceptPendingTurn({
+  test('acceptPendingTurn stores bridge state without mutating raw messages', () => {
+    acceptPendingTurnInChatStore({
       conversationRef: 'conv-pending',
       turnRef: 'turn-pending',
       userMessageId: 'user-pending',
       text: 'start now',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: ['note.txt'],
-      attachments: [{
-        id: 'turn-pending:attachment:000',
-        kind: 'image',
-        source: 'user_included',
-        status: 'materializing',
-        filename: 'note.txt',
-        contentType: 'image/png',
-        previewSrc: 'data:image/png;base64,inline-image-base64',
-      }],
     });
 
     const state = useChatStore.getState();
+    const activeWorkspace = state.getWorkspaceState();
     expect(state.activeConversationRef).toBe('conv-pending');
-    expect(state.isSending).toBe(true);
-    expect(state.pendingTurn).toEqual(expect.objectContaining({
+    expect(activeWorkspace.isSending).toBe(true);
+    expect(activeWorkspace.pendingTurn).toEqual(expect.objectContaining({
       conversationRef: 'conv-pending',
       turnRef: 'turn-pending',
       userMessageId: 'user-pending',
       text: 'start now',
     }));
-    expect(state.messages).toEqual([
-      expect.objectContaining({
-        id: 'user-pending',
-        sender: 'user',
-        text: 'start now',
-        turnRef: 'turn-pending',
-        sourceEventType: 'renderer-compose',
-        sourceChannel: 'renderer-local',
-        attachmentFilenames: ['note.txt'],
-        attachments: [{
-          id: 'turn-pending:attachment:000',
-          kind: 'image',
-          source: 'user_included',
-          status: 'materializing',
-          filename: 'note.txt',
-          contentType: 'image/png',
-          previewSrc: 'data:image/png;base64,inline-image-base64',
-        }],
-      }),
-    ]);
+    expect(activeWorkspace.messages).toEqual([]);
   });
 
-  test('applyPendingTurnBroadcast replays pending state into an empty renderer workspace', () => {
-    useChatStore.getState().applyPendingTurnBroadcast({
+  test('applyPendingTurnBroadcast replays pending state without raw message rows', () => {
+    applyPendingTurnBroadcastToChatStore({
       kind: 'pending',
       pendingTurn: {
         conversationRef: 'conv-replay',
@@ -381,7 +380,6 @@ describe('chatStore', () => {
         userMessageId: 'user-replay',
         text: 'replay this',
         timestamp: '2026-06-16T00:00:00.000Z',
-        attachmentFilenames: null,
         attachments: [{
           id: 'turn-replay:attachment:000',
           kind: 'image',
@@ -394,35 +392,20 @@ describe('chatStore', () => {
     });
 
     const state = useChatStore.getState();
+    const activeWorkspace = state.getWorkspaceState();
     expect(state.activeConversationRef).toBe('conv-replay');
-    expect(state.isSending).toBe(true);
-    expect(state.pendingTurn?.turnRef).toBe('turn-replay');
-    expect(state.messages).toEqual([
-      expect.objectContaining({
-        id: 'user-replay',
-        sender: 'user',
-        text: 'replay this',
-        turnRef: 'turn-replay',
-        attachments: [{
-          id: 'turn-replay:attachment:000',
-          kind: 'image',
-          source: 'user_included',
-          status: 'materializing',
-          contentType: 'image/jpeg',
-          previewSrc: 'data:image/jpeg;base64,broadcast-image-base64',
-        }],
-      }),
-    ]);
+    expect(activeWorkspace.isSending).toBe(true);
+    expect(activeWorkspace.pendingTurn?.turnRef).toBe('turn-replay');
+    expect(activeWorkspace.messages).toEqual([]);
   });
 
-  test('applyPendingTurnBroadcast is a no-op for an echoed pending turn with attachments', () => {
+  test('applyPendingTurnBroadcast is a no-op for an echoed pending turn with ignored attachments', () => {
     const pendingTurn = {
       conversationRef: 'conv-echo',
       turnRef: 'turn-echo',
       userMessageId: 'user-echo',
       text: 'keep this bubble stable',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: ['image.png'],
       attachments: [{
         id: 'turn-echo:attachment:000',
         kind: 'image' as const,
@@ -433,68 +416,31 @@ describe('chatStore', () => {
       }],
     };
 
-    useChatStore.getState().acceptReplayPendingTurn({
-      conversationRef: 'conv-echo',
-      messages: [],
-      pendingTurn,
-    });
+    acceptPendingTurnInChatStore(pendingTurn);
     const beforeState = useChatStore.getState();
-    const beforeMessages = beforeState.messages;
+    const beforeMessages = beforeState.getWorkspaceState().messages;
 
-    useChatStore.getState().applyPendingTurnBroadcast({
+    applyPendingTurnBroadcastToChatStore({
       kind: 'pending',
       pendingTurn: JSON.parse(JSON.stringify(pendingTurn)),
     });
 
     const afterState = useChatStore.getState();
     expect(afterState).toBe(beforeState);
-    expect(afterState.messages).toBe(beforeMessages);
-    expect(afterState.messages).toEqual([
-      expect.objectContaining({
-        id: 'user-echo',
-        attachments: pendingTurn.attachments,
-      }),
-    ]);
-  });
-
-  test('acceptReplayPendingTurn records the superseded turn without marking the replacement superseded', () => {
-    useChatStore.getState().acceptReplayPendingTurn({
-      conversationRef: 'conv-replay-active',
-      messages: [],
-      pendingTurn: {
-        conversationRef: 'conv-replay-active',
-        turnRef: 'turn-new',
-        userMessageId: 'user-new',
-        text: 'edited question',
-        timestamp: '2026-06-16T00:00:00.000Z',
-        attachmentFilenames: null,
-      },
-      supersededTurnRef: 'turn-old',
-    });
-
-    expect(useChatStore.getState().getWorkspaceState('conv-replay-active')).toEqual(
-      expect.objectContaining({
-        pendingTurn: expect.objectContaining({
-          turnRef: 'turn-new',
-        }),
-        supersededTurnRefs: {
-          'turn-old': true,
-        },
-      }),
-    );
+    expect(afterState.getWorkspaceState().messages).toBe(beforeMessages);
+    expect(afterState.getWorkspaceState().messages).toEqual([]);
   });
 
   test('setCurrentTurnProjection replaces matching pending turn without clearing busy state first', () => {
-    useChatStore.getState().acceptPendingTurn({
+    acceptPendingTurnInChatStore({
       conversationRef: 'conv-sdk',
       turnRef: 'turn-sdk',
       userMessageId: 'user-sdk',
       text: 'handoff',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     });
 
-    useChatStore.getState().setCurrentTurnProjection({
+    setNoViewSdkLiveTurnInChatStore({
       conversationRef: 'conv-sdk',
       turnRef: 'turn-sdk',
       phase: 'awaiting',
@@ -512,22 +458,22 @@ describe('chatStore', () => {
     });
 
     const state = useChatStore.getState();
-    expect(state.pendingTurn).toBeNull();
-    expect(state.currentTurnProjection?.turnRef).toBe('turn-sdk');
-    expect(state.isSending).toBe(true);
+    const activeWorkspace = state.getWorkspaceState();
+    expect(activeWorkspace.pendingTurn).toBeNull();
+    expect(activeWorkspace.sdkLiveTurn?.turnRef).toBe('turn-sdk');
+    expect(activeWorkspace.isSending).toBe(true);
   });
 
   test('setCurrentTurnProjection keeps pending turn through non-authoritative same-turn SDK idle', () => {
-    useChatStore.getState().acceptPendingTurn({
+    acceptPendingTurnInChatStore({
       conversationRef: 'conv-sdk-idle',
       turnRef: 'turn-sdk-idle',
       userMessageId: 'user-sdk-idle',
       text: 'handoff idle',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     });
 
-    useChatStore.getState().setCurrentTurnProjection({
+    setNoViewSdkLiveTurnInChatStore({
       conversationRef: 'conv-sdk-idle',
       turnRef: 'turn-sdk-idle',
       phase: 'idle',
@@ -545,97 +491,67 @@ describe('chatStore', () => {
     });
 
     const state = useChatStore.getState();
-    expect(state.pendingTurn).toEqual(expect.objectContaining({
+    const activeWorkspace = state.getWorkspaceState();
+    expect(activeWorkspace.pendingTurn).toEqual(expect.objectContaining({
       conversationRef: 'conv-sdk-idle',
       turnRef: 'turn-sdk-idle',
     }));
-    expect(state.currentTurnProjection?.turnRef).toBe('turn-sdk-idle');
-    expect(state.isSending).toBe(true);
+    expect(activeWorkspace.sdkLiveTurn?.turnRef).toBe('turn-sdk-idle');
+    expect(activeWorkspace.isSending).toBe(true);
   });
 
   test('clearPendingTurn clears only the matching pending turn', () => {
-    useChatStore.getState().acceptPendingTurn({
+    acceptPendingTurnInChatStore({
       conversationRef: 'conv-clear',
       turnRef: 'turn-clear',
       userMessageId: 'user-clear',
       text: 'clear me',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     });
 
-    useChatStore.getState().clearPendingTurn({
+    clearPendingTurnInChatStore({
       conversationRef: 'conv-other',
       turnRef: 'turn-clear',
     });
-    expect(useChatStore.getState().pendingTurn?.turnRef).toBe('turn-clear');
-    expect(useChatStore.getState().isSending).toBe(true);
+    expect(getActiveWorkspace().pendingTurn?.turnRef).toBe('turn-clear');
+    expect(getActiveWorkspace().isSending).toBe(true);
 
-    useChatStore.getState().clearPendingTurn({
+    clearPendingTurnInChatStore({
       conversationRef: 'conv-clear',
       turnRef: 'turn-clear',
     });
-    expect(useChatStore.getState().pendingTurn).toBeNull();
-    expect(useChatStore.getState().isSending).toBe(false);
+    expect(getActiveWorkspace().pendingTurn).toBeNull();
+    expect(getActiveWorkspace().isSending).toBe(false);
   });
 
   test('acceptStoppedTurn clears matching pending turn and local busy state immediately', () => {
-    useChatStore.getState().acceptPendingTurn({
+    acceptPendingTurnInChatStore({
       conversationRef: 'conv-stop-pending',
       turnRef: 'turn-stop-pending',
       userMessageId: 'user-stop-pending',
       text: 'stop pending',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     });
-    useChatStore.getState().setThinkingStatus('thinking', 'conv-stop-pending');
-    useChatStore.getState().setThinkingSourceEventType('assistant', 'conv-stop-pending');
+    setThinkingStatusInChatStore('thinking', 'conv-stop-pending');
+    setThinkingSourceEventTypeInChatStore('assistant', 'conv-stop-pending');
 
-    useChatStore.getState().acceptStoppedTurn({
+    acceptStoppedTurnInChatStore({
       conversationRef: 'conv-stop-pending',
       turnRef: 'turn-stop-pending',
       stoppedAt: '2026-06-16T00:00:01.000Z',
     });
 
     const state = useChatStore.getState();
-    expect(state.pendingTurn).toBeNull();
-    expect(state.isSending).toBe(false);
-    expect(state.thinkingStatus).toBeNull();
-    expect(state.thinkingSourceEventType).toBeNull();
-    expect(state.streamTracking).toEqual(expect.objectContaining({
+    const activeWorkspace = state.getWorkspaceState();
+    expect(activeWorkspace.pendingTurn).toBeNull();
+    expect(activeWorkspace.isSending).toBe(false);
+    expect(activeWorkspace.thinkingStatus).toBeNull();
+    expect(activeWorkspace.thinkingSourceEventType).toBeNull();
+    expect(activeWorkspace.streamTracking).toEqual(expect.objectContaining({
       phase: 'complete',
       completedAt: '2026-06-16T00:00:01.000Z',
       lastEventType: 'stop-query',
     }));
-  });
-
-  test('acceptStoppedTurn ignores stale superseded turns while a replacement is pending', () => {
-    useChatStore.getState().acceptReplayPendingTurn({
-      conversationRef: 'conv-stale-stop',
-      messages: [],
-      pendingTurn: {
-        conversationRef: 'conv-stale-stop',
-        turnRef: 'turn-new',
-        userMessageId: 'user-new',
-        text: 'edited question',
-        timestamp: '2026-06-16T00:00:00.000Z',
-        attachmentFilenames: null,
-      },
-      supersededTurnRef: 'turn-old',
-    });
-    const beforeState = useChatStore.getState();
-
-    useChatStore.getState().acceptStoppedTurn({
-      conversationRef: 'conv-stale-stop',
-      turnRef: 'turn-old',
-      stoppedAt: '2026-06-16T00:00:01.000Z',
-    });
-
-    const state = useChatStore.getState();
-    expect(state).toBe(beforeState);
-    expect(state.pendingTurn).toEqual(expect.objectContaining({
-      turnRef: 'turn-new',
-    }));
-    expect(state.isSending).toBe(true);
   });
 
   test('acceptStoppedTurn terminalizes SDK current-turn and preserves visible partial content', () => {
@@ -664,15 +580,14 @@ describe('chatStore', () => {
       },
     };
     useChatStore.getState().setActiveConversationRef('conv-stop-sdk');
-    useChatStore.getState().setCurrentTurnProjection(currentTurnProjection, 'conv-stop-sdk');
+    setNoViewSdkLiveTurnInChatStore(currentTurnProjection, 'conv-stop-sdk');
 
-    useChatStore.getState().acceptStoppedTurn({
+    acceptStoppedTurnInChatStore({
       conversationRef: 'conv-stop-sdk',
       turnRef: 'turn-stop-sdk',
-      currentTurnProjection,
     });
 
-    expect(useChatStore.getState().currentTurnProjection).toEqual(expect.objectContaining({
+    expect(getActiveWorkspace().sdkLiveTurn).toEqual(expect.objectContaining({
       phase: 'complete',
       presentation: expect.objectContaining({
         isBusy: false,
@@ -684,10 +599,10 @@ describe('chatStore', () => {
         }),
       }),
     }));
-    expect(useChatStore.getState().currentTurnProjection?.presentation).not.toHaveProperty(
+    expect(getActiveWorkspace().sdkLiveTurn?.presentation).not.toHaveProperty(
       'typingVisible',
     );
-    expect(useChatStore.getState().currentTurnProjection?.presentation).not.toHaveProperty(
+    expect(getActiveWorkspace().sdkLiveTurn?.presentation).not.toHaveProperty(
       'overlayVisible',
     );
   });

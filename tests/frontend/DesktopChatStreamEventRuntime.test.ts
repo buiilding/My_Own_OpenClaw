@@ -4,6 +4,9 @@
 
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { DesktopChatStreamEventRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime';
+import {
+  DesktopChatTurnConversationRefRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime';
 
 const {
   isAssistantMessageConversationStreamEvent,
@@ -21,12 +24,15 @@ const {
   isUserMessageMetadataConversationStreamEvent,
   isUsageUpdatedConversationStreamEvent,
   recordTrackingEvent,
-  resolveConversationStreamEventConversationRef,
-  resolveConversationStreamEventTurnRef,
-  resolveConversationStreamEventTurnRefForUpdate,
-  shouldIgnoreConversationEventForStaleTurn,
+  resolveConversationStreamEventIdentity,
+  resolveTurnCompletedStreamEventState,
+  resolveWorkspaceThinkingSourceEventType,
+  shouldIgnoreConversationEventIdentityForStaleTurn,
   shouldRecordTerminalCompletionTracking,
 } = DesktopChatStreamEventRuntime;
+const {
+  resetRendererTurnConversationRefs,
+} = DesktopChatTurnConversationRefRuntime;
 
 function createEvent(overrides: Record<string, unknown> = {}) {
   return {
@@ -53,15 +59,19 @@ function getWorkspaceState(conversationRef?: string | null) {
 }
 
 function shouldIgnore(event: ReturnType<typeof createEvent>, conversationRef?: string | null): boolean {
-  return shouldIgnoreConversationEventForStaleTurn(event, conversationRef, { getWorkspaceState });
+  return shouldIgnoreConversationEventIdentityForStaleTurn(
+    resolveConversationStreamEventIdentity(event, conversationRef),
+    conversationRef,
+    { getWorkspaceState },
+  );
 }
 
 describe('DesktopChatStreamEventRuntime', () => {
   beforeEach(() => {
+    resetRendererTurnConversationRefs();
     useChatStore.setState((state) => ({
       ...state,
       activeConversationRef: null,
-      turnConversationRefs: {},
       isSending: false,
       pendingTurn: null,
       streamTracking: {
@@ -219,15 +229,120 @@ describe('DesktopChatStreamEventRuntime', () => {
     } as any, 'turn-old')).toBe(false);
   });
 
+  test('terminal completion tracking records matching ConversationView live turn over stale complete stream state', () => {
+    expect(shouldRecordTerminalCompletionTracking({
+      messages: [],
+      pendingTurn: null,
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: {
+          turnRef: ' turn-view ',
+          phase: 'streaming',
+        },
+        displayRows: [],
+      },
+      streamTracking: {
+        activeTurnRef: 'turn-stale',
+        phase: 'complete',
+      },
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+    } as any, 'turn-view')).toBe(true);
+
+    expect(shouldRecordTerminalCompletionTracking({
+      messages: [],
+      pendingTurn: null,
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'streaming',
+        },
+        displayRows: [],
+      },
+      streamTracking: {
+        activeTurnRef: 'turn-stale',
+        phase: 'complete',
+      },
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+    } as any, 'turn-stale')).toBe(false);
+  });
+
   test('terminal completion tracking records non-complete stream phase', () => {
     expect(shouldRecordTerminalCompletionTracking({
       messages: [],
       pendingTurn: null,
       streamTracking: {
         activeTurnRef: 'turn-old',
-        phase: 'streaming',
+      phase: 'streaming',
       },
     }, 'turn-old')).toBe(true);
+  });
+
+  test('resolves terminal completion state through runtime workspace dependency', () => {
+    const workspace = {
+      messages: [],
+      pendingTurn: pendingTurn('turn-new', 'conv-complete'),
+      streamTracking: {
+        activeTurnRef: 'turn-old',
+        phase: 'complete',
+      },
+    };
+
+    expect(resolveTurnCompletedStreamEventState(
+      {
+        type: 'turn_completed',
+        conversationRef: 'conv-complete',
+        turnRef: 'turn-new',
+      },
+      null,
+      {
+        getWorkspaceState: jest.fn(() => workspace),
+      },
+    )).toEqual({
+      conversationRef: 'conv-complete',
+      shouldRecordTerminalTracking: true,
+      turnRef: 'turn-new',
+    });
+  });
+
+  test('ignores non-completion events in terminal completion state resolver', () => {
+    expect(resolveTurnCompletedStreamEventState(
+      {
+        type: 'assistant_message',
+        conversationRef: 'conv-complete',
+        turnRef: 'turn-new',
+      },
+      null,
+      {
+        getWorkspaceState: jest.fn(() => {
+          throw new Error('workspace should not be read');
+        }),
+      },
+    )).toBeNull();
+  });
+
+  test('resolves workspace thinking source event type through runtime dependency', () => {
+    const getWorkspaceState = jest.fn(() => ({
+      thinkingSourceEventType: ' context-compaction-started ',
+    }));
+
+    expect(resolveWorkspaceThinkingSourceEventType('conv-thinking', {
+      getWorkspaceState,
+    })).toBe('context-compaction-started');
+    expect(getWorkspaceState).toHaveBeenCalledWith('conv-thinking');
+  });
+
+  test('normalizes missing workspace thinking source event type to null', () => {
+    expect(resolveWorkspaceThinkingSourceEventType('conv-thinking', {
+      getWorkspaceState: jest.fn(() => null),
+    })).toBeNull();
+    expect(resolveWorkspaceThinkingSourceEventType('conv-thinking', {
+      getWorkspaceState: jest.fn(() => ({
+        thinkingSourceEventType: '   ',
+      })),
+    })).toBeNull();
   });
 
   test('classifies supported SDK conversation stream event types', () => {
@@ -328,29 +443,43 @@ describe('DesktopChatStreamEventRuntime', () => {
   });
 
   test('normalizes SDK conversation stream event identity fields', () => {
-    expect(resolveConversationStreamEventConversationRef({
+    expect(resolveConversationStreamEventIdentity({
       conversationRef: ' conversation-1 ',
       turnRef: ' turn-1 ',
-    })).toBe('conversation-1');
-    expect(resolveConversationStreamEventTurnRef({
+    })).toEqual({
+      conversationRef: 'conversation-1',
+      turnRef: 'turn-1',
+      turnRefForUpdate: 'turn-1',
+    });
+    expect(resolveConversationStreamEventIdentity({
+      turnRef: ' turn-1 ',
+    })).toEqual({
+      conversationRef: null,
+      turnRef: 'turn-1',
+      turnRefForUpdate: 'turn-1',
+    });
+    expect(resolveConversationStreamEventIdentity({
       conversationRef: ' conversation-1 ',
       turnRef: ' turn-1 ',
-    })).toBe('turn-1');
-    expect(resolveConversationStreamEventTurnRefForUpdate({
-      turnRef: ' turn-1 ',
-    })).toBe('turn-1');
+    }, ' fallback-conversation ')).toEqual({
+      conversationRef: 'fallback-conversation',
+      turnRef: 'turn-1',
+      turnRefForUpdate: 'turn-1',
+    });
 
-    expect(resolveConversationStreamEventConversationRef({
+    expect(resolveConversationStreamEventIdentity({
       conversationRef: '   ',
-    })).toBeNull();
-    expect(resolveConversationStreamEventTurnRef({
       turnRef: '   ',
-    })).toBeNull();
-    expect(resolveConversationStreamEventTurnRefForUpdate({
-      turnRef: '   ',
-    })).toBeUndefined();
-    expect(resolveConversationStreamEventConversationRef(null)).toBeNull();
-    expect(resolveConversationStreamEventTurnRef(undefined)).toBeNull();
+    })).toEqual({
+      conversationRef: null,
+      turnRef: null,
+      turnRefForUpdate: undefined,
+    });
+    expect(resolveConversationStreamEventIdentity(null)).toEqual({
+      conversationRef: null,
+      turnRef: null,
+      turnRefForUpdate: undefined,
+    });
   });
 
   test('stale turn guard ignores packets from just-completed active turn during terminal pending handoff', () => {
@@ -555,14 +684,11 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(shouldIgnore(createEvent({ turnRef: 'turn-new' }), null)).toBe(false);
   });
 
-  test('stale turn guard ignores same-turn packets during error pending handoff', () => {
+  test('stale turn guard ignores old active-turn packets during error pending handoff', () => {
     useChatStore.setState((state) => ({
       ...state,
-      messages: [
-        { id: 'assistant-old', sender: 'assistant', text: 'done', type: 'llm-text' as const },
-      ],
       isSending: true,
-      pendingTurn: pendingTurn('turn-old'),
+      pendingTurn: pendingTurn('turn-new'),
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: 'turn-old',
@@ -572,11 +698,8 @@ describe('DesktopChatStreamEventRuntime', () => {
         ...state.workspaces,
         __default__: {
           ...state.workspaces.__default__,
-          messages: [
-            { id: 'assistant-old', sender: 'assistant', text: 'done', type: 'llm-text' as const },
-          ],
           isSending: true,
-          pendingTurn: pendingTurn('turn-old'),
+          pendingTurn: pendingTurn('turn-new'),
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: 'turn-old',
@@ -589,12 +712,9 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(shouldIgnore(createEvent({ turnRef: 'turn-old' }), null)).toBe(true);
   });
 
-  test('stale turn guard keeps same-turn packets during error pending handoff when a new optimistic user row is present', () => {
+  test('stale turn guard keeps same-turn packets during error pending handoff when the pending bridge owns them', () => {
     useChatStore.setState((state) => ({
       ...state,
-      messages: [
-        { id: 'user-new', sender: 'user', text: 'next turn', type: 'user' as const },
-      ],
       isSending: true,
       pendingTurn: pendingTurn('turn-current'),
       streamTracking: {
@@ -606,9 +726,6 @@ describe('DesktopChatStreamEventRuntime', () => {
         ...state.workspaces,
         __default__: {
           ...state.workspaces.__default__,
-          messages: [
-            { id: 'user-new', sender: 'user', text: 'next turn', type: 'user' as const },
-          ],
           isSending: true,
           pendingTurn: pendingTurn('turn-current'),
           streamTracking: {
@@ -682,6 +799,41 @@ describe('DesktopChatStreamEventRuntime', () => {
     }));
 
     expect(shouldIgnore(createEvent({ turnRef: ' turn-1 ' }), null)).toBe(false);
+  });
+
+  test('stale turn guard prefers ConversationView live turn over stale stream tracking', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-stale',
+        phase: 'streaming',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          conversationView: {
+            conversationRef: 'conv-view',
+            displayRows: [],
+            liveTurn: {
+              turnRef: ' turn-view ',
+              phase: 'streaming',
+              entries: [],
+              canStop: true,
+            },
+          },
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-stale',
+            phase: 'streaming',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-view' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-stale' }), null)).toBe(true);
   });
 
   test('stale turn guard allows next-turn packets when pending handoff has no active turn ref', () => {

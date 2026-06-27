@@ -27,18 +27,7 @@ export interface ChatMessage {
   sourceEventType?: string | null;
   sourceChannel?: string | null;
   isComplete?: boolean;
-  screenshot?: string | null;
-  screenshotRef?: string | null;
-  screenshotUrl?: string | null;
-  screenshotContentType?: string | null;
-  attachmentFilenames?: string[] | null;
   attachments?: SdkDisplayAttachment[] | null;
-  screenshots?: Array<{
-    screenshot?: string | null;
-    screenshotRef?: string | null;
-    screenshotUrl?: string | null;
-    screenshotContentType?: string | null;
-  }> | null;
   modelId?: string | null;
   modelProvider?: string | null;
   toolMetadata?: Record<string, unknown> | null;
@@ -47,17 +36,6 @@ export interface ChatMessage {
   success?: boolean;
   correlationId?: string;
   timestamp?: string;
-  modelFacingToolCall?: {
-    id?: string;
-    name?: string;
-    arguments?: Record<string, unknown>;
-    metadata?: Record<string, unknown>;
-    thought_signature?: string;
-    raw_tool_call_preview?: string;
-    raw_arguments_preview?: string;
-    parse_error?: string;
-    execution_skipped?: boolean;
-  } | null;
   toolCallDisplayText?: string | null;
   modelFacingToolOutput?: string | null;
   toolCallDetails?: Record<string, unknown> | null;
@@ -79,4 +57,10 @@ export interface ChatMessage {
   thinkingText?: string | null;
   thinkingSourceEventType?: string | null;
   tokenCounts?: TokenCounts | null;
+  actions?: {
+    canEdit?: boolean;
+    editTargetRowId?: string | null;
+    canRetry?: boolean;
+    retryTargetRowId?: string | null;
+  } | null;
 }

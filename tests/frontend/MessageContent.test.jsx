@@ -265,13 +265,14 @@ describe('MessageContent', () => {
     expect(screen.getByText(/"request_id": "req-1"/)).toBeInTheDocument();
   });
 
-  test('tool call details button reveals model-facing tool call JSON', () => {
+  test('tool call details button reveals SDK display text and tool details', () => {
     render(
       <MessageContent
         message={{
           sender: 'assistant',
           type: 'tool-call',
           text: 'ignored tool call text',
+          toolCallDisplayText: '{\n  "name": "read_file"\n}',
           modelFacingToolCall: {
             id: 'tool_1',
             name: 'read_file',
@@ -317,7 +318,7 @@ describe('MessageContent', () => {
     expect(screen.queryByText('ignored normalized view')).not.toBeInTheDocument();
   });
 
-  test('tool call display uses model-facing payload when display text is absent', () => {
+  test('tool call display does not recover model-facing payload when display text is absent', () => {
     render(
       <MessageContent
         message={{
@@ -333,7 +334,7 @@ describe('MessageContent', () => {
       />,
     );
 
-    expect(screen.getByText(/"name": "search"/)).toBeInTheDocument();
+    expect(screen.queryByText(/"name": "search"/)).not.toBeInTheDocument();
     expect(screen.queryByText('ignored raw row text')).not.toBeInTheDocument();
   });
 

@@ -5,8 +5,8 @@
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../infrastructure/ipc/channels';
 import type {
+  ConversationView,
   CurrentTurnProjection,
-  SdkDisplayRow,
 } from './desktopConversationRuntimeContracts';
 import {
   DesktopPendingTurnRuntimeClient,
@@ -18,11 +18,7 @@ export type DesktopRuntimeEventListener = (payload: unknown) => void;
 export type DesktopCurrentTurnProjectionEvent = {
   currentTurn: CurrentTurnProjection | null;
   conversationRef: string | null;
-};
-
-export type DesktopDisplayRowsProjectionEvent = {
-  rows: SdkDisplayRow[];
-  conversationRef: string | null;
+  view: ConversationView | null;
 };
 
 function subscribe(channel: string | undefined, listener: DesktopRuntimeEventListener): (() => void) | undefined {
@@ -44,6 +40,19 @@ function normalizeOptionalString(value: unknown): string | null {
     : null;
 }
 
+function hasSdkPresentation(value: unknown): boolean {
+  const presentation = recordOrEmpty(value);
+  return Array.isArray(presentation.entries);
+}
+
+function hasLegacyCurrentTurnContent(value: unknown): boolean {
+  const projection = recordOrEmpty(value);
+  const assistantText = projection.assistantText;
+  const toolEvents = projection.toolEvents;
+  return typeof assistantText === 'string'
+    && Array.isArray(toolEvents);
+}
+
 function isCurrentTurnProjection(value: unknown): value is CurrentTurnProjection {
   if (!value || typeof value !== 'object') {
     return false;
@@ -51,33 +60,21 @@ function isCurrentTurnProjection(value: unknown): value is CurrentTurnProjection
   const projection = value as Partial<CurrentTurnProjection>;
   return typeof projection.conversationRef === 'string'
     && typeof projection.phase === 'string'
-    && typeof projection.assistantText === 'string'
-    && Array.isArray(projection.toolEvents);
+    && (
+      hasSdkPresentation(projection.presentation)
+      || hasLegacyCurrentTurnContent(projection)
+    );
 }
 
-function isSdkDisplayRow(value: unknown): value is SdkDisplayRow {
-  if (!value || typeof value !== 'object') {
+function isConversationView(value: unknown): value is ConversationView {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return false;
   }
-  const row = value as Partial<SdkDisplayRow>;
-  return typeof row.id === 'string'
-    && typeof row.conversationRef === 'string'
-    && typeof row.type === 'string'
-    && typeof row.role === 'string';
-}
-
-function isSdkDisplayRows(value: unknown): value is SdkDisplayRow[] {
-  return Array.isArray(value) && value.every(isSdkDisplayRow);
-}
-
-function resolveRowsConversationRef(rows: SdkDisplayRow[]): string | null {
-  for (const row of rows) {
-    const conversationRef = normalizeOptionalString(row.conversationRef);
-    if (conversationRef) {
-      return conversationRef;
-    }
-  }
-  return null;
+  const view = value as Partial<ConversationView>;
+  return typeof view.conversationRef === 'string'
+    && Array.isArray(view.displayRows)
+    && Boolean(view.liveTurn && typeof view.liveTurn === 'object')
+    && Boolean(view.surfaces && typeof view.surfaces === 'object');
 }
 
 function normalizeCurrentTurnProjectionEvent(
@@ -87,32 +84,18 @@ function normalizeCurrentTurnProjectionEvent(
   const currentTurn = isCurrentTurnProjection(payload)
     ? payload
     : source.currentTurn;
+  const view = isConversationView(source.view) ? source.view : null;
   if (!isCurrentTurnProjection(currentTurn)) {
     return {
       currentTurn: null,
       conversationRef: null,
+      view,
     };
   }
   return {
     currentTurn,
     conversationRef: normalizeOptionalString(source.conversationRef) ?? currentTurn.conversationRef,
-  };
-}
-
-function normalizeDisplayRowsProjectionEvent(
-  payload: unknown,
-): DesktopDisplayRowsProjectionEvent {
-  const source = recordOrEmpty(payload);
-  const rows = Array.isArray(source.rows) ? source.rows : payload;
-  if (!isSdkDisplayRows(rows)) {
-    return {
-      rows: [],
-      conversationRef: null,
-    };
-  }
-  return {
-    rows,
-    conversationRef: normalizeOptionalString(source.conversationRef) ?? resolveRowsConversationRef(rows),
+    view,
   };
 }
 
@@ -130,10 +113,6 @@ export const DesktopConversationRuntimeEventClient = {
     );
   },
 
-  onCurrentTurn(listener: DesktopRuntimeEventListener): (() => void) | undefined {
-    return subscribe(DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN, listener);
-  },
-
   onCurrentTurnProjection(
     listener: (event: DesktopCurrentTurnProjectionEvent) => void,
   ): (() => void) | undefined {
@@ -143,16 +122,4 @@ export const DesktopConversationRuntimeEventClient = {
     );
   },
 
-  onDisplayRows(listener: DesktopRuntimeEventListener): (() => void) | undefined {
-    return subscribe(DESKTOP_RUNTIME_ON_CHANNELS.ROWS, listener);
-  },
-
-  onDisplayRowsProjection(
-    listener: (event: DesktopDisplayRowsProjectionEvent) => void,
-  ): (() => void) | undefined {
-    return subscribe(
-      DESKTOP_RUNTIME_ON_CHANNELS.ROWS,
-      (payload: unknown) => listener(normalizeDisplayRowsProjectionEvent(payload)),
-    );
-  },
 };

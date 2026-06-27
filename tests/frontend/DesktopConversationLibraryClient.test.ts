@@ -28,7 +28,7 @@ describe('DesktopConversationLibraryClient', () => {
     mockInvokeAgentSdkCommand.mockReset();
   });
 
-  test('lists, searches, deletes, and loads through SDK-shaped commands', async () => {
+  test('lists, searches, deletes, and loads ConversationView through SDK-shaped commands', async () => {
     mockInvokeAgentSdkCommand.mockImplementation(async (command) => {
       if (command === 'diagnostics.append') {
         return { stored: true };
@@ -95,9 +95,14 @@ describe('DesktopConversationLibraryClient', () => {
       }),
     ]);
     await expect(DesktopConversationLibraryClient.deleteConversation('user-1', 'conv-1')).resolves.toBeUndefined();
-    await expect(DesktopConversationLibraryClient.loadDisplayRows('user-1', 'conv-1')).resolves.toEqual([
-      { id: 'row-view', conversationRef: 'conv-1', role: 'assistant', type: 'assistant', content: 'hello from view' },
-    ]);
+    await expect(DesktopConversationLibraryClient.loadConversationView('user-1', 'conv-1')).resolves.toEqual(
+      expect.objectContaining({
+        conversationRef: 'conv-1',
+        displayRows: [
+          { id: 'row-view', conversationRef: 'conv-1', role: 'assistant', type: 'assistant', content: 'hello from view' },
+        ],
+      }),
+    );
 
     expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversations.list', {
       userId: 'user-1',
@@ -210,19 +215,25 @@ describe('DesktopConversationLibraryClient', () => {
     )).toBe(false);
   });
 
-  test('filters loaded display rows to the requested conversation', async () => {
+  test('loads ConversationView with rows filtered to the requested conversation', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValueOnce({
       view: {
+        conversationRef: 'conv-1',
         displayRows: [
           { id: 'row-view', conversationRef: 'conv-1', role: 'user', type: 'user_message', content: 'yo from view' },
           { id: 'row-view-old', conversationRef: 'conv-old', role: 'assistant', type: 'assistant_message', content: 'old view' },
         ],
+        actions: { canRetry: true },
       },
     });
 
-    await expect(DesktopConversationLibraryClient.loadDisplayRows('user-1', 'conv-1')).resolves.toEqual([
-      { id: 'row-view', conversationRef: 'conv-1', role: 'user', type: 'user_message', content: 'yo from view' },
-    ]);
+    await expect(DesktopConversationLibraryClient.loadConversationView('user-1', 'conv-1')).resolves.toEqual({
+      conversationRef: 'conv-1',
+      displayRows: [
+        { id: 'row-view', conversationRef: 'conv-1', role: 'user', type: 'user_message', content: 'yo from view' },
+      ],
+      actions: { canRetry: true },
+    });
   });
 
   test('ignores legacy display rows when loadDisplay omits ConversationView', async () => {
@@ -233,6 +244,6 @@ describe('DesktopConversationLibraryClient', () => {
       ],
     });
 
-    await expect(DesktopConversationLibraryClient.loadDisplayRows('user-1', 'conv-1')).resolves.toEqual([]);
+    await expect(DesktopConversationLibraryClient.loadConversationView('user-1', 'conv-1')).resolves.toBeNull();
   });
 });

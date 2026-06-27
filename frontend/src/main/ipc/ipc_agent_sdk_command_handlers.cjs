@@ -486,11 +486,12 @@ function buildAgentSdkCommandHandlers({
         reason: 'sdk-command:conversation.fork',
         conversationRef,
       });
+      const newConversationRef = normalizeOptionalString(payload.newConversationRef);
       return runtimeRegistry.forkConversation({
         conversationRef,
         sourceRevisionId: normalizeOptionalString(payload.sourceRevisionId) ?? undefined,
         cutAfterRowId: normalizeOptionalString(payload.cutAfterRowId) ?? undefined,
-        newConversationRef: requireCommandString(payload, 'newConversationRef', 'new conversation reference'),
+        ...(newConversationRef ? { newConversationRef } : {}),
       });
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_COMPACTED_REPLAY]: async (payload = {}) => {

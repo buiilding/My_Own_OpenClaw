@@ -7,30 +7,28 @@ import { useChatStream } from '../../features/chat/hooks/useChatStream';
 import { useConversationRuntimeProjectionStream } from '../../features/chat/hooks/useConversationRuntimeProjectionStream';
 import { useChatSessionBootstrap } from '../../features/chat/hooks/useChatSessionBootstrap';
 import { useConversationSessionProjection } from '../../features/chat/session/useConversationSessionProjection';
-import { useChatStore } from '../../features/chat/stores/chatStore';
+import {
+  getActiveConversationRefFromChatStore,
+  getProjectedWorkspaceReadModelFromChatStore,
+} from '../../features/chat/stores/chatStoreAdapters';
+import {
+  DesktopChatProviderTraceRuntime,
+} from '../runtime/desktopChatProviderTraceRuntime';
 import { DesktopRendererTraceRuntime } from '../runtime/desktopRendererTraceRuntime';
 import { DesktopTranscriptSessionInfoRuntimeClient } from '../runtime/desktopTranscriptSessionInfoRuntimeClient';
 
+const {
+  buildChatProviderTraceWorkspaceSnapshot,
+} = DesktopChatProviderTraceRuntime;
 const {
   configureRendererTraceWorkspaceSnapshotResolver,
 } = DesktopRendererTraceRuntime;
 
 function resolveChatTraceWorkspaceSnapshot(conversationRef) {
-  const store = useChatStore.getState();
-  const workspace = store.getWorkspaceState(conversationRef);
-  const lastMessage = workspace.messages[workspace.messages.length - 1] || null;
-  return {
-    activeConversationRef: store.activeConversationRef,
-    workspaceMessageCount: workspace.messages.length,
-    activeTurnRef: workspace.streamTracking.activeTurnRef,
-    lastMessage: lastMessage ? {
-      sender: lastMessage.sender,
-      type: lastMessage.type || null,
-      textLength: typeof lastMessage.text === 'string' ? lastMessage.text.length : 0,
-      turnRef: lastMessage.turnRef || null,
-      sourceEventType: lastMessage.sourceEventType || null,
-    } : null,
-  };
+  return buildChatProviderTraceWorkspaceSnapshot({
+    activeConversationRef: getActiveConversationRefFromChatStore(),
+    workspace: getProjectedWorkspaceReadModelFromChatStore(conversationRef),
+  });
 }
 
 configureRendererTraceWorkspaceSnapshotResolver(resolveChatTraceWorkspaceSnapshot);

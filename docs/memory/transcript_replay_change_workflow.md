@@ -82,8 +82,8 @@ flowchart LR
 
 | Symptom | First owner | Inspect first | Then inspect |
 | --- | --- | --- | --- |
-| User or assistant row appears in UI but is missing after restart | SDK store/display projection | `desktopConversationStore.ts`, `sdkDisplayChatMessageProjection.ts`, SDK conversation runtime/store | `DesktopConversationStore.test.ts`, `SdkDisplayChatMessageProjection.test.ts`, local-runtime Python `conversation.append_event` tests |
-| Tool call/output rows are missing or replay drops screenshot refs/attachment filenames | Renderer transcript tool message state, SDK display projection, and replay runtime shaping | `toolCallMessageState.js`, `toolOutputChatMessageState.ts`, `sdkDisplayChatMessageProjection.ts`, `desktopConversationReplayRuntime.js` | `DesktopConversationReplayRuntime.test.js`, `SdkDisplayChatMessageProjection.test.ts`, backend linkage validation tests |
+| User or assistant row appears in UI but is missing after restart | SDK store/display projection | `desktopConversationStore.ts`, `desktopSdkDisplayChatMessageProjectionRuntime.ts`, SDK conversation runtime/store | `DesktopConversationStore.test.ts`, `SdkDisplayChatMessageProjection.test.ts`, local-runtime Python `conversation.append_event` tests |
+| Tool call/output rows are missing or replay drops screenshot refs/attachment filenames | Renderer transcript tool message state, SDK display projection, and replay runtime shaping | `toolCallMessageState.js`, `toolOutputChatMessageState.ts`, `desktopSdkDisplayChatMessageProjectionRuntime.ts`, `desktopConversationReplayRuntime.js` | `DesktopConversationReplayRuntime.test.js`, `SdkDisplayChatMessageProjection.test.ts`, backend linkage validation tests |
 | Transcript writes happen under the wrong conversation | Transcript session runtime and Electron sync | `transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionSyncPayload.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md) |
 | Dashboard conversation list is missing, stale, or ordered wrong | Local-runtime conversation storage plus dashboard loader | `frontend/src/main/python/memory/chat_event_store.py`, `local_store.py`, dashboard conversation hooks | `tests/sidecar/test_chat_event_store.py`, `tests/frontend/DashboardConversationLoad.test.js` |
 | Dashboard resume displays wrong rows | SDK display projection and conversation load command | `desktopConversationContinuityService.ts`, `desktopConversationStore.ts`, SDK conversation store/runtime | `DesktopConversationContinuityService.test.ts`, `DesktopConversationStore.test.ts` |
@@ -120,16 +120,36 @@ flowchart LR
      owner retained until a durable local-store migration rewrites those rows.
    - Local snapshots should not replace durable transcript storage unless the code explicitly uses them as a fallback.
    - Edit/resend and try-again must route execution through SDK
-     `conversation.editAndResend` and `conversation.retryTurn`. Renderer may
-     build only the temporary retained visible prefix/pending bridge from
-     already projected messages; it must not load the active display timeline,
-     construct durable replacement rows, call `conversation.replaceRows`, or
-     dispatch a separate normal send for replay execution.
-   - If the SDK replay command fails after the renderer publishes the pending
-     bridge, restore the retained prefix, clear only the pending turn, and
-     append a send-failure row. Do not restore event-log cutting through
-     `conversation.rewrite_after_event`, SDK `prepareEditAndResend`, SDK
-     `prepareRetryTurn`, or durable row replacement from React.
+     `conversation.editAndResend` and `conversation.retryTurn`. Renderer replay
+     must not inspect visible rows to find retry user rows, calculate retained
+     prefixes, supersede turns, build pending replacement rows, load the active
+     display timeline, construct durable replacement rows, call
+     `conversation.replaceRows`, or dispatch a separate normal send for replay
+     execution. SDK commands own target-row resolution, child display revision
+     cuts, supersession, target-row resources, replacement turn refs, and
+     replacement display rows.
+   - React replay hooks should pass edit/retry intent through
+     `desktopConversationReplayRuntime`. Hooks call the runtime's single
+     replay-action entrypoint with row ids/text plus UI dependencies; active
+     conversation state is resolved by the runtime from the store dependency
+     instead of selected in React. If neither transcript session nor chat-store
+     active workspace has a conversation ref, replay returns a traced failure
+     instead of creating a fresh conversation whose SDK display rows cannot own
+     the target id. Replay failures are trace/status outcomes rather than
+     renderer-published chat rows. That public facade exports only
+     `executeReplayAction`, and hooks do not call replay preparation helpers,
+     inspect `ConversationView`/message arrays, or call replay SDK commands
+     directly.
+   - Renderer app-runtime facades should not expose direct display timeline
+     load/replace helpers to React. Low-level display timeline operations remain
+     SDK/main-owner diagnostics and command-handler concerns; normal UI paths
+     use SDK intent commands such as retry, edit/resend, checkout, and fork.
+   - If the SDK replay command fails, record renderer replay diagnostics and
+     return failure without publishing a renderer-local chat row, restoring
+     renderer-cut prefixes, or clearing renderer replay pending state. Do not
+     restore event-log cutting through `conversation.rewrite_after_event`, SDK
+     `prepareEditAndResend`, SDK `prepareRetryTurn`, or durable row replacement
+     from React.
 
 5. Preserve model-history resume shape.
    - SDK `modelHistoryPayloadFromCheckpoint(...)` should emit

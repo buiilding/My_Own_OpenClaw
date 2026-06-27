@@ -45,6 +45,13 @@ Ownership model:
 - provider is the single owner of transcript->chat-store active-conversation projection; leaf UIs should not duplicate this sync
 - null/empty transcript snapshots are ignored so transient startup/session sync races do not clobber active chat workspace identity
 - live-surface trace workspace snapshots carry identity/message evidence, not raw lifecycle latches such as `isSending`, `thinkingStatus`, or `streamTracking.phase`
+- trace workspace snapshots run through
+  `DesktopChatWorkspaceStateRuntime.projectWorkspaceReadModelState(...)` before
+  deriving counts or last-message identity, so trace code does not reopen the
+  raw workspace as a competing chat read model
+- when a workspace has `ConversationView`, live-surface trace snapshots use the
+  view live-turn/display-row identity before falling back to raw stream
+  tracking and workspace messages
 
 ## Surface Flag Semantics
 

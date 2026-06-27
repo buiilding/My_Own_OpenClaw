@@ -15,7 +15,8 @@ First classify the failure by runtime boundary. Many install failures look like 
 | Symptom | Likely owner | First checks |
 | --- | --- | --- |
 | backend command cannot import modules | backend Python environment | run through `./scripts/python-in-env backend`; verify `backend/requirements.txt` install |
-| frontend command cannot find packages | Node install | `cd frontend && npm install`; inspect `frontend/package.json` scripts |
+| frontend command cannot find packages | Node install | `<windie> start dev` auto-installs missing source-mode Node packages; otherwise run `cd frontend && npm install`; inspect `frontend/package.json` scripts |
+| Electron dev cannot find `ws` from `packages/windie-sdk-js/cjs` | SDK package install | `<windie> start dev` auto-installs the SDK package when `packages/windie-sdk-js/node_modules/ws` is missing; otherwise run `cd packages/windie-sdk-js && npm install` |
 | Electron dev launches but cannot connect | endpoint selection or backend health | `BACKEND_HTTP_URL`, `BACKEND_WS_URL`, backend health route |
 | renderer loads but local tools fail | Electron main local-runtime bridge | local-runtime readiness logs, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` |
 | packaged app cannot start local runtime | bundled runtime path or missing runtime deps | inspect `resources/python-runtime`, `frontend/src/main/app/runtime_paths.cjs`, packaged run log |
@@ -39,6 +40,7 @@ Frontend:
 
 ```bash
 (cd frontend && npm install)
+(cd packages/windie-sdk-js && npm install)
 <windie> build frontend
 <windie> start dev
 ```

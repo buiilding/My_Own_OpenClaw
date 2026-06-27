@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
 import { DesktopResponseOverlayLayoutRuntime } from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
+import { DesktopResponseOverlayViewRuntime } from '../../../app/runtime/desktopResponseOverlayViewRuntime';
 import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { DesktopResponseOverlayInteractionRuntime } from '../../../app/runtime/desktopResponseOverlayInteractionRuntime';
 
@@ -16,6 +17,14 @@ const {
 const TYPING_FRAME_HEIGHT = (
   DesktopResponseOverlayLayoutRuntime.getResponseOverlayAwaitingFrameHeight()
 );
+const {
+  buildResponseOverlayWindowLifecycleTraceValues,
+  buildResponseOverlayWindowSizeTraceValues,
+  buildResponseOverlayWindowSizeValues,
+  createResponseOverlayWindowGuardSnapshot,
+  resolveResponseOverlayWindowGuardSnapshot,
+  resolveResponseOverlayWindowSizeIdentity,
+} = DesktopResponseOverlayViewRuntime;
 
 function createHiddenFrameState() {
   return {
@@ -38,61 +47,45 @@ export function useResponseOverlayWindowSync({
   thinkingText,
 }) {
   const lastFrameRef = useRef(createHiddenFrameState());
-  const lastOverlayGuardRef = useRef({
-    turnRef: null,
-    staleGuardRef: null,
-  });
-  const overlayConversationRefRef = useRef(null);
+  const overlayWindowGuardRef = useRef(createResponseOverlayWindowGuardSnapshot());
   const reportOverlaySizeRef = useRef(null);
   const visibilityRereportCancelRef = useRef(null);
 
   useEffect(() => {
-    const turnRef = overlayIntent?.turnRef ?? null;
-    const staleGuardRef = overlayIntent?.staleGuardRef ?? turnRef;
-    overlayConversationRefRef.current = overlayIntent?.conversationRef || null;
-    if (turnRef || staleGuardRef) {
-      lastOverlayGuardRef.current = {
-        turnRef,
-        staleGuardRef,
-      };
-    }
-  }, [overlayIntent?.conversationRef, overlayIntent?.staleGuardRef, overlayIntent?.turnRef]);
+    overlayWindowGuardRef.current = resolveResponseOverlayWindowGuardSnapshot({
+      overlayIntent,
+      previousSnapshot: overlayWindowGuardRef.current,
+    });
+  }, [overlayIntent]);
 
   const reportOverlaySize = useCallback(async ({
     visible,
     layoutMode = DesktopResponseOverlayLayoutRuntime.getHiddenResponseOverlayLayoutMode(),
   }) => {
-    const turnRef = overlayIntent?.turnRef ?? lastOverlayGuardRef.current.turnRef ?? null;
-    const staleGuardRef = (
-      overlayIntent?.staleGuardRef
-      ?? overlayIntent?.turnRef
-      ?? lastOverlayGuardRef.current.staleGuardRef
-      ?? lastOverlayGuardRef.current.turnRef
-      ?? null
-    );
+    const sizeIdentity = resolveResponseOverlayWindowSizeIdentity({
+      overlayIntent,
+      guardSnapshot: overlayWindowGuardRef.current,
+    });
     if (!visible) {
       if (lastFrameRef.current.visible === false) {
         return;
       }
       lastFrameRef.current = createHiddenFrameState();
       try {
-        logRendererResponseSurfaceSizeTrace({
+        logRendererResponseSurfaceSizeTrace(buildResponseOverlayWindowSizeTraceValues({
           action: 'hide-requested',
-          conversationRef: overlayIntent?.conversationRef || null,
           visible: false,
           layoutMode: DesktopResponseOverlayLayoutRuntime.getHiddenResponseOverlayLayoutMode(),
-          turnRef,
-          staleGuardRef,
+          sizeIdentity,
           width: 0,
           height: 0,
-        });
-        await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({
+        }));
+        await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues(buildResponseOverlayWindowSizeValues({
           visible: false,
           width: 0,
           height: 0,
-          turnRef,
-          staleGuardRef,
-        });
+          sizeIdentity,
+        }));
       } catch (error) {
         console.warn('[MinimalResponseOverlay] Failed to hide response overlay:', error);
       }
@@ -132,34 +125,29 @@ export function useResponseOverlayWindowSync({
     };
 
     try {
-      logRendererResponseSurfaceSizeTrace({
+      logRendererResponseSurfaceSizeTrace(buildResponseOverlayWindowSizeTraceValues({
         action: 'show-or-resize-requested',
-        conversationRef: overlayIntent?.conversationRef || null,
         visible: true,
         layoutMode,
         responseVisible,
         thinkingText,
         compactHover: Boolean(compactHover),
-        turnRef,
-        staleGuardRef,
+        sizeIdentity,
         width,
         height,
-      });
-      await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({
+      }));
+      await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues(buildResponseOverlayWindowSizeValues({
         visible: true,
         width,
         height,
         compactHover: Boolean(compactHover),
-        turnRef,
-        staleGuardRef,
-      });
+        sizeIdentity,
+      }));
     } catch (error) {
       console.warn('[MinimalResponseOverlay] Failed to resize response overlay:', error);
     }
   }, [
-    overlayIntent?.conversationRef,
-    overlayIntent?.staleGuardRef,
-    overlayIntent?.turnRef,
+    overlayIntent,
     shellRef,
     responseVisible,
     thinkingText,
@@ -234,19 +222,15 @@ export function useResponseOverlayWindowSync({
   ]);
 
   useEffect(() => {
-    logRendererResponseOverlayLifecycleTrace({
+    logRendererResponseOverlayLifecycleTrace(buildResponseOverlayWindowLifecycleTraceValues({
       action: 'mount',
-      conversationRef: overlayConversationRefRef.current,
-      turnRef: lastOverlayGuardRef.current.turnRef,
-      staleGuardRef: lastOverlayGuardRef.current.staleGuardRef,
-    });
+      guardSnapshot: overlayWindowGuardRef.current,
+    }));
     return () => {
-      logRendererResponseOverlayLifecycleTrace({
+      logRendererResponseOverlayLifecycleTrace(buildResponseOverlayWindowLifecycleTraceValues({
         action: 'unmount',
-        conversationRef: overlayConversationRefRef.current,
-        turnRef: lastOverlayGuardRef.current.turnRef,
-        staleGuardRef: lastOverlayGuardRef.current.staleGuardRef,
-      });
+        guardSnapshot: overlayWindowGuardRef.current,
+      }));
       const report = reportOverlaySizeRef.current;
       if (typeof report !== 'function') {
         return;

@@ -131,6 +131,10 @@ Developer helpers:
   <windie> mock backend
 `;
 
+const SDK_JS_DIR = repoPath('packages', 'windie-sdk-js');
+const FRONTEND_NODE_MODULES_DIR = path.join(FRONTEND_DIR, 'node_modules');
+const SDK_WS_MODULE_DIR = path.join(SDK_JS_DIR, 'node_modules', 'ws');
+
 const CORE_LOOP_REGRESSION_PACK_TESTS = Object.freeze([
   'DesktopVisibleTurnLifecycleRuntime.test.js',
   'DesktopCurrentTurnProjectionEffectsRuntime.test.ts',
@@ -1976,6 +1980,7 @@ function runStart(target) {
   if (target === 'backend') {
     return runForeground(script('scripts/run-backend.sh'), [], { cwd: REPO_ROOT });
   }
+  ensureStartNodeDependencies(target);
   if (target === 'frontend') {
     return runConcurrent([
       { label: 'frontend', command: script('scripts/run-frontend-dev.sh'), cwd: REPO_ROOT, logLayer: 'vite' },
@@ -2013,6 +2018,41 @@ function runStart(target) {
     ]).then((code) => process.exit(code));
   }
   throw new Error('Usage: <windie> start backend|frontend|desktop|dev|customer|all');
+}
+
+function collectMissingStartNodeInstallTargets(target, options = {}) {
+  const frontendNodeModulesDir = options.frontendNodeModulesDir || FRONTEND_NODE_MODULES_DIR;
+  const sdkWsModuleDir = options.sdkWsModuleDir || SDK_WS_MODULE_DIR;
+  const frontendDir = options.frontendDir || FRONTEND_DIR;
+  const sdkJsDir = options.sdkJsDir || SDK_JS_DIR;
+  const needsFrontend = ['frontend', 'desktop', 'dev', 'customer', 'all'].includes(target);
+  const needsSdkWebsocket = ['desktop', 'dev', 'customer', 'all'].includes(target);
+  const missingTargets = [];
+
+  if (needsFrontend && !fs.existsSync(frontendNodeModulesDir)) {
+    missingTargets.push({
+      label: 'frontend',
+      cwd: frontendDir,
+      requiredPath: frontendNodeModulesDir,
+    });
+  }
+  if (needsSdkWebsocket && !fs.existsSync(sdkWsModuleDir)) {
+    missingTargets.push({
+      label: 'SDK websocket',
+      cwd: sdkJsDir,
+      requiredPath: sdkWsModuleDir,
+    });
+  }
+
+  return missingTargets;
+}
+
+function ensureStartNodeDependencies(target) {
+  const missingTargets = collectMissingStartNodeInstallTargets(target);
+  for (const installTarget of missingTargets) {
+    console.log(`[windie] Installing ${installTarget.label} Node dependencies in ${installTarget.cwd}`);
+    runSync('npm', ['install'], { cwd: installTarget.cwd });
+  }
 }
 
 function runRestart(target) {
@@ -2583,6 +2623,7 @@ function getSpawnPlan(argv) {
 
 module.exports = {
   HELP,
+  collectMissingStartNodeInstallTargets,
   dispatch,
   getSpawnPlan,
   buildLayerLogTailArgs,

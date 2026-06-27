@@ -16,21 +16,9 @@ export default function UserMessage({
     ? message.attachments
     : [];
   const hasDisplayAttachments = displayAttachments.length > 0;
-  const attachmentFilenames = Array.isArray(message.attachmentFilenames)
-    ? message.attachmentFilenames.filter((filename) => typeof filename === 'string' && filename.length > 0)
-    : [];
 
   return (
     <div className="user-message-container">
-      {attachmentFilenames.length > 0 ? (
-        <div className="user-file-attachments">
-          {attachmentFilenames.map((filename, index) => (
-            <span className="user-file-attachment-pill" key={`${filename}-${index}`}>
-              {filename}
-            </span>
-          ))}
-        </div>
-      ) : null}
       {hasDisplayAttachments ? (
         <AttachmentList attachments={displayAttachments} />
       ) : null}
@@ -48,7 +36,6 @@ export default function UserMessage({
 UserMessage.propTypes = {
   message: PropTypes.shape({
     text: PropTypes.string.isRequired,
-    attachmentFilenames: PropTypes.arrayOf(PropTypes.string),
     attachments: PropTypes.arrayOf(PropTypes.shape({
       id: PropTypes.string.isRequired,
       kind: PropTypes.oneOf(['image', 'screenshot_request']).isRequired,

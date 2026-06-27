@@ -293,6 +293,51 @@ function mergeDisplayAttachments(existing, incoming) {
 function sourceEventTypeFromPayload(payload) {
     return (0, toolOutputContent_js_1.stringField)(payload, 'sourceEventType', 'source_event_type');
 }
+function displayCorrelationIdFromEvent(event) {
+    return (0, toolOutputContent_js_1.stringField)(event.payload, 'requestId', 'request_id', 'bundleId', 'bundle_id', 'toolCallId', 'tool_call_id', 'correlationId', 'correlation_id');
+}
+function toolDisplayDetailsFromEvent(event) {
+    if (event.type !== 'tool_call'
+        && event.type !== 'tool_bundle_call'
+        && event.type !== 'tool_output'
+        && event.type !== 'tool_bundle_output') {
+        return null;
+    }
+    const details = {};
+    const toolName = toolNameFromPayload(event.payload)
+        ?? (event.type === 'tool_bundle_call' || event.type === 'tool_bundle_output' ? 'tool_bundle' : null);
+    const requestId = (0, toolOutputContent_js_1.stringField)(event.payload, 'requestId', 'request_id');
+    const correlationId = (0, toolOutputContent_js_1.stringField)(event.payload, 'correlationId', 'correlation_id');
+    const displayCorrelationId = displayCorrelationIdFromEvent(event);
+    const bundleId = (0, toolOutputContent_js_1.stringField)(event.payload, 'bundleId', 'bundle_id');
+    const toolCallId = (0, toolOutputContent_js_1.stringField)(event.payload, 'toolCallId', 'tool_call_id');
+    const sourceEventType = sourceEventTypeFromPayload(event.payload);
+    if (toolName) {
+        details.toolName = toolName;
+    }
+    if (requestId) {
+        details.requestId = requestId;
+    }
+    if (correlationId) {
+        details.correlationId = correlationId;
+    }
+    if (displayCorrelationId) {
+        details.displayCorrelationId = displayCorrelationId;
+    }
+    if (bundleId) {
+        details.bundleId = bundleId;
+    }
+    if (toolCallId) {
+        details.toolCallId = toolCallId;
+    }
+    if (sourceEventType) {
+        details.sourceEventType = sourceEventType;
+    }
+    if (typeof event.payload.success === 'boolean') {
+        details.success = event.payload.success;
+    }
+    return Object.keys(details).length > 0 ? details : null;
+}
 function displayRowMetadata(event) {
     const screenshotRef = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotRef', 'screenshot_ref');
     const screenshotUrl = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotUrl', 'screenshot_url');
@@ -301,6 +346,7 @@ function displayRowMetadata(event) {
     const attachments = displayAttachmentsField(event.payload, 'attachments', 'display_attachments')
         ?? (0, legacyVisualAttachmentReplayAdapter_js_1.legacyVisualAttachmentReplayAdapter)(event);
     const screenshotContentType = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotContentType', 'screenshot_content_type');
+    const toolDetails = toolDisplayDetailsFromEvent(event);
     return {
         eventId: event.eventId,
         source: event.source,
@@ -309,8 +355,15 @@ function displayRowMetadata(event) {
         toolName: toolNameFromPayload(event.payload),
         requestId: (0, toolOutputContent_js_1.stringField)(event.payload, 'requestId', 'request_id'),
         correlationId: (0, toolOutputContent_js_1.stringField)(event.payload, 'correlationId', 'correlation_id'),
+        displayCorrelationId: displayCorrelationIdFromEvent(event),
         bundleId: (0, toolOutputContent_js_1.stringField)(event.payload, 'bundleId', 'bundle_id'),
         toolCallId: (0, toolOutputContent_js_1.stringField)(event.payload, 'toolCallId', 'tool_call_id'),
+        toolCallDetails: event.type === 'tool_call' || event.type === 'tool_bundle_call'
+            ? toolDetails
+            : null,
+        toolOutputDetails: event.type === 'tool_output' || event.type === 'tool_bundle_output'
+            ? toolDetails
+            : null,
         screenshotRef,
         screenshot_ref: screenshotRef,
         screenshotUrl,
@@ -955,6 +1008,59 @@ function visibleText(value) {
     const trimmed = value.trim();
     return trimmed.length > 0 ? value : null;
 }
+function toolCallDisplayPreview(toolEvent) {
+    if (toolEvent.kind !== 'tool_call') {
+        return null;
+    }
+    if (toolEvent.toolCallValidationFailed === true) {
+        const rawPreview = visibleText(toolEvent.rawToolCallPreview);
+        if (rawPreview) {
+            return rawPreview;
+        }
+    }
+    const modelFacingToolCall = (0, toolOutputContent_js_1.recordFromUnknown)(toolEvent.modelFacingToolCall) ?? {};
+    const argumentsValue = (0, toolOutputContent_js_1.recordFromUnknown)(modelFacingToolCall.arguments)
+        ?? (0, toolOutputContent_js_1.recordFromUnknown)(modelFacingToolCall.args)
+        ?? (0, toolOutputContent_js_1.recordFromUnknown)(toolEvent.toolArguments);
+    const metadata = (0, toolOutputContent_js_1.recordFromUnknown)(toolEvent.toolDisplayMetadata);
+    const id = (0, toolOutputContent_js_1.stringField)(modelFacingToolCall, 'id') ?? visibleText(toolEvent.requestId ?? null);
+    const name = (0, toolOutputContent_js_1.stringField)(modelFacingToolCall, 'name') ?? visibleText(toolEvent.toolName ?? null);
+    const thoughtSignature = (0, toolOutputContent_js_1.stringField)(modelFacingToolCall, 'thought_signature', 'thoughtSignature')
+        ?? (metadata ? (0, toolOutputContent_js_1.stringField)(metadata, 'thought_signature', 'thoughtSignature') : null);
+    const preview = {};
+    if (id) {
+        preview.id = id;
+    }
+    if (name) {
+        preview.name = name;
+    }
+    if (argumentsValue
+        && (toolEvent.toolCallValidationFailed !== true || Object.keys(argumentsValue).length > 0)) {
+        preview.arguments = argumentsValue;
+    }
+    if (metadata && Object.keys(metadata).length > 0) {
+        preview.metadata = metadata;
+    }
+    if (thoughtSignature) {
+        preview.thought_signature = thoughtSignature;
+    }
+    const rawToolCallPreview = visibleText(toolEvent.rawToolCallPreview);
+    if (rawToolCallPreview) {
+        preview.raw_tool_call_preview = rawToolCallPreview;
+    }
+    const rawArgumentsPreview = visibleText(toolEvent.rawArgumentsPreview);
+    if (rawArgumentsPreview) {
+        preview.raw_arguments_preview = rawArgumentsPreview;
+    }
+    const parseError = visibleText(toolEvent.parseError);
+    if (parseError) {
+        preview.parse_error = parseError;
+    }
+    if (toolEvent.executionSkipped === true) {
+        preview.execution_skipped = true;
+    }
+    return Object.keys(preview).length > 0 ? JSON.stringify(preview, null, 2) : null;
+}
 function toolEntryText(toolEvent) {
     const text = visibleText(toolEvent.text);
     if (text) {
@@ -966,6 +1072,10 @@ function toolEntryText(toolEvent) {
     }
     if (toolEvent.kind === 'tool_progress') {
         return toolName ? `${toolName} is running` : 'Tool is running';
+    }
+    const toolCallPreview = toolCallDisplayPreview(toolEvent);
+    if (toolCallPreview) {
+        return toolCallPreview;
     }
     return toolName ? `Using ${toolName}` : 'Using tool';
 }
@@ -1319,6 +1429,52 @@ function modelHistoryCheckpointIdFromEvents(events, revisionId) {
         && (!revisionId || candidate.revisionId === revisionId)));
     return (0, toolOutputContent_js_1.stringField)(event?.payload ?? {}, 'checkpointId', 'checkpoint_id');
 }
+function liveToolEntryTypeMatchesDisplayRow(entry, row) {
+    if (entry.type === 'tool-call') {
+        return row.type === 'tool_call' || row.type === 'tool_bundle_call';
+    }
+    if (entry.type === 'tool-output') {
+        return row.type === 'tool_output' || row.type === 'tool_bundle_output';
+    }
+    if (entry.type === 'tool-progress') {
+        return row.type === 'tool_progress';
+    }
+    return false;
+}
+function identityFromToolRecord(record) {
+    const metadata = (0, toolOutputContent_js_1.recordFromUnknown)(record?.metadata);
+    return (0, toolOutputContent_js_1.stringField)(record, 'toolCallId', 'tool_call_id', 'id', 'requestId', 'request_id', 'bundleId', 'bundle_id', 'displayCorrelationId', 'correlationId', 'correlation_id') ?? (0, toolOutputContent_js_1.stringField)(metadata, 'toolCallId', 'tool_call_id', 'requestId', 'request_id', 'bundleId', 'bundle_id', 'displayCorrelationId', 'correlationId', 'correlation_id');
+}
+function liveToolEntryIdentity(entry) {
+    return (0, toolOutputContent_js_1.stringField)(entry, 'correlationId', 'requestId', 'bundleId')
+        ?? identityFromToolRecord((0, toolOutputContent_js_1.recordFromUnknown)(entry.toolCallDetails))
+        ?? identityFromToolRecord((0, toolOutputContent_js_1.recordFromUnknown)(entry.toolOutputDetails))
+        ?? identityFromToolRecord((0, toolOutputContent_js_1.recordFromUnknown)(entry.modelFacingToolCall));
+}
+function displayRowToolIdentity(row) {
+    const metadata = row.metadata ?? {};
+    return (0, toolOutputContent_js_1.stringField)(metadata, 'displayCorrelationId', 'toolCallId', 'tool_call_id', 'requestId', 'request_id', 'bundleId', 'bundle_id', 'correlationId', 'correlation_id', 'eventId')
+        ?? identityFromToolRecord((0, toolOutputContent_js_1.recordFromUnknown)(metadata.toolCallDetails))
+        ?? identityFromToolRecord((0, toolOutputContent_js_1.recordFromUnknown)(metadata.toolOutputDetails))
+        ?? identityFromToolRecord((0, toolOutputContent_js_1.recordFromUnknown)(metadata.modelFacingToolCall))
+        ?? identityFromToolRecord((0, toolOutputContent_js_1.recordFromUnknown)(row.content));
+}
+function displayRowMaterializesLiveToolEntry(row, entry) {
+    if (!liveToolEntryTypeMatchesDisplayRow(entry, row)) {
+        return false;
+    }
+    if (entry.turnRef && row.turnRef && entry.turnRef !== row.turnRef) {
+        return false;
+    }
+    const entryIdentity = liveToolEntryIdentity(entry);
+    return Boolean(entryIdentity && displayRowToolIdentity(row) === entryIdentity);
+}
+function filterMaterializedLiveTurnEntries(entries, displayRows) {
+    return entries.filter(entry => ((entry.type !== 'tool-call'
+        && entry.type !== 'tool-output'
+        && entry.type !== 'tool-progress')
+        || !displayRows.some(row => displayRowMaterializesLiveToolEntry(row, entry))));
+}
 function buildConversationView(input) {
     const conversationRef = resolveConversationViewConversationRef(input);
     const displayRows = (input.displayRows ?? []).filter(row => (row.conversationRef === conversationRef
@@ -1327,6 +1483,7 @@ function buildConversationView(input) {
     const currentTurn = currentTurnForView(input, conversationRef, revisionId);
     const livePhase = conversationViewLiveTurnPhase(currentTurn.phase);
     const presentation = currentTurn.presentation;
+    const liveTurnEntries = filterMaterializedLiveTurnEntries(presentation.entries, displayRows);
     const responseOverlayMode = responseOverlayModeFromPresentation(presentation);
     const isBusy = presentation.isBusy;
     return {
@@ -1336,7 +1493,7 @@ function buildConversationView(input) {
         liveTurn: {
             turnRef: currentTurn.turnRef,
             phase: livePhase,
-            entries: presentation.entries,
+            entries: liveTurnEntries,
             isBusy,
             isTerminal: presentation.isTerminal,
             canStop: isBusy && Boolean(currentTurn.turnRef),

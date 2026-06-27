@@ -350,6 +350,63 @@ function sourceEventTypeFromPayload(payload: JsonRecord): string | null {
   return stringField(payload, 'sourceEventType', 'source_event_type');
 }
 
+function displayCorrelationIdFromEvent(event: ConversationEvent): string | null {
+  return stringField(
+    event.payload,
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'toolCallId',
+    'tool_call_id',
+    'correlationId',
+    'correlation_id',
+  );
+}
+
+function toolDisplayDetailsFromEvent(event: ConversationEvent): JsonRecord | null {
+  if (event.type !== 'tool_call'
+    && event.type !== 'tool_bundle_call'
+    && event.type !== 'tool_output'
+    && event.type !== 'tool_bundle_output') {
+    return null;
+  }
+  const details: JsonRecord = {};
+  const toolName = toolNameFromPayload(event.payload)
+    ?? (event.type === 'tool_bundle_call' || event.type === 'tool_bundle_output' ? 'tool_bundle' : null);
+  const requestId = stringField(event.payload, 'requestId', 'request_id');
+  const correlationId = stringField(event.payload, 'correlationId', 'correlation_id');
+  const displayCorrelationId = displayCorrelationIdFromEvent(event);
+  const bundleId = stringField(event.payload, 'bundleId', 'bundle_id');
+  const toolCallId = stringField(event.payload, 'toolCallId', 'tool_call_id');
+  const sourceEventType = sourceEventTypeFromPayload(event.payload);
+  if (toolName) {
+    details.toolName = toolName;
+  }
+  if (requestId) {
+    details.requestId = requestId;
+  }
+  if (correlationId) {
+    details.correlationId = correlationId;
+  }
+  if (displayCorrelationId) {
+    details.displayCorrelationId = displayCorrelationId;
+  }
+  if (bundleId) {
+    details.bundleId = bundleId;
+  }
+  if (toolCallId) {
+    details.toolCallId = toolCallId;
+  }
+  if (sourceEventType) {
+    details.sourceEventType = sourceEventType;
+  }
+  if (typeof event.payload.success === 'boolean') {
+    details.success = event.payload.success;
+  }
+  return Object.keys(details).length > 0 ? details : null;
+}
+
 function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
   const screenshotRef = stringField(event.payload, 'screenshotRef', 'screenshot_ref');
   const screenshotUrl = stringField(event.payload, 'screenshotUrl', 'screenshot_url');
@@ -358,6 +415,7 @@ function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
   const attachments = displayAttachmentsField(event.payload, 'attachments', 'display_attachments')
     ?? legacyVisualAttachmentReplayAdapter(event);
   const screenshotContentType = stringField(event.payload, 'screenshotContentType', 'screenshot_content_type');
+  const toolDetails = toolDisplayDetailsFromEvent(event);
   return {
     eventId: event.eventId,
     source: event.source,
@@ -366,8 +424,15 @@ function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
     toolName: toolNameFromPayload(event.payload),
     requestId: stringField(event.payload, 'requestId', 'request_id'),
     correlationId: stringField(event.payload, 'correlationId', 'correlation_id'),
+    displayCorrelationId: displayCorrelationIdFromEvent(event),
     bundleId: stringField(event.payload, 'bundleId', 'bundle_id'),
     toolCallId: stringField(event.payload, 'toolCallId', 'tool_call_id'),
+    toolCallDetails: event.type === 'tool_call' || event.type === 'tool_bundle_call'
+      ? toolDetails
+      : null,
+    toolOutputDetails: event.type === 'tool_output' || event.type === 'tool_bundle_output'
+      ? toolDetails
+      : null,
     screenshotRef,
     screenshot_ref: screenshotRef,
     screenshotUrl,
@@ -1131,6 +1196,63 @@ function visibleText(value: string | null | undefined): string | null {
   return trimmed.length > 0 ? value : null;
 }
 
+function toolCallDisplayPreview(toolEvent: CurrentTurnToolEvent): string | null {
+  if (toolEvent.kind !== 'tool_call') {
+    return null;
+  }
+  if (toolEvent.toolCallValidationFailed === true) {
+    const rawPreview = visibleText(toolEvent.rawToolCallPreview);
+    if (rawPreview) {
+      return rawPreview;
+    }
+  }
+
+  const modelFacingToolCall = recordFromUnknown(toolEvent.modelFacingToolCall) ?? {};
+  const argumentsValue = recordFromUnknown(modelFacingToolCall.arguments)
+    ?? recordFromUnknown(modelFacingToolCall.args)
+    ?? recordFromUnknown(toolEvent.toolArguments);
+  const metadata = recordFromUnknown(toolEvent.toolDisplayMetadata);
+  const id = stringField(modelFacingToolCall, 'id') ?? visibleText(toolEvent.requestId ?? null);
+  const name = stringField(modelFacingToolCall, 'name') ?? visibleText(toolEvent.toolName ?? null);
+  const thoughtSignature = stringField(modelFacingToolCall, 'thought_signature', 'thoughtSignature')
+    ?? (metadata ? stringField(metadata, 'thought_signature', 'thoughtSignature') : null);
+  const preview: JsonRecord = {};
+  if (id) {
+    preview.id = id;
+  }
+  if (name) {
+    preview.name = name;
+  }
+  if (
+    argumentsValue
+    && (toolEvent.toolCallValidationFailed !== true || Object.keys(argumentsValue).length > 0)
+  ) {
+    preview.arguments = argumentsValue;
+  }
+  if (metadata && Object.keys(metadata).length > 0) {
+    preview.metadata = metadata;
+  }
+  if (thoughtSignature) {
+    preview.thought_signature = thoughtSignature;
+  }
+  const rawToolCallPreview = visibleText(toolEvent.rawToolCallPreview);
+  if (rawToolCallPreview) {
+    preview.raw_tool_call_preview = rawToolCallPreview;
+  }
+  const rawArgumentsPreview = visibleText(toolEvent.rawArgumentsPreview);
+  if (rawArgumentsPreview) {
+    preview.raw_arguments_preview = rawArgumentsPreview;
+  }
+  const parseError = visibleText(toolEvent.parseError);
+  if (parseError) {
+    preview.parse_error = parseError;
+  }
+  if (toolEvent.executionSkipped === true) {
+    preview.execution_skipped = true;
+  }
+  return Object.keys(preview).length > 0 ? JSON.stringify(preview, null, 2) : null;
+}
+
 function toolEntryText(toolEvent: CurrentTurnToolEvent): string {
   const text = visibleText(toolEvent.text);
   if (text) {
@@ -1142,6 +1264,10 @@ function toolEntryText(toolEvent: CurrentTurnToolEvent): string {
   }
   if (toolEvent.kind === 'tool_progress') {
     return toolName ? `${toolName} is running` : 'Tool is running';
+  }
+  const toolCallPreview = toolCallDisplayPreview(toolEvent);
+  if (toolCallPreview) {
+    return toolCallPreview;
   }
   return toolName ? `Using ${toolName}` : 'Using tool';
 }
@@ -1539,6 +1665,111 @@ function modelHistoryCheckpointIdFromEvents(events: ConversationEvent[], revisio
   return stringField(event?.payload ?? {}, 'checkpointId', 'checkpoint_id');
 }
 
+function liveToolEntryTypeMatchesDisplayRow(
+  entry: LiveTurnPresentationEntry,
+  row: SdkDisplayRow,
+): boolean {
+  if (entry.type === 'tool-call') {
+    return row.type === 'tool_call' || row.type === 'tool_bundle_call';
+  }
+  if (entry.type === 'tool-output') {
+    return row.type === 'tool_output' || row.type === 'tool_bundle_output';
+  }
+  if (entry.type === 'tool-progress') {
+    return row.type === 'tool_progress';
+  }
+  return false;
+}
+
+function identityFromToolRecord(record: JsonRecord | null): string | null {
+  const metadata = recordFromUnknown(record?.metadata);
+  return stringField(
+    record,
+    'toolCallId',
+    'tool_call_id',
+    'id',
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'displayCorrelationId',
+    'correlationId',
+    'correlation_id',
+  ) ?? stringField(
+    metadata,
+    'toolCallId',
+    'tool_call_id',
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'displayCorrelationId',
+    'correlationId',
+    'correlation_id',
+  );
+}
+
+function liveToolEntryIdentity(entry: LiveTurnPresentationEntry): string | null {
+  return stringField(
+    entry,
+    'correlationId',
+    'requestId',
+    'bundleId',
+  )
+    ?? identityFromToolRecord(recordFromUnknown(entry.toolCallDetails))
+    ?? identityFromToolRecord(recordFromUnknown(entry.toolOutputDetails))
+    ?? identityFromToolRecord(recordFromUnknown(entry.modelFacingToolCall));
+}
+
+function displayRowToolIdentity(row: SdkDisplayRow): string | null {
+  const metadata = row.metadata ?? {};
+  return stringField(
+    metadata,
+    'displayCorrelationId',
+    'toolCallId',
+    'tool_call_id',
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'correlationId',
+    'correlation_id',
+    'eventId',
+  )
+    ?? identityFromToolRecord(recordFromUnknown(metadata.toolCallDetails))
+    ?? identityFromToolRecord(recordFromUnknown(metadata.toolOutputDetails))
+    ?? identityFromToolRecord(recordFromUnknown(metadata.modelFacingToolCall))
+    ?? identityFromToolRecord(recordFromUnknown(row.content));
+}
+
+function displayRowMaterializesLiveToolEntry(
+  row: SdkDisplayRow,
+  entry: LiveTurnPresentationEntry,
+): boolean {
+  if (!liveToolEntryTypeMatchesDisplayRow(entry, row)) {
+    return false;
+  }
+  if (entry.turnRef && row.turnRef && entry.turnRef !== row.turnRef) {
+    return false;
+  }
+  const entryIdentity = liveToolEntryIdentity(entry);
+  return Boolean(entryIdentity && displayRowToolIdentity(row) === entryIdentity);
+}
+
+function filterMaterializedLiveTurnEntries(
+  entries: LiveTurnPresentationEntry[],
+  displayRows: SdkDisplayRow[],
+): LiveTurnPresentationEntry[] {
+  return entries.filter(entry => (
+    (
+      entry.type !== 'tool-call'
+      && entry.type !== 'tool-output'
+      && entry.type !== 'tool-progress'
+    )
+    || !displayRows.some(row => displayRowMaterializesLiveToolEntry(row, entry))
+  ));
+}
+
 export function buildConversationView(input: ConversationViewBuildInput): ConversationView {
   const conversationRef = resolveConversationViewConversationRef(input);
   const displayRows = (input.displayRows ?? []).filter(row => (
@@ -1549,6 +1780,7 @@ export function buildConversationView(input: ConversationViewBuildInput): Conver
   const currentTurn = currentTurnForView(input, conversationRef, revisionId);
   const livePhase = conversationViewLiveTurnPhase(currentTurn.phase);
   const presentation = currentTurn.presentation;
+  const liveTurnEntries = filterMaterializedLiveTurnEntries(presentation.entries, displayRows);
   const responseOverlayMode = responseOverlayModeFromPresentation(presentation);
   const isBusy = presentation.isBusy;
   return {
@@ -1558,7 +1790,7 @@ export function buildConversationView(input: ConversationViewBuildInput): Conver
     liveTurn: {
       turnRef: currentTurn.turnRef,
       phase: livePhase,
-      entries: presentation.entries,
+      entries: liveTurnEntries,
       isBusy,
       isTerminal: presentation.isTerminal,
       canStop: isBusy && Boolean(currentTurn.turnRef),

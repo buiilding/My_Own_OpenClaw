@@ -7,9 +7,11 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime';
 
 const {
-  buildStoppedCurrentTurnProjection,
-  isStopTurnTargetFromConversationView,
-  isStopTurnTargetFromPendingTurn,
+  buildAcceptStoppedTurnStateUpdate,
+  buildStopTurnExecutionPlan,
+  buildStoppedTurnWorkspaceMutation,
+  buildStoppedSdkLiveTurn,
+  executeStopTurnExecutionPlan,
   resolveStopTurnTarget,
 } = DesktopStopTurnRuntime;
 
@@ -38,19 +40,48 @@ function conversationView({
   };
 }
 
+function workspace(overrides = {}) {
+  return {
+    messages: [],
+    isSending: true,
+    thinkingStatus: 'Thinking',
+    thinkingSourceEventType: 'assistant_delta',
+    streamTracking: {
+      activeTurnRef: 'turn-stop',
+      phase: 'streaming',
+      startedAt: '2026-06-25T12:00:00.000Z',
+      firstChunkAt: null,
+      completedAt: null,
+      lastEventAt: null,
+      lastEventType: null,
+      eventCount: 1,
+      chunkCount: 0,
+      toolCallCount: 0,
+      toolOutputCount: 0,
+      lastChunkSize: 0,
+      lastError: null,
+    },
+    sdkLiveTurn: {
+      conversationRef: 'conv-stop',
+      turnRef: 'turn-stop',
+      phase: 'streaming',
+    },
+    pendingTurn: {
+      conversationRef: 'conv-stop',
+      turnRef: 'turn-stop',
+    },
+    ...overrides,
+  };
+}
+
 describe('desktopStopTurnRuntime', () => {
-  test('resolveStopTurnTarget prioritizes stoppable ConversationView over stale raw state', () => {
+  test('resolveStopTurnTarget prioritizes stoppable ConversationView over pending bridge', () => {
     expect(resolveStopTurnTarget({
       conversationView: conversationView({
         conversationRef: 'conv-view',
         turnRef: 'turn-view',
         canStop: true,
       }),
-      currentTurnProjection: {
-        conversationRef: 'conv-sdk',
-        turnRef: 'turn-sdk',
-        phase: 'streaming',
-      },
       pendingTurn: {
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
@@ -64,13 +95,8 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
-  test('resolveStopTurnTarget ignores active SDK current-turn and keeps pending bridge', () => {
+  test('resolveStopTurnTarget keeps pending bridge without raw current-turn authority', () => {
     expect(resolveStopTurnTarget({
-      currentTurnProjection: {
-        conversationRef: 'conv-sdk',
-        turnRef: 'turn-sdk',
-        phase: 'streaming',
-      },
       pendingTurn: {
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
@@ -84,16 +110,8 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
-  test('resolveStopTurnTarget uses pending turn ref while SDK current-turn is terminal', () => {
+  test('resolveStopTurnTarget uses pending turn ref without terminal current-turn fallback', () => {
     expect(resolveStopTurnTarget({
-      currentTurnProjection: {
-        conversationRef: 'conv-sdk',
-        turnRef: 'turn-sdk',
-        phase: 'complete',
-        presentation: {
-          isBusy: false,
-        },
-      },
       pendingTurn: {
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
@@ -126,11 +144,6 @@ describe('desktopStopTurnRuntime', () => {
         phase: 'idle',
         canStop: false,
       }),
-      currentTurnProjection: {
-        conversationRef: 'conv-sdk',
-        turnRef: 'turn-sdk',
-        phase: 'idle',
-      },
       pendingTurn: {
         conversationRef: 'conv-pending',
         turnRef: 'turn-pending',
@@ -152,11 +165,6 @@ describe('desktopStopTurnRuntime', () => {
         phase: 'complete',
         canStop: false,
       }),
-      currentTurnProjection: {
-        conversationRef: 'conv-sdk',
-        turnRef: 'turn-sdk',
-        phase: 'streaming',
-      },
       conversationRef: 'conv-session',
     })).toEqual({
       source: 'idle',
@@ -166,33 +174,7 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
-  test('does not use SDK presentation busy as a stop target without active phase', () => {
-    expect(resolveStopTurnTarget({
-      currentTurnProjection: {
-        conversationRef: 'conv-sdk',
-        turnRef: 'turn-sdk',
-        phase: 'idle',
-        presentation: {
-          isBusy: true,
-        },
-      },
-      conversationRef: 'conv-session',
-    })).toEqual({
-      source: 'idle',
-      conversationRef: 'conv-session',
-      turnRef: null,
-      canStop: false,
-    });
-  });
-
-  test('classifies stop target sources behind runtime predicates', () => {
-    const currentTurnTarget = resolveStopTurnTarget({
-      currentTurnProjection: {
-        conversationRef: 'conv-sdk',
-        turnRef: 'turn-sdk',
-        phase: 'awaiting',
-      },
-    });
+  test('classifies only pending bridge targets in stop execution plans', () => {
     const pendingTarget = resolveStopTurnTarget({
       pendingTurn: {
         conversationRef: 'conv-pending',
@@ -203,22 +185,204 @@ describe('desktopStopTurnRuntime', () => {
       conversationRef: 'conv-idle',
     });
 
-    expect(isStopTurnTargetFromConversationView(currentTurnTarget)).toBe(false);
-    expect(isStopTurnTargetFromPendingTurn(currentTurnTarget)).toBe(false);
-    expect(isStopTurnTargetFromConversationView(pendingTarget)).toBe(false);
-    expect(isStopTurnTargetFromPendingTurn(pendingTarget)).toBe(true);
-    expect(isStopTurnTargetFromConversationView(idleTarget)).toBe(false);
-    expect(isStopTurnTargetFromPendingTurn(idleTarget)).toBe(false);
+    expect(buildStopTurnExecutionPlan(pendingTarget).shouldClearPendingBridge).toBe(true);
+    expect(buildStopTurnExecutionPlan(idleTarget).shouldClearPendingBridge).toBe(false);
 
     const viewTarget = resolveStopTurnTarget({
       conversationView: conversationView(),
     });
-    expect(isStopTurnTargetFromConversationView(viewTarget)).toBe(true);
-    expect(isStopTurnTargetFromPendingTurn(viewTarget)).toBe(false);
+    expect(viewTarget.source).toBe('conversation-view');
+    expect(buildStopTurnExecutionPlan(viewTarget).shouldClearPendingBridge).toBe(false);
   });
 
-  test('buildStoppedCurrentTurnProjection strips legacy SDK visibility fields', () => {
-    const stoppedProjection = buildStoppedCurrentTurnProjection({
+  test('builds stop execution plans with pending bridge cleanup owned by runtime', () => {
+    expect(buildStopTurnExecutionPlan(resolveStopTurnTarget({
+      pendingTurn: {
+        conversationRef: ' conv-pending ',
+        turnRef: ' turn-pending ',
+      },
+    }))).toEqual({
+      canStop: true,
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+      shouldClearPendingBridge: true,
+    });
+
+    expect(buildStopTurnExecutionPlan(resolveStopTurnTarget({
+      conversationView: conversationView({
+        conversationRef: 'conv-view',
+        turnRef: 'turn-view',
+      }),
+    }))).toEqual({
+      canStop: true,
+      conversationRef: 'conv-view',
+      turnRef: 'turn-view',
+      shouldClearPendingBridge: false,
+    });
+  });
+
+  test('executes pending stop plans inside runtime with bridge cleanup', () => {
+    const deps = {
+      acceptStoppedTurn: jest.fn(),
+      clearPendingTurn: jest.fn(),
+      setActiveConversationRef: jest.fn(),
+      stopLiveTurn: jest.fn(),
+      stopPlayback: jest.fn(),
+    };
+
+    const result = executeStopTurnExecutionPlan({
+      deps,
+      stopTarget: resolveStopTurnTarget({
+        pendingTurn: {
+          conversationRef: ' conv-pending ',
+          turnRef: ' turn-pending ',
+        },
+      }),
+    });
+
+    expect(result).toBe(true);
+    expect(deps.setActiveConversationRef).toHaveBeenCalledWith('conv-pending');
+    expect(deps.acceptStoppedTurn).toHaveBeenCalledWith({
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+    });
+    expect(deps.stopPlayback).toHaveBeenCalledTimes(1);
+    expect(deps.clearPendingTurn).toHaveBeenCalledWith({
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+    });
+    expect(deps.stopLiveTurn).toHaveBeenCalledWith('conv-pending', 'turn-pending');
+  });
+
+  test('executes ConversationView stop plans without pending bridge cleanup', () => {
+    const deps = {
+      acceptStoppedTurn: jest.fn(),
+      clearPendingTurn: jest.fn(),
+      setActiveConversationRef: jest.fn(),
+      stopLiveTurn: jest.fn(),
+      stopPlayback: jest.fn(),
+    };
+
+    const result = executeStopTurnExecutionPlan({
+      deps,
+      stopTarget: resolveStopTurnTarget({
+        conversationView: conversationView({
+          conversationRef: 'conv-view',
+          turnRef: 'turn-view',
+        }),
+      }),
+    });
+
+    expect(result).toBe(true);
+    expect(deps.setActiveConversationRef).toHaveBeenCalledWith('conv-view');
+    expect(deps.acceptStoppedTurn).toHaveBeenCalledWith({
+      conversationRef: 'conv-view',
+      turnRef: 'turn-view',
+    });
+    expect(deps.clearPendingTurn).not.toHaveBeenCalled();
+    expect(deps.stopLiveTurn).toHaveBeenCalledWith('conv-view', 'turn-view');
+  });
+
+  test('does not execute stop side effects for disabled or idle plans', () => {
+    const deps = {
+      acceptStoppedTurn: jest.fn(),
+      clearPendingTurn: jest.fn(),
+      setActiveConversationRef: jest.fn(),
+      stopLiveTurn: jest.fn(),
+      stopPlayback: jest.fn(),
+    };
+
+    expect(executeStopTurnExecutionPlan({
+      deps,
+      enabled: false,
+      stopTarget: resolveStopTurnTarget({
+        pendingTurn: {
+          conversationRef: 'conv-pending',
+          turnRef: 'turn-pending',
+        },
+      }),
+    })).toBe(false);
+    expect(executeStopTurnExecutionPlan({
+      deps,
+      stopTarget: resolveStopTurnTarget({
+        conversationRef: 'conv-idle',
+      }),
+    })).toBe(false);
+    expect(deps.acceptStoppedTurn).not.toHaveBeenCalled();
+    expect(deps.clearPendingTurn).not.toHaveBeenCalled();
+    expect(deps.setActiveConversationRef).not.toHaveBeenCalled();
+    expect(deps.stopLiveTurn).not.toHaveBeenCalled();
+    expect(deps.stopPlayback).not.toHaveBeenCalled();
+  });
+
+  test('continues stop execution when pending bridge cleanup throws', () => {
+    const cleanupError = new Error('clear failed');
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const deps = {
+      acceptStoppedTurn: jest.fn(),
+      clearPendingTurn: jest.fn(() => {
+        throw cleanupError;
+      }),
+      stopLiveTurn: jest.fn(),
+    };
+
+    try {
+      const result = executeStopTurnExecutionPlan({
+        deps,
+        stopTarget: resolveStopTurnTarget({
+          pendingTurn: {
+            conversationRef: 'conv-pending',
+            turnRef: 'turn-pending',
+          },
+        }),
+        warningContext: 'StopTest',
+      });
+
+      expect(result).toBe(true);
+      expect(deps.acceptStoppedTurn).toHaveBeenCalledWith({
+        conversationRef: 'conv-pending',
+        turnRef: 'turn-pending',
+      });
+      expect(deps.stopLiveTurn).toHaveBeenCalledWith('conv-pending', 'turn-pending');
+      expect(warnSpy).toHaveBeenCalledWith(
+        '[StopTest] Failed to clear pending turn before stop:',
+        cleanupError,
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  test('reports async stop failures without throwing from stop execution', async () => {
+    const stopError = new Error('stop failed');
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const deps = {
+      acceptStoppedTurn: jest.fn(),
+      stopLiveTurn: jest.fn(() => Promise.reject(stopError)),
+    };
+
+    try {
+      const result = executeStopTurnExecutionPlan({
+        deps,
+        stopTarget: resolveStopTurnTarget({
+          conversationView: conversationView(),
+        }),
+        warningContext: 'StopTest',
+      });
+
+      expect(result).toBe(true);
+      await Promise.resolve();
+      expect(warnSpy).toHaveBeenCalledWith(
+        '[StopTest] Failed to stop query:',
+        stopError,
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  test('buildStoppedSdkLiveTurn strips legacy SDK visibility fields', () => {
+    const stoppedSdkLiveTurn = buildStoppedSdkLiveTurn({
       conversationRef: 'conv-stop',
       turnRef: 'turn-stop',
       phase: 'streaming',
@@ -237,7 +401,7 @@ describe('desktopStopTurnRuntime', () => {
       },
     });
 
-    expect(stoppedProjection).toEqual(expect.objectContaining({
+    expect(stoppedSdkLiveTurn).toEqual(expect.objectContaining({
       phase: 'complete',
       presentation: expect.objectContaining({
         phase: 'complete',
@@ -250,13 +414,138 @@ describe('desktopStopTurnRuntime', () => {
         }),
       }),
     }));
-    expect(stoppedProjection.presentation).not.toHaveProperty('typingVisible');
-    expect(stoppedProjection.presentation).not.toHaveProperty('overlayVisible');
-    expect(stoppedProjection.presentation).not.toHaveProperty('hasVisibleContent');
+    expect(stoppedSdkLiveTurn.presentation).not.toHaveProperty('typingVisible');
+    expect(stoppedSdkLiveTurn.presentation).not.toHaveProperty('overlayVisible');
+    expect(stoppedSdkLiveTurn.presentation).not.toHaveProperty('hasVisibleContent');
   });
 
-  test('buildStoppedCurrentTurnProjection does not use SDK visible-content flag as overlay evidence', () => {
-    const stoppedProjection = buildStoppedCurrentTurnProjection({
+  test('buildStoppedTurnWorkspaceMutation clears matching pending turn and terminalizes SDK live turn', () => {
+    const nextWorkspace = buildStoppedTurnWorkspaceMutation({
+      conversationRef: 'conv-stop',
+      currentWorkspace: workspace(),
+      stoppedAt: '2026-06-25T12:01:00.000Z',
+      turnRef: 'turn-stop',
+    });
+
+    expect(nextWorkspace).toEqual(expect.objectContaining({
+      isSending: false,
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+      pendingTurn: null,
+      sdkLiveTurn: expect.objectContaining({
+        phase: 'complete',
+      }),
+      streamTracking: expect.objectContaining({
+        phase: 'complete',
+        completedAt: '2026-06-25T12:01:00.000Z',
+        lastEventAt: '2026-06-25T12:01:00.000Z',
+        lastEventType: 'stop-query',
+      }),
+    }));
+  });
+
+  test('buildStoppedTurnWorkspaceMutation ignores raw live-turn fallback when ConversationView exists', () => {
+    expect(buildStoppedTurnWorkspaceMutation({
+      conversationRef: 'conv-stop',
+      currentWorkspace: workspace({
+        conversationView: conversationView({
+          conversationRef: 'conv-stop',
+          turnRef: 'turn-view',
+          canStop: true,
+        }),
+        pendingTurn: null,
+      }),
+      stoppedAt: '2026-06-25T12:01:00.000Z',
+      turnRef: 'turn-stop',
+    })).toBeNull();
+  });
+
+  test('buildStoppedTurnWorkspaceMutation clears pending bridge under ConversationView without raw fallback', () => {
+    const nextWorkspace = buildStoppedTurnWorkspaceMutation({
+      conversationRef: 'conv-stop',
+      currentWorkspace: workspace({
+        conversationView: conversationView({
+          conversationRef: 'conv-stop',
+          turnRef: 'turn-view',
+          canStop: true,
+        }),
+      }),
+      stoppedAt: '2026-06-25T12:01:00.000Z',
+      turnRef: 'turn-stop',
+    });
+
+    expect(nextWorkspace).toEqual(expect.objectContaining({
+      pendingTurn: null,
+      sdkLiveTurn: null,
+      isSending: false,
+      streamTracking: expect.objectContaining({
+        phase: 'complete',
+        lastEventType: 'stop-query',
+      }),
+    }));
+  });
+
+  test('buildStoppedTurnWorkspaceMutation ignores stale target identities', () => {
+    expect(buildStoppedTurnWorkspaceMutation({
+      conversationRef: 'conv-other',
+      currentWorkspace: workspace(),
+      stoppedAt: '2026-06-25T12:01:00.000Z',
+      turnRef: 'turn-stop',
+    })).toBeNull();
+  });
+
+  test('buildAcceptStoppedTurnStateUpdate resolves workspace and applies stopped mutation', () => {
+    const state = {
+      activeConversationRef: 'conv-active',
+      workspaces: {
+        'conversation:conv-active': workspace(),
+      },
+    };
+    const deps = {
+      buildWorkspaceUpdate: jest.fn((currentState, workspaceRef, nextWorkspace) => ({
+        ...currentState,
+        workspaces: {
+          ...currentState.workspaces,
+          [workspaceRef]: nextWorkspace,
+        },
+      })),
+      readWorkspaceState: jest.fn((currentState, workspaceRef) => currentState.workspaces[workspaceRef]),
+      resolveWorkspaceKey: jest.fn(() => 'conversation:conv-active'),
+    };
+
+    const nextState = buildAcceptStoppedTurnStateUpdate({
+      deps,
+      input: {
+        conversationRef: ' conv-stop ',
+        stoppedAt: '2026-06-25T12:01:00.000Z',
+        turnRef: ' turn-stop ',
+      },
+      state,
+    });
+
+    expect(deps.resolveWorkspaceKey).toHaveBeenCalledWith('conv-stop', 'conv-active');
+    expect(deps.readWorkspaceState).toHaveBeenCalledWith(state, 'conversation:conv-active');
+    expect(deps.buildWorkspaceUpdate).toHaveBeenCalledWith(
+      state,
+      'conversation:conv-active',
+      expect.objectContaining({
+        pendingTurn: null,
+        sdkLiveTurn: expect.objectContaining({
+          phase: 'complete',
+        }),
+        streamTracking: expect.objectContaining({
+          lastEventType: 'stop-query',
+        }),
+      }),
+    );
+    expect(nextState.workspaces['conversation:conv-active']).toEqual(expect.objectContaining({
+      pendingTurn: null,
+      isSending: false,
+    }));
+  });
+
+  test('buildStoppedSdkLiveTurn does not use SDK visible-content flag as overlay evidence', () => {
+    const stoppedSdkLiveTurn = buildStoppedSdkLiveTurn({
       conversationRef: 'conv-stop',
       turnRef: 'turn-stop',
       phase: 'streaming',
@@ -273,7 +562,7 @@ describe('desktopStopTurnRuntime', () => {
       },
     });
 
-    expect(stoppedProjection).toEqual(expect.objectContaining({
+    expect(stoppedSdkLiveTurn).toEqual(expect.objectContaining({
       phase: 'complete',
       presentation: expect.objectContaining({
         phase: 'complete',
@@ -286,6 +575,6 @@ describe('desktopStopTurnRuntime', () => {
         }),
       }),
     }));
-    expect(stoppedProjection.presentation).not.toHaveProperty('hasVisibleContent');
+    expect(stoppedSdkLiveTurn.presentation).not.toHaveProperty('hasVisibleContent');
   });
 });

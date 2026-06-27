@@ -6,7 +6,6 @@ import { DesktopChatSendPayloadRuntime } from '../../frontend/src/renderer/app/r
 
 describe('desktopChatSendPayloadRuntime', () => {
   const {
-    normalizeAttachmentFilenames,
     normalizeOutgoingPayload,
   } = DesktopChatSendPayloadRuntime;
 
@@ -45,12 +44,5 @@ describe('desktopChatSendPayloadRuntime', () => {
       // @ts-expect-error singular clipboardImage is no longer part of the send contract
       clipboardImage: { base64: 'abc', filename: 'shot.png' },
     })).toBeNull();
-  });
-
-  test('dedupes non-empty attachment filenames', () => {
-    expect(normalizeAttachmentFilenames(
-      [{ base64: 'abc', filename: 'a.png' }, { base64: 'def', filename: 'a.png' }],
-      [{ filePath: '/tmp/a', filename: 'a.png' }, { filePath: '/tmp/b', filename: 'b.txt' }],
-    )).toEqual(['a.png', 'b.txt']);
   });
 });

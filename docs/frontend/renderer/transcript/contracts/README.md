@@ -22,5 +22,5 @@ title: "Frontend Renderer Transcript Contracts Docs Hub"
 - `frontend/src/renderer/infrastructure/transcript/types.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
-- `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
+- `frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts`
 - `tests/frontend/TranscriptSessionSyncPayload.test.ts`

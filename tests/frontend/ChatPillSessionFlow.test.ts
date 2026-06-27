@@ -6,6 +6,10 @@ import { DesktopChatPillSessionRuntime } from '../../frontend/src/renderer/app/r
 
 describe('desktopChatPillSessionRuntime', () => {
   const {
+    buildChatPillLifecycleTraceValues,
+    buildChatPillLifecycleTraceSnapshot,
+    buildChatPillResetTraceValues,
+    buildChatPillStateTraceSnapshot,
     resolveChatPillSendLifecycle,
     resolveChatPillViewIntent,
   } = DesktopChatPillSessionRuntime;
@@ -93,10 +97,6 @@ describe('desktopChatPillSessionRuntime', () => {
 
   test('prefers visible response turn id and response layout when a reply exists', () => {
     const viewIntent = resolveChatPillViewIntent({
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-user' },
-        { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant', type: 'llm-text' },
-      ],
       currentTurnPresentationState: {
         visibleResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
         activeResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
@@ -115,11 +115,6 @@ describe('desktopChatPillSessionRuntime', () => {
 
   test('prefers visible response turn id over a different active response turn id', () => {
     const viewIntent = resolveChatPillViewIntent({
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-user' },
-        { id: 'assistant-active', sender: 'assistant', text: 'old reply', turnRef: 'turn-active', type: 'llm-text' },
-        { id: 'assistant-visible', sender: 'assistant', text: 'visible reply', turnRef: 'turn-visible', type: 'llm-text' },
-      ],
       currentTurnPresentationState: {
         visibleResponse: { id: 'assistant-visible', sender: 'assistant', text: 'visible reply', turnRef: 'turn-visible' },
         activeResponse: { id: 'assistant-active', sender: 'assistant', text: 'old reply', turnRef: 'turn-active' },
@@ -136,10 +131,6 @@ describe('desktopChatPillSessionRuntime', () => {
 
   test('falls back to active response turn id before message history', () => {
     const viewIntent = resolveChatPillViewIntent({
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-user' },
-        { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-history', type: 'llm-text' },
-      ],
       currentTurnPresentationState: {
         visibleResponse: null,
         activeResponse: { id: 'assistant-active', sender: 'assistant', text: 'reply', turnRef: 'turn-active' },
@@ -153,23 +144,21 @@ describe('desktopChatPillSessionRuntime', () => {
     });
   });
 
-  test('falls back to the latest chat turn id while awaiting', () => {
+  test('falls back to visible lifecycle turn id while awaiting', () => {
     const viewIntent = resolveChatPillViewIntent({
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-user' },
-      ],
       currentTurnPresentationState: {
         activeResponse: null,
         visibleResponse: null,
         visibleTurnLifecycle: {
           status: 'awaiting',
+          turnRef: 'turn-awaiting',
         },
       },
       responseOverlayEntries: [],
     });
 
     expect(viewIntent).toMatchObject({
-      turnId: 'turn-user',
+      turnId: 'turn-awaiting',
       responseVisible: false,
       awaitingVisible: true,
       overlayLayoutMode: 'awaiting-typing',
@@ -177,37 +166,260 @@ describe('desktopChatPillSessionRuntime', () => {
     });
   });
 
-  test('skips blank turn refs when falling back to the latest chat turn id', () => {
-    const viewIntent = resolveChatPillViewIntent({
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'first', turnRef: 'turn-user' },
-        { id: 'assistant-blank', sender: 'assistant', text: 'blank', turnRef: '   ', type: 'llm-text' },
-        { id: 'assistant-missing', sender: 'assistant', text: 'missing', type: 'llm-text' },
-      ],
+  test('falls back through runtime-owned surface turn identities', () => {
+    expect(resolveChatPillViewIntent({
       currentTurnPresentationState: {
         activeResponse: null,
         visibleResponse: null,
         visibleTurnLifecycle: {
           status: 'idle',
+          turnRef: null,
+        },
+      },
+      overlayIntent: {
+        turnRef: 'turn-overlay',
+      },
+      pendingTurn: {
+        turnRef: 'turn-pending',
+      },
+      responseOverlayEntries: [],
+      visibleTurnLifecycle: {
+        turnRef: 'turn-lifecycle',
+      },
+    })).toMatchObject({
+      turnId: 'turn-overlay',
+    });
+
+    expect(resolveChatPillViewIntent({
+      currentTurnPresentationState: {
+        activeResponse: null,
+        visibleResponse: null,
+      },
+      overlayIntent: {
+        turnRef: '   ',
+      },
+      pendingTurn: {
+        turnRef: 'turn-pending',
+      },
+      responseOverlayEntries: [],
+      visibleTurnLifecycle: {
+        turnRef: 'turn-lifecycle',
+      },
+    })).toMatchObject({
+      turnId: 'turn-lifecycle',
+    });
+
+    expect(resolveChatPillViewIntent({
+      currentTurnPresentationState: {
+        activeResponse: null,
+        visibleResponse: null,
+      },
+      overlayIntent: {
+        turnRef: null,
+      },
+      pendingTurn: {
+        turnRef: 'turn-pending',
+      },
+      responseOverlayEntries: [],
+      visibleTurnLifecycle: {
+        turnRef: '',
+      },
+    })).toMatchObject({
+      turnId: 'turn-pending',
+    });
+  });
+
+  test('returns null turn id without response or lifecycle turn identity', () => {
+    const viewIntent = resolveChatPillViewIntent({
+      currentTurnPresentationState: {
+        activeResponse: null,
+        visibleResponse: null,
+        visibleTurnLifecycle: {
+          status: 'idle',
+          turnRef: '   ',
         },
       },
       responseOverlayEntries: [],
     });
 
     expect(viewIntent).toMatchObject({
-      turnId: 'turn-user',
+      turnId: null,
       responseVisible: false,
       overlayLayoutMode: 'hidden',
       isVisible: false,
     });
   });
 
+  test('projects chat pill lifecycle trace identity from surface state', () => {
+    expect(buildChatPillLifecycleTraceSnapshot({
+      sessionConversationRef: ' conv-1 ',
+      chatSurfaceState: {
+        sdkLiveTurn: {
+          turnRef: ' turn-1 ',
+          phase: ' streaming ',
+        },
+      },
+    })).toEqual({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+    });
+  });
+
+  test('builds chat pill lifecycle and reset trace values from runtime snapshots', () => {
+    const snapshot = buildChatPillLifecycleTraceSnapshot({
+      sessionConversationRef: ' conv-1 ',
+      chatSurfaceState: {
+        sdkLiveTurn: {
+          turnRef: ' turn-1 ',
+          phase: ' streaming ',
+        },
+      },
+    });
+
+    expect(buildChatPillLifecycleTraceValues({
+      action: 'mount',
+      snapshot,
+    })).toEqual({
+      action: 'mount',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+    });
+
+    expect(buildChatPillResetTraceValues({
+      snapshot,
+      attachmentCount: 2,
+      includeQueryScreenshot: true,
+    })).toEqual({
+      conversationRef: 'conv-1',
+      previousTurnRef: 'turn-1',
+      previousPhase: 'streaming',
+      attachmentCount: 2,
+      includeQueryScreenshot: true,
+    });
+  });
+
+  test('uses ConversationView live turn as chat pill trace identity', () => {
+    expect(buildChatPillLifecycleTraceSnapshot({
+      sessionConversationRef: ' conv-1 ',
+      chatSurfaceState: {
+        sdkLiveTurn: {
+          turnRef: ' stale-current ',
+          phase: ' awaiting ',
+        },
+        conversationView: {
+          liveTurn: {
+            phase: ' streaming ',
+            turnRef: ' view-turn ',
+          },
+        },
+      },
+    })).toEqual({
+      conversationRef: 'conv-1',
+      turnRef: 'view-turn',
+      phase: 'streaming',
+    });
+  });
+
+  test('does not mix raw current-turn identity into chat pill traces when ConversationView exists', () => {
+    expect(buildChatPillLifecycleTraceSnapshot({
+      sessionConversationRef: ' conv-1 ',
+      chatSurfaceState: {
+        sdkLiveTurn: {
+          turnRef: ' stale-current ',
+          phase: ' stale-awaiting ',
+        },
+        conversationView: {
+          liveTurn: {},
+        },
+      },
+    })).toEqual({
+      conversationRef: 'conv-1',
+      turnRef: null,
+      phase: null,
+    });
+
+    const snapshot = buildChatPillStateTraceSnapshot({
+      busy: true,
+      chatSurfaceState: {
+        sdkLiveTurn: {
+          turnRef: ' stale-current ',
+          phase: ' stale-awaiting ',
+        },
+        conversationView: {
+          liveTurn: {
+            canStop: true,
+          },
+        },
+      },
+      surfacePhase: 'streaming',
+      surfaceSource: 'conversation-view',
+      sessionConversationRef: 'conv-1',
+      stopAvailable: true,
+    });
+
+    expect(JSON.parse(snapshot.signature)).toEqual(expect.objectContaining({
+      currentTurnPhase: null,
+      currentTurnRef: null,
+      viewTurnRef: null,
+    }));
+    expect(snapshot.trace.turnRef).toBeNull();
+    expect(snapshot.trace.currentTurnPhase).toBeNull();
+  });
+
+  test('projects chat pill state trace payload from surface state', () => {
+    const snapshot = buildChatPillStateTraceSnapshot({
+      busy: true,
+      chatSurfaceState: {
+        messages: [{ id: 'pending-row' }],
+        sdkLiveTurn: {
+          turnRef: ' turn-current ',
+          phase: ' awaiting ',
+        },
+        conversationView: {
+          liveTurn: {
+            canStop: true,
+            phase: ' streaming ',
+            turnRef: ' view-turn ',
+          },
+          surfaces: {
+            pill: {
+              mode: ' busy ',
+            },
+          },
+        },
+      },
+      surfacePhase: 'streaming',
+      surfaceSource: 'conversation-view',
+      sessionConversationRef: 'conv-1',
+      stopAvailable: true,
+    });
+
+    expect(JSON.parse(snapshot.signature)).toEqual(expect.objectContaining({
+      busy: true,
+      currentTurnPhase: 'streaming',
+      currentTurnRef: 'view-turn',
+      liveTurnPhase: 'streaming',
+      liveTurnSource: 'conversation-view',
+      viewCanStop: true,
+      viewPillMode: 'busy',
+      viewTurnRef: 'view-turn',
+    }));
+    expect(snapshot.trace).toEqual({
+      conversationRef: 'conv-1',
+      turnRef: 'view-turn',
+      currentTurnPhase: 'streaming',
+      liveTurnPhase: 'streaming',
+      liveTurnSource: 'conversation-view',
+      busy: true,
+      stopAvailable: true,
+      messageCount: 1,
+    });
+  });
+
   test('propagates dismissed response state through the view contract', () => {
     const viewIntent = resolveChatPillViewIntent({
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-user' },
-        { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant', type: 'llm-text' },
-      ],
       currentTurnPresentationState: {
         visibleResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
         activeResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
@@ -228,10 +440,6 @@ describe('desktopChatPillSessionRuntime', () => {
 
   test('prefers awaiting layout over a stale prior response during new-turn handoff', () => {
     const viewIntent = resolveChatPillViewIntent({
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-user' },
-        { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant', type: 'llm-text' },
-      ],
       currentTurnPresentationState: {
         activeResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
         visibleResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },

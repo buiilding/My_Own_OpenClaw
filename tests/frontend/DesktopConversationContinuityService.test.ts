@@ -16,143 +16,6 @@ describe('DesktopConversationContinuityService', () => {
     mockGetActiveConversationRef.mockReturnValue(null);
   });
 
-  test('loadDisplayTimeline routes through the SDK command bridge', async () => {
-    const originalIpc = window.ipc;
-    window.ipc = {
-      send: jest.fn(),
-      invoke: jest.fn(async () => ({
-        ok: true,
-        data: {
-          conversationRef: 'conv-display',
-          revisionId: 'rev-display',
-          createdAt: '2026-06-22T12:00:00.000Z',
-          rows: [],
-        },
-      })),
-      on: jest.fn(),
-      once: jest.fn(),
-    };
-    const { DesktopConversationContinuityService } = require(
-      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
-    );
-
-    try {
-      await expect(DesktopConversationContinuityService.loadDisplayTimeline(
-        'user-1',
-        'conv-display',
-      )).resolves.toEqual(expect.objectContaining({
-        revisionId: 'rev-display',
-      }));
-      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
-        command: 'conversation.loadDisplayTimeline',
-        payload: {
-          userId: 'user-1',
-          conversationRef: 'conv-display',
-          revisionId: undefined,
-        },
-      });
-    } finally {
-      window.ipc = originalIpc;
-    }
-  });
-
-  test('loadDisplayRows prefers ConversationView rows from the SDK command bridge', async () => {
-    const originalIpc = window.ipc;
-    window.ipc = {
-      send: jest.fn(),
-      invoke: jest.fn(async () => ({
-        ok: true,
-        data: {
-          view: {
-            displayRows: [
-              {
-                id: 'row-view',
-                conversationRef: 'conv-display',
-                role: 'assistant',
-                type: 'assistant_message',
-                content: 'from view',
-              },
-            ],
-          },
-        },
-      })),
-      on: jest.fn(),
-      once: jest.fn(),
-    };
-    const { DesktopConversationContinuityService } = require(
-      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
-    );
-
-    try {
-      await expect(DesktopConversationContinuityService.loadDisplayRows(
-        'user-1',
-        'conv-display',
-      )).resolves.toEqual([
-        {
-          id: 'row-view',
-          conversationRef: 'conv-display',
-          role: 'assistant',
-          type: 'assistant_message',
-          content: 'from view',
-        },
-      ]);
-      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
-        command: 'conversation.loadDisplay',
-        payload: {
-          userId: 'user-1',
-          conversationRef: 'conv-display',
-        },
-      });
-    } finally {
-      window.ipc = originalIpc;
-    }
-  });
-
-  test('replaceRows routes display timeline replacement through the SDK command bridge', async () => {
-    const originalIpc = window.ipc;
-    window.ipc = {
-      send: jest.fn(),
-      invoke: jest.fn(async () => ({
-        ok: true,
-        data: {
-          conversationRef: 'conv-display',
-          revisionId: 'rev-child',
-          createdAt: '2026-06-22T12:01:00.000Z',
-          rows: [],
-        },
-      })),
-      on: jest.fn(),
-      once: jest.fn(),
-    };
-    const { DesktopConversationContinuityService } = require(
-      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
-    );
-
-    try {
-      await expect(DesktopConversationContinuityService.replaceRows({
-        userId: 'user-1',
-        conversationRef: 'conv-display',
-        baseRevisionId: 'rev-base',
-        reason: 'retry',
-        rows: [],
-      })).resolves.toEqual(expect.objectContaining({
-        revisionId: 'rev-child',
-      }));
-      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
-        command: 'conversation.replaceRows',
-        payload: {
-          userId: 'user-1',
-          conversationRef: 'conv-display',
-          baseRevisionId: 'rev-base',
-          reason: 'retry',
-          rows: [],
-        },
-      });
-    } finally {
-      window.ipc = originalIpc;
-    }
-  });
-
   test('editAndResend routes replay edits through the SDK command bridge', async () => {
     const originalIpc = window.ipc;
     window.ipc = {
@@ -177,7 +40,6 @@ describe('DesktopConversationContinuityService', () => {
         conversationRef: 'conv-display',
         messageId: 'row-user',
         text: 'edited text',
-        turnRef: 'turn-edit',
         payload: { screenshot_refs: ['artifact-one'] },
         model: {
           modelProvider: 'anthropic',
@@ -193,7 +55,6 @@ describe('DesktopConversationContinuityService', () => {
           conversationRef: 'conv-display',
           messageId: 'row-user',
           text: 'edited text',
-          turnRef: 'turn-edit',
           payload: { screenshot_refs: ['artifact-one'] },
           model: {
             modelProvider: 'anthropic',
@@ -229,7 +90,6 @@ describe('DesktopConversationContinuityService', () => {
         userId: 'user-1',
         conversationRef: 'conv-display',
         messageId: 'row-assistant',
-        turnRef: 'turn-retry',
         payload: { screenshot_ref: 'artifact-one' },
         model: {
           modelProvider: 'anthropic',
@@ -244,7 +104,6 @@ describe('DesktopConversationContinuityService', () => {
           userId: 'user-1',
           conversationRef: 'conv-display',
           messageId: 'row-assistant',
-          turnRef: 'turn-retry',
           payload: { screenshot_ref: 'artifact-one' },
           model: {
             modelProvider: 'anthropic',
@@ -386,7 +245,6 @@ describe('DesktopConversationContinuityService', () => {
         userId: 'user-1',
         conversationRef: 'conv-display',
         sourceRevisionId: 'rev-base',
-        newConversationRef: 'conv-forked',
       })).resolves.toEqual(expect.objectContaining({
         conversationRef: 'conv-forked',
         revisionId: 'rev-forked',
@@ -398,7 +256,6 @@ describe('DesktopConversationContinuityService', () => {
           conversationRef: 'conv-display',
           sourceRevisionId: 'rev-base',
           cutAfterRowId: null,
-          newConversationRef: 'conv-forked',
         },
       });
     } finally {

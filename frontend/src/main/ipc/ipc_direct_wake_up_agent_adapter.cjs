@@ -52,7 +52,7 @@ function createDirectWakeUpAgentAdapter({
   const {
     broadcastToRenderers,
     resolveRuntimeConversationRef,
-    setLatestCurrentTurnProjection,
+    setLatestSdkLiveTurn,
     setLatestConversationView,
     getLatestPendingTurn,
     pendingTurnMatchesCurrentTurn,
@@ -123,8 +123,8 @@ function createDirectWakeUpAgentAdapter({
         conversationRef: handle.conversationRef,
         rows: Array.isArray(snapshot.view?.displayRows) ? snapshot.view.displayRows : [],
       });
-      if (typeof setLatestCurrentTurnProjection === 'function') {
-        setLatestCurrentTurnProjection(snapshot.currentTurn || null);
+      if (typeof setLatestSdkLiveTurn === 'function') {
+        setLatestSdkLiveTurn(snapshot.currentTurn || null);
       }
       if (typeof setLatestConversationView === 'function') {
         setLatestConversationView(snapshot.view || null);

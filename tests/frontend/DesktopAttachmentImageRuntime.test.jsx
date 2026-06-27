@@ -1,35 +1,25 @@
 /**
- * Covers resolved message screenshot source behavior in the frontend test suite.
+ * Covers attachment image source behavior in the frontend test suite.
  */
 
 import { act, renderHook, waitFor } from '@testing-library/react';
 import {
-  DesktopResolvedMessageScreenshotsRuntime,
-} from '../../frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime';
+  DesktopAttachmentImageRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime';
 import { DesktopArtifactRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient', () => {
   const imageUtils = jest.requireActual(
     '../../frontend/src/renderer/infrastructure/services/ArtifactImageUtils',
   );
-  const screenshotState = jest.requireActual(
-    '../../frontend/src/renderer/infrastructure/services/screenshotMessageState',
-  );
   const buildArtifactUrl = jest.fn((artifactId) => `http://runtime.test/api/artifacts/${artifactId}`);
-  const withArtifactUrlBuilder = (input = {}) => ({
-    ...input,
-    artifactUrlBuilder: buildArtifactUrl,
-  });
 
   return {
     DesktopArtifactRuntimeClient: {
       buildArtifactUrl,
       fetchArtifactImage: jest.fn(),
-      inferArtifactRefFromUrl: screenshotState.inferArtifactRefFromUrl,
+      inferArtifactRefFromUrl: imageUtils.inferArtifactRefFromUrl,
       normalizeArtifactImageContentType: imageUtils.normalizeArtifactImageContentType,
-      resolveScreenshotAttachmentState: (input) => (
-        screenshotState.resolveScreenshotAttachmentState(withArtifactUrlBuilder(input))
-      ),
     },
   };
 });
@@ -42,7 +32,7 @@ function createDeferred() {
   return { promise, resolve };
 }
 
-describe('DesktopResolvedMessageScreenshotsRuntime', () => {
+describe('DesktopAttachmentImageRuntime', () => {
   beforeEach(() => {
     DesktopArtifactRuntimeClient.fetchArtifactImage.mockReset();
   });
@@ -53,12 +43,15 @@ describe('DesktopResolvedMessageScreenshotsRuntime', () => {
 
     const { result, rerender } = renderHook(
       ({ attachment }) => (
-        DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc(attachment)
+        DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc(attachment)
       ),
       {
         initialProps: {
           attachment: {
             id: 'attachment-1',
+            kind: 'image',
+            source: 'user_included',
+            status: 'ready',
             screenshotRef: 'artifact-screen-1',
           },
         },
@@ -87,6 +80,9 @@ describe('DesktopResolvedMessageScreenshotsRuntime', () => {
       rerender({
         attachment: {
           id: 'attachment-1',
+          kind: 'image',
+          source: 'user_included',
+          status: 'ready',
           screenshotRef: 'artifact-screen-1',
         },
       });
@@ -97,13 +93,29 @@ describe('DesktopResolvedMessageScreenshotsRuntime', () => {
 
   test('returns static non-artifact attachment urls without fetching', () => {
     const { result } = renderHook(
-      () => DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc({
+      () => DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc({
         id: 'attachment-static',
+        kind: 'image',
+        source: 'user_included',
+        status: 'ready',
         screenshotUrl: 'https://cdn.example/static.png',
       }),
     );
 
     expect(result.current).toBe('https://cdn.example/static.png');
+    expect(DesktopArtifactRuntimeClient.fetchArtifactImage).not.toHaveBeenCalled();
+  });
+
+  test('ignores whole-message screenshot aliases outside typed attachments', () => {
+    const { result } = renderHook(
+      () => DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc({
+        id: 'message-row',
+        screenshotRef: 'artifact-row-alias',
+        screenshotUrl: 'https://cdn.example/row-alias.png',
+      }),
+    );
+
+    expect(result.current).toBeNull();
     expect(DesktopArtifactRuntimeClient.fetchArtifactImage).not.toHaveBeenCalled();
   });
 
@@ -124,7 +136,7 @@ describe('DesktopResolvedMessageScreenshotsRuntime', () => {
     try {
       const { result, rerender } = renderHook(
         ({ attachment }) => (
-          DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc(attachment)
+          DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc(attachment)
         ),
         { initialProps: { attachment: createAttachment() } },
       );

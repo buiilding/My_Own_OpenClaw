@@ -1,8 +1,7 @@
-﻿/**
- * Derives renderer chat UI side effects from SDK current-turn projections.
+/**
+ * Derives renderer chat UI side effects from SDK live-turn snapshots.
  */
 
-import type { CurrentTurnToolEvent } from './desktopConversationRuntimeContracts';
 import {
   DesktopChatStreamThinkingRuntime,
 } from './desktopChatStreamThinkingRuntime';
@@ -15,29 +14,39 @@ const {
 
 export type ProjectionCursor = {
   assistantLength: number;
-  reasoningLength: number;
+  thinkingLength: number;
   phase: string | null;
   lastError: string | null;
-  toolEventIds: Set<string>;
+  liveEntryIds: Set<string>;
 };
 
 type WorkspaceState = {
   thinkingStatus?: string | null;
 };
 
-export type CurrentTurnProjectionEffectsInput = {
-  assistantText?: string | null;
-  conversationRef?: string | null;
+type SdkLiveTurnPresentationEntry = {
+  id?: string | null;
+  type?: string | null;
+  text?: string | null;
+  executionSkipped?: boolean | null;
+  [key: string]: unknown;
+};
+
+type SdkLiveTurnPresentation = {
+  entries?: SdkLiveTurnPresentationEntry[] | null;
   lastError?: string | null;
+  [key: string]: unknown;
+};
+
+export type SdkLiveTurnEffectsInput = {
+  conversationRef?: string | null;
   phase: string;
-  presentation?: unknown;
-  reasoningText?: string | null;
-  toolEvents: CurrentTurnToolEvent[];
+  presentation?: SdkLiveTurnPresentation | null;
   turnRef?: string | null;
   userMessageRowId?: string | null;
 };
 
-type CurrentTurnProjectionSideEffectDeps = {
+type SdkLiveTurnSideEffectDeps = {
   getWorkspaceState: (conversationRef?: string | null) => WorkspaceState;
   setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
   setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
@@ -46,20 +55,20 @@ type CurrentTurnProjectionSideEffectDeps = {
   recordTrackingEvent: DesktopChatStreamRecordTrackingEvent;
 };
 
-type ApplyCurrentTurnProjectionSideEffectsInput = {
+type ApplySdkLiveTurnSideEffectsInput = {
   conversationRef: string;
-  currentTurn: CurrentTurnProjectionEffectsInput;
+  currentTurn: SdkLiveTurnEffectsInput;
   cursor: ProjectionCursor;
-  deps: CurrentTurnProjectionSideEffectDeps;
+  deps: SdkLiveTurnSideEffectDeps;
 };
 
 function createProjectionCursor(): ProjectionCursor {
   return {
     assistantLength: 0,
-    reasoningLength: 0,
+    thinkingLength: 0,
     phase: null,
     lastError: null,
-    toolEventIds: new Set<string>(),
+    liveEntryIds: new Set<string>(),
   };
 }
 
@@ -86,7 +95,27 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function resolveSdkPresentationHasVisibleContent(currentTurn: CurrentTurnProjectionEffectsInput): boolean {
+function normalizeEntryText(entry: SdkLiveTurnPresentationEntry): string {
+  return typeof entry.text === 'string' ? entry.text : '';
+}
+
+function readPresentationEntries(currentTurn: SdkLiveTurnEffectsInput): SdkLiveTurnPresentationEntry[] {
+  return Array.isArray(currentTurn.presentation?.entries)
+    ? currentTurn.presentation.entries
+    : [];
+}
+
+function concatEntryTextByType(
+  entries: SdkLiveTurnPresentationEntry[],
+  type: string,
+): string {
+  return entries
+    .filter((entry) => entry.type === type)
+    .map(normalizeEntryText)
+    .join('');
+}
+
+function resolveSdkPresentationHasVisibleContent(currentTurn: SdkLiveTurnEffectsInput): boolean {
   const presentation = asRecord((currentTurn as { presentation?: unknown }).presentation);
   if (Array.isArray(presentation?.entries) && presentation.entries.length > 0) {
     return true;
@@ -95,33 +124,42 @@ function resolveSdkPresentationHasVisibleContent(currentTurn: CurrentTurnProject
     && presentation.lastError.trim().length > 0;
 }
 
-function isExecutionSkippedToolEvent(toolEvent: CurrentTurnToolEvent): boolean {
-  return toolEvent.executionSkipped === true;
+function resolveSdkPresentationLastError(currentTurn: SdkLiveTurnEffectsInput): string | null {
+  return typeof currentTurn.presentation?.lastError === 'string'
+    ? currentTurn.presentation.lastError
+    : null;
 }
 
-function shouldAcceptCurrentTurnBeforeLocalSend(currentTurn: CurrentTurnProjectionEffectsInput): boolean {
+function isExecutionSkippedToolEntry(entry: SdkLiveTurnPresentationEntry): boolean {
+  return entry.executionSkipped === true;
+}
+
+function presentationEntryId(entry: SdkLiveTurnPresentationEntry, index: number): string {
+  return typeof entry.id === 'string' && entry.id.trim()
+    ? entry.id.trim()
+    : `entry:${index}:${entry.type || 'unknown'}`;
+}
+
+function shouldAcceptCurrentTurnBeforeLocalSend(currentTurn: SdkLiveTurnEffectsInput): boolean {
   return currentTurn.phase === 'awaiting';
 }
 
-function applyCurrentTurnProjectionSideEffects({
+function applySdkLiveTurnSideEffects({
   conversationRef,
   currentTurn,
   cursor,
   deps,
-}: ApplyCurrentTurnProjectionSideEffectsInput): ProjectionCursor {
-  const assistantText = typeof currentTurn.assistantText === 'string'
-    ? currentTurn.assistantText
-    : '';
-  const reasoningText = typeof currentTurn.reasoningText === 'string'
-    ? currentTurn.reasoningText
-    : '';
+}: ApplySdkLiveTurnSideEffectsInput): ProjectionCursor {
+  const entries = readPresentationEntries(currentTurn);
+  const assistantEntryText = concatEntryTextByType(entries, 'llm-text');
+  const thinkingEntryText = concatEntryTextByType(entries, 'thinking');
   const assistantDelta = getProjectionTextDelta(
-    assistantText,
+    assistantEntryText,
     cursor.assistantLength,
   );
-  const reasoningDelta = getProjectionTextDelta(
-    reasoningText,
-    cursor.reasoningLength,
+  const thinkingDelta = getProjectionTextDelta(
+    thinkingEntryText,
+    cursor.thinkingLength,
   );
   const hasSdkVisibleContent = resolveSdkPresentationHasVisibleContent(currentTurn);
 
@@ -141,12 +179,12 @@ function applyCurrentTurnProjectionSideEffects({
     );
   }
 
-  if (reasoningDelta) {
+  if (thinkingDelta) {
     const workspace = deps.getWorkspaceState(conversationRef);
     const nextBaseStatus = isGenericThinkingStatus(workspace.thinkingStatus)
       ? null
       : workspace.thinkingStatus;
-    deps.setThinkingStatus(buildThinkingStatus(nextBaseStatus, reasoningDelta), conversationRef);
+    deps.setThinkingStatus(buildThinkingStatus(nextBaseStatus, thinkingDelta), conversationRef);
     deps.setThinkingSourceEventType('llm-thought', conversationRef);
     deps.recordTrackingEvent(
       deps.updateStreamTracking,
@@ -175,14 +213,15 @@ function applyCurrentTurnProjectionSideEffects({
     );
   }
 
-  const nextToolEventIds = new Set(cursor.toolEventIds);
-  for (const toolEvent of currentTurn.toolEvents) {
-    if (nextToolEventIds.has(toolEvent.id)) {
-      continue;
+  const nextLiveEntryIds = new Set(cursor.liveEntryIds);
+  entries.forEach((entry, index) => {
+    const entryId = presentationEntryId(entry, index);
+    if (nextLiveEntryIds.has(entryId)) {
+      return;
     }
-    nextToolEventIds.add(toolEvent.id);
-    if (toolEvent.kind === 'tool_call') {
-      if (!isExecutionSkippedToolEvent(toolEvent)) {
+    nextLiveEntryIds.add(entryId);
+    if (entry.type === 'tool-call') {
+      if (!isExecutionSkippedToolEntry(entry)) {
         deps.setIsSending(false, conversationRef);
         deps.setThinkingStatus(null, conversationRef);
         deps.setThinkingSourceEventType(null, conversationRef);
@@ -194,7 +233,7 @@ function applyCurrentTurnProjectionSideEffects({
         { phase: 'tool-call', toolCall: true },
         conversationRef,
       );
-    } else if (toolEvent.kind === 'tool_output') {
+    } else if (entry.type === 'tool-output') {
       deps.setIsSending(false, conversationRef);
       deps.setThinkingStatus(null, conversationRef);
       deps.setThinkingSourceEventType(null, conversationRef);
@@ -205,7 +244,7 @@ function applyCurrentTurnProjectionSideEffects({
         { phase: 'tool-output', toolOutput: true },
         conversationRef,
       );
-    } else if (toolEvent.kind === 'tool_progress') {
+    } else if (entry.type === 'tool-progress') {
       deps.recordTrackingEvent(
         deps.updateStreamTracking,
         'web-search-progress',
@@ -214,7 +253,7 @@ function applyCurrentTurnProjectionSideEffects({
         conversationRef,
       );
     }
-  }
+  });
 
   if (currentTurn.phase === 'complete') {
     deps.setIsSending(false, conversationRef);
@@ -230,13 +269,14 @@ function applyCurrentTurnProjectionSideEffects({
       );
     }
   } else if (currentTurn.phase === 'error') {
-    const errorText = typeof currentTurn.lastError === 'string' && currentTurn.lastError.trim()
-      ? currentTurn.lastError
+    const currentError = resolveSdkPresentationLastError(currentTurn);
+    const errorText = typeof currentError === 'string' && currentError.trim()
+      ? currentError
       : 'Unknown runtime error';
     deps.setIsSending(false, conversationRef);
     deps.setThinkingStatus('', conversationRef);
     deps.setThinkingSourceEventType(null, conversationRef);
-    if (cursor.phase !== 'error' || cursor.lastError !== currentTurn.lastError) {
+    if (cursor.phase !== 'error' || cursor.lastError !== currentError) {
       deps.recordTrackingEvent(
         deps.updateStreamTracking,
         'error',
@@ -248,17 +288,17 @@ function applyCurrentTurnProjectionSideEffects({
   }
 
   return {
-    assistantLength: assistantText.length,
-    reasoningLength: reasoningText.length,
+    assistantLength: assistantEntryText.length,
+    thinkingLength: thinkingEntryText.length,
     phase: currentTurn.phase,
-    lastError: currentTurn.lastError ?? null,
-    toolEventIds: nextToolEventIds,
+    lastError: resolveSdkPresentationLastError(currentTurn),
+    liveEntryIds: nextLiveEntryIds,
   };
 }
 
-export const DesktopCurrentTurnProjectionEffectsRuntime = Object.freeze({
+export const DesktopSdkLiveTurnEffectsRuntime = Object.freeze({
   createProjectionCursor,
   buildProjectionCursorKey,
   shouldAcceptCurrentTurnBeforeLocalSend,
-  applyCurrentTurnProjectionSideEffects,
+  applySdkLiveTurnSideEffects,
 });

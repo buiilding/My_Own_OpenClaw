@@ -40,9 +40,62 @@ jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => {
 });
 
 import MinimalResponseOverlay from '../../frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  clearPendingTurnInChatStore,
+  setConversationViewInChatStore,
+  setNoViewSdkLiveTurnInChatStore,
+  setIsSendingInChatStore,
+  setMessagesInChatStore,
+  setThinkingStatusInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
+
+const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
+const WORKSPACE_MIRROR_FIELDS = [
+  'messages',
+  'isSending',
+  'thinkingStatus',
+  'thinkingSourceEventType',
+  'compactionDebugInfo',
+  'tokenCounts',
+  'streamTracking',
+  'sdkLiveTurn',
+  'conversationView',
+  'pendingTurn',
+];
 
 const originalSetChatStoreState = useChatStore.setState.bind(useChatStore);
+
+function withActiveWorkspaceMirror(partial) {
+  const state = useChatStore.getState();
+  const workspaceRef = state.activeConversationRef || DEFAULT_CHAT_WORKSPACE_REF;
+  const currentWorkspace = state.workspaces?.[workspaceRef];
+  if (!currentWorkspace) {
+    return partial;
+  }
+  let shouldMirror = false;
+  const nextWorkspace = {
+    ...currentWorkspace,
+  };
+  WORKSPACE_MIRROR_FIELDS.forEach((fieldName) => {
+    if (Object.prototype.hasOwnProperty.call(partial, fieldName)) {
+      nextWorkspace[fieldName] = partial[fieldName];
+      shouldMirror = true;
+    }
+  });
+  if (!shouldMirror) {
+    return partial;
+  }
+  return {
+    ...partial,
+    workspaces: {
+      ...state.workspaces,
+      [workspaceRef]: nextWorkspace,
+    },
+  };
+}
 
 useChatStore.setState = (partial, replace) => {
   if (
@@ -50,18 +103,20 @@ useChatStore.setState = (partial, replace) => {
     && typeof partial === 'object'
     && !Array.isArray(partial)
     && Array.isArray(partial.messages)
-    && !Object.prototype.hasOwnProperty.call(partial, 'currentTurnProjection')
+    && !Object.prototype.hasOwnProperty.call(partial, 'sdkLiveTurn')
   ) {
-    const currentPhase = useChatStore.getState()?.currentTurnProjection?.phase || null;
+    const currentPhase = useChatStore.getState()?.sdkLiveTurn?.phase || null;
     const currentTurnProjection = partial.messages.length > 0
       ? buildCurrentTurnProjection(partial.messages, currentPhase)
       : null;
-    return originalSetChatStoreState({
+    return originalSetChatStoreState(withActiveWorkspaceMirror({
       ...partial,
-      currentTurnProjection,
+      sdkLiveTurn: currentTurnProjection,
       conversationView: null,
-      latestConversationView: null,
-    }, replace);
+    }), replace);
+  }
+  if (partial && typeof partial === 'object' && !Array.isArray(partial)) {
+    return originalSetChatStoreState(withActiveWorkspaceMirror(partial), replace);
   }
   return originalSetChatStoreState(partial, replace);
 };
@@ -180,26 +235,20 @@ function buildCurrentTurnProjection(messages, phase = null) {
 
 export function setChatState(messages) {
   const currentTurnProjection = messages.length > 0 ? buildCurrentTurnProjection(messages) : null;
-  useChatStore.setState({
-    messages,
-    isSending: false,
-    thinkingStatus: null,
-    pendingTurn: null,
-    currentTurnProjection,
-    conversationView: null,
-    latestConversationView: null,
-  });
+  setMessagesInChatStore(messages);
+  setIsSendingInChatStore(false);
+  setThinkingStatusInChatStore(null);
+  clearPendingTurnInChatStore();
+  setNoViewSdkLiveTurnInChatStore(currentTurnProjection);
+  setConversationViewInChatStore(null);
 }
 
 export function emitOverlayPhase(phase) {
   act(() => {
-    const state = useChatStore.getState();
-    const currentTurnProjection = buildCurrentTurnProjection(state.messages || [], phase);
-    useChatStore.setState({
-      currentTurnProjection,
-      conversationView: null,
-      latestConversationView: null,
-    });
+    const workspace = useChatStore.getState().getWorkspaceState();
+    const currentTurnProjection = buildCurrentTurnProjection(workspace.messages || [], phase);
+    setNoViewSdkLiveTurnInChatStore(currentTurnProjection);
+    setConversationViewInChatStore(null);
   });
 }
 

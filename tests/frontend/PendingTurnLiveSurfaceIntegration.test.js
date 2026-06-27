@@ -8,11 +8,19 @@ import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
+  acceptPendingTurnInChatStore,
+  applyPendingTurnBroadcastToChatStore,
+  setNoViewSdkLiveTurnInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
+import {
   DesktopLiveTurnSurfaceRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime';
 import {
   DesktopThreadPresentationRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopThreadPresentationRuntime';
+import {
+  DesktopChatInterfacePresentationRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatInterfacePresentationRuntime';
 import {
   DesktopCurrentTurnMessageRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
@@ -21,6 +29,7 @@ import {
 } from './chatStoreTestUtils';
 
 const { buildThreadPresentationMessages } = DesktopThreadPresentationRuntime;
+const { buildChatInterfacePresentationState } = DesktopChatInterfacePresentationRuntime;
 const {
   prepareDesktopChatSend,
 } = DesktopChatSendPreparationRuntime;
@@ -101,9 +110,11 @@ function resetStore() {
   resetChatStoreForTests();
   useChatStore.setState({
     activeConversationRef: null,
-    currentTurnProjection: null,
-    pendingTurn: null,
   });
+}
+
+function getActiveWorkspace() {
+  return useChatStore.getState().getWorkspaceState();
 }
 
 function currentTurnWithPresentation() {
@@ -156,9 +167,15 @@ describe('pending-turn live surface integration', () => {
       payload: 'Live now',
       config: { include_query_screenshot: false },
       dependencies: {
-        acceptPendingTurn: (pendingTurn) => useChatStore.getState().acceptPendingTurn(pendingTurn),
+        acceptPendingTurn: acceptPendingTurnInChatStore,
         getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
-        getMessages: () => useChatStore.getState().messages,
+        getSendReadModel: () => {
+          const workspace = getActiveWorkspace();
+          return {
+            conversationView: workspace.conversationView,
+            messages: workspace.messages,
+          };
+        },
         setChatActiveConversationRef: useChatStore.getState().setActiveConversationRef,
       },
       senderSurface: 'overlay-chatbox',
@@ -170,15 +187,21 @@ describe('pending-turn live surface integration', () => {
     });
 
     await waitFor(() => {
-      expect(useChatStore.getState().pendingTurn).toEqual(expect.objectContaining({
+      expect(getActiveWorkspace().pendingTurn).toEqual(expect.objectContaining({
         conversationRef: 'conv_msg-1',
         turnRef: 'msg-1',
         text: 'Live now',
       }));
     });
 
-    let state = useChatStore.getState();
-    expect(state.messages).toEqual([
+    let state = getActiveWorkspace();
+    expect(state.messages).toEqual([]);
+    expect(buildChatInterfacePresentationState({
+      activeConversationRef: 'conv_msg-1',
+      messages: state.messages,
+      pendingTurn: state.pendingTurn,
+      sdkLiveTurn: state.sdkLiveTurn,
+    }).renderedMessages).toEqual([
       expect.objectContaining({
         id: 'msg-1-sdk-evt-000002-user_message',
         sender: 'user',
@@ -189,7 +212,7 @@ describe('pending-turn live surface integration', () => {
     expect(resolveLiveTurnPresentationInput({
       messages: state.messages,
       pendingTurn: state.pendingTurn,
-      currentTurnProjection: state.currentTurnProjection,
+      sdkLiveTurn: state.sdkLiveTurn,
     })).toMatchObject({
       source: 'pending-turn',
       phase: 'awaiting-first-chunk',
@@ -202,15 +225,15 @@ describe('pending-turn live surface integration', () => {
 
     const pendingTurn = state.pendingTurn;
     resetStore();
-    useChatStore.getState().applyPendingTurnBroadcast({
+    applyPendingTurnBroadcastToChatStore({
       kind: 'pending',
       pendingTurn,
     });
-    state = useChatStore.getState();
+    state = getActiveWorkspace();
     expect(resolveLiveTurnPresentationInput({
       messages: state.messages,
       pendingTurn: state.pendingTurn,
-      currentTurnProjection: state.currentTurnProjection,
+      sdkLiveTurn: state.sdkLiveTurn,
     })).toMatchObject({
       source: 'pending-turn',
       phase: 'awaiting-first-chunk',
@@ -218,23 +241,23 @@ describe('pending-turn live surface integration', () => {
     });
 
     const currentTurnProjection = currentTurnWithPresentation();
-    useChatStore.getState().setCurrentTurnProjection(
+    setNoViewSdkLiveTurnInChatStore(
       currentTurnProjection,
       currentTurnProjection.conversationRef,
     );
-    state = useChatStore.getState();
+    state = getActiveWorkspace();
     expect(state.pendingTurn).toBeNull();
     expect(resolveLiveTurnPresentationInput({
       messages: state.messages,
       pendingTurn: state.pendingTurn,
-      currentTurnProjection: state.currentTurnProjection,
+      sdkLiveTurn: state.sdkLiveTurn,
     })).toMatchObject({
       source: 'sdk-current-turn',
       phase: 'streaming',
     });
 
     const dashboardMessages = buildThreadPresentationMessages(state.messages, {
-      currentTurnProjection,
+      sdkLiveTurn: currentTurnProjection,
       activeConversationRef: 'conv_msg-1',
     }).filter((message) => message.sourceChannel === 'sdk:current-turn');
     const overlayMessages = buildCurrentTurnMessagesFromPresentation(currentTurnProjection);

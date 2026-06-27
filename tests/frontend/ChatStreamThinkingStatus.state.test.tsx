@@ -3,11 +3,21 @@
  */
 
 import { act } from '@testing-library/react';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  setNoViewSdkLiveTurnInChatStore,
+  setThinkingSourceEventTypeInChatStore,
+  setThinkingStatusInChatStore,
+  updateStreamTrackingInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
+import {
+  getActiveWorkspaceStateForTest,
   registerBackendAndProjectionListeners,
   registerBackendListener,
   resetChatStreamTestState,
+  setActiveWorkspaceStateForTest,
   setMockConfig,
 } from './ChatStreamThinkingStatus.testUtils';
 
@@ -20,35 +30,35 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({ thinkingStatus: 'thinking' });
+      setActiveWorkspaceStateForTest({ thinkingStatus: 'thinking' });
       emitBackendEvent({
         type: 'streaming-response',
         payload: { text: 'hi' },
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBe('thinking');
+    expect(getActiveWorkspaceStateForTest().thinkingStatus).toBe('thinking');
   });
 
   test('does not update thinking status from raw llm-thought events', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({ thinkingStatus: null });
+      setActiveWorkspaceStateForTest({ thinkingStatus: null });
       emitBackendEvent({
         type: 'llm-thought',
         payload: { status: 'thinking...' },
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBeNull();
+    expect(getActiveWorkspaceStateForTest().thinkingStatus).toBeNull();
   });
 
   test('ignores stale llm-thought event when a newer active turn is in progress', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           {
             id: 'assistant-new-turn',
@@ -87,7 +97,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state.thinkingStatus).toBe('current step');
     expect(state.thinkingSourceEventType).toBe('llm-thought');
     expect(state.messages).toHaveLength(1);
@@ -112,7 +122,7 @@ describe('useChatStream state + stream handling', () => {
 
     act(() => {
       const store = useChatStore.getState();
-      store.setCurrentTurnProjection({
+      setNoViewSdkLiveTurnInChatStore({
         conversationRef: 'conv-test',
         turnRef: 'turn-new',
         phase: 'streaming',
@@ -121,9 +131,9 @@ describe('useChatStream state + stream handling', () => {
         toolEvents: [],
         lastError: null,
       }, 'conv-test');
-      store.setThinkingStatus('current step', 'conv-test');
-      store.setThinkingSourceEventType('llm-thought', 'conv-test');
-      store.updateStreamTracking(() => ({
+      setThinkingStatusInChatStore('current step', 'conv-test');
+      setThinkingSourceEventTypeInChatStore('llm-thought', 'conv-test');
+      updateStreamTrackingInChatStore(() => ({
         activeTurnRef: 'turn-new',
         phase: 'streaming',
         startedAt: '2026-03-05T00:00:00.000Z',
@@ -153,7 +163,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state).not.toHaveProperty('latestCurrentTurnProjection');
     expect(state.thinkingStatus).toBe('current step');
     expect(state.streamTracking).toEqual(expect.objectContaining({
@@ -204,7 +214,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().isSending).toBe(true);
+    expect(getActiveWorkspaceStateForTest().isSending).toBe(true);
 
     act(() => {
       emitConversationRuntimeUpdated({
@@ -239,7 +249,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState()).toEqual(expect.objectContaining({
+    expect(getActiveWorkspaceStateForTest()).toEqual(expect.objectContaining({
       isSending: false,
       thinkingStatus: 'Inspecting the screen.',
       thinkingSourceEventType: 'llm-thought',
@@ -250,7 +260,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({ messages: [] });
+      setActiveWorkspaceStateForTest({ messages: [] });
       emitBackendEvent({
         type: 'llm-thought',
         turn_ref: 'turn-live',
@@ -258,7 +268,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state.messages).toEqual([]);
     expect(state.thinkingStatus).toBeNull();
     expect(state.thinkingSourceEventType).toBeNull();
@@ -268,7 +278,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({ messages: [], isSending: true });
+      setActiveWorkspaceStateForTest({ messages: [], isSending: true });
       emitBackendEvent({
         type: 'llm-thought',
         turn_ref: 'turn-live',
@@ -281,7 +291,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state.messages).toEqual([]);
     expect(state.isSending).toBe(true);
     expect(state.thinkingStatus).toBeNull();
@@ -296,11 +306,11 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           { id: 'user-live', text: 'hello', sender: 'user', turnRef: 'turn-live' },
         ],
-        currentTurnProjection: {
+        sdkLiveTurn: {
           conversationRef: 'conv-test',
           turnRef: 'turn-live',
           phase: 'streaming',
@@ -317,7 +327,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().messages).toEqual([
+    expect(getActiveWorkspaceStateForTest().messages).toEqual([
       { id: 'user-live', text: 'hello', sender: 'user', turnRef: 'turn-live' },
     ]);
   });
@@ -326,9 +336,9 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [],
-        currentTurnProjection: null,
+        sdkLiveTurn: null,
       });
       emitBackendEvent({
         type: 'streaming-response',
@@ -337,18 +347,18 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().messages).toEqual([]);
+    expect(getActiveWorkspaceStateForTest().messages).toEqual([]);
   });
 
   test('does not commit SDK current-turn projection into message history on completion', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           { id: 'user-live', text: 'hello', sender: 'user', turnRef: 'turn-live' },
         ],
-        currentTurnProjection: {
+        sdkLiveTurn: {
           conversationRef: 'conv-test',
           turnRef: 'turn-live',
           phase: 'complete',
@@ -365,7 +375,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().messages).toEqual([
+    expect(getActiveWorkspaceStateForTest().messages).toEqual([
       { id: 'user-live', text: 'hello', sender: 'user', turnRef: 'turn-live' },
     ]);
   });
@@ -374,35 +384,35 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({ thinkingStatus: null });
+      setActiveWorkspaceStateForTest({ thinkingStatus: null });
       emitBackendEvent({
         type: 'llm-thought',
         payload: { content: 'reasoning step' },
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBeNull();
+    expect(getActiveWorkspaceStateForTest().thinkingStatus).toBeNull();
   });
 
   test('shows compacting status while context compaction is running', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({ thinkingStatus: null });
+      setActiveWorkspaceStateForTest({ thinkingStatus: null });
       emitBackendEvent({
         type: 'context-compaction-started',
         payload: { reason: 'auto-pre', strategy: 'inline' },
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBe('Compacting conversation history...');
+    expect(getActiveWorkspaceStateForTest().thinkingStatus).toBe('Compacting conversation history...');
   });
 
   test('replaces compacting status with compacted status when context compaction completes', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({ thinkingStatus: 'Compacting conversation history...' });
+      setActiveWorkspaceStateForTest({ thinkingStatus: 'Compacting conversation history...' });
       emitBackendEvent({
         type: 'context-compaction-completed',
         payload: {
@@ -419,15 +429,15 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBe('Conversation history compacted.');
-    expect(useChatStore.getState().thinkingSourceEventType).toBe('context-compaction-completed');
+    expect(getActiveWorkspaceStateForTest().thinkingStatus).toBe('Conversation history compacted.');
+    expect(getActiveWorkspaceStateForTest().thinkingSourceEventType).toBe('context-compaction-completed');
   });
 
   test('clears compaction status when compaction completes with skipped_reason', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         thinkingStatus: 'Compacting conversation history...',
         thinkingSourceEventType: 'context-compaction-started',
       });
@@ -437,30 +447,30 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBeNull();
-    expect(useChatStore.getState().thinkingSourceEventType).toBeNull();
+    expect(getActiveWorkspaceStateForTest().thinkingStatus).toBeNull();
+    expect(getActiveWorkspaceStateForTest().thinkingSourceEventType).toBeNull();
   });
 
   test('replaces compacting status with failure status when context compaction fails', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({ thinkingStatus: 'Compacting conversation history...' });
+      setActiveWorkspaceStateForTest({ thinkingStatus: 'Compacting conversation history...' });
       emitBackendEvent({
         type: 'context-compaction-failed',
         payload: { reason: 'auto-pre', strategy: 'inline', error: 'boom' },
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBe('boom');
-    expect(useChatStore.getState().thinkingSourceEventType).toBe('context-compaction-failed');
+    expect(getActiveWorkspaceStateForTest().thinkingStatus).toBe('boom');
+    expect(getActiveWorkspaceStateForTest().thinkingSourceEventType).toBe('context-compaction-failed');
   });
 
   test('ignores stale context-compaction lifecycle events for old turns', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         thinkingStatus: 'current thinking',
         thinkingSourceEventType: 'llm-thought',
         streamTracking: {
@@ -497,9 +507,9 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBe('current thinking');
-    expect(useChatStore.getState().thinkingSourceEventType).toBe('llm-thought');
-    expect(useChatStore.getState().streamTracking).toEqual(
+    expect(getActiveWorkspaceStateForTest().thinkingStatus).toBe('current thinking');
+    expect(getActiveWorkspaceStateForTest().thinkingSourceEventType).toBe('llm-thought');
+    expect(getActiveWorkspaceStateForTest().streamTracking).toEqual(
       expect.objectContaining({
         activeTurnRef: 'turn-new',
         phase: 'streaming',
@@ -512,7 +522,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
-      useChatStore.setState({ thinkingStatus: 'thinking' });
+      setActiveWorkspaceStateForTest({ thinkingStatus: 'thinking' });
       emitConversationRuntimeUpdated({
         conversationRef: 'conv-test',
         currentTurn: {
@@ -532,12 +542,12 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState()).toEqual(expect.objectContaining({
+    expect(getActiveWorkspaceStateForTest()).toEqual(expect.objectContaining({
       isSending: false,
       thinkingStatus: null,
       thinkingSourceEventType: null,
     }));
-    expect(useChatStore.getState().streamTracking).toEqual(expect.objectContaining({
+    expect(getActiveWorkspaceStateForTest().streamTracking).toEqual(expect.objectContaining({
       activeTurnRef: 'turn-tool',
       phase: 'tool-call',
       lastEventType: 'tool-call',
@@ -549,7 +559,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         isSending: true,
         thinkingStatus: 'thinking',
       });
@@ -573,7 +583,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state.isSending).toBe(false);
     expect(state.thinkingStatus).toBeNull();
     expect(state.streamTracking).toEqual(expect.objectContaining({
@@ -613,7 +623,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().streamTracking).toEqual(expect.objectContaining({
+    expect(getActiveWorkspaceStateForTest().streamTracking).toEqual(expect.objectContaining({
       activeTurnRef: 'turn-search',
       phase: 'tool-call',
       lastEventType: 'web-search-progress',
@@ -625,7 +635,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           {
             id: 'assistant-new-turn',
@@ -662,7 +672,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state.isSending).toBe(true);
     expect(state.thinkingStatus).toBe('thinking');
     expect(state.messages).toHaveLength(1);
@@ -686,7 +696,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           {
             id: 'assistant-new-turn',
@@ -726,7 +736,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state.isSending).toBe(true);
     expect(state.thinkingStatus).toBe('thinking');
     expect(state.messages).toHaveLength(1);
@@ -750,7 +760,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           {
             id: 'assistant-new-turn',
@@ -789,7 +799,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state.thinkingStatus).toBe('thinking');
     expect(state.messages).toHaveLength(1);
     expect(state.messages[0]).toEqual(
@@ -812,7 +822,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
-      useChatStore.setState({ thinkingStatus: 'thinking' });
+      setActiveWorkspaceStateForTest({ thinkingStatus: 'thinking' });
       emitConversationRuntimeUpdated({
         conversationRef: 'conv-test',
         currentTurn: {
@@ -827,12 +837,12 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState()).toEqual(expect.objectContaining({
+    expect(getActiveWorkspaceStateForTest()).toEqual(expect.objectContaining({
       isSending: false,
       thinkingStatus: null,
       thinkingSourceEventType: null,
     }));
-    expect(useChatStore.getState().streamTracking).toEqual(expect.objectContaining({
+    expect(getActiveWorkspaceStateForTest().streamTracking).toEqual(expect.objectContaining({
       activeTurnRef: 'turn-complete',
       phase: 'complete',
       lastEventType: 'streaming-complete',
@@ -855,7 +865,7 @@ describe('useChatStream state + stream handling', () => {
     };
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           {
             id: 'user-turn-stop',
@@ -869,7 +879,7 @@ describe('useChatStream state + stream handling', () => {
     });
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         isSending: true,
         thinkingStatus: 'thinking',
         thinkingSourceEventType: 'llm-thought',
@@ -877,12 +887,12 @@ describe('useChatStream state + stream handling', () => {
       emitConversationRuntimeUpdated(projectedCompletion);
     });
 
-    expect(useChatStore.getState()).toEqual(expect.objectContaining({
+    expect(getActiveWorkspaceStateForTest()).toEqual(expect.objectContaining({
       isSending: false,
       thinkingStatus: null,
       thinkingSourceEventType: null,
     }));
-    expect(useChatStore.getState().streamTracking).toEqual(expect.objectContaining({
+    expect(getActiveWorkspaceStateForTest().streamTracking).toEqual(expect.objectContaining({
       activeTurnRef: 'turn-stop',
       phase: 'complete',
       lastEventType: 'streaming-complete',
@@ -893,7 +903,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           {
             id: 'user-turn-complete',
@@ -928,7 +938,7 @@ describe('useChatStream state + stream handling', () => {
           lastChunkSize: 4,
           lastError: null,
         },
-        currentTurnProjection: {
+        sdkLiveTurn: {
           conversationRef: 'conv-test',
           turnRef: 'turn-complete',
           phase: 'streaming',
@@ -949,7 +959,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state.isSending).toBe(false);
     expect(state.thinkingStatus).toBeNull();
     expect(state.thinkingSourceEventType).toBeNull();
@@ -968,7 +978,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           {
             id: 'assistant-new-turn',
@@ -1005,7 +1015,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state.isSending).toBe(true);
     expect(state.thinkingStatus).toBe('thinking');
     expect(state.streamTracking).toEqual(
@@ -1027,7 +1037,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           {
             id: 'assistant-turn-1',
@@ -1055,7 +1065,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state.messages[0]).toEqual(expect.objectContaining({
       id: 'assistant-turn-1',
       text: 'final answer',
@@ -1074,13 +1084,13 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const messages = useChatStore.getState().messages;
+    const messages = getActiveWorkspaceStateForTest().messages;
     const last = messages[messages.length - 1];
     expect(last).not.toEqual(expect.objectContaining({
       sender: 'user',
       text: 'hello from chatbox',
     }));
-    expect(useChatStore.getState().isSending).toBe(true);
+    expect(getActiveWorkspaceStateForTest().isSending).toBe(true);
   });
 
   test('does not set generic thinking status for gemini when thought-text streaming is supported', () => {
@@ -1097,7 +1107,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBeNull();
+    expect(getActiveWorkspaceStateForTest().thinkingStatus).toBeNull();
   });
 
   test('shows generic thinking status for models explicitly marked without thought-text stream', () => {
@@ -1127,7 +1137,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBe('Thinking...');
+    expect(getActiveWorkspaceStateForTest().thinkingStatus).toBe('Thinking...');
   });
 
   test('replaces generic thinking fallback when SDK projection reasoning arrives', () => {
@@ -1157,7 +1167,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBe('reasoning chunk');
+    expect(getActiveWorkspaceStateForTest().thinkingStatus).toBe('reasoning chunk');
   });
 
   test('updates token counts from token-count events', () => {
@@ -1178,7 +1188,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().tokenCounts).toEqual({
+    expect(getActiveWorkspaceStateForTest().tokenCounts).toEqual({
       prompt_tokens: 12,
       visible_output_tokens: 3,
       thinking_tokens: 2,
@@ -1193,7 +1203,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           {
             id: 'assistant-1',
@@ -1223,7 +1233,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().messages[0]).toEqual(expect.objectContaining({
+    expect(getActiveWorkspaceStateForTest().messages[0]).toEqual(expect.objectContaining({
       tokenCounts: {
         prompt_tokens: 12,
         visible_output_tokens: 3,
@@ -1240,7 +1250,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         tokenCounts: {
           prompt_tokens: 5,
           visible_output_tokens: 2,
@@ -1280,7 +1290,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().tokenCounts).toEqual({
+    expect(getActiveWorkspaceStateForTest().tokenCounts).toEqual({
       prompt_tokens: 5,
       visible_output_tokens: 2,
       output_tokens_total: 2,
@@ -1294,7 +1304,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           {
             id: 'assistant-1',
@@ -1311,7 +1321,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().messages).toEqual([
+    expect(getActiveWorkspaceStateForTest().messages).toEqual([
       expect.objectContaining({
         id: 'assistant-1',
         text: 'hello',
@@ -1324,7 +1334,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           {
             id: 'assistant-1',
@@ -1341,7 +1351,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const messages = useChatStore.getState().messages;
+    const messages = getActiveWorkspaceStateForTest().messages;
     expect(messages).toHaveLength(1);
     expect(messages[0]).toEqual(expect.objectContaining({
       id: 'assistant-1',
@@ -1354,7 +1364,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           {
             id: 'assistant-new-turn',
@@ -1391,7 +1401,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state.isSending).toBe(true);
     expect(state.thinkingStatus).toBe('thinking');
     expect(state.messages).toHaveLength(1);
@@ -1416,7 +1426,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         activeConversationRef: 'conv-test',
         messages: [
           {
@@ -1474,7 +1484,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state.isSending).toBe(false);
     expect(state.messages.at(-1)).toEqual(expect.objectContaining({
       id: 'user-new',
@@ -1494,7 +1504,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           {
             id: 'user-old',
@@ -1512,7 +1522,7 @@ describe('useChatStream state + stream handling', () => {
           },
         ],
         isSending: false,
-        currentTurnProjection: {
+        sdkLiveTurn: {
           conversationRef: 'conv-test',
           turnRef: 'turn-old',
           phase: 'complete',
@@ -1552,8 +1562,8 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    let state = useChatStore.getState();
-    expect(state.currentTurnProjection).toEqual(expect.objectContaining({
+    let state = getActiveWorkspaceStateForTest();
+    expect(state.sdkLiveTurn).toEqual(expect.objectContaining({
       turnRef: 'turn-new',
       phase: 'awaiting',
     }));
@@ -1579,9 +1589,9 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    state = useChatStore.getState();
+    state = getActiveWorkspaceStateForTest();
     expect(state.isSending).toBe(false);
-    expect(state.currentTurnProjection).toEqual(expect.objectContaining({
+    expect(state.sdkLiveTurn).toEqual(expect.objectContaining({
       turnRef: 'turn-new',
       phase: 'streaming',
       assistantText: 'new answer',
@@ -1596,7 +1606,7 @@ describe('useChatStream state + stream handling', () => {
   test('ignores benign settings update errors', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         isSending: true,
         thinkingStatus: 'thinking',
         messages: [{ id: 'init', text: 'Hello!', sender: 'assistant' }],
@@ -1612,15 +1622,15 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().isSending).toBe(true);
-    expect(useChatStore.getState().thinkingStatus).toBe('thinking');
-    expect(useChatStore.getState().messages).toHaveLength(1);
+    expect(getActiveWorkspaceStateForTest().isSending).toBe(true);
+    expect(getActiveWorkspaceStateForTest().thinkingStatus).toBe('thinking');
+    expect(getActiveWorkspaceStateForTest().messages).toHaveLength(1);
   });
 
   test('suppresses recoverable streamed tool-call parse errors in chat banner', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         isSending: true,
         thinkingStatus: 'thinking',
         messages: [{ id: 'init', text: 'Hello!', sender: 'assistant' }],
@@ -1640,15 +1650,15 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().isSending).toBe(true);
-    expect(useChatStore.getState().thinkingStatus).toBe('thinking');
-    expect(useChatStore.getState().messages).toHaveLength(1);
+    expect(getActiveWorkspaceStateForTest().isSending).toBe(true);
+    expect(getActiveWorkspaceStateForTest().thinkingStatus).toBe('thinking');
+    expect(getActiveWorkspaceStateForTest().messages).toHaveLength(1);
   });
 
   test('tracks SDK projected real errors even when error text is in payload content', () => {
     const { emitBackendEvent, emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
     act(() => {
-      useChatStore.setState({ isSending: true, thinkingStatus: 'thinking' });
+      setActiveWorkspaceStateForTest({ isSending: true, thinkingStatus: 'thinking' });
     });
 
     act(() => {
@@ -1673,7 +1683,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state.isSending).toBe(false);
     expect(state.thinkingStatus).toBe('');
     expect(state.streamTracking).toEqual(expect.objectContaining({
@@ -1691,7 +1701,7 @@ describe('useChatStream state + stream handling', () => {
   test('ignores stale error event when a newer active turn is in progress', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           {
             id: 'assistant-new-turn',
@@ -1728,7 +1738,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const state = useChatStore.getState();
+    const state = getActiveWorkspaceStateForTest();
     expect(state.isSending).toBe(true);
     expect(state.thinkingStatus).toBe('thinking');
     expect(state.messages).toHaveLength(1);
@@ -1749,7 +1759,7 @@ describe('useChatStream state + stream handling', () => {
 
   test('ignores local-user-message when text is missing', () => {
     const { emitBackendEvent } = registerBackendListener();
-    const before = useChatStore.getState().messages.length;
+    const before = getActiveWorkspaceStateForTest().messages.length;
 
     act(() => {
       emitBackendEvent({
@@ -1758,14 +1768,14 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().messages).toHaveLength(before);
+    expect(getActiveWorkspaceStateForTest().messages).toHaveLength(before);
   });
 
   test('does not append chunk to non-contiguous older llm-text for same turn_ref', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           { id: 'user-1', sender: 'user', text: 'old', turnRef: 'turn-old' },
           {
@@ -1787,7 +1797,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const messages = useChatStore.getState().messages;
+    const messages = getActiveWorkspaceStateForTest().messages;
     const assistantOld = messages.find((message) => message.id === 'assistant-old');
     expect(assistantOld).toEqual(expect.objectContaining({ text: 'old answer' }));
     expect(messages.at(-1)).toEqual(
@@ -1803,7 +1813,7 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
+      setActiveWorkspaceStateForTest({
         messages: [
           { id: 'user-1', sender: 'user', text: 'check', turnRef: 'turn-1' },
           {
@@ -1831,7 +1841,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const messages = useChatStore.getState().messages;
+    const messages = getActiveWorkspaceStateForTest().messages;
     const preface = messages.find((message) => message.id === 'assistant-preface');
     expect(preface).toEqual(expect.objectContaining({ text: 'I will check that.' }));
     expect(messages.at(-1)).toEqual(
@@ -1884,7 +1894,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().streamTracking).toEqual(
+    expect(getActiveWorkspaceStateForTest().streamTracking).toEqual(
       expect.objectContaining({
         activeTurnRef: 'turn-123',
         phase: 'complete',

@@ -3,16 +3,20 @@
  */
 
 import { useCallback } from 'react';
-import { useChatStore } from '../../stores/chatStore';
+import {
+  type ChatMessage,
+} from '../../../../app/runtime/desktopChatMessageTypes';
+import {
+  setTokenCountsInChatStore,
+} from '../../stores/chatStoreAdapters';
 import { DesktopChatStreamEventPayloadRuntime } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
-import { DesktopChatStreamMessageUpdateRuntime } from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
+import {
+  DesktopChatStreamMessageUpdateRuntime,
+} from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
 
-const {
-  findLastAssistantLlmTextMessageId,
-} = DesktopChatStreamMessageUpdateRuntime;
 const {
   buildTokenCountsFromPayload,
   resolveConversationStreamEventPayload,
@@ -21,40 +25,37 @@ const {
   shouldIgnoreStreamError,
 } = DesktopChatStreamEventPayloadRuntime;
 const {
-  resolveConversationStreamEventConversationRef,
-  resolveConversationStreamEventTurnRef,
-  resolveConversationStreamEventTurnRefForUpdate,
+  resolveConversationStreamEventIdentity,
 } = DesktopChatStreamEventRuntime;
+const {
+  buildLastAssistantLlmTextStreamTarget,
+} = DesktopChatStreamMessageUpdateRuntime;
+
+type UpdateStreamTargetMessage = (
+  target: ReturnType<typeof buildLastAssistantLlmTextStreamTarget>,
+  updates: Partial<ChatMessage>,
+  conversationRef?: string | null,
+) => void;
 
 type UseChatStreamTerminalHandlersDeps = {
   recordTrackingEvent: TrackEventFn<'token-count' | 'error'>;
+  updateStreamTargetMessage: UpdateStreamTargetMessage;
 };
 
 export function useChatStreamTerminalHandlers({
   recordTrackingEvent,
+  updateStreamTargetMessage,
 }: UseChatStreamTerminalHandlersDeps) {
-  const setTokenCounts = useChatStore((state) => state.setTokenCounts);
-  const updateMessage = useChatStore((state) => state.updateMessage);
-
   const handleTokenCount = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
-    const eventConversationRef = conversationRef ?? resolveConversationStreamEventConversationRef(event);
-    const turnRef = resolveConversationStreamEventTurnRef(event);
+    const eventIdentity = resolveConversationStreamEventIdentity(event, conversationRef);
     const tokenCounts = buildTokenCountsFromPayload(resolveConversationStreamEventPayload(event));
-    const workspace = useChatStore.getState().getWorkspaceState(eventConversationRef);
-    setTokenCounts(tokenCounts, eventConversationRef);
-    const assistantMessageId = findLastAssistantLlmTextMessageId(
-      workspace.messages,
-      resolveConversationStreamEventTurnRefForUpdate(event),
-    );
-    if (assistantMessageId) {
-      updateMessage(assistantMessageId, {
-        tokenCounts,
-      }, eventConversationRef);
-    }
-    recordTrackingEvent('token-count', turnRef, undefined, eventConversationRef);
+    setTokenCountsInChatStore(tokenCounts, eventIdentity.conversationRef);
+    updateStreamTargetMessage(buildLastAssistantLlmTextStreamTarget(eventIdentity), {
+      tokenCounts,
+    }, eventIdentity.conversationRef);
+    recordTrackingEvent('token-count', eventIdentity.turnRef, undefined, eventIdentity.conversationRef);
   }, [
-    setTokenCounts,
-    updateMessage,
+    updateStreamTargetMessage,
     recordTrackingEvent,
   ]);
 
@@ -64,11 +65,12 @@ export function useChatStreamTerminalHandlers({
       return;
     }
     const errorText = resolveErrorText(errorPayload);
+    const eventIdentity = resolveConversationStreamEventIdentity(event, conversationRef);
     recordTrackingEvent(
       'error',
-      resolveConversationStreamEventTurnRef(event),
+      eventIdentity.turnRef,
       { errorText },
-      conversationRef ?? resolveConversationStreamEventConversationRef(event),
+      eventIdentity.conversationRef,
     );
   }, [recordTrackingEvent]);
 

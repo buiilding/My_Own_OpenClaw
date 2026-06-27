@@ -13,15 +13,9 @@ export default function ToolCallMessage({
   activeFindMatchIndex = null,
 }) {
   const [showDetails, setShowDetails] = useState(false);
-  const modelFacingText = typeof message.toolCallDisplayText === 'string' && message.toolCallDisplayText.trim()
+  const displayText = typeof message.toolCallDisplayText === 'string' && message.toolCallDisplayText.trim()
     ? message.toolCallDisplayText
-    : (
-      message.modelFacingToolCall
-      && typeof message.modelFacingToolCall === 'object'
-      && !Array.isArray(message.modelFacingToolCall)
-    )
-      ? JSON.stringify(message.modelFacingToolCall, null, 2)
-      : '';
+    : '';
   const detailsPayload = (
     message.toolCallDetails
     && typeof message.toolCallDetails === 'object'
@@ -45,7 +39,7 @@ export default function ToolCallMessage({
       <HighlightedPlainText
         as="pre"
         className="tool-call-content"
-        text={modelFacingText}
+        text={displayText}
         findQuery={findQuery}
         findMatchIndexes={findMatchIndexes}
         activeFindMatchIndex={activeFindMatchIndex}
@@ -66,7 +60,6 @@ ToolCallMessage.propTypes = {
   message: PropTypes.shape({
     text: PropTypes.string.isRequired,
     toolCallDisplayText: PropTypes.string,
-    modelFacingToolCall: PropTypes.object,
     toolCallDetails: PropTypes.object,
   }).isRequired,
   findQuery: PropTypes.string,

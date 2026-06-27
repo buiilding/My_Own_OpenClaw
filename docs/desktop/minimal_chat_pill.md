@@ -90,24 +90,21 @@ The chat pill is the small always-available desktop command surface. It is rende
   that pending user row so sibling renderer windows keep the optimistic row and
   busy state until the matching SDK current-turn projection arrives or the turn
   is explicitly cleared after send failure.
-- User-provided image attachments that already exist in the composer are
-  included on the pending user row as inline screenshot attachments so the
-  dashboard can render them immediately and keep them visible if the SDK first
-  projects one or more text-only user rows. Dashboard open/reload and live SDK
-  display projections must use the same renderer annotation merge so a repeated
-  same-turn text-only replay cannot downgrade an already image-bearing user row
-  to text only. When the SDK later replaces that same-turn inline attachment
-  with artifact-backed screenshot metadata, the renderer keeps the
-  already-rendered inline image source visible until the artifact image fetch
-  resolves, even if the message component remounts during dashboard handoff or
-  display-row replay, then swaps to the artifact-backed source.
-  Auto-capture screenshots are different: they are requested as SDK turn
-  resources and render after SDK resource materialization emits artifact-backed
-  screenshot metadata.
+- User-provided image attachments that already exist in the composer are passed
+  as SDK turn resources while the pending bridge carries only identity, text,
+  and timestamp. The dashboard should render visual attachments from SDK
+  `attachments[]` display rows once resource materialization projects them, not
+  from renderer-owned inline screenshot descriptors or filename metadata on the
+  pending row. Auto-capture screenshots follow the same SDK resource path and
+  render after SDK materialization emits artifact-backed screenshot metadata.
 - The response overlay renderer resolves local pre-SDK waiting from pending-turn
   and chat state, not from a renderer-invoked phase override. Hidden or idle SDK
   startup projections must not clear the pending-turn presentation; active SDK
   awaiting/response or terminal send failure supersedes it.
+- Pill response-overlay turn identity is resolved by
+  `DesktopChatPillSessionRuntime` from SDK response entries, SDK overlay intent,
+  visible lifecycle, or the pending bridge. React hooks pass those surface
+  inputs through instead of rebuilding their own turn-ref fallback chains.
 - `prime-response-overlay-awaiting` / `renderer-send-preflight` are removed from
   the current send preflight path. The first native response window show for
   typing still comes from the renderer's measured `set-responsebox-size` report,

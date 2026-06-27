@@ -8,6 +8,7 @@ import {
 import * as DashboardConversationLoadRuntime from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime';
 
 const {
+  applyDashboardConversationOpenWorkspaceReset,
   clearAllTitleVisibilityPollTimers,
   clearConversationSearchDebounce,
   clearRecentConversationsRetryTimer,
@@ -137,6 +138,64 @@ describe('desktopDashboardConversationLoadRuntime', () => {
     expect(togglePinnedConversationRef(['conv-1'], 'conv-2')).toEqual(['conv-2', 'conv-1']);
     expect(togglePinnedConversationRef(['conv-2', 'conv-1'], 'conv-2')).toEqual(['conv-1']);
     expect(removePinnedConversationRef(['conv-2', 'conv-1'], 'conv-2')).toEqual(['conv-1']);
+  });
+
+  test('applies open-conversation workspace reset only before cached ConversationView exists', () => {
+    const getWorkspaceState = jest.fn((conversationRef) => (
+      conversationRef === 'conv-cached'
+        ? {
+          messages: [{ id: 'stale-row' }],
+          conversationView: {
+            conversationRef: 'conv-cached',
+            displayRows: [{ id: 'sdk-row' }],
+          },
+        }
+        : {
+          messages: [{ id: 'raw-row' }],
+          conversationView: null,
+        }
+    ));
+    const clearMessages = jest.fn();
+    const setIsSending = jest.fn();
+    const setThinkingStatus = jest.fn();
+    const setTokenCounts = jest.fn();
+
+    expect(applyDashboardConversationOpenWorkspaceReset({
+      conversationRef: ' conv-raw ',
+      getWorkspaceState,
+      clearMessages,
+      setIsSending,
+      setThinkingStatus,
+      setTokenCounts,
+    })).toEqual({
+      didReset: true,
+      hasConversationView: false,
+    });
+    expect(clearMessages).toHaveBeenCalledWith('conv-raw');
+    expect(setIsSending).toHaveBeenCalledWith(false, 'conv-raw');
+    expect(setThinkingStatus).toHaveBeenCalledWith(null, 'conv-raw');
+    expect(setTokenCounts).toHaveBeenCalledWith(null, 'conv-raw');
+
+    clearMessages.mockClear();
+    setIsSending.mockClear();
+    setThinkingStatus.mockClear();
+    setTokenCounts.mockClear();
+
+    expect(applyDashboardConversationOpenWorkspaceReset({
+      conversationRef: 'conv-cached',
+      getWorkspaceState,
+      clearMessages,
+      setIsSending,
+      setThinkingStatus,
+      setTokenCounts,
+    })).toEqual({
+      didReset: false,
+      hasConversationView: true,
+    });
+    expect(clearMessages).not.toHaveBeenCalled();
+    expect(setIsSending).not.toHaveBeenCalled();
+    expect(setThinkingStatus).not.toHaveBeenCalled();
+    expect(setTokenCounts).not.toHaveBeenCalled();
   });
 
   test('classifies conversation events for recent-list reload and title polling', () => {

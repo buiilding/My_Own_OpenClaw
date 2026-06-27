@@ -275,6 +275,7 @@ describe('ipc_stop_target_runtime', () => {
     expect(helperSource).toContain('latestConversationView:');
     expect(helperSource).toContain("source: 'conversation-view'");
     expect(helperSource).not.toContain('latestCurrentTurnProjection:');
+    expect(helperSource).not.toContain('latestSdkLiveTurn:');
     expect(helperSource).not.toContain("source: 'sdk-current-turn'");
     expect(helperSource).toContain('return resolveMainStopTarget({');
     expect(helperSource).toContain('return triggerMainStopTarget({');

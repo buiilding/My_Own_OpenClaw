@@ -85,9 +85,10 @@ Inbound event streams:
 ## SDK Conversation Event Contract in Renderer
 
 `useChatStream` consumes SDK-normalized conversation events from
-`windie:conversation-event`. Live display rows and current-turn state come from
-`windie:rows` and `windie:current-turn`; renderer chat code should not subscribe
-to backend-wire websocket packets.
+`windie:conversation-event`. Live current-turn state comes from
+`windie:current-turn`, while normal chat display rows come from SDK
+`ConversationView`; `windie:rows` remains compatibility/diagnostic transport.
+Renderer chat code should not subscribe to backend-wire websocket packets.
 
 Key normalized event families include:
 

@@ -26,7 +26,7 @@ describe('ipc_live_turn_state', () => {
       turnRef: 'turn-2',
     };
     const state = createIpcLiveTurnState({
-      initialCurrentTurn: currentTurn,
+      initialSdkLiveTurn: currentTurn,
       initialConversationView: conversationView,
       initialPendingTurn: pendingTurn,
     });
@@ -88,11 +88,12 @@ describe('ipc_live_turn_state', () => {
     expect(mainSource).toContain('createPendingTurnRuntime({');
     expect(mainSource).not.toContain('liveTurnState.setLatestPendingTurn(');
     expect(pendingTurnHelperSource).toContain('liveTurnState.setLatestPendingTurn(pendingTurn)');
-    expect(mainSource).not.toContain('let latestCurrentTurnProjection = null');
+    expect(mainSource).not.toContain('let latestSdkLiveTurn = null');
     expect(mainSource).not.toContain('let latestPendingTurn = null');
-    expect(mainSource).not.toContain('latestCurrentTurnProjection = currentTurnProjection');
+    expect(mainSource).not.toContain('latestCurrentTurnProjection');
+    expect(mainSource).not.toContain('currentTurnProjection');
     expect(mainSource).not.toContain('latestPendingTurn = pendingTurn');
-    expect(helperSource).toContain('let latestCurrentTurnProjection = initialCurrentTurn;');
+    expect(helperSource).toContain('let latestSdkLiveTurn = initialSdkLiveTurn;');
     expect(helperSource).toContain('let latestConversationView = initialConversationView;');
     expect(helperSource).toContain('let latestPendingTurn = initialPendingTurn;');
   });

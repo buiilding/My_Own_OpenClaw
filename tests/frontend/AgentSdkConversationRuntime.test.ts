@@ -289,6 +289,12 @@ describe('Agent SDK conversation runtime core', () => {
         toolName: 'read_file',
         requestId: 'req-readme',
         toolCallId: 'call-readme',
+        toolCallDetails: {
+          toolName: 'read_file',
+          requestId: 'req-readme',
+          displayCorrelationId: 'req-readme',
+          toolCallId: 'call-readme',
+        },
         modelFacingToolCall: {
           id: 'call-readme',
           name: 'read_file',
@@ -304,6 +310,13 @@ describe('Agent SDK conversation runtime core', () => {
         toolName: 'read_file',
         requestId: 'req-readme',
         toolCallId: 'call-readme',
+        toolOutputDetails: {
+          toolName: 'read_file',
+          requestId: 'req-readme',
+          displayCorrelationId: 'req-readme',
+          toolCallId: 'call-readme',
+          success: true,
+        },
       },
     });
   });
@@ -1310,7 +1323,7 @@ describe('Agent SDK conversation runtime core', () => {
         expect.objectContaining({ type: 'thinking', sourceChannel: 'sdk:current-turn' }),
         expect.objectContaining({
           type: 'tool-call',
-          text: 'Using read_file',
+          text: '{"name":"read_file"}',
           sourceChannel: 'sdk:current-turn',
           requestId: 'req-read',
           correlationId: 'corr-read',
@@ -2549,6 +2562,7 @@ describe('Agent SDK conversation runtime core', () => {
           toolName: 'web_search',
           requestId: 'req-search-1',
           correlationId: 'corr-search-1',
+          displayCorrelationId: 'req-search-1',
         }),
       }),
       expect.objectContaining({
@@ -2559,6 +2573,7 @@ describe('Agent SDK conversation runtime core', () => {
           toolName: 'web_search',
           requestId: 'req-search-1',
           correlationId: 'corr-search-1',
+          displayCorrelationId: 'req-search-1',
         }),
       }),
     ]);
@@ -5983,17 +5998,18 @@ describe('Agent SDK conversation runtime core', () => {
 
     const fullFork = await runtime.fork({
       sourceRevisionId: 'rev-base',
-      newConversationRef: 'conv-forked-full',
     });
     const fullDisplay = await store.loadDisplayTimeline?.({
-      conversationRef: 'conv-forked-full',
+      conversationRef: fullFork.conversationRef,
       revisionId: fullFork.revisionId,
     });
     const fullModelHistory = await store.loadModelHistory?.({
-      conversationRef: 'conv-forked-full',
+      conversationRef: fullFork.conversationRef,
       revisionId: fullFork.revisionId,
     });
 
+    expect(fullFork.conversationRef).toMatch(/^conv_/);
+    expect(fullFork.conversationRef).not.toBe('conv-sdk-runtime');
     expect(fullFork.cutAfterRowId).toBe('display-user-2');
     expect(fullFork.displayRowCount).toBe(3);
     expect(fullFork.modelHistoryRowCount).toBe(3);
@@ -9636,6 +9652,50 @@ describe('Agent SDK conversation runtime core', () => {
         sourceChannel: 'sdk:current-turn',
       }),
     ]));
+  });
+
+  test('conversation view does not duplicate materialized tool calls in live entries', () => {
+    const events = [
+      event('user_message', { text: '@script tool screenshot' }),
+      event('tool_call', {
+        toolName: 'screenshot',
+        requestId: 'ab9a6769-5651-4fca-bada-152d4ad50b54',
+        toolCallId: 'scripted_call_1',
+        args: {
+          explanation: 'Validate the scripted model tool path.',
+        },
+      }),
+    ];
+    const state = events.reduce(
+      (current, next) => reduceConversationRuntimeState(current, next),
+      createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1'),
+    );
+    const displayRows = buildDisplayRows(events);
+    const view = buildConversationView({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: state.revisionId,
+      state,
+      events,
+      displayRows,
+      currentTurn: buildCurrentTurnProjection(events),
+      pendingTurnRef: 'turn-1',
+    });
+
+    expect(view.displayRows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'tool_call',
+        content: expect.objectContaining({
+          id: 'scripted_call_1',
+          name: 'screenshot',
+        }),
+      }),
+    ]));
+    expect(view.liveTurn).toMatchObject({
+      turnRef: 'turn-1',
+      phase: 'tool',
+      isBusy: true,
+    });
+    expect(view.liveTurn.entries).toEqual([]);
   });
 
   test('conversation view keeps edit resend replacement as the live lane', () => {

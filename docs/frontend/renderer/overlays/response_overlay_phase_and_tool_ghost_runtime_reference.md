@@ -38,20 +38,25 @@ title: "Response Overlay Phase Runtime Reference"
 
 Primary inputs:
 
-- SDK `currentTurn` projection from `conversation-runtime-updated`
-- `messages`
-- renderer `pendingTurn`
+- selector-projected `chatSurfaceState` from
+  `DesktopChatSurfaceSelectorRuntime`
+- SDK `ConversationView` live turn when available
+- renderer `pendingTurn` only as the pre-SDK-open bridge
 
 Current-turn entry construction:
 
 - when SDK `currentTurn` is present, `MinimalResponseOverlay` converts that projection
   into overlay-ready current-turn messages and entries
-- SDK live-turn presentation rows are converted with
-  `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromPresentation(...)`;
-  when SDK presentation exists but has no visible rows, the overlay falls back
-  to projection-built rows for visible assistant text/tool/error content.
-  Older projection snapshots are converted with
-  `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromProjection(...)`.
+- SDK live-turn rows are converted through
+  `DesktopCurrentTurnMessageRuntime.buildSdkLiveTurnMessages(...)`, so the
+  response overlay does not independently choose between `ConversationView`,
+  presentation entries, and older no-presentation projection snapshots.
+- under `ConversationView`, response-overlay entries start with active-turn
+  `displayRows` converted through the SDK display-row projection, then append
+  only live-turn rows whose source/type has not materialized in those display
+  rows. The overlay must not depend only on `liveTurn.entries`, because
+  materialized tool rows are intentionally removed from live entries to avoid
+  duplicate dashboard cards.
 - the response overlay filters those current-turn messages through
   `DesktopCurrentTurnMessageRuntime.isVisibleResponseOverlayMessage(...)`
   instead of carrying an inline assistant-message scanner after the latest user
@@ -64,9 +69,11 @@ Current-turn entry construction:
   - `search-source`
   - `tool-explanation`
 
-Reasoning copy for overlay window sync comes from SDK
-`currentTurn.reasoningText` only. Store `thinkingStatus` remains dashboard
-compaction/manual status text and is not a response-overlay live-turn input.
+Reasoning copy for overlay window sync comes from SDK presentation thinking
+entries, with the legacy no-view reasoning fallback resolved inside
+`DesktopCurrentTurnMessageRuntime.resolveNoViewSdkLiveTurnThinkingText(...)`.
+Store `thinkingStatus` remains dashboard compaction/manual status text and is
+not a response-overlay live-turn input.
 
 Selection logic:
 
@@ -149,6 +156,10 @@ Contract ownership:
   SDK current-turn projection-to-message conversion behind one renderer
   app-runtime facade.
 - `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
+- `useResponseOverlayViewModel` names the selected rows as
+  `responseOverlayMessages`; feature code should not reintroduce a
+  caller-built `currentTurnMessages` read model beside
+  `DesktopResponseOverlayViewRuntime.resolveResponseOverlayEntries(...)`.
 - `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
   returns explicit SDK response-entry data and overlay-intent metadata without
   merging a caller-supplied presentation fallback; response visibility requires
@@ -163,14 +174,34 @@ Contract ownership:
 - `DesktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
   owns the dismissal target projection from SDK overlay intent, current-turn
   refs, latest response entry id, and stale guard ref.
-- `useResponseOverlayViewModel(...)` owns the renderer-side composition boundary:
-  visible lifecycle adaptation, response-entry derivation, rendered markdown
-  payloads, closeability, and stale-response suppression during
-  local-pending/awaiting.
+- `DesktopResponseOverlayViewRuntime.buildResponseOverlayDismissalKey(...)`
+  owns normalized response-overlay dismissal key construction, and
+  `DesktopResponseOverlayViewRuntime.buildDismissResponseOverlayAction(...)`
+  builds the store dismissal target plus responsebox hide values for manual
+  close actions. `chatStore.ts` persists dismissed keys, but it does not define
+  the conversation/turn/entry key contract.
+- `DesktopResponseOverlayViewRuntime.resolveResponseOverlayEntries(...)` owns
+  response-entry derivation across SDK `ConversationView.liveTurn`, SDK
+  current-turn presentation rows, raw SDK live-turn fallback rows, and local
+  pending suppression.
+- `DesktopResponseOverlayViewRuntime.resolveResponseOverlayPresentationState(...)`
+  owns response-overlay presentation-state source selection across SDK
+  projection rows, SDK `ConversationView.liveTurn`, local pending overlay
+  intent, and visible lifecycle stamping. `useResponseOverlayViewModel(...)`
+  owns the renderer-side composition boundary for rendered markdown payloads,
+  closeability, and stale-response suppression during local-pending/awaiting.
+- `DesktopResponseOverlayViewRuntime.resolveResponseOverlayWindowGuardSnapshot(...)`
+  and `resolveResponseOverlayWindowSizeIdentity(...)` own response-window
+  conversation, turn, and stale-guard fallback resolution from SDK overlay
+  intent plus the last valid guard snapshot. The same runtime builds
+  response-window size trace values, responsebox size values, and lifecycle
+  trace values from that identity, so the hook does not unpack turn or guard
+  fields itself.
 - `useResponseOverlayWindowSync(...)` owns response-window sizing policy and
-  visibility re-report behavior, delegating responsebox size payload assembly,
-  IPC, and visibility payload normalization/boolean subscription projection to
-  `DesktopResponseOverlayRuntimeClient`.
+  visibility re-report behavior. It passes value-level visibility, layout,
+  frame size, and runtime identity into `DesktopResponseOverlayViewRuntime`,
+  then delegates IPC and visibility payload normalization/boolean subscription
+  projection to `DesktopResponseOverlayRuntimeClient`.
 - `DesktopResponseOverlayInteractionRuntime` owns the browser scheduling behind
   response-window visibility re-reporting and visible size updates:
   animation-frame scheduling, retry timer scheduling, `ResizeObserver`, and
@@ -178,30 +209,44 @@ Contract ownership:
   and refs.
 - `DesktopRendererTraceRuntime` owns response-surface stream-trace and
   live-surface size-report payload field shaping.
-  `useResponseOverlayWindowSync(...)` reports value-level sizing and turn
-  inputs to `logRendererResponseSurfaceSizeTrace(...)`; the trace runtime maps
-  those values to the existing stream diagnostic fields and live
+  `useResponseOverlayWindowSync(...)` reports
+  `DesktopResponseOverlayViewRuntime`-built sizing trace values to
+  `logRendererResponseSurfaceSizeTrace(...)`; the trace runtime maps those
+  values to the existing stream diagnostic fields and live
   `response_overlay.renderer.size_report` event fields.
 - `DesktopRendererTraceRuntime` owns response overlay mount/unmount
   live-surface event labels and payload shaping through
   `logRendererResponseOverlayLifecycleTrace(...)`; the window-sync hook reports
-  only turn, guard, conversation, and lifecycle action values.
+  `DesktopResponseOverlayViewRuntime`-built lifecycle trace values.
 - `DesktopRendererTraceRuntime` owns response overlay hit-test and
   rendered-typing live-surface event labels, reason strings, and payload field
   shaping through `logRendererResponseOverlayHitTestTrace(...)` and
-  `logRendererResponseOverlayTypingRenderedTrace(...)`; `MinimalResponseOverlay`
-  reports only interaction and rendered-state values.
+  `logRendererResponseOverlayTypingRenderedTrace(...)`; it also derives trace
+  conversation identity from opaque SDK overlay intent. `MinimalResponseOverlay`
+  reports only interaction state, rendered state, and the overlay intent object.
 - `DesktopRendererTraceRuntime` owns response overlay response-surface
   snapshot stream-trace field shaping through
   `logRendererResponseSurfaceSnapshotTrace(...)`; `MinimalResponseOverlay`
   reports only phase, message-count, response-entry, visible-response, and
   text-length values.
+- `DesktopResponseOverlayViewRuntime` owns response overlay state/snapshot/render
+  trace summary and signature construction. `MinimalResponseOverlay` passes
+  value-level view model fields to `buildResponseOverlayTraceSummary(...)` and
+  logs the returned trace inputs instead of recomputing turn ids, text lengths,
+  or JSON state signatures inline.
+- `DesktopResponseOverlayViewRuntime` owns response overlay latest source-tagged
+  entry selection, entry signature construction, and closeability checks.
+  `useResponseOverlayViewModel(...)` passes entry lists and visibility/busy
+  booleans to the runtime instead of importing current-turn message classifiers.
 - `DesktopRendererTraceRuntime` also owns response overlay view-model
-  live-surface trace payload, resolved-event, typing-event, intent-event, and
-  reason mapping. `useResponseOverlayViewModel(...)` reports value-level SDK,
-  presentation, and view-intent inputs, then logs the app-runtime-built trace
-  records when the resolved payload, typing visibility, or overlay intent mode
-  changes.
+  live-surface trace payload, signature construction, resolved-event,
+  typing-event, intent-event, and reason mapping.
+  `useResponseOverlayViewModel(...)` reports value-level SDK, presentation, and
+  view-intent inputs, then logs the app-runtime-built trace records when the
+  resolved payload, typing visibility, or overlay intent mode changes. Trace
+  identity follows the resolved visible lifecycle first, then overlay
+  intent/current-turn/pending fallback fields only when no visible lifecycle
+  identity exists.
 - `useResponseOverlayScrollState(...)` owns fixed-height transcript scroll pinning and overflow affordance state.
 
 Rendering:
@@ -246,8 +291,8 @@ fields such as `compact_hover`, `turn_ref`, `stale_guard_ref`, and
 
 Manual response dismissal uses
 `DesktopResponseOverlayRuntimeClient.hideDismissedResponsebox(...)` so the view
-model passes only turn/guard refs while the runtime client owns the hidden
-`dismissed` size payload shape.
+model passes app-runtime-built responsebox dismissal values while the runtime
+client owns the hidden `dismissed` size payload shape.
 
 Response overlay hit-test browser subscriptions and pointer bounds checks use
 `DesktopResponseOverlayInteractionRuntime.subscribeToResponseboxHitTestEvents(...)`.
@@ -259,7 +304,9 @@ Response overlay size re-report and resize scheduling use
 `DesktopResponseOverlayInteractionRuntime.scheduleResponseOverlayFrame(...)`
 and `DesktopResponseOverlayInteractionRuntime.startResponseOverlaySizeUpdateSync(...)`.
 `useResponseOverlayWindowSync(...)` remains the owner for hidden/shown sizing
-policy, turn guard metadata, and responsebox size IPC values.
+policy and responsebox size IPC calls; `DesktopResponseOverlayViewRuntime`
+owns turn guard metadata fallback resolution and identity-bearing size value
+assembly before those calls.
 
 Layout-specific sizing:
 

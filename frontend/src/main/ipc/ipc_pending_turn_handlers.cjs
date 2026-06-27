@@ -11,67 +11,6 @@ function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-function normalizePendingTurnScreenshots(value) {
-  if (!Array.isArray(value)) {
-    return null;
-  }
-  const screenshots = value
-    .filter((entry) => entry && typeof entry === 'object' && !Array.isArray(entry))
-    .map((entry) => ({
-      screenshot: typeof entry.screenshot === 'string' && entry.screenshot.length > 0
-        ? entry.screenshot
-        : null,
-      screenshotRef: normalizeOptionalString(entry.screenshotRef),
-      screenshotUrl: normalizeOptionalString(entry.screenshotUrl),
-      screenshotContentType: normalizeOptionalString(entry.screenshotContentType),
-    }))
-    .filter((entry) => entry.screenshot || entry.screenshotRef || entry.screenshotUrl);
-  return screenshots.length > 0 ? screenshots : null;
-}
-
-function normalizePendingTurnAttachments(value) {
-  if (!Array.isArray(value)) {
-    return null;
-  }
-  const attachments = value
-    .filter((entry) => entry && typeof entry === 'object' && !Array.isArray(entry))
-    .map((entry) => {
-      const id = normalizeOptionalString(entry.id);
-      const kind = entry.kind === 'image' || entry.kind === 'screenshot_request'
-        ? entry.kind
-        : null;
-      const source = (
-        entry.source === 'user_included'
-        || entry.source === 'camera_button'
-        || entry.source === 'tool_result'
-        || entry.source === 'replay'
-      ) ? entry.source : null;
-      const status = (
-        entry.status === 'materializing'
-        || entry.status === 'pending_capture'
-        || entry.status === 'ready'
-        || entry.status === 'failed'
-      ) ? entry.status : null;
-      if (!id || !kind || !source || !status) {
-        return null;
-      }
-      return {
-        id,
-        kind,
-        source,
-        status,
-        ...(normalizeOptionalString(entry.filename) ? { filename: normalizeOptionalString(entry.filename) } : {}),
-        ...(normalizeOptionalString(entry.contentType) ? { contentType: normalizeOptionalString(entry.contentType) } : {}),
-        ...(normalizeOptionalString(entry.previewSrc) ? { previewSrc: normalizeOptionalString(entry.previewSrc) } : {}),
-        ...(normalizeOptionalString(entry.screenshotRef) ? { screenshotRef: normalizeOptionalString(entry.screenshotRef) } : {}),
-        ...(normalizeOptionalString(entry.screenshotUrl) ? { screenshotUrl: normalizeOptionalString(entry.screenshotUrl) } : {}),
-        ...(normalizeOptionalString(entry.errorCode) ? { errorCode: normalizeOptionalString(entry.errorCode) } : {}),
-      };
-    })
-    .filter(Boolean);
-  return attachments.length > 0 ? attachments : null;
-}
-
 function normalizePendingTurnPayload(value) {
   const source = value && typeof value === 'object' && !Array.isArray(value)
     ? value
@@ -89,24 +28,12 @@ function normalizePendingTurnPayload(value) {
   if (!conversationRef || !turnRef || !userMessageId || text === null || !timestamp) {
     return null;
   }
-  const attachmentFilenames = Array.isArray(pendingTurn.attachmentFilenames)
-    ? pendingTurn.attachmentFilenames.filter((entry) => (
-      typeof entry === 'string' && entry.trim()
-    ))
-    : null;
-  const attachments = normalizePendingTurnAttachments(pendingTurn.attachments);
-  const screenshots = normalizePendingTurnScreenshots(pendingTurn.screenshots);
   return {
     conversationRef,
     turnRef,
     userMessageId,
     text,
     timestamp,
-    attachmentFilenames: attachmentFilenames && attachmentFilenames.length > 0
-      ? attachmentFilenames
-      : null,
-    attachments,
-    screenshots,
   };
 }
 

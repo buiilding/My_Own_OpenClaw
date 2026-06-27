@@ -82,4 +82,34 @@ describe('desktopMessageActionRuntime', () => {
     expect(timerRef.current).toBeNull();
     expect(callback).toHaveBeenCalledTimes(1);
   });
+
+  test('resolves replay action availability from SDK row actions only', () => {
+    expect(DesktopMessageActionRuntime.resolveMessageReplayActions({
+      id: 'assistant-visible',
+      actions: {
+        canRetry: true,
+        retryTargetRowId: ' assistant-original ',
+        canEdit: false,
+        editTargetRowId: ' user-original ',
+      },
+    })).toEqual({
+      canRetryMessage: true,
+      canEditMessage: false,
+      retryTargetMessageId: 'assistant-original',
+      editTargetMessageId: 'user-original',
+    });
+
+    expect(DesktopMessageActionRuntime.resolveMessageReplayActions({
+      id: 'assistant-visible',
+      actions: {
+        canRetry: 'true',
+        canEdit: true,
+      },
+    })).toEqual({
+      canRetryMessage: false,
+      canEditMessage: true,
+      retryTargetMessageId: 'assistant-visible',
+      editTargetMessageId: 'assistant-visible',
+    });
+  });
 });

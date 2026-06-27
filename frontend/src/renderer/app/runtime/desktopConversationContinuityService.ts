@@ -5,18 +5,12 @@
 import {
   DesktopConversationRuntimeContracts,
   type ListConversationOptions,
-  type DisplayConversation,
-  type DisplayTimelineCheckpoint,
-  type DisplayTimelineReplaceReason,
-  type DisplayTimelineRow,
   type CheckoutRevisionInput,
   type CheckoutRevisionResult,
   type EditAndResendInput,
   type ForkConversationInput,
   type ForkConversationResult,
   type RetryTurnInput,
-  type SdkDisplayRow,
-  type ConversationView,
   type ConversationMetadata,
   type ConversationRevision,
   type ConversationMetadataInvalidationListener,
@@ -50,20 +44,12 @@ const {
   metadataListToDashboardConversations,
 } = DesktopDashboardConversationLoadRuntime;
 
-type ReplaceDisplayRowsInput = {
-  userId: string;
-  conversationRef: string;
-  baseRevisionId: string;
-  reason: DisplayTimelineReplaceReason;
-  rows: DisplayTimelineRow[];
-};
-
-type EditAndResendCommandInput = EditAndResendInput & {
+type EditAndResendCommandInput = Omit<EditAndResendInput, 'turnRef'> & {
   userId: string;
   conversationRef: string;
 };
 
-type RetryTurnCommandInput = RetryTurnInput & {
+type RetryTurnCommandInput = Omit<RetryTurnInput, 'turnRef'> & {
   userId: string;
   conversationRef: string;
 };
@@ -88,15 +74,6 @@ function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
-function readSnapshotDisplayRows(
-  snapshot: { view?: ConversationView | null } | null | undefined,
-): SdkDisplayRow[] {
-  if (Array.isArray(snapshot?.view?.displayRows)) {
-    return snapshot.view.displayRows;
-  }
-  return [];
-}
-
 const desktopConversationContinuityService = new ConversationContinuityService({
   storeFactory: ({ userId }) => createDesktopConversationStore(userId),
   transportFactory: ({ workspacePath }) => createDesktopRuntimeTransport(workspacePath ?? null),
@@ -110,63 +87,6 @@ export const DesktopConversationContinuityService = {
     });
   },
 
-  async loadForDisplay(userId: string, conversationRef: string): Promise<DisplayConversation> {
-    const snapshot = await invokeAgentSdkCommand<{ display?: DisplayConversation }>(
-      SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY,
-      {
-        userId,
-        conversationRef,
-      },
-    );
-    return snapshot?.display ?? {
-      conversationRef,
-      revisionId: '',
-      messages: [],
-      compaction: { status: 'idle' },
-    };
-  },
-
-  async loadDisplayRows(userId: string, conversationRef: string): Promise<SdkDisplayRow[]> {
-    const snapshot = await invokeAgentSdkCommand<{
-      view?: ConversationView | null;
-    }>(
-      SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY,
-      {
-        userId,
-        conversationRef,
-      },
-    );
-    return readSnapshotDisplayRows(snapshot);
-  },
-
-  async loadDisplayTimeline(
-    userId: string,
-    conversationRef: string,
-    revisionId: string | null = null,
-  ): Promise<DisplayTimelineCheckpoint> {
-    return invokeAgentSdkCommand<DisplayTimelineCheckpoint>(
-      SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY_TIMELINE,
-      {
-        userId,
-        conversationRef,
-        revisionId: revisionId ?? undefined,
-      },
-    );
-  },
-
-  async replaceRows(input: ReplaceDisplayRowsInput): Promise<DisplayTimelineCheckpoint> {
-    return invokeAgentSdkCommand<DisplayTimelineCheckpoint>(
-      SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_ROWS,
-      {
-        userId: input.userId,
-        conversationRef: input.conversationRef,
-        baseRevisionId: input.baseRevisionId,
-        reason: input.reason,
-        rows: input.rows,
-      },
-    );
-  },
-
   async editAndResend(input: EditAndResendCommandInput): Promise<TurnResult> {
     return invokeAgentSdkCommand<TurnResult>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_EDIT_AND_RESEND,
@@ -175,7 +95,6 @@ export const DesktopConversationContinuityService = {
         conversationRef: input.conversationRef,
         messageId: input.messageId,
         text: input.text,
-        turnRef: input.turnRef,
         payload: input.payload,
         model: input.model,
       },
@@ -189,7 +108,6 @@ export const DesktopConversationContinuityService = {
         userId: input.userId,
         conversationRef: input.conversationRef,
         messageId: input.messageId,
-        turnRef: input.turnRef,
         payload: input.payload,
         model: input.model,
       },
@@ -224,6 +142,7 @@ export const DesktopConversationContinuityService = {
   },
 
   async forkConversation(input: ForkConversationCommandInput): Promise<ForkConversationResult> {
+    const newConversationRef = optionalString(input.newConversationRef);
     return invokeAgentSdkCommand<ForkConversationResult>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_FORK,
       {
@@ -231,7 +150,7 @@ export const DesktopConversationContinuityService = {
         conversationRef: input.conversationRef,
         sourceRevisionId: input.sourceRevisionId,
         cutAfterRowId: input.cutAfterRowId ?? null,
-        newConversationRef: input.newConversationRef,
+        ...(newConversationRef ? { newConversationRef } : {}),
       },
     );
   },

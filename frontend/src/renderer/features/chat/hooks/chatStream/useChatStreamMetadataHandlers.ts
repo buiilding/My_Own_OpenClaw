@@ -13,7 +13,7 @@ import type {
   StreamTrackingEventType,
   StreamTrackingOptions,
 } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
-import type { ChatMessage } from '../../stores/chatStore';
+import type { ChatMessage } from '../../../../app/runtime/desktopChatMessageTypes';
 
 const {
   buildAssistantMessageFullUpdate,
@@ -26,17 +26,17 @@ const {
   isSystemPromptConversationStreamEvent,
   isToolSchemasMetadataConversationStreamEvent,
   isUserMessageMetadataConversationStreamEvent,
-  resolveConversationStreamEventConversationRef,
-  resolveConversationStreamEventTurnRef,
-  resolveConversationStreamEventTurnRefForUpdate,
+  resolveConversationStreamEventIdentity,
 } = DesktopChatStreamEventRuntime;
 const {
   resolveConversationStreamEventPayload,
   resolveToolSchemasMetadataPayload,
 } = DesktopChatStreamEventPayloadRuntime;
 
+type StreamEventIdentity = ReturnType<typeof resolveConversationStreamEventIdentity>;
+
 type ShouldIgnoreForStaleTurn = (
-  event: { turnRef?: string | null },
+  eventIdentity: StreamEventIdentity,
   conversationRef?: string | null,
 ) => boolean;
 
@@ -50,13 +50,13 @@ type RecordTrackingEvent = (
 type UpdateLastMessageBySender = (
   sender: ChatMessage['sender'],
   updates: Partial<ChatMessage>,
-  turnRef?: string,
+  eventIdentity?: StreamEventIdentity | null,
   conversationRef?: string | null,
 ) => void;
 
 type UpdateLastAssistantLlmTextMessage = (
   updates: Partial<ChatMessage>,
-  turnRef?: string,
+  eventIdentity?: StreamEventIdentity | null,
   conversationRef?: string | null,
 ) => void;
 
@@ -75,64 +75,64 @@ export function useChatStreamMetadataHandlers({
     if (!isSystemPromptConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = resolveConversationStreamEventConversationRef(event);
-    const turnRef = resolveConversationStreamEventTurnRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
+    const eventIdentity = resolveConversationStreamEventIdentity(event);
+    const conversationRef = eventIdentity.conversationRef;
+    if (shouldIgnoreForStaleTurn(eventIdentity, conversationRef)) {
       return;
     }
     const payload = resolveConversationStreamEventPayload(event);
     updateLastMessageBySender('user', {
       systemPrompt: buildSystemPromptUpdate(payload),
-    }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
-    recordTrackingEvent('system-prompt', turnRef, {}, conversationRef);
+    }, eventIdentity, eventIdentity.conversationRef);
+    recordTrackingEvent('system-prompt', eventIdentity.turnRef, {}, eventIdentity.conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
   const handleUserMessageFull = useCallback((event: ConversationEvent) => {
     if (!isUserMessageMetadataConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = resolveConversationStreamEventConversationRef(event);
-    const turnRef = resolveConversationStreamEventTurnRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
+    const eventIdentity = resolveConversationStreamEventIdentity(event);
+    const conversationRef = eventIdentity.conversationRef;
+    if (shouldIgnoreForStaleTurn(eventIdentity, conversationRef)) {
       return;
     }
     const payload = resolveConversationStreamEventPayload(event);
     updateLastMessageBySender('user', {
       fullUserMessage: buildUserMessageFullUpdate(payload),
-    }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
-    recordTrackingEvent('user-message-full', turnRef, {}, conversationRef);
+    }, eventIdentity, conversationRef);
+    recordTrackingEvent('user-message-full', eventIdentity.turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
   const handleAssistantMessageFull = useCallback((event: ConversationEvent) => {
     if (!isAssistantMessageConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = resolveConversationStreamEventConversationRef(event);
-    const turnRef = resolveConversationStreamEventTurnRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
+    const eventIdentity = resolveConversationStreamEventIdentity(event);
+    const conversationRef = eventIdentity.conversationRef;
+    if (shouldIgnoreForStaleTurn(eventIdentity, conversationRef)) {
       return;
     }
     const payload = resolveConversationStreamEventPayload(event);
     updateLastAssistantLlmTextMessage({
       fullAssistantMessage: buildAssistantMessageFullUpdate(payload),
-    }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
-    recordTrackingEvent('assistant-message-full', turnRef, {}, conversationRef);
+    }, eventIdentity, conversationRef);
+    recordTrackingEvent('assistant-message-full', eventIdentity.turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastAssistantLlmTextMessage]);
 
   const handleToolSchemas = useCallback((event: ConversationEvent) => {
     if (!isToolSchemasMetadataConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = resolveConversationStreamEventConversationRef(event);
-    const turnRef = resolveConversationStreamEventTurnRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
+    const eventIdentity = resolveConversationStreamEventIdentity(event);
+    const conversationRef = eventIdentity.conversationRef;
+    if (shouldIgnoreForStaleTurn(eventIdentity, conversationRef)) {
       return;
     }
     const payload = resolveConversationStreamEventPayload(event);
     updateLastMessageBySender('user', {
       ...buildToolSchemasUpdate(resolveToolSchemasMetadataPayload(payload)),
-    }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
-    recordTrackingEvent('tool-schemas', turnRef, {}, conversationRef);
+    }, eventIdentity, conversationRef);
+    recordTrackingEvent('tool-schemas', eventIdentity.turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
   return {

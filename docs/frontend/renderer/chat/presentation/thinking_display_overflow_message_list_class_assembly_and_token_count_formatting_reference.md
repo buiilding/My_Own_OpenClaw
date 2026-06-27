@@ -17,7 +17,7 @@ title: "Thinking Display Overflow, Message Content/Class Assembly, and Stream To
 - `frontend/src/renderer/app/runtime/desktopMessageContentRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`
-- `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js`
 - `frontend/src/renderer/features/chat/components/message/content/AttachmentList.jsx`
 - `frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`
@@ -26,7 +26,7 @@ title: "Thinking Display Overflow, Message Content/Class Assembly, and Stream To
 - `tests/frontend/DesktopMessageContentRuntime.test.js`
 - `tests/frontend/DesktopMessageClassRuntime.test.js`
 - `tests/frontend/DesktopMessageListRuntime.test.js`
-- `tests/frontend/DesktopResolvedMessageScreenshotsRuntime.test.jsx`
+- `tests/frontend/DesktopAttachmentImageRuntime.test.jsx`
 - `tests/frontend/AttachmentDisplayComponents.test.jsx`
 - `tests/frontend/DesktopMessageTokenUsageRuntime.test.js`
 - `tests/frontend/ChatStore.test.ts`
@@ -130,7 +130,7 @@ Screenshot presence for row classes is resolved from typed `attachments[]`;
 user-message and tool-output visual routing use SDK-owned descriptors through
 `AttachmentList` / `AttachmentRendererRegistry`.
 The React-only async artifact image fetch/cache hook remains in
-`frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`.
+`frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js`.
 
 ## Token Count Tracking Contract (State, not Dedicated UI Component)
 
@@ -138,6 +138,14 @@ Current runtime keeps token usage in chat store/state:
 
 - `chatStore.ts` holds `tokenCounts` payload from backend.
 - `useChatStream` handles `token-count` events and calls `setTokenCounts`.
+- dev token image estimates count SDK typed image `attachments[]` only; legacy
+  `screenshots[]` and whole-message `screenshotRef`/`screenshotUrl` aliases are
+  not renderer presentation or token-estimate authorities.
+- React message prop contracts advertise typed `attachments[]`, not
+  whole-message screenshot aliases.
+- `DesktopAttachmentImageRuntime` resolves image refs/URLs only from typed SDK
+  image attachment descriptors; whole-message screenshot alias-shaped objects
+  are ignored before artifact fetch.
 
 Important:
 
@@ -169,7 +177,7 @@ Important:
     assistant, and generic markdown rows
 - `DesktopMessageListRuntime.test.js`:
   - verifies compaction status metadata and assistant/user action gating
-- `DesktopResolvedMessageScreenshotsRuntime.test.jsx`:
+- `DesktopAttachmentImageRuntime.test.jsx`:
   - verifies artifact-backed attachment image resolution and equivalent-source stability
 - `ChatStore.test.ts`:
   - validates token-count state updates and reset behavior

@@ -4,7 +4,14 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { selectLiveTurnSurfaceState, useChatStore } from '../../chat/stores/chatStore';
+import {
+  selectLiveTurnSurfaceState,
+  useChatStore,
+} from '../../chat/stores/chatStore';
+import {
+  setThinkingSourceEventTypeInChatStore,
+  setThinkingStatusInChatStore,
+} from '../../chat/stores/chatStoreAdapters';
 import { useChatMessageSender } from '../../chat/hooks/useChatMessageSender';
 import { useChatComposerDraft } from '../../chat/hooks/useChatComposerDraft';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
@@ -20,6 +27,7 @@ import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { DesktopDevUiRuntime } from '../../../app/runtime/desktopDevUiRuntime';
 import { DesktopChatboxLayoutRuntime } from '../../../app/runtime/desktopChatboxLayoutRuntime';
 import { DesktopChatboxInteractionRuntime } from '../../../app/runtime/desktopChatboxInteractionRuntime';
+import { DesktopChatPillSessionRuntime } from '../../../app/runtime/desktopChatPillSessionRuntime';
 import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { useChatSurfaceController } from '../../chat/hooks/useChatSurfaceController';
 import {
@@ -40,6 +48,12 @@ const CHATBOX_COMPOSER_MAX_HEIGHT = 128;
 const CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS = 180;
 const { isDevUiEnabled } = DesktopDevUiRuntime;
 const {
+  buildChatPillLifecycleTraceValues,
+  buildChatPillLifecycleTraceSnapshot,
+  buildChatPillResetTraceValues,
+  buildChatPillStateTraceSnapshot,
+} = DesktopChatPillSessionRuntime;
+const {
   logRendererChatPillHitTestTrace,
   logRendererChatPillLifecycleTrace,
   logRendererChatPillResetTrace,
@@ -48,15 +62,11 @@ const {
 
 function MinimalChatPill() {
   const closeBumpHeight = DesktopChatboxLayoutRuntime.getChatboxCloseBumpHeight();
+  const chatSurfaceState = useChatStore(useShallow(selectLiveTurnSurfaceState));
   const {
-    messages,
-    currentTurnProjection,
-    conversationView,
-    pendingTurn,
-  } = useChatStore(useShallow(selectLiveTurnSurfaceState));
+    stopTurnTarget,
+  } = chatSurfaceState;
   const sessionInfo = useRendererConversationSessionInfo();
-  const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
-  const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
   });
@@ -81,30 +91,26 @@ function MinimalChatPill() {
   const chatboxHitTestActiveRef = useRef(null);
   const textEntryActiveRef = useRef(false);
   const chatSurface = useChatSurfaceController({
-    messages,
-    currentTurnProjection,
-    conversationView,
-    pendingTurn,
+    chatSurfaceState,
     sessionInfo,
-    setThinkingStatus,
-    setThinkingSourceEventType,
+    setThinkingStatus: setThinkingStatusInChatStore,
+    setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,
     warningContext: 'MinimalChatPill',
   });
   const {
     includeQueryScreenshot,
     canStop: stopAvailable,
     isBusy: loopInteractionLocked,
-    liveTurnPhase,
-    liveTurnSource,
+    surfacePhase,
+    surfaceSource,
     speechModeEnabled,
     wakewordSttEnabled,
   } = chatSurface;
   const devUiEnabled = isDevUiEnabled();
-  lifecycleTraceSnapshotRef.current = {
-    conversationRef: sessionInfo?.conversationRef || null,
-    turnRef: currentTurnProjection?.turnRef || null,
-    phase: currentTurnProjection?.phase || null,
-  };
+  lifecycleTraceSnapshotRef.current = buildChatPillLifecycleTraceSnapshot({
+    chatSurfaceState,
+    sessionConversationRef: sessionInfo?.conversationRef || null,
+  });
   const {
     attachmentInputRef,
     clipboardImages,
@@ -124,14 +130,11 @@ function MinimalChatPill() {
     isSubmitBlocked: loopInteractionLocked,
     onSendMessage: sendMessage,
     onBeforeSend: () => {
-      const conversationRef = sessionInfo?.conversationRef || null;
-      logRendererChatPillResetTrace({
-        conversationRef,
-        previousTurnRef: currentTurnProjection?.turnRef || null,
-        previousPhase: currentTurnProjection?.phase || null,
+      logRendererChatPillResetTrace(buildChatPillResetTraceValues({
+        snapshot: lifecycleTraceSnapshotRef.current,
         attachmentCount: clipboardImages.length + selectedReadableFiles.length,
         includeQueryScreenshot,
-      });
+      }));
       setWakewordSttSessionActive(false);
     },
   });
@@ -224,60 +227,38 @@ function MinimalChatPill() {
   }, [wakewordSttEnabled, wakewordSttSessionActive]);
 
   useEffect(() => {
-    const initialSnapshot = lifecycleTraceSnapshotRef.current;
-    logRendererChatPillLifecycleTrace({
+    logRendererChatPillLifecycleTrace(buildChatPillLifecycleTraceValues({
       action: 'mount',
-      conversationRef: initialSnapshot.conversationRef,
-      turnRef: initialSnapshot.turnRef,
-      phase: initialSnapshot.phase,
-    });
+      snapshot: lifecycleTraceSnapshotRef.current,
+    }));
     return () => {
-      const latestSnapshot = lifecycleTraceSnapshotRef.current;
-      logRendererChatPillLifecycleTrace({
+      logRendererChatPillLifecycleTrace(buildChatPillLifecycleTraceValues({
         action: 'unmount',
-        conversationRef: latestSnapshot.conversationRef,
-        turnRef: latestSnapshot.turnRef,
-        phase: latestSnapshot.phase,
-      });
+        snapshot: lifecycleTraceSnapshotRef.current,
+      }));
     };
   }, []);
 
   useEffect(() => {
-    const nextPillStateSignature = JSON.stringify({
-      loopInteractionLocked,
-      liveTurnPhase,
-      liveTurnSource,
-      currentTurnPhase: currentTurnProjection?.phase || null,
-      currentTurnRef: currentTurnProjection?.turnRef || null,
-      viewTurnRef: conversationView?.liveTurn?.turnRef || null,
-      viewPillMode: conversationView?.surfaces?.pill?.mode || null,
-      viewCanStop: conversationView?.liveTurn?.canStop === true,
+    const stateTraceSnapshot = buildChatPillStateTraceSnapshot({
+      busy: loopInteractionLocked,
+      chatSurfaceState,
+      surfacePhase,
+      surfaceSource,
+      sessionConversationRef: sessionInfo?.conversationRef || null,
+      stopAvailable,
     });
-    if (lastLoggedPillStateRef.current === nextPillStateSignature) {
+    if (lastLoggedPillStateRef.current === stateTraceSnapshot.signature) {
       return;
     }
-    lastLoggedPillStateRef.current = nextPillStateSignature;
-    logRendererChatPillStateTrace({
-      conversationRef: sessionInfo?.conversationRef || null,
-      turnRef: currentTurnProjection?.turnRef || null,
-      currentTurnPhase: currentTurnProjection?.phase || null,
-      liveTurnPhase,
-      liveTurnSource,
-      busy: loopInteractionLocked,
-      stopAvailable,
-      messageCount: messages.length,
-    });
+    lastLoggedPillStateRef.current = stateTraceSnapshot.signature;
+    logRendererChatPillStateTrace(stateTraceSnapshot.trace);
   }, [
-    conversationView?.liveTurn?.canStop,
-    conversationView?.liveTurn?.turnRef,
-    conversationView?.surfaces?.pill?.mode,
-    currentTurnProjection?.phase,
-    currentTurnProjection?.turnRef,
-    liveTurnPhase,
-    liveTurnSource,
+    chatSurfaceState,
     loopInteractionLocked,
-    messages.length,
     sessionInfo?.conversationRef,
+    surfacePhase,
+    surfaceSource,
     stopAvailable,
   ]);
 
@@ -468,10 +449,7 @@ function MinimalChatPill() {
   }, [chatSurface]);
   const { handleStopTurn } = useStopTurnHandler({
     enabled: stopAvailable,
-    conversationView,
-    currentTurnProjection,
-    pendingTurn,
-    sessionConversationRef: sessionInfo?.conversationRef || null,
+    stopTurnTarget,
     warningContext: 'MinimalChatPill',
   });
 

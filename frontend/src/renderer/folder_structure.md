@@ -45,7 +45,7 @@ frontend/src/renderer/
 |   |   |-- desktopChatSurfaceSelectorRuntime.ts # Renderer chat interface and minimal live-surface selector projection facade
 |   |   |-- desktopCurrentTurnPresentationRuntime.js # Renderer current-turn reply, SDK presentation, response dismissal target, and chatbox surface projection facade
 |   |   |-- desktopCurrentTurnMessageRuntime.js # Renderer SDK current-turn projection and presentation entries to chat-message facade
-|   |   |-- desktopCurrentTurnProjectionEffectsRuntime.ts # Renderer SDK current-turn projection side-effect facade
+|   |   |-- desktopSdkLiveTurnEffectsRuntime.ts # Renderer SDK live-turn side-effect facade
 |   |   |-- desktopLiveTurnSurfaceRuntime.js # Renderer SDK current-turn surface/overlay preflight state facade
 |   |   |-- desktopRendererTraceRuntime.ts # Renderer stream/chat-pill/overlay live-surface diagnostic trace facade
 |   |   |-- desktopManualCompactionRuntime.js # Renderer manual compaction command orchestration facade
@@ -53,7 +53,7 @@ frontend/src/renderer/
 |   |   |-- desktopMessageInputRuntime.js # Renderer outgoing message payload normalization facade
 |   |   |-- desktopMessageListRuntime.js # Renderer message-list scroll/action/compaction presentation state facade
 |   |   |-- desktopMessageSendUiRuntime.ts # Renderer main-window vs overlay-chatbox send-surface UI policy facade
-|   |   |-- desktopResolvedMessageScreenshotsRuntime.js # Renderer async message screenshot artifact source resolver hook facade
+|   |   |-- desktopAttachmentImageRuntime.js # Renderer async SDK attachment image source resolver hook facade
 |   |   |-- desktopMessageSourceTagRuntime.js # Renderer dev/source tag label facade for message badges and thinking labels
 |   |   |-- desktopMessageTransparencyRuntime.js # Renderer message transparency section descriptor facade
 |   |   |-- desktopMessageTokenUsageRuntime.js # Renderer dev token usage tag facade for message badges
@@ -73,6 +73,7 @@ frontend/src/renderer/
 |   |   |-- desktopPermissionPresentationRuntime.js # Renderer permission status and presentation mapping facade
 |   |   |-- desktopOnboardingSlideRuntime.js # Renderer onboarding slide-state rules facade
 |   |   |-- desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
+|   |   |-- desktopSdkDisplayChatMessageProjectionRuntime.ts # Renderer SDK display-row to chat-message adapter runtime
 |   |   |-- desktopConversationReplayRuntime.js # Renderer replay context tool-message pairing facade
 |   |   |-- desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
 |   |   |-- desktopConversationSessionRuntime.ts # Renderer transcript/chat conversation identity helper rules
@@ -166,7 +167,8 @@ frontend/src/renderer/
 |   |   |-- session/                     # Conversation session helpers
 |   |   |
 |   |   |-- stores/                      # State management
-|   |   |   `-- chatStore.ts             # chatStore (Zustand) - Messages, isSending, thinkingStatus, tokenCounts
+|   |   |   |-- chatStore.ts             # chatStore (Zustand) - active workspace state, selectors, overlay dismissal
+|   |   |   `-- chatStoreAdapters.ts     # Runtime workspace mutation adapters that apply app-runtime state updates
 |   |   |
 |   |-- dashboard/                        # Dashboard feature module
 |   |   |-- hooks/                       # Dashboard business logic hooks
@@ -216,7 +218,6 @@ frontend/src/renderer/
 |   |
 |   `-- transcript/                       # SDK-backed transcript projection helpers
 |       |-- desktopConversationStore.ts  # desktopConversationStore - Direct SDK conversation command bridge
-|       |-- sdkDisplayChatMessageProjection.ts # sdkDisplayChatMessageProjection - SDK display rows to renderer chat messages
 |       |-- sessionInfoState.ts          # sessionInfoState - Lazy-loaded session resolver/update state machine
 |       |-- sessionInfoStorage.ts        # sessionInfoStorage - sessionStorage read/write + update event emitter
 |       |-- transcriptSessionRuntime.ts  # Session-aware transcript identity runtime used by renderer app-runtime clients
@@ -310,16 +311,16 @@ frontend/src/renderer/
            v
 2. CURRENT-TURN PROJECTION HOOK
    `-> features/chat/hooks/useConversationRuntimeProjectionStream.ts
-       |-> Stores SDK currentTurn projection
+       |-> Applies SDK currentTurn projection through store adapter
        |-> Tracks first assistant/reasoning deltas for UI state
        |-> Tracks tool-call/tool-output phases
        `-> Tracks complete/error phases
            v
-3. CHAT STORE
-   `-> features/chat/stores/chatStore.ts
-       |-> setCurrentTurnProjection() - Store SDK live turn state
-       |-> setThinkingStatus() - Update thinking display from projection
-       `-> setTokenCounts() - Update token statistics from conversation events
+3. CHAT STORE ADAPTERS
+   `-> features/chat/stores/chatStoreAdapters.ts
+       |-> setNoViewSdkLiveTurnInChatStore() - Apply SDK live turn runtime update
+       |-> setThinkingStatusInChatStore() - Apply thinking display update from projection
+       `-> setTokenCountsInChatStore() - Apply token statistics update from conversation events
            v
 4. UI UPDATE
    `-> features/chat/components/MessageList.jsx
@@ -451,7 +452,7 @@ frontend/src/renderer/
            v
 3. UI UPDATE
    `-> features/chat/hooks/useConversationRuntimeProjectionStream.ts
-       `-> chatStore.setCurrentTurnProjection()
+       `-> chatStoreAdapters.setNoViewSdkLiveTurnInChatStore()
            `-> app/runtime/desktopCurrentTurnMessageRuntime.js renders projected bundle/tool output
 ```
 
@@ -565,7 +566,7 @@ App
 ### Chat Store (Zustand)
 - `messages: ChatMessage[]` - Conversation messages
 - `isSending: boolean` - Compatibility send flag; visible lifecycle comes from pending turns plus SDK current-turn projection
-- `thinkingStatus: string | null` - Dashboard/manual status compatibility text; response overlay reasoning follows SDK `currentTurn.reasoningText`
+- `thinkingStatus: string | null` - Dashboard/manual status compatibility text; response overlay reasoning follows SDK presentation thinking entries
 - `tokenCounts: TokenCounts | null` - Token usage statistics
 
 ### App Config Context

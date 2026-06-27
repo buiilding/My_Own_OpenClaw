@@ -3,7 +3,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DesktopConversationDisplayProjection } from '../../../app/runtime/desktopConversationDisplayProjection';
 import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
 import { DesktopLocalRuntimeStatusRuntimeClient } from '../../../app/runtime/desktopLocalRuntimeStatusRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
@@ -12,13 +11,13 @@ import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desk
 import { DesktopConversationSessionRuntime } from '../../../app/runtime/desktopConversationSessionRuntime';
 import { DesktopActiveChatSessionRuntime } from '../../../app/runtime/desktopActiveChatSessionRuntime';
 import { DesktopDashboardConversationGroupRuntime } from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
-import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { DesktopDashboardConversationDialogRuntime } from '../../../app/runtime/desktopDashboardConversationDialogRuntime';
 import {
   DesktopDashboardConversationLoadRuntime,
 } from '../../../app/runtime/desktopDashboardConversationLoadRuntime';
 
 const {
+  applyDashboardConversationOpenWorkspaceReset,
   clearAllTitleVisibilityPollTimers,
   clearConversationSearchDebounce,
   clearRecentConversationsRefreshTimer,
@@ -48,14 +47,6 @@ const {
   resetActiveChatSession,
 } = DesktopActiveChatSessionRuntime;
 const {
-  buildChatMessagesFromSdkDisplayRows,
-  buildDisplayProjectionTraceSummary,
-  mergeRendererAnnotationsIntoSdkMessages,
-} = DesktopConversationDisplayProjection;
-const {
-  logRendererDisplayRowsProjectionTrace,
-} = DesktopRendererTraceRuntime;
-const {
   confirmDashboardConversationDelete,
   requestDashboardConversationRenameTitle,
 } = DesktopDashboardConversationDialogRuntime;
@@ -73,11 +64,11 @@ export function useDashboardConversations({
   activeConversationRef,
   getChatWorkspaceState,
   clearChatMessages,
-  setChatMessages,
   setChatIsSending,
   setChatThinkingStatus,
   setChatTokenCounts,
   setChatActiveConversationRef,
+  setChatConversationView,
   searchOpen,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -267,11 +258,6 @@ export function useDashboardConversations({
     setOpeningConversationRef(conversationRef);
 
     try {
-      const cachedWorkspace = typeof getChatWorkspaceState === 'function'
-        ? getChatWorkspaceState(conversationRef)
-        : null;
-      const hasCachedMessages = Array.isArray(cachedWorkspace?.messages)
-        && cachedWorkspace.messages.length > 0;
       const workspaceBinding = DesktopWorkspaceRuntimeClient.resolveConversationWorkspaceBinding({
         conversation,
         memories: [],
@@ -283,46 +269,29 @@ export function useDashboardConversations({
         updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
         setChatConversationRef: setChatActiveConversationRef,
       });
-      if (!hasCachedMessages) {
-        clearChatMessages(conversationRef);
-        setChatIsSending(false, conversationRef);
-        setChatThinkingStatus(null, conversationRef);
-        setChatTokenCounts(null, conversationRef);
-      }
+      applyDashboardConversationOpenWorkspaceReset({
+        conversationRef,
+        getWorkspaceState: getChatWorkspaceState,
+        clearMessages: clearChatMessages,
+        setIsSending: setChatIsSending,
+        setThinkingStatus: setChatThinkingStatus,
+        setTokenCounts: setChatTokenCounts,
+      });
 
-      const displayRows = await DesktopConversationLibraryClient.loadDisplayRows(
+      const conversationView = await DesktopConversationLibraryClient.loadConversationView(
         resolvedUserId,
         conversationRef,
       );
       if (openConversationRequestIdRef.current !== requestId) {
         return;
       }
-      const sdkMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
-      const latestWorkspace = typeof getChatWorkspaceState === 'function'
-        ? getChatWorkspaceState(conversationRef)
-        : null;
-      const currentMessages = Array.isArray(latestWorkspace?.messages) ? latestWorkspace.messages : [];
-      const projectedMessages = mergeRendererAnnotationsIntoSdkMessages(
-        sdkMessages,
-        currentMessages,
-      );
-      logRendererDisplayRowsProjectionTrace({
-        source: 'dashboard-open-conversation',
-        conversationRef,
-        ...buildDisplayProjectionTraceSummary({
-          rows: displayRows,
-          sdkMessages,
-          currentMessages,
-          mergedMessages: projectedMessages,
-        }),
-      });
       try {
         await DesktopWorkspaceRuntimeClient.setActiveWorkspaceSelection(workspaceBinding.workspacePath || null);
       } catch (workspaceError) {
         console.warn('[useDashboardConversations] Failed to sync active workspace:', workspaceError);
       }
 
-      setChatMessages(projectedMessages, conversationRef);
+      setChatConversationView?.(conversationView, conversationRef);
       setChatIsSending(false, conversationRef);
       setChatThinkingStatus(null, conversationRef);
       setChatTokenCounts(null, conversationRef);
@@ -341,8 +310,8 @@ export function useDashboardConversations({
     getChatWorkspaceState,
     resolvedUserId,
     setChatActiveConversationRef,
+    setChatConversationView,
     setChatIsSending,
-    setChatMessages,
     setChatThinkingStatus,
     setChatTokenCounts,
   ]);

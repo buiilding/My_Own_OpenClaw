@@ -5,7 +5,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import ChatInterface from '../../chat/components/ChatInterface';
-import { useChatStore } from '../../chat/stores/chatStore';
+import {
+  useChatStore,
+} from '../../chat/stores/chatStore';
+import {
+  clearMessagesInChatStore,
+  getWorkspaceStateFromChatStore,
+  setConversationViewInChatStore,
+  setIsSendingInChatStore,
+  setThinkingStatusInChatStore,
+  setTokenCountsInChatStore,
+} from '../../chat/stores/chatStoreAdapters';
 import { DesktopClientSessionRuntimeClient } from '../../../app/runtime/desktopClientSessionRuntimeClient';
 import { DesktopWindowRuntimeClient } from '../../../app/runtime/desktopWindowRuntimeClient';
 import ModelsSection from './sections/ModelsSection';
@@ -91,13 +101,7 @@ function DashboardShell({
   const resolvedUserId = sessionInfo.userId || snapshotUserId || null;
 
   const activeChatConversationRef = useChatStore((state) => state.activeConversationRef);
-  const setChatMessages = useChatStore((state) => state.setMessages);
-  const clearChatMessages = useChatStore((state) => state.clearMessages);
-  const setChatIsSending = useChatStore((state) => state.setIsSending);
-  const setChatThinkingStatus = useChatStore((state) => state.setThinkingStatus);
-  const setChatTokenCounts = useChatStore((state) => state.setTokenCounts);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
-  const getChatWorkspaceState = useChatStore((state) => state.getWorkspaceState);
   const {
     searchQuery,
     isSearchingConversations,
@@ -119,13 +123,13 @@ function DashboardShell({
     resolvedUserId,
     sessionConversationRef: sessionInfo.conversationRef,
     activeConversationRef: activeChatConversationRef,
-    getChatWorkspaceState,
-    clearChatMessages,
-    setChatMessages,
-    setChatIsSending,
-    setChatThinkingStatus,
-    setChatTokenCounts,
+    getChatWorkspaceState: getWorkspaceStateFromChatStore,
+    clearChatMessages: clearMessagesInChatStore,
+    setChatIsSending: setIsSendingInChatStore,
+    setChatThinkingStatus: setThinkingStatusInChatStore,
+    setChatTokenCounts: setTokenCountsInChatStore,
     setChatActiveConversationRef,
+    setChatConversationView: setConversationViewInChatStore,
     searchOpen,
   });
 
@@ -207,21 +211,18 @@ function DashboardShell({
     resetActiveChatSession({
       conversationRef: sessionInfo.conversationRef || null,
       userId: resolvedUserId,
-      clearMessages: clearChatMessages,
-      setThinkingStatus: setChatThinkingStatus,
-      setTokenCounts: setChatTokenCounts,
+      clearMessages: clearMessagesInChatStore,
+      setThinkingStatus: setThinkingStatusInChatStore,
+      setTokenCounts: setTokenCountsInChatStore,
       setChatActiveConversationRef,
     });
     DesktopWorkspaceRuntimeClient.clearAllConversationWorkspaceBindings();
     await loadRecentConversations();
   }, [
-    clearChatMessages,
     loadRecentConversations,
     resolvedUserId,
     sessionInfo.conversationRef,
     setChatActiveConversationRef,
-    setChatThinkingStatus,
-    setChatTokenCounts,
   ]);
 
   useEffect(() => {

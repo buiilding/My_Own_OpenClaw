@@ -24,15 +24,9 @@ function renderController({
   updateConfig = jest.fn(),
   props = {},
 } = {}) {
-  const wrapper = ({ children }) => (
-    <AppConfigContext.Provider value={{ config, updateConfig }}>
-      {children}
-    </AppConfigContext.Provider>
-  );
-
-  const hook = renderHook(() => useChatSurfaceController({
-    messages: [{ id: 'user-1', type: 'user', sender: 'user', text: 'hello' }],
-    currentTurnProjection: {
+  const {
+    messages = [{ id: 'user-1', type: 'user', sender: 'user', text: 'hello' }],
+    sdkLiveTurn = {
       phase: 'streaming',
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
@@ -41,6 +35,23 @@ function renderController({
       toolEvents: [],
       lastError: null,
     },
+    conversationView = null,
+    pendingTurn = null,
+    ...controllerProps
+  } = props;
+  const wrapper = ({ children }) => (
+    <AppConfigContext.Provider value={{ config, updateConfig }}>
+      {children}
+    </AppConfigContext.Provider>
+  );
+
+  const hook = renderHook(() => useChatSurfaceController({
+    chatSurfaceState: {
+      messages,
+      sdkLiveTurn,
+      conversationView,
+      pendingTurn,
+    },
     sessionInfo: {
       conversationRef: 'conv-1',
       userId: 'user-1',
@@ -48,7 +59,7 @@ function renderController({
     setThinkingStatus: jest.fn(),
     setThinkingSourceEventType: jest.fn(),
     warningContext: 'ControllerTest',
-    ...props,
+    ...controllerProps,
   }), { wrapper });
 
   return {
@@ -86,7 +97,7 @@ describe('useChatSurfaceController', () => {
       props: {
         phase: 'tool-output',
         streamTracking: { phase: 'tool-output' },
-        currentTurnProjection: {
+        sdkLiveTurn: {
           phase: 'complete',
           conversationRef: 'conv-1',
           turnRef: 'turn-1',
@@ -114,7 +125,7 @@ describe('useChatSurfaceController', () => {
           conversationRef: 'conv-stale-session',
           userId: 'user-1',
         },
-        currentTurnProjection: {
+        sdkLiveTurn: {
           phase: 'streaming',
           conversationRef: 'conv-visible-turn',
           turnRef: 'turn-visible',
@@ -140,7 +151,7 @@ describe('useChatSurfaceController', () => {
   test('uses SDK awaiting anchor as dashboard typing dot target', () => {
     const { result } = renderController({
       props: {
-        currentTurnProjection: {
+        sdkLiveTurn: {
           phase: 'awaiting',
           conversationRef: 'conv-1',
           turnRef: 'turn-1',
@@ -202,7 +213,7 @@ describe('useChatSurfaceController', () => {
         messages: [
           { id: 'user-2', type: 'user', sender: 'user', text: 'second', turnRef: 'turn-2' },
         ],
-        currentTurnProjection: {
+        sdkLiveTurn: {
           phase: 'awaiting',
           conversationRef: 'conv-1',
           turnRef: 'turn-2',
@@ -237,8 +248,8 @@ describe('useChatSurfaceController', () => {
     expect(result.current).toMatchObject({
       isBusy: true,
       canStop: false,
-      liveTurnPhase: 'awaiting-first-chunk',
-      liveTurnSource: 'current-turn',
+      surfacePhase: 'awaiting-first-chunk',
+      surfaceSource: 'current-turn',
     });
     expect(result.current.currentTurnPresentationState).toMatchObject({
       awaitingDotTargetMessageId: 'user-2',
@@ -266,7 +277,7 @@ describe('useChatSurfaceController', () => {
             turnRef: 'turn-local',
           },
         ],
-        currentTurnProjection: {
+        sdkLiveTurn: {
           phase: 'idle',
           conversationRef: 'conv-1',
           turnRef: 'startup-hidden',
@@ -300,7 +311,7 @@ describe('useChatSurfaceController', () => {
     expect(result.current).toMatchObject({
       isBusy: true,
       canStop: true,
-      liveTurnSource: 'pending-turn',
+      surfaceSource: 'pending-turn',
       visibleTurnLifecycle: expect.objectContaining({
         status: 'local_pending',
         source: 'local',
@@ -326,7 +337,7 @@ describe('useChatSurfaceController', () => {
             turnRef: 'turn-1',
           },
         ],
-        currentTurnProjection: {
+        sdkLiveTurn: {
           phase: 'complete',
           conversationRef: 'conv-1',
           turnRef: 'turn-1',
@@ -341,7 +352,7 @@ describe('useChatSurfaceController', () => {
     expect(result.current).toMatchObject({
       isBusy: false,
       canStop: false,
-      liveTurnSource: 'current-turn',
+      surfaceSource: 'current-turn',
       visibleTurnLifecycle: expect.objectContaining({
         status: 'terminal',
       }),
@@ -351,7 +362,7 @@ describe('useChatSurfaceController', () => {
   test('runs pill and dashboard config toggles through one busy gate', () => {
     const { result, updateConfig } = renderController({
       props: {
-        currentTurnProjection: null,
+        sdkLiveTurn: null,
       },
     });
 
@@ -366,7 +377,7 @@ describe('useChatSurfaceController', () => {
     const busyController = renderController({
       updateConfig,
       props: {
-        currentTurnProjection: {
+        sdkLiveTurn: {
           phase: 'streaming',
           conversationRef: 'conv-1',
           turnRef: 'turn-busy',
@@ -390,7 +401,7 @@ describe('useChatSurfaceController', () => {
     const setThinkingSourceEventType = jest.fn();
     const { result } = renderController({
       props: {
-        currentTurnProjection: null,
+        sdkLiveTurn: null,
         sessionInfo: {
           conversationRef: 'conv-active',
           userId: 'user-active',

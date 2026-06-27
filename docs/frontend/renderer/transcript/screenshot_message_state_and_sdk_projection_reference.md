@@ -1,8 +1,8 @@
 ---
-summary: "Legacy screenshot metadata and SDK typed attachment projection reference for explicit screenshotRef/screenshotUrl metadata, screenshot_refs replay input, typed attachments, and removed renderer whole-message screenshot display."
+summary: "Legacy screenshot metadata and SDK typed attachment projection reference for explicit screenshotRef/screenshotUrl metadata, screenshot_refs SDK replay input, typed attachments, and removed renderer whole-message screenshot display."
 read_when:
-  - When changing `screenshotMessageState.js`, SDK display attachment projection, artifact image resolution, or replay screenshot metadata.
-  - When debugging missing renderer visual attachments, `screenshotRef`/`screenshotUrl` replay input, `screenshot_refs` multi-image projection, or stale screenshot artifact inference behavior.
+  - When changing SDK display attachment projection, artifact image resolution, or replay screenshot metadata.
+  - When debugging missing renderer visual attachments, SDK-owned `screenshotRef`/`screenshotUrl` replay input, `screenshot_refs` multi-image projection, or stale screenshot artifact inference behavior.
 title: "Screenshot Message State and SDK Projection Reference"
 ---
 
@@ -10,13 +10,13 @@ title: "Screenshot Message State and SDK Projection Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/infrastructure/services/screenshotMessageState.js`
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
+- `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
+- `frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts`
 - `packages/windie-sdk-js/src/projections/legacyVisualAttachmentReplayAdapter.ts`
-- `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
-- `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js`
 - `frontend/src/renderer/features/chat/components/message/content/AttachmentList.jsx`
-- `tests/frontend/ScreenshotMessageState.test.js`
+- `tests/frontend/ArtifactImageUtils.test.ts`
 - `tests/frontend/SdkDisplayChatMessageProjection.test.ts`
 - `tests/frontend/MessageContent.test.jsx`
 - `tests/frontend/ConversationReplayActions.test.jsx`
@@ -37,41 +37,55 @@ Do not reintroduce the retired compatibility path that treats a non-inline
 `screenshot` string as an artifact id. Remote screenshots require explicit
 `screenshotRef`, `screenshotUrl`, or `screenshot_refs` metadata.
 
-The only inference still allowed is URL-to-ref extraction from backend artifact
-URLs such as `/api/artifacts/<id>`. That lets replay preserve a canonical
-`screenshotRef` when a row carries a trusted artifact URL but no explicit ref.
+URL-to-ref extraction from backend artifact URLs such as `/api/artifacts/<id>`
+is limited to artifact image utilities and SDK/store compatibility adapters.
+Renderer replay actions must not perform that inference or forward inferred
+`screenshot_ref`/`screenshot_url` fields; replay resource preservation comes
+from the SDK target display row.
 
 ## Runtime Behavior
 
-`resolveScreenshotAttachmentState(...)`:
+The old renderer `screenshotMessageState.js` helper has been removed from the
+production path. Replay-specific screenshot alias recovery belongs in SDK
+display-row compatibility adapters, not renderer replay actions or renderer
+screenshot state. Renderer feature code should render image descriptors through
+`AttachmentList`/`AttachmentRendererRegistry`; those components resolve ready
+artifact-backed images with
+`DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc`.
+`UserMessage` must not render `attachmentFilenames[]` as a separate visible
+fallback; filename metadata is compatibility/context data until the SDK display
+row provides typed `attachments[]`.
 
-1. parses inline screenshot data
-2. rejects `artifact://`, `http://`, and `https://` values as inline payloads
-3. builds remote state from explicit `screenshotRef` or artifact URL-derived ref
-4. derives `screenshotUrl` from the supplied artifact URL builder when a ref
-   exists and no URL was provided
-5. optionally drops inline screenshot bytes when remote metadata exists
+There is no renderer `buildMessageScreenshotState(...)` whole-message facade.
+Renderer chat rows should receive typed `attachments[]`; artifact-backed image
+resolution stays behind attachment descriptors.
 
-`screenshotMessageState.js` keeps low-level legacy normalization rules for
-producer/replay paths. Renderer feature code should render image descriptors
-through `AttachmentList`/`AttachmentRendererRegistry`; those components resolve
-ready artifact-backed images with
-`DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc`.
-
-`buildMessageScreenshotState(...)` uses
-`preserveInlineScreenshotWithRemote: false`, so renderer chat rows prefer the
-remote artifact path and avoid keeping duplicate inline bytes next to
-`screenshotRef`/`screenshotUrl`.
-
-`resolveReplayScreenshotState(...)` follows the same remote preference while
-preserving content type metadata for inline fallback rows.
+There is no renderer `resolveReplayScreenshotState(...)` facade. React replay
+actions dispatch SDK retry/edit intent only; SDK target-row resolution preserves
+typed attachments and any legacy screenshot refs.
 
 ## SDK Display Projection
 
-`sdkDisplayChatMessageProjection.ts` reads typed attachment descriptors from SDK
-display row metadata. It does not adapt legacy screenshot aliases for primary
-renderer display; old rows must be adapted earlier by
+`DesktopSdkDisplayChatMessageProjectionRuntime` maps SDK display rows directly
+to renderer chat-message props and reads typed attachment descriptors from SDK
+display row metadata. The legacy `sdkDisplayChatMessageProjection.ts`
+compatibility re-export has been deleted; callers use the app-runtime owner
+directly. The runtime does not build an
+intermediate `DisplayMessage` model or adapt legacy screenshot aliases for
+primary renderer display; old rows must be adapted earlier by
 `legacyVisualAttachmentReplayAdapter`.
+Streaming assistant rows read SDK `reasoningText` only; the renderer adapter
+does not recover old snake-case reasoning aliases.
+It also must not synthesize missing model-facing tool-call objects from
+metadata-only rows; SDK display rows should provide that semantic object when
+it is part of the row contract, and renderer projection keeps metadata as
+display/details only.
+`DesktopSdkDisplayAttachmentProjection` owns renderer-side display attachment
+validation, image counting, ready-image checks, and trace lifecycle summaries.
+Other renderer presentation runtimes should call those helpers instead of
+inspecting `screenshotRef`/`screenshotUrl` fields directly. Token estimates also
+read SDK typed `attachments[]`; legacy screenshot arrays remain SDK/replay
+compatibility input, not a renderer token-count source.
 
 - primary display field: `attachments[]`
 - backend/replay compatibility input before renderer projection:
@@ -95,16 +109,16 @@ If a replayed or resumed image is missing:
    converted `screenshotRef`, `screenshotUrl`, or `screenshot_refs`
 3. confirm `screenshot` is not being used as renderer display input
 4. check `AttachmentList` / `AttachmentRendererRegistry` for descriptor state
-5. check `desktopResolvedMessageScreenshotsRuntime.js` fetch/cache behavior for remote
+5. check `desktopAttachmentImageRuntime.js` fetch/cache behavior for remote
    artifact URLs
 
 If the missing image was sent from the chat pill while the dashboard still shows
 the earlier optimistic text-only user row, enable `[LiveSurfaceTrace]` and check
 `renderer.display_rows.projected`. `sdkUserImageCount` means the SDK display row
 contained screenshot metadata, `sdkProjectedUserImageCount` means
-`sdkDisplayChatMessageProjection.ts` converted it into renderer message image
-state, and `mergedUserImageCount` means the renderer store kept that image after
-replacing the optimistic row.
+`DesktopSdkDisplayChatMessageProjectionRuntime` converted it into renderer
+message image state, and `mergedUserImageCount` means the renderer store kept
+that image after replacing the optimistic row.
 
 If a row shows one image instead of multiple:
 

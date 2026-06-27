@@ -3,7 +3,7 @@ summary: "Renderer chat runtime deep reference: provider coordination, message-s
 read_when:
   - When changing renderer chat hooks, stream event handling, or projected tool display callbacks.
   - When debugging stale-turn tool cancellation, transcript writes, or streaming state drift.
-  - When debugging current-turn projection side effects such as send-latch cleanup, thinking text, streamTracking updates, or duplicate tool-event tracking.
+  - When debugging SDK live-turn side effects such as send-latch cleanup, thinking text, streamTracking updates, or duplicate tool-event tracking.
   - When resolving stale references to removed `chatStreamTransparency.ts`, `ChatStreamTransparency.test.ts`, or `ChatStreamThinkingStatusUtils.test.ts` helper/test paths.
   - When stale code, tests, or docs mention exported `mergeRendererAnnotations` or direct renderer annotation-merge helpers; the merge now routes through `desktopConversationDisplayProjection.ts`.
 title: "Chat Stream and Tool Execution Reference"
@@ -24,8 +24,9 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationProjectionStreamRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopModelThinkingRuntime.ts`
-- `frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopSdkLiveTurnEffectsRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompletionHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamLocalUserHandler.ts`
@@ -55,7 +56,7 @@ Ownership boundaries:
 
 - `AppConfigProvider`: persisted config, model-list fetch trigger, runtime settings sync, wakeword preference/suppression state
 - `AppStatusProvider`: transient settings-save status (`idle/saving/success/error`) with timeout-based transitions
-- `ChatProvider`: mounts `useChatStream` and mirrors transcript session `conversationRef` into chat-store `activeConversationRef` so overlay renderers consume the correct conversation workspace. Local tool execution is owned by the Agent SDK runtime.
+- `ChatProvider`: mounts `useChatStream`, mirrors transcript session `conversationRef` into chat-store `activeConversationRef`, and wires the active workspace read model into renderer trace transport through chat-store adapter getters. `DesktopChatProviderTraceRuntime` owns the ConversationView-first trace snapshot summary so the provider does not inspect display rows, raw messages, or raw Zustand workspace state directly. Local tool execution is owned by the Agent SDK runtime.
 
 ## Chat Message and Store Contracts
 
@@ -106,8 +107,8 @@ Workspace identity state:
 Resulting policy:
 
 - if `supportsThinking=true` and `supportsThinkingTextStream=false`, local-user send path sets generic `Thinking...` status until stream text arrives
-- otherwise thinking state starts empty and waits for SDK `currentTurn.reasoningText`
-  projection updates derived from backend `llm-thought` chunks
+- otherwise thinking state starts empty and waits for SDK presentation thinking
+  entries derived from backend `llm-thought` chunks
 
 Thinking status methods from `DesktopChatStreamThinkingRuntime`:
 
@@ -127,40 +128,88 @@ Thinking status methods from `DesktopChatStreamThinkingRuntime`:
 ## Runtime Projection Listener and Side Effects
 
 `useConversationRuntimeProjectionStream` subscribes through
-`DesktopConversationRuntimeEventClient` to SDK `windie:current-turn` and
-`windie:rows` projections, then maps SDK display rows through
-`buildChatMessagesFromSdkDisplayRows(...)`. Display-row presentation metadata
-uses `sdk:display-rows` as its source label; the `windie:rows` name is only the
-Electron IPC transport channel.
+`DesktopConversationRuntimeEventClient` to renderer pending-turn broadcasts and
+SDK `windie:current-turn` projections, then delegates current-turn application
+and replay trace payload shaping to
+`DesktopConversationProjectionStreamRuntime`. Normal chat display rows enter
+the renderer through SDK `ConversationView`; the `windie:rows` channel remains
+an Electron IPC compatibility/diagnostic transport, not a normal chat render
+subscription.
+When Electron main includes `view` on a `windie:current-turn` envelope, the
+renderer must preserve that `ConversationView` in the normalized event and store
+it in the target chat workspace before applying no-view current-turn side
+effects. Retry and edit/resend live updates depend on that envelope; dropping
+the view leaves only the local pending bridge visible after the raw display-row
+stream subscription has been removed.
 
-Renderer-only annotations such as prompt transparency, tool schemas, full
-message details, feedback, and token counts are merged back into matching
-SDK-projected messages by `desktopConversationDisplayProjection.ts`. The same
-app-runtime facade preserves pending optimistic user rows from the local
-composer until the SDK display rows include the same turn. The hook owns
-subscription wiring and store writes; it does not own display-row annotation or
-optimistic-row merge semantics.
+Replay diagnostics use the same projection-stream helper. Replay intent runtime
+passes old/new turn refs into `buildReplayProjectionTracePayload(...)` and logs
+the resulting summary; it should not read raw current-turn, pending-turn, stream
+tracking, or message-count fields itself. Once `ConversationView` exists, that
+helper reports trace current-turn identity from `ConversationView.liveTurn` and
+uses that live-turn ref as the trace active turn while counting `displayRows`;
+raw `chatStore.messages`, `currentTurnProjection`, and stream-tracking active
+turn refs remain no-view diagnostic fallbacks only.
 
-The old exported `mergeRendererAnnotations` helper remains removed. Stale
-searches for that name should route to `mergeRendererAnnotationsIntoSdkMessages`
-in `desktopConversationDisplayProjection.ts` and tests should exercise the
-app-runtime facade or the public hook listener.
+Renderer-only feedback is merged back into matching SDK-projected messages by
+`desktopConversationDisplayProjection.ts`; prompt transparency, tool schemas,
+full message details, and token counts should arrive on SDK-projected rows once
+`ConversationView` exists. Main-thread `ConversationView` rendering passes that
+field as a narrow annotation record selected from `chatStore.messages`, not as
+the full raw message transcript. Display-row stream fallback may still inspect
+full messages only while applying the no-view bridge.
+`desktopConversationProjectionStreamRuntime.ts` composes that display adapter
+with replay superseded-turn filtering, stale current-turn side-effect gating,
+projection cursor management, and trace routing so the hook owns subscription
+wiring and store dependency injection only; it does not own display-row
+annotation, optimistic-row merge, stale replay display suppression, or
+current-turn side-effect semantics.
+
+Display-row stream projections are a no-`ConversationView` bridge. When the
+workspace already has an SDK `ConversationView`, the runtime keeps the packet
+trace-only and does not build legacy renderer chat messages or merge renderer
+annotations from it. Normal chat rendering should read
+`ConversationView.displayRows`; `chatStore.messages` remains only the local
+pending/no-view fallback.
+
+Conversation-stream sub-handlers resolve event identity through
+`DesktopChatStreamEventRuntime.resolveConversationStreamEventIdentity(...)`.
+The dispatcher, ingress runtime, compaction, local-user, metadata, and terminal
+handlers consume that runtime-built conversation ref, turn ref, and update-target
+turn ref object instead of unpacking SDK event identity fields independently.
+Low-level conversation-ref and turn-ref helpers stay internal to
+`DesktopChatStreamEventRuntime`; renderer consumers should not import or
+destructure them from the facade.
+Stale-turn gating uses
+`DesktopChatStreamEventRuntime.shouldIgnoreConversationEventIdentityForStaleTurn(...)`
+with the runtime-built event identity object; hooks should not pass raw event
+turn-ref shapes into stale-turn checks.
+Chat-stream message target construction also stays in
+`DesktopChatStreamMessageUpdateRuntime`. Hooks pass the runtime-built event
+identity object into that facade instead of assembling `last_by_sender` or
+`last_assistant_llm_text` targets with raw turn refs.
+
+The old exported `mergeRendererAnnotations` helper remains removed.
+Annotation merging is internal to `desktopConversationDisplayProjection.ts`;
+callers pass narrow renderer annotation records into
+`DesktopChatInterfacePresentationRuntime` through the selector boundary and
+tests should exercise the `ConversationView` projection facade or the public
+hook listener.
 
 The hook delegates current-turn UI side effects to
-`DesktopCurrentTurnProjectionEffectsRuntime`. That runtime reducer owns cursor-based delta
-tracking for `assistantText`, `reasoningText`, `phase`, `lastError`, and seen
-tool-event ids; it does not store SDK presentation visibility fields in the
+`DesktopSdkLiveTurnEffectsRuntime`. That runtime reducer owns cursor-based delta
+tracking for SDK presentation entries, `phase`, and `lastError`; it does not
+store raw current-turn text or SDK presentation visibility fields in the
 cursor. It is the renderer-side owner for:
 
 - accepting an SDK `awaiting` turn before the local send latch has fully reset
 - clearing `isSending` when SDK presentation contains actual entries or an
-  explicit visible-content flag, assistant text, terminal state, or executable
-  tool rows
-- appending reasoning deltas into transient thinking text
+  explicit visible-content flag, terminal state, or executable tool rows
+- appending presentation thinking-entry deltas into transient thinking text
 - recording `query-accepted`, `llm-thought`, `streaming-response`,
   `tool-call`, `tool-output`, `web-search-progress`, `streaming-complete`, and
   `error` tracking events
-- preserving typing/thinking state for SDK tool events projected with
+- preserving typing/thinking state for SDK presentation tool entries projected with
   `executionSkipped === true`
 
 The reducer does not treat SDK `presentation.typingVisible` or
@@ -181,6 +230,24 @@ The utility does not create transcript rows or interpret backend-wire events.
 Transcript display still comes from SDK display rows, and conversation-event
 handlers still own metadata, compaction, terminal materialization, and tool-row
 persistence.
+Live-turn tool-call presentation consumes SDK-provided tool identity fields
+only. Renderer UI row ids are display identities and must not be promoted into
+model-facing tool-call ids when a live entry omits `requestId` or
+`modelFacingToolCall.id`.
+Turn-completion handlers call
+`DesktopChatStreamEventRuntime.resolveTurnCompletedStreamEventState(...)` for
+resolved conversation identity, turn identity, and terminal tracking decisions;
+hooks should not read workspace stream state directly to make that decision.
+Compaction handlers similarly read the current thinking source through
+`DesktopChatStreamEventRuntime.resolveWorkspaceThinkingSourceEventType(...)`;
+the hook wires store access as an adapter dependency and does not dereference
+workspace thinking fields inline.
+SDK conversation-event stale-turn gating also belongs to
+`DesktopChatStreamEventRuntime`: it resolves active turn identity from
+`ConversationView.liveTurn.turnRef` first and uses raw `streamTracking` only as
+the no-view fallback so stale renderer stream tracking cannot reject the
+SDK-owned live turn. Terminal completion tracking uses the same view-first
+turn identity before falling back to raw complete-state/pending-bridge checks.
 
 ### Removed Chat Stream Transparency and Thinking Helper Paths
 
@@ -190,9 +257,9 @@ Transparency events now arrive as SDK-normalized conversation events and are
 handled through the centralized ingress/runtime path documented below.
 
 The old standalone `ChatStreamThinkingStatusUtils.test.ts` path was also
-removed. Thinking placeholders, compaction status labels, and thinking text
-accumulation are owned by `desktopChatStreamThinkingRuntime.ts`, while live
-assistant reasoning text comes from SDK `currentTurn.reasoningText`.
+removed. Thinking placeholders and compaction status labels are owned by
+`desktopChatStreamThinkingRuntime.ts`, while live assistant reasoning text
+comes from SDK presentation thinking entries.
 
 ## Message Send Lifecycle (`useChatMessageSender`)
 
@@ -213,10 +280,10 @@ assistant reasoning text comes from SDK `currentTurn.reasoningText`.
 9. let SDK `ConversationRuntime.send()` emit the authoritative base user row,
    resolve file/clipboard/workspace/query-screenshot resources, and update user
    metadata
-10. preserve the temporary renderer row across intermediate `windie:rows`
-    refreshes that do not yet include that turn's SDK user row
-11. replace the temporary renderer row with SDK display rows from `windie:rows`
-    once the matching SDK user row is projected
+10. keep the renderer pending bridge visible beside SDK `ConversationView`
+    rows while the matching SDK user row is absent
+11. let `ConversationView.displayRows` replace the pending bridge once the SDK
+    projects the matching user row
 
 The local send latch and temporary renderer row are latency cover only. They
 must be keyed to the outgoing turn and removed when the SDK row projection for
@@ -263,15 +330,14 @@ Pre-routing and workspace resolution:
   `desktopChatStreamIngressRuntime.ts`; `useChatStream` supplies handler and
   store callbacks but does not import backend event contracts directly
 - ingress bookkeeping steps are fail-safe isolated (`try/catch` per step) so projection/turn-map/transcript sync errors cannot suppress final handler dispatch for the event
-- assistant text runtime state comes from the SDK current-turn projection:
-  backend `streaming-response` -> SDK `assistant_delta` -> `currentTurn.assistantText`;
-  backend `streaming-complete` still dispatches as SDK `turn_completed` for
-  completion and transcript finalization
-- tool runtime state comes from the SDK current-turn projection:
+- assistant text runtime state comes from SDK presentation entries:
+  backend `streaming-response` -> SDK `assistant_delta` -> presentation
+  `llm-text` entries; backend `streaming-complete` still dispatches as SDK
+  `turn_completed` for completion and transcript finalization
+- tool runtime state comes from SDK presentation entries:
   backend `tool-call`/`tool-output`/`tool-bundle`/`web-search-progress` ->
-  SDK tool events -> `currentTurn.toolEvents`; SDK `tool_call`,
-  `tool_output`, and `tool_bundle_call` still dispatch for transcript
-  persistence
+  SDK tool entries; SDK `tool_call`, `tool_output`, and `tool_bundle_call`
+  still dispatch for transcript persistence
 - compaction events dispatch from SDK-normalized conversation events:
   backend `context-compaction-started` -> SDK `compaction_started`, backend
   `context-compaction-completed` -> SDK `compaction_applied` or
@@ -289,8 +355,8 @@ Pre-routing and workspace resolution:
 - token usage events dispatch from SDK-normalized conversation events:
   backend `token-count` -> SDK `usage_updated`
 - thinking/reasoning events dispatch from SDK-normalized conversation events:
-  backend `llm-thought` -> SDK `reasoning_delta`; the renderer does not handle the normalized event directly for live text, because live thinking state comes from the SDK `currentTurn` projection emitted on `conversation-runtime-updated`
-- tool progress events are projected into `currentTurn.toolEvents`; renderer chat code does not dispatch SDK `tool_progress` as a separate live-state path
+  backend `llm-thought` -> SDK `reasoning_delta`; the renderer does not handle the normalized event directly for live text, because live thinking state comes from SDK presentation entries emitted on `conversation-runtime-updated`
+- tool progress events are projected into SDK presentation entries; renderer chat code does not dispatch SDK `tool_progress` as a separate live-state path
 - local user echo events dispatch from SDK-normalized conversation events:
   backend `local-user-message` -> SDK `user_message`
 
@@ -300,9 +366,9 @@ SDK dispatch behavior:
   - the renderer consumes SDK `user_message` payloads directly while keeping
     `local-user-message` as the UI/tracking source label. It does not handle a
     backend-wire `local-user-message` fallback after SDK dispatch.
-- SDK `currentTurn.reasoningText` from the conversation runtime projection: accumulates transient thinking text and records `llm-thought` tracking without creating raw assistant rows
-  - the renderer consumes the SDK current-turn projection directly. It keeps `llm-thought` as the UI/tracking source label, but does not fall back to backend-wire `llm-thought` payloads.
-- SDK `currentTurn.assistantText` from the conversation runtime projection: dashboard and response overlay render the live assistant text from the projection, while the projection listener clears the send latch and records `streaming-response` chunk tracking
+- SDK presentation thinking entries from the conversation runtime projection: accumulate transient thinking text and record `llm-thought` tracking without creating raw assistant rows
+  - the renderer consumes SDK presentation entries directly. It keeps `llm-thought` as the UI/tracking source label, but does not fall back to backend-wire `llm-thought` payloads.
+- SDK presentation `llm-text` entries from the conversation runtime projection: dashboard and response overlay render live assistant text from the projection, while the projection listener clears the send latch and records `streaming-response` chunk tracking
   - backend-wire `streaming-response` and normalized SDK `assistant_delta` are not live-row fallbacks in renderer chat code.
 - SDK `currentTurn.phase` from the conversation runtime projection: records terminal `streaming-complete`/`error` tracking and clears transient send/thinking state for `complete` and `error`
   - benign settings-update errors and recoverable streamed tool-call parse errors are filtered before they become SDK current-turn terminal errors.
@@ -319,9 +385,9 @@ SDK dispatch behavior:
   - when SDK payload includes replacement history, builds a compacted replay snapshot from the SDK event and persists it through the renderer app-runtime facade instead of unwrapping a backend-wire event
 - SDK `compaction_skipped` from backend `context-compaction-completed` with `skipped_reason`: clears only an active compaction status/debug payload. It does not render a compacted-history panel, persist replay rows, or clear unrelated active thinking/tool state.
 - SDK `compaction_failed` from backend `context-compaction-failed`: replaces compaction thinking with terminal failure text (backend error string when available, otherwise `Conversation compaction failed.`) and marks source as `context-compaction-failed`
-- SDK `currentTurn.toolEvents` from the conversation runtime projection:
+- SDK presentation tool entries from the conversation runtime projection:
   response overlay renders live tool-call/tool-output/tool-progress entries from
-  the projection, while the projection listener records `tool-call`,
+  the presentation, while the projection listener records `tool-call`,
   `tool-output`, and `web-search-progress` phase tracking and clears transient
   send/thinking state for active tool rows. The dashboard transcript renders SDK
   display rows, including retained OpenAI-native `tool_progress` search trace
@@ -331,21 +397,21 @@ SDK dispatch behavior:
     builders consume those fields plus explicit SDK `toolCallDetails`,
     `toolOutputDetails`, `toolArguments`, and `toolCalls`, leaving raw payloads
     out of live display recovery.
-  - response overlay fallback rows built from `currentTurnProjection.toolEvents`
-    follow the same rule: `toolName`, `requestId`, `correlationId`, bundle
-    calls, metadata, and output text come from explicit SDK tool-event fields
-    and projected detail objects instead of raw `payload` or
-    `structuredPayload` fallbacks.
+  - legacy no-presentation response overlay fallback rows built from
+    `currentTurnProjection.toolEvents` follow the same rule: `toolName`,
+    `requestId`, `correlationId`, bundle calls, metadata, and output text come
+    from explicit SDK tool-event fields and projected detail objects instead of
+    raw `payload` or `structuredPayload` fallbacks.
   - SDK rehydrate groups progress-only OpenAI native search rows into one
     synthetic SDK-normalized `web_search` tool-call/tool-output pair for later
     model history.
   - backend-wire `tool-call`, `tool-output`, `tool-bundle`, and `web-search-progress` events are not live-row or active-phase fallbacks in renderer chat code.
-- SDK `tool_call` from backend `tool-call`: persists a transcript tool-call row only. Live display comes from `currentTurn.toolEvents`.
-  - the renderer consumes SDK `tool_call` payloads directly for transcript persistence, using `structuredPayload` for backend detail fields such as metadata and parameters. It does not fall back to backend-wire `tool-call` payloads.
-- SDK `tool_output` from backend `tool-output`: persists a transcript tool-output row only. Live display comes from `currentTurn.toolEvents`.
-  - the renderer consumes SDK `tool_output` payloads directly for transcript persistence, using `structuredPayload` for backend detail fields such as output text, metadata, request ids, and screenshot refs. It does not fall back to backend-wire `tool-output` payloads.
-- SDK `tool_bundle_call` from backend `tool-bundle`: persists a transcript `tool-bundle` trace row so later transcript loads can reconstruct the bundle call card without reclassifying it as a normal executable tool-call. Live display comes from `currentTurn.toolEvents`.
-  - the renderer consumes SDK `tool_bundle_call` payloads directly for transcript persistence, using normalized bundle identity fields plus `structuredPayload` for backend detail fields such as `bundle_id` and per-tool metadata. It does not fall back to backend-wire `tool-bundle` payloads.
+- SDK `tool_call` from backend `tool-call`: persists a transcript tool-call row only. Live display comes from SDK presentation entries or SDK display rows.
+  - renderer-visible rows use explicit SDK projection fields for metadata and parameters. They do not read `structuredPayload` or fall back to backend-wire `tool-call` payloads.
+- SDK `tool_output` from backend `tool-output`: persists a transcript tool-output row only. Live display comes from SDK presentation entries or SDK display rows.
+  - renderer-visible rows use explicit SDK projection fields for output text, metadata, request ids, and typed attachments. They do not read `structuredPayload` or fall back to backend-wire `tool-output` payloads.
+- SDK `tool_bundle_call` from backend `tool-bundle`: persists a transcript `tool-bundle` trace row so later transcript loads can reconstruct the bundle call card without reclassifying it as a normal executable tool-call. Live display comes from SDK presentation entries or SDK display rows.
+  - renderer-visible rows use explicit SDK projection fields for bundle identity and per-tool metadata. They do not read `structuredPayload` or fall back to backend-wire `tool-bundle` payloads.
 - SDK `system_prompt` from backend `system-prompt`: annotate last user message with system prompt + tool schema snapshot
 - SDK `user_message_metadata` from backend `user-message-full`: annotate user message with full payload metadata
 - SDK `assistant_message` from backend `assistant-message-full`: annotate latest assistant `llm-text` message
@@ -380,11 +446,11 @@ Handler composition boundary:
   instead of reading `event.payload` directly.
 - SDK `user_message` handling for backend `local-user-message` is delegated to
   `useChatStreamLocalUserHandler`
-- SDK current-turn `reasoningText`, `assistantText`, and terminal `phase` active-turn side effects are delegated through `useConversationRuntimeProjectionStream` to `DesktopCurrentTurnProjectionEffectsRuntime`
+- SDK presentation-entry and terminal `phase` active-turn side effects are delegated through `useConversationRuntimeProjectionStream` to `DesktopConversationProjectionStreamRuntime`, which applies `DesktopSdkLiveTurnEffectsRuntime`.
 - SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`
   transparency projection is delegated to `useChatStreamMetadataHandlers`.
 - SDK `turn_error` transcript/error materialization plus SDK `usage_updated` terminal behavior is delegated to `useChatStreamTerminalHandlers`
-- SDK current-turn `toolEvents` active-turn display and phase tracking is delegated through `useConversationRuntimeProjectionStream` to `DesktopCurrentTurnProjectionEffectsRuntime`.
+- SDK presentation tool-entry active-turn display and phase tracking is delegated through `useConversationRuntimeProjectionStream` to `DesktopConversationProjectionStreamRuntime`, which applies `DesktopSdkLiveTurnEffectsRuntime`.
 - SDK `tool_call`/`tool_output`/`tool_bundle_call` transcript persistence is delegated to `useChatStreamToolHandlers`; local tool execution remains owned by SDK/main local-runtime execution and the local-runtime Python implementation.
 - SDK `compaction_started`/`compaction_applied`/`compaction_skipped`/`compaction_failed`
   display and replay persistence is delegated to `useChatStreamCompactionHandlers`.
@@ -443,17 +509,17 @@ Streaming-complete transcript write nuance:
 ## SDK-Owned Tool Execution
 
 The renderer does not execute backend tool events. The SDK conversation runtime
-projects live tool-call/tool-output/tool-progress state into
-`currentTurn.toolEvents`; response overlay consumes that current-turn state, and
-the dashboard consumes SDK display rows. OpenAI-native web-search progress is
-retained as dashboard display transparency, while SDK rehydrate normalizes
-progress-only native search into an SDK-normalized paired `web_search` history
-entry. The Agent SDK runtime routes executable local tools through Electron main
-and the SDK local runtime.
+projects live tool-call/tool-output/tool-progress state into presentation
+entries; response overlay consumes those entries, and the dashboard consumes
+SDK display rows. OpenAI-native web-search progress is retained as dashboard
+display transparency, while SDK rehydrate normalizes progress-only native
+search into an SDK-normalized paired `web_search` history entry. The Agent SDK
+runtime routes executable local tools through Electron main and the SDK local
+runtime.
 
 Renderer display contract:
 
-- render active `tool-call`, `tool-output`, and `tool-progress` rows from the SDK `currentTurn.toolEvents` projection
+- render active `tool-call`, `tool-output`, and `tool-progress` rows from SDK presentation entries
 - preserve backend identifiers in structured payloads for replay and debugging
 - write durable visible transcript state through SDK conversation events and the
   desktop conversation store path

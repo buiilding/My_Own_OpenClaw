@@ -3,8 +3,17 @@
  */
 
 import { act } from '@testing-library/react';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
+  selectChatInterfaceState,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  setConversationViewInChatStore,
+  setNoViewSdkLiveTurnInChatStore,
+  setMessagesInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
+import {
+  getActiveWorkspaceStateForTest,
   registerBackendAndProjectionListeners,
   registerBackendListener,
   renderBackendListenerWithSpy,
@@ -53,7 +62,7 @@ describe('useChatStream live SDK event ownership', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.getState().setMessages([
+      setMessagesInChatStore([
         {
           id: 'user-1',
           text: 'hi',
@@ -69,7 +78,7 @@ describe('useChatStream live SDK event ownership', () => {
           turnRef: 'turn-1',
         },
       ], 'conv-1');
-      useChatStore.getState().setCurrentTurnProjection({
+      setNoViewSdkLiveTurnInChatStore({
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
         phase: 'complete',
@@ -95,72 +104,102 @@ describe('useChatStream live SDK event ownership', () => {
     );
   });
 
-  test('SDK display rows preserve screenshot tool rows when the next turn replaces currentTurn', () => {
+  test('ConversationView display rows preserve screenshot tool rows when the next turn replaces currentTurn', () => {
     setMockActiveConversationRef('conv-1');
-    const { emitDisplayRows, emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
+    useChatStore.getState().setActiveConversationRef('conv-1');
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
-      emitDisplayRows([
-        {
-          id: 'user-1',
-          conversationRef: 'conv-1',
-          turnRef: 'turn-1',
-          index: 0,
-          role: 'user',
-          type: 'user_message',
-          content: 'take a screenshot',
-        },
-        {
-          id: 'tool-call-row-1',
-          conversationRef: 'conv-1',
-          turnRef: 'turn-1',
-          index: 1,
-          role: 'assistant',
-          type: 'tool_call',
-          content: {
-            id: 'call-screenshot-1',
-            name: 'screenshot',
-            arguments: {
-              explanation: 'Capture the screen.',
-            },
+      setConversationViewInChatStore({
+        conversationRef: 'conv-1',
+        revisionId: 'revision-1',
+        displayRows: [
+          {
+            id: 'user-1',
+            conversationRef: 'conv-1',
+            turnRef: 'turn-1',
+            index: 0,
+            role: 'user',
+            type: 'user_message',
+            content: 'take a screenshot',
           },
-          metadata: {
-            toolName: 'screenshot',
-            requestId: 'request-screenshot-1',
-            raw: {
-              args: {
+          {
+            id: 'tool-call-row-1',
+            conversationRef: 'conv-1',
+            turnRef: 'turn-1',
+            index: 1,
+            role: 'assistant',
+            type: 'tool_call',
+            content: {
+              id: 'call-screenshot-1',
+              name: 'screenshot',
+              arguments: {
                 explanation: 'Capture the screen.',
               },
             },
-          },
-        },
-        {
-          id: 'tool-output-row-1',
-          conversationRef: 'conv-1',
-          turnRef: 'turn-1',
-          index: 2,
-          role: 'tool',
-          type: 'tool_output',
-          content: 'Screenshot captured successfully.',
-          metadata: {
-            toolName: 'screenshot',
-            requestId: 'request-screenshot-1',
-            raw: {
-              output: 'Screenshot captured successfully.',
-              success: true,
+            metadata: {
+              toolName: 'screenshot',
+              requestId: 'request-screenshot-1',
+              raw: {
+                args: {
+                  explanation: 'Capture the screen.',
+                },
+              },
             },
           },
+          {
+            id: 'tool-output-row-1',
+            conversationRef: 'conv-1',
+            turnRef: 'turn-1',
+            index: 2,
+            role: 'tool',
+            type: 'tool_output',
+            content: 'Screenshot captured successfully.',
+            metadata: {
+              toolName: 'screenshot',
+              requestId: 'request-screenshot-1',
+              raw: {
+                output: 'Screenshot captured successfully.',
+                success: true,
+              },
+            },
+          },
+          {
+            id: 'conv-1:turn-1:assistant',
+            conversationRef: 'conv-1',
+            turnRef: 'turn-1',
+            index: 3,
+            role: 'assistant',
+            type: 'assistant_message',
+            content: 'Done.',
+          },
+        ],
+        liveTurn: {
+          turnRef: null,
+          phase: 'idle',
+          entries: [],
+          isBusy: false,
+          isTerminal: false,
+          canStop: false,
+          lastError: null,
         },
-        {
-          id: 'conv-1:turn-1:assistant',
-          conversationRef: 'conv-1',
-          turnRef: 'turn-1',
-          index: 3,
-          role: 'assistant',
-          type: 'assistant_message',
-          content: 'Done.',
+        surfaces: {
+          pill: { mode: 'idle' },
+          dashboard: { mode: 'idle' },
+          responseOverlay: {
+            mode: 'hidden',
+            visible: false,
+            guardRef: null,
+            ownerConversationRef: 'conv-1',
+            turnRef: null,
+          },
         },
-      ]);
+        actions: {
+          canEdit: true,
+          canRetry: true,
+          canFork: true,
+        },
+      }, 'conv-1');
       emitConversationRuntimeUpdated({
         conversationRef: 'conv-1',
         currentTurn: {
@@ -175,7 +214,8 @@ describe('useChatStream live SDK event ownership', () => {
       });
     });
 
-    expect(useChatStore.getState().getWorkspaceState('conv-1').messages).toEqual([
+    const renderedMessages = selectChatInterfaceState(useChatStore.getState()).renderedMessages;
+    expect(renderedMessages).toEqual([
       expect.objectContaining({
         id: 'user-1',
         sender: 'user',
@@ -202,7 +242,7 @@ describe('useChatStream live SDK event ownership', () => {
       }),
     ]);
 
-    const messageIds = useChatStore.getState().getWorkspaceState('conv-1').messages.map((message) => message.id);
+    const messageIds = renderedMessages.map((message) => message.id);
     expect(messageIds).toEqual([
       'user-1',
       'tool-call-row-1',
@@ -216,7 +256,7 @@ describe('useChatStream live SDK event ownership', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.getState().setMessages([
+      setMessagesInChatStore([
         {
           id: 'user-1',
           text: 'hi',
@@ -235,7 +275,7 @@ describe('useChatStream live SDK event ownership', () => {
           },
         },
       ], 'conv-1');
-      useChatStore.getState().setCurrentTurnProjection({
+      setNoViewSdkLiveTurnInChatStore({
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
         phase: 'complete',
@@ -269,7 +309,7 @@ describe('useChatStream live SDK event ownership', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.getState().setMessages([
+      setMessagesInChatStore([
         {
           id: 'user-1',
           text: 'new question',
@@ -327,7 +367,7 @@ describe('useChatStream live SDK event ownership', () => {
     });
 
     expect(useChatStore.getState().activeConversationRef).toBe('conv-overlay');
-    expect(useChatStore.getState().messages.at(-1)).not.toEqual(
+    expect(getActiveWorkspaceStateForTest().messages.at(-1)).not.toEqual(
       expect.objectContaining({
         text: 'overlay prompt',
         sourceEventType: 'local-user-message',
@@ -365,7 +405,7 @@ describe('useChatStream live SDK event ownership', () => {
   test('routes non-active conversation events into their own workspace', () => {
     setMockActiveConversationRef('conv-active');
     const { emitBackendEvent, emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
-    useChatStore.getState().setMessages([
+    setMessagesInChatStore([
       {
         id: 'active-assistant-1',
         text: 'active',

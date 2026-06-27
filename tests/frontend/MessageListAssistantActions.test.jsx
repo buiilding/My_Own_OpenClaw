@@ -37,7 +37,7 @@ describe('MessageList assistant actions', () => {
     jest.useRealTimers();
   });
 
-  test('reveals copy/like/dislike/try-again actions 2 seconds after an assistant llm message completes', () => {
+  test('reveals local copy/feedback actions 2 seconds after an assistant llm message completes', () => {
     jest.useFakeTimers();
 
     const { container } = render(
@@ -67,7 +67,7 @@ describe('MessageList assistant actions', () => {
     expect(screen.getByRole('button', { name: 'Copy assistant message' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Like response' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Dislike response' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
     expect(screen.getByRole('group', { name: 'Assistant message actions' })).toHaveClass('assistant-message-actions-enter');
     expect(screen.queryByTestId('assistant-message-actions-placeholder')).not.toBeInTheDocument();
   });
@@ -190,7 +190,14 @@ describe('MessageList assistant actions', () => {
     const { rerender } = render(
       <MessageList
         messages={[
-          { id: 'assistant-1', text: 'final answer', sender: 'assistant', type: 'llm-text', isComplete: true },
+          {
+            id: 'assistant-1',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            actions: { canRetry: true },
+          },
         ]}
         thinkingStatus={null}
         enableAssistantActions
@@ -206,7 +213,14 @@ describe('MessageList assistant actions', () => {
     rerender(
       <MessageList
         messages={[
-          { id: 'assistant-1', text: 'final answer', sender: 'assistant', type: 'llm-text', isComplete: true },
+          {
+            id: 'assistant-1',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            actions: { canRetry: true },
+          },
         ]}
         thinkingStatus={null}
         enableAssistantActions
@@ -232,7 +246,14 @@ describe('MessageList assistant actions', () => {
     render(
       <MessageList
         messages={[
-          { id: 'assistant-1', text: 'final answer', sender: 'assistant', type: 'llm-text', isComplete: true },
+          {
+            id: 'assistant-1',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            actions: { canRetry: true },
+          },
         ]}
         thinkingStatus={null}
         enableAssistantActions
@@ -248,6 +269,95 @@ describe('MessageList assistant actions', () => {
     expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-1');
   });
 
+  test('uses SDK retry target id and hides only retry when row disallows it', () => {
+    jest.useFakeTimers();
+    const onAssistantTryAgain = jest.fn();
+    const { rerender } = render(
+      <MessageList
+        messages={[
+          {
+            id: 'assistant-visible',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            actions: {
+              canRetry: true,
+              retryTargetRowId: 'assistant-original',
+            },
+          },
+        ]}
+        thinkingStatus={null}
+        enableAssistantActions
+        onAssistantTryAgain={onAssistantTryAgain}
+      />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-original');
+
+    rerender(
+      <MessageList
+        messages={[
+          {
+            id: 'assistant-visible',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            actions: {
+              canRetry: false,
+            },
+          },
+        ]}
+        thinkingStatus={null}
+        enableAssistantActions
+        onAssistantTryAgain={onAssistantTryAgain}
+      />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(screen.getByRole('button', { name: 'Copy assistant message' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Like response' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
+  });
+
+  test('requires explicit SDK retry availability for SDK display rows', () => {
+    jest.useFakeTimers();
+    render(
+      <MessageList
+        messages={[
+          {
+            id: 'assistant-sdk',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            sourceChannel: 'sdk:display-rows',
+            isComplete: true,
+          },
+        ]}
+        thinkingStatus={null}
+        enableAssistantActions
+        onAssistantTryAgain={jest.fn()}
+      />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(screen.getByRole('button', { name: 'Copy assistant message' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Like response' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
+  });
+
   test('submits user message edits and keeps the editor busy until replay dispatch resolves', async () => {
     let resolveEdit;
     const onUserEdit = jest.fn(() => new Promise((resolve) => {
@@ -257,7 +367,7 @@ describe('MessageList assistant actions', () => {
     render(
       <MessageList
         messages={[
-          { id: 'user-1', text: 'old text', sender: 'user', type: 'user' },
+          { id: 'user-1', text: 'old text', sender: 'user', type: 'user', actions: { canEdit: true } },
         ]}
         thinkingStatus={null}
         enableUserActions
@@ -286,13 +396,113 @@ describe('MessageList assistant actions', () => {
     });
   });
 
+  test('uses SDK edit target id and hides only edit when row disallows it', async () => {
+    const onUserEdit = jest.fn();
+    const { rerender } = render(
+      <MessageList
+        messages={[
+          {
+            id: 'user-visible',
+            text: 'old text',
+            sender: 'user',
+            type: 'user',
+            actions: {
+              canEdit: true,
+              editTargetRowId: 'user-original',
+            },
+          },
+        ]}
+        thinkingStatus={null}
+        enableUserActions
+        onUserEdit={onUserEdit}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit and resend' }));
+    const editor = screen.getByRole('group', { name: 'Edit user message' });
+    fireEvent.change(within(editor).getByRole('textbox'), {
+      target: { value: 'new text' },
+    });
+    fireEvent.click(within(editor).getByRole('button', { name: 'Send' }));
+
+    expect(onUserEdit).toHaveBeenCalledWith('user-original', 'new text');
+
+    await waitFor(() => {
+      expect(screen.queryByRole('group', { name: 'Edit user message' })).not.toBeInTheDocument();
+    });
+
+    rerender(
+      <MessageList
+        messages={[
+          {
+            id: 'user-visible',
+            text: 'old text',
+            sender: 'user',
+            type: 'user',
+            actions: {
+              canEdit: false,
+            },
+          },
+        ]}
+        thinkingStatus={null}
+        enableUserActions
+        onUserEdit={onUserEdit}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Copy user message' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit and resend' })).not.toBeInTheDocument();
+  });
+
+  test('requires explicit row edit availability before showing edit controls', () => {
+    const { rerender } = render(
+      <MessageList
+        messages={[
+          {
+            id: 'user-local',
+            text: 'old text',
+            sender: 'user',
+            type: 'user',
+            sourceChannel: 'renderer-local',
+          },
+        ]}
+        thinkingStatus={null}
+        enableUserActions
+        onUserEdit={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Copy user message' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit and resend' })).not.toBeInTheDocument();
+
+    rerender(
+      <MessageList
+        messages={[
+          {
+            id: 'user-sdk',
+            text: 'old text',
+            sender: 'user',
+            type: 'user',
+            sourceChannel: 'sdk:display-rows',
+          },
+        ]}
+        thinkingStatus={null}
+        enableUserActions
+        onUserEdit={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Copy user message' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit and resend' })).not.toBeInTheDocument();
+  });
+
   test('keeps user message editor open when replay dispatch reports failure', async () => {
     const onUserEdit = jest.fn(async () => false);
 
     render(
       <MessageList
         messages={[
-          { id: 'user-1', text: 'old text', sender: 'user', type: 'user' },
+          { id: 'user-1', text: 'old text', sender: 'user', type: 'user', actions: { canEdit: true } },
         ]}
         thinkingStatus={null}
         enableUserActions
@@ -368,7 +578,7 @@ describe('MessageList assistant actions', () => {
     render(
       <MessageList
         messages={[
-          { id: 'user-1', text: 'old text', sender: 'user', type: 'user' },
+          { id: 'user-1', text: 'old text', sender: 'user', type: 'user', actions: { canEdit: true } },
         ]}
         thinkingStatus={null}
         enableUserActions
@@ -395,7 +605,7 @@ describe('MessageList assistant actions', () => {
     render(
       <MessageList
         messages={[
-          { id: 'user-1', text: 'old text', sender: 'user', type: 'user' },
+          { id: 'user-1', text: 'old text', sender: 'user', type: 'user', actions: { canEdit: true } },
         ]}
         thinkingStatus={null}
         enableUserActions

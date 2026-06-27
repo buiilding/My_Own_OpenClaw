@@ -30,12 +30,18 @@ type ShouldIgnoreForStaleTurnDeps = {
   getWorkspaceState: (conversationRef?: string | null) => StreamGuardWorkspace;
 };
 
-type TurnRefEvent = {
-  turn_ref?: string | null;
+type ResolveTerminalCompletionDeps = {
+  getWorkspaceState: (conversationRef?: string | null) => StreamCompletionWorkspace;
 };
 
-type ConversationTurnRefEvent = {
-  turnRef?: string | null;
+type ResolveThinkingSourceDeps = {
+  getWorkspaceState: (conversationRef?: string | null) => {
+    thinkingSourceEventType?: string | null;
+  } | null | undefined;
+};
+
+type TurnRefEvent = {
+  turn_ref?: string | null;
 };
 
 type ConversationStreamEventIdentityEvent = {
@@ -61,10 +67,46 @@ function resolveConversationStreamEventTurnRef(
   return optionalString(event?.turnRef);
 }
 
-function resolveConversationStreamEventTurnRefForUpdate(
+function resolveConversationStreamEventIdentity(
   event: ConversationStreamEventIdentityEvent | null | undefined,
-): string | undefined {
-  return resolveConversationStreamEventTurnRef(event) ?? undefined;
+  fallbackConversationRef: string | null | undefined = null,
+): {
+  conversationRef: string | null;
+  turnRef: string | null;
+  turnRefForUpdate: string | undefined;
+} {
+  const turnRef = resolveConversationStreamEventTurnRef(event);
+  return {
+    conversationRef: optionalString(fallbackConversationRef)
+      ?? resolveConversationStreamEventConversationRef(event),
+    turnRef,
+    turnRefForUpdate: turnRef ?? undefined,
+  };
+}
+
+function resolveWorkspaceThinkingSourceEventType(
+  conversationRef: string | null | undefined,
+  deps: ResolveThinkingSourceDeps,
+): string | null {
+  const sourceEventType = deps.getWorkspaceState(conversationRef)?.thinkingSourceEventType;
+  return optionalString(sourceEventType);
+}
+
+function resolveWorkspaceViewLiveTurnRef(workspace: StreamGuardWorkspace | null | undefined): string | null {
+  return normalizeTurnRef((workspace as {
+      conversationView?: {
+        liveTurn?: {
+          turnRef?: string | null;
+        } | null;
+      } | null;
+    } | null | undefined)?.conversationView?.liveTurn?.turnRef);
+}
+
+function resolveWorkspaceActiveTurnRef(workspace: StreamGuardWorkspace | null | undefined): string | null {
+  return (
+    resolveWorkspaceViewLiveTurnRef(workspace)
+    || normalizeTurnRef(workspace?.streamTracking?.activeTurnRef)
+  );
 }
 
 const SUPPORTED_CONVERSATION_STREAM_EVENT_TYPES = new Set([
@@ -202,8 +244,7 @@ function shouldIgnoreForStaleTurn(
   if (!workspace) {
     return false;
   }
-  const activeTurnRef = workspace.streamTracking.activeTurnRef;
-  const normalizedActiveTurnRef = normalizeTurnRef(activeTurnRef);
+  const normalizedActiveTurnRef = resolveWorkspaceActiveTurnRef(workspace);
   // During awaiting-first-chunk, fail-open on turn-ref mismatch so the first real
   // runtime packets can re-anchor stream state if optimistic local turn wiring
   // never seeded this workspace with the current turn ref.
@@ -219,16 +260,18 @@ function shouldIgnoreForStaleTurn(
       normalizedActiveTurnRef,
     );
   }
-  return isStaleTurnForActiveStream(eventTurnRef, activeTurnRef);
+  return isStaleTurnForActiveStream(eventTurnRef, normalizedActiveTurnRef);
 }
 
-function shouldIgnoreConversationEventForStaleTurn(
-  event: ConversationTurnRefEvent,
+function shouldIgnoreConversationEventIdentityForStaleTurn(
+  eventIdentity: {
+    turnRef?: string | null;
+  } | null | undefined,
   conversationRef?: string | null,
   deps?: ShouldIgnoreForStaleTurnDeps,
 ): boolean {
   return shouldIgnoreForStaleTurn({
-    turn_ref: event.turnRef ?? undefined,
+    turn_ref: eventIdentity?.turnRef ?? undefined,
   }, conversationRef, deps);
 }
 
@@ -240,11 +283,42 @@ function shouldRecordTerminalCompletionTracking(
     return true;
   }
   const normalizedEventTurnRef = normalizeTurnRef(eventTurnRef);
+  const normalizedViewTurnRef = resolveWorkspaceViewLiveTurnRef(workspace);
+  if (normalizedViewTurnRef && normalizedEventTurnRef === normalizedViewTurnRef) {
+    return true;
+  }
   const normalizedPendingTurnRef = normalizeTurnRef(workspace.pendingTurn?.turnRef);
   return (
     normalizedEventTurnRef.length > 0
     && normalizedEventTurnRef === normalizedPendingTurnRef
   );
+}
+
+function resolveTurnCompletedStreamEventState(
+  event: ConversationTypeEvent & ConversationStreamEventIdentityEvent,
+  conversationRef: string | null,
+  deps: ResolveTerminalCompletionDeps,
+): {
+  conversationRef: string | null;
+  shouldRecordTerminalTracking: boolean;
+  turnRef: string | null;
+} | null {
+  if (!isTurnCompletedConversationStreamEvent(event)) {
+    return null;
+  }
+  const resolvedConversationRef = (
+    conversationRef ?? resolveConversationStreamEventConversationRef(event)
+  );
+  const eventTurnRef = resolveConversationStreamEventTurnRef(event);
+  const workspace = deps.getWorkspaceState(resolvedConversationRef);
+  return {
+    conversationRef: resolvedConversationRef,
+    shouldRecordTerminalTracking: shouldRecordTerminalCompletionTracking(
+      workspace,
+      eventTurnRef,
+    ),
+    turnRef: eventTurnRef,
+  };
 }
 
 type UpdateStreamTracking = (
@@ -269,9 +343,8 @@ function recordTrackingEvent(
 export type DesktopChatStreamRecordTrackingEvent = typeof recordTrackingEvent;
 
 export const DesktopChatStreamEventRuntime = Object.freeze({
-  resolveConversationStreamEventConversationRef,
-  resolveConversationStreamEventTurnRef,
-  resolveConversationStreamEventTurnRefForUpdate,
+  resolveConversationStreamEventIdentity,
+  resolveWorkspaceThinkingSourceEventType,
   isSupportedConversationStreamEvent,
   isToolDisplayOnlyConversationStreamEvent,
   isCompactionStartedConversationStreamEvent,
@@ -286,7 +359,8 @@ export const DesktopChatStreamEventRuntime = Object.freeze({
   isTurnCompletedConversationStreamEvent,
   isTurnErrorConversationStreamEvent,
   isUsageUpdatedConversationStreamEvent,
-  shouldIgnoreConversationEventForStaleTurn,
+  shouldIgnoreConversationEventIdentityForStaleTurn,
+  resolveTurnCompletedStreamEventState,
   shouldRecordTerminalCompletionTracking,
   recordTrackingEvent,
 });

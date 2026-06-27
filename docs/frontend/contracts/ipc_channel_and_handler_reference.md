@@ -190,7 +190,8 @@ Local tool runtime nuances:
 
 ### Backend relay/events
 
-- `windie:rows`: SDK display rows for renderer chat UI
+- `windie:rows`: SDK display-row compatibility/diagnostic snapshots; normal
+  renderer chat UI reads SDK `ConversationView`
 - `windie:status`: Agent SDK runtime status snapshots
 - `windie:conversation-event`: SDK-normalized conversation events for transcript/session side effects
 - `windie:memory-store-changed`: memory-store invalidation events

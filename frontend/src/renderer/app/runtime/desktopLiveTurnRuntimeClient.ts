@@ -19,33 +19,9 @@ const {
   invokeAgentSdkCommand,
 } = AgentSdkCommandInvokeClient;
 
-type CaptureMeta = {
-  source_w?: number;
-  source_h?: number;
-  crop_x?: number;
-  crop_y?: number;
-  crop_w?: number;
-  crop_h?: number;
-  desktop_virtual_bounds?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  } | null;
-  monitor_id?: string | null;
-  timestamp?: number;
-  capture_engine?: string | null;
-};
-
 type SendConversationQueryInput = {
   text: string;
   conversationRef: string;
-  screenshotRef?: string | null;
-  screenshotUrl?: string | null;
-  screenshotRefs?: string[] | null;
-  captureMeta?: CaptureMeta | null;
-  attachmentContext?: string | null;
-  attachmentFilenames?: string[] | null;
   workspacePath?: string | null;
   resources?: TurnInputResource[] | null;
   metadata?: Record<string, unknown> | null;
@@ -58,16 +34,6 @@ function optionalString(value: unknown): string | null {
     return null;
   }
   const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function optionalStringArray(value: unknown): string[] | null {
-  if (!Array.isArray(value)) {
-    return null;
-  }
-  const normalized = value
-    .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
-    .map((entry) => entry.trim());
   return normalized.length > 0 ? normalized : null;
 }
 
@@ -95,12 +61,6 @@ export const DesktopLiveTurnRuntimeClient = {
       conversation_ref: optionalString(input.conversationRef) ?? '',
       query_message_id: turnRef ?? null,
       ...(input.model ? { model: input.model } : {}),
-      screenshot_ref: optionalString(input.screenshotRef) ?? null,
-      screenshot_url: optionalString(input.screenshotUrl) ?? null,
-      screenshot_refs: optionalStringArray(input.screenshotRefs) ?? null,
-      capture_meta: input.captureMeta ?? null,
-      attachment_context: optionalString(input.attachmentContext) ?? null,
-      attachment_filenames: optionalStringArray(input.attachmentFilenames) ?? null,
       workspace_path: optionalString(input.workspacePath) ?? null,
       resources: Array.isArray(input.resources) ? input.resources : [],
       metadata: input.metadata && typeof input.metadata === 'object' && !Array.isArray(input.metadata)

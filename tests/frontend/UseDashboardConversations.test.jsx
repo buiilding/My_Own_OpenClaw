@@ -10,7 +10,7 @@ import { DesktopConversationRuntimeEventClient } from '../../frontend/src/render
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient', () => ({
   DesktopConversationLibraryClient: {
-    loadDisplayRows: jest.fn(),
+    loadConversationView: jest.fn(),
     listMetadata: jest.fn(),
     subscribeMetadataInvalidations: jest.fn(),
   },
@@ -73,6 +73,7 @@ function renderDashboardConversations(options = {}) {
     setChatThinkingStatus: jest.fn(),
     setChatTokenCounts: jest.fn(),
     setChatActiveConversationRef: jest.fn(),
+    setChatConversationView: jest.fn(),
     searchOpen: false,
     ...options,
   }));
@@ -90,6 +91,7 @@ function renderDashboardConversationsWithProps(initialProps = {}) {
     setChatThinkingStatus: jest.fn(),
     setChatTokenCounts: jest.fn(),
     setChatActiveConversationRef: jest.fn(),
+    setChatConversationView: jest.fn(),
     searchOpen: false,
   }), {
     initialProps: {
@@ -103,7 +105,10 @@ describe('useDashboardConversations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     DesktopLocalRuntimeStatusRuntimeClient.onReady.mockImplementation(() => jest.fn());
-    DesktopConversationLibraryClient.loadDisplayRows.mockResolvedValue([]);
+    DesktopConversationLibraryClient.loadConversationView.mockResolvedValue({
+      conversationRef: 'conv-empty',
+      displayRows: [],
+    });
     DesktopConversationLibraryClient.subscribeMetadataInvalidations.mockImplementation(() => jest.fn());
     DesktopConversationRuntimeEventClient.onConversationEvent.mockImplementation(() => jest.fn());
   });
@@ -393,20 +398,21 @@ describe('useDashboardConversations', () => {
   test('opens a conversation by selecting and clearing it before display rows resolve', async () => {
     const callOrder = [];
     let resolveRows;
-    DesktopConversationLibraryClient.loadDisplayRows.mockImplementationOnce(() => new Promise((resolve) => {
+    DesktopConversationLibraryClient.loadConversationView.mockImplementationOnce(() => new Promise((resolve) => {
       resolveRows = resolve;
     }));
     const clearChatMessages = jest.fn((conversationRef) => {
       callOrder.push(`clear:${conversationRef}`);
     });
-    const setChatMessages = jest.fn((messages, conversationRef) => {
-      callOrder.push(`messages:${conversationRef}:${messages.length}`);
-    });
+    const setChatMessages = jest.fn();
     const setChatIsSending = jest.fn();
     const setChatThinkingStatus = jest.fn();
     const setChatTokenCounts = jest.fn();
     const setChatActiveConversationRef = jest.fn((conversationRef) => {
       callOrder.push(`select:${conversationRef}`);
+    });
+    const setChatConversationView = jest.fn((view, conversationRef) => {
+      callOrder.push(`view:${conversationRef}:${view.displayRows.length}`);
     });
 
     const { result } = renderDashboardConversations({
@@ -416,6 +422,7 @@ describe('useDashboardConversations', () => {
       setChatThinkingStatus,
       setChatTokenCounts,
       setChatActiveConversationRef,
+      setChatConversationView,
     });
 
     await act(async () => {
@@ -437,43 +444,54 @@ describe('useDashboardConversations', () => {
     expect(setChatTokenCounts).toHaveBeenCalledWith(null, 'conv-open');
 
     await act(async () => {
-      resolveRows([
-        {
-          id: 'row-1',
-          conversationRef: 'conv-open',
-          role: 'user',
-          type: 'user_message',
-          content: 'yo',
-          metadata: { timestamp: '2026-06-08T00:00:00.000Z' },
-        },
-      ]);
+      resolveRows({
+        conversationRef: 'conv-open',
+        displayRows: [
+          {
+            id: 'row-1',
+            conversationRef: 'conv-open',
+            role: 'user',
+            type: 'user_message',
+            content: 'yo',
+            metadata: { timestamp: '2026-06-08T00:00:00.000Z' },
+          },
+        ],
+      });
     });
 
     await waitFor(() => {
-      expect(setChatMessages).toHaveBeenCalledWith([
+      expect(setChatConversationView).toHaveBeenCalledWith(
         expect.objectContaining({
-          id: 'row-1',
-          sender: 'user',
-          text: 'yo',
+          conversationRef: 'conv-open',
+          displayRows: expect.arrayContaining([
+            expect.objectContaining({ id: 'row-1' }),
+          ]),
         }),
-      ], 'conv-open');
+        'conv-open',
+      );
     });
+    expect(setChatMessages).not.toHaveBeenCalled();
     expect(result.current.openingConversationRef).toBeNull();
   });
 
-  test('does not copy renderer attachment annotations while opening text-only SDK display rows', async () => {
-    DesktopConversationLibraryClient.loadDisplayRows.mockResolvedValueOnce([
-      {
-        id: 'turn-1-sdk-evt-000002-user_message',
-        conversationRef: 'conv-open',
-        turnRef: 'turn-1',
-        role: 'user',
-        type: 'user_message',
-        content: 'Please review the attached files.',
-        metadata: { timestamp: '2026-06-08T00:00:00.000Z' },
-      },
-    ]);
+  test('stores the conversation view without projecting dashboard resume messages', async () => {
+    DesktopConversationLibraryClient.loadConversationView.mockResolvedValueOnce({
+      conversationRef: 'conv-open',
+      displayRows: [
+        {
+          id: 'turn-1-sdk-evt-000002-user_message',
+          conversationRef: 'conv-open',
+          turnRef: 'turn-1',
+          role: 'user',
+          type: 'user_message',
+          content: 'Please review the attached files.',
+          metadata: { timestamp: '2026-06-08T00:00:00.000Z' },
+        },
+      ],
+    });
     const setChatMessages = jest.fn();
+    const setChatConversationView = jest.fn();
+    const clearChatMessages = jest.fn();
     const getChatWorkspaceState = jest.fn(() => ({
       messages: [
         {
@@ -496,8 +514,10 @@ describe('useDashboardConversations', () => {
     }));
 
     const { result } = renderDashboardConversations({
+      clearChatMessages,
       getChatWorkspaceState,
       setChatMessages,
+      setChatConversationView,
     });
 
     await act(async () => {
@@ -508,15 +528,19 @@ describe('useDashboardConversations', () => {
       });
     });
 
-    expect(setChatMessages).toHaveBeenCalledWith([
+    expect(setChatConversationView).toHaveBeenCalledWith(
       expect.objectContaining({
-        id: 'turn-1-sdk-evt-000002-user_message',
-        sender: 'user',
-        text: 'Please review the attached files.',
+        conversationRef: 'conv-open',
+        displayRows: [
+          expect.objectContaining({
+            id: 'turn-1-sdk-evt-000002-user_message',
+          }),
+        ],
       }),
-    ], 'conv-open');
-    expect(setChatMessages.mock.calls[0][0][0]).not.toHaveProperty('attachments');
-    expect(setChatMessages.mock.calls[0][0][0]).not.toHaveProperty('attachmentFilenames');
+      'conv-open',
+    );
+    expect(clearChatMessages).toHaveBeenCalledWith('conv-open');
+    expect(setChatMessages).not.toHaveBeenCalled();
   });
 
   test('treats selecting the active conversation as an idempotent no-op', async () => {
@@ -551,7 +575,7 @@ describe('useDashboardConversations', () => {
     });
 
     expect(getChatWorkspaceState).not.toHaveBeenCalled();
-    expect(DesktopConversationLibraryClient.loadDisplayRows).not.toHaveBeenCalled();
+    expect(DesktopConversationLibraryClient.loadConversationView).not.toHaveBeenCalled();
     expect(setChatActiveConversationRef).not.toHaveBeenCalled();
     expect(clearChatMessages).not.toHaveBeenCalled();
     expect(setChatMessages).not.toHaveBeenCalled();
@@ -560,17 +584,18 @@ describe('useDashboardConversations', () => {
     expect(setChatTokenCounts).not.toHaveBeenCalled();
   });
 
-  test('preserves cached conversation rows while refreshing a different selected conversation', async () => {
+  test('preserves cached conversation view while refreshing a different selected conversation', async () => {
     const callOrder = [];
     let resolveRows;
-    DesktopConversationLibraryClient.loadDisplayRows.mockImplementationOnce(() => new Promise((resolve) => {
+    DesktopConversationLibraryClient.loadConversationView.mockImplementationOnce(() => new Promise((resolve) => {
       resolveRows = resolve;
     }));
     const clearChatMessages = jest.fn((conversationRef) => {
       callOrder.push(`clear:${conversationRef}`);
     });
-    const setChatMessages = jest.fn((messages, conversationRef) => {
-      callOrder.push(`messages:${conversationRef}:${messages.length}`);
+    const setChatMessages = jest.fn();
+    const setChatConversationView = jest.fn((view, conversationRef) => {
+      callOrder.push(`view:${conversationRef}:${view.displayRows.length}`);
     });
     const setChatIsSending = jest.fn();
     const setChatThinkingStatus = jest.fn();
@@ -579,7 +604,17 @@ describe('useDashboardConversations', () => {
       callOrder.push(`select:${conversationRef}`);
     });
     const getChatWorkspaceState = jest.fn(() => ({
-      messages: [{ id: 'cached-row', sender: 'user', text: 'cached' }],
+      messages: [],
+      conversationView: {
+        conversationRef: 'conv-cached',
+        displayRows: [{
+          id: 'cached-row',
+          conversationRef: 'conv-cached',
+          role: 'user',
+          type: 'user_message',
+          content: 'cached',
+        }],
+      },
     }));
 
     const { result } = renderDashboardConversations({
@@ -591,6 +626,7 @@ describe('useDashboardConversations', () => {
       setChatThinkingStatus,
       setChatTokenCounts,
       setChatActiveConversationRef,
+      setChatConversationView,
     });
 
     await act(async () => {
@@ -609,26 +645,32 @@ describe('useDashboardConversations', () => {
     expect(setChatTokenCounts).not.toHaveBeenCalled();
 
     await act(async () => {
-      resolveRows([
-        {
-          id: 'row-refreshed',
-          conversationRef: 'conv-cached',
-          role: 'assistant',
-          type: 'assistant_message',
-          content: 'refreshed',
-          metadata: { timestamp: '2026-06-08T00:00:01.000Z' },
-        },
-      ]);
+      resolveRows({
+        conversationRef: 'conv-cached',
+        displayRows: [
+          {
+            id: 'row-refreshed',
+            conversationRef: 'conv-cached',
+            role: 'assistant',
+            type: 'assistant_message',
+            content: 'refreshed',
+            metadata: { timestamp: '2026-06-08T00:00:01.000Z' },
+          },
+        ],
+      });
     });
 
     await waitFor(() => {
-      expect(setChatMessages).toHaveBeenCalledWith([
+      expect(setChatConversationView).toHaveBeenCalledWith(
         expect.objectContaining({
-          id: 'row-refreshed',
-          sender: 'assistant',
-          text: 'refreshed',
+          conversationRef: 'conv-cached',
+          displayRows: expect.arrayContaining([
+            expect.objectContaining({ id: 'row-refreshed' }),
+          ]),
         }),
-      ], 'conv-cached');
+        'conv-cached',
+      );
     });
+    expect(setChatMessages).not.toHaveBeenCalled();
   });
 });

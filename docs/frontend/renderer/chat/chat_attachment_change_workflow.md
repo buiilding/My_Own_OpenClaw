@@ -40,13 +40,13 @@ flowchart LR
 | Readable file appears as a chip but model never sees content | SDK turn resource pipeline | `desktopChatSendPreparationRuntime.ts`, `DefaultTurnResourceResolvers.ts`, `ContextEnrichmentPipeline.ts` | local-runtime `read_file` behavior and SDK runtime tests |
 | Attachment-only send is blocked | Composer outgoing payload builder | `desktopMessageInputRuntime.js`, `MessageInput.jsx` | `DesktopMessageInputRuntime.test.js`, `MessageInput.test.jsx` |
 | Send failure clears text or attachment previews | Composer draft lifecycle | `useChatComposerDraft.js`, `MessageInput.jsx` | `ChatComposerDraft.test.jsx`, `MessageInput.test.jsx` |
-| SDK user row lacks filename chips | Sender payload normalization and SDK metadata | `desktopChatSendPayloadRuntime.ts`, `desktopChatSendPreparationRuntime.ts`, `ConversationRuntime.ts` | `DesktopChatSendPayloadRuntime.test.ts`, `ChatMessageSender.test.tsx`, `AgentSdkConversationRuntime.test.ts` |
+| SDK user row lacks filename chips | SDK turn resource resolution and metadata | `desktopChatSendPreparationRuntime.ts`, `DefaultTurnResourceResolvers.ts`, `ConversationRuntime.ts` | `ChatMessageSender.test.tsx`, `AgentSdkConversationRuntime.test.ts` |
 | Uploaded image has wrong content type or URL | SDK artifact resolver | `DefaultTurnResourceResolvers.ts`, `ArtifactImageUtils.ts` | `AgentSdkConversationRuntime.test.ts`, artifact tests |
 | Query sends only one of multiple images | SDK clipboard image resources | `desktopChatSendPreparationRuntime.ts`, `DefaultTurnResourceResolvers.ts` | `ChatMessageSender.test.tsx`, SDK runtime tests |
 | Electron query payload drops attachment resources | Main query IPC runtime and SDK enrichment | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | `IpcQueryRuntime.test.cjs`, `AgentSdkContextEnrichment.test.ts` |
 | Backend receives refs but model gets no image | Backend query input resolution | `backend/src/api/services/query_execution_support/query_execution_inputs.py` | `tests/backend/test_query_execution_inputs.py`, artifact route/store tests |
-| Replayed message loses images | SDK replay adapter, typed attachment projection, and artifact image resolver | `legacyVisualAttachmentReplayAdapter.ts`, `sdkDisplayChatMessageProjection.ts`, `desktopResolvedMessageScreenshotsRuntime.js`, transcript replay state | `AgentSdkConversationRuntime.test.ts`, `SdkDisplayChatMessageProjection.test.ts`, `MessageContent.test.jsx`, SDK rehydrate projection tests, transcript tests |
-| Artifact image fails once and never recovers | App-runtime-backed artifact screenshot cache | `desktopArtifactRuntimeClient.ts`, `desktopResolvedMessageScreenshotsRuntime.js` | `MessageContent.test.jsx` retry-after-failure coverage |
+| Replayed message loses images | SDK replay adapter, typed attachment projection, and artifact image resolver | `legacyVisualAttachmentReplayAdapter.ts`, `desktopSdkDisplayAttachmentProjection.ts`, `desktopSdkDisplayChatMessageProjectionRuntime.ts`, `desktopAttachmentImageRuntime.js`, transcript replay state | `AgentSdkConversationRuntime.test.ts`, `DesktopSdkDisplayAttachmentProjection.test.ts`, `SdkDisplayChatMessageProjection.test.ts`, `MessageContent.test.jsx`, SDK rehydrate projection tests, transcript tests |
+| Artifact image fails once and never recovers | App-runtime-backed attachment image cache | `desktopArtifactRuntimeClient.ts`, `desktopAttachmentImageRuntime.js` | `MessageContent.test.jsx` retry-after-failure coverage |
 | Copy image to clipboard fails | Electron image interaction IPC | `frontend/src/main/ipc/ipc_image_interaction_handlers.cjs`, `frontend/src/main/ipc/ipc_clipboard_image.cjs` | `IpcImageInteractionHandlers.test.cjs`, `IpcClipboardImageHandler.test.cjs` |
 
 Clipboard image IPC trust boundary:
@@ -93,7 +93,8 @@ Clipboard image IPC trust boundary:
    - SDK display metadata must preserve `screenshot_refs` as compatibility input
      and adapt it into ordered typed `attachments[]` before renderer projection.
    - `attachment_context`: hidden readable-file context.
-   - `attachment_filenames`: visible filename list for user row/query metadata.
+   - `attachment_filenames`: visible filename list derived during SDK resource
+     resolution for user row/query metadata.
 
 6. Update docs and tests at the producer and consumer.
    - Composer change: update MessageInput/utility tests.
@@ -114,7 +115,7 @@ Clipboard image IPC trust boundary:
 | Main-process query payload normalization | `cd frontend && npm run test -- IpcQueryRuntime` |
 | Backend screenshot/query input resolution | `./scripts/python-in-env backend pytest tests/backend/test_query_execution_inputs.py` |
 | Artifact route/store behavior | `./scripts/python-in-env backend pytest tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py` |
-| Replay/message image rendering | `<windie> test frontend -- AgentSdkConversationRuntime SdkDisplayChatMessageProjection MessageContent DesktopResolvedMessageScreenshotsRuntime` |
+| Replay/message image rendering | `<windie> test frontend -- AgentSdkConversationRuntime SdkDisplayChatMessageProjection MessageContent DesktopAttachmentImageRuntime` |
 | Clipboard copy IPC | `cd frontend && npm run test -- IpcClipboardImageHandler` |
 | Docs-only attachment workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 
@@ -141,7 +142,7 @@ Clipboard image IPC trust boundary:
 1. Confirm the original user row stored typed `attachments[]`, or old `screenshotRef`, `screenshotUrl`, or `screenshot_refs` metadata.
 2. Confirm transcript persistence retained those fields.
 3. Confirm `legacyVisualAttachmentReplayAdapter` adapts old refs into typed descriptors.
-4. Confirm `desktopResolvedMessageScreenshotsRuntime.js` can fetch the artifact-backed attachment source.
+4. Confirm `desktopAttachmentImageRuntime.js` can fetch the artifact-backed attachment source.
 5. Confirm backend artifact fetch route still serves the ref.
 
 ## Review Checklist
@@ -151,7 +152,10 @@ Clipboard image IPC trust boundary:
 - Readable files do not leak raw content into visible chat rows.
 - `screenshot_ref` and `screenshot_refs` stay compatible.
 - Artifact upload failure keeps an inline fallback where supported.
-- Query payload, optimistic row, transcript row, and replay row carry compatible attachment metadata.
+- Query payload, SDK display row, transcript row, and replay target row carry
+  compatible attachment metadata; renderer pending rows carry no attachment
+  metadata and do not own visual attachment descriptors or display attachment
+  ids.
 - Tests cover both the producer and downstream consumer for any changed field.
 
 ## Related Docs

@@ -2,14 +2,26 @@
  * Covers conversation replay database integration. behavior in the frontend test suite.
  */
 
-import { act, renderHook } from '@testing-library/react';
+import {
+  act,
+  renderHook,
+} from '@testing-library/react';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import {
+  mkdtempSync,
+  rmSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { useConversationReplayActions } from '../../frontend/src/renderer/features/chat/hooks/useConversationReplayActions';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  clearMessagesInChatStore,
+  setMessagesInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import {
   createConversationEvent,
   LocalRuntimeConversationStore,
@@ -443,25 +455,8 @@ const BASE_MESSAGES = [
 ];
 
 function renderReplayHook(messages: Array<Record<string, unknown>>) {
-  useChatStore.getState().setMessages(messages as never, 'conv-replay-db');
-  return renderHook(() => useConversationReplayActions({
-    messages,
-    setMessages: useChatStore.getState().setMessages,
-    setThinkingStatus: useChatStore.getState().setThinkingStatus,
-    setThinkingSourceEventType: useChatStore.getState().setThinkingSourceEventType,
-  }));
-}
-
-function expectReplayPreparationErrorMessage(): void {
-  expect(useChatStore.getState().getWorkspaceState('conv-replay-db').messages).toEqual([
-    ...BASE_MESSAGES,
-    expect.objectContaining({
-      sender: 'assistant',
-      type: 'error',
-      sourceEventType: 'renderer-replay',
-      text: expect.stringContaining('could not prepare the conversation replay'),
-    }),
-  ]);
+  setMessagesInChatStore(messages as never, 'conv-replay-db');
+  return renderHook(() => useConversationReplayActions());
 }
 
 function expectReplaySendErrorMessage(prefixMessages: Array<Record<string, unknown>> = []): void {
@@ -489,7 +484,7 @@ describe('conversation replay database integration', () => {
     mockBackendRehydrateFailure = null;
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     useChatStore.setState({ activeConversationRef: 'conv-replay-db' });
-    useChatStore.getState().clearMessages('conv-replay-db');
+    clearMessagesInChatStore('conv-replay-db');
     sentQueries.length = 0;
     backendRehydrates.length = 0;
     history = new SqliteConversationHistory();
@@ -640,9 +635,7 @@ describe('conversation replay database integration', () => {
       userId: 'user-replay-db',
       messageId: 'stored-user-2',
       text: 'edited second question',
-      payload: expect.objectContaining({
-        screenshot_ref: 'artifact-old',
-      }),
+      payload: {},
     }));
     expect(backendRehydrates).toEqual([]);
 
@@ -651,9 +644,9 @@ describe('conversation replay database integration', () => {
         conversation_ref: 'conv-replay-db',
         revision_id: expect.any(String),
         text: 'edited second question',
-        screenshot_ref: 'artifact-old',
       }),
     ]);
+    expect(sentQueries[0]).not.toHaveProperty('screenshot_ref');
 
     const storedRows = history.rows('conv-replay-db');
     const conversationRows = storedRows.filter(row => row.event_type !== 'trace_event');
@@ -767,7 +760,7 @@ describe('conversation replay database integration', () => {
       'stored-assistant-2',
     ]);
     expect(useChatStore.getState().getWorkspaceState('conv-replay-db').messages).toEqual([
-      ...BASE_MESSAGES,
+      ...messages,
       expect.objectContaining({
         sender: 'assistant',
         type: 'error',
@@ -811,7 +804,7 @@ describe('conversation replay database integration', () => {
       'stored-user-2',
       'stored-assistant-2',
     ]);
-    expectReplaySendErrorMessage(BASE_MESSAGES.slice(0, 2));
+    expectReplaySendErrorMessage(BASE_MESSAGES);
   });
 
   test('reports send failure when the SDK revision command display replacement fails', async () => {
@@ -837,7 +830,7 @@ describe('conversation replay database integration', () => {
       'stored-user-2',
       'stored-assistant-2',
     ]);
-    expectReplaySendErrorMessage(BASE_MESSAGES.slice(0, 2));
+    expectReplaySendErrorMessage(BASE_MESSAGES);
   });
 
   test('backend rehydrate failure is not part of SDK revision resend', async () => {

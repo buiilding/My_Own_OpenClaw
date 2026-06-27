@@ -120,10 +120,9 @@ Renderer display row consumers:
     `metadata.screenshot`, `metadata.screenshotRef`, and `metadata.screenshotUrl`.
   - `countMessageImages(...)` counts renderer `ChatMessage` images and should
     remain unchanged for optimistic/replay/tool-output messages.
-- `frontend/src/renderer/infrastructure/services/screenshotMessageState.js`
-  - Keep as the renderer `ChatMessage` image normalization helper. It should
-    not be responsible for recovering SDK display metadata aliases after this
-    migration.
+- `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
+  - Own artifact image content-type helpers and artifact URL ref inference. It
+    should not recover SDK display metadata aliases.
 - `packages/windie-sdk-js/src/projections/legacyVisualAttachmentReplayAdapter.ts`
   - Keep as the UI screenshot attachment resolver for renderer messages.
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`
@@ -296,8 +295,10 @@ Instead, convert `metadata.imageAttachments` to renderer `ChatMessage` fields:
   `screenshotRef`, `screenshotUrl`, `screenshot`, and `screenshotContentType`
   while renderer UI components still expect those fields.
 
-Keep `screenshotMessageState.js` as the renderer UI normalization helper for
-`ChatMessage`, but stop using it to recover SDK metadata aliases.
+This plan is superseded: the renderer `screenshotMessageState.js` helper was
+removed after SDK `attachments[]` became the display contract. Artifact URL
+inference now lives in `ArtifactImageUtils`, and legacy screenshot alias
+recovery stays in SDK display-row compatibility adapters.
 
 Implementation detail:
 

@@ -12,7 +12,7 @@ title: "Transcript Type Contract Reference"
 
 - `frontend/src/renderer/infrastructure/transcript/types.ts`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
-- `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
+- `frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts`
 
 ## `SessionInfo` Contract
 

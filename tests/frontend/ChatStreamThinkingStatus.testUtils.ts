@@ -9,7 +9,12 @@ import { useChatStream } from '../../frontend/src/renderer/features/chat/hooks/u
 import { useConversationRuntimeProjectionStream } from '../../frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  setMessagesInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { normalizeBackendEventToConversationEvent } from '../../packages/windie-sdk-js/src/transport/backendEventNormalizer';
 import {
   createAssistantSeedMessage,
@@ -57,9 +62,30 @@ export function resetChatStreamTestState() {
   mockBackendSequence = 1;
   setMockAppConfigContextValue(mockUseAppConfigContext, mockConfig);
 
-  resetChatStoreForTests(createAssistantSeedMessage());
+  const initialMessage = createAssistantSeedMessage();
+  resetChatStoreForTests(initialMessage);
   useChatStore.setState({
     activeConversationRef: DEFAULT_TEST_CONVERSATION_REF,
+  });
+  setMessagesInChatStore([initialMessage], DEFAULT_TEST_CONVERSATION_REF);
+}
+
+export function getActiveWorkspaceStateForTest() {
+  return useChatStore.getState().getWorkspaceState();
+}
+
+export function setActiveWorkspaceStateForTest(update: Record<string, unknown>) {
+  const store = useChatStore.getState();
+  const workspaceRef = store.activeConversationRef || '__default__';
+  const workspace = store.getWorkspaceState();
+  useChatStore.setState({
+    workspaces: {
+      ...store.workspaces,
+      [workspaceRef]: {
+        ...workspace,
+        ...update,
+      },
+    },
   });
 }
 
@@ -179,11 +205,6 @@ export function registerBackendAndProjectionListeners(enableTranscript = true) {
       const projectionHandler = handlers[DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN];
       expect(projectionHandler).toEqual(expect.any(Function));
       projectionHandler(payload);
-    },
-    emitDisplayRows: (payload: unknown) => {
-      const rowsHandler = handlers[DESKTOP_RUNTIME_ON_CHANNELS.ROWS];
-      expect(rowsHandler).toEqual(expect.any(Function));
-      rowsHandler(payload);
     },
   };
 }

@@ -71,29 +71,6 @@ function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
   };
 }
 
-function normalizeAttachmentFilenames(
-  clipboardImages: ClipboardImagePayload[],
-  readableFiles: ReadableFilePayload[],
-): string[] {
-  const candidateNames = [
-    ...clipboardImages.map((clipboardImage) => (
-      typeof clipboardImage.filename === 'string' ? clipboardImage.filename.trim() : ''
-    )),
-    ...readableFiles.map((readableFile) => (
-      typeof readableFile.filename === 'string' ? readableFile.filename.trim() : ''
-    )),
-  ];
-  const deduped = new Set<string>();
-  for (const candidateName of candidateNames) {
-    if (!candidateName) {
-      continue;
-    }
-    deduped.add(candidateName);
-  }
-  return Array.from(deduped);
-}
-
 export const DesktopChatSendPayloadRuntime = Object.freeze({
   normalizeOutgoingPayload,
-  normalizeAttachmentFilenames,
 });

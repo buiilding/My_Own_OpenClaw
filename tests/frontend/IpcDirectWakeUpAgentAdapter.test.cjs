@@ -124,7 +124,7 @@ function createDeps(overrides = {}) {
     resolveRuntimeConversationRef: jest.fn((input = {}) => (
       input?.conversation_ref || input?.conversationRef || input?.payload?.conversation_ref || null
     )),
-    setLatestCurrentTurnProjection: jest.fn(),
+    setLatestSdkLiveTurn: jest.fn(),
     setLatestConversationView: jest.fn(),
     getLatestPendingTurn: jest.fn(() => null),
     pendingTurnMatchesCurrentTurn: jest.fn(() => false),
@@ -251,7 +251,7 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       currentTurn: expect.objectContaining({ turnRef: 'turn-1' }),
       view: expect.objectContaining({ conversationRef: 'conv-agent-1' }),
     }));
-    expect(deps.setLatestCurrentTurnProjection).toHaveBeenCalledWith(expect.objectContaining({
+    expect(deps.setLatestSdkLiveTurn).toHaveBeenCalledWith(expect.objectContaining({
       turnRef: 'turn-1',
     }));
     expect(deps.setLatestConversationView).toHaveBeenCalledWith(expect.objectContaining({

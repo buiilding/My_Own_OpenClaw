@@ -27,7 +27,7 @@ function pendingTurn(overrides = {}) {
 describe('desktopLiveTurnSurfaceRuntime', () => {
   test('uses SDK current turn as live surface authority', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         phase: 'complete',
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
@@ -45,7 +45,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
   test('keeps local pending when terminal projection belongs to a previous turn', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         phase: 'complete',
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
@@ -82,7 +82,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
   test('uses pending turn when SDK current turn is not open yet', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: null,
+      sdkLiveTurn: null,
       pendingTurn: pendingTurn(),
     });
 
@@ -102,7 +102,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
   test('uses pending turn before SDK current turn arrives', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: null,
+      sdkLiveTurn: null,
       pendingTurn: pendingTurn({
         turnRef: 'turn-pending',
         userMessageId: 'user-pending',
@@ -128,7 +128,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
   test('uses SDK current turn over pending turn once SDK owns that turn', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         phase: 'awaiting',
         conversationRef: 'conv-1',
         turnRef: 'turn-pending',
@@ -175,7 +175,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
   test('uses SDK presentation entries without legacy presentation visibility flags', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         phase: 'streaming',
         conversationRef: 'conv-1',
         turnRef: 'turn-2',
@@ -226,7 +226,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
   test('keeps visible SDK content in response mode while phase is still awaiting', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         phase: 'awaiting',
         conversationRef: 'conv-1',
         turnRef: 'turn-2',
@@ -273,7 +273,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
   test('uses SDK awaiting lifecycle when SDK presentation is hidden during handoff', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         phase: 'awaiting',
         conversationRef: 'conv-1',
         turnRef: 'turn-2',
@@ -317,7 +317,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
   test('keeps pending turn through unanchored hidden idle SDK projection', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         phase: 'idle',
         conversationRef: 'conv-1',
         turnRef: 'startup-hidden',
@@ -350,7 +350,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
   test('uses terminal SDK projection for the stopped current turn even when send latch is stale', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         phase: 'complete',
         conversationRef: 'conv-1',
         turnRef: 'turn-2',
@@ -390,7 +390,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
   test('keeps pending turn over previous terminal projection', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         phase: 'complete',
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
@@ -417,7 +417,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
   test('lets SDK awaiting presentation supersede local pending turn', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         phase: 'awaiting',
         conversationRef: 'conv-1',
         turnRef: 'turn-2',
@@ -460,7 +460,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
   test('uses visible lifecycle instead of SDK presentation flags for awaiting state', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         phase: 'awaiting',
         conversationRef: 'conv-1',
         turnRef: 'turn-2',
@@ -496,9 +496,9 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
-  test('uses visible lifecycle instead of SDK overlay intent for response state', () => {
+  test('requires SDK presentation rows before showing raw response text', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         phase: 'streaming',
         conversationRef: 'conv-1',
         turnRef: 'turn-2',
@@ -524,20 +524,20 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
 
     expect(state).toMatchObject({
-      phase: 'streaming',
-      isBusy: true,
+      phase: 'idle',
+      isBusy: false,
       source: 'current-turn',
       useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: false,
       overlayIntent: expect.objectContaining({
-        mode: 'response',
+        mode: 'hidden',
       }),
     });
   });
 
   test('does not use SDK hasVisibleContent flag as response lifecycle evidence', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: {
+      sdkLiveTurn: {
         phase: 'streaming',
         conversationRef: 'conv-1',
         turnRef: 'turn-2',
@@ -576,7 +576,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
   test('ignores legacy stream phase inputs when SDK current turn is absent', () => {
     const state = resolveLiveTurnPresentationInput({
-      currentTurnProjection: null,
+      sdkLiveTurn: null,
       streamTracking: { phase: 'streaming' },
       phase: 'tool-call',
     });

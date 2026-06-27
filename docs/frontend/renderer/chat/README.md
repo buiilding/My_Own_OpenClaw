@@ -24,7 +24,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - [Tool Call/Output and Transparency Section Rendering Reference](payloads/tool_call_output_and_transparency_section_rendering_reference.md)
 - [Renderer Chat Presentation Docs Hub](presentation/README.md)
 - [Chatbox Component Split and Overlay Pill Runtime Reference](presentation/chatbox_component_split_and_overlay_pill_runtime_reference.md)
-- [Chat Common Actions Selector Boundary and Message-Input Send Guard Reference](presentation/chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)
+- [Chat Stream Store Adapter Boundary and Message-Input Send Guard Reference](presentation/chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)
 - [MessageInput Clipboard Image and Voice Submit Reference](presentation/message_input_clipboard_image_and_voice_submit_reference.md)
 - [Data-URL Image Parsing and Attachment Payload Contract Reference](presentation/data_url_image_parsing_and_attachment_payload_contract_reference.md)
 - [Thinking Display Overflow, Message List Class Assembly, and Stream Token Tracking Reference](presentation/thinking_display_overflow_message_list_class_assembly_and_token_count_formatting_reference.md)
@@ -49,7 +49,6 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useStreamMessageUpdaters.ts`
-- `frontend/src/renderer/features/chat/hooks/useChatCommonActions.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatSendStateRuntime.ts`
@@ -64,7 +63,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts`
-- `frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopSdkLiveTurnEffectsRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopMarkdownMessageRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageContentRuntime.js`
@@ -98,7 +97,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `tests/frontend/DesktopChatStreamEventPayloadRuntime.test.ts`
 - `tests/frontend/DesktopChatStreamMessageUpdateRuntime.test.ts`
 - `tests/frontend/DesktopChatStreamThinkingRuntime.test.ts`
-- `tests/frontend/DesktopCurrentTurnProjectionEffectsRuntime.test.ts`
+- `tests/frontend/DesktopSdkLiveTurnEffectsRuntime.test.ts`
 - `tests/frontend/DesktopRendererTraceRuntime.test.ts`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
 - `tests/frontend/DesktopMessageContentRuntime.test.js`

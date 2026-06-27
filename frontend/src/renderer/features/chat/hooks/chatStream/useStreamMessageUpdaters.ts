@@ -3,75 +3,57 @@
  */
 
 import { useCallback } from 'react';
-import {
-  useChatStore,
-  type ChatMessage,
-} from '../../stores/chatStore';
+import type {
+  ChatMessage,
+} from '../../../../app/runtime/desktopChatMessageTypes';
 import {
   DesktopChatStreamMessageUpdateRuntime,
 } from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
 
 const {
-  findFirstMessageIdBySender,
-  findLastAssistantLlmTextMessageId,
-  findLastMessageIdBySender,
+  buildLastAssistantLlmTextStreamTarget,
+  buildLastBySenderStreamTarget,
 } = DesktopChatStreamMessageUpdateRuntime;
 
+type StreamEventIdentity = Parameters<typeof buildLastBySenderStreamTarget>[1];
+
+type UpdateStreamTargetMessage = (
+  target: ReturnType<typeof buildLastBySenderStreamTarget>
+    | ReturnType<typeof buildLastAssistantLlmTextStreamTarget>,
+  updates: Partial<ChatMessage>,
+  conversationRef?: string | null,
+) => void;
+
 export function useStreamMessageUpdaters(
-  updateMessage: (
-    id: string,
-    updates: Partial<ChatMessage>,
-    conversationRef?: string | null,
-  ) => void,
+  updateStreamTargetMessage: UpdateStreamTargetMessage,
 ) {
   const updateLastMessageBySender = useCallback((
     sender: ChatMessage['sender'],
     updates: Partial<ChatMessage>,
-    turnRef?: string,
+    eventIdentity?: StreamEventIdentity | null,
     conversationRef?: string | null,
   ) => {
-    const workspaceMessages = useChatStore.getState().getWorkspaceState(conversationRef).messages;
-    const scopedMessageId = findLastMessageIdBySender(
-      workspaceMessages,
-      sender,
-      turnRef,
+    updateStreamTargetMessage(
+      buildLastBySenderStreamTarget(sender, eventIdentity),
+      updates,
+      conversationRef,
     );
-    if (scopedMessageId) {
-      updateMessage(scopedMessageId, updates, conversationRef);
-    }
-  }, [updateMessage]);
-
-  const updateFirstMessageBySender = useCallback((
-    sender: ChatMessage['sender'],
-    updates: Partial<ChatMessage>,
-    conversationRef?: string | null,
-  ) => {
-    const messageId = findFirstMessageIdBySender(
-      useChatStore.getState().getWorkspaceState(conversationRef).messages,
-      sender,
-    );
-    if (messageId) {
-      updateMessage(messageId, updates, conversationRef);
-    }
-  }, [updateMessage]);
+  }, [updateStreamTargetMessage]);
 
   const updateLastAssistantLlmTextMessage = useCallback((
     updates: Partial<ChatMessage>,
-    turnRef?: string,
+    eventIdentity?: StreamEventIdentity | null,
     conversationRef?: string | null,
   ) => {
-    const messageId = findLastAssistantLlmTextMessageId(
-      useChatStore.getState().getWorkspaceState(conversationRef).messages,
-      turnRef,
+    updateStreamTargetMessage(
+      buildLastAssistantLlmTextStreamTarget(eventIdentity),
+      updates,
+      conversationRef,
     );
-    if (messageId) {
-      updateMessage(messageId, updates, conversationRef);
-    }
-  }, [updateMessage]);
+  }, [updateStreamTargetMessage]);
 
   return {
     updateLastMessageBySender,
-    updateFirstMessageBySender,
     updateLastAssistantLlmTextMessage,
   };
 }

@@ -20,15 +20,15 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
-- `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/infrastructure/transcript/toolCallMessageState.js`
 - `frontend/src/renderer/infrastructure/transcript/toolOutputChatMessageState.ts`
-- `frontend/src/renderer/infrastructure/services/screenshotMessageState.js`
+- `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `packages/windie-sdk-js/src/projections/conversationProjections.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
@@ -80,10 +80,10 @@ Responsibility split:
 - `DesktopTranscriptSessionRuntime` owns session-state bootstrap, storage persistence, browser/main-process sync, and session resolution helpers.
 - `DesktopTranscriptSessionRuntimeClient` is the renderer facade for active conversation/user identity.
 - `DesktopConversationContinuityService` owns replay, rewrite, and rehydrate orchestration through SDK store commands.
-- `DesktopConversationReplayRuntime` owns replay row selection, replay context
-  filtering, tool-message pairing, replay preparation payload, and prepared
-  desktop-turn shaping for screenshot refs, display URLs, multi-image refs, and
-  attachment filenames.
+- `DesktopConversationReplayRuntime` owns renderer replay intent dispatch,
+  active conversation selection, workspace IPC context, and trace logging.
+  SDK replay commands own target-row selection, supersession, tool-message context,
+  resource preservation, and replacement row construction.
 - `DesktopConversationLibraryClient` owns list/load/delete/search through the SDK store path.
 
 Renderer consumers subscribe through
@@ -100,8 +100,9 @@ null }` fallback so feature hooks do not duplicate session snapshot constants.
 
 Transcript conversation pagination helper:
 
-- dashboard open uses `DesktopConversationLibraryClient.loadDisplayRows(...)`
-  to invoke the SDK-shaped `conversation.loadDisplay` command for display rows.
+- dashboard open uses `DesktopConversationLibraryClient.loadConversationView(...)`
+  to invoke the SDK-shaped `conversation.loadDisplay` command and then renders
+  the returned `ConversationView.displayRows`.
 - manual compaction and continuity rehydrate use SDK store load helpers such as
   `conversation.loadRehydrate`; renderer feature code should stay on these
   app-runtime and store facades instead of direct conversation IPC fetches.
@@ -188,12 +189,12 @@ Renderer transcript rows remain visible projections and do not execute tools.
 `DashboardShell` conversation-open path:
 
 1. list conversations from the SDK conversation library (`recordKind: "chat_event"`)
-2. load selected conversation SDK events via the chat-event store adapter (cursor-paginated local RPC)
-3. project SDK display messages for the renderer
+2. load the selected SDK `ConversationView` through `DesktopConversationLibraryClient.loadConversationView(...)`
+3. set the view on the chat store with `setChatConversationView(conversationView, conversationRef)`
 4. ask the renderer app-runtime continuity service to rehydrate the backend inference session through `DesktopConversationContinuityService.rehydrateFromStore(...)`
    - rehydrate payload shaping is centralized in SDK projection helpers so dashboard-open rehydrate and edit/retry replay agree on `tool_name`, `tool_call_id`, screenshots, and structured tool payloads
 5. set active transcript conversation/session info
-6. replace renderer chat store with projected SDK display messages
+6. leave normal chat rendering on `ConversationView.displayRows`; only the short pending-send bridge remains renderer-local
 
 Search modal uses the same open path after SDK `conversations.search` results.
 
@@ -228,7 +229,8 @@ If transcript rows never appear:
 If resumed conversation loses screenshot/tool linkage:
 
 1. inspect SDK display and rehydrate projection mapping
-   (`sdkDisplayChatMessageProjection.ts` and the renderer continuity service)
+   (`desktopSdkDisplayChatMessageProjectionRuntime.ts` and the renderer
+   continuity service)
 2. verify screenshot ref propagation
 3. verify `correlation_id` + `tool_name` survive list/get round-trip
 

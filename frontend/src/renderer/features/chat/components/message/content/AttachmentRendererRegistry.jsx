@@ -6,8 +6,8 @@ import { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { DesktopArtifactRuntimeClient } from '../../../../../app/runtime/desktopArtifactRuntimeClient';
 import {
-  DesktopResolvedMessageScreenshotsRuntime,
-} from '../../../../../app/runtime/desktopResolvedMessageScreenshotsRuntime';
+  DesktopAttachmentImageRuntime,
+} from '../../../../../app/runtime/desktopAttachmentImageRuntime';
 
 function normalizeSurfaceClass(surface) {
   return typeof surface === 'string' && /^[a-z0-9_-]+$/i.test(surface)
@@ -16,7 +16,7 @@ function normalizeSurfaceClass(surface) {
 }
 
 function ImageAttachment({ attachment, surface = 'dashboard' }) {
-  const resolvedArtifactSrc = DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc(attachment);
+  const resolvedArtifactSrc = DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc(attachment);
   const [lastVisibleSrc, setLastVisibleSrc] = useState(null);
   const src = attachment.status === 'materializing'
     ? attachment.previewSrc
@@ -102,8 +102,6 @@ const attachmentShape = PropTypes.shape({
   filename: PropTypes.string,
   contentType: PropTypes.string,
   previewSrc: PropTypes.string,
-  screenshotRef: PropTypes.string,
-  screenshotUrl: PropTypes.string,
   errorCode: PropTypes.string,
 });
 

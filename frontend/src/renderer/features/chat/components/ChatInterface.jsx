@@ -8,7 +8,18 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import ChatInterfaceHeaderControls from './ChatInterfaceHeaderControls';
 import ChatFindBar from './ChatFindBar';
-import { selectChatInterfaceState, useChatStore } from '../stores/chatStore';
+import {
+  selectChatInterfaceState,
+  useChatStore,
+} from '../stores/chatStore';
+import {
+  clearMessagesInChatStore,
+  setConversationViewInChatStore,
+  setThinkingSourceEventTypeInChatStore,
+  setThinkingStatusInChatStore,
+  setTokenCountsInChatStore,
+  updateMessageInChatStore,
+} from '../stores/chatStoreAdapters';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import {
   useChatInterfaceAudioChunkStream,
@@ -33,12 +44,13 @@ import { useStopTurnHandler } from '../hooks/useStopTurnHandler';
 import { DesktopStartupRuntimeClient } from '../../../app/runtime/desktopStartupRuntimeClient';
 import { DesktopChatInterfaceBindingsRuntime } from '../../../app/runtime/desktopChatInterfaceBindingsRuntime';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
-import {
-  DesktopThreadPresentationRuntime,
-} from '../../../app/runtime/desktopThreadPresentationRuntime';
 import { DesktopThreadFindRuntime } from '../../../app/runtime/desktopThreadFindRuntime';
-import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
-import { DesktopConversationDisplayProjection } from '../../../app/runtime/desktopConversationDisplayProjection';
+import {
+  DesktopChatInterfacePresentationRuntime,
+} from '../../../app/runtime/desktopChatInterfacePresentationRuntime';
+import {
+  DesktopChatRevisionActionRuntime,
+} from '../../../app/runtime/desktopChatRevisionActionRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import '../../../styles/ChatInterface.css';
 
@@ -53,26 +65,21 @@ const {
   resolveSelectedReasoningMode,
   resolveSelectedModelOption,
 } = DesktopChatModelOptionsRuntime;
-const {
-  buildThreadPresentationMessages,
-} = DesktopThreadPresentationRuntime;
 const { buildThreadFindState } = DesktopThreadFindRuntime;
 const { isDevUiEnabled } = DesktopDevUiRuntime;
 const { startNewChatSession } = DesktopNewChatSessionRuntime;
 const {
-  buildChatMessagesFromSdkDisplayRows,
-  mergeRendererAnnotationsIntoSdkMessages,
-} = DesktopConversationDisplayProjection;
-
-function normalizeRevisionId(revisionId) {
-  return typeof revisionId === 'string' && revisionId.trim() ? revisionId.trim() : null;
-}
-
-function buildForkConversationRef(conversationRef, revisionId) {
-  const source = String(conversationRef || 'conversation').replace(/[^a-zA-Z0-9_-]+/g, '-');
-  const revision = String(revisionId || 'revision').replace(/[^a-zA-Z0-9_-]+/g, '-');
-  return `${source}-fork-${revision}-${Date.now().toString(36)}`;
-}
+  resolveConversationViewStoreRef,
+} = DesktopChatInterfacePresentationRuntime;
+const {
+  buildRevisionCheckoutCommand,
+  buildRevisionForkCommand,
+  buildRevisionMenuItems,
+  executeRevisionCheckoutCommand,
+  executeRevisionForkCommand,
+  loadRevisionOptions,
+  markActiveRevisionFromCheckoutResult,
+} = DesktopChatRevisionActionRuntime;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   return (
@@ -85,24 +92,17 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const vmModeEnabled = DesktopStartupRuntimeClient.isVmModeEnabled();
 
   const {
-    messages,
     thinkingStatus,
     thinkingSourceEventType,
     compactionDebugInfo,
-    currentTurnProjection,
-    conversationView,
-    pendingTurn,
+    chatSurfaceState,
+    activeRevisionId,
+    renderedMessages,
+    stopTurnTarget,
   } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
-  const clearMessages = useChatStore((state) => state.clearMessages);
-  const setMessages = useChatStore((state) => state.setMessages);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
-  const setConversationView = useChatStore((state) => state.setConversationView);
-  const updateMessage = useChatStore((state) => state.updateMessage);
-  const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
-  const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
-  const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const { config, updateConfig, availableModels } = (
     DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext()
   );
@@ -118,17 +118,14 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const workspaceSelectionVersionRef = useRef(0);
   const startWorkspaceBoundNewChat = useCallback((workspace) => {
     return startNewChatSession({
-      clearMessages,
-      setThinkingStatus,
-      setTokenCounts,
+      clearMessages: clearMessagesInChatStore,
+      setThinkingStatus: setThinkingStatusInChatStore,
+      setTokenCounts: setTokenCountsInChatStore,
       setChatActiveConversationRef,
       workspace,
     });
   }, [
-    clearMessages,
     setChatActiveConversationRef,
-    setThinkingStatus,
-    setTokenCounts,
   ]);
 
   useEffect(() => {
@@ -217,14 +214,11 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   }, [sessionInfo.conversationRef, startWorkspaceBoundNewChat]);
 
   const chatSurface = useChatSurfaceController({
-    messages,
-    currentTurnProjection,
-    conversationView,
+    chatSurfaceState,
     conversationViewSurface: 'dashboard',
-    pendingTurn,
     sessionInfo,
-    setThinkingStatus,
-    setThinkingSourceEventType,
+    setThinkingStatus: setThinkingStatusInChatStore,
+    setThinkingSourceEventType: setThinkingSourceEventTypeInChatStore,
     allowManualCompactionWhileBusy: true,
     warningContext: 'ChatInterface',
   });
@@ -236,11 +230,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     canStop,
     speechModeEnabled,
   } = chatSurface;
-  const renderedMessages = useMemo(() => buildThreadPresentationMessages(messages, {
-    conversationView,
-    currentTurnProjection,
-    activeConversationRef: sessionInfo.conversationRef || null,
-  }), [conversationView, currentTurnProjection, messages, sessionInfo.conversationRef]);
   const activeConversationRef = sessionInfo.conversationRef || null;
   const isLoadingSelectedConversation = (
     typeof loadingConversationRef === 'string'
@@ -279,13 +268,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   );
   const showReasoningModeSelector = reasoningModeOptions.length > 1;
   const devUiEnabled = isDevUiEnabled();
-  const hasConversationView = Boolean(conversationView && typeof conversationView === 'object');
-  const canEditMessages = hasConversationView
-    ? conversationView?.actions?.canEdit === true
-    : true;
-  const canRetryMessages = hasConversationView
-    ? conversationView?.actions?.canRetry === true
-    : true;
   const [providerMenuOpen, setProviderMenuOpen] = useState(false);
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
   const [reasoningModeMenuOpen, setReasoningModeMenuOpen] = useState(false);
@@ -325,6 +307,15 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const threadFindState = useMemo(() => buildThreadFindState(renderedMessages, normalizedFindQuery), [
     normalizedFindQuery,
     renderedMessages,
+  ]);
+  const revisionMenuItems = useMemo(() => buildRevisionMenuItems({
+    activeRevisionId,
+    revisionActionId,
+    revisions: revisionOptions,
+  }), [
+    activeRevisionId,
+    revisionActionId,
+    revisionOptions,
   ]);
   const totalFindMatches = threadFindState.totalMatches;
   const resolvedActiveFindMatchIndex = normalizedFindQuery && totalFindMatches > 0
@@ -396,10 +387,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   }, []);
   const { handleStopTurn } = useStopTurnHandler({
     enabled: canStop,
-    conversationView,
-    currentTurnProjection,
-    pendingTurn,
-    sessionConversationRef: sessionInfo.conversationRef,
+    stopTurnTarget,
     stopPlayback,
     warningContext: 'ChatInterface',
   });
@@ -434,26 +422,17 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     if (!view || typeof view !== 'object') {
       return;
     }
-    const conversationRef = targetConversationRef || view.conversationRef || activeConversationRef;
+    const conversationRef = resolveConversationViewStoreRef({
+      activeConversationRef,
+      targetConversationRef,
+      view,
+    });
     if (!conversationRef) {
       return;
     }
-    const preservesCurrentConversationAnnotations = conversationRef === activeConversationRef;
-    const displayRows = Array.isArray(view.displayRows) ? view.displayRows : [];
-    const sdkMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
-    const mergedMessages = mergeRendererAnnotationsIntoSdkMessages(
-      sdkMessages,
-      preservesCurrentConversationAnnotations ? messages : [],
-      { pendingTurn: preservesCurrentConversationAnnotations ? pendingTurn : null },
-    );
-    setConversationView(view, conversationRef);
-    setMessages(mergedMessages, conversationRef);
+    setConversationViewInChatStore(view, conversationRef);
   }, [
     activeConversationRef,
-    messages,
-    pendingTurn,
-    setConversationView,
-    setMessages,
   ]);
 
   useEffect(() => {
@@ -463,15 +442,15 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     let cancelled = false;
     setRevisionLoading(true);
     setRevisionError(null);
-    DesktopConversationContinuityService.listRevisions(
-      sessionInfo.userId || 'default_user',
+    loadRevisionOptions({
       activeConversationRef,
-      50,
-    ).then((revisions) => {
+      userId: sessionInfo.userId,
+      limit: 50,
+    }).then((revisions) => {
       if (cancelled) {
         return;
       }
-      setRevisionOptions(Array.isArray(revisions) ? revisions : []);
+      setRevisionOptions(revisions);
     }).catch((error) => {
       if (cancelled) {
         return;
@@ -490,23 +469,23 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   }, [activeConversationRef, revisionMenuOpen, sessionInfo.userId]);
 
   const handleRevisionCheckout = useCallback(async (revisionId) => {
-    const normalizedRevisionId = normalizeRevisionId(revisionId);
-    if (!activeConversationRef || !normalizedRevisionId) {
+    const command = buildRevisionCheckoutCommand({
+      activeConversationRef,
+      revisionId,
+      userId: sessionInfo.userId,
+    });
+    if (!command) {
       return;
     }
-    setRevisionActionId(`checkout:${normalizedRevisionId}`);
+    setRevisionActionId(command.actionId);
     setRevisionError(null);
     try {
-      const result = await DesktopConversationContinuityService.checkoutRevision({
-        userId: sessionInfo.userId || 'default_user',
-        conversationRef: activeConversationRef,
-        revisionId: normalizedRevisionId,
-      });
+      const result = await executeRevisionCheckoutCommand(command);
       applyConversationView(result?.view, activeConversationRef);
-      setRevisionOptions((current) => current.map((revision) => ({
-        ...revision,
-        active: revision.revisionId === normalizedRevisionId,
-      })));
+      setRevisionOptions((current) => markActiveRevisionFromCheckoutResult(
+        current,
+        result,
+      ));
       setRevisionMenuOpen(false);
     } catch (error) {
       console.warn('[ChatInterface] Failed to checkout conversation revision:', error);
@@ -521,19 +500,18 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   ]);
 
   const handleRevisionFork = useCallback(async (revision) => {
-    const revisionId = normalizeRevisionId(revision?.revisionId);
-    if (!activeConversationRef || !revisionId) {
+    const command = buildRevisionForkCommand({
+      activeConversationRef,
+      revision,
+      userId: sessionInfo.userId,
+    });
+    if (!command) {
       return;
     }
-    setRevisionActionId(`fork:${revisionId}`);
+    setRevisionActionId(command.actionId);
     setRevisionError(null);
     try {
-      const result = await DesktopConversationContinuityService.forkConversation({
-        userId: sessionInfo.userId || 'default_user',
-        conversationRef: activeConversationRef,
-        sourceRevisionId: revisionId,
-        newConversationRef: buildForkConversationRef(activeConversationRef, revisionId),
-      });
+      const result = await executeRevisionForkCommand(command);
       const nextConversationRef = result?.conversationRef;
       if (nextConversationRef) {
         DesktopTranscriptSessionRuntimeClient.updateTranscriptSession(
@@ -624,14 +602,9 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   }, [configuredModelId, configuredProvider, selectedModelOption, updateConfig]);
 
   const handleAssistantFeedbackChange = useCallback((messageId, feedback) => {
-    updateMessage(messageId, { feedback });
-  }, [updateMessage]);
-  const { handleEditFromUser, handleTryAgainFromAssistant } = useConversationReplayActions({
-    messages,
-    setMessages,
-    setThinkingStatus,
-    setThinkingSourceEventType,
-  });
+    updateMessageInChatStore(messageId, { feedback });
+  }, []);
+  const { handleEditFromUser, handleTryAgainFromAssistant } = useConversationReplayActions();
 
   useChatInterfaceNewChatEvent(handleNewChat);
   useChatInterfaceFindShortcut({
@@ -667,11 +640,9 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
         reasoningModeOptions={reasoningModeOptions}
         revisionMenuRef={revisionMenuRef}
         revisionMenuOpen={revisionMenuOpen}
-        revisionOptions={revisionOptions}
+        revisionMenuItems={revisionMenuItems}
         revisionLoading={revisionLoading}
         revisionError={revisionError}
-        revisionActionId={revisionActionId}
-        activeRevisionId={conversationView?.revisionId || null}
         activeConversationRef={activeConversationRef}
         setRevisionMenuOpen={setRevisionMenuOpen}
         speechModeEnabled={speechModeEnabled}
@@ -736,8 +707,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
             enableAgentLoopAutoScroll={composerBusy}
             enableAssistantActions
             enableUserActions
-            canRetryMessages={canRetryMessages}
-            canEditMessages={canEditMessages}
             disableAssistantActions={composerBusy || canStop}
             onAssistantFeedbackChange={handleAssistantFeedbackChange}
             onAssistantTryAgain={handleTryAgainFromAssistant}

@@ -4,10 +4,16 @@
 
 import { render, screen } from '@testing-library/react';
 import AttachmentList from '../../frontend/src/renderer/features/chat/components/message/content/AttachmentList';
+import UserMessage from '../../frontend/src/renderer/features/chat/components/message/content/UserMessage';
 
-const mockUseResolvedArtifactImageSrc = jest.fn((attachment) => {
-  const ref = attachment?.screenshotRef;
-  return ref ? `resolved://${ref}` : null;
+const mockResolvedAttachmentSources = new Map([
+  ['attachment-2', 'resolved://artifact-camera'],
+  ['attachment-tool-output', 'resolved://artifact-tool-output'],
+  ['attachment-ready', 'resolved://artifact-ready'],
+]);
+const mockUseResolvedAttachmentImageSrc = jest.fn((attachment) => {
+  const id = typeof attachment?.id === 'string' ? attachment.id : null;
+  return id ? mockResolvedAttachmentSources.get(id) ?? null : null;
 });
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient', () => ({
@@ -16,18 +22,18 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient'
   },
 }));
 
-jest.mock('../../frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime', () => ({
-  DesktopResolvedMessageScreenshotsRuntime: {
-    useResolvedArtifactImageSrc: (...args) => mockUseResolvedArtifactImageSrc(...args),
+jest.mock('../../frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime', () => ({
+  DesktopAttachmentImageRuntime: {
+    useResolvedAttachmentImageSrc: (...args) => mockUseResolvedAttachmentImageSrc(...args),
   },
 }));
 
 describe('AttachmentList', () => {
   beforeEach(() => {
-    mockUseResolvedArtifactImageSrc.mockClear();
-    mockUseResolvedArtifactImageSrc.mockImplementation((attachment) => {
-      const ref = attachment?.screenshotRef;
-      return ref ? `resolved://${ref}` : null;
+    mockUseResolvedAttachmentImageSrc.mockClear();
+    mockUseResolvedAttachmentImageSrc.mockImplementation((attachment) => {
+      const id = typeof attachment?.id === 'string' ? attachment.id : null;
+      return id ? mockResolvedAttachmentSources.get(id) ?? null : null;
     });
   });
 
@@ -119,7 +125,7 @@ describe('AttachmentList', () => {
   });
 
   test('keeps preview visible while ready artifact source resolves', () => {
-    mockUseResolvedArtifactImageSrc.mockReturnValue(null);
+    mockUseResolvedAttachmentImageSrc.mockReturnValue(null);
 
     const { rerender } = render(
       <AttachmentList
@@ -153,7 +159,7 @@ describe('AttachmentList', () => {
 
     expect(screen.getByRole('img')).toHaveAttribute('src', 'data:image/png;base64,preview');
 
-    mockUseResolvedArtifactImageSrc.mockReturnValue('resolved://artifact-ready');
+    mockUseResolvedAttachmentImageSrc.mockReturnValue('resolved://artifact-ready');
     rerender(
       <AttachmentList
         attachments={[
@@ -165,6 +171,35 @@ describe('AttachmentList', () => {
             screenshotRef: 'artifact-ready',
           },
         ]}
+      />,
+    );
+
+    expect(screen.getByRole('img')).toHaveAttribute('src', 'resolved://artifact-ready');
+  });
+});
+
+describe('UserMessage attachments', () => {
+  beforeEach(() => {
+    mockUseResolvedAttachmentImageSrc.mockClear();
+    mockUseResolvedAttachmentImageSrc.mockImplementation((attachment) => {
+      const id = typeof attachment?.id === 'string' ? attachment.id : null;
+      return id ? mockResolvedAttachmentSources.get(id) ?? null : null;
+    });
+  });
+
+  test('renders typed attachments without filename metadata fallback', () => {
+    render(
+      <UserMessage
+        message={{
+          text: 'Please inspect this',
+          attachments: [{
+            id: 'attachment-ready',
+            kind: 'image',
+            source: 'user_included',
+            status: 'ready',
+            screenshotRef: 'artifact-ready',
+          }],
+        }}
       />,
     );
 

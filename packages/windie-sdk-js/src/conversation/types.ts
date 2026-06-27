@@ -332,8 +332,11 @@ export type SdkDisplayRowMetadata = {
   toolName?: string | null;
   requestId?: string | null;
   correlationId?: string | null;
+  displayCorrelationId?: string | null;
   bundleId?: string | null;
   toolCallId?: string | null;
+  toolCallDetails?: JsonRecord | null;
+  toolOutputDetails?: JsonRecord | null;
   modelFacingToolCall?: JsonRecord | null;
   structuredPayload?: JsonRecord | null;
   screenshotRef?: string | null;

@@ -101,6 +101,20 @@ function readSnapshotDisplayRows(snapshot, conversationRef) {
   return rows.filter((row) => row?.conversationRef === conversationRef);
 }
 
+function readSnapshotConversationView(snapshot, conversationRef) {
+  const view = snapshot?.view && typeof snapshot.view === 'object'
+    ? snapshot.view
+    : null;
+  if (!view) {
+    return null;
+  }
+  return {
+    ...view,
+    conversationRef: view.conversationRef || conversationRef,
+    displayRows: readSnapshotDisplayRows(snapshot, conversationRef),
+  };
+}
+
 export const DesktopConversationLibraryClient = {
   isTransientMetadataListError,
 
@@ -187,20 +201,12 @@ export const DesktopConversationLibraryClient = {
     });
   },
 
-  async loadForDisplay(userId, conversationRef) {
+  async loadConversationView(userId, conversationRef) {
     const snapshot = await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY, {
       userId,
       conversationRef,
     });
-    return snapshot?.display || { conversationRef, messages: [] };
-  },
-
-  async loadDisplayRows(userId, conversationRef) {
-    const snapshot = await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY, {
-      userId,
-      conversationRef,
-    });
-    return readSnapshotDisplayRows(snapshot, conversationRef);
+    return readSnapshotConversationView(snapshot, conversationRef);
   },
 
   async deleteConversation(userId, conversationRef) {

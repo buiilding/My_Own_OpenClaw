@@ -12,6 +12,7 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 
 - `frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopChatSurfaceRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatSurfaceController.js`
 - `frontend/src/renderer/app/runtime/desktopStreamPhaseRuntime.js`
@@ -26,13 +27,13 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 ## Visible Turn Lifecycle Contract (`desktopVisibleTurnLifecycleRuntime.js`)
 
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` owns the
-renderer-visible handoff from local pending sends to SDK current-turn
-projection. It combines:
+renderer-visible handoff from local pending sends to the selected SDK live-turn
+fallback. It combines:
 
 - renderer `pendingTurn`
-- SDK `currentTurnProjection`
+- SDK live-turn fallback (`sdkLiveTurn`)
 - active conversation ref
-- message rows used only for awaiting-anchor lookup
+- awaiting anchors from SDK projection or renderer `pendingTurn.userMessageId`
 
 Output statuses:
 
@@ -44,12 +45,12 @@ Output statuses:
 - `terminal`: SDK completed or errored the same turn
 - `idle`: no visible active turn for the conversation
 
-`DesktopVisibleTurnLifecycleRuntime.resolvePendingTurnForCurrentProjection(...)`
+`DesktopVisibleTurnLifecycleRuntime.resolvePendingTurnForSdkLiveTurn(...)`
 owns pending-turn handoff for store updates, while
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` owns the
 surface local-pending status consumed by dashboard, pill, and overlay surfaces.
 Both use the same visible lifecycle authority so SDK idle, wrong-turn terminal,
-stale, and visible-empty projections do not replace `local_pending`.
+stale, and visible-empty live-turn fallbacks do not replace `local_pending`.
 Local pending rendering requires a valid renderer `pendingTurn`; bare
 `isSending=true` is store/diagnostic compatibility state and does not create
 visible typing or busy lifecycle by itself.
@@ -154,21 +155,26 @@ surface hooks and app runtime projection. `useChatSurfaceController(...)` and
 directly for message/response data, then apply
 `DesktopVisibleTurnLifecycleRuntime` for busy, awaiting, Stop, and typing
 state.
-`useResponseOverlayViewModel(...)` reads SDK presentation entries through
-`DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromPresentation(...)`
+`useResponseOverlayViewModel(...)` reads SDK live-turn rows through
+`DesktopCurrentTurnMessageRuntime.buildSdkLiveTurnMessages(...)`
 and uses `DesktopCurrentTurnPresentationRuntime` only for response-overlay
 dismissal target projection. SDK overlay intent comes from the live-turn
 presentation input before the visible lifecycle adapter stamps busy and typing
 fields, so the response overlay no longer consumes the SDK presentation
 lifecycle reducer.
 
-`useChatSurfaceController(...)` resolves
-`DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` and uses
-that projection for dashboard/pill busy state, stop affordance gating,
-awaiting-dot visibility, and chatbox awaiting state. The controller builds the
-message-only presentation snapshot from `DesktopCurrentTurnPresentationRuntime`
-and passes the resolved lifecycle directly into presentation stamping; it no
-longer calls an SDK presentation reducer, and the response overlay uses
+`useChatSurfaceController(...)` delegates surface authority to
+`DesktopChatSurfaceRuntime.buildChatSurfaceControllerState(...)`, which
+composes `DesktopVisibleTurnLifecycleRuntime`,
+`DesktopLiveTurnSurfaceRuntime`, and
+`DesktopCurrentTurnPresentationRuntime`. That app-runtime helper reads
+`ConversationView.surfaces`, `ConversationView.liveTurn.canStop`, SDK
+live-turn fallback (`sdkLiveTurn` in selected surface state), and the renderer
+pending bridge, then returns
+dashboard/pill busy state, stop affordance gating, awaiting-dot visibility, and
+chatbox awaiting state. The React hook owns config toggles and manual
+compaction callbacks only; it should not branch over SDK view/current-turn
+authorities directly. The response overlay uses
 `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
 only for explicit SDK response-entry data plus overlay-intent metadata instead
 of merging a fallback presentation snapshot. Actual response visibility
@@ -181,9 +187,13 @@ visible same-turn projection.
 `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)` delegates
 local pending-turn handoff to the already-resolved
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` status.
-The live surface still prepares overlay presentation input and SDK overlay
-intent metadata, but phase, busy, awaiting, and response flags now come from
-that visible lifecycle projection. The
+When a same-turn SDK `ConversationView` live turn exists, the visible lifecycle
+and live-surface input use `ConversationView.liveTurn` plus
+`ConversationView.surfaces.responseOverlay` before raw current-turn projection.
+An unrelated renderer-local pending turn still owns the immediate pending
+bridge. The live surface still prepares overlay presentation input and SDK
+overlay intent metadata, but phase, busy, awaiting, and response flags now come
+from that visible lifecycle projection. The
 live-surface adapter exposes `isBusy` rather than a legacy `isSending` alias,
 and no longer returns a separate `showAwaiting` typing alias; typing state
 stays on `visibleTurnLifecycle.showTyping`. It also omits the duplicate
@@ -201,24 +211,31 @@ instead of a send-latch alias.
 It also omits store `thinkingStatus`; response overlay reasoning text follows
 SDK `currentTurn.reasoningText`, while dashboard message-list compaction/manual
 status text remains on the chat-interface selector path.
+It suppresses raw workspace `messages[]` when a `ConversationView` exists, so
+shared live surfaces do not derive lifecycle or overlay state from stale
+renderer rows. The only exception is the accepted renderer `pendingTurn`
+bridge, which keeps its pending user row available until SDK view handoff.
+`DesktopChatSurfaceRuntime.buildChatSurfaceControllerState(...)` also enforces
+the same empty renderer-message fallback internally, so callers that bypass the
+selector cannot reintroduce stale message-derived response state beside an SDK
+view.
 The decision to keep renderer-local pending typing through idle, hidden, stale,
 terminal, or visible SDK projections lives with the visible lifecycle owner and
 requires an accepted renderer `pendingTurn`.
 
-Conversation replay actions now allocate a replay `turnRef`, load the active
-display timeline, replace the display prefix through
-`DesktopConversationContinuityService.replaceRows(...)`, then publish a
-renderer `pendingTurn` through
-`DesktopConversationReplayRuntime.buildReplayPendingTurn(...)` before sending
-the normal replacement query. That keeps edit/resend and retry in the same
-`local_pending -> SDK handoff` path as normal sends; display replacement
-latency does not rely on bare `isSending` as a visible lifecycle authority.
+Conversation replay actions now pass only edit/retry intent to
+`DesktopConversationReplayRuntime`, which delegates to SDK edit/resend and
+retry commands. The renderer does not load display timelines, replace display
+prefix rows, publish replay pending turns, or send a separate replacement
+query. SDK commands own target-row resolution, child display/model revisions,
+supersession, replacement rows, and attachment/resource preservation.
 
-`useResponseOverlayViewModel(...)` also resolves the same visible lifecycle and
-applies `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
-directly before deriving response-overlay view intent. The response overlay therefore
-shows awaiting only for renderer local pending or SDK awaiting lifecycle, and
-shows response only for visible SDK entries. Phase-only `streaming`,
+`useResponseOverlayViewModel(...)` also resolves the same visible lifecycle,
+passes `ConversationView` into the live-surface runtime, and applies
+`DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
+directly before deriving response-overlay view intent. The response overlay
+therefore shows awaiting only for renderer local pending or SDK awaiting
+lifecycle, and shows response only for visible SDK entries. Phase-only `streaming`,
 `tool_call`, or `tool_output` projections with no visible text, tool event,
 progress, error, or pending turn do not independently show typing. The
 response-overlay view contract reads `visibleTurnLifecycle.status` directly
@@ -239,7 +256,7 @@ longer imports the overlay lifecycle adapter.
 - disables assistant feedback/retry actions from visible lifecycle busy/Stop
   state instead of raw `isSending`
 - uses visible lifecycle awaiting anchor for `awaitingDotTargetMessageId`
-  instead of component-local reply scanning
+  instead of component-local reply scanning or raw message fallback
 - passes the visible lifecycle awaiting anchor directly to `MessageList`; live
   progress row shape remains rendering data and does not suppress lifecycle
   typing state

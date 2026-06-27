@@ -4,13 +4,19 @@
 
 import { DesktopChatMessageRuntimeClient } from './desktopChatMessageRuntimeClient';
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
+import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
+import { DesktopSdkToolDetailProjection } from './desktopSdkToolDetailProjection';
 
 const {
-  buildToolBundleMessageState,
   buildToolCallChatMessageState,
-  buildToolCallMessageState,
   buildToolOutputChatMessageState,
 } = DesktopChatMessageRuntimeClient;
+const {
+  readSdkDisplayAttachments,
+} = DesktopSdkDisplayAttachmentProjection;
+const {
+  sanitizeSdkToolDetailRecord,
+} = DesktopSdkToolDetailProjection;
 
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 const sdkConversationViewSourceChannel = DesktopPresentationSourceChannels
@@ -30,40 +36,19 @@ function readString(value) {
   return typeof value === 'string' ? value : null;
 }
 
-function readArray(value) {
-  return Array.isArray(value) ? value : null;
-}
-
-function normalizeDisplayAttachments(value) {
-  return Array.isArray(value)
-    ? value.filter((attachment) => (
-      attachment
-      && typeof attachment === 'object'
-      && typeof attachment.id === 'string'
-      && attachment.id.trim().length > 0
-      && (attachment.kind === 'image' || attachment.kind === 'screenshot_request')
-      && (
-        attachment.source === 'user_included'
-        || attachment.source === 'camera_button'
-        || attachment.source === 'tool_result'
-        || attachment.source === 'replay'
-      )
-      && (
-        attachment.status === 'materializing'
-        || attachment.status === 'pending_capture'
-        || attachment.status === 'ready'
-        || attachment.status === 'failed'
-      )
-    ))
-    : [];
-}
-
 function normalizeText(value) {
   return typeof value === 'string' && value.trim() ? value : '';
 }
 
 function normalizeOptionalText(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function resolveNoViewSdkLiveTurnThinkingText(sdkLiveTurn = null) {
+  if (hasPresentationObject(sdkLiveTurn)) {
+    return '';
+  }
+  return normalizeOptionalText(asRecord(sdkLiveTurn)?.reasoningText) || '';
 }
 
 function normalizeEntryType(value) {
@@ -75,90 +60,27 @@ function buildProjectedToolCallMessage({
   turnRef,
   toolEvent,
 }) {
+  const payload = asObject(toolEvent.payload);
   const toolCallDetails = asObject(toolEvent.toolCallDetails);
-  const metadata = asObject(toolEvent.toolDisplayMetadata) || asObject(toolEvent.toolMetadata);
-  const args = asObject(toolEvent.toolArguments);
-  const toolName = readString(toolEvent.toolName) || '';
-  const requestId = readString(toolEvent.requestId);
-  const correlationId = readString(toolEvent.correlationId);
-
-  if (toolName === 'tool_bundle' || readArray(toolEvent.toolCalls) || readArray(toolCallDetails?.tools)) {
-    const bundlePayload = {
-      ...(toolCallDetails || {}),
-      toolCalls: readArray(toolEvent.toolCalls),
-      tools: readArray(toolCallDetails?.tools),
-    };
-    const bundleState = buildToolBundleMessageState(bundlePayload);
-    return buildToolCallChatMessageState({
-      id: `${baseId}:tool:${toolEvent.id}`,
-      text: bundleState.text,
-      toolCallDisplayText: bundleState.toolCallDisplayText,
-      toolCallDetails: bundleState.toolCallDetails ?? null,
-      correlationId: bundleState.correlationId ?? null,
-      sourceEventType: toolEvent.kind,
-      sourceChannel: sdkCurrentTurnSourceChannel,
-      turnRef: turnRef || undefined,
-    });
-  }
-
-  const toolCallState = buildToolCallMessageState({
-    rawToolCall: asObject(toolEvent.modelFacingToolCall),
-    fallbackToolName: toolName || null,
-    fallbackToolCallId: requestId,
-    fallbackArguments: args,
-    metadata,
-    toolCallValidationFailed: toolEvent.toolCallValidationFailed === true,
-    rawToolCallPreview: readString(toolEvent.rawToolCallPreview),
-    rawArgumentsPreview: readString(toolEvent.rawArgumentsPreview),
-    parseError: readString(toolEvent.parseError),
-    executionSkipped: toolEvent.executionSkipped === true,
-    toolCallDetails,
-    correlationId,
-  });
+  const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);
+  const toolName = readString(toolEvent.toolName) || readString(payload?.toolName) || '';
+  const correlationId = (
+    readString(toolEvent.correlationId)
+    || readString(toolEvent.requestId)
+    || readString(payload?.requestId)
+  );
+  const text = normalizeText(toolEvent.text) || (toolName ? `Using ${toolName}` : 'Using tool');
 
   return buildToolCallChatMessageState({
     id: `${baseId}:tool:${toolEvent.id}`,
-    text: toolCallState.text,
-    toolCallDisplayText: toolCallState.toolCallDisplayText,
-    modelFacingToolCall: toolCallState.modelFacingToolCall ?? null,
-    toolCallDetails: toolCallState.toolCallDetails ?? null,
-    correlationId: toolCallState.correlationId ?? null,
+    text,
+    toolCallDisplayText: text,
+    toolCallDetails: displayToolCallDetails,
+    correlationId: correlationId ?? null,
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
     turnRef: turnRef || undefined,
   });
-}
-
-function formatProjectedToolOutputText(payload) {
-  const bundleSteps = [
-    payload.stepResults,
-    payload.step_results,
-    payload.results,
-  ].find(Array.isArray);
-  if (Array.isArray(bundleSteps) && bundleSteps.length > 0) {
-    return bundleSteps
-      .map((step, index) => {
-        const stepRecord = asObject(step) || {};
-        const outputRecord = asObject(stepRecord.output) || asObject(stepRecord.result) || {};
-        const outputText = readString(outputRecord.output)
-          || readString(outputRecord.content)
-          || readString(outputRecord.message)
-          || readString(stepRecord.output)
-          || readString(stepRecord.result)
-          || readString(stepRecord.error)
-          || JSON.stringify(stepRecord, null, 2);
-        const toolName = readString(stepRecord.toolName) || readString(stepRecord.tool_name) || readString(stepRecord.tool);
-        return `${toolName || 'step'} #${index + 1}\n${outputText}`;
-      })
-      .join('\n\n');
-  }
-  if (typeof payload.output === 'string' && payload.output.length > 0) {
-    return payload.output;
-  }
-  if (payload.error) {
-    return `Error: ${payload.error}`;
-  }
-  return 'No output';
 }
 
 function buildProjectedToolOutputMessage({
@@ -167,25 +89,29 @@ function buildProjectedToolOutputMessage({
   toolEvent,
 }) {
   const toolOutputDetails = asObject(toolEvent.toolOutputDetails) || {};
+  const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);
+  const toolName = readString(toolEvent.toolName);
   const requestId = readString(toolEvent.requestId);
   const correlationId = (
     readString(toolEvent.correlationId)
     || requestId
     || undefined
   );
-  const attachments = normalizeDisplayAttachments(toolEvent.attachments);
+  const attachments = readSdkDisplayAttachments(toolEvent.attachments);
+  const outputText = normalizeText(toolEvent.text)
+    || (toolName ? `${toolName} completed` : 'Tool completed');
   return buildToolOutputChatMessageState({
     id: `${baseId}:tool:${toolEvent.id}`,
-    outputText: toolEvent.text || formatProjectedToolOutputText(toolOutputDetails),
+    outputText,
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
     attachments,
     toolMetadata: asObject(toolEvent.toolMetadata),
-    toolName: readString(toolEvent.toolName),
+    toolName,
     executionTime: typeof toolEvent.executionTime === 'number' ? toolEvent.executionTime : null,
     success: typeof toolEvent.success === 'boolean' ? toolEvent.success : null,
     correlationId,
-    toolOutputDetails,
+    toolOutputDetails: displayToolOutputDetails,
     turnRef: turnRef || null,
     modelId: null,
     modelProvider: null,
@@ -227,8 +153,15 @@ function buildProjectedToolMessage({ baseId, turnRef, toolEvent }) {
   return buildProjectedToolCallMessage({ baseId, turnRef, toolEvent });
 }
 
-function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
-  if (!currentTurnProjection || typeof currentTurnProjection !== 'object') {
+function hasPresentationObject(sdkLiveTurn) {
+  return Boolean(asRecord(sdkLiveTurn?.presentation));
+}
+
+function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
+  if (!sdkLiveTurn || typeof sdkLiveTurn !== 'object') {
+    return [];
+  }
+  if (hasPresentationObject(sdkLiveTurn)) {
     return [];
   }
   const {
@@ -239,7 +172,7 @@ function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
     reasoningText,
     toolEvents,
     lastError,
-  } = currentTurnProjection;
+  } = sdkLiveTurn;
   const hasText = typeof assistantText === 'string' && assistantText.trim();
   const hasReasoning = typeof reasoningText === 'string' && reasoningText.trim();
   const hasError = typeof lastError === 'string' && lastError.trim();
@@ -315,25 +248,25 @@ function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
   return messages;
 }
 
-function buildBaseMessageFields(entry, currentTurnProjection) {
+function buildBaseMessageFields(entry, liveTurnContext) {
   return {
     id: entry.id,
     sourceEventType: entry.sourceEventType || null,
     sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel,
-    turnRef: entry.turnRef || currentTurnProjection?.turnRef || undefined,
+    turnRef: entry.turnRef || liveTurnContext?.turnRef || undefined,
     modelId: entry.modelId || null,
     modelProvider: entry.modelProvider || null,
     isComplete: entry.isComplete === true,
   };
 }
 
-function buildThinkingMessage(entry, currentTurnProjection) {
+function buildThinkingMessage(entry, liveTurnContext) {
   const thinkingText = normalizeText(entry.text);
   if (!thinkingText) {
     return null;
   }
   return {
-    ...buildBaseMessageFields(entry, currentTurnProjection),
+    ...buildBaseMessageFields(entry, liveTurnContext),
     text: '',
     sender: 'assistant',
     type: 'llm-text',
@@ -343,26 +276,26 @@ function buildThinkingMessage(entry, currentTurnProjection) {
   };
 }
 
-function buildAssistantTextMessage(entry, currentTurnProjection) {
+function buildAssistantTextMessage(entry, liveTurnContext) {
   const text = normalizeText(entry.text);
   if (!text) {
     return null;
   }
   return {
-    ...buildBaseMessageFields(entry, currentTurnProjection),
+    ...buildBaseMessageFields(entry, liveTurnContext),
     text,
     sender: 'assistant',
     type: 'llm-text',
   };
 }
 
-function buildErrorMessage(entry, currentTurnProjection) {
+function buildErrorMessage(entry, liveTurnContext) {
   const text = normalizeText(entry.text);
   if (!text) {
     return null;
   }
   return {
-    ...buildBaseMessageFields(entry, currentTurnProjection),
+    ...buildBaseMessageFields(entry, liveTurnContext),
     text,
     sender: 'assistant',
     type: 'error',
@@ -370,61 +303,29 @@ function buildErrorMessage(entry, currentTurnProjection) {
   };
 }
 
-function buildToolCallMessage(entry, currentTurnProjection) {
+function buildToolCallMessage(entry, liveTurnContext) {
   const toolName = normalizeOptionalText(entry.toolName);
-  const text = normalizeText(entry.text) || (toolName ? `Using ${toolName}` : 'Using tool');
+  const text = normalizeText(entry.text);
   const toolDetails = asRecord(entry.toolCallDetails);
-  if (toolName === 'tool_bundle' || Array.isArray(entry.toolCalls) || Array.isArray(toolDetails?.tools)) {
-    const bundlePayload = {
-      ...(toolDetails || {}),
-      toolCalls: Array.isArray(entry.toolCalls) ? entry.toolCalls : null,
-      tools: Array.isArray(toolDetails?.tools) ? toolDetails.tools : null,
-    };
-    const bundleState = buildToolBundleMessageState(bundlePayload);
-    return buildToolCallChatMessageState({
-      ...buildBaseMessageFields(entry, currentTurnProjection),
-      text: bundleState.text || text,
-      toolCallDisplayText: bundleState.toolCallDisplayText || text,
-      toolCallDetails: bundleState.toolCallDetails ?? toolDetails,
-      correlationId: bundleState.correlationId ?? null,
-    });
-  }
-
-  const args = asRecord(entry.toolArguments) || null;
-  const metadata = asRecord(entry.toolDisplayMetadata) || asRecord(entry.toolMetadata);
-  const toolCallState = buildToolCallMessageState({
-    rawToolCall: asRecord(entry.modelFacingToolCall),
-    fallbackToolName: toolName,
-    fallbackToolCallId: normalizeOptionalText(entry.requestId)
-      || entry.id,
-    fallbackArguments: args,
-    metadata,
-    toolCallValidationFailed: entry.toolCallValidationFailed === true,
-    rawToolCallPreview: normalizeOptionalText(entry.rawToolCallPreview),
-    rawArgumentsPreview: normalizeOptionalText(entry.rawArgumentsPreview),
-    parseError: normalizeOptionalText(entry.parseError),
-    executionSkipped: entry.executionSkipped === true,
-    toolCallDetails: toolDetails,
-    correlationId: normalizeOptionalText(entry.correlationId),
-  });
+  const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);
+  const displayText = text || (toolName ? `Using ${toolName}` : 'Using tool');
 
   return buildToolCallChatMessageState({
-    ...buildBaseMessageFields(entry, currentTurnProjection),
-    text: toolCallState.text || text,
-    toolCallDisplayText: toolCallState.toolCallDisplayText || text,
-    modelFacingToolCall: toolCallState.modelFacingToolCall ?? null,
-    toolCallDetails: toolCallState.toolCallDetails ?? toolDetails,
-    correlationId: toolCallState.correlationId ?? null,
+    ...buildBaseMessageFields(entry, liveTurnContext),
+    text: displayText,
+    toolCallDisplayText: displayText,
+    toolCallDetails: displayToolDetails,
+    correlationId: normalizeOptionalText(entry.correlationId),
   });
 }
 
-function buildToolProgressMessage(entry, currentTurnProjection) {
+function buildToolProgressMessage(entry, liveTurnContext) {
   const text = normalizeText(entry.text) || normalizeOptionalText(entry.toolName);
   if (!text) {
     return null;
   }
   return {
-    ...buildBaseMessageFields(entry, currentTurnProjection),
+    ...buildBaseMessageFields(entry, liveTurnContext),
     text,
     sender: 'assistant',
     type: 'search-source',
@@ -433,11 +334,12 @@ function buildToolProgressMessage(entry, currentTurnProjection) {
   };
 }
 
-function buildToolOutputMessage(entry, currentTurnProjection) {
+function buildToolOutputMessage(entry, liveTurnContext) {
   const toolDetails = asRecord(entry.toolOutputDetails);
+  const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);
   const toolName = normalizeOptionalText(entry.toolName);
   const text = normalizeText(entry.text) || (toolName ? `${toolName} completed` : 'Tool completed');
-  const attachments = normalizeDisplayAttachments(entry.attachments);
+  const attachments = readSdkDisplayAttachments(entry.attachments);
   return buildToolOutputChatMessageState({
     id: entry.id,
     outputText: text,
@@ -449,47 +351,58 @@ function buildToolOutputMessage(entry, currentTurnProjection) {
     executionTime: typeof entry.executionTime === 'number' ? entry.executionTime : null,
     success: typeof entry.success === 'boolean' ? entry.success : null,
     correlationId: normalizeOptionalText(entry.correlationId),
-    toolOutputDetails: toolDetails,
-    turnRef: entry.turnRef || currentTurnProjection?.turnRef || null,
+    toolOutputDetails: displayToolDetails,
+    turnRef: entry.turnRef || liveTurnContext?.turnRef || null,
     modelId: entry.modelId || null,
     modelProvider: entry.modelProvider || null,
     isComplete: entry.isComplete === true,
   });
 }
 
-function buildChatMessageFromLiveTurnEntry(entry, currentTurnProjection = null) {
+function buildChatMessageFromLiveTurnEntry(entry, liveTurnContext = null) {
   if (!entry || typeof entry !== 'object' || typeof entry.id !== 'string') {
     return null;
   }
   const type = normalizeEntryType(entry.type);
   if (type === 'thinking') {
-    return buildThinkingMessage(entry, currentTurnProjection);
+    return buildThinkingMessage(entry, liveTurnContext);
   }
   if (type === 'tool-call' || type === 'tool-explanation') {
-    return buildToolCallMessage(entry, currentTurnProjection);
+    return buildToolCallMessage(entry, liveTurnContext);
   }
   if (type === 'tool-progress' || type === 'search-source') {
-    return buildToolProgressMessage(entry, currentTurnProjection);
+    return buildToolProgressMessage(entry, liveTurnContext);
   }
   if (type === 'tool-output') {
-    return buildToolOutputMessage(entry, currentTurnProjection);
+    return buildToolOutputMessage(entry, liveTurnContext);
   }
   if (type === 'error') {
-    return buildErrorMessage(entry, currentTurnProjection);
+    return buildErrorMessage(entry, liveTurnContext);
   }
-  return buildAssistantTextMessage(entry, currentTurnProjection);
+  return buildAssistantTextMessage(entry, liveTurnContext);
 }
 
-function buildCurrentTurnMessagesFromPresentation(currentTurnProjection = null) {
-  const entries = Array.isArray(currentTurnProjection?.presentation?.entries)
-    ? currentTurnProjection.presentation.entries
+function buildCurrentTurnMessagesFromPresentation(sdkLiveTurn = null) {
+  const entries = Array.isArray(sdkLiveTurn?.presentation?.entries)
+    ? sdkLiveTurn.presentation.entries
     : [];
   if (entries.length === 0) {
     return [];
   }
   return entries
-    .map((entry) => buildChatMessageFromLiveTurnEntry(entry, currentTurnProjection))
+    .map((entry) => buildChatMessageFromLiveTurnEntry(entry, sdkLiveTurn))
     .filter(Boolean);
+}
+
+function buildNoViewSdkLiveTurnMessages(sdkLiveTurn = null) {
+  const presentationMessages = buildCurrentTurnMessagesFromPresentation(sdkLiveTurn);
+  if (presentationMessages.length > 0) {
+    return presentationMessages;
+  }
+  if (hasPresentationObject(sdkLiveTurn)) {
+    return [];
+  }
+  return buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn);
 }
 
 function buildConversationViewLiveTurnMessages(conversationView = null) {
@@ -509,6 +422,20 @@ function buildConversationViewLiveTurnMessages(conversationView = null) {
       sourceChannel: sdkConversationViewSourceChannel,
     }, liveTurnContext))
     .filter(Boolean);
+}
+
+function buildSdkLiveTurnMessages({
+  conversationView = null,
+  sdkLiveTurn = null,
+} = {}) {
+  const conversationViewMessages = buildConversationViewLiveTurnMessages(conversationView);
+  if (conversationViewMessages.length > 0) {
+    return conversationViewMessages;
+  }
+  if (conversationView && typeof conversationView === 'object') {
+    return [];
+  }
+  return buildNoViewSdkLiveTurnMessages(sdkLiveTurn);
 }
 
 function isResponseCloseable(response) {
@@ -569,9 +496,12 @@ function isResponseOverlaySourceTaggedMessage(message) {
 export const DesktopCurrentTurnMessageRuntime = Object.freeze({
   buildConversationViewLiveTurnMessages,
   buildCurrentTurnMessagesFromPresentation,
-  buildCurrentTurnMessagesFromProjection,
+  buildLegacyNoPresentationCurrentTurnMessages,
+  buildNoViewSdkLiveTurnMessages,
+  buildSdkLiveTurnMessages,
   isResponseCloseable,
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
   isVisibleResponseOverlayMessage,
+  resolveNoViewSdkLiveTurnThinkingText,
 });

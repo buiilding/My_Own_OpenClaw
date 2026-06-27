@@ -70,7 +70,7 @@ npm run audit:knip
 - Message input submission/lockout behavior is covered directly by `tests/frontend/MessageInput.test.jsx` and `tests/frontend/DesktopMessageInputRuntime.test.js`.
 - Message-list scroll/action/compaction presentation state is covered directly by `tests/frontend/DesktopMessageListRuntime.test.js` and `tests/frontend/MessageListScrollBehavior.test.jsx`.
 - Message row class composition (sender/type/streaming/screenshot) is covered directly by `tests/frontend/DesktopMessageClassRuntime.test.js`.
-- Attachment artifact-image resolution behavior is covered directly by `tests/frontend/DesktopResolvedMessageScreenshotsRuntime.test.jsx` and `tests/frontend/AttachmentDisplayComponents.test.jsx`.
+- Attachment artifact-image resolution behavior is covered directly by `tests/frontend/DesktopAttachmentImageRuntime.test.jsx` and `tests/frontend/AttachmentDisplayComponents.test.jsx`.
 - Tool-output source and token metadata formatting behavior is covered directly by `tests/frontend/MessageSourceBadge.test.jsx` and `tests/frontend/DesktopMessageTokenUsageRuntime.test.js`.
 - Message transparency section descriptor behavior is covered directly by `tests/frontend/DesktopMessageTransparencyRuntime.test.js`.
 - Thread-find match projection behavior is covered directly by `tests/frontend/DesktopThreadFindRuntime.test.js`.

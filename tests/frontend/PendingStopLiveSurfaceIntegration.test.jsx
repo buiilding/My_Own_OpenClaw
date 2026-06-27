@@ -3,10 +3,22 @@
  */
 
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
+import { useShallow } from 'zustand/react/shallow';
 
 import { AppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  selectLiveTurnSurfaceState,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  acceptPendingTurnInChatStore,
+  setIsSendingInChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { useChatSurfaceController } from '../../frontend/src/renderer/features/chat/hooks/useChatSurfaceController';
 import { useStopTurnHandler } from '../../frontend/src/renderer/features/chat/hooks/useStopTurnHandler';
 import {
@@ -16,6 +28,10 @@ import {
 const mockStop = jest.fn();
 const mockSend = jest.fn();
 const mockRunManualCompaction = jest.fn();
+
+function getActiveWorkspace() {
+  return useChatStore.getState().getWorkspaceState();
+}
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
   DesktopLiveTurnRuntimeClient: {
@@ -39,13 +55,10 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopManualCompactionRuntim
 }));
 
 function PendingStopButton() {
-  const messages = useChatStore((state) => state.messages);
-  const currentTurnProjection = useChatStore((state) => state.currentTurnProjection);
-  const pendingTurn = useChatStore((state) => state.pendingTurn);
+  const chatSurfaceState = useChatStore(useShallow(selectLiveTurnSurfaceState));
+  const { stopTurnTarget } = chatSurfaceState;
   const chatSurface = useChatSurfaceController({
-    messages,
-    currentTurnProjection,
-    pendingTurn,
+    chatSurfaceState,
     sessionInfo: {
       conversationRef: 'conv-pending-stop',
       userId: 'user-pending-stop',
@@ -56,9 +69,7 @@ function PendingStopButton() {
   });
   const { handleStopTurn } = useStopTurnHandler({
     enabled: chatSurface.isBusy,
-    currentTurnProjection,
-    pendingTurn,
-    sessionConversationRef: 'conv-pending-stop',
+    stopTurnTarget,
     warningContext: 'PendingStopLiveSurfaceIntegration',
   });
   return (
@@ -76,15 +87,14 @@ describe('pending stop live surface integration', () => {
   });
 
   test('stops a pending turn from visible lifecycle when raw isSending is stale false', () => {
-    useChatStore.getState().acceptPendingTurn({
+    acceptPendingTurnInChatStore({
       conversationRef: 'conv-pending-stop',
       turnRef: 'turn-pending-stop',
       userMessageId: 'user-pending-stop',
       text: 'pending stop',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     });
-    useChatStore.setState({ isSending: false });
+    setIsSendingInChatStore(false, 'conv-pending-stop');
 
     render(
       <AppConfigContext.Provider value={{
@@ -107,13 +117,13 @@ describe('pending stop live surface integration', () => {
       conversationRef: 'conv-pending-stop',
       turnRef: 'turn-pending-stop',
     });
-    expect(useChatStore.getState()).toEqual(expect.objectContaining({
+    expect(getActiveWorkspace()).toEqual(expect.objectContaining({
       pendingTurn: null,
       isSending: false,
       thinkingStatus: null,
       thinkingSourceEventType: null,
     }));
-    expect(useChatStore.getState().streamTracking).toEqual(expect.objectContaining({
+    expect(getActiveWorkspace().streamTracking).toEqual(expect.objectContaining({
       phase: 'complete',
       lastEventType: 'stop-query',
     }));

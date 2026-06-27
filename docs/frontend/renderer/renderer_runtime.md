@@ -61,7 +61,7 @@ Primary hooks:
 - `useChatMessageSender`
 - `useChatStream`
 - `useConversationRuntimeProjectionStream`: subscribes to SDK display/current-turn
-  projections; `DesktopCurrentTurnProjectionEffectsRuntime` owns renderer send-latch,
+  projections; `DesktopSdkLiveTurnEffectsRuntime` owns renderer send-latch,
   thinking, and legacy stream-tracking side effects derived from current-turn
   projection cursors; `desktopConversationDisplayProjection.ts` owns SDK
   display-row projection plus renderer annotation and optimistic-row merge rules

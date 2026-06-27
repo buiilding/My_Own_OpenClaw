@@ -195,25 +195,44 @@ UI adapters:
 - `presentation`: SDK-owned live-turn UI contract with ordered visible entries,
   `hasVisibleContent`, `typingVisible`, `overlayVisible`, `isBusy`, and
   `isTerminal`
+- Renderer surface, visible-lifecycle, response-overlay, thread presentation,
+  live-turn side-effect, and trace-counter adapters treat the presence of
+  `presentation` as the SDK-owned visual contract: visible rows, derived
+  stream/tool effects, and trace summary counts come from
+  `presentation.entries`, terminal error display from `presentation.lastError`,
+  overlay thinking text from thinking entries, and busy/terminal lifecycle from
+  presentation fields plus phase. They must not scan raw `assistantText`,
+  `reasoningText`, or `toolEvents` to decide overlay/thread visibility, side
+  effects, or trace counts when a presentation object exists.
 - `presentation.entries[*].sourceChannel`: SDK presentation metadata uses
   `sdk:current-turn`; host IPC channel names are adapter details and must not
   leak into reusable SDK projections
-- Tool presentation entries carry explicit SDK display fields such as
-  `modelFacingToolCall`, `toolArguments`, `toolCallDetails`,
+- Tool presentation entries carry SDK-owned preview `text` plus explicit
+  display fields such as `modelFacingToolCall`, `toolArguments`, `toolCallDetails`,
   `toolOutputDetails`, `toolMetadata`, `toolDisplayMetadata`, normalized
   bundled `toolCalls`, recovery fields (`toolCallValidationFailed`,
   `rawToolCallPreview`, `rawArgumentsPreview`, `parseError`), typed
   `attachments[]`, compatibility screenshot refs/URLs, `executionTime`,
-  `success`, and `executionSkipped`. Renderer adapters should render live tool
-  screenshots from typed attachments rather than decoding backend-wire event
-  payloads or whole-message screenshot aliases; screenshot aliases remain
-  compatibility metadata for replay/provider boundaries.
+  `success`, and `executionSkipped`. SDK projection builds live tool-call
+  preview text from recovery previews or normalized tool identity/arguments, so
+  renderer adapters should render live tool calls and tool outputs from entry
+  `text` and typed display fields instead of decoding `modelFacingToolCall`,
+  `toolOutputDetails`, backend-wire event payloads, or whole-message screenshot
+  aliases. Screenshot aliases remain compatibility metadata for replay/provider
+  boundaries.
 
 Runtime snapshots also expose `snapshot.view`, and callers may use
 `conversation.getView()` or `conversation.subscribeView(...)` for the Phase 0
 SDK-owned `ConversationView` projection. The view is the normal UI contract that
 collapses display rows, live turn entries, surface modes, and action
 capabilities into one conversation-scoped object:
+
+Display rows carry SDK-authored `metadata.toolCallDetails` and
+`metadata.toolOutputDetails` for renderer tool cards. Renderer adapters should
+pass those detail records through as component metadata and must not rebuild
+them by copying request ids, bundle ids, tool-call ids, raw payloads, structured
+payloads, attachment aliases, or provider/model fields out of generic row
+metadata.
 
 ```text
 ConversationView = displayRows + liveTurn + surfaces + actions
@@ -240,9 +259,22 @@ busy/Stop contract: `snapshot.view.surfaces.pill.mode` drives the pill loop
 lock, `snapshot.view.surfaces.dashboard.mode` drives the dashboard composer
 loop lock, and `snapshot.view.liveTurn.canStop` drives Stop availability in
 renderer and Electron-main Stop shortcut resolution.
+The pill response-overlay `turnId` is also resolved inside the app runtime from
+SDK response rows, SDK overlay intent, visible lifecycle, or the pending bridge;
+React hooks pass those inputs through instead of composing renderer-owned
+turn-ref fallbacks.
 Renderer pending-turn state remains a short pre-view bridge immediately after
 send acceptance; raw current-turn snapshots and idle conversation refs must not
 enable Stop or become the main-process stop target, even before a view arrives.
+That bridge may carry turn identity, text, and timestamps, but it must not
+carry filename metadata, visual attachment lifecycle descriptors, screenshots,
+preview bytes, or ready artifact refs. SDK display rows and
+`ConversationView` own user-included image, camera screenshot, and replay
+attachment presentation. Renderer display projection may synthesize only this
+explicit `pendingTurn` bridge beside SDK display rows; it must not scan prior
+`renderer-compose` chat messages and carry them forward as visible user rows.
+Conversation-view chat projection receives renderer annotation records, not raw
+current chat messages, when copying local feedback state onto SDK rows.
 Raw current-turn snapshots remain live context for migrated display/surface
 handoff and diagnostics, while normal Stop authority is only the view or the
 local pending bridge. Minimal live surfaces receive a null raw current-turn
@@ -261,30 +293,89 @@ Electron main also hydrates newly tracked renderer windows with the cached
 `ConversationView` on the `windie:current-turn` envelope, so renderer reloads
 enter the same view-owned path as live runtime updates instead of starting from
 a raw current-turn-only sync.
+Renderer current-turn IPC adapters should treat a valid `presentation.entries`
+array as the normal current-turn shape and must not require raw `assistantText`
+or `toolEvents` when presentation exists. The raw field requirement remains
+only for legacy no-presentation snapshots.
 For the Phase 3 transcript migration, Electron renderer projects dashboard
 messages from `snapshot.view.displayRows` when a current-turn payload includes
 the view, and dashboard busy state reads `snapshot.view.surfaces.dashboard.mode`.
 Dashboard thread live rows also render from `snapshot.view.liveTurn.entries`
-whenever a view exists; raw `snapshot.currentTurn.presentation.entries` and
-phase-derived current-turn rows remain only as the no-view bridge and must not
-append visible rows beside the SDK view.
+whenever a view exists; SDK view construction removes discrete tool-call,
+tool-output, and tool-progress live entries once the same tool event has
+materialized in `snapshot.view.displayRows`, so a tool card has one UI row
+owner. Legacy no-view tool-call rows must still preserve request identity from
+the tool event or nested payload as the renderer `correlationId`, because
+display-row reconciliation keys live/materialized tool cards by that identity
+before falling back to tool name or text. Raw
+`snapshot.currentTurn.presentation.entries` and phase-derived current-turn rows
+remain only as the no-view bridge and must not append visible rows beside the
+SDK view.
 The `conversation.loadDisplay` command also carries `snapshot.view`, and
 desktop renderer display-row facades consume `snapshot.view.displayRows`
 without falling back to legacy `snapshot.displayRows`. SDK snapshots may still
 carry `snapshot.displayRows` for SDK/custom callers and diagnostics, but the
 Electron command payload and renderer transcript loaders no longer use it as a
 normal UI authority.
-For the first Phase 4 action migration, renderer chat surfaces read
-`snapshot.view.actions.canEdit` and `snapshot.view.actions.canRetry` when a
-view exists before rendering edit/resend or Try again commands. Message row type
-still provides row-level capability gating, and `snapshot.view.displayRows[]`
-now carries row `actions` metadata with `canEdit`/`editTargetRowId` for user
-rows and `canRetry`/`retryTargetRowId` for terminal assistant rows. The renderer
-projects those row targets into chat messages so a replacement row can remain
-the visible edit surface while replay targets the SDK-provided original row
-identity. Copy/feedback actions remain renderer-local affordances, and replay
-execution still uses the existing display-timeline path until the later
-SDK-owned revision operation replaces it.
+Dashboard conversation opening stores the returned `ConversationView` in the
+chat store before projecting messages from `view.displayRows`, so resumed
+dashboard chats use the same SDK view authority as active chat surfaces.
+The renderer dashboard conversation library facade exposes only
+`loadConversationView` for this path; raw display-row and legacy display-message
+load helpers remain outside normal React dashboard resume ownership.
+For the Phase 4 action migration, renderer chat surfaces no longer turn
+`snapshot.view.actions.canEdit` or `snapshot.view.actions.canRetry` into a
+global message-list gate. `snapshot.view.displayRows[]` carries row `actions`
+metadata with `canEdit`/`editTargetRowId` for user rows and
+`canRetry`/`retryTargetRowId` for terminal assistant rows. The renderer projects
+those row targets into chat messages so a replacement row can remain the visible
+edit surface while replay targets the SDK-provided original row identity;
+row-level SDK action metadata gates whether the edit/resend or Try again
+controls are shown, and missing row action booleans on SDK display rows mean
+the command is unavailable rather than defaulting to a renderer heuristic.
+Renderer message-list controls apply the same rule for all rows: copy and
+feedback remain renderer-local affordances, but edit/resend and Try again are
+shown only when row `actions.canEdit` or `actions.canRetry` is explicitly
+`true`.
+Renderer display-row adapters do not JSON-stringify malformed content for row
+types whose SDK contract owns string content, such as user, assistant,
+tool-output, and progress rows. Producers must normalize those rows before they
+reach `ConversationView`; the renderer may only stringify SDK-declared
+structured tool rows such as tool calls and bundle outputs for component
+compatibility.
+Renderer display-row and live-turn adapters also keep SDK attachment
+descriptors on the typed `attachments[]` prop only. Tool detail panels may
+receive display identity fields such as `toolName`, `requestId`,
+`correlationId`, `bundleId`, `toolCallId`, and `success`, plus SDK-authored
+display details, but component correlation identity comes from the SDK-authored
+`displayCorrelationId` field. Renderer adapters must not recover correlation
+identity by trying request, bundle, tool-call, or legacy correlation fields in
+fallback order. Tool detail panels must not receive provider-facing
+`modelFacingToolCall`, model-selection metadata, raw payloads, screenshot
+aliases, or SDK attachment lifecycle descriptors as generic detail payload.
+Copy/feedback actions remain renderer-local affordances. Renderer
+replay execution calls the SDK edit/resend and retry commands directly; when a
+`ConversationView` exists, replay target preparation derives its row model from
+`ConversationView.displayRows` instead of raw `chatStore.messages`.
+`ChatInterface` no longer passes a replay row model or fallback transcript into
+replay hooks. The renderer's temporary replay bridge retains already projected
+visible prefix rows as UI rows only; it does not filter tool pairs, reconstruct
+model context, or provide fallback rows for replay command resolution.
+React replay hooks do not select store `activeConversationRef`, `addMessage`,
+or skin failure copy for replay orchestration; `desktopConversationReplayRuntime`
+resolves active conversation state from its store dependency and leaves replay
+failure display to SDK/main conversation events rather than publishing a
+renderer-local row. SDK replay commands own the durable child revision and
+provider-safe replacement history.
+Thread presentation no longer accepts caller-built `currentTurnMessages` as an
+alternate live-row input; no-view live rows must come from the SDK current-turn
+projection/presentation adapter, and `ConversationView` remains the normal
+read model once present.
+When a caller supplies `ConversationView`, thread presentation accepts only
+SDK display-row messages plus the explicit renderer pending-send bridge as its
+base rows. Raw renderer transcript rows are ignored in that mode so view-owned
+live rows cannot be positioned, deduped, or suppressed by stale chat-store
+messages.
 
 For debugging, use:
 
@@ -311,8 +402,11 @@ same transcript, active-turn, and replay views.
 Electron main emits the projection to renderer surfaces on the SDK current-turn
 IPC payload. Renderer overlays should render `view.liveTurn.entries` when a
 `ConversationView` is present, falling back to `currentTurn.presentation.entries`
-only for non-migrated hosts. They must not independently interpret backend-wire
-stream/tool events or synthesize current-turn chat messages.
+only for non-migrated hosts. If `currentTurn.presentation` exists, an empty
+`presentation.entries` array is authoritative for overlay and thread
+presentation and must not trigger raw `assistantText`/`toolEvents` row
+synthesis. They must not independently interpret backend-wire stream/tool
+events or synthesize current-turn chat messages.
 Conversation-control compaction events are not current-turn events: they must
 not reset the current-turn anchor to a compaction operation id, set
 `presentation.isBusy`, or turn a manual compaction failure into an assistant
@@ -460,9 +554,11 @@ rows from `snapshot.currentTurn`. `snapshot.currentTurn` remains the SDK-owned
 phase/status/overlay projection for busy state, stop eligibility, active turn
 identity, and overlay-specific progressive state.
 Desktop may render a temporary, textless thinking disclosure from
-`snapshot.currentTurn.reasoningText` while a turn is active, but that disclosure
-is not a transcript assistant row and must disappear once the SDK display row
-contains assistant-visible text for the same turn.
+`snapshot.currentTurn.presentation.entries` while a turn is active, but that
+disclosure is not a transcript assistant row and must disappear once the SDK
+display row contains assistant-visible text for the same turn. Raw
+`snapshot.currentTurn.reasoningText` is legacy no-presentation fallback context
+only.
 
 Terminal `turn_error` and `runtime_error` events are authoritative for their
 turn. If assistant text or deltas were already projected for the same
@@ -504,13 +600,16 @@ conversation.loadDisplayTimeline({ revisionId? })
 conversation.loadModelHistory({ revisionId? })
 conversation.listRevisions({ limit? })
 conversation.replaceRows({ rows, baseRevisionId, reason })
-conversation.fork({ sourceRevisionId, cutAfterRowId?, newConversationRef })
+conversation.fork({ sourceRevisionId, cutAfterRowId?, newConversationRef? })
 conversation.checkoutRevision({ revisionId })
 ```
 
 Electron main and renderer hosts expose those same revision primitives through
 SDK-shaped commands: `conversation.listRevisions`,
 `conversation.checkoutRevision`, and `conversation.fork`. Normal UI branch
+forks pass only source revision intent and let the SDK generate the new
+conversation ref; explicit `newConversationRef` remains available for callers
+that need a predetermined fork id.
 navigation calls that command/service boundary instead of reconstructing
 display prefixes or model-history rows in renderer code. The dashboard
 revision menu lists sanitized revision metadata, checks out selected revisions
@@ -519,7 +618,14 @@ calling the SDK fork command with the selected `sourceRevisionId`. When
 `cutAfterRowId` is omitted, the SDK resolves the selected revision's last
 display row and returns the forked SDK view to the newly active conversation,
 so renderer code does not load display timelines just to reconstruct a branch
-prefix. Diagnostics can inspect a
+prefix. Renderer revision controls receive app-runtime-prepared menu items:
+the adapter owns revision id normalization, active-row metadata,
+checkout/fork action ids, disabled state, and checkout-result active revision
+marking, while React renders the item and sends only the selected
+checkout/fork intent to SDK commands. Renderer
+app-runtime facades should not expose direct display timeline
+load/replace helpers to React; low-level timeline mutation remains SDK/main
+command-handler and diagnostics ownership. Diagnostics can inspect a
 selected branch view with
 `<windie> conversation view <conversation-ref> --revision <revision-id>` and
 can inspect the matching storage ownership state with
@@ -720,16 +826,19 @@ reconstruct backend `error` or `token-count` events from `payload.sourceEvent`.
 advance the response phase. Completion and error phase ownership stays with
 `snapshot.currentTurn`.
 
-Desktop reasoning projection consumes SDK `currentTurn.reasoningText` from the
-conversation runtime snapshot. Renderer UI/debug state may keep the source label
-`llm-thought` for continuity, but the handler should not reconstruct backend
-`llm-thought` events from `payload.sourceEvent` or consume normalized
-`reasoning_delta` as a separate live-state path.
+Desktop reasoning projection consumes SDK thinking presentation entries from
+the conversation runtime snapshot. Renderer UI/debug state may keep the source
+label `llm-thought` for continuity, but the handler should not reconstruct
+backend `llm-thought` events from `payload.sourceEvent`, consume normalized
+`reasoning_delta` as a separate live-state path, or require raw
+`currentTurn.reasoningText` when presentation exists.
 
-Desktop assistant live text consumes SDK `currentTurn.assistantText` from the
-conversation runtime snapshot. Backend-wire `streaming-response` and normalized
-SDK `assistant_delta` events may still exist in the event log, but they should
-not be renderer live-row or active-turn state fallbacks.
+Desktop assistant live text consumes SDK `llm-text` presentation entries from
+the conversation runtime snapshot. Backend-wire `streaming-response`,
+normalized SDK `assistant_delta` events, and raw `currentTurn.assistantText`
+may still exist in the event log/snapshot for compatibility, but they should
+not be renderer live-row or active-turn state fallbacks when presentation
+exists.
 
 Desktop completion projection consumes SDK `turn_completed` identity directly.
 The SDK event carries `conversationRef`, `turnRef`, and `payload.userId` for
@@ -746,11 +855,13 @@ The current-turn projection filters benign settings-update failures and
 recoverable streamed tool-call parse failures so those non-turn errors do not
 become response-overlay errors.
 
-Desktop live tool projection consumes SDK `snapshot.currentTurn.toolEvents`.
-Renderer UI/debug state may keep source labels such as `tool-call`,
-`tool-output`, and `web-search-progress`, but active tool rows and phase
-tracking should come from the SDK current-turn projection instead of a separate
-normalized-event live-state path.
+Desktop live tool projection consumes SDK tool presentation entries from
+`snapshot.currentTurn.presentation.entries`. Renderer UI/debug state may keep
+source labels such as `tool-call`, `tool-output`, and `web-search-progress`,
+but active tool rows and phase tracking should come from the SDK current-turn
+presentation instead of a separate normalized-event live-state path. Raw
+`snapshot.currentTurn.toolEvents` is legacy no-presentation fallback context
+only.
 When provider-native web search progress has to be rehydrated as a synthetic
 `web_search` tool pair, the SDK projection uses provider-neutral display text.
 Backend web-search docs remain the source of truth for whether OpenAI native,
@@ -763,29 +874,30 @@ Desktop local-user projection consumes SDK `user_message` directly for backend
 
 Desktop tool-call transcript persistence may consume SDK `tool_call` directly.
 The SDK payload exposes normalized fields such as `toolName`, `args`,
-request/correlation ids, and `userId`, while `structuredPayload` carries backend
-detail fields needed for transcript trace rows. Renderer active tool-call
-display should come from `snapshot.currentTurn.toolEvents`, and should not
-reconstruct backend `tool-call` events from `payload.sourceEvent`.
+request/correlation ids, and `userId`, and SDK projection owns any backend
+detail recovery before emitting renderer-visible rows. Renderer active
+tool-call display should come from SDK presentation entries or SDK-authored
+display rows, and should not reconstruct backend `tool-call` events from
+`payload.sourceEvent`.
 
 Desktop tool-output transcript persistence may consume SDK `tool_output`
 directly. The SDK payload exposes normalized identity, request/correlation id,
 tool name, and typed display attachments adapted from either
-`attachments[]`/`display_attachments` or old screenshot refs, while
-`structuredPayload` carries backend detail fields used for transcript trace
-rows and malformed-payload fallbacks.
+`attachments[]`/`display_attachments` or old screenshot refs. SDK projection
+owns backend detail recovery and malformed-payload fallback before emitting
+renderer-visible rows.
 For `tool_output` and `tool_progress`, normalized `correlationId` prefers
 backend `payload.correlation_id` and falls back to `payload.request_id`.
-Renderer active tool-output display should come from
-`snapshot.currentTurn.toolEvents`, and should not reconstruct backend
-`tool-output` events from `payload.sourceEvent`.
+Renderer active tool-output display should come from SDK presentation entries
+or SDK-authored display rows, and should not reconstruct backend `tool-output`
+events from `payload.sourceEvent`.
 
 Desktop tool-bundle transcript persistence may consume SDK `tool_bundle_call`
 directly. The SDK payload exposes normalized bundle identity, correlation id,
-tool list, and user id, while `structuredPayload` carries backend detail fields
-used for transcript trace rows. Renderer active bundle display should come from
-`snapshot.currentTurn.toolEvents`, and should not reconstruct backend
-`tool-bundle` events from `payload.sourceEvent`.
+tool list, and user id. SDK projection owns backend detail recovery before
+emitting renderer-visible rows. Renderer active bundle display should come
+from SDK presentation entries or SDK-authored display rows, and should not
+reconstruct backend `tool-bundle` events from `payload.sourceEvent`.
 
 ## Continuity Service Rule
 
@@ -885,7 +997,6 @@ Edit/resend and retry are display revision operations:
 
 ```text
 visible row action/message id selects the SDK target
-  -> renderer publishes retained visible prefix plus pending turn as a temporary bridge
   -> SDK editAndResend/retryTurn resolves the stored display row
   -> SDK replaces the retained prefix plus replacement user row
   -> SDK send() sends the replacement user message as the same new turn
@@ -916,22 +1027,20 @@ typed image attachment has a display-local id and a separate `screenshotRef`,
 replay uses the real screenshot/artifact ref for the backend payload and carries
 the typed attachment as SDK display metadata. Legacy display-row
 `screenshot_refs` and single screenshot refs still flow through replay
-screenshot resolution. Renderer replay payloads are preserve-by-default: absent
-or null attachment fields must not erase prior resolved resources without an
-explicit removal operation.
+screenshot resolution inside the SDK command. Renderer replay command payloads
+must not infer or forward screenshot aliases; absent renderer payload fields
+must not erase prior resolved resources without an explicit removal operation.
 
-The Electron renderer publishes the retained replay prefix and `pendingTurn`
-as one visible optimistic frame before awaiting the SDK revision command. If
-the SDK command cannot resolve the stored target row or fails after the pending
-bridge is visible, the renderer restores the retained prefix, clears only that
-pending turn, and appends a send-failure row. Pending turn IPC
-preserves typed `attachments[]`; echoed pending-turn broadcasts from Electron
-main must no-op in a renderer that already owns the same pending user row, and
-SDK display-row echoes for that pending turn must keep the existing optimistic
-bubble until the turn is no longer pending. Replay pending user rows use the SDK
-replacement event id (`<turnRef>-sdk-evt-000002-user_message`) so the final
-`sdk:display-rows` projection updates the existing user bubble instead of
-remounting it.
+The Electron renderer does not publish a replay-specific pending turn, retained
+display prefix, or separate replacement query. It passes row intent, edited
+text when applicable, workspace context, model override, user id, conversation
+ref, and no renderer-owned replacement turn ref into the SDK command. The SDK
+command chooses the replacement turn ref. If the SDK command cannot resolve
+the stored target row or fails, the renderer records replay diagnostics and
+returns failure without rolling its own display replacement, failure row, or
+resource restoration. Typed
+visual `attachments[]`, screenshot descriptors, preview bytes, ready artifact
+refs, and replacement event ids remain SDK display-row state.
 
 Edit/resend can target a turn that is still awaiting or streaming. In that
 case the SDK treats the replacement as an active-turn handoff: once
@@ -946,10 +1055,10 @@ the edit Send button usable under repeated clicks while the editable display
 document remains the visible authority. If the later normal send fails after
 the child display
 revision is accepted, the renderer keeps the accepted child timeline visible,
-removes the optimistic replay row, clears only the pending turn, and appends a
-send-failure error row instead of rolling back to the parent transcript. No
-migration is required for existing conversations; before their first display
-checkpoint, the active timeline loads from the event projection fallback.
+appends a send-failure error row instead of rolling back to the parent
+transcript. No migration is required for existing conversations; before their
+first display checkpoint, the active timeline loads from the event projection
+fallback.
 
 Fork is also a revision operation rather than a raw-event rewrite:
 
@@ -1053,8 +1162,8 @@ Current-turn live presentation entries mirror the same SDK-shaped identity
 fields (`toolName`, `requestId`, `correlationId`, and `bundleId`) so renderer
 UI code can render live tool rows without re-reading backend-wire aliases from
 `structuredPayload`.
-The underlying `currentTurn.toolEvents` projection exposes those identity fields
-for hosts that still render directly from tool events.
+The underlying legacy `currentTurn.toolEvents` projection exposes those identity
+fields for hosts that still render directly from tool events.
 Claimed SDK-shaped events execute the local runtime, send the result back
 through the transport, and append the corresponding normalized output event
 through the same store/projection path. When backend metadata marks the tool
