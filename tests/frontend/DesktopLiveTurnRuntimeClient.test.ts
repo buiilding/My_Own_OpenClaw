@@ -40,7 +40,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     await DesktopLiveTurnRuntimeClient.sendQuery({
       text: 'hello',
       conversationRef: 'conv-send',
-      workspacePath: ' /workspace/project-alpha ',
+      workspacePath: '/workspace/project-alpha',
       resources: [{
         kind: 'readable_file',
         filePath: '/tmp/notes.txt',
@@ -72,6 +72,23 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('attachment_filenames');
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('metadata');
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('model');
+  });
+
+  test('sendQuery omits padded workspace path instead of repairing it before SDK command dispatch', async () => {
+    const { DesktopLiveTurnRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
+    );
+
+    await DesktopLiveTurnRuntimeClient.sendQuery({
+      text: 'hello',
+      conversationRef: 'conv-send',
+      workspacePath: ' /workspace/project-alpha ',
+      turnRef: 'turn-explicit',
+    });
+
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
+      workspace_path: null,
+    }));
   });
 
   test('sendQuery ignores stale renderer model overrides before SDK command dispatch', async () => {

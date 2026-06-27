@@ -184,6 +184,9 @@ When attachment(s) exist:
    turn ref, and typed resources. Normal sends do not build a renderer-owned
    filename payload, metadata object, or per-turn model override; selected model
    changes are applied through the awaited SDK settings command before dispatch.
+   The command facade forwards a top-level `workspace_path` only when the
+   renderer binding is already an exact non-empty string; padded workspace
+   strings are omitted rather than trimmed into SDK command data.
 8. Electron main preserves `resources` for SDK `send()` while keeping them out
    of the backend query allowlist; SDK resource resolution owns user-row
    metadata updates.

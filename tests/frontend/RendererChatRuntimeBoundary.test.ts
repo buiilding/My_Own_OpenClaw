@@ -301,6 +301,9 @@ describe('renderer chat runtime boundary', () => {
     expect(liveTurnRuntimeSource).not.toContain('AgentModelSelection');
     expect(liveTurnRuntimeSource).not.toContain('input.model');
     expect(liveTurnRuntimeSource).not.toContain('model: input.model');
+    expect(liveTurnRuntimeSource).toContain('function optionalExactString(value: unknown)');
+    expect(liveTurnRuntimeSource).not.toContain('function optionalString(value: unknown)');
+    expect(liveTurnRuntimeSource).toContain('workspace_path: optionalExactString(input.workspacePath) ?? null');
   });
 
   test('app live-turn runtime facade does not own transcript projection writes', async () => {

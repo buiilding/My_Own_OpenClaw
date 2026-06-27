@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: require exact renderer workspace paths at the SDK
+  `conversation.send` command boundary, omitting padded values instead of
+  trimming them into SDK command data. No migration required.
 - frontend/replay: keep SDK row replay metadata scoped to matching row kinds
   during display projection, so edit actions only survive on user rows and
   retry actions only survive on assistant rows. No migration required.

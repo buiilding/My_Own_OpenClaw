@@ -27,14 +27,6 @@ type SendConversationQueryInput = {
   turnRef?: string | null;
 };
 
-function optionalString(value: unknown): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
 function optionalExactString(value: unknown): string | null {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
     ? value
@@ -141,7 +133,7 @@ export const DesktopLiveTurnRuntimeClient = {
       text: input.text,
       conversation_ref: conversationRef,
       query_message_id: turnRef ?? null,
-      workspace_path: optionalString(input.workspacePath) ?? null,
+      workspace_path: optionalExactString(input.workspacePath) ?? null,
       resources: normalizeTurnInputResources(input.resources),
       memory_retrieval_enabled: DesktopMemoryRetrievalPreferenceRuntime.getMemoryRetrievalInjectionEnabled(),
     });
