@@ -19,6 +19,10 @@ All notable changes to WindieOS will be documented in this file.
   fallback from recovering tool names or correlation ids out of raw
   `toolEvent.payload`; live tool presentation now uses SDK-shaped tool fields
   only. No migration required.
+- frontend/conversation-view: tighten ConversationView workspace and response
+  overlay lifecycle inputs to their SDK-owned read-model contracts, clearing
+  pending sends from user display rows by `role` and keeping overlay visible
+  lifecycle calls free of unused raw message input. No migration required.
 - cli/test: update the core-loop regression preset to run the renamed
   `DesktopSdkLiveTurnEffectsRuntime` and `DesktopAttachmentImageRuntime`
   coverage instead of stale pre-boundary filenames, keeping SDK live-turn and

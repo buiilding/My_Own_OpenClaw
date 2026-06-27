@@ -609,7 +609,6 @@ function resolveResponseOverlaySurfaceState({
     conversationView,
     pendingTurn,
     sdkLiveTurn,
-    messages,
   });
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
     conversationView,

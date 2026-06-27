@@ -90,10 +90,7 @@ function normalizeConversationViewLiveTurn(conversationView: ConversationView | 
   const hasSameTurnUserDisplayRow = displayRows.some((row) => (
     row
       && typeof row === 'object'
-      && (
-        row.role === 'user'
-        || row.type === 'user_message'
-      )
+      && row.role === 'user'
       && normalizeString(row.turnRef) === turnRef
   ));
   const hasVisibleReplacement = Boolean(
