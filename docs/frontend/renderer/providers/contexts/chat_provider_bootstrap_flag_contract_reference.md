@@ -50,8 +50,9 @@ Ownership model:
   deriving counts or last-message identity, so trace code does not reopen the
   raw workspace as a competing chat read model
 - when a workspace has `ConversationView`, live-surface trace snapshots use the
-  view live-turn/display-row identity before falling back to raw stream
-  tracking and workspace messages
+  view live-turn/display-row identity only; stale raw stream tracking and raw
+  workspace messages are no-view fallback evidence and do not contribute beside
+  an SDK view, even when that view currently has no display rows
 
 ## Surface Flag Semantics
 

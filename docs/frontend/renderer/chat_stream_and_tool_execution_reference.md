@@ -56,7 +56,7 @@ Ownership boundaries:
 
 - `AppConfigProvider`: persisted config, model-list fetch trigger, runtime settings sync, wakeword preference/suppression state
 - `AppStatusProvider`: transient settings-save status (`idle/saving/success/error`) with timeout-based transitions
-- `ChatProvider`: mounts `useChatStream`, mirrors transcript session `conversationRef` into chat-store `activeConversationRef`, and wires the active workspace read model into renderer trace transport through chat-store adapter getters. `DesktopChatProviderTraceRuntime` owns the ConversationView-first trace snapshot summary so the provider does not inspect display rows, raw messages, or raw Zustand workspace state directly. Local tool execution is owned by the Agent SDK runtime.
+- `ChatProvider`: mounts `useChatStream`, mirrors transcript session `conversationRef` into chat-store `activeConversationRef`, and wires the active workspace read model into renderer trace transport through chat-store adapter getters. `DesktopChatProviderTraceRuntime` owns the ConversationView-first trace snapshot summary so the provider does not inspect display rows, raw messages, or raw Zustand workspace state directly; once a `ConversationView` exists, stale raw messages and stream-tracking turn refs are not trace fallback evidence. Local tool execution is owned by the Agent SDK runtime.
 
 ## Chat Message and Store Contracts
 

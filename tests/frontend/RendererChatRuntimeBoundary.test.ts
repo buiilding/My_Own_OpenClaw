@@ -2399,7 +2399,9 @@ describe('renderer chat runtime boundary', () => {
     expect(chatProviderSource).not.toContain('phase: workspace.streamTracking.phase');
     expect(providerTraceRuntimeSource).toContain('export const DesktopChatProviderTraceRuntime = Object.freeze');
     expect(providerTraceRuntimeSource).toContain('buildChatProviderTraceWorkspaceSnapshot');
+    expect(providerTraceRuntimeSource).toContain('function hasConversationView');
     expect(providerTraceRuntimeSource).toContain('conversationView?.displayRows');
+    expect(providerTraceRuntimeSource).not.toContain('return displayRows ? displayRows.length : messages.length');
     expect(providerTraceRuntimeSource).not.toContain('features/chat');
     expect(clientSource).toContain('SEND_CHANNELS.LIVE_SURFACE_TRACE');
     await expect(fs.stat(

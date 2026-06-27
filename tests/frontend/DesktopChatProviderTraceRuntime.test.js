@@ -51,7 +51,35 @@ describe('DesktopChatProviderTraceRuntime', () => {
     });
   });
 
-  test('falls back to raw workspace messages when no ConversationView rows exist', () => {
+  test('does not fall back to raw workspace fields when ConversationView has no rows', () => {
+    expect(buildChatProviderTraceWorkspaceSnapshot({
+      activeConversationRef: 'conv-provider',
+      workspace: {
+        messages: [{
+          id: 'stale-message',
+          sender: 'assistant',
+          type: 'llm-text',
+          text: 'stale raw answer',
+          turnRef: 'turn-stale',
+          sourceEventType: 'streaming-response',
+        }],
+        streamTracking: {
+          activeTurnRef: 'turn-stale',
+        },
+        conversationView: {
+          liveTurn: null,
+          displayRows: [],
+        },
+      },
+    })).toEqual({
+      activeConversationRef: 'conv-provider',
+      workspaceMessageCount: 0,
+      activeTurnRef: null,
+      lastMessage: null,
+    });
+  });
+
+  test('falls back to raw workspace messages when no ConversationView exists', () => {
     expect(buildChatProviderTraceWorkspaceSnapshot({
       activeConversationRef: 'conv-provider',
       workspace: {

@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/conversation-view: reuse the empty renderer-annotation list when
   stale raw rows contain no feedback, so no-feedback raw message churn cannot
   invalidate SDK-view presentation. No migration required.
+- frontend/traces: stop provider trace snapshots from falling back to raw
+  messages or raw stream-tracking turn refs whenever a `ConversationView`
+  exists, even before the view has display rows. No migration required.
 - frontend/attachments: count image-token estimates only from SDK
   `attachments[]` descriptors whose `kind` is `image`, leaving pending or
   failed screenshot request descriptors as display state. No migration required.
