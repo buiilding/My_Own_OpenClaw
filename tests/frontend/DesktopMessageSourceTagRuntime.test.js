@@ -41,7 +41,7 @@ describe('desktopMessageSourceTagRuntime', () => {
         screenshotRef: 'shot-1',
       }],
     })).toEqual({
-      badgeText: 'transcript / unknown / tokens~ txt:2 img(est):85 total:87',
+      badgeText: 'transcript / unknown / tokens~ txt:2',
       title: 'source_event=transcript',
     });
     expect(resolveMessageSourceBadgePresentation({

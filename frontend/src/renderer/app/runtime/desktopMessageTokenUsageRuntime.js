@@ -2,13 +2,7 @@
  * Provides renderer message token usage tags for presentation surfaces.
  */
 
-import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
-
 const APPROX_CHARS_PER_TOKEN = 4;
-const APPROX_IMAGE_TOKENS_PER_SCREENSHOT = 85;
-const {
-  readSdkDisplayAttachments,
-} = DesktopSdkDisplayAttachmentProjection;
 
 function normalizeText(value) {
   if (typeof value !== 'string') {
@@ -30,18 +24,6 @@ function estimateTextTokens(text) {
     return 0;
   }
   return Math.ceil(normalized.length / APPROX_CHARS_PER_TOKEN);
-}
-
-function resolveUserImageAttachmentCount(message) {
-  return readSdkDisplayAttachments(message?.attachments)
-    .filter((attachment) => (
-      attachment.kind === 'image'
-      && (
-        attachment.status === 'materializing'
-        || attachment.status === 'ready'
-      )
-    ))
-    .length;
 }
 
 function resolveUserText(message) {
@@ -131,12 +113,10 @@ function resolveMessageTokenUsageTag(message) {
 
   if (message.sender === 'user') {
     const textTokens = estimateTextTokens(resolveUserText(message));
-    const imageTokens = resolveUserImageAttachmentCount(message) * APPROX_IMAGE_TOKENS_PER_SCREENSHOT;
-    const totalTokens = textTokens + imageTokens;
-    if (totalTokens <= 0) {
+    if (textTokens <= 0) {
       return null;
     }
-    return `tokens~ txt:${textTokens} img(est):${imageTokens} total:${totalTokens}`;
+    return `tokens~ txt:${textTokens}`;
   }
 
   if (message.type === 'tool-call' || message.type === 'tool-output') {

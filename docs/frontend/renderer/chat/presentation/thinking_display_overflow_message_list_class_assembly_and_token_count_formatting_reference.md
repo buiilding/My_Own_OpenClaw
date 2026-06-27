@@ -140,12 +140,11 @@ Current runtime keeps token usage in chat store/state:
 
 - `chatStore.ts` holds `tokenCounts` payload from backend.
 - `useChatStream` handles `token-count` events and calls `setTokenCounts`.
-- dev token image estimates count projected SDK `attachments[]` entries only;
-  legacy `screenshots[]` and whole-message `screenshotRef`/`screenshotUrl`
-  aliases are not renderer presentation or token-estimate authorities. The
-  token helper counts only SDK image descriptors in `materializing` or `ready`
-  states, so failed image descriptors and screenshot-request placeholders remain
-  display lifecycle state rather than inferred model image cost.
+- dev token estimates do not inspect attachment descriptors. Legacy
+  `screenshots[]`, whole-message `screenshotRef`/`screenshotUrl` aliases, and
+  SDK `attachments[]` lifecycle states are not renderer token-estimate
+  authorities; attachment lifecycle stays with SDK display projection and
+  rendering components.
 - React message prop contracts advertise typed `attachments[]`, not
   whole-message screenshot aliases.
 - `DesktopAttachmentImageRuntime` resolves image refs/URLs only from typed SDK
@@ -158,7 +157,7 @@ Important:
 - token count remains part of stream telemetry/state and may be surfaced by future UI consumers.
 - in `dev_ui=1`, per-message token estimates now render via
   `MessageSourceBadge` through `DesktopMessageTokenUsageRuntime`:
-  - user rows show text/image/total estimates
+  - user rows show text-only estimates
   - tool-call/tool-output rows show payload token estimates
   - all message-level values are approximate and intentionally tagged `tokens~`
 

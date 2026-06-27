@@ -40,7 +40,7 @@ describe('MessageSourceBadge', () => {
     );
 
     expect(screen.getByText(
-      'user message / sdk:conversation-event / tokens~ txt:2 img(est):85 total:87',
+      'user message / sdk:conversation-event / tokens~ txt:2',
     )).toBeInTheDocument();
   });
 

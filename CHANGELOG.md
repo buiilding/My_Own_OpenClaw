@@ -14,6 +14,9 @@ All notable changes to WindieOS will be documented in this file.
   methods so renderer UI callers cannot forward replay payloads, attachment
   aliases, or model overrides through the SDK command bridge. No migration
   required.
+- frontend/token-tags: stop estimating user image tokens from SDK attachment
+  lifecycle descriptors in the renderer dev token tag; attachment lifecycle now
+  stays on the SDK display/rendering path. No migration required.
 - frontend/live-turn: remove the generic renderer metadata pass-through from
   `DesktopLiveTurnRuntimeClient.sendQuery`, leaving normal sends to cross the
   SDK command boundary with typed resources rather than attachment or capture

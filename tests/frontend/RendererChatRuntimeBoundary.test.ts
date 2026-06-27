@@ -1478,9 +1478,9 @@ describe('renderer chat runtime boundary', () => {
     expect(messageTypeSource).not.toContain('screenshotContentType?:');
     expect(messageTypeSource).not.toContain('screenshots?:');
     expect(tokenUsageRuntimeSource).toContain('tokens(provider)');
-    expect(tokenUsageRuntimeSource).toContain('message?.attachments');
-    expect(tokenUsageRuntimeSource).toContain("attachment.status === 'materializing'");
-    expect(tokenUsageRuntimeSource).toContain("attachment.status === 'ready'");
+    expect(tokenUsageRuntimeSource).not.toContain('message?.attachments');
+    expect(tokenUsageRuntimeSource).not.toContain("attachment.status === 'materializing'");
+    expect(tokenUsageRuntimeSource).not.toContain("attachment.status === 'ready'");
     expect(tokenUsageRuntimeSource).not.toContain('countDisplayImageAttachments');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshots');
     expect(tokenUsageRuntimeSource).not.toContain('countLegacyScreenshotAttachments');
@@ -1488,9 +1488,9 @@ describe('renderer chat runtime boundary', () => {
     expect(tokenUsageRuntimeSource).not.toContain('screenshotUrl');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshotRef');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshotUrl');
-    expect(tokenUsageRuntimeSource).toContain("attachment.kind === 'image'");
-    expect(tokenUsageRuntimeSource).toContain('DesktopSdkDisplayAttachmentProjection');
-    expect(tokenUsageRuntimeSource).toContain('readSdkDisplayAttachments');
+    expect(tokenUsageRuntimeSource).not.toContain("attachment.kind === 'image'");
+    expect(tokenUsageRuntimeSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(tokenUsageRuntimeSource).not.toContain('readSdkDisplayAttachments');
     expect(tokenUsageRuntimeSource).not.toContain('screenshot: message?.screenshot');
     expect(tokenUsageRuntimeSource).not.toContain('modelFacingToolCall');
     expect(tokenUsageRuntimeSource).toContain('DesktopMessageTokenUsageRuntime');

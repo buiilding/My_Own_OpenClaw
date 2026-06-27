@@ -25,7 +25,7 @@ describe('desktopMessageTokenUsageRuntime', () => {
     expect(tag).toBe('tokens(provider) out:5 vis:3 think:2 turn:17 cached:12');
   });
 
-  test('uses fullUserMessage content and typed attachments for user token estimates', () => {
+  test('uses fullUserMessage content for user token estimates', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'user',
       text: 'short text',
@@ -41,10 +41,10 @@ describe('desktopMessageTokenUsageRuntime', () => {
       }],
     });
 
-    expect(tag).toBe('tokens~ txt:2 img(est):85 total:87');
+    expect(tag).toBe('tokens~ txt:2');
   });
 
-  test('estimates image tokens only from SDK image attachment descriptors', () => {
+  test('does not estimate image tokens from SDK attachment descriptors', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'user',
       text: 'abcd',
@@ -67,10 +67,10 @@ describe('desktopMessageTokenUsageRuntime', () => {
       }],
     });
 
-    expect(tag).toBe('tokens~ txt:1 img(est):85 total:86');
+    expect(tag).toBe('tokens~ txt:1');
   });
 
-  test('does not estimate image tokens from failed SDK image descriptors', () => {
+  test('does not inspect SDK image lifecycle descriptors for token estimates', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'user',
       text: 'abcd',
@@ -94,10 +94,10 @@ describe('desktopMessageTokenUsageRuntime', () => {
       }],
     });
 
-    expect(tag).toBe('tokens~ txt:1 img(est):170 total:171');
+    expect(tag).toBe('tokens~ txt:1');
   });
 
-  test('does not estimate image tokens from malformed attachment descriptors', () => {
+  test('ignores malformed attachment descriptors for user token estimates', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'user',
       text: 'abcd',
@@ -116,7 +116,7 @@ describe('desktopMessageTokenUsageRuntime', () => {
       }],
     });
 
-    expect(tag).toBe('tokens~ txt:1 img(est):0 total:1');
+    expect(tag).toBe('tokens~ txt:1');
   });
 
   test('ignores legacy screenshot arrays for user image token estimates', () => {
@@ -129,7 +129,7 @@ describe('desktopMessageTokenUsageRuntime', () => {
       ],
     });
 
-    expect(tag).toBe('tokens~ txt:1 img(est):0 total:1');
+    expect(tag).toBe('tokens~ txt:1');
   });
 
   test('ignores whole-message screenshot aliases for user image token estimates', () => {
@@ -140,7 +140,7 @@ describe('desktopMessageTokenUsageRuntime', () => {
       screenshotUrl: 'https://example.com/shot-1.png',
     });
 
-    expect(tag).toBe('tokens~ txt:1 img(est):0 total:1');
+    expect(tag).toBe('tokens~ txt:1');
   });
 
   test('estimates tool-call tokens from SDK display text', () => {
