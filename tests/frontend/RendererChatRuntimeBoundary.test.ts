@@ -892,6 +892,9 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSideEffectsSource).toContain('export const DesktopSdkLiveTurnEffectsRuntime = Object.freeze');
     expect(projectionSideEffectsSource).toContain('setThinkingStatus');
     expect(projectionSideEffectsSource).toContain('streaming-response');
+    expect(projectionSideEffectsSource).toContain('entry.id === entry.id.trim()');
+    expect(projectionSideEffectsSource).not.toContain("? entry.id.trim()");
+    expect(projectionSideEffectsSource).not.toContain("return typeof entry.id === 'string' && entry.id.trim()");
     expect(projectionSideEffectsSource).toContain('desktopChatStreamThinkingRuntime');
     expect(projectionSideEffectsSource).toContain('DesktopChatStreamThinkingRuntime');
     expect(projectionSideEffectsSource).not.toContain('typingVisible');

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: reject repaired SDK live-entry ids in live-turn
+  side-effect dedupe, so padded presentation ids cannot suppress later exact
+  SDK entries. No migration required.
 - frontend/transport: reject repaired accepted send message ids from the desktop
   runtime transport instead of trimming padded main-process results into SDK
   send identity. No migration required.

@@ -409,7 +409,10 @@ generic assistant text rather than being trimmed into tool, thinking, progress,
 or error rows by the renderer. Live-entry `sourceEventType` values follow the
 same exactness rule; invalid labels fall back to the generic source for the
 rendered live row instead of being preserved or trimmed as authored SDK event
-identity.
+identity. Renderer live-turn side-effect dedupe also treats SDK presentation
+entry ids as exact-only. Padded entry ids fall back to the local entry
+index/type key instead of being trimmed into a key that can suppress a later
+exact SDK entry.
 Renderer live-entry adapters assign their own presentation `sourceChannel`
 based on whether the input came from no-view SDK current-turn presentation or
 first-class `ConversationView.liveTurn.entries`; live entry payloads cannot

@@ -135,8 +135,8 @@ function isExecutionSkippedToolEntry(entry: SdkLiveTurnPresentationEntry): boole
 }
 
 function presentationEntryId(entry: SdkLiveTurnPresentationEntry, index: number): string {
-  return typeof entry.id === 'string' && entry.id.trim()
-    ? entry.id.trim()
+  return typeof entry.id === 'string' && entry.id.length > 0 && entry.id === entry.id.trim()
+    ? entry.id
     : `entry:${index}:${entry.type || 'unknown'}`;
 }
 
