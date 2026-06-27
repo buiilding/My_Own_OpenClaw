@@ -451,6 +451,10 @@ ids/text plus UI dependencies to `DesktopConversationReplayRuntime`, which
 forwards intent to SDK command APIs. The chat-store adapter surface does not
 publish replay actions. SDK runtime resolves display rows and resources from
 its canonical `ConversationView`/display timeline state.
+When `ConversationView` exists, `DesktopChatInterfacePresentationRuntime` also
+keeps raw workspace `messages` out of its cache identity; stale raw message
+array churn cannot invalidate or reshape the SDK-view presentation. Raw
+messages remain a no-view fallback input only.
 
 `DesktopChatRevisionActionRuntime` owns checkout/fork command input shaping for
 the revision menu: revision id normalization, action ids, default user id, and

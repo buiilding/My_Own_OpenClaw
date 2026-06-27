@@ -422,6 +422,58 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     expect(secondState).toBe(firstState);
   });
 
+  test('keeps ConversationView presentation cached across ignored raw message changes', () => {
+    const rendererAnnotations = [];
+    const conversationView = {
+      conversationRef: 'conv-1',
+      displayRows: [{
+        id: 'user-row',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-view',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'view prompt',
+      }],
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries: [],
+      },
+      actions: {
+        canEdit: true,
+        canRetry: true,
+      },
+    };
+    const firstState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView,
+      messages: [{
+        id: 'stale-raw-a',
+        sender: 'user',
+        text: 'ignored raw prompt a',
+      }],
+      rendererAnnotations,
+    });
+    const secondState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView,
+      messages: [{
+        id: 'stale-raw-b',
+        sender: 'user',
+        text: 'ignored raw prompt b',
+      }],
+      rendererAnnotations,
+    });
+
+    expect(secondState).toBe(firstState);
+    expect(secondState.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'user-row',
+        text: 'view prompt',
+      }),
+    ]);
+  });
+
   test('resolves a conversation view store target ref', () => {
     expect(resolveConversationViewStoreRef({
       activeConversationRef: 'conv-1',

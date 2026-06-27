@@ -48,6 +48,7 @@ function buildChatInterfacePresentationState({
 } = {}) {
   const hasConversationView = isConversationView(conversationView);
   const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
+  const effectiveMessages = hasConversationView ? null : messages;
   if (
     chatInterfacePresentationCache.state
     && chatInterfacePresentationCache.activeConversationRef === activeConversationRef
@@ -55,7 +56,7 @@ function buildChatInterfacePresentationState({
     && chatInterfacePresentationCache.conversationViewDisplayRows === conversationView?.displayRows
     && chatInterfacePresentationCache.conversationViewLiveTurn === conversationView?.liveTurn
     && chatInterfacePresentationCache.conversationViewLiveEntries === conversationView?.liveTurn?.entries
-    && chatInterfacePresentationCache.messages === messages
+    && chatInterfacePresentationCache.messages === effectiveMessages
     && chatInterfacePresentationCache.pendingTurn === pendingTurn
     && chatInterfacePresentationCache.rendererAnnotations === rendererAnnotations
     && chatInterfacePresentationCache.sdkLiveTurn === effectiveSdkLiveTurn
@@ -93,7 +94,7 @@ function buildChatInterfacePresentationState({
     conversationViewDisplayRows: conversationView?.displayRows,
     conversationViewLiveTurn: conversationView?.liveTurn,
     conversationViewLiveEntries: conversationView?.liveTurn?.entries,
-    messages,
+    messages: effectiveMessages,
     pendingTurn,
     rendererAnnotations,
     sdkLiveTurn: effectiveSdkLiveTurn,

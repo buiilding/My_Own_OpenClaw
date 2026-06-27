@@ -393,7 +393,9 @@ When a caller supplies `ConversationView`, thread presentation accepts only
 SDK display-row messages plus the explicit renderer pending-send bridge as its
 base rows. Raw renderer transcript rows are ignored in that mode so view-owned
 live rows cannot be positioned, deduped, or suppressed by stale chat-store
-messages.
+messages. Main chat presentation also ignores raw workspace `messages` for its
+cache identity while a `ConversationView` exists; raw message-array churn is not
+a visible SDK-view invalidation signal.
 
 For debugging, use:
 
