@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/query: align Electron main renderer-query preparation with the
+  exact SDK transport contract by rejecting padded `query_message_id` values
+  and omitting padded `attachment_filenames[]` entries instead of trimming them.
+  No migration required.
 - frontend/replay: require exact direct AgentClient replay conversation refs
   and target row ids before selecting a conversation runtime handle, keeping
   main-process replay bridges from trimming malformed renderer intent. No

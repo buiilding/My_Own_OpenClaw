@@ -170,7 +170,8 @@ Main relay invariants:
   backend send so first-turn settings do not lag renderer config.
 - `prepareRendererQueryPayload(...)` clones the renderer payload, resolves
   `conversation_ref`, strips prompt-only attachment context, strips the memory
-  retrieval flag, and normalizes attachment filenames.
+  retrieval flag, preserves exact attachment filenames, and rejects padded
+  `query_message_id` values before turn replay state starts.
 - `prepareRendererQuerySend(...)` sets response overlay phase to
   `awaiting-first-chunk`, records active display affinity, starts the event
   replay buffer with the turn id, filters backend query fields, and returns the
