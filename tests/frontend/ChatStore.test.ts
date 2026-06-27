@@ -326,6 +326,56 @@ describe('chatStore', () => {
     expect(readModel).not.toHaveProperty('sdkLiveTurn');
   });
 
+  test('chat stream read model does not expose padded ConversationView live turn refs', () => {
+    setMessagesInChatStore([
+      {
+        id: 'raw-message',
+        sender: 'assistant',
+        text: 'raw answer',
+        turnRef: 'turn-raw',
+      },
+    ], 'conv-padded-view');
+    updateStreamTrackingInChatStore((current) => ({
+      ...current,
+      activeTurnRef: 'turn-raw',
+      phase: 'streaming',
+    }), 'conv-padded-view');
+    setConversationViewInChatStore({
+      conversationRef: 'conv-padded-view',
+      revisionId: null,
+      displayRows: [{
+        id: 'view-row',
+        conversationRef: 'conv-padded-view',
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'view answer',
+        turnRef: ' turn-view ',
+      }],
+      liveTurn: {
+        turnRef: ' turn-view ',
+      },
+      surfaces: {
+        dashboard: { mode: 'normal', visible: true },
+        pill: { mode: 'normal', visible: true },
+        responseOverlay: { mode: 'hidden', visible: false },
+      },
+      actions: {
+        canEdit: false,
+        canRetry: false,
+        canFork: false,
+      },
+    }, 'conv-padded-view');
+
+    const readModel = getChatStreamWorkspaceReadModelFromChatStore('conv-padded-view') as Record<string, unknown>;
+
+    expect(readModel.viewLiveTurnRef).toBeNull();
+    expect(readModel.streamTracking).toEqual(expect.objectContaining({
+      activeTurnRef: null,
+      phase: 'idle',
+    }));
+    expect(readModel).not.toHaveProperty('conversationView');
+  });
+
   test('projected chat-store read models do not expose partial ConversationView objects', () => {
     setMessagesInChatStore([
       {

@@ -136,6 +136,7 @@ const {
 const {
   buildSetConversationViewStateUpdate,
   hasWorkspaceConversationView,
+  readConversationViewLiveTurnRef,
 } = DesktopConversationViewWorkspaceRuntime;
 
 const pendingTurnStateRuntimeDependencies = {
@@ -220,7 +221,7 @@ function buildChatStreamWorkspaceReadModel(
       : null,
     streamTracking: workspace.streamTracking,
     thinkingSourceEventType: workspace.thinkingSourceEventType,
-    viewLiveTurnRef: workspace.conversationView?.liveTurn?.turnRef ?? null,
+    viewLiveTurnRef: readConversationViewLiveTurnRef(workspace.conversationView),
   };
 }
 

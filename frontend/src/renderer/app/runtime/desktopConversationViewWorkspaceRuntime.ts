@@ -76,6 +76,12 @@ function hasWorkspaceConversationView(workspace: unknown): workspace is { conver
   );
 }
 
+function readConversationViewLiveTurnRef(conversationView: unknown): string | null {
+  return isConversationView(conversationView)
+    ? exactNonEmptyString(conversationView.liveTurn.turnRef)
+    : null;
+}
+
 function hasRendererFeedbackAnnotation(value: unknown): boolean {
   return Boolean(
     value
@@ -280,5 +286,6 @@ export const DesktopConversationViewWorkspaceRuntime = Object.freeze({
   buildConversationViewWorkspaceMutation,
   buildSetConversationViewStateUpdate,
   hasWorkspaceConversationView,
+  readConversationViewLiveTurnRef,
   shouldClearPendingTurnForConversationView,
 });

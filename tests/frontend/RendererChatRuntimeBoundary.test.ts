@@ -4723,7 +4723,10 @@ describe('renderer chat runtime boundary', () => {
       chatStoreAdaptersSource.indexOf('function buildChatStreamWorkspaceReadModel'),
       chatStoreAdaptersSource.indexOf('function buildCurrentTurnProjectionWorkspaceReadModel'),
     );
-    expect(chatStreamReadModelSource).toContain('viewLiveTurnRef: workspace.conversationView?.liveTurn?.turnRef ?? null');
+    expect(chatStreamReadModelSource).toContain('viewLiveTurnRef: readConversationViewLiveTurnRef(workspace.conversationView)');
+    expect(chatStreamReadModelSource).not.toContain('workspace.conversationView?.liveTurn?.turnRef');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('function readConversationViewLiveTurnRef');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('return isConversationView(conversationView)');
     expect(chatStreamReadModelSource).not.toContain('conversationView:');
     expect(chatStreamReadModelSource).not.toContain('liveTurn: {');
     const currentTurnReadModelSource = chatStoreAdaptersSource.slice(

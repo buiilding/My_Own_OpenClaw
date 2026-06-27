@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stream: derive the chat-stream `viewLiveTurnRef` read model through
+  the ConversationView workspace runtime's exact SDK live-turn reader, so padded
+  view turn refs do not leave the SDK-view boundary as stream authority. No
+  migration required.
 - frontend/send: omit malformed optional SDK resource metadata from the
   live-turn command facade instead of forwarding `null` content type, filename,
   or screenshot reason fields. No migration required.

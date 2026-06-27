@@ -61,7 +61,10 @@ predicate stays private to `desktopChatStreamTurnGuardRuntime.ts`.
 `useChatStream` supplies the projected chat workspace read model to the guard
 and terminal-completion helpers, so the stream read model's `viewLiveTurnRef`
 is the active-turn authority once a complete SDK `ConversationView` is present
-and raw `streamTracking` is only a no-view fallback.
+and raw `streamTracking` is only a no-view fallback. The chat-store adapter
+derives `viewLiveTurnRef` through the ConversationView workspace runtime's
+exact live-turn reader; it does not publish nested `ConversationView.liveTurn`
+shape or trim malformed SDK refs into active-turn authority.
 Conversation-event `conversationRef`/`turnRef`, pending-handoff `turnRef`, and
 active-stream `turnRef` comparisons are exact-only. Padded refs are treated as
 absent instead of being trimmed into stale-turn matches or pending-turn handoff
