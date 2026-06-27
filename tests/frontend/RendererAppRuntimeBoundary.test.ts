@@ -1388,6 +1388,8 @@ describe('renderer app runtime boundary', () => {
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.MODELS_LIST');
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED');
     expect(agentRuntimeTransportSource).toContain('const queryMessageId = optionalExactString(messageId)');
+    expect(agentRuntimeTransportSource).toContain('result.messageId === result.messageId.trim()');
+    expect(agentRuntimeTransportSource).not.toContain('return result.messageId.trim()');
     expect(agentRuntimeTransportSource).toContain('const turnRef = optionalExactString(payload.turn_ref)');
     expect(agentRuntimeTransportSource).toContain('AgentRuntimeTransport');
     expect(agentRuntimeTransportSource).toContain('export const DesktopRuntimeTransport = Object.freeze');

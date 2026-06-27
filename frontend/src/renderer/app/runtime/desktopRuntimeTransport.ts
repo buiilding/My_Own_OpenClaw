@@ -123,9 +123,10 @@ async function sendQuery(
     && typeof result === 'object'
     && 'messageId' in result
     && typeof result.messageId === 'string'
-    && result.messageId.trim().length > 0
+    && result.messageId.length > 0
+    && result.messageId === result.messageId.trim()
   ) {
-    return result.messageId.trim();
+    return result.messageId;
   }
   return messageId;
 }

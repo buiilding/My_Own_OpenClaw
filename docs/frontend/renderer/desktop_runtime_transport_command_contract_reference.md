@@ -559,8 +559,12 @@ commands. SDK library commands such as `conversation.loadDisplay`,
 
 1. invokes `windie:invoke` with `conversation.send`
 2. throws when main returns `{ ok: false, error }`
-3. returns the accepted `messageId` from main when provided
+3. returns the accepted exact `messageId` from main when provided
 4. otherwise returns the caller-provided message id
+
+Accepted `messageId` results from main also follow exact identity rules. Padded
+results are ignored instead of being trimmed into the renderer transport return
+value; callers keep their original exact `query_message_id` fallback.
 
 `compactHistory(...)`, `wakewordDetected(...)`, and `updateSettings(...)` return
 the snake_case `turn_ref` when present. Removed `turnRef` aliases are rejected.

@@ -83,6 +83,22 @@ describe('desktopRuntimeTransport', () => {
     expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
   });
 
+  test('ignores padded accepted message ids instead of trimming them into send results', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: true,
+      messageId: ' msg-accepted ',
+    });
+
+    const transport = createDesktopRuntimeTransport(null);
+
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+    }, {
+      messageId: 'turn-1',
+    })).resolves.toBe('turn-1');
+  });
+
   test('forwards only exact SDK send resource metadata fields', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({
       ok: true,

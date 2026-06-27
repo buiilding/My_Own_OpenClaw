@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/transport: reject repaired accepted send message ids from the desktop
+  runtime transport instead of trimming padded main-process results into SDK
+  send identity. No migration required.
 - frontend/stream: reject padded turn-to-conversation fallback refs instead of
   trimming them into renderer no-view/pending routing maps. No migration
   required.
