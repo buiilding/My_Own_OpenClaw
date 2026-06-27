@@ -2438,6 +2438,10 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForSdkLiveTurn');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('resolvePendingTurnForCurrentProjection');
     expect(currentTurnWorkspaceRuntimeSource).toContain('buildNoViewSdkLiveTurnWorkspaceMutation');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('hasWorkspaceConversationView(currentWorkspace)');
+    expect(currentTurnWorkspaceRuntimeSource).not.toContain('function hasConversationView');
+    expect(currentTurnWorkspaceRuntimeSource).not.toContain('hasConversationView(currentWorkspace.conversationView)');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('buildCurrentTurnWorkspaceMutation');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('buildSetCurrentTurnProjectionStateUpdate');
     expect(chatStoreSource).not.toContain('buildPendingTurnBroadcastStateUpdate');
@@ -4706,6 +4710,9 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForSdkLiveTurn');
     expect(currentTurnWorkspaceRuntimeSource).toContain('readNoViewSdkLiveTurnStorage(currentWorkspace)');
     expect(currentTurnWorkspaceRuntimeSource).toContain('buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('hasWorkspaceConversationView(currentWorkspace)');
+    expect(currentTurnWorkspaceRuntimeSource).not.toContain('function hasConversationView');
+    expect(currentTurnWorkspaceRuntimeSource).not.toContain('hasConversationView(currentWorkspace.conversationView)');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('currentWorkspace.currentTurnProjection');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('resolvePendingTurnForCurrentProjection');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('features/chat');

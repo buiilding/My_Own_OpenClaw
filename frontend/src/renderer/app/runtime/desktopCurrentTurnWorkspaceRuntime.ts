@@ -8,6 +8,9 @@ import {
   DesktopChatWorkspaceStateRuntime,
 } from './desktopChatWorkspaceStateRuntime';
 import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
+import {
   DesktopVisibleTurnLifecycleRuntime,
 } from './desktopVisibleTurnLifecycleRuntime';
 
@@ -15,6 +18,9 @@ const {
   buildNoViewSdkLiveTurnStorageUpdate,
   readNoViewSdkLiveTurnStorage,
 } = DesktopChatWorkspaceStateRuntime;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 const {
   resolvePendingTurnForSdkLiveTurn,
 } = DesktopVisibleTurnLifecycleRuntime;
@@ -44,10 +50,6 @@ type CurrentTurnStateDependencies<
   ) => string;
 };
 
-function hasConversationView(value: unknown): boolean {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
 function buildNoViewSdkLiveTurnWorkspaceMutation<TWorkspace extends CurrentTurnWorkspace>({
   currentWorkspace,
   sdkLiveTurn,
@@ -56,7 +58,7 @@ function buildNoViewSdkLiveTurnWorkspaceMutation<TWorkspace extends CurrentTurnW
   sdkLiveTurn: CurrentTurnProjection | null;
 }): TWorkspace | null {
   const currentSdkLiveTurn = readNoViewSdkLiveTurnStorage(currentWorkspace);
-  if (hasConversationView(currentWorkspace.conversationView)) {
+  if (hasWorkspaceConversationView(currentWorkspace)) {
     return currentSdkLiveTurn === null
       ? null
       : buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace, null);

@@ -281,9 +281,10 @@ suppressing fallback identity. ChatInterface presentation uses the same
 envelope before choosing SDK view rows, active revision, or view cache identity,
 and passes `null` downstream for partial objects so no-view messages and
 `sdkLiveTurn` remain the only fallback inputs. Thread presentation,
-chat-surface, live-turn surface, and visible-lifecycle helpers now require that
-same complete envelope before a value can suppress raw fallback messages,
-`sdkLiveTurn`, or pending bridge state.
+chat-surface, live-turn surface, visible-lifecycle helpers, and no-view
+live-turn workspace storage now require that same complete envelope before a
+value can suppress raw fallback messages, `sdkLiveTurn`, or pending bridge
+state.
 Desktop live-surface overlay identity accepts only exact SDK refs from
 `snapshot.view.liveTurn`, `snapshot.view.surfaces.responseOverlay`, or
 `snapshot.currentTurn.presentation.overlayIntent`; padded refs are ignored

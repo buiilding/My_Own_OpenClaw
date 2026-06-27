@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/current-turn: require the shared complete SDK `ConversationView`
+  envelope before suppressing no-view SDK live-turn workspace storage, keeping
+  partial view-shaped objects on the no-view fallback path. No migration
+  required.
 - frontend/replay: reject padded or empty replay conversation refs and target row
   ids inside the renderer continuity facade before invoking SDK replay commands,
   keeping direct facade callers on the same exact-identity boundary as the

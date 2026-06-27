@@ -463,6 +463,10 @@ The interface presentation adapter also requires the complete SDK
 the no-view `sdkLiveTurn` fallback or passes a view to the thread presenter, so
 partial objects cannot suppress raw fallback rows and stale raw current-turn
 rows cannot re-enter through the presentation layer after a real view exists.
+No-view SDK live-turn workspace storage uses the same shared gate before it
+clears stored fallback state for a `ConversationView`; partial display-row-like
+objects remain on the no-view `sdkLiveTurn` path until the SDK emits the full
+view envelope.
 The thread presenter enforces the same read-model boundary for direct
 app-runtime callers through that shared gate: with `ConversationView` present,
 its base rows must be SDK display-row messages or the explicit renderer pending
