@@ -395,7 +395,9 @@ base rows. Raw renderer transcript rows are ignored in that mode so view-owned
 live rows cannot be positioned, deduped, or suppressed by stale chat-store
 messages. Main chat presentation also ignores raw workspace `messages` for its
 cache identity while a `ConversationView` exists; raw message-array churn is not
-a visible SDK-view invalidation signal.
+a visible SDK-view invalidation signal. Empty renderer annotation projections
+are stable; only actual renderer-local assistant feedback creates an annotation
+signal.
 
 For debugging, use:
 

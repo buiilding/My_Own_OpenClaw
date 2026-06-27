@@ -212,6 +212,31 @@ describe('desktopConversationDisplayProjection', () => {
     expect(annotations[0]).not.toHaveProperty('tokenCounts');
   });
 
+  test('reuses the empty renderer annotation list when raw rows have no feedback', () => {
+    const firstAnnotations = selectRendererMessageAnnotations([
+      message({
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'stale visible text',
+      }),
+      message({
+        id: 'user-1',
+        sender: 'user',
+        text: 'stale user text',
+      }),
+    ]);
+    const secondAnnotations = selectRendererMessageAnnotations([
+      message({
+        id: 'assistant-2',
+        sender: 'assistant',
+        text: 'different stale visible text',
+      }),
+    ]);
+
+    expect(firstAnnotations).toEqual([]);
+    expect(secondAnnotations).toBe(firstAnnotations);
+  });
+
   test('does not merge renderer feedback annotations into SDK user rows', () => {
     const projected = buildConversationViewChatMessages({
       conversationView: conversationViewWithRows([{

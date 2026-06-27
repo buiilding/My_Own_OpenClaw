@@ -249,6 +249,40 @@ describe('chatWorkspaceState', () => {
     expect(projectWorkspaceReadModelState(workspace)).toBe(readModel);
   });
 
+  test('keeps empty renderer annotations stable across raw message churn with ConversationView', () => {
+    const conversationView = {
+      conversationRef: 'thread-1',
+      displayRows: [{ id: 'sdk-row', role: 'assistant' }],
+      liveTurn: null,
+    };
+    const firstWorkspace = {
+      ...createInitialWorkspaceState(),
+      conversationView,
+      messages: [{
+        id: 'raw-a',
+        text: 'raw fallback a',
+        sender: 'assistant' as const,
+      }],
+    };
+    const secondWorkspace = {
+      ...createInitialWorkspaceState(),
+      conversationView,
+      messages: [{
+        id: 'raw-b',
+        text: 'raw fallback b',
+        sender: 'assistant' as const,
+      }],
+    };
+
+    const firstReadModel = projectWorkspaceReadModelState(firstWorkspace);
+    const secondReadModel = projectWorkspaceReadModelState(secondWorkspace);
+
+    expect(firstReadModel.messages).toEqual([]);
+    expect(secondReadModel.messages).toEqual([]);
+    expect(firstReadModel.rendererAnnotations).toEqual([]);
+    expect(secondReadModel.rendererAnnotations).toBe(firstReadModel.rendererAnnotations);
+  });
+
   test('builds workspace updates without projecting inactive workspace fields', () => {
     const workspace = {
       ...createInitialWorkspaceState(),

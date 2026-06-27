@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/conversation-view: ignore raw workspace message-array identity in
   main chat presentation caching whenever a `ConversationView` exists, keeping
   stale no-view rows from invalidating SDK-view rendering. No migration required.
+- frontend/conversation-view: reuse the empty renderer-annotation list when
+  stale raw rows contain no feedback, so no-feedback raw message churn cannot
+  invalidate SDK-view presentation. No migration required.
 - frontend/attachments: count image-token estimates only from SDK
   `attachments[]` descriptors whose `kind` is `image`, leaving pending or
   failed screenshot request descriptors as display state. No migration required.
