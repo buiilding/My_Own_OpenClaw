@@ -3835,6 +3835,12 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');
     expect(chatInterfacePresentationRuntimeSource).toContain('const effectiveMessages = hasConversationView ? null : messages');
     expect(chatInterfacePresentationRuntimeSource).toContain('chatInterfacePresentationCache.messages === effectiveMessages');
+    expect(chatInterfacePresentationRuntimeSource).toContain('buildSdkLiveTurnCacheKey');
+    expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurnPresentationEntries');
+    expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurnLegacyNoPresentationAssistantText');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('sdkLiveTurnAssistantText');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('sdkLiveTurnReasoningText');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('sdkLiveTurnToolEvents');
     expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurn: effectiveSdkLiveTurn');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('currentTurnProjection = null');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('selectRendererMessageAnnotations');

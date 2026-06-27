@@ -2016,9 +2016,10 @@ describe('ChatInterface wiring', () => {
         id: 'tool-call-1',
         kind: 'tool_call',
         toolName: 'run_shell_command',
+        requestId: 'request-tool-1',
         payload: {
           toolName: 'run_shell_command',
-          requestId: 'request-tool-1',
+          requestId: 'backend-payload-request-id',
           args: {
             command: 'pwd',
           },

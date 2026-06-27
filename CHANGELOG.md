@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/presentation: key no-view SDK live-turn presentation caching by
+  `presentation.entries` and live-turn refs, leaving raw
+  `assistantText`/`reasoningText`/`toolEvents` in an explicit legacy
+  no-presentation fallback path only. No migration required.
 - frontend/presentation: reconcile materialized and live dashboard/thread tool
   rows by SDK display identity instead of tool name, while preserving
   `requestId`/`bundleId` as renderer correlation ids for live entries and

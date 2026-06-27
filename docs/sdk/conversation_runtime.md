@@ -304,6 +304,10 @@ Renderer current-turn IPC adapters should treat a valid `presentation.entries`
 array as the normal current-turn shape and must not require raw `assistantText`
 or `toolEvents` when presentation exists. The raw field requirement remains
 only for legacy no-presentation snapshots.
+Renderer presentation caches follow the same split: presentation-backed
+snapshots are keyed by SDK presentation identity and live-turn refs, while raw
+`assistantText`, `reasoningText`, `toolEvents`, and `lastError` participate only
+in the explicitly named legacy no-presentation cache path.
 For the Phase 3 transcript migration, Electron renderer projects dashboard
 messages from `snapshot.view.displayRows` when a current-turn payload includes
 the view, and dashboard busy state reads `snapshot.view.surfaces.dashboard.mode`.

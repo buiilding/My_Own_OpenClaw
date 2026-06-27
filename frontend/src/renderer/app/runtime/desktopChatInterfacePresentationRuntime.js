@@ -30,13 +30,72 @@ let chatInterfacePresentationCache = {
   messages: null,
   pendingTurn: null,
   rendererAnnotations: null,
-  sdkLiveTurn: null,
+  sdkLiveTurnConversationRef: null,
+  sdkLiveTurnTurnRef: null,
   sdkLiveTurnPhase: null,
-  sdkLiveTurnAssistantText: null,
-  sdkLiveTurnReasoningText: null,
-  sdkLiveTurnToolEvents: null,
+  sdkLiveTurnPresentation: null,
+  sdkLiveTurnPresentationEntries: null,
+  sdkLiveTurnPresentationLastError: null,
+  sdkLiveTurnLegacyNoPresentationAssistantText: null,
+  sdkLiveTurnLegacyNoPresentationReasoningText: null,
+  sdkLiveTurnLegacyNoPresentationToolEvents: null,
+  sdkLiveTurnLegacyNoPresentationLastError: null,
   state: null,
 };
+
+function recordOrNull(value) {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value
+    : null;
+}
+
+function buildSdkLiveTurnCacheKey(sdkLiveTurn) {
+  const liveTurn = recordOrNull(sdkLiveTurn);
+  if (!liveTurn) {
+    return {
+      conversationRef: null,
+      turnRef: null,
+      phase: null,
+      presentation: null,
+      presentationEntries: null,
+      presentationLastError: null,
+      legacyNoPresentationAssistantText: null,
+      legacyNoPresentationReasoningText: null,
+      legacyNoPresentationToolEvents: null,
+      legacyNoPresentationLastError: null,
+    };
+  }
+  const presentation = recordOrNull(liveTurn.presentation);
+  const presentationEntries = Array.isArray(presentation?.entries)
+    ? presentation.entries
+    : null;
+  if (presentation) {
+    return {
+      conversationRef: liveTurn.conversationRef ?? null,
+      turnRef: liveTurn.turnRef ?? null,
+      phase: liveTurn.phase ?? null,
+      presentation,
+      presentationEntries,
+      presentationLastError: presentation.lastError ?? null,
+      legacyNoPresentationAssistantText: null,
+      legacyNoPresentationReasoningText: null,
+      legacyNoPresentationToolEvents: null,
+      legacyNoPresentationLastError: null,
+    };
+  }
+  return {
+    conversationRef: liveTurn.conversationRef ?? null,
+    turnRef: liveTurn.turnRef ?? null,
+    phase: liveTurn.phase ?? null,
+    presentation: null,
+    presentationEntries: null,
+    presentationLastError: null,
+    legacyNoPresentationAssistantText: liveTurn.assistantText,
+    legacyNoPresentationReasoningText: liveTurn.reasoningText,
+    legacyNoPresentationToolEvents: liveTurn.toolEvents,
+    legacyNoPresentationLastError: liveTurn.lastError,
+  };
+}
 
 function buildChatInterfacePresentationState({
   activeConversationRef = null,
@@ -49,6 +108,7 @@ function buildChatInterfacePresentationState({
   const hasConversationView = isConversationView(conversationView);
   const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
   const effectiveMessages = hasConversationView ? null : messages;
+  const sdkLiveTurnCacheKey = buildSdkLiveTurnCacheKey(effectiveSdkLiveTurn);
   if (
     chatInterfacePresentationCache.state
     && chatInterfacePresentationCache.activeConversationRef === activeConversationRef
@@ -59,11 +119,20 @@ function buildChatInterfacePresentationState({
     && chatInterfacePresentationCache.messages === effectiveMessages
     && chatInterfacePresentationCache.pendingTurn === pendingTurn
     && chatInterfacePresentationCache.rendererAnnotations === rendererAnnotations
-    && chatInterfacePresentationCache.sdkLiveTurn === effectiveSdkLiveTurn
-    && chatInterfacePresentationCache.sdkLiveTurnPhase === effectiveSdkLiveTurn?.phase
-    && chatInterfacePresentationCache.sdkLiveTurnAssistantText === effectiveSdkLiveTurn?.assistantText
-    && chatInterfacePresentationCache.sdkLiveTurnReasoningText === effectiveSdkLiveTurn?.reasoningText
-    && chatInterfacePresentationCache.sdkLiveTurnToolEvents === effectiveSdkLiveTurn?.toolEvents
+    && chatInterfacePresentationCache.sdkLiveTurnConversationRef === sdkLiveTurnCacheKey.conversationRef
+    && chatInterfacePresentationCache.sdkLiveTurnTurnRef === sdkLiveTurnCacheKey.turnRef
+    && chatInterfacePresentationCache.sdkLiveTurnPhase === sdkLiveTurnCacheKey.phase
+    && chatInterfacePresentationCache.sdkLiveTurnPresentation === sdkLiveTurnCacheKey.presentation
+    && chatInterfacePresentationCache.sdkLiveTurnPresentationEntries === sdkLiveTurnCacheKey.presentationEntries
+    && chatInterfacePresentationCache.sdkLiveTurnPresentationLastError === sdkLiveTurnCacheKey.presentationLastError
+    && chatInterfacePresentationCache.sdkLiveTurnLegacyNoPresentationAssistantText
+      === sdkLiveTurnCacheKey.legacyNoPresentationAssistantText
+    && chatInterfacePresentationCache.sdkLiveTurnLegacyNoPresentationReasoningText
+      === sdkLiveTurnCacheKey.legacyNoPresentationReasoningText
+    && chatInterfacePresentationCache.sdkLiveTurnLegacyNoPresentationToolEvents
+      === sdkLiveTurnCacheKey.legacyNoPresentationToolEvents
+    && chatInterfacePresentationCache.sdkLiveTurnLegacyNoPresentationLastError
+      === sdkLiveTurnCacheKey.legacyNoPresentationLastError
   ) {
     return chatInterfacePresentationCache.state;
   }
@@ -97,11 +166,16 @@ function buildChatInterfacePresentationState({
     messages: effectiveMessages,
     pendingTurn,
     rendererAnnotations,
-    sdkLiveTurn: effectiveSdkLiveTurn,
-    sdkLiveTurnPhase: effectiveSdkLiveTurn?.phase,
-    sdkLiveTurnAssistantText: effectiveSdkLiveTurn?.assistantText,
-    sdkLiveTurnReasoningText: effectiveSdkLiveTurn?.reasoningText,
-    sdkLiveTurnToolEvents: effectiveSdkLiveTurn?.toolEvents,
+    sdkLiveTurnConversationRef: sdkLiveTurnCacheKey.conversationRef,
+    sdkLiveTurnTurnRef: sdkLiveTurnCacheKey.turnRef,
+    sdkLiveTurnPhase: sdkLiveTurnCacheKey.phase,
+    sdkLiveTurnPresentation: sdkLiveTurnCacheKey.presentation,
+    sdkLiveTurnPresentationEntries: sdkLiveTurnCacheKey.presentationEntries,
+    sdkLiveTurnPresentationLastError: sdkLiveTurnCacheKey.presentationLastError,
+    sdkLiveTurnLegacyNoPresentationAssistantText: sdkLiveTurnCacheKey.legacyNoPresentationAssistantText,
+    sdkLiveTurnLegacyNoPresentationReasoningText: sdkLiveTurnCacheKey.legacyNoPresentationReasoningText,
+    sdkLiveTurnLegacyNoPresentationToolEvents: sdkLiveTurnCacheKey.legacyNoPresentationToolEvents,
+    sdkLiveTurnLegacyNoPresentationLastError: sdkLiveTurnCacheKey.legacyNoPresentationLastError,
     state,
   };
   return state;
