@@ -62,11 +62,13 @@ function messageActionTargetId(message, key) {
 }
 
 function resolveMessageReplayActions(message) {
+  const retryTargetMessageId = messageActionTargetId(message, 'retryTargetRowId');
+  const editTargetMessageId = messageActionTargetId(message, 'editTargetRowId');
   return {
-    canRetryMessage: messageActionFlag(message, 'canRetry'),
-    canEditMessage: messageActionFlag(message, 'canEdit'),
-    retryTargetMessageId: messageActionTargetId(message, 'retryTargetRowId') || message?.id || null,
-    editTargetMessageId: messageActionTargetId(message, 'editTargetRowId') || message?.id || null,
+    canRetryMessage: messageActionFlag(message, 'canRetry') && Boolean(retryTargetMessageId),
+    canEditMessage: messageActionFlag(message, 'canEdit') && Boolean(editTargetMessageId),
+    retryTargetMessageId,
+    editTargetMessageId,
   };
 }
 

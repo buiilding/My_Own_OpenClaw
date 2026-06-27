@@ -62,7 +62,7 @@ function MessageList({
       return;
     }
     setEditingUserMessageId(messageId);
-    setEditingUserReplayTargetMessageId(editTargetMessageId || messageId);
+    setEditingUserReplayTargetMessageId(editTargetMessageId);
     setEditingUserDraft(messageText || '');
   }, [submittingUserEdit]);
 
@@ -76,7 +76,12 @@ function MessageList({
   }, [submittingUserEdit]);
 
   const handleSubmitUserEdit = useCallback(async () => {
-    if (submittingUserEdit || !editingUserMessageId || typeof onUserEdit !== 'function') {
+    if (
+      submittingUserEdit
+      || !editingUserMessageId
+      || !editingUserReplayTargetMessageId
+      || typeof onUserEdit !== 'function'
+    ) {
       return;
     }
     const normalizedText = editingUserDraft.trim();
@@ -86,7 +91,7 @@ function MessageList({
     setSubmittingUserEdit(true);
     try {
       const result = await onUserEdit(
-        editingUserReplayTargetMessageId || editingUserMessageId,
+        editingUserReplayTargetMessageId,
         normalizedText,
       );
       if (result !== false) {

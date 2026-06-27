@@ -36,6 +36,10 @@ retry/edit controls through
 `DesktopMessageActionRuntime.resolveMessageReplayActions(message)` instead of
 parsing `actions.canRetry`, `actions.canEdit`, `retryTargetRowId`, or
 `editTargetRowId` inline.
+Replay actions fail closed unless the SDK row provides both the availability
+boolean and the corresponding target row id. Renderer presentation code must
+not recover missing `retryTargetRowId` or `editTargetRowId` from the rendered
+message id.
 
 Assistant action row render conditions:
 

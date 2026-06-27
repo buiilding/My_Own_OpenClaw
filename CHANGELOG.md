@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
   token readouts from the sanitized workspace read model whenever a
   `ConversationView` is present, so SDK-rendered rows do not carry stale
   renderer loop state beside the SDK-owned view. No migration required.
+- frontend/replay: require SDK row action metadata to include explicit
+  `editTargetRowId` or `retryTargetRowId` before rendering edit/resend or Try
+  again controls, removing renderer fallback target recovery from visible
+  message ids. No migration required.
 - cli/test: update the core-loop regression preset to run the renamed
   `DesktopSdkLiveTurnEffectsRuntime` and `DesktopAttachmentImageRuntime`
   coverage instead of stale pre-boundary filenames, keeping SDK live-turn and

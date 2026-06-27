@@ -62,10 +62,10 @@ function AssistantMessageActions({
   };
 
   const handleTryAgain = () => {
-    if (disabled || !canTryAgain || typeof onTryAgain !== 'function') {
+    if (disabled || !canTryAgain || !retryTargetMessageId || typeof onTryAgain !== 'function') {
       return;
     }
-    onTryAgain(retryTargetMessageId || messageId);
+    onTryAgain(retryTargetMessageId);
   };
 
   return (

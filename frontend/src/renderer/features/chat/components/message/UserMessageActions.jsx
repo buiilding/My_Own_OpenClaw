@@ -19,10 +19,10 @@ function UserMessageActions({
   });
 
   const handleEdit = () => {
-    if (!canEdit || typeof onEdit !== 'function') {
+    if (!canEdit || !editTargetMessageId || typeof onEdit !== 'function') {
       return;
     }
-    onEdit(messageId, messageText, editTargetMessageId || messageId);
+    onEdit(messageId, messageText, editTargetMessageId);
   };
 
   return (

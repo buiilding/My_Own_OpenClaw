@@ -196,7 +196,10 @@ describe('MessageList assistant actions', () => {
             sender: 'assistant',
             type: 'llm-text',
             isComplete: true,
-            actions: { canRetry: true },
+            actions: {
+              canRetry: true,
+              retryTargetRowId: 'assistant-1',
+            },
           },
         ]}
         thinkingStatus={null}
@@ -219,7 +222,10 @@ describe('MessageList assistant actions', () => {
             sender: 'assistant',
             type: 'llm-text',
             isComplete: true,
-            actions: { canRetry: true },
+            actions: {
+              canRetry: true,
+              retryTargetRowId: 'assistant-1',
+            },
           },
         ]}
         thinkingStatus={null}
@@ -239,10 +245,41 @@ describe('MessageList assistant actions', () => {
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
   });
 
-  test('calls retry callback with assistant message id', () => {
+  test('calls retry callback with SDK retry target id', () => {
     jest.useFakeTimers();
     const onAssistantTryAgain = jest.fn();
 
+    render(
+      <MessageList
+        messages={[
+          {
+            id: 'assistant-1',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            actions: {
+              canRetry: true,
+              retryTargetRowId: 'assistant-original',
+            },
+          },
+        ]}
+        thinkingStatus={null}
+        enableAssistantActions
+        onAssistantTryAgain={onAssistantTryAgain}
+      />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-original');
+  });
+
+  test('does not show retry when SDK omits the retry target id', () => {
+    jest.useFakeTimers();
     render(
       <MessageList
         messages={[
@@ -257,7 +294,7 @@ describe('MessageList assistant actions', () => {
         ]}
         thinkingStatus={null}
         enableAssistantActions
-        onAssistantTryAgain={onAssistantTryAgain}
+        onAssistantTryAgain={jest.fn()}
       />,
     );
 
@@ -265,8 +302,8 @@ describe('MessageList assistant actions', () => {
       jest.advanceTimersByTime(2000);
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
-    expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-1');
+    expect(screen.getByRole('button', { name: 'Copy assistant message' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
   });
 
   test('uses SDK retry target id and hides only retry when row disallows it', () => {
@@ -367,7 +404,16 @@ describe('MessageList assistant actions', () => {
     render(
       <MessageList
         messages={[
-          { id: 'user-1', text: 'old text', sender: 'user', type: 'user', actions: { canEdit: true } },
+          {
+            id: 'user-1',
+            text: 'old text',
+            sender: 'user',
+            type: 'user',
+            actions: {
+              canEdit: true,
+              editTargetRowId: 'user-1',
+            },
+          },
         ]}
         thinkingStatus={null}
         enableUserActions
@@ -502,7 +548,16 @@ describe('MessageList assistant actions', () => {
     render(
       <MessageList
         messages={[
-          { id: 'user-1', text: 'old text', sender: 'user', type: 'user', actions: { canEdit: true } },
+          {
+            id: 'user-1',
+            text: 'old text',
+            sender: 'user',
+            type: 'user',
+            actions: {
+              canEdit: true,
+              editTargetRowId: 'user-1',
+            },
+          },
         ]}
         thinkingStatus={null}
         enableUserActions
@@ -578,7 +633,16 @@ describe('MessageList assistant actions', () => {
     render(
       <MessageList
         messages={[
-          { id: 'user-1', text: 'old text', sender: 'user', type: 'user', actions: { canEdit: true } },
+          {
+            id: 'user-1',
+            text: 'old text',
+            sender: 'user',
+            type: 'user',
+            actions: {
+              canEdit: true,
+              editTargetRowId: 'user-1',
+            },
+          },
         ]}
         thinkingStatus={null}
         enableUserActions
@@ -605,7 +669,16 @@ describe('MessageList assistant actions', () => {
     render(
       <MessageList
         messages={[
-          { id: 'user-1', text: 'old text', sender: 'user', type: 'user', actions: { canEdit: true } },
+          {
+            id: 'user-1',
+            text: 'old text',
+            sender: 'user',
+            type: 'user',
+            actions: {
+              canEdit: true,
+              editTargetRowId: 'user-1',
+            },
+          },
         ]}
         thinkingStatus={null}
         enableUserActions

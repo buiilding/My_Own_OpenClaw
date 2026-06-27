@@ -107,9 +107,24 @@ describe('desktopMessageActionRuntime', () => {
       },
     })).toEqual({
       canRetryMessage: false,
-      canEditMessage: true,
-      retryTargetMessageId: 'assistant-visible',
-      editTargetMessageId: 'assistant-visible',
+      canEditMessage: false,
+      retryTargetMessageId: null,
+      editTargetMessageId: null,
+    });
+
+    expect(DesktopMessageActionRuntime.resolveMessageReplayActions({
+      id: 'assistant-visible',
+      actions: {
+        canRetry: true,
+        canEdit: true,
+        retryTargetRowId: '   ',
+        editTargetRowId: null,
+      },
+    })).toEqual({
+      canRetryMessage: false,
+      canEditMessage: false,
+      retryTargetMessageId: null,
+      editTargetMessageId: null,
     });
   });
 });

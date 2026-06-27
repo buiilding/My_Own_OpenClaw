@@ -3836,6 +3836,12 @@ describe('renderer chat runtime boundary', () => {
     expect(messageActionRuntimeSource).toContain('resolveMessageReplayActions');
     expect(messageActionRuntimeSource).toContain("messageActionFlag(message, 'canRetry')");
     expect(messageActionRuntimeSource).toContain("messageActionFlag(message, 'canEdit')");
+    expect(messageActionRuntimeSource).toContain('canRetryMessage: messageActionFlag(message, \'canRetry\') && Boolean(retryTargetMessageId)');
+    expect(messageActionRuntimeSource).toContain('canEditMessage: messageActionFlag(message, \'canEdit\') && Boolean(editTargetMessageId)');
+    expect(messageActionRuntimeSource).not.toContain("messageActionTargetId(message, 'retryTargetRowId') || message?.id");
+    expect(messageActionRuntimeSource).not.toContain("messageActionTargetId(message, 'editTargetRowId') || message?.id");
+    expect(messageListSource).not.toContain('editTargetMessageId || messageId');
+    expect(messageListSource).not.toContain('editingUserReplayTargetMessageId || editingUserMessageId');
     expect(messageItemSource).toContain('canRetryMessage');
     expect(messageItemSource).toContain('canEditMessage');
     expect(messageItemSource).toContain('canTryAgain={canRetryMessage}');
