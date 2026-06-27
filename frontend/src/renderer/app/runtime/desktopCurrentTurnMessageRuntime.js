@@ -59,6 +59,15 @@ function resolveEntryCorrelationId(entry) {
   );
 }
 
+function resolveToolEventCorrelationId(toolEvent) {
+  return (
+    readExactSdkString(toolEvent.correlationId)
+    || readExactSdkString(toolEvent.requestId)
+    || readExactSdkString(toolEvent.bundleId)
+    || null
+  );
+}
+
 function resolveNoViewSdkLiveTurnThinkingText(sdkLiveTurn = null) {
   if (hasPresentationObject(sdkLiveTurn)) {
     return '';
@@ -78,10 +87,7 @@ function buildProjectedToolCallMessage({
   const toolName = readString(toolEvent.toolName) || '';
   const toolCallDetails = asObject(toolEvent.toolCallDetails) || (toolName ? { toolName } : null);
   const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);
-  const correlationId = (
-    readString(toolEvent.correlationId)
-    || readString(toolEvent.requestId)
-  );
+  const correlationId = resolveToolEventCorrelationId(toolEvent);
   const text = normalizeText(toolEvent.text) || (toolName ? `Using ${toolName}` : 'Using tool');
 
   return buildToolCallChatMessageState({
@@ -104,12 +110,7 @@ function buildProjectedToolOutputMessage({
   const toolOutputDetails = asObject(toolEvent.toolOutputDetails) || {};
   const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);
   const toolName = readString(toolEvent.toolName);
-  const requestId = readString(toolEvent.requestId);
-  const correlationId = (
-    readString(toolEvent.correlationId)
-    || requestId
-    || undefined
-  );
+  const correlationId = resolveToolEventCorrelationId(toolEvent);
   const attachments = readSdkDisplayAttachments(toolEvent.attachments);
   const outputText = normalizeText(toolEvent.text)
     || (toolName ? `${toolName} completed` : 'Tool completed');

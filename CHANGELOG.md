@@ -21,6 +21,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: stop trimming SDK live-entry tool identity fields into
   renderer correlation ids; padded `correlationId`/`requestId`/`bundleId` values
   now fall through instead of becoming dedupe keys. No migration required.
+- frontend/projection: apply the same exact tool identity rule to legacy
+  no-view SDK `toolEvents`, so padded fallback `correlationId`/`requestId`
+  values cannot become renderer correlation ids. No migration required.
 - frontend/projection: reject repaired SDK live row ids during thread dedupe so
   padded live ids cannot suppress materialized display rows. No migration
   required.

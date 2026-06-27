@@ -111,12 +111,14 @@ sources when SDK sends padded or empty labels. Renderer presentation assigns
 visibility gating. Live row `turnRef` projection similarly prefers the
 containing SDK live turn's `turnRef` over entry-level payload refs. Live tool
 identity fields such as `correlationId`, `requestId`, and `bundleId` are exact;
-padded values fall through instead of becoming renderer dedupe keys. Thread
-dedupe checks live row ids and nested tool detail identity with the same
-exactness, so malformed padded live ids or `toolCallDetails`/`toolOutputDetails`
-ids cannot suppress SDK display rows. Thread live/display dedupe also compares
-materialized and live turn refs exactly; padded turn refs are not trimmed into
-same-turn duplicate evidence. Display-row `turnRef` and
+padded values fall through instead of becoming renderer dedupe keys. The legacy
+no-view SDK `toolEvents` fallback uses the same exact correlation rule instead
+of trimming malformed tool ids into rendered rows. Thread dedupe checks live row
+ids and nested tool detail identity with the same exactness, so malformed padded
+live ids or `toolCallDetails`/`toolOutputDetails` ids cannot suppress SDK
+display rows. Thread live/display dedupe also compares materialized and live
+turn refs exactly; padded turn refs are not trimmed into same-turn duplicate
+evidence. Display-row `turnRef` and
 `metadata.displayCorrelationId` are also exact-only when projected into renderer
 chat-message identity props, and display-row `metadata.toolName` is exact-only
 when projected into tool row metadata; padded values are ignored rather than

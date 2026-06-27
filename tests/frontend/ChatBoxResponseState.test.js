@@ -151,6 +151,49 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     ]));
   });
 
+  test('buildNoViewSdkLiveTurnMessages does not repair padded legacy tool event ids', () => {
+    const messages = buildNoViewSdkLiveTurnMessages({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      assistantText: '',
+      reasoningText: null,
+      lastError: null,
+      toolEvents: [
+        {
+          id: 'tool-call-1',
+          kind: 'tool_call',
+          toolName: 'read_file',
+          correlationId: ' corr-tool-1 ',
+          requestId: 'request-tool-1',
+        },
+        {
+          id: 'bundle-output-1',
+          kind: 'tool_output',
+          toolName: 'tool_bundle',
+          text: 'bundle result',
+          correlationId: ' corr-bundle-1 ',
+          requestId: ' request-bundle-1 ',
+          bundleId: 'bundle-1',
+        },
+      ],
+    });
+
+    expect(messages).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'tool-call',
+        correlationId: 'request-tool-1',
+      }),
+      expect.objectContaining({
+        type: 'tool-output',
+        correlationId: 'bundle-1',
+      }),
+    ]));
+    expect(messages.map(message => message.correlationId)).not.toContain('corr-tool-1');
+    expect(messages.map(message => message.correlationId)).not.toContain(' corr-tool-1 ');
+    expect(messages.map(message => message.correlationId)).not.toContain('request-bundle-1');
+  });
+
   test('buildNoViewSdkLiveTurnMessages uses presentation-backed current turns before legacy fallback', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',

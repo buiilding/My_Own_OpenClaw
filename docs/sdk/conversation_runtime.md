@@ -409,7 +409,10 @@ entry-level `turnRef`, so stale entry payload identity cannot move a current
 live row onto an older turn.
 Tool live-entry identity fields such as `correlationId`, `requestId`, and
 `bundleId` are exact SDK strings in renderer presentation; padded or empty
-values are ignored rather than trimmed into duplicate-detection keys.
+values are ignored rather than trimmed into duplicate-detection keys. Legacy
+no-view SDK `toolEvents` use the same exact rule when projected into renderer
+correlation ids, so fallback current-turn rows do not repair malformed tool
+identity either.
 Thread presentation duplicate suppression also treats live row ids and tool
 detail identity fields as exact SDK identity; padded live ids or nested
 `toolCallDetails`/`toolOutputDetails` ids do not suppress materialized display
