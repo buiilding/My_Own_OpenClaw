@@ -24,7 +24,9 @@ class DummySafeWebSocket:
 
 
 class ExplodingSafeWebSocket(DummySafeWebSocket):
-    async def close(self, code: int = 1000, reason: str | None = None) -> None:  # noqa: ARG002
+    async def close(
+        self, code: int = 1000, reason: str | None = None
+    ) -> None:  # noqa: ARG002
         raise RuntimeError("close failed")
 
 
@@ -32,15 +34,18 @@ class ExplodingSafeWebSocket(DummySafeWebSocket):
 class DummyValidatedMessage:
     id: str
     type: str = "query"
+    payload: Any | None = None
+    conversation_ref: str | None = None
+    turn_ref: str | None = None
 
 
 class DummyTaskManager:
     def __init__(self, *, limit_exceeded: bool) -> None:
         self.limit_exceeded = limit_exceeded
-        self.calls: list[tuple[Any, str]] = []
+        self.calls: list[tuple[Any, str, Any]] = []
 
-    async def create_task_if_under_limit(self, coro, user_id: str):
-        self.calls.append((coro, user_id))
+    async def create_task_if_under_limit(self, coro, user_id: str, metadata=None):
+        self.calls.append((coro, user_id, metadata))
         if self.limit_exceeded:
             close = getattr(coro, "close", None)
             if callable(close):
@@ -48,6 +53,14 @@ class DummyTaskManager:
             return False
         asyncio.create_task(coro)
         return True
+
+    async def active_task_diagnostics(self):
+        return {
+            "active_count": 2,
+            "max_concurrent_tasks": 2,
+            "by_type": {"query": 2},
+            "oldest": [],
+        }
 
 
 @pytest.mark.asyncio
@@ -73,14 +86,19 @@ async def test_close_connection_on_timeout_swallows_close_failures() -> None:
 
 
 @pytest.mark.asyncio
-async def test_schedule_validated_message_task_sends_limit_error_when_limit_exceeded() -> None:
+async def test_schedule_validated_message_task_sends_limit_error_when_limit_exceeded() -> (
+    None
+):
     send_error_calls: list[tuple[str | None, str]] = []
+    logger = logging.getLogger("test.websocket.loop_runtime.limit")
 
     async def send_error(ws, msg_id, message):  # noqa: ARG001
         send_error_calls.append((msg_id, message))
 
     async def handle_message(ws, message, registry, user_id):  # noqa: ARG001
-        raise AssertionError("handle_message should not run when task limit is exceeded")
+        raise AssertionError(
+            "handle_message should not run when task limit is exceeded"
+        )
 
     await schedule_validated_message_task(
         task_manager=DummyTaskManager(limit_exceeded=True),
@@ -91,15 +109,18 @@ async def test_schedule_validated_message_task_sends_limit_error_when_limit_exce
         max_concurrent_tasks=2,
         send_error=send_error,
         handle_message=handle_message,
-        logger=logging.getLogger("test.websocket.loop_runtime"),
+        logger=logger,
     )
 
     assert send_error_calls == [("msg-1", "Too many concurrent requests. Please wait.")]
 
 
 @pytest.mark.asyncio
-async def test_schedule_validated_message_task_dispatches_message_when_under_limit() -> None:
+async def test_schedule_validated_message_task_dispatches_message_when_under_limit() -> (
+    None
+):
     handled_messages: list[str] = []
+    task_manager = DummyTaskManager(limit_exceeded=False)
 
     async def send_error(ws, msg_id, message):  # noqa: ARG001
         raise AssertionError("send_error should not run when task is accepted")
@@ -108,9 +129,12 @@ async def test_schedule_validated_message_task_dispatches_message_when_under_lim
         handled_messages.append(f"{user_id}:{message.id}")
 
     await schedule_validated_message_task(
-        task_manager=DummyTaskManager(limit_exceeded=False),
+        task_manager=task_manager,
         safe_ws=DummySafeWebSocket(),
-        validated_msg=DummyValidatedMessage(id="msg-2"),
+        validated_msg=DummyValidatedMessage(
+            id="msg-2",
+            payload=type("Payload", (), {"conversation_ref": "conv-1"})(),
+        ),
         handler_registry=object(),
         user_id="user-2",
         max_concurrent_tasks=2,
@@ -121,3 +145,7 @@ async def test_schedule_validated_message_task_dispatches_message_when_under_lim
 
     await asyncio.sleep(0)
     assert handled_messages == ["user-2:msg-2"]
+    assert task_manager.calls[0][2].message_type == "query"
+    assert task_manager.calls[0][2].message_id == "msg-2"
+    assert task_manager.calls[0][2].conversation_ref == "conv-1"
+    assert task_manager.calls[0][2].turn_ref == "msg-2"

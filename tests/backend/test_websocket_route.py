@@ -11,7 +11,9 @@ from tests.backend.websocket_route_test_utils import (
 
 _original_deps = install_route_deps_shim()
 
-websocket_route_module = importlib.import_module("backend.src.api.routes.websocket.router")
+websocket_route_module = importlib.import_module(
+    "backend.src.api.routes.websocket.router"
+)
 
 restore_route_deps_shim(_original_deps)
 
@@ -29,9 +31,7 @@ class DummySessionManager:
         self.client_operating_system_calls = []
         self.update_session_config_calls = []
 
-    def set_client_operating_system(
-        self, user_id: str, operating_system: str
-    ) -> None:
+    def set_client_operating_system(self, user_id: str, operating_system: str) -> None:
         self.client_operating_system_calls.append((user_id, operating_system))
 
     async def update_session_config(self, user_id: str, updates: dict) -> None:
@@ -96,7 +96,9 @@ class FakeTaskManager:
         self.max_concurrent_tasks = max_concurrent_tasks
         self.task_cancellation_timeout = task_cancellation_timeout
 
-    async def create_task_if_under_limit(self, coro, user_id: str):  # noqa: ARG002
+    async def create_task_if_under_limit(
+        self, coro, user_id: str, metadata=None
+    ):  # noqa: ARG002
         close = getattr(coro, "close", None)
         if callable(close):
             close()
@@ -326,7 +328,9 @@ async def test_websocket_endpoint_sends_parse_errors_and_continues_loop(
     parse_calls: list[tuple[str, str, int]] = []
 
     class FakeTaskManagerNoOp(FakeTaskManager):
-        async def create_task_if_under_limit(self, coro, user_id: str):  # noqa: ARG002
+        async def create_task_if_under_limit(
+            self, coro, user_id: str, metadata=None
+        ):  # noqa: ARG002
             raise AssertionError(
                 "task manager should not be called for invalid messages"
             )
@@ -398,7 +402,7 @@ async def test_websocket_endpoint_recovers_after_parse_error_and_dispatches_next
     parse_call_count = {"value": 0}
 
     class FakeTaskManagerDispatch(FakeTaskManager):
-        async def create_task_if_under_limit(self, coro, user_id: str):
+        async def create_task_if_under_limit(self, coro, user_id: str, metadata=None):
             asyncio.create_task(coro)
             return True
 
@@ -483,7 +487,9 @@ async def test_websocket_endpoint_dispatches_sequential_control_messages(
     handled_messages: list[tuple[str, str, str]] = []
 
     class FakeTaskManagerSyncDispatch(FakeTaskManager):
-        async def create_task_if_under_limit(self, coro, user_id: str):  # noqa: ARG002
+        async def create_task_if_under_limit(
+            self, coro, user_id: str, metadata=None
+        ):  # noqa: ARG002
             await coro
             return True
 
@@ -565,12 +571,20 @@ async def test_websocket_endpoint_sends_limit_exceeded_error_with_message_id(
     created_task_payloads: list[tuple[object, str]] = []
 
     class FakeTaskManagerLimitExceeded(FakeTaskManager):
-        async def create_task_if_under_limit(self, coro, user_id: str):
+        async def create_task_if_under_limit(self, coro, user_id: str, metadata=None):
             created_task_payloads.append((coro, user_id))
             close = getattr(coro, "close", None)
             if callable(close):
                 close()
             return False
+
+        async def active_task_diagnostics(self):
+            return {
+                "active_count": 4,
+                "max_concurrent_tasks": 4,
+                "by_type": {"query": 4},
+                "oldest": [],
+            }
 
     async def fake_perform_handshake(websocket, safe_ws, **_kwargs):  # noqa: ARG001
         return "user_limited"

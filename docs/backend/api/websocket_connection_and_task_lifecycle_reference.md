@@ -76,6 +76,10 @@ Concurrency guard:
 
 - if active task count is at limit, task is not scheduled
 - rejected coroutine is explicitly closed to avoid `RuntimeWarning` leaks
+- rejection logs include the rejected message metadata plus active-task
+  diagnostics: active count, count by message type, and the oldest active
+  route-dispatch tasks with message id, conversation ref, turn ref, correlation
+  ref, and age
 - client receives `"Too many concurrent requests. Please wait."`
 
 ## `TaskManager` Semantics
@@ -83,6 +87,8 @@ Concurrency guard:
 `TaskManager` is connection-scoped and tracks only top-level route-dispatch tasks:
 
 - `active_tasks` set + `tasks_lock` guard all task-set mutation
+- `active_task_metadata` records message type, message id, conversation ref,
+  turn ref, correlation ref, and monotonic start time for admitted tasks
 - `_prune_done_tasks_locked()` trims completed tasks before new scheduling
 - each created task registers `task_done_callback` to discard itself
 

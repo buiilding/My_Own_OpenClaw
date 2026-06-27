@@ -23,17 +23,21 @@ Each websocket connection creates one `TaskManager` configured from app config:
 - `task_cancellation_timeout`
 
 It tracks route-dispatch tasks only (`active_tasks` set), not arbitrary sub-tasks spawned by handlers.
+Admitted tasks also receive diagnostic metadata in `active_task_metadata`
+covering message type, message id, conversation ref, turn ref, correlation ref,
+and monotonic start time.
 
 ## Scheduling Contract
 
-`create_task_if_under_limit(coro, user_id)` sequence under `tasks_lock`:
+`create_task_if_under_limit(coro, user_id, metadata=None)` sequence under `tasks_lock`:
 
 1. prune completed tasks (`_prune_done_tasks_locked`)
 2. if active count already at limit:
+   - build a compact active-task diagnostic snapshot
    - close coroutine input via `_close_if_coroutine`
    - return `False`
 3. else create task (`asyncio.create_task(coro)`)
-4. add task to set and register `task_done_callback`
+4. add task to set, attach metadata, and register `task_done_callback`
 5. return `True`
 
 Atomicity:
@@ -41,6 +45,17 @@ Atomicity:
 - limit check + task creation/set insert happen within same lock scope.
 - callers receive only the admission result; task objects remain owned by
   `TaskManager.active_tasks`.
+
+Diagnostics:
+
+- `active_task_diagnostics(limit=10)` returns active count, max configured
+  task count, active count by message type, and the oldest active tasks with
+  age in seconds.
+- `loop_runtime.schedule_validated_message_task(...)` logs the rejected message
+  metadata and active-task diagnostic snapshot when the concurrency guard
+  rejects a validated message.
+- cleanup timeout and zombie-task logs include the same active-task diagnostic
+  snapshot, so disconnect cleanup failures can be tied back to message families.
 
 ## Rejected-Coroutine Close Guarantee
 
@@ -57,6 +72,7 @@ Also applied when `asyncio.create_task(...)` itself raises: coroutine is closed 
 `task_done_callback(task)`:
 
 - discards task in-place from `active_tasks`
+- removes the task's diagnostic metadata from `active_task_metadata`
 - swallows `RuntimeError` set-edge cases during shutdown
 
 `_prune_done_tasks_locked()`:
@@ -98,6 +114,7 @@ Result:
 `tests/backend/test_websocket_task_manager.py` verifies:
 
 - hard max concurrency rejection
+- active task diagnostics report message counts and route context
 - rejected coroutine is closed
 - close failures on rejected non-coroutine-like objects are swallowed
 - done-task pruning before limit check allows immediate reschedule

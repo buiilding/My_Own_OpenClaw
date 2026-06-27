@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/websocket: attach diagnostic metadata to admitted route-dispatch
+  tasks and include rejected message context plus active-task inventories in
+  task-limit and cleanup logs, so `"Too many concurrent requests"` incidents can
+  identify which websocket message families filled the pool. No migration
+  required.
 - frontend/sidebar: refresh recent chat workspace grouping when
   `user_message_metadata` arrives, so a new chat sent after selecting a
   workspace moves out of "No workspace" once its workspace metadata is stored.
