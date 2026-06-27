@@ -1263,6 +1263,8 @@ describe('renderer chat runtime boundary', () => {
     expect(libraryClientSource).toContain('loadConversationView');
     expect(libraryClientSource).not.toContain('loadDisplayRows');
     expect(libraryClientSource).not.toContain('loadForDisplay');
+    expect(libraryClientSource).toContain('function readExactIdentityString');
+    expect(libraryClientSource).not.toContain('conversationRef: view.conversationRef || conversationRef');
     expect(displayProjectionSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
     expect(displayProjectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(displayProjectionSource).toContain('export const DesktopConversationDisplayProjection = Object.freeze');

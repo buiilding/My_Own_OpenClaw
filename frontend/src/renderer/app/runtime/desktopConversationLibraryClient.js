@@ -73,6 +73,12 @@ function shortDiagnosticError(error) {
   return message.length > 160 ? `${message.slice(0, 157)}...` : message;
 }
 
+function readExactIdentityString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function emitConversationListDiagnostic(context, event) {
   const payload = {
     _diagnostics: context,
@@ -95,10 +101,14 @@ function emitConversationListDiagnostic(context, event) {
 }
 
 function readSnapshotDisplayRows(snapshot, conversationRef) {
+  const normalizedConversationRef = readExactIdentityString(conversationRef);
+  if (!normalizedConversationRef) {
+    return [];
+  }
   const rows = Array.isArray(snapshot?.view?.displayRows)
     ? snapshot.view.displayRows
     : [];
-  return rows.filter((row) => row?.conversationRef === conversationRef);
+  return rows.filter((row) => row?.conversationRef === normalizedConversationRef);
 }
 
 function readSnapshotConversationView(snapshot, conversationRef) {
@@ -108,10 +118,15 @@ function readSnapshotConversationView(snapshot, conversationRef) {
   if (!view) {
     return null;
   }
+  const requestedConversationRef = readExactIdentityString(conversationRef);
+  const viewConversationRef = readExactIdentityString(view.conversationRef);
+  if (!requestedConversationRef || !viewConversationRef || viewConversationRef !== requestedConversationRef) {
+    return null;
+  }
   return {
     ...view,
-    conversationRef: view.conversationRef || conversationRef,
-    displayRows: readSnapshotDisplayRows(snapshot, conversationRef),
+    conversationRef: viewConversationRef,
+    displayRows: readSnapshotDisplayRows(snapshot, viewConversationRef),
   };
 }
 

@@ -389,6 +389,10 @@ dashboard chats use the same SDK view authority as active chat surfaces.
 The renderer dashboard conversation library facade exposes only
 `loadConversationView` for this path; raw display-row and legacy display-message
 load helpers remain outside normal React dashboard resume ownership.
+Loaded dashboard views must carry an exact `snapshot.view.conversationRef`
+matching the requested conversation. The renderer facade rejects missing,
+padded, or mismatched view identity instead of patching the SDK view with the
+requested conversation ref.
 For the Phase 4 action migration, renderer chat surfaces no longer turn
 `snapshot.view.actions.canEdit` or `snapshot.view.actions.canRetry` into a
 global message-list gate. `snapshot.view.displayRows[]` carries row `actions`

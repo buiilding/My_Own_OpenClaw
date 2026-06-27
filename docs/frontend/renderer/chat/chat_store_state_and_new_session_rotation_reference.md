@@ -380,6 +380,10 @@ bridge remains available, and renderer-only assistant feedback is carried
 separately as `rendererAnnotations` for display-row annotation merge. Those
 annotation records are not a generic message overlay channel and must not
 modify SDK user rows.
+Dashboard-loaded `ConversationView` snapshots must include an exact
+`view.conversationRef` matching the requested conversation before they enter
+the chat store; the renderer library facade rejects missing, padded, or
+mismatched view identity instead of repairing it from dashboard selection state.
 
 Surface, response-overlay, interface presentation, and send-read-model selector
 adapters consume that read model as their input contract. They should not

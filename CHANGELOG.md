@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/dashboard: reject loaded `ConversationView` snapshots whose
+  `view.conversationRef` is missing, padded, or mismatched instead of repairing
+  SDK view identity from the requested dashboard conversation ref. No migration
+  required.
 - frontend/stream: reject padded SDK conversation-event conversation and turn
   refs before stream workspace routing, stale-turn checks, terminal pending
   handoff, metadata row targeting, or completion tracking. No migration
