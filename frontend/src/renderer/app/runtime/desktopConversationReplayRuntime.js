@@ -16,41 +16,10 @@ const {
   logRendererReplayTrace,
 } = DesktopRendererTraceRuntime;
 
-function readExactReplayTargetRowId(value) {
-  return typeof value === 'string' && value.length > 0 && value === value.trim()
-    ? value
-    : '';
-}
-
 function readExactReplayConversationRef(value) {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
     ? value
     : null;
-}
-
-function prepareReplayEditIntent({ targetRowId, editedText }) {
-  const normalizedTargetRowId = readExactReplayTargetRowId(targetRowId);
-  if (typeof editedText !== 'string' || !normalizedTargetRowId) {
-    return null;
-  }
-  return {
-    action: 'edit_resend',
-    errorPrefix: 'Failed to edit user message',
-    queryText: editedText,
-    targetRowId: normalizedTargetRowId,
-  };
-}
-
-function prepareReplayRetryIntent({ targetRowId }) {
-  const normalizedTargetRowId = readExactReplayTargetRowId(targetRowId);
-  if (!normalizedTargetRowId) {
-    return null;
-  }
-  return {
-    action: 'retry',
-    errorPrefix: 'Failed to retry assistant message',
-    targetRowId: normalizedTargetRowId,
-  };
 }
 
 function resolveExistingConversationRef(sessionConversationRef) {
@@ -81,17 +50,11 @@ function logReplayTimeline(action, {
 }
 
 async function executeReplayIntent({
-  intent,
+  action,
+  errorPrefix,
+  queryText,
+  targetRowId,
 }) {
-  if (!intent) {
-    return false;
-  }
-  const {
-    action,
-    errorPrefix,
-    queryText,
-    targetRowId,
-  } = intent;
   const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
   const conversationRef = resolveExistingConversationRef(sessionInfo.conversationRef);
   if (!conversationRef) {
@@ -162,35 +125,21 @@ async function executeReplayIntent({
   }
 }
 
-function prepareReplayActionIntent({
-  action,
-  editedText,
-  targetRowId,
-}) {
-  if (action === 'edit_resend') {
-    return prepareReplayEditIntent({ targetRowId, editedText });
-  }
-  if (action === 'retry') {
-    return prepareReplayRetryIntent({ targetRowId });
-  }
-  return null;
-}
-
 async function executeReplayAction({
   action,
   editedText = null,
   targetRowId = null,
 }) {
-  const intent = prepareReplayActionIntent({
-    action,
-    editedText,
-    targetRowId,
-  });
-  if (!intent) {
+  if (action !== 'edit_resend' && action !== 'retry') {
     return undefined;
   }
   return executeReplayIntent({
-    intent,
+    action,
+    errorPrefix: action === 'edit_resend'
+      ? 'Failed to edit user message'
+      : 'Failed to retry assistant message',
+    queryText: editedText,
+    targetRowId,
   });
 }
 

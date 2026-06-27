@@ -336,36 +336,56 @@ describe('desktopConversationReplayRuntime', () => {
     expect(replayCommand).not.toHaveProperty('model');
   });
 
-  test('returns undefined for empty replay row targets without dispatching SDK commands', async () => {
+  test('forwards empty replay row targets to the continuity command guard', async () => {
     const chatStoreBundle = createChatStore();
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    DesktopConversationContinuityService.retryTurn.mockRejectedValueOnce(
+      new Error('Desktop replay command requires exact message id.'),
+    );
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
       chatStoreBundle,
       messages: [{ id: 'assistant-1', sender: 'assistant', text: 'orphan answer' }],
       targetRowId: ' ',
-    }))).resolves.toBeUndefined();
+    }))).resolves.toBe(false);
 
-    expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
+    expect(DesktopConversationContinuityService.retryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: ' ',
+    }));
+    errorSpy.mockRestore();
   });
 
-  test('returns undefined for padded replay row targets without dispatching SDK commands', async () => {
+  test('forwards padded replay row targets without repairing them', async () => {
     const chatStoreBundle = createChatStore();
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    DesktopConversationContinuityService.retryTurn.mockRejectedValueOnce(
+      new Error('Desktop replay command requires exact message id.'),
+    );
+    DesktopConversationContinuityService.editAndResend.mockRejectedValueOnce(
+      new Error('Desktop replay command requires exact message id.'),
+    );
 
     await expect(executeReplayAction(replayArgs({
       action: 'retry',
       chatStoreBundle,
       targetRowId: ' assistant-1 ',
-    }))).resolves.toBeUndefined();
+    }))).resolves.toBe(false);
     await expect(executeReplayAction(replayArgs({
       action: 'edit_resend',
       chatStoreBundle,
       targetRowId: ' user-1 ',
       editedText: 'edited question',
-    }))).resolves.toBeUndefined();
+    }))).resolves.toBe(false);
 
-    expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
-    expect(DesktopConversationContinuityService.editAndResend).not.toHaveBeenCalled();
+    expect(DesktopConversationContinuityService.retryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: ' assistant-1 ',
+    }));
+    expect(DesktopConversationContinuityService.editAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: ' user-1 ',
+      text: 'edited question',
+    }));
+    errorSpy.mockRestore();
   });
 
   test('does not create a conversation when replay has no active scope', async () => {

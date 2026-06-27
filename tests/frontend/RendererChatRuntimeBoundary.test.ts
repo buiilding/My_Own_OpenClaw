@@ -2246,9 +2246,9 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('resolveToolBundleCorrelationId');
     expect(replayRuntimeSource).not.toContain('buildPreparedReplayDesktopChatTurn');
     expect(replayRuntimeSource).not.toContain('findReplayEditableUserMessageIndex');
-    expect(replayRuntimeSource).toContain('prepareReplayEditIntent');
-    expect(replayRuntimeSource).toContain('prepareReplayRetryIntent');
-    expect(replayRuntimeSource).toContain('readExactReplayTargetRowId');
+    expect(replayRuntimeSource).not.toContain('prepareReplayEditIntent');
+    expect(replayRuntimeSource).not.toContain('prepareReplayRetryIntent');
+    expect(replayRuntimeSource).not.toContain('readExactReplayTargetRowId');
     expect(replayRuntimeSource).toContain('readExactReplayConversationRef');
     expect(replayRuntimeSource).not.toContain('resolveRendererConversationSessionSnapshot');
     expect(replayRuntimeSource).not.toContain('normalizeReplayMessageId');

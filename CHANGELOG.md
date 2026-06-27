@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: remove replay-runtime target-row id preparation so edit and
+  retry actions forward UI row intent unchanged to the continuity command
+  facade, where exact command id guards run before SDK IPC. No migration
+  required.
 - frontend/chat-store: narrow ChatProvider trace workspace reads to a
   purpose-shaped provider trace read model so the provider trace runtime no
   longer scans raw no-view message arrays or stream tracking state. No

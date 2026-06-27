@@ -1339,16 +1339,16 @@ preserve display attachments and legacy screenshot refs from that row, write
 the child display/model revision, emit supersession for old live work, and
 dispatch the replacement through the normal `send()` path without accepting
 caller-supplied replay payload, model, or replacement turn-ref overrides.
-Renderer replay facades must pass exact non-empty SDK row ids from row action
-metadata; they reject padded or empty ids instead of trimming them into replay
-targets. Electron main applies the same exact-only rule to replay SDK command
-`conversationRef` and `messageId` payload fields before calling SDK
-`editAndResend` or `retryTurn`; the renderer continuity facade applies that
-same exact-only rule before invoking the command bridge so direct renderer
-callers cannot dispatch repaired replay identities. Padded command identities
-fail instead of dispatching against trimmed rows. Edit text remains raw command data from the
-renderer inline edit composer through replay runtime and main IPC adapters, so
-SDK replay commands own text normalization and non-empty validation.
+Renderer replay facades pass the SDK row id from row action metadata as replay
+intent without trimming or repairing it. Electron main applies an exact-only
+rule to replay SDK command `conversationRef` and `messageId` payload fields
+before calling SDK `editAndResend` or `retryTurn`; the renderer continuity
+facade applies that same exact-only rule before invoking the command bridge so
+direct renderer callers cannot dispatch repaired replay identities. Empty or
+padded command identities fail instead of dispatching against trimmed rows.
+Edit text remains raw command data from the renderer inline edit composer
+through replay runtime and main IPC adapters, so SDK replay commands own text
+normalization and non-empty validation.
 
 Resource preservation comes from the target display row. Typed display
 attachments become the edited pending user row's visible `attachments[]` and

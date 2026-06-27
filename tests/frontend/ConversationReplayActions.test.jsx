@@ -190,7 +190,7 @@ describe('useConversationReplayActions', () => {
     expect(mockRetryTurn).not.toHaveBeenCalled();
   });
 
-  test('does not dispatch SDK commands for empty replay row targets', async () => {
+  test('forwards empty replay row targets to the SDK command facade', async () => {
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
@@ -198,8 +198,13 @@ describe('useConversationReplayActions', () => {
       await result.current.handleEditFromUser(' ', 'edited question');
     });
 
-    expect(mockRetryTurn).not.toHaveBeenCalled();
-    expect(mockEditAndResend).not.toHaveBeenCalled();
+    expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: ' ',
+    }));
+    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: ' ',
+      text: 'edited question',
+    }));
   });
 
   test('does not repair padded replay row targets before SDK dispatch', async () => {
@@ -210,8 +215,13 @@ describe('useConversationReplayActions', () => {
       await result.current.handleEditFromUser(' renderer-user-1 ', 'edited question');
     });
 
-    expect(mockRetryTurn).not.toHaveBeenCalled();
-    expect(mockEditAndResend).not.toHaveBeenCalled();
+    expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: ' assistant-1 ',
+    }));
+    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: ' renderer-user-1 ',
+      text: 'edited question',
+    }));
   });
 
   test('does not append a renderer replay error row when SDK retry rejects', async () => {

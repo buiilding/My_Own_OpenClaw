@@ -81,10 +81,12 @@ Responsibility split:
 - `DesktopTranscriptSessionRuntimeClient` is the renderer facade for active conversation/user identity.
 - `DesktopConversationContinuityService` owns replay, rewrite, and rehydrate orchestration through SDK store commands.
 - `DesktopConversationReplayRuntime` owns renderer replay intent dispatch,
-  active conversation selection, workspace IPC context, and trace logging
-  through narrow UI adapters rather than the full chat-store object.
-  SDK replay commands own target-row selection, supersession, tool-message context,
-  resource preservation, and replacement row construction.
+  active conversation selection, and trace logging through narrow UI adapters
+  rather than the full chat-store object. It forwards the UI-provided target row
+  id unchanged to the continuity command facade, where exact identity guards run
+  before SDK command IPC. SDK replay commands own target-row selection,
+  supersession, tool-message context, resource preservation, and replacement row
+  construction.
 - `DesktopConversationLibraryClient` owns list/load/delete/search through the SDK store path.
 
 Renderer consumers subscribe through
