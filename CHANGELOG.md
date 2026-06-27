@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tokens: count only SDK image attachments in `materializing` or
+  `ready` states for renderer token estimates, leaving failed descriptors and
+  screenshot-request placeholders as display lifecycle state. No migration
+  required.
 - frontend/projection: sanitize SDK display-row tool detail records before they
   reach renderer tool panels, keeping raw payloads, model metadata, screenshot
   aliases, and attachment lifecycle descriptors out of generic details. No

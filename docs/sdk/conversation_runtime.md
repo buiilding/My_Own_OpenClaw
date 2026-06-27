@@ -506,9 +506,9 @@ directly. Replay projection traces apply the same exact turn-ref rule to
 pending, live, and stream-tracking inputs; padded refs are reported as missing
 instead of being trimmed into same-turn diagnostic matches.
 Renderer token-usage presentation may estimate image cost from SDK
-`attachments[]`, but only by counting descriptors whose SDK `kind` is `image`;
-pending screenshot requests and failed request descriptors are display states,
-not renderer-inferred model images.
+`attachments[]`, but only by counting SDK image descriptors in
+`materializing` or `ready` states; pending screenshot requests and failed
+descriptors are display lifecycle states, not renderer-inferred model images.
 Tool detail panels may receive display identity fields such as `toolName`, `requestId`,
 `correlationId`, `bundleId`, `toolCallId`, and `success`, plus SDK-authored
 display details, but component correlation identity comes from the SDK-authored

@@ -34,7 +34,13 @@ function estimateTextTokens(text) {
 
 function resolveUserImageAttachmentCount(message) {
   return readSdkDisplayAttachments(message?.attachments)
-    .filter((attachment) => attachment.kind === 'image')
+    .filter((attachment) => (
+      attachment.kind === 'image'
+      && (
+        attachment.status === 'materializing'
+        || attachment.status === 'ready'
+      )
+    ))
     .length;
 }
 

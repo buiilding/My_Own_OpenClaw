@@ -70,6 +70,33 @@ describe('desktopMessageTokenUsageRuntime', () => {
     expect(tag).toBe('tokens~ txt:1 img(est):85 total:86');
   });
 
+  test('does not estimate image tokens from failed SDK image descriptors', () => {
+    const tag = resolveMessageTokenUsageTag({
+      sender: 'user',
+      text: 'abcd',
+      attachments: [{
+        id: 'failed-image',
+        kind: 'image',
+        source: 'user_included',
+        status: 'failed',
+      }, {
+        id: 'ready-image',
+        kind: 'image',
+        source: 'user_included',
+        status: 'ready',
+        screenshotRef: 'shot-1',
+      }, {
+        id: 'materializing-image',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        previewSrc: 'data:image/png;base64,preview',
+      }],
+    });
+
+    expect(tag).toBe('tokens~ txt:1 img(est):170 total:171');
+  });
+
   test('does not estimate image tokens from malformed attachment descriptors', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'user',

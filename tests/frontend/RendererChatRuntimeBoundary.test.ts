@@ -1422,6 +1422,8 @@ describe('renderer chat runtime boundary', () => {
     expect(messageTypeSource).not.toContain('screenshots?:');
     expect(tokenUsageRuntimeSource).toContain('tokens(provider)');
     expect(tokenUsageRuntimeSource).toContain('message?.attachments');
+    expect(tokenUsageRuntimeSource).toContain("attachment.status === 'materializing'");
+    expect(tokenUsageRuntimeSource).toContain("attachment.status === 'ready'");
     expect(tokenUsageRuntimeSource).not.toContain('countDisplayImageAttachments');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshots');
     expect(tokenUsageRuntimeSource).not.toContain('countLegacyScreenshotAttachments');

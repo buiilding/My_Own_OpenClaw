@@ -143,7 +143,9 @@ Current runtime keeps token usage in chat store/state:
 - dev token image estimates count projected SDK `attachments[]` entries only;
   legacy `screenshots[]` and whole-message `screenshotRef`/`screenshotUrl`
   aliases are not renderer presentation or token-estimate authorities. The
-  token helper does not classify SDK attachment lifecycle state.
+  token helper counts only SDK image descriptors in `materializing` or `ready`
+  states, so failed image descriptors and screenshot-request placeholders remain
+  display lifecycle state rather than inferred model image cost.
 - React message prop contracts advertise typed `attachments[]`, not
   whole-message screenshot aliases.
 - `DesktopAttachmentImageRuntime` resolves image refs/URLs only from typed SDK
