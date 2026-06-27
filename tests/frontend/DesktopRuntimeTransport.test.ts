@@ -114,6 +114,7 @@ describe('desktopRuntimeTransport', () => {
       screenshot_url: ' https://cdn.example/padded.png ',
       screenshot_refs: ['artifact-one', ' artifact-two ', '', 42],
       attachment_filenames: ['one.png', ' two.png ', '', null],
+      capture_meta: { source_w: 100, source_h: 80 },
     })).resolves.toBe('msg-resource');
 
     expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
@@ -121,6 +122,26 @@ describe('desktopRuntimeTransport', () => {
       screenshot_url: null,
       screenshot_refs: ['artifact-one'],
       attachment_filenames: ['one.png'],
+      capture_meta: { source_w: 100, source_h: 80 },
+    }));
+  });
+
+  test('drops malformed SDK send capture metadata instead of forwarding lifecycle blobs', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: true,
+      messageId: 'msg-resource',
+    });
+
+    const transport = createDesktopRuntimeTransport(null);
+
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      capture_meta: ['display-lifecycle'],
+    })).resolves.toBe('msg-resource');
+
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
+      capture_meta: null,
     }));
   });
 

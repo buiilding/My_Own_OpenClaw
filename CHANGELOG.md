@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/transport: drop malformed non-object SDK `capture_meta` at the
+  renderer desktop transport boundary, preserving valid SDK resource metadata
+  while preventing renderer attachment lifecycle blobs from crossing
+  `conversation.send`. No migration required.
 - frontend/replay: require exact replay conversation refs and IPC replay
   command row ids before SDK edit/retry dispatch, leaving edited text raw for
   SDK validation instead of trimming command identity in renderer or main. No

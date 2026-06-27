@@ -346,9 +346,10 @@ The renderer desktop transport applies the same exactness rule to SDK-owned
 backend resource metadata that passes through `conversation.send`: padded
 `screenshot_ref`, `screenshot_url`, `screenshot_refs[]`, and
 `attachment_filenames[]` values are omitted instead of being repaired after SDK
-resource resolution. Accepted `messageId` results returned from main also remain
-exact-only; padded results are ignored instead of being trimmed into SDK send
-identity.
+resource resolution, and malformed non-object `capture_meta` values are dropped
+instead of becoming renderer-owned attachment lifecycle blobs. Accepted
+`messageId` results returned from main also remain exact-only; padded results
+are ignored instead of being trimmed into SDK send identity.
 Conversation-view chat projection receives explicit renderer annotation records,
 not raw current chat messages, when copying local assistant feedback state onto
 SDK assistant rows. The renderer stores those annotations beside the

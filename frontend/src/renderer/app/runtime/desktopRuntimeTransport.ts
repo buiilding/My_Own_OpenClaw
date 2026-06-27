@@ -45,6 +45,12 @@ function optionalExactStringArray(value: unknown): string[] | null {
   return exact.length > 0 ? exact : null;
 }
 
+function optionalJsonRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
 function rejectRemovedCamelCaseFields(
   payload: Record<string, unknown>,
   fields: string[],
@@ -105,7 +111,7 @@ async function sendQuery(
       screenshot_ref: optionalExactString(payload.screenshot_ref),
       screenshot_url: optionalExactString(payload.screenshot_url),
       screenshot_refs: optionalExactStringArray(payload.screenshot_refs),
-      capture_meta: payload.capture_meta ?? null,
+      capture_meta: optionalJsonRecord(payload.capture_meta),
       attachment_context: optionalString(payload.attachment_context) ?? null,
       attachment_filenames: optionalExactStringArray(payload.attachment_filenames),
       workspace_path: optionalString(payload.workspace_path) ?? workspacePath ?? null,

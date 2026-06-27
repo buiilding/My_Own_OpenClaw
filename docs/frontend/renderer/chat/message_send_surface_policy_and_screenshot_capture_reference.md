@@ -185,9 +185,12 @@ When attachment(s) exist:
 9. SDK `ConversationRuntime.send()` emits `turn_started` and base
    `user_message` before resource resolution.
 10. SDK resource resolvers read files, upload clipboard images, capture query
-   screenshots, merge user-row metadata, and assemble backend-compatible
-   `screenshot_ref`, `screenshot_refs`, `attachment_context`,
-   `attachment_filenames`, `capture_meta`, and `workspace_path` fields.
+    screenshots, merge user-row metadata, and assemble backend-compatible
+    `screenshot_ref`, `screenshot_refs`, `attachment_context`,
+    `attachment_filenames`, `capture_meta`, and `workspace_path` fields.
+    Renderer desktop transport preserves SDK-owned `capture_meta` only when it
+    is an object, dropping malformed values instead of forwarding attachment
+    lifecycle blobs.
 11. SDK memory/context enrichment appends hidden context to model-facing content
     before backend transport.
 
