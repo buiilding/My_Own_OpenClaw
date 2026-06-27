@@ -349,6 +349,17 @@ describe('chatStore', () => {
     ]);
   });
 
+  test('does not trim padded active conversation refs into workspace identity', () => {
+    setIsSendingInChatStore(true, 'conv-other');
+
+    useChatStore.getState().setActiveConversationRef(' conv-other ');
+
+    const state = useChatStore.getState();
+    expect(state.activeConversationRef).toBeNull();
+    expect(state.getWorkspaceState().isSending).toBe(false);
+    expect(state.getWorkspaceState('conv-other').isSending).toBe(true);
+  });
+
   test('acceptPendingTurn stores bridge state without mutating raw messages', () => {
     acceptPendingTurnInChatStore({
       conversationRef: 'conv-pending',

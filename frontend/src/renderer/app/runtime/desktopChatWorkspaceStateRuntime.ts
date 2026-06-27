@@ -74,8 +74,7 @@ export function normalizeConversationRef(value: string | null | undefined): stri
   if (typeof value !== 'string') {
     return null;
   }
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
+  return value.length > 0 && value === value.trim() ? value : null;
 }
 
 export function resolveChatWorkspaceRef(conversationRef: string | null | undefined): string {

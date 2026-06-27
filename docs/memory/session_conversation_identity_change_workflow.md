@@ -80,6 +80,9 @@ The core rule is: preserve the durable conversation key separately from live bac
 - Do not treat missing `conversation_ref` as equivalent to a new chat. Backend `None` can mean default/latest conversation fallback.
 - Do not use `session_id` as a durable storage key for transcript rows, memory, dashboard resume, or VM runs.
 - Normalize camelCase and snake_case identity aliases at process boundaries, then use one internal shape.
+- Treat renderer chat workspace conversation refs as exact identities once they
+  are inside the chat-store boundary; padded refs are missing/default workspace
+  state, not aliases for trimmed conversation keys.
 - Preserve `conversation_ref`, `turn_ref`, tool-call ids, request ids, and screenshots through renderer, Electron, local-runtime transcript storage, backend rehydrate, and backend history when a row can later be replayed.
 - Keep hidden replay-state rows and visible conversation rows in the same delete/lifecycle path.
 - When a change affects both dashboard and minimal chat pill, test both. They can be separate renderer windows with shared session sync.

@@ -91,10 +91,12 @@ function buildConversationView(
 
 describe('chatWorkspaceState', () => {
   test('normalizes conversation refs and falls back for empty values', () => {
-    expect(normalizeConversationRef(' conversation-1 ')).toBe('conversation-1');
+    expect(normalizeConversationRef('conversation-1')).toBe('conversation-1');
+    expect(normalizeConversationRef(' conversation-1 ')).toBeNull();
     expect(normalizeConversationRef('   ')).toBeNull();
     expect(normalizeConversationRef(undefined)).toBeNull();
-    expect(resolveChatWorkspaceRef(' conversation-2 ')).toBe('conversation-2');
+    expect(resolveChatWorkspaceRef('conversation-2')).toBe('conversation-2');
+    expect(resolveChatWorkspaceRef(' conversation-2 ')).toBe('__default__');
     expect(resolveChatWorkspaceRef('')).toBe('__default__');
   });
 
@@ -112,10 +114,13 @@ describe('chatWorkspaceState', () => {
   });
 
   test('resolves workspace conversation refs using explicit then active value', () => {
-    expect(resolveWorkspaceConversationRef(' ref-1 ', 'active-ref')).toBe('ref-1');
-    expect(resolveWorkspaceConversationRef(undefined, ' active-ref ')).toBe('active-ref');
+    expect(resolveWorkspaceConversationRef('ref-1', 'active-ref')).toBe('ref-1');
+    expect(resolveWorkspaceConversationRef(' ref-1 ', 'active-ref')).toBeNull();
+    expect(resolveWorkspaceConversationRef(undefined, 'active-ref')).toBe('active-ref');
+    expect(resolveWorkspaceConversationRef(undefined, ' active-ref ')).toBeNull();
     expect(resolveWorkspaceConversationRef(undefined, null)).toBeNull();
-    expect(resolveWorkspaceKey(undefined, ' active-ref ')).toBe('active-ref');
+    expect(resolveWorkspaceKey(undefined, 'active-ref')).toBe('active-ref');
+    expect(resolveWorkspaceKey(undefined, ' active-ref ')).toBe('__default__');
     expect(resolveWorkspaceKey(undefined, null)).toBe('__default__');
   });
 
@@ -411,10 +416,17 @@ describe('chatWorkspaceState', () => {
       workspaceRef: 'active-thread',
       workspace: activeWorkspace,
     });
-    expect(resolveWorkspaceMutationTarget(state, ' other-thread ')).toEqual({
+    expect(resolveWorkspaceMutationTarget(state, 'other-thread')).toEqual({
       normalizedConversationRef: 'other-thread',
       workspaceRef: 'other-thread',
       workspace: otherWorkspace,
+    });
+    expect(resolveWorkspaceMutationTarget(state, ' other-thread ')).toEqual({
+      normalizedConversationRef: null,
+      workspaceRef: '__default__',
+      workspace: expect.objectContaining({
+        messages: [],
+      }),
     });
   });
 
@@ -432,9 +444,18 @@ describe('chatWorkspaceState', () => {
       messages: [{ id: 'active', text: 'active', sender: 'assistant' as const }],
     };
 
-    expect(buildActiveConversationWorkspaceUpdate(state, ' next-thread ')).toEqual({
+    expect(buildActiveConversationWorkspaceUpdate(state, 'next-thread')).toEqual({
       activeConversationRef: 'next-thread',
       workspaces: state.workspaces,
+    });
+    expect(buildActiveConversationWorkspaceUpdate(state, ' next-thread ')).toEqual({
+      activeConversationRef: null,
+      workspaces: {
+        ...state.workspaces,
+        __default__: expect.objectContaining({
+          messages: [],
+        }),
+      },
     });
   });
 

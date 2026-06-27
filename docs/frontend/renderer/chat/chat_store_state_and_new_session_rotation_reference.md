@@ -67,7 +67,7 @@ The default workspace key is private to
 initialization uses `createInitialWorkspaceRecord()` so `chatStore.ts` and
 feature callers do not import the raw sentinel string.
 
-All mutating actions accept optional `conversationRef` and write into that workspace. The workspace record is the read authority. `chatStore.ts` no longer mirrors workspace fields such as `messages`, `isSending`, `sdkLiveTurn`, `conversationView`, or `pendingTurn` onto the store root; production callers use selectors or `getWorkspaceState(...)` instead.
+All mutating actions accept optional `conversationRef` and write into that workspace. Workspace conversation refs are exact identities: padded or empty refs are missing, not repaired into workspace keys. The workspace record is the read authority. `chatStore.ts` no longer mirrors workspace fields such as `messages`, `isSending`, `sdkLiveTurn`, `conversationView`, or `pendingTurn` onto the store root; production callers use selectors or `getWorkspaceState(...)` instead.
 `chatStore.ts` is the Zustand state/selector module. Workspace mutation
 adapter functions live in `chatStoreAdapters.ts`, which imports the runtime
 mutation helpers and applies their returned state updates through

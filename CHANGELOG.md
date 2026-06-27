@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: treat workspace conversation refs as exact identities
+  instead of trimming them, so padded refs cannot be repaired into active
+  workspace or mutation authority. No migration required.
 - frontend/replay: stop using chat-store active conversation state as replay
   command scope; edit/retry commands now require transcript/session
   conversation identity before SDK dispatch. No migration required.
