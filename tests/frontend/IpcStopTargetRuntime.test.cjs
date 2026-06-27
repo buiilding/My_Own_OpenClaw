@@ -142,6 +142,34 @@ describe('ipc_stop_target_runtime', () => {
     });
   });
 
+  test('rejects padded ConversationView and pending refs as stoppable targets', () => {
+    expect(createResolverRuntime({
+      latestConversationView: conversationView({
+        conversationRef: ' conv-view ',
+        turnRef: 'turn-view',
+      }),
+      currentConversationRef: 'conv-idle',
+    }).resolve()).toEqual({
+      source: 'idle',
+      conversationRef: 'conv-view',
+      turnRef: null,
+      canStop: false,
+    });
+
+    expect(createResolverRuntime({
+      latestPendingTurn: {
+        conversationRef: 'conv-pending',
+        turnRef: ' turn-pending ',
+      },
+      currentConversationRef: 'conv-idle',
+    }).resolve()).toEqual({
+      source: 'idle',
+      conversationRef: 'conv-idle',
+      turnRef: null,
+      canStop: false,
+    });
+  });
+
   test('uses pending turns before idle conversation fallback', () => {
     expect(createResolverRuntime({
       latestPendingTurn: {

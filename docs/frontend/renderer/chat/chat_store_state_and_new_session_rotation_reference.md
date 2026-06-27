@@ -258,6 +258,9 @@ shapes.
   handlers wire UI dependencies into the runtime instead of consuming
   `conversationRef`, `turnRef`, `canStop`, or `shouldClearPendingBridge` plan
   values directly.
+  Stop-target refs from SDK `ConversationView` and the pending bridge must be
+  exact non-empty strings; the runtime rejects padded stoppable refs instead of
+  trimming them into stop commands or pending-bridge cleanup.
   When a workspace already has a `ConversationView`, stopped-turn mutation
   ignores the raw no-view live-turn fallback, clears it to `null`, and only
   applies renderer-local cleanup for a matching pending bridge.

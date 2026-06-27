@@ -198,8 +198,8 @@ describe('desktopStopTurnRuntime', () => {
   test('builds stop execution plans with pending bridge cleanup owned by runtime', () => {
     expect(buildStopTurnExecutionPlan(resolveStopTurnTarget({
       pendingTurn: {
-        conversationRef: ' conv-pending ',
-        turnRef: ' turn-pending ',
+        conversationRef: 'conv-pending',
+        turnRef: 'turn-pending',
       },
     }))).toEqual({
       canStop: true,
@@ -221,6 +221,46 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
+  test('rejects padded ConversationView, pending bridge, and direct stop target refs', () => {
+    expect(resolveStopTurnTarget({
+      conversationView: conversationView({
+        conversationRef: ' conv-view ',
+        turnRef: 'turn-view',
+      }),
+      conversationRef: 'conv-session',
+    })).toEqual({
+      source: 'idle',
+      conversationRef: 'conv-view',
+      turnRef: null,
+      canStop: false,
+    });
+
+    expect(resolveStopTurnTarget({
+      pendingTurn: {
+        conversationRef: 'conv-pending',
+        turnRef: ' turn-pending ',
+      },
+      conversationRef: 'conv-session',
+    })).toEqual({
+      source: 'idle',
+      conversationRef: 'conv-session',
+      turnRef: null,
+      canStop: false,
+    });
+
+    expect(buildStopTurnExecutionPlan({
+      source: 'pending-turn',
+      conversationRef: 'conv-pending',
+      turnRef: ' turn-pending ',
+      canStop: true,
+    })).toEqual({
+      canStop: false,
+      conversationRef: 'conv-pending',
+      turnRef: null,
+      shouldClearPendingBridge: false,
+    });
+  });
+
   test('executes pending stop plans inside runtime with bridge cleanup', () => {
     const deps = {
       acceptStoppedTurn: jest.fn(),
@@ -234,8 +274,8 @@ describe('desktopStopTurnRuntime', () => {
       deps,
       stopTarget: resolveStopTurnTarget({
         pendingTurn: {
-          conversationRef: ' conv-pending ',
-          turnRef: ' turn-pending ',
+          conversationRef: 'conv-pending',
+          turnRef: 'turn-pending',
         },
       }),
     });

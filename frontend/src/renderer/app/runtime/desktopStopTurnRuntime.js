@@ -15,6 +15,10 @@ function normalizeRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function readExactNonEmptyRef(value) {
+  return typeof value === 'string' && value && value.trim() === value ? value : null;
+}
+
 function buildStopQueryTrackingPatch(stoppedAt) {
   return {
     phase: 'complete',
@@ -185,13 +189,14 @@ function buildStopTurnExecutionPlan(stopTarget = null) {
   const target = stopTarget && typeof stopTarget === 'object'
     ? stopTarget
     : {};
-  const conversationRef = normalizeRef(target.conversationRef);
-  const turnRef = normalizeRef(target.turnRef);
+  const conversationRef = readExactNonEmptyRef(target.conversationRef);
+  const turnRef = readExactNonEmptyRef(target.turnRef);
+  const canStop = target.canStop === true && Boolean(conversationRef && turnRef);
   return {
-    canStop: target.canStop === true,
+    canStop,
     conversationRef,
     turnRef,
-    shouldClearPendingBridge: isStopTurnTargetFromPendingTurn(target),
+    shouldClearPendingBridge: canStop && isStopTurnTargetFromPendingTurn(target),
   };
 }
 
@@ -242,8 +247,8 @@ function isPendingTurn(value) {
   return Boolean(
     value
       && typeof value === 'object'
-      && normalizeRef(value.conversationRef)
-      && normalizeRef(value.turnRef)
+      && readExactNonEmptyRef(value.conversationRef)
+      && readExactNonEmptyRef(value.turnRef)
   );
 }
 
@@ -252,8 +257,8 @@ function isStoppableConversationView(conversationView) {
     conversationView
       && typeof conversationView === 'object'
       && conversationView.liveTurn?.canStop === true
-      && normalizeRef(conversationView.conversationRef)
-      && normalizeRef(conversationView.liveTurn?.turnRef)
+      && readExactNonEmptyRef(conversationView.conversationRef)
+      && readExactNonEmptyRef(conversationView.liveTurn?.turnRef)
   );
 }
 
@@ -265,8 +270,8 @@ function resolveStopTurnTarget({
   if (isStoppableConversationView(conversationView)) {
     return {
       source: 'conversation-view',
-      conversationRef: normalizeRef(conversationView.conversationRef),
-      turnRef: normalizeRef(conversationView.liveTurn?.turnRef),
+      conversationRef: readExactNonEmptyRef(conversationView.conversationRef),
+      turnRef: readExactNonEmptyRef(conversationView.liveTurn?.turnRef),
       canStop: true,
     };
   }
@@ -275,8 +280,8 @@ function resolveStopTurnTarget({
     if (isPendingTurn(pendingTurn)) {
       return {
         source: 'pending-turn',
-        conversationRef: normalizeRef(pendingTurn.conversationRef),
-        turnRef: normalizeRef(pendingTurn.turnRef),
+        conversationRef: readExactNonEmptyRef(pendingTurn.conversationRef),
+        turnRef: readExactNonEmptyRef(pendingTurn.turnRef),
         canStop: true,
       };
     }
@@ -291,8 +296,8 @@ function resolveStopTurnTarget({
   if (isPendingTurn(pendingTurn)) {
     return {
       source: 'pending-turn',
-      conversationRef: normalizeRef(pendingTurn.conversationRef),
-      turnRef: normalizeRef(pendingTurn.turnRef),
+      conversationRef: readExactNonEmptyRef(pendingTurn.conversationRef),
+      turnRef: readExactNonEmptyRef(pendingTurn.turnRef),
       canStop: true,
     };
   }

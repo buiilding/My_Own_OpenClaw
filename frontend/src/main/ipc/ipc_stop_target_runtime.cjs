@@ -6,12 +6,16 @@ function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function readExactNonEmptyString(value) {
+  return typeof value === 'string' && value && value.trim() === value ? value : null;
+}
+
 function isPendingTurn(value) {
   return Boolean(
     value
       && typeof value === 'object'
-      && normalizeOptionalString(value.conversationRef)
-      && normalizeOptionalString(value.turnRef)
+      && readExactNonEmptyString(value.conversationRef)
+      && readExactNonEmptyString(value.turnRef)
   );
 }
 
@@ -20,8 +24,8 @@ function isStoppableConversationView(conversationView) {
     conversationView
       && typeof conversationView === 'object'
       && conversationView.liveTurn?.canStop === true
-      && normalizeOptionalString(conversationView.conversationRef)
-      && normalizeOptionalString(conversationView.liveTurn?.turnRef)
+      && readExactNonEmptyString(conversationView.conversationRef)
+      && readExactNonEmptyString(conversationView.liveTurn?.turnRef)
   );
 }
 
@@ -33,8 +37,8 @@ function resolveMainStopTarget({
   if (isStoppableConversationView(latestConversationView)) {
     return {
       source: 'conversation-view',
-      conversationRef: normalizeOptionalString(latestConversationView.conversationRef),
-      turnRef: normalizeOptionalString(latestConversationView.liveTurn?.turnRef),
+      conversationRef: readExactNonEmptyString(latestConversationView.conversationRef),
+      turnRef: readExactNonEmptyString(latestConversationView.liveTurn?.turnRef),
       canStop: true,
     };
   }
@@ -43,8 +47,8 @@ function resolveMainStopTarget({
     if (isPendingTurn(latestPendingTurn)) {
       return {
         source: 'pending-turn',
-        conversationRef: normalizeOptionalString(latestPendingTurn.conversationRef),
-        turnRef: normalizeOptionalString(latestPendingTurn.turnRef),
+        conversationRef: readExactNonEmptyString(latestPendingTurn.conversationRef),
+        turnRef: readExactNonEmptyString(latestPendingTurn.turnRef),
         canStop: true,
       };
     }
@@ -60,8 +64,8 @@ function resolveMainStopTarget({
   if (isPendingTurn(latestPendingTurn)) {
     return {
       source: 'pending-turn',
-      conversationRef: normalizeOptionalString(latestPendingTurn.conversationRef),
-      turnRef: normalizeOptionalString(latestPendingTurn.turnRef),
+      conversationRef: readExactNonEmptyString(latestPendingTurn.conversationRef),
+      turnRef: readExactNonEmptyString(latestPendingTurn.turnRef),
       canStop: true,
     };
   }

@@ -78,9 +78,11 @@ rule for an already-registered stop action:
   pending-turn, active-conversation, SDK stop, and overlay-phase dependencies so
   `ipc.cjs` delegates the stop action instead of rebuilding the dependency bag.
 - SDK `ConversationView.liveTurn.canStop` plus a valid view turn ref is the
-  SDK-owned stoppable state.
+  SDK-owned stoppable state; the view conversation ref and turn ref must be
+  exact non-empty strings, not padded values repaired by Electron main.
 - Stoppable SDK conversation views beat renderer pending-turn fallback.
-- Renderer pending turns beat idle active-conversation fallback.
+- Renderer pending turns beat idle active-conversation fallback when their
+  conversation ref and turn ref are exact non-empty bridge identities.
 - Idle fallback targets carry no `turn_ref`; only stoppable views and pending
   turns carry a turn id.
 - A successful stop sends the SDK-shaped `{ conversation_ref, turn_ref }`

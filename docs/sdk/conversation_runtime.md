@@ -282,6 +282,10 @@ user rows.
 Pending bridge identity fields are exact non-empty values. Renderer and main
 pending-turn adapters reject padded conversation refs, turn refs, and pending
 user-row ids instead of trimming them into bridge or Stop targets.
+Renderer and main stop-target resolution applies the same exact identity rule
+to stoppable `ConversationView` live turns and pending bridge targets; padded
+view or pending refs resolve as non-stoppable idle state instead of being
+repaired into SDK stop commands.
 Normal renderer send payload normalization is a positive contract: object
 payloads may contain only `text`, `clipboardImages[]`, and `readableFiles[]`.
 Any extra renderer field is rejected generically, so send prep does not carry
