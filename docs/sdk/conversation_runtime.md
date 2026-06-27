@@ -537,6 +537,9 @@ through the SDK attachment projection helper, but they must not expose
 aggregate lifecycle summaries that make the renderer a second attachment state
 authority. `AttachmentList` also runs the same projection helper before
 rendering, so loose component inputs cannot bypass SDK descriptor validation.
+The renderer registry beneath that list is a visual dispatcher only: it renders
+already-validated descriptors and does not duplicate preview/lifecycle checks
+or call the SDK attachment projection helper itself.
 Malformed or padded attachment descriptors are dropped before they can affect
 those presentation decisions. The renderer does not repair malformed attachment
 lifecycle records: materializing images without exact preview sources, ready

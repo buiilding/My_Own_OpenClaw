@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: make `AttachmentRendererRegistry` render only
+  already-validated SDK attachment descriptors from `AttachmentList`, keeping
+  preview/lifecycle validation centralized in the SDK display attachment
+  projection helper. No migration required.
 - frontend/current-turn: require the shared complete SDK `ConversationView`
   envelope before suppressing no-view SDK live-turn workspace storage, keeping
   partial view-shaped objects on the no-view fallback path. No migration

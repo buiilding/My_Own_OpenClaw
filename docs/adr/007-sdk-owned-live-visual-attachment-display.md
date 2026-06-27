@@ -144,6 +144,9 @@ validation: materializing images need an exact preview source, ready images need
 an exact artifact ref or non-inline URL, and screenshot request placeholders
 must be camera-button descriptors. The renderer must not repair incomplete
 lifecycle state into another status or infer visuals from screenshot aliases.
+Renderers below `AttachmentList` assume the descriptor has already passed that
+gate; they choose the visual component for the SDK-authored `kind`/`status` and
+do not duplicate attachment lifecycle validation.
 Materializing image previews render directly from SDK-authored `previewSrc`.
 The renderer artifact image resolver is ready-only and must not treat preview
 bytes as artifact/source state.

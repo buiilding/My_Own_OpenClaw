@@ -9,10 +9,6 @@ import {
   DesktopAttachmentImageRuntime,
 } from '../../../../../app/runtime/desktopAttachmentImageRuntime';
 
-function isExactNonEmptyString(value) {
-  return typeof value === 'string' && value.length > 0 && value === value.trim();
-}
-
 function normalizeSurfaceClass(surface) {
   return typeof surface === 'string' && /^[a-z0-9_-]+$/i.test(surface)
     ? surface
@@ -52,7 +48,7 @@ function AttachmentImageFrame({ src, surface = 'dashboard' }) {
 function MaterializingImageAttachment({ attachment, surface = 'dashboard' }) {
   return (
     <AttachmentImageFrame
-      src={isExactNonEmptyString(attachment.previewSrc) ? attachment.previewSrc : null}
+      src={attachment.previewSrc}
       surface={surface}
     />
   );

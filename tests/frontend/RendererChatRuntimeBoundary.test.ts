@@ -1478,6 +1478,7 @@ describe('renderer chat runtime boundary', () => {
     expect(toolCallMessageStateSource).not.toContain('modelFacingToolCall');
     expect(attachmentRendererRegistrySource).not.toContain('screenshotRef: PropTypes');
     expect(attachmentRendererRegistrySource).not.toContain('screenshotUrl: PropTypes');
+    expect(attachmentRendererRegistrySource).not.toContain('function isExactNonEmptyString');
     expect(chatBoxResponseTestUtilsSource).not.toContain('screenshotRef: message.screenshotRef');
     expect(chatBoxResponseTestUtilsSource).not.toContain('screenshotUrl: message.screenshotUrl');
     expect(chatBoxResponseTestUtilsSource).not.toContain('screenshot: message.screenshot');
@@ -2851,6 +2852,10 @@ describe('renderer chat runtime boundary', () => {
     expect(attachmentListSource).not.toContain('user-screenshot');
     expect(attachmentRegistrySource).toContain('DesktopArtifactRuntimeClient.showImageContextMenu');
     expect(attachmentRegistrySource).toContain('message-attachment-image');
+    expect(attachmentRegistrySource).not.toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(attachmentRegistrySource).not.toContain('readSdkDisplayAttachments');
+    expect(attachmentRegistrySource).not.toContain('function isExactNonEmptyString');
+    expect(attachmentRegistrySource).toContain('src={attachment.previewSrc}');
     expect(attachmentRegistrySource).not.toContain('user-screenshot');
     expect(attachmentRegistrySource).not.toContain('lastVisibleSrc');
     expect(attachmentRegistrySource).not.toContain('useState');
