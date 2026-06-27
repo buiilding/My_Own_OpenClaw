@@ -75,6 +75,42 @@ describe('ipc_agent_sdk_runtime_commands', () => {
     expect(queryInput).not.toHaveProperty('payload');
   });
 
+  test('drops renderer-supplied resource aliases when typed turn resources are present', async () => {
+    const { commands, deps } = createCommands();
+
+    await expect(commands.sendQueryThroughAgentSdkRuntime({
+      messageId: 'turn-resource-alias',
+      payload: {
+        text: 'hello with resources',
+        conversation_ref: 'conversation-1',
+        resources: [{ kind: 'query_screenshot_request', required: false }],
+        screenshot_ref: 'stale-shot',
+        screenshot_url: '/api/artifacts/stale-shot',
+        screenshot_refs: ['stale-shot'],
+        attachment_context: 'stale attachment context',
+        attachment_filenames: ['stale.png'],
+        capture_meta: { stale: true },
+      },
+    })).resolves.toBe('query-1');
+
+    const queryInput = deps.agent.run.mock.calls[0][0];
+    expect(queryInput.resources).toEqual([{ kind: 'query_screenshot_request', required: false }]);
+    expect(queryInput.backendPayload).toEqual({
+      text: 'hello with resources',
+      conversation_ref: 'conversation-1',
+    });
+    expect(queryInput.screenshotRef).toBeUndefined();
+    expect(queryInput.screenshotRefs).toBeUndefined();
+    expect(queryInput.attachmentContext).toBeUndefined();
+    expect(queryInput.attachmentFilenames).toBeUndefined();
+    expect(queryInput.backendPayload).not.toHaveProperty('screenshot_ref');
+    expect(queryInput.backendPayload).not.toHaveProperty('screenshot_url');
+    expect(queryInput.backendPayload).not.toHaveProperty('screenshot_refs');
+    expect(queryInput.backendPayload).not.toHaveProperty('attachment_context');
+    expect(queryInput.backendPayload).not.toHaveProperty('attachment_filenames');
+    expect(queryInput.backendPayload).not.toHaveProperty('capture_meta');
+  });
+
   test('passes renderer model override through SDK run options instead of backend payload', async () => {
     const { commands, deps } = createCommands();
 

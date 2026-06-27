@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: drop caller-supplied screenshot, attachment, and capture
+  aliases from Agent SDK runtime send commands whenever typed SDK turn
+  resources are present, leaving SDK resource resolution as the only source of
+  materialized backend attachment aliases. No migration required.
 - frontend/main: make the SDK live-turn surface controller treat
   ConversationView response-overlay refs as exact SDK identity, so padded view
   turn/guard/conversation refs are not trimmed into native response-overlay

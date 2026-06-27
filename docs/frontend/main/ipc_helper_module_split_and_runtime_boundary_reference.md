@@ -327,6 +327,9 @@ Owns Electron-main Agent SDK command execution helpers:
   `capture_meta` is dropped before `backendPayload` reaches `agent.run(...)`.
   `attachment_context` intentionally preserves non-empty whitespace because it
   is hidden file-content context, not identity metadata.
+- drops caller-supplied screenshot, attachment, and capture aliases whenever a
+  renderer command also carries typed SDK turn `resources`; the SDK resource
+  pipeline owns the later materialized backend aliases for those sends.
 - stops active turns through the active adapter and clears pending-turn state
   before dispatch
 - routes settings updates, model-list requests, and wakeword-detected events

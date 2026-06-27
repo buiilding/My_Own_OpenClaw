@@ -26,8 +26,24 @@ function optionalAttachmentContext(value) {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
 }
 
+const RESOURCE_BACKEND_ALIAS_FIELDS = [
+  'screenshot_ref',
+  'screenshot_url',
+  'screenshot_refs',
+  'attachment_context',
+  'attachment_filenames',
+  'capture_meta',
+];
+
 function normalizeBackendResourceMetadata(payload) {
   const normalized = { ...payload };
+  if (Array.isArray(payload.resources)) {
+    for (const field of RESOURCE_BACKEND_ALIAS_FIELDS) {
+      delete normalized[field];
+    }
+    return normalized;
+  }
+
   const screenshotRef = optionalExactString(payload.screenshot_ref);
   if (screenshotRef) {
     normalized.screenshot_ref = screenshotRef;
