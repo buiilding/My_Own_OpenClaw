@@ -3843,6 +3843,9 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnMessageRuntimeSource).not.toContain('normalizeOptionalText(entry.requestId)');
     expect(currentTurnMessageRuntimeSource).not.toContain('function normalizeDisplayAttachments');
     expect(threadPresentationRuntimeSource).toContain('function toolMessageIdentity(message)');
+    expect(threadPresentationRuntimeSource).toContain('function readExactRef(value)');
+    expect(threadPresentationRuntimeSource).toContain('const liveId = readExactRef(liveMessage?.id);');
+    expect(threadPresentationRuntimeSource).not.toContain('const liveId = normalizeRef(liveMessage?.id);');
     expect(threadPresentationRuntimeSource).not.toContain('function resolveToolName');
     expect(threadPresentationRuntimeSource).not.toContain('resolveToolName(message)');
     expect(chatInterfaceSource).toContain('DesktopChatInterfacePresentationRuntime');

@@ -111,7 +111,9 @@ sources when SDK sends padded or empty labels. Renderer presentation assigns
 visibility gating. Live row `turnRef` projection similarly prefers the
 containing SDK live turn's `turnRef` over entry-level payload refs. Live tool
 identity fields such as `correlationId`, `requestId`, and `bundleId` are exact;
-padded values fall through instead of becoming renderer dedupe keys.
+padded values fall through instead of becoming renderer dedupe keys. Thread
+dedupe checks live row ids with the same exactness, so malformed padded live ids
+cannot suppress SDK display rows.
 
 `streamTracking` fields capture turn identity, phase, counters, and timestamps per workspace:
 

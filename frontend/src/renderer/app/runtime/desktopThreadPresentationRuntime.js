@@ -39,6 +39,12 @@ function normalizeRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function readExactRef(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function isConversationView(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
@@ -170,7 +176,7 @@ function toolMessageIdentity(message) {
 }
 
 function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
-  const liveId = normalizeRef(liveMessage?.id);
+  const liveId = readExactRef(liveMessage?.id);
   const liveText = normalizeText(liveMessage?.text);
   const liveThinkingText = normalizeText(liveMessage?.thinkingText);
   return messages.some((message) => {

@@ -973,6 +973,48 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
+  test('buildThreadPresentationMessages does not repair padded live row ids for dedupe', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+      {
+        id: 'materialized-tool-call',
+        sender: 'assistant',
+        text: 'Using read_file',
+        type: 'tool-call',
+        turnRef: 'turn-1',
+      },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: ' materialized-tool-call ',
+          type: 'tool-call',
+          text: 'Using read_file live',
+          sourceEventType: 'tool_call',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered).toEqual([
+      ...messages,
+      expect.objectContaining({
+        id: ' materialized-tool-call ',
+        type: 'tool-call',
+        text: 'Using read_file live',
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages drops current-turn thinking once assistant text is materialized', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },

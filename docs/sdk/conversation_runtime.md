@@ -393,6 +393,9 @@ live row onto an older turn.
 Tool live-entry identity fields such as `correlationId`, `requestId`, and
 `bundleId` are exact SDK strings in renderer presentation; padded or empty
 values are ignored rather than trimmed into duplicate-detection keys.
+Thread presentation duplicate suppression also treats live row ids as exact SDK
+identity; padded live ids do not suppress materialized display rows by being
+trimmed into a match.
 Streaming assistant display rows keep exact SDK-authored
 `metadata.sourceEventType` when present and otherwise use the generic
 `assistant_message` display-row type; padded or empty source event metadata
