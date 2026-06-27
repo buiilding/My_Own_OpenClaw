@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: normalize live-turn SDK resource arrays at the renderer command
+  facade, dropping malformed handles and renderer preview/display lifecycle
+  fields before `conversation.send`. No migration required.
 - frontend/attachments: keep materializing SDK image previews out of the
   artifact image resolver path; preview rendering now uses SDK `previewSrc`
   directly while artifact/source resolution is ready-only. No migration

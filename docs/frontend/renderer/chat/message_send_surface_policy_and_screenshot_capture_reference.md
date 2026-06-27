@@ -171,6 +171,11 @@ When attachment(s) exist:
    Renderer resources do not assign `displayAttachmentId`; SDK turn processing
    assigns stable display attachment ids before producing live visual
    attachment projection state.
+   `DesktopLiveTurnRuntimeClient` re-normalizes the final resource array before
+   `conversation.send`, so only SDK resource-kind fields cross the command
+   boundary; malformed required handles, renderer preview fields, display ids,
+   screenshot aliases, and attachment lifecycle descriptors are dropped instead
+   of being repaired or forwarded.
 7. call `DesktopLiveTurnRuntimeClient.sendQuery` with text, conversation ref,
    turn ref, and typed resources. Normal sends do not build a renderer-owned
    filename payload or metadata object for filenames.

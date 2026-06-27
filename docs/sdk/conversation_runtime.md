@@ -334,6 +334,10 @@ such as clipboard `base64`, readable-file `filePath`, and readable-file
 attachment items rather than trimming them into SDK resources. Optional
 clipboard metadata such as `contentType` and `filename` is forwarded only when
 exact, leaving SDK resource resolution to choose fallback metadata when omitted.
+The renderer live-turn command facade re-normalizes resource arrays before
+`conversation.send`, preserving only typed SDK resource fields and dropping
+renderer preview/display lifecycle leftovers such as display ids, preview
+sources, screenshot aliases, or malformed exact-string handles.
 The renderer desktop transport applies the same exactness rule to SDK-owned
 backend resource metadata that passes through `conversation.send`: padded
 `screenshot_ref`, `screenshot_url`, `screenshot_refs[]`, and

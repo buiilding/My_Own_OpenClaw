@@ -78,6 +78,73 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('attachment_filenames');
   });
 
+  test('sendQuery normalizes turn input resources before SDK command dispatch', async () => {
+    const { DesktopLiveTurnRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
+    );
+
+    await DesktopLiveTurnRuntimeClient.sendQuery({
+      text: 'hello with resources',
+      conversationRef: 'conv-send',
+      turnRef: 'turn-explicit',
+      resources: [
+        {
+          kind: 'clipboard_image',
+          displayAttachmentId: 'renderer-owned-id',
+          base64: 'image-base64',
+          contentType: ' image/png ',
+          filename: 'shot.png',
+          previewSrc: 'data:image/png;base64,preview',
+          screenshotRef: 'artifact-should-not-cross',
+          required: true,
+        },
+        {
+          kind: 'query_screenshot_request',
+          displayAttachmentId: 'renderer-screenshot-id',
+          isFirstUserMessage: true,
+          reason: ' capture ',
+          previewSrc: 'data:image/png;base64,preview',
+          required: false,
+        },
+        {
+          kind: 'readable_file',
+          filePath: ' /tmp/padded.txt ',
+          filename: 'notes.txt',
+          required: true,
+        },
+        {
+          kind: 'workspace',
+          workspacePath: ' /workspace/padded ',
+          required: false,
+        },
+        {
+          kind: 'unknown_resource',
+          required: true,
+        },
+      ] as any,
+    });
+
+    const commandPayload = mockInvokeAgentSdkCommand.mock.calls[0][1];
+    expect(commandPayload.resources).toEqual([
+      {
+        kind: 'clipboard_image',
+        base64: 'image-base64',
+        contentType: null,
+        filename: 'shot.png',
+        required: true,
+      },
+      {
+        kind: 'query_screenshot_request',
+        isFirstUserMessage: true,
+        reason: null,
+        required: false,
+      },
+    ]);
+    expect(JSON.stringify(commandPayload.resources)).not.toContain('displayAttachmentId');
+    expect(JSON.stringify(commandPayload.resources)).not.toContain('previewSrc');
+    expect(JSON.stringify(commandPayload.resources)).not.toContain('screenshotRef');
+  });
+
   test('sendQuery rejects padded command identity before dispatch', async () => {
     const { DesktopLiveTurnRuntimeClient } = require(
       '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',

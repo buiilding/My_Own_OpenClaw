@@ -44,6 +44,78 @@ function optionalExactString(value: unknown): string | null {
     : null;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function optionalBoolean(value: unknown): boolean | null {
+  return typeof value === 'boolean' ? value : null;
+}
+
+function requiredField(value: unknown): { required: boolean } | Record<string, never> {
+  const required = optionalBoolean(value);
+  return required === null ? {} : { required };
+}
+
+function normalizeTurnInputResource(resource: unknown): TurnInputResource | null {
+  if (!isRecord(resource)) {
+    return null;
+  }
+  if (resource.kind === 'readable_file') {
+    const filePath = optionalExactString(resource.filePath);
+    const filename = optionalExactString(resource.filename);
+    return filePath && filename
+      ? {
+        kind: 'readable_file',
+        filePath,
+        filename,
+        ...requiredField(resource.required),
+      }
+      : null;
+  }
+  if (resource.kind === 'clipboard_image') {
+    const base64 = optionalExactString(resource.base64);
+    if (!base64) {
+      return null;
+    }
+    return {
+      kind: 'clipboard_image',
+      base64,
+      contentType: optionalExactString(resource.contentType),
+      filename: optionalExactString(resource.filename),
+      ...requiredField(resource.required),
+    };
+  }
+  if (resource.kind === 'query_screenshot_request') {
+    const isFirstUserMessage = optionalBoolean(resource.isFirstUserMessage);
+    return {
+      kind: 'query_screenshot_request',
+      ...(isFirstUserMessage === null ? {} : { isFirstUserMessage }),
+      reason: optionalExactString(resource.reason),
+      ...requiredField(resource.required),
+    };
+  }
+  if (resource.kind === 'workspace') {
+    const workspacePath = optionalExactString(resource.workspacePath);
+    return workspacePath
+      ? {
+        kind: 'workspace',
+        workspacePath,
+        ...requiredField(resource.required),
+      }
+      : null;
+  }
+  return null;
+}
+
+function normalizeTurnInputResources(resources: unknown): TurnInputResource[] {
+  return Array.isArray(resources)
+    ? resources
+      .map(normalizeTurnInputResource)
+      .filter((resource): resource is TurnInputResource => resource !== null)
+    : [];
+}
+
 function throwIfFailedIpcResult(result: unknown): void {
   if (!result || typeof result !== 'object' || !('ok' in result) || result.ok !== false) {
     return;
@@ -74,7 +146,7 @@ export const DesktopLiveTurnRuntimeClient = {
       query_message_id: turnRef ?? null,
       ...(input.model ? { model: input.model } : {}),
       workspace_path: optionalString(input.workspacePath) ?? null,
-      resources: Array.isArray(input.resources) ? input.resources : [],
+      resources: normalizeTurnInputResources(input.resources),
       metadata: input.metadata && typeof input.metadata === 'object' && !Array.isArray(input.metadata)
         ? input.metadata
         : null,
