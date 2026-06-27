@@ -2,20 +2,6 @@
  * Builds chat-provider trace snapshots from renderer workspace read models.
  */
 
-import {
-  DesktopConversationDisplayProjection,
-} from './desktopConversationDisplayProjection';
-import {
-  DesktopConversationViewWorkspaceRuntime,
-} from './desktopConversationViewWorkspaceRuntime';
-
-const {
-  buildConversationViewTraceSummary,
-} = DesktopConversationDisplayProjection;
-const {
-  hasWorkspaceConversationView,
-} = DesktopConversationViewWorkspaceRuntime;
-
 function normalizeTraceString(value) {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
     ? value
@@ -35,23 +21,32 @@ function traceLastMessageFromReadModel(value) {
   };
 }
 
-function resolveTraceLastMessage(workspace) {
-  if (hasWorkspaceConversationView(workspace)) {
-    return buildConversationViewTraceSummary(workspace.conversationView).lastMessage;
+function traceConversationViewSummaryFromReadModel(workspace) {
+  const value = workspace?.conversationViewTraceSummary;
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value
+    : null;
+}
+
+function resolveTraceLastMessage(workspace, conversationViewTraceSummary) {
+  if (conversationViewTraceSummary) {
+    return traceLastMessageFromReadModel(conversationViewTraceSummary.lastMessage);
   }
   return traceLastMessageFromReadModel(workspace?.lastMessage);
 }
 
-function resolveTraceActiveTurnRef(workspace) {
-  if (hasWorkspaceConversationView(workspace)) {
-    return buildConversationViewTraceSummary(workspace.conversationView).liveTurnRef;
+function resolveTraceActiveTurnRef(workspace, conversationViewTraceSummary) {
+  if (conversationViewTraceSummary) {
+    return normalizeTraceString(conversationViewTraceSummary.liveTurnRef);
   }
   return normalizeTraceString(workspace?.activeTurnRef);
 }
 
-function resolveTraceMessageCount(workspace) {
-  if (hasWorkspaceConversationView(workspace)) {
-    return buildConversationViewTraceSummary(workspace.conversationView).displayRowCount;
+function resolveTraceMessageCount(workspace, conversationViewTraceSummary) {
+  if (conversationViewTraceSummary) {
+    return typeof conversationViewTraceSummary.displayRowCount === 'number'
+      ? conversationViewTraceSummary.displayRowCount
+      : 0;
   }
   return typeof workspace?.messageCount === 'number' ? workspace.messageCount : 0;
 }
@@ -60,11 +55,12 @@ function buildChatProviderTraceWorkspaceSnapshot({
   activeConversationRef = null,
   workspace = null,
 } = {}) {
+  const conversationViewTraceSummary = traceConversationViewSummaryFromReadModel(workspace);
   return {
     activeConversationRef,
-    workspaceMessageCount: resolveTraceMessageCount(workspace),
-    activeTurnRef: resolveTraceActiveTurnRef(workspace),
-    lastMessage: resolveTraceLastMessage(workspace),
+    workspaceMessageCount: resolveTraceMessageCount(workspace, conversationViewTraceSummary),
+    activeTurnRef: resolveTraceActiveTurnRef(workspace, conversationViewTraceSummary),
+    lastMessage: resolveTraceLastMessage(workspace, conversationViewTraceSummary),
   };
 }
 

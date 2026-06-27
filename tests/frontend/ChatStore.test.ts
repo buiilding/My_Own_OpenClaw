@@ -357,6 +357,7 @@ describe('chatStore', () => {
 
     const streamReadModel = getChatStreamWorkspaceReadModelFromChatStore('conv-partial-view') as Record<string, unknown>;
     const currentTurnReadModel = getCurrentTurnProjectionWorkspaceReadModelFromChatStore('conv-partial-view') as Record<string, unknown>;
+    const providerTraceSnapshot = getChatProviderTraceWorkspaceSnapshotFromChatStore('conv-partial-view');
 
     expect(streamReadModel.viewLiveTurnRef).toBeNull();
     expect(streamReadModel).not.toHaveProperty('conversationView');
@@ -371,6 +372,18 @@ describe('chatStore', () => {
       },
     }));
     expect(currentTurnReadModel).not.toHaveProperty('messages');
+    expect(providerTraceSnapshot).toEqual({
+      activeConversationRef: null,
+      workspaceMessageCount: 1,
+      activeTurnRef: null,
+      lastMessage: {
+        sender: 'assistant',
+        type: null,
+        textLength: 'raw answer'.length,
+        turnRef: 'turn-raw',
+        sourceEventType: null,
+      },
+    });
   });
 
   test('current-turn projection read model omits raw message state', () => {

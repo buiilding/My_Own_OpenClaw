@@ -2727,9 +2727,11 @@ describe('renderer chat runtime boundary', () => {
     expect(chatProviderSource).not.toContain('phase: workspace.streamTracking.phase');
     expect(providerTraceRuntimeSource).toContain('export const DesktopChatProviderTraceRuntime = Object.freeze');
     expect(providerTraceRuntimeSource).toContain('buildChatProviderTraceWorkspaceSnapshot');
-    expect(providerTraceRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
-    expect(providerTraceRuntimeSource).toContain('hasWorkspaceConversationView(workspace)');
-    expect(providerTraceRuntimeSource).toContain('buildConversationViewTraceSummary');
+    expect(providerTraceRuntimeSource).toContain('conversationViewTraceSummary');
+    expect(providerTraceRuntimeSource).not.toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(providerTraceRuntimeSource).not.toContain('hasWorkspaceConversationView');
+    expect(providerTraceRuntimeSource).not.toContain('buildConversationViewTraceSummary');
+    expect(providerTraceRuntimeSource).not.toContain('conversationView.displayRows');
     expect(providerTraceRuntimeSource).toContain('value.length > 0 && value === value.trim()');
     expect(providerTraceRuntimeSource).toContain('traceLastMessageFromReadModel(workspace?.lastMessage)');
     expect(providerTraceRuntimeSource).toContain('normalizeTraceString(workspace?.activeTurnRef)');
@@ -2751,6 +2753,9 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('getChatProviderTraceWorkspaceSnapshotFromChatStore');
     expect(chatStoreAdaptersSource).toContain('buildChatProviderTraceWorkspaceSnapshot');
     expect(chatStoreAdaptersSource).toContain('function buildChatProviderTraceWorkspaceReadModel');
+    expect(chatStoreAdaptersSource).toContain('buildConversationViewTraceSummary(workspace.conversationView)');
+    expect(chatStoreAdaptersSource).toContain('hasWorkspaceConversationView(workspace)');
+    expect(chatStoreAdaptersSource).toContain('conversationViewTraceSummary: hasConversationView');
     expect(chatStoreAdaptersSource).toContain('workspace: buildChatProviderTraceWorkspaceReadModel(');
     expect(chatStoreAdaptersSource).toContain('messageCount: workspace.messages.length');
     expect(clientSource).toContain('SEND_CHANNELS.LIVE_SURFACE_TRACE');

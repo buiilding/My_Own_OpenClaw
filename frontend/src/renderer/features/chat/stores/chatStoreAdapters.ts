@@ -52,6 +52,9 @@ import {
 import {
   DesktopChatProviderTraceRuntime,
 } from '../../../app/runtime/desktopChatProviderTraceRuntime';
+import {
+  DesktopConversationDisplayProjection,
+} from '../../../app/runtime/desktopConversationDisplayProjection';
 import type {
   ChatStreamWorkspaceReadModel,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
@@ -125,10 +128,14 @@ const {
   buildChatProviderTraceWorkspaceSnapshot,
 } = DesktopChatProviderTraceRuntime;
 const {
+  buildConversationViewTraceSummary,
+} = DesktopConversationDisplayProjection;
+const {
   buildSetNoViewSdkLiveTurnStateUpdate,
 } = DesktopCurrentTurnWorkspaceRuntime;
 const {
   buildSetConversationViewStateUpdate,
+  hasWorkspaceConversationView,
 } = DesktopConversationViewWorkspaceRuntime;
 
 const pendingTurnStateRuntimeDependencies = {
@@ -242,8 +249,11 @@ function buildChatProviderTraceWorkspaceReadModel(
   workspace: ChatWorkspaceReadModelState,
 ) {
   const lastMessage = workspace.messages[workspace.messages.length - 1] ?? null;
+  const hasConversationView = hasWorkspaceConversationView(workspace);
   return {
-    conversationView: workspace.conversationView,
+    conversationViewTraceSummary: hasConversationView
+      ? buildConversationViewTraceSummary(workspace.conversationView)
+      : null,
     messageCount: workspace.messages.length,
     activeTurnRef: workspace.streamTracking.activeTurnRef,
     lastMessage: lastMessage

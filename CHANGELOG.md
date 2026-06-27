@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/trace: narrow the ChatProvider trace runtime to consume
+  `conversationViewTraceSummary` from the chat-store adapter instead of reading
+  SDK `ConversationView` display rows directly. No migration required.
 - frontend/stream: replace the chat-stream read model's partial
   `conversationView.liveTurn` payload with a purpose-named `viewLiveTurnRef`,
   keeping stale-turn guards on SDK view identity without publishing a

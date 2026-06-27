@@ -8,35 +8,8 @@ const {
   buildChatProviderTraceWorkspaceSnapshot,
 } = DesktopChatProviderTraceRuntime;
 
-function conversationView({
-  conversationRef = 'conv-provider',
-  displayRows = [],
-  liveTurn = {
-    turnRef: 'turn-view',
-  },
-  surfaces = {
-    dashboard: { mode: 'normal', visible: true },
-    pill: { mode: 'normal', visible: true },
-    responseOverlay: { mode: 'hidden', visible: false },
-  },
-  actions = {
-    canEdit: false,
-    canRetry: false,
-    canFork: false,
-  },
-} = {}) {
-  return {
-    conversationRef,
-    revisionId: null,
-    displayRows,
-    liveTurn,
-    surfaces,
-    actions,
-  };
-}
-
 describe('DesktopChatProviderTraceRuntime', () => {
-  test('builds trace snapshots from ConversationView before raw workspace messages', () => {
+  test('builds trace snapshots from ConversationView summaries before raw workspace messages', () => {
     expect(buildChatProviderTraceWorkspaceSnapshot({
       activeConversationRef: 'conv-provider',
       workspace: {
@@ -49,16 +22,17 @@ describe('DesktopChatProviderTraceRuntime', () => {
           turnRef: 'turn-stale',
           sourceEventType: 'streaming-response',
         },
-        conversationView: conversationView({
-          displayRows: [{
-            id: 'view-row',
-            role: 'assistant',
+        conversationViewTraceSummary: {
+          displayRowCount: 1,
+          liveTurnRef: 'turn-view',
+          lastMessage: {
+            sender: 'assistant',
             type: 'assistant_message',
-            content: 'view answer',
+            textLength: 'view answer'.length,
             turnRef: 'turn-view',
             sourceEventType: 'assistant-message-full',
-          }],
-        }),
+          },
+        },
       },
     })).toEqual({
       activeConversationRef: 'conv-provider',
@@ -74,7 +48,7 @@ describe('DesktopChatProviderTraceRuntime', () => {
     });
   });
 
-  test('does not fall back to raw workspace fields when ConversationView has no rows', () => {
+  test('does not fall back to raw workspace fields when ConversationView summary has no rows', () => {
     expect(buildChatProviderTraceWorkspaceSnapshot({
       activeConversationRef: 'conv-provider',
       workspace: {
@@ -87,10 +61,11 @@ describe('DesktopChatProviderTraceRuntime', () => {
           turnRef: 'turn-stale',
           sourceEventType: 'streaming-response',
         },
-        conversationView: conversationView({
-          liveTurn: {},
-          displayRows: [],
-        }),
+        conversationViewTraceSummary: {
+          displayRowCount: 0,
+          liveTurnRef: null,
+          lastMessage: null,
+        },
       },
     })).toEqual({
       activeConversationRef: 'conv-provider',
@@ -113,7 +88,7 @@ describe('DesktopChatProviderTraceRuntime', () => {
           turnRef: 'turn-raw',
           sourceEventType: 'streaming-response',
         },
-        conversationView: null,
+        conversationViewTraceSummary: null,
       },
     })).toEqual({
       activeConversationRef: 'conv-provider',
@@ -129,7 +104,7 @@ describe('DesktopChatProviderTraceRuntime', () => {
     });
   });
 
-  test('falls back to no-view trace read model for incomplete ConversationView envelopes', () => {
+  test('falls back to no-view trace read model when no ConversationView summary exists', () => {
     expect(buildChatProviderTraceWorkspaceSnapshot({
       activeConversationRef: 'conv-provider',
       workspace: {
@@ -142,15 +117,7 @@ describe('DesktopChatProviderTraceRuntime', () => {
           turnRef: 'turn-raw',
           sourceEventType: 'streaming-response',
         },
-        conversationView: {
-          displayRows: [{
-            id: 'view-row',
-            role: 'assistant',
-            type: 'assistant_message',
-            content: 'partial view answer',
-            turnRef: 'turn-view',
-          }],
-        },
+        conversationViewTraceSummary: null,
       },
     })).toEqual({
       activeConversationRef: 'conv-provider',
@@ -179,7 +146,7 @@ describe('DesktopChatProviderTraceRuntime', () => {
           turnRef: ' turn-raw ',
           sourceEventType: ' streaming-response ',
         },
-        conversationView: null,
+        conversationViewTraceSummary: null,
       },
     })).toEqual({
       activeConversationRef: 'conv-provider',
