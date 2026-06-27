@@ -1725,10 +1725,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatMessageClientSource).toContain('infrastructure/text/incomingTextNormalization');
     expect(chatMessageClientSource).toContain('export const DesktopChatMessageRuntimeClient = Object.freeze');
     expect(chatMessageClientSource).not.toContain('export {');
-    expect(currentTurnMessageSource).toContain('desktopChatMessageRuntimeClient');
+    expect(currentTurnMessageSource).not.toContain('desktopChatMessageRuntimeClient');
     expect(currentTurnMessageSource).not.toContain('modelFacingToolCall: toolCallState');
     expect(currentTurnMessageSource).not.toContain('modelFacingToolCall');
-    expect(currentTurnMessageSource).toContain('DesktopChatMessageRuntimeClient');
+    expect(currentTurnMessageSource).not.toContain('DesktopChatMessageRuntimeClient');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/toolOutputMessages.ts'),
     )).rejects.toThrow();
@@ -3999,13 +3999,16 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('toolCallDetails');
     expect(source).toContain('toolOutputDetails');
     expect(source).toContain('sanitizeSdkToolDetailRecord');
+    expect(source).not.toContain('DesktopChatMessageRuntimeClient');
+    expect(source).not.toContain('buildToolCallChatMessageState');
+    expect(source).not.toContain('buildToolOutputChatMessageState');
     expect(source).not.toContain('toolName ? { toolName }');
     expect(source).not.toContain('const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);');
     expect(source).not.toContain('const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);');
     expect(source).not.toContain('toolCallDetails: displayToolCallDetails');
     expect(source).not.toContain('toolOutputDetails: displayToolOutputDetails');
-    expect(source).toContain('toolCallDetails: sanitizeSdkToolDetailRecord(asRecord(entry.toolCallDetails))');
-    expect(source).toContain('toolOutputDetails: sanitizeSdkToolDetailRecord(asRecord(entry.toolOutputDetails))');
+    expect(source).toContain('const toolCallDetails = sanitizeSdkToolDetailRecord(asRecord(entry.toolCallDetails));');
+    expect(source).toContain('const toolOutputDetails = sanitizeSdkToolDetailRecord(asRecord(entry.toolOutputDetails));');
     expect(source).not.toContain('toolMetadata: sanitizeSdkToolDetailRecord(asRecord(entry.toolMetadata))');
     expect(source).not.toContain('const toolMetadata = sanitizeSdkToolDetailRecord(asRecord(entry.toolMetadata));');
     expect(source).not.toContain('entry.toolMetadata');
@@ -4029,7 +4032,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('if (!toolEventRecord || !toolEventId)');
     expect(source).not.toContain('id: toolEvent.id || index');
     expect(source).toContain('turnRef: readExactSdkString(liveTurnContext?.turnRef) || undefined');
-    expect(source).toContain('turnRef: readExactSdkString(liveTurnContext?.turnRef),');
+    expect(source).toContain('const turnRef = readExactSdkString(liveTurnContext?.turnRef);');
     expect(source).toContain('conversationRef: readExactSdkString(conversationView?.conversationRef)');
     expect(source).toContain('turnRef: readExactSdkString(conversationView?.liveTurn?.turnRef)');
     expect(source).not.toContain('conversationRef: conversationView?.conversationRef || null');

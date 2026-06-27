@@ -2,7 +2,6 @@
  * Projects SDK current-turn state into renderer chat message rows.
  */
 
-import { DesktopChatMessageRuntimeClient } from './desktopChatMessageRuntimeClient';
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
 import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
 import { DesktopSdkToolDetailProjection } from './desktopSdkToolDetailProjection';
@@ -10,10 +9,6 @@ import {
   DesktopConversationViewWorkspaceRuntime,
 } from './desktopConversationViewWorkspaceRuntime';
 
-const {
-  buildToolCallChatMessageState,
-  buildToolOutputChatMessageState,
-} = DesktopChatMessageRuntimeClient;
 const {
   readSdkDisplayAttachments,
 } = DesktopSdkDisplayAttachmentProjection;
@@ -83,15 +78,17 @@ function buildProjectedToolCallMessage({
   const correlationId = resolveToolEventCorrelationId(toolEvent);
   const text = normalizeText(toolEvent.text) || (toolName ? `Using ${toolName}` : 'Using tool');
 
-  return buildToolCallChatMessageState({
+  return {
     id: `${baseId}:tool:${toolEvent.id}`,
     text,
+    sender: 'assistant',
+    type: 'tool-call',
     toolCallDisplayText: text,
-    correlationId: correlationId ?? null,
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
-    turnRef: liveTurnRef || undefined,
-  });
+    ...(correlationId ? { correlationId } : {}),
+    ...(liveTurnRef ? { turnRef: liveTurnRef } : {}),
+  };
 }
 
 function buildProjectedToolOutputMessage({
@@ -103,17 +100,17 @@ function buildProjectedToolOutputMessage({
   const correlationId = resolveToolEventCorrelationId(toolEvent);
   const outputText = normalizeText(toolEvent.text)
     || (toolName ? `${toolName} completed` : 'Tool completed');
-  return buildToolOutputChatMessageState({
+  return {
     id: `${baseId}:tool:${toolEvent.id}`,
-    outputText,
+    text: outputText,
+    sender: 'assistant',
+    type: 'tool-output',
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
-    correlationId,
-    turnRef: liveTurnRef || null,
-    modelId: null,
-    modelProvider: null,
-    preserveNullToolOutputDetails: false,
-  });
+    modelFacingToolOutput: outputText,
+    ...(correlationId ? { correlationId } : {}),
+    ...(liveTurnRef ? { turnRef: liveTurnRef } : {}),
+  };
 }
 
 function buildProjectedToolProgressMessage({
@@ -321,14 +318,18 @@ function buildToolCallMessage(entry, liveTurnContext) {
   const toolName = resolveToolName(entry.toolName);
   const text = normalizeText(entry.text);
   const displayText = text || (toolName ? `Using ${toolName}` : 'Using tool');
+  const toolCallDetails = sanitizeSdkToolDetailRecord(asRecord(entry.toolCallDetails));
+  const correlationId = resolveEntryCorrelationId(entry);
 
-  return buildToolCallChatMessageState({
+  return {
     ...buildBaseMessageFields(entry, liveTurnContext),
     text: displayText,
+    sender: 'assistant',
+    type: 'tool-call',
     toolCallDisplayText: displayText,
-    toolCallDetails: sanitizeSdkToolDetailRecord(asRecord(entry.toolCallDetails)),
-    correlationId: resolveEntryCorrelationId(entry),
-  });
+    ...(toolCallDetails ? { toolCallDetails } : {}),
+    ...(correlationId ? { correlationId } : {}),
+  };
 }
 
 function buildToolProgressMessage(entry, liveTurnContext) {
@@ -349,19 +350,25 @@ function buildToolOutputMessage(entry, liveTurnContext) {
   const toolName = resolveToolName(entry.toolName);
   const text = normalizeText(entry.text) || (toolName ? `${toolName} completed` : 'Tool completed');
   const attachments = readSdkDisplayAttachments(entry.attachments);
-  return buildToolOutputChatMessageState({
+  const correlationId = resolveEntryCorrelationId(entry);
+  const turnRef = readExactSdkString(liveTurnContext?.turnRef);
+  const toolOutputDetails = sanitizeSdkToolDetailRecord(asRecord(entry.toolOutputDetails));
+  return {
     id: entry.id,
-    outputText: text,
+    text,
+    sender: 'assistant',
+    type: 'tool-output',
     sourceEventType: readExactSdkString(entry.sourceEventType) || 'tool_output',
     sourceChannel: liveTurnContext?.sourceChannel || sdkCurrentTurnSourceChannel,
-    attachments,
-    correlationId: resolveEntryCorrelationId(entry),
-    toolOutputDetails: sanitizeSdkToolDetailRecord(asRecord(entry.toolOutputDetails)),
-    turnRef: readExactSdkString(liveTurnContext?.turnRef),
-    modelId: entry.modelId || null,
-    modelProvider: entry.modelProvider || null,
+    modelFacingToolOutput: text,
+    toolOutputDetails,
+    ...(attachments.length > 0 ? { attachments } : {}),
+    ...(correlationId ? { correlationId } : {}),
+    ...(turnRef ? { turnRef } : {}),
+    ...(entry.modelId ? { modelId: entry.modelId } : {}),
+    ...(entry.modelProvider ? { modelProvider: entry.modelProvider } : {}),
     isComplete: entry.isComplete === true,
-  });
+  };
 }
 
 function buildChatMessageFromLiveTurnEntry(entry, liveTurnContext = null) {

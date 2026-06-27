@@ -130,8 +130,9 @@ SDK live-turn `phase` values and `ConversationView` response-overlay surface
 does not trim padded labels into busy, awaiting, terminal, or response state.
 SDK current-turn presentation entries provide narrow `toolCallDetails` and
 `toolOutputDetails` records instead of raw payload mirrors. Renderer current-
-turn row construction passes those SDK-authored details through with typed
-`attachments[]`; `DesktopSdkToolDetailProjection.sanitizeSdkToolDetailRecord(...)`
+turn row construction maps SDK entries directly to chat-message props with
+typed `attachments[]` instead of routing through legacy transcript message-state
+builders; `DesktopSdkToolDetailProjection.sanitizeSdkToolDetailRecord(...)`
 remains a compatibility guard only for legacy/no-presentation tool detail
 shapes. Live entry `type` dispatch is exact: padded SDK entry types are not
 trimmed into tool/thinking/progress rows by renderer presentation. Live entry

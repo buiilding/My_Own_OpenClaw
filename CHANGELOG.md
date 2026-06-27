@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: map SDK current-turn presentation and legacy no-view tool
+  rows directly to renderer chat-message props instead of routing through
+  legacy transcript message-state builders. No migration required.
 - frontend/replay: reject missing or padded replay target row ids in the
   renderer replay runtime before invoking the continuity service or SDK command
   bridge. No migration required.
