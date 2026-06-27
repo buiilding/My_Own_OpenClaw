@@ -433,8 +433,8 @@ function buildConversationViewLiveTurnMessages(conversationView = null) {
     return [];
   }
   const liveTurnContext = {
-    conversationRef: conversationView?.conversationRef || null,
-    turnRef: conversationView?.liveTurn?.turnRef || null,
+    conversationRef: readExactSdkString(conversationView?.conversationRef),
+    turnRef: readExactSdkString(conversationView?.liveTurn?.turnRef),
     sourceChannel: sdkConversationViewSourceChannel,
   };
   return entries

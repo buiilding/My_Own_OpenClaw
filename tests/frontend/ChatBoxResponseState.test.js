@@ -7,6 +7,7 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 
 const {
+  buildConversationViewLiveTurnMessages,
   buildNoViewSdkLiveTurnMessages,
   isResponseCloseable,
   isResponseOverlayProgressMessage,
@@ -274,6 +275,31 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     ]));
     expect(messages.some(message => message.id.includes(' conv-1 '))).toBe(false);
     expect(messages.some(message => message.id.includes(' turn-1 '))).toBe(false);
+    expect(messages.map(message => message.turnRef)).not.toContain(' turn-1 ');
+    expect(messages.map(message => message.turnRef)).not.toContain('turn-1');
+  });
+
+  test('buildConversationViewLiveTurnMessages does not expose padded live-turn refs', () => {
+    const messages = buildConversationViewLiveTurnMessages({
+      conversationRef: ' conv-1 ',
+      liveTurn: {
+        turnRef: ' turn-1 ',
+        entries: [{
+          id: 'conv-1:turn-1:assistant',
+          type: 'llm-text',
+          text: 'Projected response',
+          sourceEventType: 'assistant_delta',
+        }],
+      },
+    });
+
+    expect(messages).toEqual([
+      expect.objectContaining({
+        id: 'conv-1:turn-1:assistant',
+        text: 'Projected response',
+        turnRef: undefined,
+      }),
+    ]);
     expect(messages.map(message => message.turnRef)).not.toContain(' turn-1 ');
     expect(messages.map(message => message.turnRef)).not.toContain('turn-1');
   });

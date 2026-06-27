@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: reject padded `ConversationView.liveTurn.turnRef`
+  context before projecting SDK live entries into renderer row props, so view
+  live rows cannot expose repaired turn identity. No migration required.
 - frontend/chat: reject `ConversationView` store writes whose
   `view.conversationRef` is missing, padded, or mismatched instead of repairing
   SDK view identity from the active or requested chat conversation ref. No
