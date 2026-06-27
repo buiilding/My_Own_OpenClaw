@@ -149,7 +149,6 @@ describe('desktopConversationReplayRuntime', () => {
     ];
 
     await expect(executeReplayAction(replayArgs({
-      activeConversationRef: undefined,
       action: 'retry',
       assistantMessageId: 'assistant-1',
       chatStoreBundle,
@@ -164,6 +163,31 @@ describe('desktopConversationReplayRuntime', () => {
       conversationRef: 'conv-store-active',
       messageId: 'assistant-1',
       userId: 'user-1',
+    }));
+  });
+
+  test('ignores caller-provided active conversation overrides for replay scope', async () => {
+    const chatStoreBundle = createChatStore();
+    chatStoreBundle.state.activeConversationRef = 'conv-store-active';
+    DesktopTranscriptSessionRuntimeClient.getActiveConversationRef.mockReturnValue(null);
+
+    await expect(executeReplayAction(replayArgs({
+      action: 'retry',
+      assistantMessageId: 'assistant-1',
+      chatStoreBundle,
+      activeConversationRef: 'conv-caller-override',
+      sessionInfo: {
+        conversationRef: null,
+        userId: 'user-1',
+      },
+    }))).resolves.toBe(true);
+
+    expect(DesktopConversationContinuityService.retryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-store-active',
+      messageId: 'assistant-1',
+    }));
+    expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-caller-override',
     }));
   });
 

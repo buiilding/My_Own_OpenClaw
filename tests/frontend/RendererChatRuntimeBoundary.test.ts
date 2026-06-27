@@ -1986,6 +1986,8 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).toContain('executeReplayIntent');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.editAndResend');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.retryTurn');
+    expect(replayRuntimeSource).toContain('storeConversationRef');
+    expect(replayRuntimeSource).not.toContain('activeConversationRef,');
     expect(replayRuntimeSource).not.toContain('DesktopSettingsRuntimeClient');
     expect(replayRuntimeSource).not.toContain('.setModel(');
     expect(replayRuntimeSource).not.toContain('const replayTurnRef = crypto.randomUUID');

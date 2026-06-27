@@ -18,6 +18,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: stop relabeling unlabeled SDK `tool_progress` display
   rows as web-search progress in the renderer adapter; web-search labels now
   come only from SDK-authored display metadata. No migration required.
+- frontend/replay: remove the caller-provided active-conversation override from
+  replay execution; replay scope now resolves only from transcript session
+  state and the injected chat-store dependency. No migration required.
 - frontend/attachments: count image-token estimates only from SDK
   `attachments[]` descriptors whose `kind` is `image`, leaving pending or
   failed screenshot request descriptors as display state. No migration required.

@@ -448,9 +448,11 @@ only that SDK view for the target conversation; it does not project
 `displayRows` back into active workspace messages.
 Replay actions do not consume selector row models. The hook passes only row
 ids/text plus UI dependencies to `DesktopConversationReplayRuntime`, which
-forwards intent to SDK command APIs. The chat-store adapter surface does not
-publish replay actions. SDK runtime resolves display rows and resources from
-its canonical `ConversationView`/display timeline state.
+forwards intent to SDK command APIs and resolves replay conversation scope from
+transcript session plus the injected store dependency, not a caller-provided
+active-conversation override. The chat-store adapter surface does not publish
+replay actions. SDK runtime resolves display rows and resources from its
+canonical `ConversationView`/display timeline state.
 When `ConversationView` exists, `DesktopChatInterfacePresentationRuntime` also
 keeps raw workspace `messages` out of its cache identity; stale raw message
 array churn cannot invalidate or reshape the SDK-view presentation. Raw

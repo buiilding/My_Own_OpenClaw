@@ -381,8 +381,9 @@ React replay hooks do not select store `activeConversationRef`, `addMessage`,
 or skin failure copy for replay orchestration; `desktopConversationReplayRuntime`
 resolves active conversation state from its store dependency and leaves replay
 failure display to SDK/main conversation events rather than publishing a
-renderer-local row. It may pass a model override as command data, but it must
-not call the renderer settings facade to apply that model before dispatch.
+renderer-local row. Replay execution does not accept a caller-supplied
+active-conversation override. It may pass a model override as command data, but
+it must not call the renderer settings facade to apply that model before dispatch.
 SDK replay commands own the durable child revision, model-selection application
 through `send()`, and provider-safe replacement history.
 Thread presentation no longer accepts caller-built `currentTurnMessages` as an

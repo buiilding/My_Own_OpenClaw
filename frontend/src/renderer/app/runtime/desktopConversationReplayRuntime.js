@@ -108,11 +108,11 @@ function logReplayTimeline(chatStore, action, {
 }
 
 async function executeReplayIntent({
-  activeConversationRef,
   chatStore,
   deferredQueryModelSelection,
   intent,
   sessionInfo,
+  storeConversationRef,
 }) {
   if (!intent || !chatStore || typeof chatStore.getState !== 'function') {
     return false;
@@ -125,7 +125,7 @@ async function executeReplayIntent({
   } = intent;
   const conversationRef = resolveExistingConversationRef(
     sessionInfo.conversationRef,
-    activeConversationRef,
+    storeConversationRef,
   );
   if (!conversationRef) {
     console.error(`[ChatInterface] ${errorPrefix}: missing active conversation`);
@@ -231,7 +231,6 @@ function resolveReplayModelSelection({
 
 async function executeReplayAction({
   action,
-  activeConversationRef,
   assistantMessageId = null,
   config = null,
   chatStore,
@@ -254,9 +253,7 @@ async function executeReplayAction({
   const storeState = chatStore && typeof chatStore.getState === 'function'
     ? chatStore.getState()
     : null;
-  const resolvedActiveConversationRef = activeConversationRef ?? storeState?.activeConversationRef ?? null;
   return executeReplayIntent({
-    activeConversationRef: resolvedActiveConversationRef,
     chatStore,
     deferredQueryModelSelection: resolveReplayModelSelection({
       config,
@@ -264,6 +261,7 @@ async function executeReplayAction({
     }),
     intent,
     sessionInfo: resolvedSessionInfo,
+    storeConversationRef: storeState?.activeConversationRef ?? null,
   });
 }
 
