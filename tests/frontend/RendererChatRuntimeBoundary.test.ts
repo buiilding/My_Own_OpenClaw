@@ -2692,6 +2692,10 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
     expect(userMessageSource).not.toContain('SHOW_IMAGE_CONTEXT_MENU');
     expect(userMessageSource).not.toContain('IpcBridge.invoke');
+    expect(userMessageSource).toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(userMessageSource).toContain('readSdkDisplayAttachments(message.attachments)');
+    expect(userMessageSource).toContain('displayAttachments.length > 0');
+    expect(userMessageSource).not.toContain('Array.isArray(message.attachments)');
     expect(userMessageSource).toContain('AttachmentList');
     expect(userMessageSource).not.toContain('attachmentFilenames');
     expect(userMessageSource).not.toContain('user-file-attachments');

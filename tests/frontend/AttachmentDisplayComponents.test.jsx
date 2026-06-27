@@ -244,4 +244,30 @@ describe('UserMessage attachments', () => {
 
     expect(screen.getByRole('img')).toHaveAttribute('src', 'resolved://artifact-ready');
   });
+
+  test('does not render malformed user attachment descriptors', () => {
+    render(
+      <UserMessage
+        message={{
+          text: 'Please inspect this',
+          attachments: [{
+            id: ' padded-ready ',
+            kind: 'image',
+            source: 'user_included',
+            status: 'ready',
+            screenshotRef: 'artifact-ready',
+          }, {
+            id: 'missing-ready-source',
+            kind: 'image',
+            source: 'user_included',
+            status: 'ready',
+          }],
+        }}
+      />,
+    );
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.getByText('Please inspect this')).toBeInTheDocument();
+    expect(mockUseResolvedAttachmentImageSrc).not.toHaveBeenCalled();
+  });
 });

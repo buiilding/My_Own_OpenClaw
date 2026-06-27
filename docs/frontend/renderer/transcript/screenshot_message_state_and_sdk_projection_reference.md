@@ -68,6 +68,9 @@ Tool-output attachment chrome is also gated on
 `DesktopSdkDisplayAttachmentProjection.readSdkDisplayAttachments(...)`; raw
 `message.attachments` arrays that contain only malformed descriptors must not
 show screenshot headers or other lifecycle UI.
+`UserMessage` applies the same SDK descriptor gate before rendering
+`AttachmentList`, so loose component inputs cannot make malformed user
+attachments reach the attachment renderer path.
 
 There is no renderer `resolveReplayScreenshotState(...)` facade. React replay
 actions dispatch SDK retry/edit intent only; SDK target-row resolution preserves

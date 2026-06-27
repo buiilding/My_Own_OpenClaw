@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: gate user-message attachment rendering on
+  SDK-validated descriptors before calling `AttachmentList`, so malformed raw
+  `message.attachments` arrays cannot enter the user attachment renderer path.
+  No migration required.
 - frontend/tokens: count only SDK image attachments in `materializing` or
   `ready` states for renderer token estimates, leaving failed descriptors and
   screenshot-request placeholders as display lifecycle state. No migration
