@@ -12,7 +12,7 @@ Before coding or answering implementation questions:
   failing path. You can ask the user to simulate the specified bug so you could trace the paths to find the bug
 - Search recent commits by affected feature or symptom:
 `<windie> commits search <query>`.
-- Read `docs/debug/invariants.md` as the central ledger for durable WindieOS
+- Read `frontend/docs/debug/invariants.md` as the central ledger for durable WindieOS
   invariants, only read if relevant. Before implementing something, make sure you don't violate the invariants.
 
 Feature map:
@@ -168,7 +168,7 @@ PR modes:
 
 Release flow:
 
-- Look for release instructions in `docs/`, `RELEASING.md`, or `release.md`.
+- Look for release instructions in `frontend/docs/`, `backend/docs/`, `RELEASING.md`, or `release.md`.
 - Change version numbers or publish artifacts only with explicit approval.
 - Before any release step, run the relevant tests.
 - If UI is touched, include frontend test, lint, and build checks as appropriate.

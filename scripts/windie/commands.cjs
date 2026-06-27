@@ -2134,13 +2134,13 @@ function runTest(args) {
     if (!area) {
       throw new Error('Usage: <windie> test pick <area>');
     }
-    const docs = fs.readFileSync(repoPath('docs/debug/test_selection.md'), 'utf8');
+    const docs = fs.readFileSync(repoPath('frontend/docs/debug/test_selection.md'), 'utf8');
     const lines = docs
       .split(/\r?\n/)
       .filter((line) => line.toLowerCase().includes(area.toLowerCase()));
     if (!lines.length) {
       console.log(`No focused test preset found for: ${area}`);
-      console.log('Open docs/debug/test_selection.md for the full matrix.');
+      console.log('Open frontend/docs/debug/test_selection.md for the full matrix.');
       return;
     }
     console.log(`Focused test matches for "${area}":`);

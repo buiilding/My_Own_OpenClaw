@@ -7,7 +7,7 @@ const os = require('os');
 const path = require('path');
 const {
   materializeVisualResource,
-} = require('../../../../packages/windie-sdk-js/cjs/runtime/VisualResourceMaterializer.js');
+} = require('../../../packages/windie-sdk-js/cjs/runtime/VisualResourceMaterializer.js');
 
 const SCREENSHOT_TEMP_DIR_NAME = 'desktop-runtime-screenshots';
 const SCREENSHOT_TEMP_FILE_PREFIX = 'desktop-runtime-shot-';

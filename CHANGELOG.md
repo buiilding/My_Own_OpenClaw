@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- repo/public: split the public developer surface into the `frontend/` subtree
+  with public docs, workflows, CLI helpers, skills, plugins, MCPs, examples,
+  extensions, and packages, while moving backend docs under `backend/docs/` so
+  backend implementation notes remain private. No migration required.
 - backend/settings: keep `update-settings` websocket handlers from waiting
   behind long-running active queries by applying config immediately only when
   the session lock is free and coalescing deferred active-session rewires

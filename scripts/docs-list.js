@@ -14,20 +14,18 @@ process.stdout.on("error", (error) => {
 });
 
 const repoRoot = path.resolve(__dirname, "..");
-const docsDir = path.join(repoRoot, "docs");
+const docsRoots = [
+  path.join(repoRoot, "docs"),
+  path.join(repoRoot, "frontend", "docs"),
+  path.join(repoRoot, "backend", "docs"),
+].filter((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isDirectory());
 
-if (!fs.existsSync(docsDir)) {
-  console.error("docs:list: missing docs directory in windieos repo.");
-  process.exit(1);
-}
-
-if (!fs.statSync(docsDir).isDirectory()) {
-  console.error("docs:list: docs path is not a directory.");
+if (docsRoots.length === 0) {
+  console.error("docs:list: missing docs directories in windieos repo.");
   process.exit(1);
 }
 
 const excludedDirs = new Set(["archive", "research"]);
-const canonicalNavPath = path.join(docsDir, "docs.json");
 
 function compactStrings(values) {
   const result = [];
@@ -178,10 +176,9 @@ function normalizeNavPagePath(page) {
   return `${normalized}.md`;
 }
 
-function validateCanonicalNavigation(markdownFiles) {
+function validateCanonicalNavigation(docsDir, markdownFiles) {
+  const canonicalNavPath = path.join(docsDir, "docs.json");
   if (!fs.existsSync(canonicalNavPath)) {
-    console.error("docs:list: missing canonical docs navigation docs/docs.json.");
-    process.exitCode = 1;
     return;
   }
 
@@ -214,26 +211,30 @@ function validateCanonicalNavigation(markdownFiles) {
   }
 
   console.log(
-    `Canonical navigation: docs/docs.json (${pages.length} page references validated)`,
+    `Canonical navigation: ${path.relative(repoRoot, canonicalNavPath)} (${pages.length} page references validated)`,
   );
 }
 
 function main() {
-  console.log("Listing all markdown files in docs folder:");
+  console.log("Listing all markdown files in WindieOS docs roots:");
 
-  const markdownFiles = walkMarkdownFiles(docsDir);
-  validateCanonicalNavigation(markdownFiles);
-  for (const relativePath of markdownFiles) {
-    const fullPath = path.join(docsDir, relativePath);
-    const { summary, readWhen, error } = extractMetadata(fullPath);
-    if (summary) {
-      console.log(`${relativePath} - ${summary}`);
-      if (readWhen.length > 0) {
-        console.log(`  Read when: ${readWhen.join("; ")}`);
+  for (const docsDir of docsRoots) {
+    const rootLabel = normalizeRelativeMarkdownPath(path.relative(repoRoot, docsDir));
+    const markdownFiles = walkMarkdownFiles(docsDir);
+    validateCanonicalNavigation(docsDir, markdownFiles);
+    for (const relativePath of markdownFiles) {
+      const fullPath = path.join(docsDir, relativePath);
+      const displayPath = `${rootLabel}/${relativePath}`;
+      const { summary, readWhen, error } = extractMetadata(fullPath);
+      if (summary) {
+        console.log(`${displayPath} - ${summary}`);
+        if (readWhen.length > 0) {
+          console.log(`  Read when: ${readWhen.join("; ")}`);
+        }
+      } else {
+        const reason = error ? ` - [${error}]` : "";
+        console.log(`${displayPath}${reason}`);
       }
-    } else {
-      const reason = error ? ` - [${error}]` : "";
-      console.log(`${relativePath}${reason}`);
     }
   }
 

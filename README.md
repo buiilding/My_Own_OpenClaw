@@ -202,25 +202,25 @@ compatible backend instance.
 
 ## Docs
 
-Start with the [Documentation Hub](docs/getting-started/docs_hub.md), or jump
+Start with the [Documentation Hub](frontend/docs/getting-started/docs_hub.md), or jump
 directly into a topic:
 
 | Section | What it covers |
 | --- | --- |
-| [Quick Start](docs/getting-started/quick_start.md) | Install dependencies and run WindieOS from source. |
-| [Installation](docs/getting-started/installation.md) | Source install, endpoint overrides, local-runtime Python resolution, and verification. |
-| [User Guide](docs/getting-started/user_guide.md) | Chat pill, dashboard, browser-use, memory, and stop/redirect behavior. |
-| [Frontend Architecture](docs/architecture/frontend_architecture.md) | Electron main, React renderer, preload boundary, and local-runtime ownership. |
-| [Communication Flow](docs/architecture/communication_flow.md) | IPC, JSON-RPC, WebSocket, HTTP, query, memory, and tool event paths. |
-| [Tool System](docs/architecture/tool_system.md) | Hosted orchestration boundary, local-runtime tool execution, and renderer visibility. |
-| [Windie SDK Runtime](docs/sdk/windie_client_runtime.md) | Canonical client runtime, model switching, conversation stores, projections, and local tool routing. |
-| [Computer-Use](docs/tools/computer.md) | Mouse, keyboard, screenshots, scrolling, window actions, and coordinate grounding. |
-| [Browser-Use](docs/browser/browser_control.md) | Windie browser profile, browser automation actions, and runtime behavior. |
-| [Frontend Docs](docs/frontend/README.md) | Deep frontend maps across main, renderer, preload, contracts, runtime, and inventory. |
-| [Local-Runtime Python Docs](docs/frontend/sidecar/README.md) | Python implementation behind local-runtime memory, browser automation, services, and tools. |
-| [Operations](docs/operations/release.md) | Configuration, packaging, release, security, performance, and bundled local-runtime Python packaging. |
-| [Development](docs/development/contributing.md) | Contribution workflow, environment setup, tests, and tool development. |
-| [API Reference](docs/reference/api_reference.md) | Backend API and transport surfaces consumed by the client, local-runtime Python implementation, and SDKs. |
+| [Quick Start](frontend/docs/getting-started/quick_start.md) | Install dependencies and run WindieOS from source. |
+| [Installation](frontend/docs/getting-started/installation.md) | Source install, endpoint overrides, local-runtime Python resolution, and verification. |
+| [User Guide](frontend/docs/getting-started/user_guide.md) | Chat pill, dashboard, browser-use, memory, and stop/redirect behavior. |
+| [Frontend Architecture](frontend/docs/architecture/frontend_architecture.md) | Electron main, React renderer, preload boundary, and local-runtime ownership. |
+| [Communication Flow](frontend/docs/architecture/communication_flow.md) | IPC, JSON-RPC, WebSocket, HTTP, query, memory, and tool event paths. |
+| [Tool System](frontend/docs/architecture/tool_system.md) | Hosted orchestration boundary, local-runtime tool execution, and renderer visibility. |
+| [Windie SDK Runtime](frontend/docs/sdk/windie_client_runtime.md) | Canonical client runtime, model switching, conversation stores, projections, and local tool routing. |
+| [Computer-Use](frontend/docs/tools/computer.md) | Mouse, keyboard, screenshots, scrolling, window actions, and coordinate grounding. |
+| [Browser-Use](frontend/docs/browser/browser_control.md) | Windie browser profile, browser automation actions, and runtime behavior. |
+| [Frontend Docs](frontend/docs/frontend/README.md) | Deep frontend maps across main, renderer, preload, contracts, runtime, and inventory. |
+| [Local-Runtime Python Docs](frontend/docs/frontend/sidecar/README.md) | Python implementation behind local-runtime memory, browser automation, services, and tools. |
+| [Operations](frontend/docs/operations/release.md) | Configuration, packaging, release, security, performance, and bundled local-runtime Python packaging. |
+| [Development](frontend/docs/development/contributing.md) | Contribution workflow, environment setup, tests, and tool development. |
+| [API Reference](frontend/docs/reference/api_reference.md) | Backend API and transport surfaces consumed by the client, local-runtime Python implementation, and SDKs. |
 
 The docs describe the Electron desktop app, local-runtime Python implementation,
 browser-use runtime, local memory, backend agent loop, model providers, SDK/API

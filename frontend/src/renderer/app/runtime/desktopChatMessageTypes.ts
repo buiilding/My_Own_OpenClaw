@@ -3,7 +3,7 @@
  */
 
 import type { ToolSchema } from '../../types/toolSchemas';
-import type { SdkDisplayAttachment } from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
+import type { SdkDisplayAttachment } from '../../../../packages/windie-sdk-js/src/conversation/types.js';
 
 export interface TokenCounts {
   prompt_tokens?: number;

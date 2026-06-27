@@ -4,7 +4,7 @@
 
 const {
   SDK_RUNTIME_COMMANDS,
-} = require('../../../../packages/windie-sdk-js/cjs/runtime/SdkRuntimeCommands.js');
+} = require('../../../packages/windie-sdk-js/cjs/runtime/SdkRuntimeCommands.js');
 const {
   createConversationMetadataDiagnosticsRuntime,
 } = require('./ipc_conversation_metadata_diagnostics_runtime.cjs');

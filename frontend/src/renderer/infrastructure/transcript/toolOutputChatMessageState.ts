@@ -2,7 +2,7 @@
  * Provides the tool output chat message state module for the renderer UI.
  */
 
-import type { SdkDisplayAttachment } from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
+import type { SdkDisplayAttachment } from '../../../../packages/windie-sdk-js/src/conversation/types.js';
 
 type ToolOutputChatMessageStateInput = {
   id?: string | null;

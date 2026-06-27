@@ -5,12 +5,12 @@
     "src/main/ipc.cjs",
     "src/preload.js",
     "src/landing/main.jsx",
-    "../tests/frontend/**/*.{js,jsx,ts,tsx,cjs,mjs}"
+    "tests/frontend/**/*.{js,jsx,ts,tsx,cjs,mjs}"
   ],
   "project": [
     "scripts/**/*.{js,jsx,ts,tsx,cjs,mjs}",
     "src/**/*.{js,jsx,ts,tsx,cjs,mjs}",
-    "../tests/frontend/**/*.{js,jsx,ts,tsx,cjs,mjs}"
+    "tests/frontend/**/*.{js,jsx,ts,tsx,cjs,mjs}"
   ],
   "ignoreDependencies": [
     "@testing-library/react",

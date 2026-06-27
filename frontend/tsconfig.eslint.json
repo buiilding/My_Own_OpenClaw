@@ -12,6 +12,7 @@
     "strict": false
   },
   "include": [
+    "packages/windie-sdk-js/src/**/*.ts",
     "src/**/*.ts",
     "src/**/*.tsx"
   ]

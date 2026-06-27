@@ -4,7 +4,7 @@
 
 const {
   normalizeBackendEventToConversationEvent,
-} = require('../../../../packages/windie-sdk-js/cjs/transport/backendEventNormalizer.js');
+} = require('../../../packages/windie-sdk-js/cjs/transport/backendEventNormalizer.js');
 
 const hasOwn = Object.prototype.hasOwnProperty;
 

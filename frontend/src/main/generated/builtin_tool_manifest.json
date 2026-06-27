@@ -1521,12 +1521,13 @@
             "type": "string"
           },
           "output_schema": {
+            "additionalProperties": true,
             "description": "Optional JSON schema hint for structured extraction output.",
             "type": "object"
           },
           "pages": {
             "description": "Optional page-count override for Browser Use scrolling.",
-            "exclusiveMinimum": 0.0,
+            "exclusiveMinimum": 0,
             "type": "number"
           },
           "paper_format": {
@@ -1576,8 +1577,8 @@
           },
           "seconds": {
             "description": "Seconds to wait. Omit to use the runtime default wait.",
-            "maximum": 60.0,
-            "minimum": 0.0,
+            "maximum": 60,
+            "minimum": 0,
             "type": "number"
           },
           "selector": {
@@ -1887,12 +1888,13 @@
             "type": "string"
           },
           "output_schema": {
+            "additionalProperties": true,
             "description": "Optional JSON schema hint for structured extraction output.",
             "type": "object"
           },
           "pages": {
             "description": "Optional page-count override for Browser Use scrolling.",
-            "exclusiveMinimum": 0.0,
+            "exclusiveMinimum": 0,
             "type": "number"
           },
           "paper_format": {
@@ -1942,8 +1944,8 @@
           },
           "seconds": {
             "description": "Seconds to wait. Omit to use the runtime default wait.",
-            "maximum": 60.0,
-            "minimum": 0.0,
+            "maximum": 60,
+            "minimum": 0,
             "type": "number"
           },
           "selector": {

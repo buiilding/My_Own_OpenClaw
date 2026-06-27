@@ -252,17 +252,17 @@ const {
 } = require('./shortcuts/agent_stop_shortcut_runtime.cjs');
 const {
   AgentClient,
-} = require('../../../packages/windie-sdk-js/cjs/runtime/AgentClient.js');
+} = require('../../packages/windie-sdk-js/cjs/runtime/AgentClient.js');
 const {
   buildAgentDefinition,
   isDefaultAgentDefinition,
-} = require('../../../packages/windie-sdk-js/cjs/runtime/AgentDefinition.js');
+} = require('../../packages/windie-sdk-js/cjs/runtime/AgentDefinition.js');
 const {
   TraceRecorder,
-} = require('../../../packages/windie-sdk-js/cjs/runtime/TraceRecorder.js');
+} = require('../../packages/windie-sdk-js/cjs/runtime/TraceRecorder.js');
 const {
   createConversationEvent,
-} = require('../../../packages/windie-sdk-js/cjs/conversation/events.js');
+} = require('../../packages/windie-sdk-js/cjs/conversation/events.js');
 const { logChatPillMainTrace } = require('./debug/chat_pill_trace_runtime.cjs');
 const {
   logLiveSurfaceTrace,

@@ -18,6 +18,10 @@ module.exports = {
   ignorePatterns: [
     'dist',
     'release',
+    'tests',
+    'tests/**',
+    'packages/windie-sdk-js/cjs',
+    'packages/windie-sdk-js/cjs/**',
     'python-runtime',
     'python-runtime/**',
     'python-runtime*.tar.gz',
@@ -45,6 +49,14 @@ module.exports = {
       },
     ],
     'react/prop-types': 'off',
+    'no-unused-vars': [
+      'error',
+      {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_|^React$',
+        caughtErrorsIgnorePattern: '^_',
+      },
+    ],
   },
   overrides: [
     {

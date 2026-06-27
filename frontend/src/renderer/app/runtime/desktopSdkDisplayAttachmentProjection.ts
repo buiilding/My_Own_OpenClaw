@@ -4,7 +4,7 @@
 
 import type {
   SdkDisplayAttachment,
-} from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
+} from '../../../../packages/windie-sdk-js/src/conversation/types.js';
 
 type SdkDisplayImageAttachmentSource = {
   id: string;

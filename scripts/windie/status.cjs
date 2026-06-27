@@ -30,6 +30,10 @@ function hasPlatformShim(name) {
   return exists(`bin/${name}.cmd`) && exists(`bin/${name}.sh`);
 }
 
+function hasDocsNavigation() {
+  return exists('frontend/docs/docs.json') || exists('backend/docs/docs.json') || exists('docs/docs.json');
+}
+
 function platformPythonInEnvPath() {
   return process.platform === 'win32'
     ? repoPath('scripts/python-in-env.cmd')
@@ -103,8 +107,8 @@ function collectStatus({ all = false } = {}) {
     },
     {
       name: 'docs navigation',
-      ok: exists('docs/docs.json') && hasPlatformShim('docs-list'),
-      detail: exists('docs/docs.json') ? 'docs/docs.json present' : 'docs/docs.json missing',
+      ok: hasDocsNavigation() && hasPlatformShim('docs-list'),
+      detail: hasDocsNavigation() ? 'split docs navigation present' : 'docs navigation missing',
     },
     {
       name: 'launch scripts',

@@ -8,6 +8,15 @@ const { REPO_ROOT, repoPath } = require('./paths.cjs');
 
 let cachedDocsIndex = null;
 
+function docsRoots() {
+  const candidates = [
+    repoPath('docs'),
+    repoPath('frontend', 'docs'),
+    repoPath('backend', 'docs'),
+  ];
+  return candidates.filter((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isDirectory());
+}
+
 function flattenPagesFromDocsJson(value, pages = []) {
   if (Array.isArray(value)) {
     for (const item of value) {
@@ -37,8 +46,8 @@ function flattenPagesFromDocsJson(value, pages = []) {
 
 function readDocMeta(page) {
   const candidates = page === 'README'
-    ? [repoPath('docs/README.md'), repoPath('README.md')]
-    : [repoPath('docs', `${page}.md`), repoPath('docs', `${page}.mdx`)];
+    ? [repoPath('README.md')]
+    : [repoPath(`${page}.md`), repoPath(`${page}.mdx`)];
   const filePath = candidates.find((candidate) => fs.existsSync(candidate));
   if (!filePath) {
     return null;
@@ -137,17 +146,29 @@ function pageFromDocPath(filePath) {
   if (filePath === repoPath('README.md')) {
     return 'README';
   }
-  const relative = path.relative(repoPath('docs'), filePath).replace(/\\/g, '/');
+  const relative = path.relative(REPO_ROOT, filePath).replace(/\\/g, '/');
   return relative.replace(/\.(md|mdx)$/i, '');
 }
 
 function buildDocsIndex() {
-  const docsJson = JSON.parse(fs.readFileSync(repoPath('docs/docs.json'), 'utf8'));
+  const roots = docsRoots();
   const discoveredPages = [
     repoPath('README.md'),
-    ...listMarkdownFiles(repoPath('docs')),
+    ...roots.flatMap((root) => listMarkdownFiles(root)),
   ].map(pageFromDocPath);
-  const pages = [...new Set([...flattenPagesFromDocsJson(docsJson), ...discoveredPages])];
+  const navPages = [];
+  for (const root of roots) {
+    const docsJsonPath = path.join(root, 'docs.json');
+    if (!fs.existsSync(docsJsonPath)) {
+      continue;
+    }
+    const rootPrefix = path.relative(REPO_ROOT, root).replace(/\\/g, '/');
+    const docsJson = JSON.parse(fs.readFileSync(docsJsonPath, 'utf8'));
+    for (const page of flattenPagesFromDocsJson(docsJson)) {
+      navPages.push(`${rootPrefix}/${page}`.replace(/\/+(README)?$/, (match) => match));
+    }
+  }
+  const pages = [...new Set([...navPages, ...discoveredPages])];
   return pages
     .map((page, order) => {
       const metadata = readDocMeta(page);

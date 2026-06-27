@@ -4,10 +4,10 @@
 
 import {
   buildTraceTimeline,
-} from '../../../../../packages/windie-sdk-js/src/projections/conversationProjections.js';
+} from '../../../../packages/windie-sdk-js/src/projections/conversationProjections.js';
 import {
   SDK_RUNTIME_COMMANDS,
-} from '../../../../../packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.js';
+} from '../../../../packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.js';
 import type {
   CompactedReplaySnapshot,
   ConversationMetadata,
@@ -21,7 +21,7 @@ import type {
   DisplayConversation,
   SdkDisplayRow,
   TraceTimelineEntry,
-} from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
+} from '../../../../packages/windie-sdk-js/src/conversation/types.js';
 import { AgentSdkCommandInvokeClient } from '../../app/runtime/agentSdkCommandInvokeClient';
 
 const {

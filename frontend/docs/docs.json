@@ -1,0 +1,192 @@
+{
+  "$schema": "https://windieos.local/docs-navigation.schema.json",
+  "name": "WindieOS",
+  "description": "Canonical local navigation map for WindieOS documentation.",
+  "entrypoints": {
+    "index": "README",
+    "compactDirectory": "getting-started/docs_directory",
+    "agentHub": "getting-started/docs_hub",
+    "codeChangeSurface": "reference/code_change_surface_index"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Get started",
+        "groups": [
+          {
+            "group": "Orientation",
+            "pages": [
+              "README",
+              "getting-started/docs_directory",
+              "getting-started/product_overview",
+              "getting-started/quick_start",
+              "getting-started/platform_setup_backend_frontend"
+            ]
+          },
+          {
+            "group": "Agent routing",
+            "pages": [
+              "getting-started/docs_hub",
+              "reference/code_change_surface_index",
+              "architecture/change_ownership_decision_tree",
+              "development/agent_runtime_ownership_and_change_routing",
+              "development/agent_routing_quick_cards",
+              "development/agent_development_workflow"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Architecture",
+        "groups": [
+          {
+            "group": "Runtime model",
+            "pages": [
+              "concepts/runtime_model",
+              "architecture/README",
+              "nodes/README",
+              "channels/README",
+              "gateway/README",
+              "architecture/runtime_boundary_matrix",
+              "architecture/data_flow_and_state_ownership",
+              "architecture/agent_visible_data_pipeline",
+              "architecture/failure_domain_map"
+            ]
+          },
+          {
+            "group": "Core concepts",
+            "pages": [
+              "concepts/agent_loop",
+              "concepts/sessions_and_conversations",
+              "concepts/streaming_and_events",
+              "concepts/prompt_and_tool_context",
+              "concepts/context_and_memory",
+              "memory/README",
+              "concepts/model_provider_selection"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Frontend",
+        "groups": [
+          {
+            "group": "Desktop runtime",
+            "pages": [
+              "frontend/README",
+              "desktop/README",
+              "architecture/frontend_architecture",
+              "frontend/main/README",
+              "frontend/main/main_process_change_workflow",
+              "frontend/runtime/README",
+              "frontend/runtime/workspace_context_change_workflow",
+              "platforms/README"
+            ]
+          },
+          {
+            "group": "Renderer and sidecar",
+            "pages": [
+              "frontend/renderer/README",
+              "frontend/renderer/renderer_state_change_workflow",
+              "frontend/contracts/README",
+              "frontend/contracts/ipc/README",
+              "frontend/sidecar/README",
+              "frontend/sidecar/local_runtime_python_change_workflow"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Tools and SDK",
+        "groups": [
+          {
+            "group": "Tools",
+            "pages": [
+              "tools/README",
+              "tools/tool_contracts",
+              "tools/tool_execution_lifecycle",
+              "tools/tool_schema_policy_change_workflow",
+              "tools/tool_catalog_matrix",
+              "plugins/README",
+              "development/mcp",
+              "browser/README",
+              "browser/browser_change_workflow"
+            ]
+          },
+          {
+            "group": "SDK and providers",
+            "pages": [
+              "sdk/README",
+              "sdk/windie_client_runtime",
+              "sdk/sdk_route_change_workflow",
+              "sdk/sdk_auth_and_error_handling",
+              "providers/README",
+              "providers/models",
+              "providers/provider_change_workflow",
+              "providers/model_catalog_change_workflow"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Operations",
+        "groups": [
+          {
+            "group": "Install and run",
+            "pages": [
+              "install/README",
+              "install/local_development",
+              "install/local_backend_and_endpoint_setup",
+              "install/packaged_desktop",
+              "operations/README",
+              "automation/README",
+              "web/README",
+              "operations/runtime_configuration_matrix"
+            ]
+          },
+          {
+            "group": "Debug and security",
+            "pages": [
+              "debug/README",
+              "debug/process_health_checklist",
+              "debug/symptom_playbooks",
+              "debug/invariants",
+              "debug/user_facing_regression_pack",
+              "debug/core_loop_regression_pack",
+              "help/README",
+              "help/triage_routes",
+              "security/README",
+              "security/security_boundary_matrix",
+              "security/permissions_and_local_authority_workflow"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "Contracts",
+            "pages": [
+              "reference/README",
+              "cli/README",
+              "cli/command_matrix",
+              "reference/http_api_surface",
+              "reference/websocket_event_reference",
+              "reference/configuration_reference",
+              "reference/session_and_transcript_reference"
+            ]
+          },
+          {
+            "group": "Docs policy",
+            "pages": [
+              "development/docs_update_workflow",
+              "reference/openclaw_docs_structure_reference",
+              "adr/README"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
