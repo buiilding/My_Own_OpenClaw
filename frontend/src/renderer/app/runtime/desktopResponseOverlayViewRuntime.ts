@@ -194,14 +194,14 @@ function resolveNoViewResponseOverlayThinkingText(sdkLiveTurn: unknown): string 
   return normalizeUnknownString(liveTurn.reasoningText) || '';
 }
 
-function stringField(
+function exactToolIdentityField(
   record: Record<string, unknown> | null | undefined,
   ...keys: string[]
 ): string | null {
   for (const key of keys) {
-    const value = record?.[key];
-    if (typeof value === 'string' && value.trim()) {
-      return value.trim();
+    const value = exactUnknownIdentityString(record?.[key]);
+    if (value) {
+      return value;
     }
   }
   return null;
@@ -265,7 +265,7 @@ function isToolOverlayMessage(message: ResponseOverlayEntryLike): boolean {
 
 function identityFromToolRecord(record: Record<string, unknown> | null): string | null {
   const metadata = recordFromUnknown(record?.metadata);
-  return stringField(
+  return exactToolIdentityField(
     record,
     'displayCorrelationId',
     'toolCallId',
@@ -277,7 +277,7 @@ function identityFromToolRecord(record: Record<string, unknown> | null): string 
     'bundle_id',
     'correlationId',
     'correlation_id',
-  ) ?? stringField(
+  ) ?? exactToolIdentityField(
     metadata,
     'displayCorrelationId',
     'toolCallId',
@@ -292,7 +292,7 @@ function identityFromToolRecord(record: Record<string, unknown> | null): string 
 }
 
 function toolOverlayMessageIdentity(message: ResponseOverlayEntryLike): string | null {
-  return normalizeString(message.correlationId)
+  return exactIdentityString(message.correlationId)
     ?? identityFromToolRecord(recordFromUnknown(message.toolCallDetails))
     ?? identityFromToolRecord(recordFromUnknown(message.toolOutputDetails));
 }

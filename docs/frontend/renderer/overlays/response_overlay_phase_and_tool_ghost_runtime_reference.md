@@ -58,7 +58,9 @@ Current-turn entry construction:
   rows. Tool call/output/progress rows reconcile by SDK display identity
   (`correlationId`, `toolCallDetails`, or `toolOutputDetails`) rather than by
   broad row type, so one materialized tool call does not hide another same-type
-  live-only tool call. The overlay must not depend only on `liveTurn.entries`,
+  live-only tool call. Those identity fields are exact SDK values; padded
+  identities are ignored instead of trimmed into materialized-row matches. The
+  overlay must not depend only on `liveTurn.entries`,
   because materialized tool rows are intentionally removed from live entries to
   avoid duplicate dashboard cards. The overlay runtime treats `ConversationView`
   as the read-model object only after the shared workspace view gate accepts a

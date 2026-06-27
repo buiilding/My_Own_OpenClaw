@@ -3700,6 +3700,8 @@ describe('renderer chat runtime boundary', () => {
     expect(responseViewRuntimeSource).not.toContain('view.displayRows');
     expect(responseViewRuntimeSource).not.toContain('toolMetadata');
     expect(responseViewRuntimeSource).toContain('function exactIdentityString');
+    expect(responseViewRuntimeSource).toContain('function exactToolIdentityField');
+    expect(responseViewRuntimeSource).toContain('exactIdentityString(message.correlationId)');
     expect(responseViewRuntimeSource).toContain('exactUnknownIdentityString(overlayIntent?.turnRef)');
     expect(responseViewRuntimeSource).toContain('exactUnknownIdentityString(liveTurn.turnRef)');
     expect(responseViewRuntimeSource).toContain('exactUnknownIdentityString(responseOverlay.turnRef)');
@@ -3707,6 +3709,8 @@ describe('renderer chat runtime boundary', () => {
     expect(responseViewRuntimeSource).toContain('guardRef: exactIdentityString(dismissalTarget.guardRef)');
     expect(responseViewRuntimeSource).not.toContain('turnRef: normalizeString(dismissalTarget.turnRef)');
     expect(responseViewRuntimeSource).not.toContain('guardRef: normalizeString(dismissalTarget.guardRef)');
+    expect(responseViewRuntimeSource).not.toContain('function stringField');
+    expect(responseViewRuntimeSource).not.toContain('normalizeString(message.correlationId)');
     expect(responseViewRuntimeSource).not.toContain('normalizeUnknownString(liveTurn.turnRef)');
     expect(responseViewRuntimeSource).not.toContain('normalizeUnknownString(responseOverlay.turnRef)');
     expect(responseViewRuntimeSource).not.toContain('normalizeUnknownString(overlayIntent?.turnRef)');

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: make response-overlay tool-row materialization compare only
+  exact SDK tool identities, so padded correlation or tool-detail ids are not
+  trimmed into display/live row dedupe decisions. No migration required.
 - frontend/overlay: require ConversationView response-overlay display-row
   selection to use exact SDK turn refs, so padded `liveTurn.turnRef` or surface
   `turnRef` values do not trim into materialized response-overlay rows. No
