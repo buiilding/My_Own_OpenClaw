@@ -547,6 +547,67 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(entries).toHaveLength(3);
   });
 
+  test('keeps same-type live tool entries that are not materialized display rows', () => {
+    const entries = resolveResponseOverlayEntries({
+      conversationView: {
+        conversationRef: 'conv-view',
+        displayRows: [
+          {
+            id: 'row-tool-call-a',
+            conversationRef: 'conv-view',
+            turnRef: 'turn-view',
+            index: 0,
+            role: 'assistant',
+            type: 'tool_call',
+            content: {
+              id: 'tool-a',
+              name: 'screenshot',
+              arguments: {},
+            },
+            metadata: {
+              displayCorrelationId: 'tool-a',
+              toolCallDetails: {
+                id: 'tool-a',
+                name: 'screenshot',
+              },
+            },
+          },
+        ],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'tool',
+          isBusy: true,
+          entries: [
+            {
+              id: 'live-tool-call-a',
+              type: 'tool-call',
+              text: 'Using screenshot',
+              sourceEventType: 'tool_call',
+              correlationId: 'tool-a',
+              turnRef: 'turn-view',
+            },
+            {
+              id: 'live-tool-call-b',
+              type: 'tool-call',
+              text: 'Using browser',
+              sourceEventType: 'tool_call',
+              correlationId: 'tool-b',
+              turnRef: 'turn-view',
+            },
+          ],
+        },
+      },
+      liveTurnPresentationInput: {
+        source: 'conversation-view',
+      },
+    });
+
+    expect(entries.map((entry) => entry.id)).toEqual([
+      'row-tool-call-a',
+      'live-tool-call-b',
+    ]);
+  });
+
   test('does not require a source flag before ConversationView blocks raw overlay rows', () => {
     expect(resolveResponseOverlayEntries({
       conversationView: {

@@ -45,7 +45,11 @@ type CurrentTurnPresentationStateLike = {
 };
 
 type ResponseOverlayEntryLike = {
+  correlationId?: string | null;
   id?: string | null;
+  toolCallDetails?: Record<string, unknown> | null;
+  toolMetadata?: Record<string, unknown> | null;
+  toolOutputDetails?: Record<string, unknown> | null;
   text?: string | null;
   type?: string | null;
   sourceEventType?: string | null;
@@ -150,6 +154,19 @@ function recordFromUnknown(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function stringField(
+  record: Record<string, unknown> | null | undefined,
+  ...keys: string[]
+): string | null {
+  for (const key of keys) {
+    const value = record?.[key];
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
 function isConversationView(value: unknown): boolean {
   const view = recordFromUnknown(value);
   return Boolean(
@@ -199,6 +216,9 @@ function responseOverlayMaterializedSourceTypes(
 ): Set<string> {
   const materializedTypes = new Set<string>();
   displayMessages.forEach((message) => {
+    if (isToolOverlayMessage(message)) {
+      return;
+    }
     const sourceEventType = normalizeString(message.sourceEventType);
     if (sourceEventType) {
       materializedTypes.add(sourceEventType);
@@ -211,10 +231,82 @@ function responseOverlayMaterializedSourceTypes(
   return materializedTypes;
 }
 
+const TOOL_OVERLAY_MESSAGE_TYPES = new Set([
+  'tool-call',
+  'tool-output',
+  'search-source',
+  'tool-explanation',
+]);
+
+function isToolOverlayMessage(message: ResponseOverlayEntryLike): boolean {
+  return Boolean(TOOL_OVERLAY_MESSAGE_TYPES.has(normalizeString(message.type) || ''));
+}
+
+function identityFromToolRecord(record: Record<string, unknown> | null): string | null {
+  const metadata = recordFromUnknown(record?.metadata);
+  return stringField(
+    record,
+    'displayCorrelationId',
+    'toolCallId',
+    'tool_call_id',
+    'id',
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'correlationId',
+    'correlation_id',
+  ) ?? stringField(
+    metadata,
+    'displayCorrelationId',
+    'toolCallId',
+    'tool_call_id',
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'correlationId',
+    'correlation_id',
+  );
+}
+
+function toolOverlayMessageIdentity(message: ResponseOverlayEntryLike): string | null {
+  return normalizeString(message.correlationId)
+    ?? identityFromToolRecord(recordFromUnknown(message.toolCallDetails))
+    ?? identityFromToolRecord(recordFromUnknown(message.toolOutputDetails))
+    ?? identityFromToolRecord(recordFromUnknown(message.toolMetadata));
+}
+
+function toolOverlayTypesMatch(
+  displayMessage: ResponseOverlayEntryLike,
+  liveMessage: ResponseOverlayEntryLike,
+): boolean {
+  return normalizeString(displayMessage.type) === normalizeString(liveMessage.type);
+}
+
+function toolLiveEntryMaterializedByDisplayRows(
+  liveMessage: ResponseOverlayEntryLike,
+  displayMessages: ResponseOverlayEntryLike[],
+): boolean {
+  const liveIdentity = toolOverlayMessageIdentity(liveMessage);
+  if (!liveIdentity) {
+    return false;
+  }
+  return displayMessages.some((displayMessage) => (
+    isToolOverlayMessage(displayMessage)
+    && toolOverlayTypesMatch(displayMessage, liveMessage)
+    && toolOverlayMessageIdentity(displayMessage) === liveIdentity
+  ));
+}
+
 function liveEntryMaterializedByDisplayRows(
   liveMessage: ResponseOverlayEntryLike,
+  displayMessages: ResponseOverlayEntryLike[],
   materializedTypes: Set<string>,
 ): boolean {
+  if (isToolOverlayMessage(liveMessage)) {
+    return toolLiveEntryMaterializedByDisplayRows(liveMessage, displayMessages);
+  }
   const sourceEventType = normalizeString(liveMessage.sourceEventType);
   if (sourceEventType && materializedTypes.has(sourceEventType)) {
     return true;
@@ -234,7 +326,7 @@ function mergeConversationViewOverlayMessages(conversationView: unknown): Respon
   }
   const materializedTypes = responseOverlayMaterializedSourceTypes(displayMessages);
   const liveOnlyMessages = liveMessages.filter(
-    (message) => !liveEntryMaterializedByDisplayRows(message, materializedTypes),
+    (message) => !liveEntryMaterializedByDisplayRows(message, displayMessages, materializedTypes),
   );
   return [
     ...displayMessages,

@@ -53,10 +53,13 @@ Current-turn entry construction:
   presentation entries, and older no-presentation projection snapshots.
 - under `ConversationView`, response-overlay entries start with active-turn
   `displayRows` converted through the SDK display-row projection, then append
-  only live-turn rows whose source/type has not materialized in those display
-  rows. The overlay must not depend only on `liveTurn.entries`, because
-  materialized tool rows are intentionally removed from live entries to avoid
-  duplicate dashboard cards.
+  only live-turn rows that have not materialized in those display rows. Tool
+  call/output/progress rows reconcile by SDK display identity
+  (`correlationId`, `toolCallDetails`, or `toolOutputDetails`) rather than by
+  broad row type, so one materialized tool call does not hide another same-type
+  live-only tool call. The overlay must not depend only on `liveTurn.entries`,
+  because materialized tool rows are intentionally removed from live entries to
+  avoid duplicate dashboard cards.
 - the response overlay filters those current-turn messages through
   `DesktopCurrentTurnMessageRuntime.isVisibleResponseOverlayMessage(...)`
   instead of carrying an inline assistant-message scanner after the latest user

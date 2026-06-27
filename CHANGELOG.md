@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/overlay: reconcile materialized and live response-overlay tool rows
+  by SDK display identity instead of broad row type, so same-turn live-only tool
+  calls remain visible beside already-materialized tool rows. No migration
+  required.
 - frontend/conversation-view: ignore raw workspace message-array identity in
   main chat presentation caching whenever a `ConversationView` exists, keeping
   stale no-view rows from invalidating SDK-view rendering. No migration required.
