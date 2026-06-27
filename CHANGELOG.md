@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: reject inline `data:` URLs on ready SDK image
+  attachments, keeping volatile preview bytes on materializing `previewSrc`
+  only while ready images resolve through artifact refs or non-inline URLs. No
+  migration required.
 - frontend/replay: resolve transcript session scope and selected-model replay
   data inside the replay runtime facade instead of accepting caller-provided
   overrides, keeping React replay actions to row intent plus active-scope

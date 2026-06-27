@@ -128,6 +128,30 @@ describe('MessageContent', () => {
     expect(artifactFetchCall[1].artifactId).toBe('artifact-1');
   });
 
+  test('does not render ready SDK attachments from inline screenshot urls', () => {
+    render(
+      <MessageContent
+        message={{
+          sender: 'assistant',
+          type: 'tool-output',
+          text: 'result',
+          attachments: [{
+            id: 'tool-output-inline-url:attachment:000',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            screenshotUrl: 'data:image/png;base64,inline-ready',
+          }],
+        }}
+      />,
+    );
+
+    expect(screen.queryByRole('img', { name: 'User message attachment' })).toBeNull();
+    expect(
+      IpcBridge.invoke.mock.calls.some(([channel]) => channel === INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE),
+    ).toBe(false);
+  });
+
   test('retries artifact screenshot resolution after a transient fetch failure', async () => {
     IpcBridge.invoke.mockImplementationOnce(async (channel) => {
       if (channel === INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE) {

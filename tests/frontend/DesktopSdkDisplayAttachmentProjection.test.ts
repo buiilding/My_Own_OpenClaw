@@ -44,6 +44,13 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
         status: 'ready',
       },
       {
+        id: 'inline-ready-url',
+        kind: 'image',
+        source: 'replay',
+        status: 'ready',
+        screenshotUrl: 'data:image/png;base64,inline-ready',
+      },
+      {
         id: 'missing-materializing-preview',
         kind: 'image',
         source: 'user_included',
@@ -126,6 +133,27 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
       screenshotRef: 'artifact-row-alias',
       screenshotUrl: 'https://cdn.example/row-alias.png',
     })).toBeNull();
+    expect(readSdkImageAttachmentSource({
+      id: 'attachment-inline-ready',
+      kind: 'image',
+      source: 'replay',
+      status: 'ready',
+      screenshotUrl: 'data:image/png;base64,inline-ready',
+    })).toBeNull();
+    expect(readSdkImageAttachmentSource({
+      id: 'attachment-ready-ref-with-inline-url',
+      kind: 'image',
+      source: 'replay',
+      status: 'ready',
+      screenshotRef: 'artifact-ready',
+      screenshotUrl: 'data:image/png;base64,inline-ready',
+    })).toEqual({
+      id: 'attachment-ready-ref-with-inline-url',
+      status: 'ready',
+      artifactId: 'artifact-ready',
+      url: null,
+      contentType: null,
+    });
     expect(readSdkImageAttachmentSource({
       id: 'attachment-pending',
       kind: 'screenshot_request',

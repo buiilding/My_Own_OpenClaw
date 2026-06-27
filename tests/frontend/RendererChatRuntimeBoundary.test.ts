@@ -3992,7 +3992,8 @@ describe('renderer chat runtime boundary', () => {
     expect(displayAttachmentProjectionSource).toContain("&& record.status === 'ready'");
     expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.previewSrc)');
     expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.screenshotRef)');
-    expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.screenshotUrl)');
+    expect(displayAttachmentProjectionSource).toContain('optionalReadyImageUrl(record.screenshotUrl)');
+    expect(displayAttachmentProjectionSource).toContain(".startsWith('data:')");
     expect(displayAttachmentProjectionSource).toContain('optionalExactString');
     expect(displayAttachmentProjectionSource).not.toContain('optionalTrimmedString');
     expect(displayAttachmentProjectionSource).not.toContain('countDisplayImageAttachments');

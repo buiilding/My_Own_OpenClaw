@@ -26,6 +26,14 @@ function optionalExactString(value: unknown): string | null {
     : null;
 }
 
+function optionalReadyImageUrl(value: unknown): string | null {
+  const url = optionalExactString(value);
+  if (!url || url.toLowerCase().startsWith('data:')) {
+    return null;
+  }
+  return url;
+}
+
 function isDisplayableImageAttachment(record: Record<string, unknown>): boolean {
   if (record.status === 'materializing') {
     return (
@@ -36,7 +44,7 @@ function isDisplayableImageAttachment(record: Record<string, unknown>): boolean 
   if (record.status === 'ready') {
     return (
       optionalExactString(record.screenshotRef) !== null
-      || optionalExactString(record.screenshotUrl) !== null
+      || optionalReadyImageUrl(record.screenshotUrl) !== null
     );
   }
   return record.status === 'failed';
@@ -100,7 +108,7 @@ function readSdkImageAttachmentSource(value: unknown): SdkDisplayImageAttachment
     id: value.id,
     status: 'ready',
     artifactId: optionalExactString(value.screenshotRef),
-    url: optionalExactString(value.screenshotUrl),
+    url: optionalReadyImageUrl(value.screenshotUrl),
     contentType: optionalExactString(value.contentType),
   };
 }

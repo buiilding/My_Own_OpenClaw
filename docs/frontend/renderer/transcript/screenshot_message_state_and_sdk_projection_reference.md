@@ -112,10 +112,13 @@ Attachment ids and artifact image-source fields must be exact non-empty SDK
 strings; the renderer drops padded or empty ids/refs/URLs instead of trimming
 them into valid display inputs. Lifecycle descriptors must also be complete:
 materializing images require an exact `previewSrc`, ready images require an
-exact `screenshotRef` or `screenshotUrl`, and screenshot-request placeholders
-must come from the camera-button source. Artifact image-source extraction is
-ready-only; materializing preview bytes stay a display field on the attachment
-descriptor and are not treated as resolvable artifact state.
+exact `screenshotRef` or non-inline `screenshotUrl`, and screenshot-request
+placeholders must come from the camera-button source. Artifact image-source
+extraction is ready-only; materializing preview bytes stay a display field on
+the attachment descriptor and are not treated as resolvable artifact state.
+Ready attachment `screenshotUrl` values that contain inline `data:` bytes are
+dropped so persisted/replay display cannot smuggle volatile preview bytes
+through the ready-image path.
 
 - primary display field: `attachments[]`
 - backend/replay compatibility input before renderer projection:
