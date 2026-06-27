@@ -46,6 +46,33 @@ function metadataListToDashboardConversations(metadataList) {
     .map(metadataToDashboardConversation);
 }
 
+function applyDashboardConversationWorkspaceBindings(conversations, options = {}) {
+  const getConversationWorkspaceBinding = options.getConversationWorkspaceBinding;
+  if (typeof getConversationWorkspaceBinding !== 'function') {
+    return Array.isArray(conversations) ? conversations : [];
+  }
+  return (Array.isArray(conversations) ? conversations : []).map((conversation) => {
+    if (normalizeOptionalString(conversation?.workspace_path)) {
+      return conversation;
+    }
+    const conversationRef = getDashboardConversationRef(conversation);
+    if (!conversationRef) {
+      return conversation;
+    }
+    const binding = getConversationWorkspaceBinding(conversationRef);
+    const workspacePath = normalizeOptionalString(binding?.workspacePath);
+    if (!workspacePath) {
+      return conversation;
+    }
+    return {
+      ...conversation,
+      workspace_path: workspacePath,
+      workspace_name: normalizeOptionalString(binding?.workspaceName)
+        || normalizeOptionalString(conversation?.workspace_name),
+    };
+  });
+}
+
 function isGenericTransientRecentConversationsError(message) {
   if (typeof message !== 'string') {
     return false;
@@ -424,6 +451,7 @@ function clearRecentConversationsRefreshTimer(timerId, { timerApi } = {}) {
 }
 
 export const DesktopDashboardConversationLoadRuntime = Object.freeze({
+  applyDashboardConversationWorkspaceBindings,
   applyDashboardConversationOpenWorkspaceReset,
   clearAllTitleVisibilityPollTimers,
   clearConversationSearchDebounce,

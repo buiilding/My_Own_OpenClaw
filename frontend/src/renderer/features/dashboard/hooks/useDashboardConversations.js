@@ -18,6 +18,7 @@ import {
 
 const {
   applyDashboardConversationOpenWorkspaceReset,
+  applyDashboardConversationWorkspaceBindings,
   clearAllTitleVisibilityPollTimers,
   clearConversationSearchDebounce,
   clearRecentConversationsRefreshTimer,
@@ -143,7 +144,13 @@ export function useDashboardConversations({
             diagnosticsContext = context;
           },
         });
-        const list = normalizeRecentConversations(metadataListToDashboardConversations(metadataList));
+        const dashboardConversations = applyDashboardConversationWorkspaceBindings(
+          metadataListToDashboardConversations(metadataList),
+          {
+            getConversationWorkspaceBinding: DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding,
+          },
+        );
+        const list = normalizeRecentConversations(dashboardConversations);
 
         // Ignore stale loads so older responses cannot overwrite newer user/session state.
         if (recentConversationLoadRequestIdRef.current !== requestId) {

@@ -7,6 +7,7 @@ import { useDashboardConversations } from '../../frontend/src/renderer/features/
 import { DesktopConversationLibraryClient } from '../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient';
 import { DesktopLocalRuntimeStatusRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopLocalRuntimeStatusRuntimeClient';
 import { DesktopConversationRuntimeEventClient } from '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient';
+import { DesktopWorkspaceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient', () => ({
   DesktopConversationLibraryClient: {
@@ -42,6 +43,10 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient
     resolveConversationWorkspaceBinding: jest.fn(({ conversation }) => ({
       workspacePath: conversation?.workspace_path || '',
       workspaceName: conversation?.workspace_name || '',
+    })),
+    getConversationWorkspaceBinding: jest.fn(() => ({
+      workspacePath: '',
+      workspaceName: '',
     })),
     setConversationWorkspaceBinding: jest.fn(),
   },
@@ -111,6 +116,10 @@ describe('useDashboardConversations', () => {
     });
     DesktopConversationLibraryClient.subscribeMetadataInvalidations.mockImplementation(() => jest.fn());
     DesktopConversationRuntimeEventClient.onConversationEvent.mockImplementation(() => jest.fn());
+    DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding.mockReturnValue({
+      workspacePath: '',
+      workspaceName: '',
+    });
   });
 
   test('reloads recent conversations when the local runtime becomes ready', async () => {
@@ -205,6 +214,43 @@ describe('useDashboardConversations', () => {
       ]);
     });
     expect(DesktopConversationLibraryClient.listMetadata).toHaveBeenCalledTimes(2);
+  });
+
+  test('fills missing recent conversation workspace from conversation binding', async () => {
+    DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding.mockImplementation((conversationRef) => (
+      conversationRef === 'conv-bound'
+        ? {
+          workspacePath: '/Users/peterbui/Agent_workspaces/Windieos_workspace/WindieOS',
+          workspaceName: 'WindieOS',
+        }
+        : {
+          workspacePath: '',
+          workspaceName: '',
+        }
+    ));
+    DesktopConversationLibraryClient.listMetadata.mockResolvedValueOnce([
+      {
+        conversationRef: 'conv-bound',
+        title: 'Scripted runtime ready. Use @script reply,',
+        lastMessage: 'ready',
+        updatedAt: '2026-06-27T17:39:43.035Z',
+        eventCount: 52,
+        workspacePath: '',
+        workspaceName: '',
+      },
+    ]);
+
+    const { result } = renderDashboardConversations();
+
+    await waitFor(() => {
+      expect(result.current.recentConversations).toEqual([
+        expect.objectContaining({
+          conversation_id: 'conv-bound',
+          workspace_path: '/Users/peterbui/Agent_workspaces/Windieos_workspace/WindieOS',
+          workspace_name: 'WindieOS',
+        }),
+      ]);
+    });
   });
 
   test('reloads recent conversations through SDK conversation events', async () => {

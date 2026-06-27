@@ -8,6 +8,7 @@ import {
 import * as DashboardConversationLoadRuntime from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime';
 
 const {
+  applyDashboardConversationWorkspaceBindings,
   applyDashboardConversationOpenWorkspaceReset,
   clearAllTitleVisibilityPollTimers,
   clearConversationSearchDebounce,
@@ -84,6 +85,42 @@ describe('desktopDashboardConversationLoadRuntime', () => {
       workspace_name: '',
       matched_role: 'user',
     }));
+  });
+
+  test('applies conversation workspace binding fallback to metadata rows without workspace fields', () => {
+    const conversations = applyDashboardConversationWorkspaceBindings([
+      {
+        conversation_id: 'conv-bound',
+        title: 'Bound chat',
+        workspace_path: '',
+        workspace_name: '',
+      },
+      {
+        conversation_id: 'conv-stored',
+        title: 'Stored chat',
+        workspace_path: '/work/stored',
+        workspace_name: 'Stored',
+      },
+    ], {
+      getConversationWorkspaceBinding: jest.fn((conversationRef) => (
+        conversationRef === 'conv-bound'
+          ? { workspacePath: '/work/project-alpha', workspaceName: 'Project Alpha' }
+          : { workspacePath: '/work/ignored', workspaceName: 'Ignored' }
+      )),
+    });
+
+    expect(conversations).toEqual([
+      expect.objectContaining({
+        conversation_id: 'conv-bound',
+        workspace_path: '/work/project-alpha',
+        workspace_name: 'Project Alpha',
+      }),
+      expect.objectContaining({
+        conversation_id: 'conv-stored',
+        workspace_path: '/work/stored',
+        workspace_name: 'Stored',
+      }),
+    ]);
   });
 
   test('normalizeRecentConversations filters missing ids and sorts newest first', () => {
