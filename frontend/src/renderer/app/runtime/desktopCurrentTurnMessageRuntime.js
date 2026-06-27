@@ -169,7 +169,8 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
   } = sdkLiveTurn;
   const hasText = typeof assistantText === 'string' && assistantText.trim();
   const hasReasoning = typeof reasoningText === 'string' && reasoningText.trim();
-  const hasError = typeof lastError === 'string' && lastError.trim();
+  const errorText = readExactSdkString(lastError);
+  const hasError = Boolean(errorText);
   const hasToolEvents = Array.isArray(toolEvents) && toolEvents.length > 0;
   if (phase === 'idle' && !hasText && !hasReasoning && !hasError && !hasToolEvents) {
     return [];
@@ -246,7 +247,7 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
   if (hasError) {
     messages.push({
       id: `${baseId}:error`,
-      text: lastError,
+      text: errorText,
       sender: 'assistant',
       type: 'error',
       sourceEventType: 'runtime_error',

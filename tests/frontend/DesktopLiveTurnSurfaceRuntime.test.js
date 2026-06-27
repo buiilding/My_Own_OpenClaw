@@ -219,6 +219,49 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
+  test('does not repair padded SDK presentation errors into overlay response state', () => {
+    const paddedResult = resolveLiveTurnPresentationInput({
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-live',
+        phase: 'idle',
+        presentation: {
+          entries: [],
+          lastError: ' padded error ',
+        },
+      },
+    });
+
+    expect(paddedResult).toMatchObject({
+      source: 'current-turn',
+      phase: 'idle',
+      overlayIntent: expect.objectContaining({
+        mode: 'hidden',
+        visible: false,
+      }),
+    });
+
+    const exactResult = resolveLiveTurnPresentationInput({
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-live',
+        phase: 'idle',
+        presentation: {
+          entries: [],
+          lastError: 'exact error',
+        },
+      },
+    });
+
+    expect(exactResult).toMatchObject({
+      source: 'current-turn',
+      overlayIntent: expect.objectContaining({
+        mode: 'response',
+        visible: true,
+      }),
+    });
+  });
+
   test('falls back to SDK current-turn presentation for malformed ConversationView envelopes', () => {
     const result = resolveLiveTurnPresentationInput({
       conversationView: {

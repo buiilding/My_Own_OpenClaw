@@ -204,6 +204,9 @@ UI adapters:
   presentation fields plus phase. They must not scan raw `assistantText`,
   `reasoningText`, or `toolEvents` to decide overlay/thread visibility, side
   effects, or trace counts when a presentation object exists.
+  Renderer adapters treat `presentation.lastError` as exact SDK text; padded
+  values are ignored instead of being trimmed into visible lifecycle, overlay,
+  side-effect, or error-row authority.
 - `presentation.entries[*].sourceChannel`: SDK presentation metadata uses
   `sdk:current-turn`; host IPC channel names are adapter details and must not
   leak into reusable SDK projections
@@ -448,7 +451,9 @@ SDK view.
 Renderer visible-lifecycle projection treats SDK live-turn `phase` and
 `ConversationView` response-overlay surface `mode` as exact SDK labels; padded
 labels are ignored instead of being trimmed into busy, awaiting, terminal, or
-response state.
+response state. SDK presentation `lastError` text follows the same exact rule:
+padded values do not create visible content, terminal error reasons, overlay
+responses, side-effect cursor state, or legacy no-view error rows.
 The `conversation.loadDisplay` command also carries `snapshot.view`, and
 desktop renderer display-row facades consume `snapshot.view.displayRows`
 without falling back to legacy `snapshot.displayRows`. SDK snapshots may still

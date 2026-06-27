@@ -26,10 +26,6 @@ const {
   hasWorkspaceConversationView,
 } = DesktopConversationViewWorkspaceRuntime;
 
-function normalizeString(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
 function readExactIdentityString(value) {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
     ? value
@@ -72,7 +68,7 @@ function hasVisiblePresentationContent(presentation) {
   const entries = Array.isArray(presentation.entries) ? presentation.entries : [];
   return (
     entries.length > 0
-    || Boolean(normalizeString(presentation.lastError))
+    || Boolean(readExactLifecycleString(presentation.lastError))
   );
 }
 
@@ -220,7 +216,7 @@ function findConversationViewAwaitingAnchor(conversationView, pendingTurn) {
 
 function resolveTerminalReason(sdkLiveTurn) {
   const phase = normalizeSdkLiveTurnPhase(sdkLiveTurn);
-  if (phase === 'error' || normalizeString(sdkLiveTurn?.presentation?.lastError)) {
+  if (phase === 'error' || readExactLifecycleString(sdkLiveTurn?.presentation?.lastError)) {
     return 'error';
   }
   if (phase === 'complete' || sdkLiveTurn?.presentation?.isTerminal === true) {

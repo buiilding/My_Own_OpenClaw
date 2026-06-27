@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: require SDK presentation `lastError` text to be exact
+  before it counts as visible lifecycle, overlay, side-effect, or legacy
+  no-view error-row evidence. No migration required.
 - frontend/main: omit malformed SDK resource metadata from the Agent SDK
   runtime command bridge instead of trimming padded artifact refs, attachment
   filenames, workspace paths, or malformed capture metadata into

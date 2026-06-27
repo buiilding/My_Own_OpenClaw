@@ -300,6 +300,34 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     expect(toolMessage).not.toHaveProperty('attachments');
   });
 
+  test('does not repair padded legacy no-presentation lastError into a live row', () => {
+    expect(buildNoViewSdkLiveTurnMessages({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'idle',
+      assistantText: '',
+      reasoningText: null,
+      lastError: ' padded error ',
+      toolEvents: [],
+    })).toEqual([]);
+
+    expect(buildNoViewSdkLiveTurnMessages({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'idle',
+      assistantText: '',
+      reasoningText: null,
+      lastError: 'exact error',
+      toolEvents: [],
+    })).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'conv-1:turn-1:error',
+        text: 'exact error',
+        type: 'error',
+      }),
+    ]));
+  });
+
   test('keeps legacy no-presentation tool-event detail payloads out of live rows', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',

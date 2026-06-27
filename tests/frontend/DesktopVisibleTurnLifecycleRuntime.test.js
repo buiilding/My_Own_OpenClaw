@@ -465,6 +465,54 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
   });
 
+  test('does not repair padded SDK presentation errors into lifecycle evidence', () => {
+    const pending = pendingTurn();
+
+    expect(resolvePendingTurnForSdkLiveTurn({
+      pendingTurn: pending,
+      sdkLiveTurn: projection({
+        presentation: {
+          entries: [],
+          lastError: ' padded error ',
+        },
+      }),
+    })).toBe(pending);
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      sdkLiveTurn: projection({
+        presentation: {
+          entries: [],
+          lastError: ' padded error ',
+        },
+      }),
+    })).toEqual({
+      status: 'idle',
+      source: 'sdk',
+      conversationRef: 'conv-1',
+      turnRef: null,
+      awaitingAnchor: null,
+      entries: [],
+      terminalReason: null,
+      isBusy: false,
+      showTyping: false,
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      sdkLiveTurn: projection({
+        presentation: {
+          entries: [],
+          lastError: 'exact error',
+        },
+      }),
+    })).toMatchObject({
+      status: 'active',
+      source: 'sdk',
+      terminalReason: 'error',
+    });
+  });
+
   test('does not repair padded SDK awaiting anchors before lifecycle projection', () => {
     const pending = pendingTurn({
       userMessageId: 'pending-user',

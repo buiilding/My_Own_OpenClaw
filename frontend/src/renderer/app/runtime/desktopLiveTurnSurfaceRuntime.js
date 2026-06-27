@@ -66,10 +66,6 @@ function normalizeConversationRef(value) {
     : null;
 }
 
-function normalizeString(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
 function mapSdkLiveTurnPhase(phase) {
   return SDK_LIVE_TURN_PHASE_TO_SURFACE_PHASE[normalizePhase(phase)] ?? null;
 }
@@ -116,7 +112,7 @@ function hasSdkLiveTurnVisibleOverlayContent(presentation) {
   const entries = Array.isArray(presentation?.entries) ? presentation.entries : [];
   return Boolean(
     entries.length > 0
-      || normalizeString(presentation?.lastError)
+      || normalizePhase(presentation?.lastError)
   );
 }
 

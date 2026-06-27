@@ -128,6 +128,9 @@ instead of validating attachment lifecycle fields in the React hook.
 SDK live-turn `phase` values and `ConversationView` response-overlay surface
 `mode` values are exact lifecycle labels; renderer visible-lifecycle projection
 does not trim padded labels into busy, awaiting, terminal, or response state.
+SDK presentation `lastError` text follows that exact rule before it can count as
+visible lifecycle evidence, overlay response content, side-effect cursor state,
+or a legacy no-view error row.
 SDK current-turn presentation entries provide narrow `toolCallDetails` and
 `toolOutputDetails` records instead of raw payload mirrors. Renderer current-
 turn row construction maps SDK entries directly to chat-message props with
