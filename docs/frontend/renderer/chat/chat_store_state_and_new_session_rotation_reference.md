@@ -450,7 +450,9 @@ workspace context for stale-turn checks and projection diagnostics: it wraps raw
 workspace reads with `projectWorkspaceReadModelState(...)`, so projection-stream
 diagnostics consume `sdkLiveTurn` only on the no-view path. Replay projection
 traces require the complete SDK `ConversationView` envelope before consuming
-view display-row or live-turn trace state; partial objects stay on the no-view
+view display-row or live-turn trace state; the shared workspace gate requires an
+exact non-empty `conversationRef` plus object-shaped `liveTurn`, `surfaces`, and
+`actions`, so partial or malformed objects stay on the no-view
 raw-message/`sdkLiveTurn` diagnostic path. They accept exact pending, live, and
 stream-tracking turn refs only; padded refs are reported as missing instead of
 being trimmed into same-turn match diagnostics.

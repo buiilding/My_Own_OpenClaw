@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: require a complete SDK `ConversationView` envelope before
   replay projection traces suppress no-view message/current-turn diagnostics,
   keeping partial objects on the raw fallback path. No migration required.
+- frontend/chat: harden the shared `ConversationView` workspace gate so padded
+  conversation refs and array-shaped view records stay on the no-view fallback
+  path. No migration required.
 - frontend/attachments: reject inline `data:` URLs on ready SDK image
   attachments, keeping volatile preview bytes on materializing `previewSrc`
   only while ready images resolve through artifact refs or non-inline URLs. No

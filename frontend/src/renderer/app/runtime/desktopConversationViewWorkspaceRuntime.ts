@@ -49,16 +49,26 @@ function normalizeString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function exactNonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
 function isConversationView(value: unknown): value is ConversationView {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+  if (!isObjectRecord(value)) {
     return false;
   }
   const source = value as Partial<ConversationView>;
-  return typeof source.conversationRef === 'string'
+  return exactNonEmptyString(source.conversationRef) !== null
     && Array.isArray(source.displayRows)
-    && Boolean(source.liveTurn && typeof source.liveTurn === 'object')
-    && Boolean(source.surfaces && typeof source.surfaces === 'object')
-    && Boolean(source.actions && typeof source.actions === 'object');
+    && isObjectRecord(source.liveTurn)
+    && isObjectRecord(source.surfaces)
+    && isObjectRecord(source.actions);
 }
 
 function hasWorkspaceConversationView(workspace: unknown): boolean {

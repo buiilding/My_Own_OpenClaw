@@ -80,6 +80,18 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
       conversationView: buildConversationView('conv-1'),
     })).toBe(true);
     expect(hasWorkspaceConversationView({
+      conversationView: buildConversationView(' conv-1 '),
+    })).toBe(false);
+    expect(hasWorkspaceConversationView({
+      conversationView: buildConversationView(''),
+    })).toBe(false);
+    expect(hasWorkspaceConversationView({
+      conversationView: {
+        ...buildConversationView('conv-1'),
+        liveTurn: [],
+      },
+    })).toBe(false);
+    expect(hasWorkspaceConversationView({
       conversationView: null,
     })).toBe(false);
     expect(hasWorkspaceConversationView({
