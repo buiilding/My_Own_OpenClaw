@@ -4361,6 +4361,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
     expect(chatInterfacePresentationRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
     expect(chatInterfacePresentationRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView: view })');
+    expect(threadPresentationRuntimeSource).toContain('useSdkViewAuthority: hasConversationView');
+    expect(threadPresentationRuntimeSource).toContain('useSdkViewAuthority');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('DesktopPendingTurnBridgeRuntime');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('buildPendingTurnUserMessage');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('function buildNoViewPendingBridgeMessages');

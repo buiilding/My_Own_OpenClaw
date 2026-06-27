@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/thread: render `ConversationView.liveTurn.entries` without applying
+  no-view raw-message duplicate or latest-user suppression, keeping SDK view
+  live rows authoritative while legacy current-turn fallback keeps its
+  migration guards. No migration required.
 - frontend/projection: keep the renderer pending bridge beside
   `ConversationView` rows only when the bridge `conversationRef` exactly
   matches the SDK view, so cross-conversation or padded pending state cannot

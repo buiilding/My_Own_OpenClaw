@@ -645,12 +645,15 @@ When a caller supplies `ConversationView`, thread presentation accepts only
 SDK display-row messages plus the explicit renderer pending-send bridge as its
 base rows. Raw renderer transcript rows are ignored in that mode so view-owned
 live rows cannot be positioned, deduped, or suppressed by stale chat-store
-messages. Main chat presentation also ignores raw workspace `messages` for its
-cache identity while a `ConversationView` exists; it first requires the complete
-SDK view envelope before entering that mode. Raw message-array churn is not a
-visible SDK-view invalidation signal. Empty renderer annotation projections
-are stable; only actual renderer-local assistant feedback creates an annotation
-signal.
+messages. `ConversationView.liveTurn.entries` render as SDK-authored live rows
+without the renderer's no-view latest-user, materialized-text, or duplicate
+suppression heuristics; those guards are retained only for legacy
+`sdkLiveTurn` fallback before a complete view exists. Main chat presentation
+also ignores raw workspace `messages` for its cache identity while a
+`ConversationView` exists; it first requires the complete SDK view envelope
+before entering that mode. Raw message-array churn is not a visible SDK-view
+invalidation signal. Empty renderer annotation projections are stable; only
+actual renderer-local assistant feedback creates an annotation signal.
 
 For debugging, use:
 

@@ -479,7 +479,11 @@ The thread presenter enforces the same read-model boundary for direct
 app-runtime callers through that shared gate: with `ConversationView` present,
 its base rows must be SDK display-row messages or the explicit renderer pending
 bridge. Untagged raw chat-store rows are ignored before live-row insertion and
-duplicate checks.
+duplicate checks. `ConversationView.liveTurn.entries` are SDK-authored live
+rows, so the thread presenter renders them without applying no-view
+raw-message duplicate suppression, latest-user-turn checks, or materialized
+assistant-text suppression. Those heuristics remain only for legacy
+`sdkLiveTurn` fallback projection before a complete SDK view exists.
 The conversation projection-stream hook applies the same rule when it needs
 workspace context for stale-turn checks and projection diagnostics: it wraps raw store
 workspace reads with `projectWorkspaceReadModelState(...)`, so projection-stream

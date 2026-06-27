@@ -228,6 +228,7 @@ function selectVisibleCurrentTurnMessages({
   liveTurnMessages,
   projectionConversationRefValue,
   activeConversationRef,
+  useSdkViewAuthority = false,
 }) {
   if (!Array.isArray(liveTurnMessages) || liveTurnMessages.length === 0) {
     return [];
@@ -253,12 +254,20 @@ function selectVisibleCurrentTurnMessages({
   }
   return liveTurnMessages.filter((message) => (
     isVisibleCurrentTurnMessage(message)
-    && belongsToLatestUserTurn(messages, message)
+    && (
+      useSdkViewAuthority
+      || belongsToLatestUserTurn(messages, message)
+    )
     && !(
+      !useSdkViewAuthority
+      &&
       isTextlessCurrentTurnThinkingMessage(message)
       && hasMaterializedAssistantTextForTurn(messages, message.turnRef)
     )
-    && !hasMaterializedDuplicateForLiveMessage(messages, message)
+    && (
+      useSdkViewAuthority
+      || !hasMaterializedDuplicateForLiveMessage(messages, message)
+    )
   ));
 }
 
@@ -304,6 +313,7 @@ function buildThreadPresentationMessages(
     liveTurnMessages: resolvedCurrentTurnMessages,
     projectionConversationRefValue,
     activeConversationRef,
+    useSdkViewAuthority: hasConversationView,
   });
   if (liveMessages.length === 0) {
     return baseMessages;

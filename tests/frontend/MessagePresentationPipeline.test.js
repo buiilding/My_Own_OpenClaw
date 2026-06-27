@@ -522,6 +522,56 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
+  test('buildThreadPresentationMessages renders ConversationView live rows without materialized-text suppression', () => {
+    const sdkUserRow = {
+      id: 'sdk-user-row',
+      sender: 'user',
+      text: 'Inspect workspace',
+      turnRef: 'turn-view',
+      sourceChannel: 'sdk:display-rows',
+      sourceEventType: 'user_message',
+    };
+    const sdkAssistantRow = {
+      id: 'sdk-assistant-row',
+      sender: 'assistant',
+      text: 'Projected answer with more detail.',
+      type: 'llm-text',
+      turnRef: 'turn-view',
+      sourceChannel: 'sdk:display-rows',
+      sourceEventType: 'assistant_message',
+    };
+    const conversationView = conversationViewFixture({
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries: [{
+          id: 'view-live-entry',
+          type: 'llm-text',
+          text: 'Projected answer',
+          sourceEventType: 'assistant_delta',
+          turnRef: 'turn-view',
+        }],
+      },
+    });
+
+    expect(buildThreadPresentationMessages([
+      sdkUserRow,
+      sdkAssistantRow,
+    ], {
+      conversationView,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      sdkUserRow,
+      sdkAssistantRow,
+      expect.objectContaining({
+        id: 'view-live-entry',
+        sender: 'assistant',
+        text: 'Projected answer',
+        sourceChannel: 'sdk:conversation-view',
+        turnRef: 'turn-view',
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages keeps partial ConversationView objects on no-view fallback path', () => {
     const rawRow = {
       id: 'raw-user-row',
