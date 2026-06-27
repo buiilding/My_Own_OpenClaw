@@ -46,6 +46,14 @@ function requiredField(value: unknown): { required: boolean } | Record<string, n
   return required === null ? {} : { required };
 }
 
+function optionalExactField<TKey extends string>(
+  key: TKey,
+  value: unknown,
+): { [K in TKey]: string } | Record<string, never> {
+  const exactValue = optionalExactString(value);
+  return exactValue ? { [key]: exactValue } as { [K in TKey]: string } : {};
+}
+
 function hasOnlyAllowedResourceKeys(
   resource: Record<string, unknown>,
   allowedKeys: readonly string[],
@@ -83,8 +91,8 @@ function normalizeTurnInputResource(resource: unknown): TurnInputResource | null
     return {
       kind: 'clipboard_image',
       base64,
-      contentType: optionalExactString(resource.contentType),
-      filename: optionalExactString(resource.filename),
+      ...optionalExactField('contentType', resource.contentType),
+      ...optionalExactField('filename', resource.filename),
       ...requiredField(resource.required),
     };
   }
@@ -96,7 +104,7 @@ function normalizeTurnInputResource(resource: unknown): TurnInputResource | null
     return {
       kind: 'query_screenshot_request',
       ...(isFirstUserMessage === null ? {} : { isFirstUserMessage }),
-      reason: optionalExactString(resource.reason),
+      ...optionalExactField('reason', resource.reason),
       ...requiredField(resource.required),
     };
   }

@@ -664,7 +664,9 @@ describe('renderer app runtime boundary', () => {
       currentTurnMessageSource.indexOf('function buildConversationViewLiveTurnMessages'),
     );
 
-    expect(currentTurnMessageSource).toContain('desktopChatMessageRuntimeClient');
+    expect(currentTurnMessageSource).not.toContain('desktopChatMessageRuntimeClient');
+    expect(currentTurnMessageSource).toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(currentTurnMessageSource).toContain('DesktopSdkToolDetailProjection');
     expect(currentTurnMessageSource).toContain('desktopPresentationSourceChannels');
     expect(currentTurnMessageSource).toContain('desktopConversationViewWorkspaceRuntime');
     expect(currentTurnMessageSource).toContain('hasWorkspaceConversationView({ conversationView })');
@@ -1389,9 +1391,16 @@ describe('renderer app runtime boundary', () => {
     expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
     expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
     expect(liveTurnSource).toContain('function optionalExactString');
+    expect(liveTurnSource).toContain('function optionalExactField');
     expect(liveTurnSource).toContain('function hasOnlyAllowedResourceKeys');
     expect(liveTurnSource).toContain('Object.keys(resource).every((key) => allowedKeys.includes(key))');
     expect(liveTurnSource).toContain('const turnRef = optionalExactString(input.turnRef)');
+    expect(liveTurnSource).toContain("...optionalExactField('contentType', resource.contentType)");
+    expect(liveTurnSource).toContain("...optionalExactField('filename', resource.filename)");
+    expect(liveTurnSource).toContain("...optionalExactField('reason', resource.reason)");
+    expect(liveTurnSource).not.toContain('contentType: optionalExactString(resource.contentType)');
+    expect(liveTurnSource).not.toContain('filename: optionalExactString(resource.filename)');
+    expect(liveTurnSource).not.toContain('reason: optionalExactString(resource.reason)');
     expect(liveTurnSource).not.toContain('const turnRef = optionalString(input.turnRef)');
     expect(liveTurnSource).toContain('optionalExactString(conversationRef)');
     expect(liveTurnSource).toContain('optionalExactString(turnRef)');

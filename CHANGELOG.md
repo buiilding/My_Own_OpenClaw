@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: omit malformed optional SDK resource metadata from the
+  live-turn command facade instead of forwarding `null` content type, filename,
+  or screenshot reason fields. No migration required.
 - frontend/trace: narrow the ChatProvider trace runtime to consume
   `conversationViewTraceSummary` from the chat-store adapter instead of reading
   SDK `ConversationView` display rows directly. No migration required.

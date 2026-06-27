@@ -144,6 +144,13 @@ describe('DesktopLiveTurnRuntimeClient', () => {
           required: true,
         },
         {
+          kind: 'clipboard_image',
+          base64: 'image-with-padded-optional-metadata',
+          contentType: ' image/png ',
+          filename: ' padded-shot.png ',
+          required: false,
+        },
+        {
           kind: 'query_screenshot_request',
           displayAttachmentId: 'renderer-screenshot-id',
           isFirstUserMessage: true,
@@ -156,6 +163,12 @@ describe('DesktopLiveTurnRuntimeClient', () => {
           isFirstUserMessage: true,
           reason: 'capture',
           required: false,
+        },
+        {
+          kind: 'query_screenshot_request',
+          isFirstUserMessage: false,
+          reason: ' capture ',
+          required: true,
         },
         {
           kind: 'readable_file',
@@ -186,10 +199,20 @@ describe('DesktopLiveTurnRuntimeClient', () => {
         required: true,
       },
       {
+        kind: 'clipboard_image',
+        base64: 'image-with-padded-optional-metadata',
+        required: false,
+      },
+      {
         kind: 'query_screenshot_request',
         isFirstUserMessage: true,
         reason: 'capture',
         required: false,
+      },
+      {
+        kind: 'query_screenshot_request',
+        isFirstUserMessage: false,
+        required: true,
       },
     ]);
     expect(JSON.stringify(commandPayload.resources)).not.toContain('displayAttachmentId');
