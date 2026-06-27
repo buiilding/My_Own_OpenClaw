@@ -269,6 +269,16 @@ function isStoppableConversationView(conversationView) {
   );
 }
 
+function pendingTurnMatchesConversationView(conversationView, pendingTurn) {
+  const viewConversationRef = readExactNonEmptyRef(conversationView?.conversationRef);
+  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
+  return Boolean(
+    viewConversationRef
+      && normalizedPendingTurn
+      && normalizedPendingTurn.conversationRef === viewConversationRef,
+  );
+}
+
 function resolveStopTurnTarget({
   conversationView = null,
   pendingTurn = null,
@@ -283,8 +293,8 @@ function resolveStopTurnTarget({
   }
 
   if (isSdkConversationView(conversationView)) {
-    const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
-    if (normalizedPendingTurn) {
+    if (pendingTurnMatchesConversationView(conversationView, pendingTurn)) {
+      const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
       return {
         source: 'pending-turn',
         conversationRef: normalizedPendingTurn.conversationRef,

@@ -80,7 +80,7 @@ describe('ipc_stop_target_runtime', () => {
   test('pending turn remains stoppable through non-stoppable view bridge', () => {
     expect(createResolverRuntime({
       latestConversationView: conversationView({
-        conversationRef: 'conv-view',
+        conversationRef: 'conv-pending',
         turnRef: 'turn-view',
         phase: 'idle',
         canStop: false,
@@ -95,6 +95,21 @@ describe('ipc_stop_target_runtime', () => {
       turnRef: 'turn-pending',
       canStop: true,
     });
+  });
+
+  test('view state rejects cross-conversation pending stop fallback', () => {
+    expect(createResolverRuntime({
+      latestConversationView: conversationView({
+        conversationRef: 'conv-view',
+        turnRef: 'turn-view',
+        phase: 'idle',
+        canStop: false,
+      }),
+      latestPendingTurn: {
+        conversationRef: 'conv-pending',
+        turnRef: 'turn-pending',
+      },
+    }).resolve()).toBeNull();
   });
 
   test('does not expose missing SDK view state as a fallback stop target', () => {

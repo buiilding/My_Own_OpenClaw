@@ -228,6 +228,22 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
+  test('resolveStopTurnTarget rejects cross-conversation pending bridge when a view exists', () => {
+    expect(resolveStopTurnTarget({
+      conversationView: conversationView({
+        conversationRef: 'conv-view',
+        turnRef: 'turn-view',
+        phase: 'idle',
+        canStop: false,
+      }),
+      pendingTurn: pendingTurn({
+        conversationRef: 'conv-pending',
+        turnRef: 'turn-pending',
+      }),
+      conversationRef: 'conv-session',
+    })).toBeNull();
+  });
+
   test('resolveStopTurnTarget lets idle ConversationView suppress stale current-turn stop state', () => {
     expect(resolveStopTurnTarget({
       conversationView: conversationView({

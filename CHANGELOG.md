@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stop: require pending-turn stop fallback to match the active SDK
+  `ConversationView` conversation when view state exists, preventing stale
+  cross-conversation pending bridges from becoming Stop targets. No migration
+  required.
 - frontend/attachments: route message-row attachment class detection through
   the SDK display attachment projection gate, so malformed raw attachment
   arrays cannot mark a renderer row as attachment-bearing. No migration

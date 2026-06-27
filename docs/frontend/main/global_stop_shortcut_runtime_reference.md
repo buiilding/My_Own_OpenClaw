@@ -83,6 +83,9 @@ rule for an already-registered stop action:
 - Stoppable SDK conversation views beat renderer pending-turn fallback.
 - Renderer pending turns are the only no-view fallback when their conversation
   ref and turn ref are exact non-empty bridge identities.
+- When a non-stoppable SDK conversation view is present, a pending-turn fallback
+  must belong to that exact view conversation; cross-conversation pending state
+  is ignored instead of becoming the global Stop target.
 - Idle active-conversation refs are not stop targets; only stoppable views and
   pending turns carry a `turn_ref`.
 - A successful stop sends the SDK-shaped `{ conversation_ref, turn_ref }`

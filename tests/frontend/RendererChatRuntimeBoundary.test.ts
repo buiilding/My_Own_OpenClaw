@@ -2593,6 +2593,8 @@ describe('renderer chat runtime boundary', () => {
     expect(stopRuntimeSource).toContain('hasWorkspaceConversationView(currentWorkspace)');
     expect(stopRuntimeSource).toContain('function isSdkConversationView(conversationView)');
     expect(stopRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(stopRuntimeSource).toContain('function pendingTurnMatchesConversationView');
+    expect(stopRuntimeSource).toContain('normalizedPendingTurn.conversationRef === viewConversationRef');
     expect(stopRuntimeSource).not.toContain('function hasConversationView');
     expect(stopRuntimeSource).not.toContain('hasConversationView(currentWorkspace.conversationView)');
     expect(stopTargetResolverSource).not.toContain("source: 'idle'");

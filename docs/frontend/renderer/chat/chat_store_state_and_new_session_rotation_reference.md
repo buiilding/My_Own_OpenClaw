@@ -549,7 +549,10 @@ authority.
   in the header component
 - `stopTurnTarget` from `DesktopStopTurnRuntime.resolveStopTurnTarget(...)`,
   selected from SDK `ConversationView` first and the renderer pending bridge
-  second
+  second. A pending bridge can remain stoppable beside a non-stoppable
+  `ConversationView` only when its exact `conversationRef` matches the SDK view;
+  cross-conversation pending state is ignored rather than becoming stop
+  authority.
 - `chatSurfaceState`, a nested selected surface read model for
   `useChatSurfaceController(...)`; it carries `sdkLiveTurn` only for the
   no-view fallback path and never exposes raw `currentTurnProjection`

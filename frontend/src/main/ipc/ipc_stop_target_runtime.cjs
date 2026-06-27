@@ -25,6 +25,15 @@ function isStoppableConversationView(conversationView) {
   );
 }
 
+function pendingTurnMatchesConversationView(conversationView, pendingTurn) {
+  const viewConversationRef = readExactNonEmptyString(conversationView?.conversationRef);
+  return Boolean(
+    viewConversationRef
+      && isPendingTurn(pendingTurn)
+      && readExactNonEmptyString(pendingTurn.conversationRef) === viewConversationRef,
+  );
+}
+
 function resolveMainStopTarget({
   latestConversationView = null,
   latestPendingTurn = null,
@@ -39,7 +48,7 @@ function resolveMainStopTarget({
   }
 
   if (latestConversationView && typeof latestConversationView === 'object') {
-    if (isPendingTurn(latestPendingTurn)) {
+    if (pendingTurnMatchesConversationView(latestConversationView, latestPendingTurn)) {
       return {
         source: 'pending-turn',
         conversationRef: readExactNonEmptyString(latestPendingTurn.conversationRef),
