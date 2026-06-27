@@ -152,6 +152,23 @@ describe('ipc_agent_sdk_runtime_commands', () => {
     expect(queryInput).not.toHaveProperty('payload');
   });
 
+  test('preserves SDK attachment context without trimming file-content whitespace', async () => {
+    const { commands, deps } = createCommands();
+
+    await expect(commands.sendQueryThroughAgentSdkRuntime({
+      messageId: 'turn-attachment-context',
+      payload: {
+        text: 'hello',
+        conversation_ref: 'conversation-1',
+        attachment_context: '  file context\n  ',
+      },
+    })).resolves.toBe('query-1');
+
+    const queryInput = deps.agent.run.mock.calls[0][0];
+    expect(queryInput.attachmentContext).toBe('  file context\n  ');
+    expect(queryInput.backendPayload.attachment_context).toBe('  file context\n  ');
+  });
+
   test('logs and returns null when query dispatch fails', async () => {
     const { commands, deps } = createCommands({
       ensureAgent: jest.fn(async () => {
@@ -231,6 +248,8 @@ describe('ipc_agent_sdk_runtime_commands', () => {
     expect(helperSource).not.toContain(retiredFactorySignature);
     expect(helperSource).toContain('runtimeCommandPayload');
     expect(helperSource).toContain('backendPayload: runtimeCommandPayload');
+    expect(helperSource).toContain('function optionalAttachmentContext');
+    expect(helperSource).toContain('attachmentContext: optionalAttachmentContext(runtimeCommandPayload.attachment_context) || undefined');
     expect(helperSource).not.toContain('payload: runtimeCommandPayload');
     expect(helperSource).toContain('agent.stop({');
     expect(helperSource).toContain('agent.updateSettings(payload)');

@@ -1422,6 +1422,8 @@ describe('renderer app runtime boundary', () => {
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE');
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.MODELS_LIST');
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED');
+    expect(agentRuntimeTransportSource).toContain('function optionalAttachmentContext');
+    expect(agentRuntimeTransportSource).toContain('attachment_context: optionalAttachmentContext(payload.attachment_context)');
     expect(agentRuntimeTransportSource).toContain('const queryMessageId = optionalExactString(messageId)');
     expect(agentRuntimeTransportSource).toContain('result.messageId === result.messageId.trim()');
     expect(agentRuntimeTransportSource).not.toContain('return result.messageId.trim()');

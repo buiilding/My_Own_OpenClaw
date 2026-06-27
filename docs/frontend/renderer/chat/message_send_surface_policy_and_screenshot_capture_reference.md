@@ -198,7 +198,9 @@ When attachment(s) exist:
     `attachment_filenames`, `capture_meta`, and `workspace_path` fields.
     Renderer desktop transport preserves SDK-owned `capture_meta` only when it
     is an object, dropping malformed values instead of forwarding attachment
-    lifecycle blobs.
+    lifecycle blobs. SDK-owned `attachment_context` is hidden prompt text, not a
+    renderer identity field, so IPC plumbing preserves non-empty context
+    whitespace instead of trimming file-content boundaries.
 11. SDK memory/context enrichment appends hidden context to model-facing content
     before backend transport.
 

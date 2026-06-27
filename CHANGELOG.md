@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/send: preserve SDK-generated `attachment_context` whitespace through
+  renderer transport and Electron main IPC instead of trimming hidden file
+  context as if it were identity metadata. No migration required.
 - frontend/surface: stop borrowing `ConversationView.liveTurn.turnRef` for
   response-overlay surfaces that declare a different owner conversation without
   their own turn ref, keeping live-surface identity pairs SDK-authored. No

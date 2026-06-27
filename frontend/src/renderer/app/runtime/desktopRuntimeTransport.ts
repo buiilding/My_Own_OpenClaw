@@ -51,6 +51,12 @@ function optionalJsonRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
+function optionalAttachmentContext(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0
+    ? value
+    : null;
+}
+
 function rejectRemovedCamelCaseFields(
   payload: Record<string, unknown>,
   fields: string[],
@@ -112,7 +118,7 @@ async function sendQuery(
       screenshot_url: optionalExactString(payload.screenshot_url),
       screenshot_refs: optionalExactStringArray(payload.screenshot_refs),
       capture_meta: optionalJsonRecord(payload.capture_meta),
-      attachment_context: optionalString(payload.attachment_context) ?? null,
+      attachment_context: optionalAttachmentContext(payload.attachment_context),
       attachment_filenames: optionalExactStringArray(payload.attachment_filenames),
       workspace_path: optionalString(payload.workspace_path) ?? workspacePath ?? null,
       memory_retrieval_enabled: DesktopMemoryRetrievalPreferenceRuntime.getMemoryRetrievalInjectionEnabled(),

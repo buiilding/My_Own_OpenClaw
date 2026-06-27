@@ -535,9 +535,12 @@ The renderer transport forwards SDK-owned resource metadata only when those
 optional fields are exact non-empty strings. Padded `screenshot_ref`,
 `screenshot_url`, `screenshot_refs[]`, and `attachment_filenames[]` values are
 omitted instead of being trimmed into backend query payloads; resource
-resolution belongs to the SDK before this adapter boundary. `capture_meta`
-forwards only when it is an object; arrays, strings, and other malformed values
-are dropped instead of becoming renderer-owned lifecycle metadata.
+resolution belongs to the SDK before this adapter boundary. `attachment_context`
+is SDK-authored hidden prompt text rather than identity metadata, so non-empty
+values pass through renderer transport and Electron main without trimming
+leading or trailing file-content whitespace. `capture_meta` forwards only when
+it is an object; arrays, strings, and other malformed values are dropped instead
+of becoming renderer-owned lifecycle metadata.
 Caller-provided `query_message_id`/transport `messageId` values follow the same
 exact identity rule: padded ids fail before dispatch instead of being trimmed
 into the pending bridge or SDK send command.

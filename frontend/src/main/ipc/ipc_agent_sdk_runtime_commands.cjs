@@ -10,6 +10,10 @@ function optionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function optionalAttachmentContext(value) {
+  return typeof value === 'string' && value.trim().length > 0 ? value : null;
+}
+
 function createAgentSdkRuntimeCommandsRuntime(deps = {}) {
   const {
     ensureAgent,
@@ -51,7 +55,7 @@ function createAgentSdkRuntimeCommandsRuntime(deps = {}) {
         screenshotRefs: Array.isArray(runtimeCommandPayload.screenshot_refs)
           ? runtimeCommandPayload.screenshot_refs
           : undefined,
-        attachmentContext: optionalString(runtimeCommandPayload.attachment_context) || undefined,
+        attachmentContext: optionalAttachmentContext(runtimeCommandPayload.attachment_context) || undefined,
         attachmentFilenames: Array.isArray(runtimeCommandPayload.attachment_filenames)
           ? runtimeCommandPayload.attachment_filenames
           : undefined,

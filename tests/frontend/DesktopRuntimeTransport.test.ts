@@ -126,6 +126,25 @@ describe('desktopRuntimeTransport', () => {
     }));
   });
 
+  test('preserves SDK attachment context text without trimming it as identity metadata', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: true,
+      messageId: 'msg-resource',
+    });
+
+    const transport = createDesktopRuntimeTransport(null);
+
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      attachment_context: '  indented file context\n  ',
+    })).resolves.toBe('msg-resource');
+
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
+      attachment_context: '  indented file context\n  ',
+    }));
+  });
+
   test('drops malformed SDK send capture metadata instead of forwarding lifecycle blobs', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({
       ok: true,

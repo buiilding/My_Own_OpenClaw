@@ -379,7 +379,10 @@ backend resource metadata that passes through `conversation.send`: padded
 `screenshot_ref`, `screenshot_url`, `screenshot_refs[]`, and
 `attachment_filenames[]` values are omitted instead of being repaired after SDK
 resource resolution, and malformed non-object `capture_meta` values are dropped
-instead of becoming renderer-owned attachment lifecycle blobs. Accepted
+instead of becoming renderer-owned attachment lifecycle blobs. SDK-generated
+`attachment_context` is hidden prompt text rather than renderer identity
+metadata, so the renderer/main command bridge preserves non-empty context
+whitespace instead of trimming file-content boundaries. Accepted
 `messageId` results returned from main also remain exact-only; padded results
 are ignored instead of being trimmed into SDK send identity.
 Conversation-view chat projection receives explicit renderer annotation records,
