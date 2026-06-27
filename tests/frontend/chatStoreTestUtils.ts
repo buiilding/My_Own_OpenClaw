@@ -55,6 +55,7 @@ export function resetChatStoreForTests(
     workspaces: {
       [DEFAULT_CHAT_WORKSPACE_REF]: {
         messages,
+        rendererAnnotations: [],
         isSending: false,
         thinkingStatus: null,
         thinkingSourceEventType: null,

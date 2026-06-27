@@ -38,6 +38,7 @@ title: "Chat Store State and New Session Rotation Reference"
 Primary `ChatWorkspaceState` fields:
 
 - `messages`
+- `rendererAnnotations`
 - `isSending`
 - `thinkingStatus`
 - `thinkingSourceEventType`
@@ -138,8 +139,12 @@ shapes.
   dependency adapters.
   Once a workspace has a `ConversationView`, raw message add/set/stream-target
   writes no-op because SDK display rows are authoritative. Direct id updates
-  under a view are narrowed to renderer-local assistant feedback, stored only so
-  `rendererAnnotations` can merge them back onto SDK assistant rows.
+  under a view are narrowed to renderer-local assistant feedback and write the
+  explicit `rendererAnnotations` list instead of adding synthetic rows to
+  `messages`. When a `ConversationView` first becomes authoritative, existing
+  no-view assistant feedback is migrated into `rendererAnnotations` once; the
+  projected read model must not recover annotations from raw `messages` under a
+  view.
 - Scalar workspace-field writes enter through the module-level
   `setIsSendingInChatStore(...)`, `setThinkingStatusInChatStore(...)`,
   `setThinkingSourceEventTypeInChatStore(...)`,

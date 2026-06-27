@@ -22,19 +22,19 @@ import type {
   ChatMessage,
   TokenCounts,
 } from './desktopChatMessageTypes';
-import {
-  DesktopConversationDisplayProjection,
-} from './desktopConversationDisplayProjection';
 
 const {
   createInitialStreamTracking,
 } = DesktopChatStreamTrackingRuntime;
-const {
-  selectRendererMessageAnnotations,
-} = DesktopConversationDisplayProjection;
+
+type RendererMessageAnnotation = {
+  feedback?: ChatMessage['feedback'];
+  id: string;
+};
 
 export interface ChatWorkspaceState {
   messages: ChatMessage[];
+  rendererAnnotations: RendererMessageAnnotation[];
   isSending: boolean;
   thinkingStatus: string | null;
   thinkingSourceEventType: string | null;
@@ -52,7 +52,7 @@ interface ChatWorkspaceStoreSnapshot {
 }
 
 export type ChatWorkspaceReadModelState = ChatWorkspaceState & {
-  rendererAnnotations?: unknown[];
+  rendererAnnotations: RendererMessageAnnotation[];
 };
 
 export type NoViewSdkLiveTurnStorage = {
@@ -61,6 +61,7 @@ export type NoViewSdkLiveTurnStorage = {
 
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 const emptyChatMessages: ChatMessage[] = [];
+const emptyRendererAnnotations: RendererMessageAnnotation[] = [];
 const workspaceReadModelCache = new WeakMap<ChatWorkspaceState, ChatWorkspaceReadModelState>();
 
 export function normalizeConversationRef(value: string | null | undefined): string | null {
@@ -94,6 +95,7 @@ export function resolveWorkspaceKey(
 export function createInitialWorkspaceState(): ChatWorkspaceState {
   return {
     messages: [],
+    rendererAnnotations: [],
     isSending: false,
     thinkingStatus: null,
     thinkingSourceEventType: null,
@@ -104,6 +106,15 @@ export function createInitialWorkspaceState(): ChatWorkspaceState {
     conversationView: null,
     pendingTurn: null,
   };
+}
+
+function readRendererAnnotations(
+  workspace: Partial<ChatWorkspaceState>,
+): RendererMessageAnnotation[] {
+  const annotations = Array.isArray(workspace.rendererAnnotations)
+    ? workspace.rendererAnnotations
+    : [];
+  return annotations.length > 0 ? annotations : emptyRendererAnnotations;
 }
 
 export function createInitialWorkspaceRecord(): Record<string, ChatWorkspaceState> {
@@ -231,8 +242,8 @@ export function projectWorkspaceReadModelState(
       ? null
       : readNoViewSdkLiveTurnStorage(workspace),
     rendererAnnotations: hasConversationView
-      ? selectRendererMessageAnnotations(workspace.messages)
-      : [],
+      ? readRendererAnnotations(workspace)
+      : emptyRendererAnnotations,
   };
   workspaceReadModelCache.set(workspace, readModelWorkspace);
   return readModelWorkspace;

@@ -15,6 +15,7 @@ type ClearMessagesStateSnapshot = {
 
 type ClearMessagesWorkspace<TStreamTracking> = NoViewSdkLiveTurnStorage & {
   messages: unknown[];
+  rendererAnnotations?: unknown[];
   isSending: boolean;
   thinkingSourceEventType: string | null;
   compactionDebugInfo: unknown;
@@ -63,6 +64,7 @@ function buildClearMessagesStateUpdate<
   return deps.buildWorkspaceUpdate(state, targetWorkspaceRef, {
     ...buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace, null),
     messages: [],
+    rendererAnnotations: [],
     isSending: false,
     thinkingSourceEventType: null,
     compactionDebugInfo: null,

@@ -118,6 +118,10 @@ describe('chatSelectors', () => {
         text: 'raw fallback',
         sender: 'assistant',
         fullAssistantMessage: 'full response',
+        feedback: 'dislike',
+      }],
+      rendererAnnotations: [{
+        id: 'sdk-row',
         feedback: 'like',
       }],
       thinkingStatus: 'Compacting conversation history...',

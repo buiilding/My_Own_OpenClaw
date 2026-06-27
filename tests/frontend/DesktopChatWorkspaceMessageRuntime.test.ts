@@ -184,6 +184,7 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
       messages: [
         { id: 'assistant-row', sender: 'assistant' as const, text: 'stale raw text' },
       ],
+      rendererAnnotations: [],
     };
     const state = {
       workspaces: {
@@ -209,6 +210,11 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
         id: 'assistant-row',
         sender: 'assistant',
         text: 'stale raw text',
+      },
+    ]);
+    expect(nextState.workspaces['conv-1'].rendererAnnotations).toEqual([
+      {
+        id: 'assistant-row',
         feedback: 'dislike',
       },
     ]);
@@ -221,6 +227,7 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
         displayRows: [],
       },
       messages: [],
+      rendererAnnotations: [],
     };
     const state = {
       workspaces: {
@@ -238,11 +245,10 @@ describe('DesktopChatWorkspaceMessageRuntime', () => {
       },
     });
 
-    expect(nextState.workspaces['conv-1'].messages).toEqual([
+    expect(nextState.workspaces['conv-1'].messages).toEqual([]);
+    expect(nextState.workspaces['conv-1'].rendererAnnotations).toEqual([
       {
         id: 'sdk-row',
-        sender: 'assistant',
-        text: '',
         feedback: 'like',
       },
     ]);

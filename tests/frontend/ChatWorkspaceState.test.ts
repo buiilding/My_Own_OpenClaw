@@ -210,7 +210,11 @@ describe('chatWorkspaceState', () => {
         text: 'raw fallback',
         sender: 'assistant' as const,
         fullAssistantMessage: 'full response',
-        feedback: 'like',
+        feedback: 'dislike',
+      }],
+      rendererAnnotations: [{
+        id: 'sdk-row',
+        feedback: 'like' as const,
       }],
       thinkingStatus: 'Compacting conversation history...',
       thinkingSourceEventType: 'compaction_started',

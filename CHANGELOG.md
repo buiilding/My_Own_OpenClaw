@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: store renderer-local assistant feedback as explicit
+  `rendererAnnotations` beside SDK `ConversationView` workspaces instead of
+  recovering it from raw `messages`, keeping raw message arrays out of the
+  normal view-owned read model. No migration required.
 - frontend/composer: strip preview-only attachment fields such as image
   `previewUrl` and local ids from outgoing composer payloads before send
   preparation, keeping previews UI-local while SDK resource handles carry only

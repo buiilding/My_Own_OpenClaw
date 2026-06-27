@@ -98,6 +98,65 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     expect(mutation?.workspace).not.toBe(workspace);
   });
 
+  test('migrates assistant feedback into explicit renderer annotations when view becomes authoritative', () => {
+    const conversationView = buildConversationView('conv-1');
+    const workspace = {
+      conversationView: null,
+      messages: [
+        {
+          id: 'assistant-row',
+          sender: 'assistant',
+          text: 'raw fallback',
+          feedback: 'like',
+        },
+        {
+          id: 'user-row',
+          sender: 'user',
+          text: 'ignore user feedback',
+          feedback: 'dislike',
+        },
+      ],
+      rendererAnnotations: [],
+    };
+
+    const mutation = buildConversationViewWorkspaceMutation({
+      conversationView,
+      currentWorkspace: workspace,
+    });
+
+    expect(mutation?.workspace.messages).toBe(workspace.messages);
+    expect(mutation?.workspace.rendererAnnotations).toEqual([
+      {
+        id: 'assistant-row',
+        feedback: 'like',
+      },
+    ]);
+  });
+
+  test('clears explicit renderer annotations when the ConversationView is cleared', () => {
+    const workspace = {
+      conversationView: buildConversationView('conv-1'),
+      messages: [],
+      rendererAnnotations: [
+        {
+          id: 'assistant-row',
+          feedback: 'like',
+        },
+      ],
+    };
+
+    expect(buildConversationViewWorkspaceMutation({
+      conversationView: null,
+      currentWorkspace: workspace,
+    })).toEqual({
+      workspace: {
+        conversationView: null,
+        messages: [],
+        rendererAnnotations: [],
+      },
+    });
+  });
+
   test('updates inactive workspace conversation view the same way', () => {
     const previousView = buildConversationView('conv-old');
     const nextView = buildConversationView('conv-inactive');

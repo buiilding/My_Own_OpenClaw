@@ -3,11 +3,18 @@ import type { ConversationView } from './desktopConversationRuntimeContracts';
 type ConversationViewWorkspace = {
   conversationView: ConversationView | null;
   isSending?: boolean;
+  messages?: unknown[];
   pendingTurn?: unknown | null;
+  rendererAnnotations?: RendererAnnotationRecord[];
 };
 
 type ConversationViewWorkspaceMutation<TWorkspace extends ConversationViewWorkspace> = {
   workspace: TWorkspace;
+};
+
+type RendererAnnotationRecord = {
+  feedback?: unknown;
+  id: string;
 };
 
 type ConversationViewStateSnapshot = {
@@ -43,6 +50,55 @@ function hasWorkspaceConversationView(workspace: unknown): boolean {
       && (workspace as ConversationViewWorkspace).conversationView
       && typeof (workspace as ConversationViewWorkspace).conversationView === 'object',
   );
+}
+
+function hasRendererFeedbackAnnotation(value: unknown): boolean {
+  return Boolean(
+    value
+      && typeof value === 'object'
+      && !Array.isArray(value)
+      && (value as Record<string, unknown>).sender === 'assistant'
+      && Object.prototype.hasOwnProperty.call(value, 'feedback'),
+  );
+}
+
+function selectRendererAnnotationsFromMessages(messages: unknown[] | undefined): RendererAnnotationRecord[] {
+  if (!Array.isArray(messages)) {
+    return [];
+  }
+  return messages.flatMap((message) => {
+    if (!hasRendererFeedbackAnnotation(message)) {
+      return [];
+    }
+    const source = message as Record<string, unknown>;
+    const id = normalizeString(source.id);
+    return id
+      ? [{
+        id,
+        feedback: source.feedback,
+      }]
+      : [];
+  });
+}
+
+function mergeRendererAnnotations(
+  currentAnnotations: RendererAnnotationRecord[] | undefined,
+  messageAnnotations: RendererAnnotationRecord[],
+): RendererAnnotationRecord[] {
+  const nextAnnotations = Array.isArray(currentAnnotations)
+    ? [...currentAnnotations]
+    : [];
+  const annotationIndexes = new Map(
+    nextAnnotations.map((annotation, index) => [annotation.id, index]),
+  );
+  for (const annotation of messageAnnotations) {
+    const existingIndex = annotationIndexes.get(annotation.id);
+    if (existingIndex === undefined) {
+      annotationIndexes.set(annotation.id, nextAnnotations.length);
+      nextAnnotations.push(annotation);
+    }
+  }
+  return nextAnnotations;
 }
 
 function normalizePendingTurn(value: unknown): {
@@ -131,16 +187,32 @@ function buildConversationViewWorkspaceMutation<TWorkspace extends ConversationV
     currentWorkspace.pendingTurn,
     conversationView,
   );
+  const nextRendererAnnotations = conversationView
+    ? mergeRendererAnnotations(
+      currentWorkspace.rendererAnnotations,
+      selectRendererAnnotationsFromMessages(currentWorkspace.messages),
+    )
+    : [];
+  const hasRendererAnnotationUpdate = currentWorkspace.rendererAnnotations !== nextRendererAnnotations
+    && (
+      (currentWorkspace.rendererAnnotations?.length ?? 0) !== nextRendererAnnotations.length
+      || nextRendererAnnotations.some((annotation, index) => (
+        currentWorkspace.rendererAnnotations?.[index] !== annotation
+      ))
+    );
 
-  if (!hasWorkspaceUpdate && !shouldClearPendingTurn) {
+  if (!hasWorkspaceUpdate && !shouldClearPendingTurn && !hasRendererAnnotationUpdate) {
     return null;
   }
 
   return {
-    workspace: hasWorkspaceUpdate || shouldClearPendingTurn
+    workspace: hasWorkspaceUpdate || shouldClearPendingTurn || hasRendererAnnotationUpdate
       ? {
         ...currentWorkspace,
         conversationView,
+        ...(hasRendererAnnotationUpdate ? {
+          rendererAnnotations: nextRendererAnnotations,
+        } : {}),
         ...(shouldClearPendingTurn ? {
           pendingTurn: null,
           isSending: false,

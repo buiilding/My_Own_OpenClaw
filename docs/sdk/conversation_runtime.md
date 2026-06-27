@@ -283,9 +283,12 @@ Normal renderer send payload normalization rejects removed attachment/screenshot
 alias fields such as `attachmentFilenames`, `screenshotRef`, and
 `screenshotRefs`; composer sends pass only typed resource handles like
 `clipboardImages[]` and `readableFiles[]` into SDK turn preparation.
-Conversation-view chat projection receives renderer annotation records, not raw
-current chat messages, when copying local assistant feedback state onto SDK
-assistant rows. Renderer annotations are not a generic message overlay channel.
+Conversation-view chat projection receives explicit renderer annotation records,
+not raw current chat messages, when copying local assistant feedback state onto
+SDK assistant rows. The renderer stores those annotations beside the
+`ConversationView` workspace state and migrates pre-view assistant feedback into
+that list once when the SDK view becomes authoritative. Renderer annotations
+are not a generic message overlay channel.
 Raw current-turn snapshots remain live context for migrated display/surface
 handoff and diagnostics, while normal Stop authority is only the view or the
 local pending bridge. Minimal live surfaces receive a null raw current-turn

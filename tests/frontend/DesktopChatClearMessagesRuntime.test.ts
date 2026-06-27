@@ -17,6 +17,7 @@ describe('DesktopChatClearMessagesRuntime', () => {
       workspaces: {
         'conv-1': {
           messages: [{ id: 'm-1' }],
+          rendererAnnotations: [{ id: 'assistant-1', feedback: 'like' }],
           isSending: true,
           thinkingStatus: 'keep-thinking-status',
           thinkingSourceEventType: 'llm-thought',
@@ -56,6 +57,7 @@ describe('DesktopChatClearMessagesRuntime', () => {
       'conv-1',
       expect.objectContaining({
         messages: [],
+        rendererAnnotations: [],
         isSending: false,
         thinkingStatus: 'keep-thinking-status',
         thinkingSourceEventType: null,
@@ -71,6 +73,7 @@ describe('DesktopChatClearMessagesRuntime', () => {
       workspaces: {
         'conv-1': expect.objectContaining({
           messages: [],
+          rendererAnnotations: [],
           isSending: false,
           thinkingStatus: 'keep-thinking-status',
           tokenCounts: { total_tokens: 42 },

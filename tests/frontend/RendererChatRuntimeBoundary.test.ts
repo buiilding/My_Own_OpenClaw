@@ -4061,6 +4061,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('setTokenCountsInChatStore');
     expect(chatStoreAdaptersSource).toContain('applyPendingTurnBroadcastToChatStore');
     expect(chatWorkspaceMessageRuntimeSource).toContain("Pick<ChatMessage, 'feedback'>");
+    expect(chatWorkspaceMessageRuntimeSource).toContain('rendererAnnotations: updateRendererAnnotations');
+    expect(chatWorkspaceMessageRuntimeSource).not.toContain("text: ''");
     expect(chatWorkspaceMessageRuntimeSource).not.toContain("'fullAssistantMessage'");
     expect(chatWorkspaceMessageRuntimeSource).not.toContain("'fullUserMessage'");
     expect(chatWorkspaceMessageRuntimeSource).not.toContain("'systemPrompt'");
@@ -4100,7 +4102,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateRuntimeSource).toContain('selectActiveWorkspaceReadModelState');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('export function selectActiveWorkspaceState');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('selectActiveWorkspaceState,');
-    expect(chatWorkspaceStateRuntimeSource).toContain('selectRendererMessageAnnotations(workspace.messages)');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('selectRendererMessageAnnotations(workspace.messages)');
+    expect(chatWorkspaceStateRuntimeSource).toContain('readRendererAnnotations(workspace)');
     expect(chatWorkspaceStateRuntimeSource).toContain('readNoViewSdkLiveTurnStorage');
     expect(chatWorkspaceStateRuntimeSource).toContain('buildNoViewSdkLiveTurnStorageUpdate');
     expect(chatWorkspaceStateRuntimeSource).toContain('sdkLiveTurn: null');
