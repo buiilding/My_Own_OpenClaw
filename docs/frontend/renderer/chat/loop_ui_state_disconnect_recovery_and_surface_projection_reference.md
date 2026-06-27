@@ -196,6 +196,10 @@ local pending-turn handoff to the already-resolved
 When a same-turn SDK `ConversationView` live turn exists, the visible lifecycle
 and live-surface input use `ConversationView.liveTurn` plus
 `ConversationView.surfaces.responseOverlay` before raw current-turn projection.
+The live-surface adapter accepts that view only through the shared
+`DesktopConversationViewWorkspaceRuntime.hasWorkspaceConversationView(...)`
+gate, so partial or malformed envelopes fall back to the no-view SDK
+current-turn presentation path before overlay/live-turn fields are read.
 An unrelated renderer-local pending turn still owns the immediate pending
 bridge. The live surface still prepares overlay presentation input and SDK
 overlay intent metadata, but phase, busy, awaiting, and response flags now come

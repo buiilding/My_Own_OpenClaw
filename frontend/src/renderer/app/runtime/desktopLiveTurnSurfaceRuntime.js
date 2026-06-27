@@ -4,6 +4,7 @@
 
 import { DesktopResponseOverlayPhaseRuntime } from './desktopResponseOverlayPhaseRuntime';
 import { DesktopVisibleTurnLifecycleRuntime } from './desktopVisibleTurnLifecycleRuntime';
+import { DesktopConversationViewWorkspaceRuntime } from './desktopConversationViewWorkspaceRuntime';
 
 const {
   getAwaitingFirstChunkResponseOverlayPhase,
@@ -18,6 +19,9 @@ const {
 const {
   resolveVisibleTurnLifecycle,
 } = DesktopVisibleTurnLifecycleRuntime;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 const SDK_LIVE_TURN_PHASE_TO_SURFACE_PHASE = Object.freeze({
   awaiting: getAwaitingFirstChunkResponseOverlayPhase(),
@@ -64,21 +68,6 @@ function normalizeConversationRef(value) {
 
 function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
-function isObjectRecord(value) {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
-function isConversationView(value) {
-  return Boolean(
-    isObjectRecord(value)
-      && normalizeConversationRef(value.conversationRef)
-      && Array.isArray(value.displayRows)
-      && isObjectRecord(value.liveTurn)
-      && isObjectRecord(value.surfaces)
-      && isObjectRecord(value.actions),
-  );
 }
 
 function mapSdkLiveTurnPhase(phase) {
@@ -204,7 +193,7 @@ function resolveConversationViewSurfacePhase(conversationView) {
 }
 
 function hasConversationViewLiveTurn(conversationView) {
-  if (!isConversationView(conversationView)) {
+  if (!hasWorkspaceConversationView({ conversationView })) {
     return false;
   }
   const liveTurn = conversationView?.liveTurn;
@@ -297,7 +286,7 @@ function resolveLiveTurnPresentationInput({
     };
   }
 
-  if (isConversationView(conversationView)) {
+  if (hasWorkspaceConversationView({ conversationView })) {
     return {
       phase: getIdleResponseOverlayPhase(),
       isBusy: false,

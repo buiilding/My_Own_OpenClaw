@@ -268,7 +268,9 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
   test('does not repair padded ConversationView surface refs', () => {
     const state = resolveLiveTurnPresentationInput({
       conversationView: {
-        conversationRef: ' conv-1 ',
+        conversationRef: 'conv-1',
+        revisionId: null,
+        displayRows: [],
         liveTurn: {
           turnRef: ' turn-view ',
           phase: 'streaming',
@@ -291,6 +293,11 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
             ownerConversationRef: ' conv-1 ',
           },
         },
+        actions: {
+          canEdit: false,
+          canRetry: false,
+          canFork: false,
+        },
       },
     });
 
@@ -300,11 +307,11 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       overlayIntent: expect.objectContaining({
         mode: 'response',
         turnRef: null,
-        conversationRef: null,
+        conversationRef: 'conv-1',
         staleGuardRef: null,
       }),
       turnRef: null,
-      conversationRef: null,
+      conversationRef: 'conv-1',
       guardRef: null,
     });
   });
@@ -336,6 +343,8 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     const state = resolveLiveTurnPresentationInput({
       conversationView: {
         conversationRef: 'conv-1',
+        revisionId: null,
+        displayRows: [],
         liveTurn: {
           turnRef: 'turn-view',
           phase: 'idle',
@@ -350,6 +359,11 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
             guardRef: 'turn-view',
             ownerConversationRef: 'conv-1',
           },
+        },
+        actions: {
+          canEdit: false,
+          canRetry: false,
+          canFork: false,
         },
       },
     });

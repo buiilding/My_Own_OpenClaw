@@ -119,7 +119,10 @@ current-turn `conversationRef` and `turnRef` values are exact; padded refs are
 not exposed through fallback live row ids or row `turnRef` props.
 `ConversationView.liveTurn.turnRef` uses the same exact gate before the
 renderer copies it into live row props, so padded view-level live-turn refs stay
-out of component identity. Live tool
+out of component identity. The live-surface adapter also requires the shared
+workspace `ConversationView` gate before reading view live-turn or
+response-overlay surface fields, leaving malformed envelopes on the no-view SDK
+current-turn path. Live tool
 identity fields such as `correlationId`, `requestId`, and `bundleId` are exact;
 padded values fall through instead of becoming renderer dedupe keys. The legacy
 no-view SDK `toolEvents` fallback uses the same exact correlation rule instead

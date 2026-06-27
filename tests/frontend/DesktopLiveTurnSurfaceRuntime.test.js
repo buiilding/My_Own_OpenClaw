@@ -15,17 +15,33 @@ function conversationView({
     type: 'llm-text',
     text: 'view response',
   }],
+  displayRows = [],
+  actions = {
+    canEdit: false,
+    canRetry: false,
+    canFork: false,
+  },
 } = {}) {
   return {
     conversationRef,
+    revisionId: null,
+    displayRows,
     liveTurn: {
       turnRef,
-      phase: mode === 'awaiting' ? 'awaiting' : 'streaming',
+      phase: mode === 'hidden' ? 'idle' : mode === 'awaiting' ? 'awaiting' : 'streaming',
       isBusy: mode !== 'hidden',
       isTerminal: false,
       entries,
     },
     surfaces: {
+      dashboard: {
+        mode: 'normal',
+        visible: true,
+      },
+      pill: {
+        mode: 'normal',
+        visible: true,
+      },
       responseOverlay: {
         mode,
         visible: mode !== 'hidden',
@@ -34,6 +50,7 @@ function conversationView({
         turnRef,
       },
     },
+    actions,
   };
 }
 
@@ -136,16 +153,12 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
 
   test('does not fall through to raw current-turn surface state when ConversationView is idle', () => {
     const result = resolveLiveTurnPresentationInput({
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-view',
-        liveTurn: null,
-        surfaces: {
-          responseOverlay: {
-            mode: 'hidden',
-            visible: false,
-          },
-        },
-      },
+        mode: 'hidden',
+        turnRef: null,
+        entries: [],
+      }),
       sdkLiveTurn: {
         conversationRef: 'conv-stale',
         turnRef: 'turn-stale',
@@ -175,6 +188,57 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
         visible: false,
         conversationRef: 'conv-view',
       }),
+    });
+  });
+
+  test('falls back to SDK current-turn presentation for malformed ConversationView envelopes', () => {
+    const result = resolveLiveTurnPresentationInput({
+      conversationView: {
+        conversationRef: ' conv-1 ',
+        revisionId: null,
+        displayRows: [],
+        liveTurn: [],
+        surfaces: {
+          responseOverlay: {
+            mode: 'response',
+            visible: true,
+            ownerConversationRef: 'conv-1',
+            turnRef: 'turn-view',
+          },
+        },
+        actions: {
+          canEdit: false,
+          canRetry: false,
+          canFork: false,
+        },
+      },
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-live',
+        phase: 'streaming',
+        presentation: {
+          entries: [{
+            id: 'entry-live',
+            type: 'llm-text',
+            text: 'current-turn response',
+          }],
+        },
+      },
+    });
+
+    expect(result).toMatchObject({
+      source: 'sdk-current-turn',
+      phase: 'streaming',
+      turnRef: 'turn-live',
+      conversationRef: 'conv-1',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: true,
+      entries: [
+        expect.objectContaining({
+          id: 'entry-live',
+          text: 'current-turn response',
+        }),
+      ],
     });
   });
 

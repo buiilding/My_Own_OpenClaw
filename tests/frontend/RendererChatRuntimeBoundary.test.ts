@@ -220,6 +220,10 @@ describe('renderer chat runtime boundary', () => {
     expect(turnRefNormalizer).not.toContain('value.trim() ? value.trim() : null');
     expect(conversationRefNormalizer).toContain('value.length > 0 && value === value.trim()');
     expect(conversationRefNormalizer).not.toContain('value.trim() ? value.trim() : null');
+    expect(surfaceRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(surfaceRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(surfaceRuntimeSource).not.toContain('function isConversationView(value)');
+    expect(surfaceRuntimeSource).not.toContain('Array.isArray(value.displayRows)');
     expect(surfaceRuntimeSource).toContain('const liveTurnRef = normalizeTurnRef(liveTurn.turnRef)');
     expect(surfaceRuntimeSource).toContain('const sdkLiveTurnRef = normalizeTurnRef(sdkLiveTurn?.turnRef)');
     expect(surfaceRuntimeSource).toContain('const conversationRef = normalizeConversationRef(conversationView.conversationRef)');

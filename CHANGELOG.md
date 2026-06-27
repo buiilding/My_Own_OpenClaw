@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-surface: route live-turn `ConversationView` authority through
+  the shared workspace gate so malformed view envelopes fall back to no-view SDK
+  current-turn presentation. No migration required.
 - frontend/projection: require a complete SDK `ConversationView` envelope before
   replay projection traces suppress no-view message/current-turn diagnostics,
   keeping partial objects on the raw fallback path. No migration required.
