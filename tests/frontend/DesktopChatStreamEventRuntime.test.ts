@@ -4,8 +4,8 @@
 
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
-  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
-} from './chatStoreTestUtils';
+  getChatStreamWorkspaceReadModelFromChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStoreAdapters';
 import { DesktopChatStreamEventRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime';
 import {
   DesktopChatTurnConversationRefRuntime,
@@ -58,7 +58,7 @@ function pendingTurn(turnRef = 'turn-new', conversationRef = 'conv-default') {
 }
 
 function getWorkspaceState(conversationRef?: string | null) {
-  return getWorkspaceStateFromChatStore(conversationRef);
+  return getChatStreamWorkspaceReadModelFromChatStore(conversationRef);
 }
 
 function shouldIgnore(event: ReturnType<typeof createEvent>, conversationRef?: string | null): boolean {
@@ -236,39 +236,25 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(shouldRecordTerminalCompletionTracking({
       messages: [],
       pendingTurn: null,
-      conversationView: {
-        conversationRef: 'conv-view',
-        liveTurn: {
-          turnRef: ' turn-view ',
-          phase: 'streaming',
-        },
-        displayRows: [],
-      },
       streamTracking: {
         activeTurnRef: 'turn-stale',
         phase: 'complete',
       },
       thinkingStatus: null,
       thinkingSourceEventType: null,
+      viewLiveTurnRef: ' turn-view ',
     } as any, 'turn-view')).toBe(false);
 
     expect(shouldRecordTerminalCompletionTracking({
       messages: [],
       pendingTurn: null,
-      conversationView: {
-        conversationRef: 'conv-view',
-        liveTurn: {
-          turnRef: ' turn-view ',
-          phase: 'streaming',
-        },
-        displayRows: [],
-      },
       streamTracking: {
         activeTurnRef: 'turn-stale',
         phase: 'complete',
       },
       thinkingStatus: null,
       thinkingSourceEventType: null,
+      viewLiveTurnRef: ' turn-view ',
     } as any, ' turn-view ')).toBe(false);
   });
 
@@ -276,20 +262,13 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(shouldRecordTerminalCompletionTracking({
       messages: [],
       pendingTurn: null,
-      conversationView: {
-        conversationRef: 'conv-view',
-        liveTurn: {
-          turnRef: 'turn-view',
-          phase: 'streaming',
-        },
-        displayRows: [],
-      },
       streamTracking: {
         activeTurnRef: 'turn-stale',
         phase: 'complete',
       },
       thinkingStatus: null,
       thinkingSourceEventType: null,
+      viewLiveTurnRef: 'turn-view',
     } as any, 'turn-stale')).toBe(false);
   });
 
@@ -833,7 +812,7 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(shouldIgnore(createEvent({ turnRef: ' turn-old ' }), null)).toBe(false);
   });
 
-  test('stale turn guard rejects padded ConversationView live turn refs before preferring view state', () => {
+  test('stale turn guard treats padded ConversationView live turn refs as absent without raw fallback', () => {
     useChatStore.setState((state) => ({
       ...state,
       streamTracking: {
@@ -847,12 +826,29 @@ describe('DesktopChatStreamEventRuntime', () => {
           ...state.workspaces.__default__,
           conversationView: {
             conversationRef: 'conv-view',
+            revisionId: 'rev-view',
             displayRows: [],
             liveTurn: {
               turnRef: ' turn-view ',
               phase: 'streaming',
               entries: [],
               canStop: true,
+            },
+            surfaces: {
+              dashboard: { mode: 'busy' },
+              pill: { mode: 'busy' },
+              responseOverlay: {
+                mode: 'response',
+                visible: true,
+                ownerConversationRef: 'conv-view',
+                turnRef: ' turn-view ',
+                guardRef: null,
+              },
+            },
+            actions: {
+              canEdit: false,
+              canRetry: false,
+              canFork: false,
             },
           },
           streamTracking: {
@@ -864,7 +860,7 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnore(createEvent({ turnRef: 'turn-view' }), null)).toBe(true);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-view' }), null)).toBe(false);
     expect(shouldIgnore(createEvent({ turnRef: 'turn-stale' }), null)).toBe(false);
   });
 
@@ -882,12 +878,29 @@ describe('DesktopChatStreamEventRuntime', () => {
           ...state.workspaces.__default__,
           conversationView: {
             conversationRef: 'conv-view',
+            revisionId: 'rev-view',
             displayRows: [],
             liveTurn: {
               turnRef: 'turn-view',
               phase: 'streaming',
               entries: [],
               canStop: true,
+            },
+            surfaces: {
+              dashboard: { mode: 'busy' },
+              pill: { mode: 'busy' },
+              responseOverlay: {
+                mode: 'response',
+                visible: true,
+                ownerConversationRef: 'conv-view',
+                turnRef: 'turn-view',
+                guardRef: null,
+              },
+            },
+            actions: {
+              canEdit: false,
+              canRetry: false,
+              canFork: false,
             },
           },
           streamTracking: {

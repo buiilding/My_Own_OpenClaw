@@ -310,11 +310,6 @@ describe('chatStore', () => {
     const readModel = getChatStreamWorkspaceReadModelFromChatStore('conv-stream') as Record<string, unknown>;
 
     expect(readModel).toEqual({
-      conversationView: {
-        liveTurn: {
-          turnRef: 'turn-view',
-        },
-      },
       pendingTurn: {
         turnRef: 'turn-pending',
       },
@@ -323,7 +318,9 @@ describe('chatStore', () => {
         phase: 'idle',
       }),
       thinkingSourceEventType: null,
+      viewLiveTurnRef: 'turn-view',
     });
+    expect(readModel).not.toHaveProperty('conversationView');
     expect(readModel).not.toHaveProperty('messages');
     expect(readModel).not.toHaveProperty('rendererAnnotations');
     expect(readModel).not.toHaveProperty('sdkLiveTurn');
@@ -361,7 +358,8 @@ describe('chatStore', () => {
     const streamReadModel = getChatStreamWorkspaceReadModelFromChatStore('conv-partial-view') as Record<string, unknown>;
     const currentTurnReadModel = getCurrentTurnProjectionWorkspaceReadModelFromChatStore('conv-partial-view') as Record<string, unknown>;
 
-    expect(streamReadModel.conversationView).toBeNull();
+    expect(streamReadModel.viewLiveTurnRef).toBeNull();
+    expect(streamReadModel).not.toHaveProperty('conversationView');
     expect(streamReadModel.streamTracking).toEqual(expect.objectContaining({
       phase: 'idle',
     }));

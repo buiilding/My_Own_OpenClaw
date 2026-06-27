@@ -59,8 +59,9 @@ The pure active-turn comparison is exposed through
 `DesktopChatStreamTurnGuardRuntime.isStaleTurnForActiveStream(...)`; the raw
 predicate stays private to `desktopChatStreamTurnGuardRuntime.ts`.
 `useChatStream` supplies the projected chat workspace read model to the guard
-and terminal-completion helpers, so `ConversationView.liveTurn` is the active
-turn authority once present and raw `streamTracking` is only a no-view fallback.
+and terminal-completion helpers, so the stream read model's `viewLiveTurnRef`
+is the active-turn authority once a complete SDK `ConversationView` is present
+and raw `streamTracking` is only a no-view fallback.
 Conversation-event `conversationRef`/`turnRef`, pending-handoff `turnRef`, and
 active-stream `turnRef` comparisons are exact-only. Padded refs are treated as
 absent instead of being trimmed into stale-turn matches or pending-turn handoff

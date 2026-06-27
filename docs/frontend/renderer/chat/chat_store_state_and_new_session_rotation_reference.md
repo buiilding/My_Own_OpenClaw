@@ -87,9 +87,9 @@ purpose-shaped stream/current-turn read models, not the raw
 `ChatWorkspaceState`, so callers do not type against raw fallback fields as
 durable chat authority or casually reach across SDK-view boundaries. The
 chat-stream read model exposes only pending-turn identity, stream-tracking
-state, `ConversationView.liveTurn.turnRef`, and thinking source labels; it does
+state, a purpose-named `viewLiveTurnRef`, and thinking source labels; it does
 not carry raw messages, renderer annotations, the no-view `sdkLiveTurn`, or the
-full `ConversationView` payload. The current-turn projection read model keeps
+full or partial `ConversationView` payload. The current-turn projection read model keeps
 the SDK view envelope needed for trace summaries, pending turn identity,
 no-view live-turn identity/phase, stream tracking, and thinking status; it does
 not carry raw messages, raw-message counts, or renderer annotations into

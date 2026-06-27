@@ -206,13 +206,6 @@ function buildChatStreamWorkspaceReadModel(
   workspace: ChatWorkspaceReadModelState,
 ): ChatStreamWorkspaceReadModel {
   return {
-    conversationView: workspace.conversationView
-      ? {
-        liveTurn: {
-          turnRef: workspace.conversationView.liveTurn?.turnRef ?? null,
-        },
-      }
-      : null,
     pendingTurn: workspace.pendingTurn
       ? {
         turnRef: workspace.pendingTurn.turnRef,
@@ -220,6 +213,7 @@ function buildChatStreamWorkspaceReadModel(
       : null,
     streamTracking: workspace.streamTracking,
     thinkingSourceEventType: workspace.thinkingSourceEventType,
+    viewLiveTurnRef: workspace.conversationView?.liveTurn?.turnRef ?? null,
   };
 }
 

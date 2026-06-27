@@ -1911,6 +1911,11 @@ describe('renderer chat runtime boundary', () => {
 
     expect(source).toContain('resolveTurnCompletedStreamEventState');
     expect(source).toContain('type ChatStreamWorkspaceReadModel');
+    expect(runtimeSource).toContain('viewLiveTurnRef?: string | null');
+    expect(runtimeSource).toContain('normalizeTurnRef(workspace?.viewLiveTurnRef)');
+    expect(runtimeSource).toContain('normalizeTurnRef(workspace.viewLiveTurnRef)');
+    expect(runtimeSource).not.toContain('conversationView?: {');
+    expect(runtimeSource).not.toContain('resolveWorkspaceViewLiveTurnRef');
     expect(source).toContain('getWorkspaceState: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel');
     expect(source).not.toContain('ChatWorkspaceReadModelState');
     expect(source).not.toContain('stores/chatStoreAdapters');
@@ -4709,6 +4714,13 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('function buildCurrentTurnProjectionWorkspaceReadModel');
     expect(chatStoreAdaptersSource).toContain('return buildChatStreamWorkspaceReadModel(');
     expect(chatStoreAdaptersSource).toContain('return buildCurrentTurnProjectionWorkspaceReadModel(');
+    const chatStreamReadModelSource = chatStoreAdaptersSource.slice(
+      chatStoreAdaptersSource.indexOf('function buildChatStreamWorkspaceReadModel'),
+      chatStoreAdaptersSource.indexOf('function buildCurrentTurnProjectionWorkspaceReadModel'),
+    );
+    expect(chatStreamReadModelSource).toContain('viewLiveTurnRef: workspace.conversationView?.liveTurn?.turnRef ?? null');
+    expect(chatStreamReadModelSource).not.toContain('conversationView:');
+    expect(chatStreamReadModelSource).not.toContain('liveTurn: {');
     const currentTurnReadModelSource = chatStoreAdaptersSource.slice(
       chatStoreAdaptersSource.indexOf('function buildCurrentTurnProjectionWorkspaceReadModel'),
       chatStoreAdaptersSource.indexOf('function buildChatProviderTraceWorkspaceReadModel'),

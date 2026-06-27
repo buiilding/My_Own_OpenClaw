@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stream: replace the chat-stream read model's partial
+  `conversationView.liveTurn` payload with a purpose-named `viewLiveTurnRef`,
+  keeping stale-turn guards on SDK view identity without publishing a
+  renderer-local view shape. No migration required.
 - frontend/projection: route ConversationView trace summaries and send-state
   user-row checks through the shared full-envelope SDK view gate, removing
   renderer-local partial `displayRows` view shapes from those adapters. No

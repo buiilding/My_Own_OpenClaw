@@ -50,12 +50,8 @@ type ConversationStreamEventIdentityEvent = {
 };
 
 export type ChatStreamWorkspaceReadModel = StreamGuardWorkspace & {
-  conversationView?: {
-    liveTurn?: {
-      turnRef?: string | null;
-    } | null;
-  } | null;
   thinkingSourceEventType?: string | null;
+  viewLiveTurnRef?: string | null;
 };
 
 type StreamCompletionWorkspace = ChatStreamWorkspaceReadModel;
@@ -107,13 +103,9 @@ function resolveWorkspaceThinkingSourceEventType(
   return optionalString(sourceEventType);
 }
 
-function resolveWorkspaceViewLiveTurnRef(workspace: ChatStreamWorkspaceReadModel | null | undefined): string | null {
-  return normalizeTurnRef(workspace?.conversationView?.liveTurn?.turnRef);
-}
-
 function resolveWorkspaceActiveTurnRef(workspace: ChatStreamWorkspaceReadModel | null | undefined): string | null {
   return (
-    resolveWorkspaceViewLiveTurnRef(workspace)
+    normalizeTurnRef(workspace?.viewLiveTurnRef)
     || normalizeTurnRef(workspace?.streamTracking?.activeTurnRef)
   );
 }
@@ -292,7 +284,7 @@ function shouldRecordTerminalCompletionTracking(
     return true;
   }
   const normalizedEventTurnRef = normalizeTurnRef(eventTurnRef);
-  const normalizedViewTurnRef = resolveWorkspaceViewLiveTurnRef(workspace);
+  const normalizedViewTurnRef = normalizeTurnRef(workspace.viewLiveTurnRef);
   if (normalizedViewTurnRef && normalizedEventTurnRef === normalizedViewTurnRef) {
     return true;
   }

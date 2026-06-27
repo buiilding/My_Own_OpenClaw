@@ -156,6 +156,9 @@ and use that live-turn ref and phase as the trace active turn/phase while
 counting `displayRows`; raw `chatStore.messages`, `currentTurnProjection`, and
 stream-tracking active turn refs/phases remain no-view diagnostic fallbacks
 only.
+The chat-stream stale-turn read model carries that view identity as
+`viewLiveTurnRef` rather than a partial `conversationView` object; stream guards
+do not publish or consume renderer-local view shapes.
 
 Renderer-only feedback is merged back into matching SDK-projected messages by
 `desktopConversationDisplayProjection.ts`; prompt transparency, tool schemas,
