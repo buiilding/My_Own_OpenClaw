@@ -406,36 +406,4 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     ]));
   });
 
-  test('buildNoViewSdkLiveTurnMessages does not project legacy tool-event attachments', () => {
-    const messages = buildNoViewSdkLiveTurnMessages({
-      conversationRef: 'conv-1',
-      turnRef: 'turn-1',
-      phase: 'tool_output',
-      assistantText: '',
-      reasoningText: null,
-      lastError: null,
-      toolEvents: [{
-        id: 'tool-output-1',
-        kind: 'tool_output',
-        toolName: 'screenshot',
-        status: 'success',
-        text: 'captured screen',
-        attachments: [{
-          id: 'tool-output-1:attachment:000',
-          kind: 'image',
-          source: 'tool_result',
-          status: 'ready',
-          screenshotRef: 'artifact-legacy-live',
-        }],
-      }],
-    });
-
-    const toolMessage = messages.find(message => message.type === 'tool-output');
-    expect(toolMessage).toEqual(expect.objectContaining({
-      text: 'captured screen',
-      sourceChannel: 'sdk:current-turn',
-    }));
-    expect(toolMessage).not.toHaveProperty('attachments');
-  });
-
 });

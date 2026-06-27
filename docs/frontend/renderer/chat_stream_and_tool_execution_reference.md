@@ -415,7 +415,10 @@ SDK dispatch behavior:
     `currentTurnProjection.toolEvents` follow the same rule: `toolName`,
     `requestId`, `correlationId`, bundle calls, metadata, and output text come
     from explicit SDK tool-event fields and projected detail objects instead of
-    raw `payload` or `structuredPayload` fallbacks.
+    raw `payload` or `structuredPayload` fallbacks. These legacy tool-event
+    rows do not project typed `attachments[]`; live attachment display comes
+    only from SDK presentation entries, `ConversationView.liveTurn.entries`, or
+    SDK display rows.
   - SDK rehydrate groups progress-only OpenAI native search rows into one
     synthetic SDK-normalized `web_search` tool-call/tool-output pair for later
     model history.

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: move the legacy tool-event attachment regression to the
+  current-turn message runtime and pin no-view tool events as text/status-only
+  fallback rows; live attachments still come from SDK presentation entries,
+  ConversationView live entries, or display rows. No migration required.
 - frontend/presentation: route all user rows through the user-message content
   kind and leave attachment visibility to `AttachmentList` plus row classes,
   removing SDK attachment descriptor checks from content-kind routing. No
