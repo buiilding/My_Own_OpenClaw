@@ -3894,6 +3894,10 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('toolOutputDetails: displayToolOutputDetails');
     expect(source).toContain('toolCallDetails: sanitizeSdkToolDetailRecord(asRecord(entry.toolCallDetails))');
     expect(source).toContain('toolOutputDetails: sanitizeSdkToolDetailRecord(asRecord(entry.toolOutputDetails))');
+    expect(source).toContain('toolMetadata: sanitizeSdkToolDetailRecord(asRecord(entry.toolMetadata))');
+    expect(source).toContain('const toolMetadata = sanitizeSdkToolDetailRecord(asRecord(entry.toolMetadata));');
+    expect(source).not.toContain('toolMetadata: entry.toolMetadata || null');
+    expect(source).not.toContain('toolMetadata: asRecord(entry.toolMetadata)');
     expect(source).toContain('function readExactSdkString(value)');
     expect(source).toContain('value.length > 0');
     expect(source).toContain('value === value.trim()');

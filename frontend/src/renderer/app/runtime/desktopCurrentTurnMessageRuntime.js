@@ -340,13 +340,14 @@ function buildToolProgressMessage(entry, liveTurnContext) {
   if (!text) {
     return null;
   }
+  const toolMetadata = sanitizeSdkToolDetailRecord(asRecord(entry.toolMetadata));
   return {
     ...buildBaseMessageFields(entry, liveTurnContext),
     text,
     sender: 'assistant',
     type: 'tool-progress',
     toolName: resolveToolName(entry.toolName) || undefined,
-    toolMetadata: entry.toolMetadata || null,
+    ...(toolMetadata ? { toolMetadata } : {}),
   };
 }
 
@@ -360,7 +361,7 @@ function buildToolOutputMessage(entry, liveTurnContext) {
     sourceEventType: readExactSdkString(entry.sourceEventType) || 'tool_output',
     sourceChannel: liveTurnContext?.sourceChannel || sdkCurrentTurnSourceChannel,
     attachments,
-    toolMetadata: asRecord(entry.toolMetadata),
+    toolMetadata: sanitizeSdkToolDetailRecord(asRecord(entry.toolMetadata)),
     toolName,
     executionTime: typeof entry.executionTime === 'number' ? entry.executionTime : null,
     success: typeof entry.success === 'boolean' ? entry.success : null,
@@ -370,6 +371,7 @@ function buildToolOutputMessage(entry, liveTurnContext) {
     modelId: entry.modelId || null,
     modelProvider: entry.modelProvider || null,
     isComplete: entry.isComplete === true,
+    preserveNullToolMetadata: false,
   });
 }
 

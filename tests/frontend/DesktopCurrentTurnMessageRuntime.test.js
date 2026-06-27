@@ -98,6 +98,56 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     });
   });
 
+  test('sanitizes live presentation tool metadata before renderer rows', () => {
+    const messages = buildCurrentTurnMessagesFromPresentation({
+      turnRef: 'turn-live',
+      presentation: {
+        entries: [{
+          id: 'entry-tool-output',
+          type: 'tool-output',
+          text: 'done',
+          toolMetadata: {
+            requestId: 'req-1',
+            toolName: 'read_file',
+            success: true,
+            payload: { raw: true },
+            screenshotRef: 'artifact-raw',
+          },
+        }, {
+          id: 'entry-tool-progress',
+          type: 'tool-progress',
+          text: 'Reading',
+          toolMetadata: {
+            requestId: ' req-padded ',
+            displayCorrelationId: 'progress-1',
+            raw: { hidden: true },
+          },
+        }],
+      },
+    });
+
+    expect(messages.find(message => message.id === 'entry-tool-output')).toEqual(
+      expect.objectContaining({
+        toolMetadata: {
+          requestId: 'req-1',
+          toolName: 'read_file',
+          success: true,
+        },
+      }),
+    );
+    expect(messages.find(message => message.id === 'entry-tool-output')?.toolMetadata)
+      .not.toHaveProperty('payload');
+    expect(messages.find(message => message.id === 'entry-tool-output')?.toolMetadata)
+      .not.toHaveProperty('screenshotRef');
+    expect(messages.find(message => message.id === 'entry-tool-progress')).toEqual(
+      expect.objectContaining({
+        toolMetadata: {
+          displayCorrelationId: 'progress-1',
+        },
+      }),
+    );
+  });
+
   test('uses containing ConversationView live-turn identity for tool outputs', () => {
     const messages = buildConversationViewLiveTurnMessages({
       conversationRef: 'conv-1',

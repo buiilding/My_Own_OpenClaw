@@ -222,8 +222,11 @@ UI adapters:
   payload mirrors; renderer adapters preserve only explicit display detail
   fields such as tool/request/correlation ids, source event type, display
   source, and success. Attachment descriptors and screenshot refs stay on
-  `attachments[]` or compatibility fields. Screenshot aliases remain
-  compatibility metadata for replay/provider boundaries.
+  `attachments[]` or compatibility fields. Renderer adapters sanitize
+  `toolMetadata` through the same display-detail allowlist before publishing
+  message props, so raw nested tool payloads and screenshot aliases cannot leak
+  through progress/output rows. Screenshot aliases remain compatibility metadata
+  for replay/provider boundaries.
 - Legacy no-view current-turn fallback rows are text/status continuity only for
   renderer migration. Attachment display for live tool output must come from
   SDK presentation entries or `ConversationView.liveTurn.entries`, not raw
