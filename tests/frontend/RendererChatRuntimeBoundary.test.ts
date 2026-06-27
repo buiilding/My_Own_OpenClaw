@@ -1405,7 +1405,6 @@ describe('renderer chat runtime boundary', () => {
     expect(messageTypeSource).not.toContain('screenshots?:');
     expect(tokenUsageRuntimeSource).toContain('tokens(provider)');
     expect(tokenUsageRuntimeSource).toContain('message?.attachments');
-    expect(tokenUsageRuntimeSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
     expect(tokenUsageRuntimeSource).not.toContain('countDisplayImageAttachments');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshots');
     expect(tokenUsageRuntimeSource).not.toContain('countLegacyScreenshotAttachments');
@@ -1414,6 +1413,8 @@ describe('renderer chat runtime boundary', () => {
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshotRef');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshotUrl');
     expect(tokenUsageRuntimeSource).toContain("attachment.kind === 'image'");
+    expect(tokenUsageRuntimeSource).toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(tokenUsageRuntimeSource).toContain('readSdkDisplayAttachments');
     expect(tokenUsageRuntimeSource).not.toContain('screenshot: message?.screenshot');
     expect(tokenUsageRuntimeSource).not.toContain('modelFacingToolCall');
     expect(tokenUsageRuntimeSource).toContain('DesktopMessageTokenUsageRuntime');
@@ -1460,7 +1461,8 @@ describe('renderer chat runtime boundary', () => {
     expect(messageContentSource).not.toContain('utils/message/messageScreenshots');
     expect(classRuntimeSource).toContain('DesktopMessageClassRuntime');
     expect(classRuntimeSource).toContain('hasVisualAttachment');
-    expect(classRuntimeSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(classRuntimeSource).toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(classRuntimeSource).toContain('readSdkDisplayAttachments');
     expect(classRuntimeSource).not.toContain('hasReadyDisplayImageAttachment');
     expect(classRuntimeSource).not.toContain('screenshotRef');
     expect(classRuntimeSource).not.toContain('screenshotUrl');
@@ -1468,7 +1470,8 @@ describe('renderer chat runtime boundary', () => {
     expect(classRuntimeSource).not.toContain('export function buildMessageClassName');
     expect(classRuntimeSource).not.toContain('features/chat');
     expect(contentRuntimeSource).toContain('DesktopMessageContentRuntime');
-    expect(contentRuntimeSource).toContain('message.attachments');
+    expect(contentRuntimeSource).toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(contentRuntimeSource).toContain('readSdkDisplayAttachments');
     expect(contentRuntimeSource).toContain('isErrorMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export function resolveMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export function isErrorMessageContentPresentation');

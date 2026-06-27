@@ -90,6 +90,9 @@ validation and artifact image-source extraction for typed SDK descriptors. It
 does not publish image-count, ready-image, or lifecycle summary helpers. Token
 estimates read only the projected SDK `attachments[]` list; legacy screenshot
 arrays remain SDK/replay compatibility input, not a renderer token-count source.
+Renderer message content-kind and row-class helpers also route attachment
+presence through this projection helper instead of inspecting raw attachment
+arrays, so padded or malformed descriptors cannot become attachment UI state.
 Attachment ids and artifact image-source fields must be exact non-empty SDK
 strings; the renderer drops padded or empty ids/refs/URLs instead of trimming
 them into valid display inputs.

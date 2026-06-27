@@ -70,6 +70,28 @@ describe('desktopMessageTokenUsageRuntime', () => {
     expect(tag).toBe('tokens~ txt:1 img(est):85 total:86');
   });
 
+  test('does not estimate image tokens from malformed attachment descriptors', () => {
+    const tag = resolveMessageTokenUsageTag({
+      sender: 'user',
+      text: 'abcd',
+      attachments: [{
+        id: ' ready-image ',
+        kind: 'image',
+        source: 'camera_button',
+        status: 'ready',
+        screenshotRef: 'shot-1',
+      }, {
+        id: 'ready-image-2',
+        kind: 'image',
+        source: 'camera_button',
+        status: 'unknown',
+        screenshotRef: 'shot-2',
+      }],
+    });
+
+    expect(tag).toBe('tokens~ txt:1 img(est):0 total:1');
+  });
+
   test('ignores legacy screenshot arrays for user image token estimates', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'user',

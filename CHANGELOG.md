@@ -80,6 +80,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/projection: reject padded SDK display attachment ids and
   artifact image-source fields instead of trimming them into valid renderer
   display fetches. No migration required.
+- frontend/attachments: route message content kind, row class, and token image
+  estimates through the SDK display attachment validator, so malformed
+  descriptors cannot become renderer attachment presentation state. No
+  migration required.
 - frontend/send: reject padded typed attachment resource handles instead of
   forwarding repaired clipboard image or readable-file values to SDK send.
   Optional clipboard metadata is omitted when malformed. No migration required.

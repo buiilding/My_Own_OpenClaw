@@ -72,6 +72,26 @@ describe('desktopMessageContentRuntime', () => {
     }).renderKind).toBe('markdown');
   });
 
+  test('does not repair malformed attachment descriptors into attachment rows', () => {
+    expect(resolveMessageContentPresentation({
+      sender: 'user',
+      text: 'malformed attachment',
+      attachments: [{
+        id: ' attachment-1 ',
+        kind: 'image',
+        source: 'user_included',
+        status: 'ready',
+        screenshotRef: 'artifact-1',
+      }, {
+        id: 'attachment-2',
+        kind: 'image',
+        source: 'unknown',
+        status: 'ready',
+        screenshotRef: 'artifact-2',
+      }],
+    }).renderKind).toBe('markdown');
+  });
+
   test('classifies assistant llm text rows and exposes visible text state', () => {
     expect(resolveMessageContentPresentation({
       sender: 'assistant',

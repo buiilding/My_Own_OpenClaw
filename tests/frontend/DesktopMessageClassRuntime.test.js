@@ -55,6 +55,23 @@ describe('desktopMessageClassRuntime', () => {
     ).toBe('message message-assistant message-type-tool-output');
   });
 
+  test('does not include screenshot class for malformed attachment descriptors', () => {
+    expect(
+      buildMessageClassName({
+        sender: 'assistant',
+        type: 'tool-output',
+        text: 'result',
+        attachments: [{
+          id: ' tool-output:attachment:000 ',
+          kind: 'image',
+          source: 'tool_result',
+          status: 'ready',
+          screenshotRef: 'artifact-123',
+        }],
+      }),
+    ).toBe('message message-assistant message-type-tool-output');
+  });
+
   test('does not include streaming class for complete assistant messages', () => {
     expect(
       buildMessageClassName({

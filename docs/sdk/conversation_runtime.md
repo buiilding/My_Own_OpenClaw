@@ -445,8 +445,11 @@ repaired into same-turn matches.
 Renderer display-row and live-turn adapters also keep SDK attachment
 descriptors on the typed `attachments[]` prop only. Renderer attachment helpers
 may perform narrow component checks such as artifact image-source resolution,
-but they must not expose aggregate lifecycle summaries that make the renderer a
-second attachment state authority.
+content-kind classification, row-class tagging, and token-cost estimation
+through the SDK attachment projection helper, but they must not expose
+aggregate lifecycle summaries that make the renderer a second attachment state
+authority. Malformed or padded attachment descriptors are dropped before they
+can affect those presentation decisions.
 Renderer replay/provider diagnostics that need display-row counts, latest row
 shape, or live-turn identity ask
 `DesktopConversationDisplayProjection.buildConversationViewTraceSummary(...)`

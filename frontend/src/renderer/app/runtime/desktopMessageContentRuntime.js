@@ -2,6 +2,12 @@
  * Resolves renderer message content presentation kinds for chat surfaces.
  */
 
+import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
+
+const {
+  readSdkDisplayAttachments,
+} = DesktopSdkDisplayAttachmentProjection;
+
 const MESSAGE_CONTENT_RENDER_KIND = Object.freeze({
   ERROR: 'error',
   TOOL_OUTPUT: 'tool-output',
@@ -26,13 +32,7 @@ function isAssistantLlmTextMessage(message) {
 
 function hasSdkDisplayAttachments(message) {
   return message?.sender === 'user'
-    && Array.isArray(message.attachments)
-    && message.attachments.some((attachment) => (
-      attachment
-      && typeof attachment === 'object'
-      && typeof attachment.id === 'string'
-      && attachment.id.trim().length > 0
-    ));
+    && readSdkDisplayAttachments(message.attachments).length > 0;
 }
 
 function resolveMessageContentPresentation(message) {
