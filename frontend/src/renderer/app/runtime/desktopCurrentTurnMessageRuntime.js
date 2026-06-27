@@ -118,7 +118,6 @@ function buildProjectedToolOutputMessage({
     outputText,
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
-    attachments: [],
     toolMetadata: asObject(toolEvent.toolMetadata),
     toolName,
     executionTime: typeof toolEvent.executionTime === 'number' ? toolEvent.executionTime : null,

@@ -4065,6 +4065,7 @@ describe('renderer chat runtime boundary', () => {
     expect(attachmentRegistrySource).toContain("attachment.kind === 'image' && attachment.status === 'ready'");
     expect(attachmentRegistrySource).not.toContain("attachment.status === 'materializing'\n    ? attachment.previewSrc");
     expect(currentTurnMessageRuntimeSource).toContain('readSdkDisplayAttachments');
+    expect(currentTurnMessageRuntimeSource).not.toContain('attachments: [],');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveEntryCorrelationId(entry)');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveToolEventCorrelationId(toolEvent)');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveToolName(value)');
