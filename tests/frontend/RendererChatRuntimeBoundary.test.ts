@@ -3822,8 +3822,12 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.displayCorrelationId);');
     expect(projectionRuntimeSource).toContain('function rowTurnRef(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.turnRef);');
+    expect(projectionRuntimeSource).toContain('function rowToolName(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.toolName);');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.displayCorrelationId ?? null');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.displayCorrelationId ?? undefined');
+    expect(projectionRuntimeSource).not.toContain('toolName: row.metadata?.toolName ?? null');
+    expect(projectionRuntimeSource).not.toContain('toolName: row.metadata?.toolName ?? undefined');
     expect(projectionRuntimeSource).not.toContain('turnRef: row.turnRef ?? null');
     expect(projectionRuntimeSource).not.toContain('turnRef: row.turnRef ?? undefined');
     expect(projectionRuntimeSource).toContain('row.metadata?.toolCallDetails');

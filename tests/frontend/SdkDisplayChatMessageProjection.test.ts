@@ -391,6 +391,51 @@ describe('sdkDisplayChatMessageProjection', () => {
     }
   });
 
+  test('does not expose malformed display row tool names as renderer metadata', () => {
+    const messages = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-tool-output-padded-name',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'tool',
+        type: 'tool_output',
+        content: 'done',
+        metadata: {
+          toolName: ' read_file ',
+        },
+      },
+      {
+        id: 'msg-tool-progress-object-name',
+        conversationRef: 'conv-sdk',
+        index: 1,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Working',
+        metadata: {
+          toolName: { name: 'read_file' },
+        },
+      },
+      {
+        id: 'msg-tool-progress-exact-name',
+        conversationRef: 'conv-sdk',
+        index: 2,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Working',
+        metadata: {
+          toolName: 'read_file',
+        },
+      },
+    ] as any);
+
+    expect(messages).toEqual([
+      expect.not.objectContaining({ toolName: ' read_file ' }),
+      expect.not.objectContaining({ toolName: { name: 'read_file' } }),
+      expect.objectContaining({ toolName: 'read_file' }),
+    ]);
+    expect(messages[0]).not.toEqual(expect.objectContaining({ toolName: 'read_file' }));
+  });
+
   test('passes through SDK row action metadata and replay target ids', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {

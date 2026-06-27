@@ -64,6 +64,10 @@ function rowTurnRef(row: SdkDisplayRow): string | null {
   return exactNonEmptyString(row.turnRef);
 }
 
+function rowToolName(row: SdkDisplayRow): string | null {
+  return exactNonEmptyString(row.metadata?.toolName);
+}
+
 function isSdkDisplayRowStreaming(row: SdkDisplayRow): boolean {
   return 'isStreaming' in row && row.isStreaming === true;
 }
@@ -140,7 +144,7 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
     sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
     attachments,
-    toolName: row.metadata?.toolName ?? null,
+    toolName: rowToolName(row),
     success: typeof row.metadata?.success === 'boolean' ? row.metadata.success : null,
     correlationId: rowCorrelationId(row),
     toolOutputDetails,
@@ -165,7 +169,7 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
     sourceChannel: sdkDisplayRowsSourceChannel,
     turnRef: rowTurnRef(row) ?? undefined,
     timestamp: rowTimestamp(row),
-    toolName: row.metadata?.toolName ?? undefined,
+    toolName: rowToolName(row) ?? undefined,
     toolMetadata: recordFromUnknown(row.metadata?.toolCallDetails ?? row.metadata?.toolOutputDetails),
     correlationId: rowCorrelationId(row) ?? undefined,
   }, row);
