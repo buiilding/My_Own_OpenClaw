@@ -1270,6 +1270,9 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).toContain('const workspace = { conversationView: value }');
     expect(displayProjectionSource).toContain('hasWorkspaceConversationView(workspace)');
     expect(displayProjectionSource).toContain('function sdkConversationViewEnvelope');
+    expect(displayProjectionSource).toContain('function displayRowsForConversationView(view: ConversationView)');
+    expect(displayProjectionSource).toContain('const viewConversationRef = exactConversationRef(view.conversationRef);');
+    expect(displayProjectionSource).toContain('exactConversationRef(row.conversationRef) === viewConversationRef');
     expect(displayProjectionSource).toContain('function exactTraceString(value: unknown)');
     expect(displayProjectionSource).toContain('liveTurnPhase: exactTraceString');
     expect(displayProjectionSource).toContain('sourceEventType: exactTraceString(latestMetadata?.sourceEventType)');

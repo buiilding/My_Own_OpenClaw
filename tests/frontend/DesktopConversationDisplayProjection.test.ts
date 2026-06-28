@@ -116,6 +116,74 @@ describe('desktopConversationDisplayProjection', () => {
     ]);
   });
 
+  test('requires display rows to match the enclosing ConversationView ref exactly', () => {
+    const conversationView = conversationViewWithRows([
+      {
+        id: 'row-wrong-conversation',
+        conversationRef: 'conv-other',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'wrong conversation',
+      },
+      {
+        id: 'row-padded-conversation',
+        conversationRef: ' conv-1 ',
+        turnRef: 'turn-1',
+        index: 1,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'padded conversation',
+      },
+      {
+        id: 'row-missing-conversation',
+        turnRef: 'turn-1',
+        index: 2,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'missing conversation',
+      },
+      {
+        id: 'row-view-conversation',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 3,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'view conversation',
+        metadata: {
+          sourceEventType: 'assistant_message',
+        },
+      },
+    ]);
+
+    expect(buildConversationViewChatMessages({
+      conversationView,
+    })).toEqual([
+      expect.objectContaining({
+        id: 'row-view-conversation',
+        text: 'view conversation',
+      }),
+    ]);
+    expect(buildConversationViewTurnChatMessages({
+      conversationView,
+      turnRef: 'turn-1',
+    })).toEqual([
+      expect.objectContaining({
+        id: 'row-view-conversation',
+        text: 'view conversation',
+      }),
+    ]);
+    expect(buildConversationViewTraceSummary(conversationView)).toEqual(expect.objectContaining({
+      displayRowCount: 1,
+      lastMessage: expect.objectContaining({
+        sourceEventType: 'assistant_message',
+        textLength: 'view conversation'.length,
+      }),
+    }));
+  });
+
   test('projects only SDK display rows for the requested ConversationView turn', () => {
     expect(buildConversationViewTurnChatMessages({
       conversationView: conversationViewWithRows([
@@ -692,7 +760,7 @@ describe('desktopConversationDisplayProjection', () => {
     expect(buildConversationViewChatMessages({
       conversationView: conversationViewWithRows([{
         id: 'view-assistant',
-        conversationRef: 'conv-view',
+        conversationRef: 'conv-1',
         turnRef: 'turn-view',
         index: 0,
         role: 'assistant',
@@ -785,6 +853,9 @@ describe('desktopConversationDisplayProjection', () => {
         role: 'user',
         type: 'user_message',
         content: 'edited prompt',
+        metadata: {
+          sourceEventType: 'user_message',
+        },
       }]),
       pendingTurn: {
         conversationRef: 'conv-1',
@@ -797,7 +868,7 @@ describe('desktopConversationDisplayProjection', () => {
   });
 
   test('keeps pending bridge when SDK user row has repaired turn identity', () => {
-    expect(buildConversationViewChatMessages({
+    const projected = buildConversationViewChatMessages({
       conversationView: conversationViewWithRows([{
         id: 'sdk-user-edit',
         conversationRef: 'conv-1',
@@ -814,11 +885,12 @@ describe('desktopConversationDisplayProjection', () => {
         text: 'edited prompt',
         timestamp: '2026-06-25T12:00:00.000Z',
       },
-    })).toEqual([
+    });
+
+    expect(projected).toEqual([
       expect.objectContaining({
         id: 'sdk-user-edit',
         sender: 'user',
-        turnRef: null,
       }),
       expect.objectContaining({
         id: 'renderer-user-edit',
@@ -826,6 +898,7 @@ describe('desktopConversationDisplayProjection', () => {
         turnRef: 'turn-edit',
       }),
     ]);
+    expect(projected[0]).not.toHaveProperty('turnRef');
   });
 
   test('builds conversation-view messages without replacing SDK user rows with pending bridge rows', () => {

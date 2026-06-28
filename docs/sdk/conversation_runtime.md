@@ -701,7 +701,11 @@ trace read model, so stale renderer rows cannot travel beside the SDK view
 summary. The summary reads canonical SDK display-row fields only (`role`,
 `content`, `metadata.sourceEventType`, `turnRef`, and `type`) and does not
 recover legacy `sender`, `text`, or top-level source-event aliases from view
-rows. The chat-store provider trace adapter applies that
+rows. Renderer display projection and trace summaries also require each SDK
+display row to carry an exact `conversationRef` matching the enclosing
+`ConversationView`; missing, padded, or cross-conversation row refs are ignored
+instead of being repaired into view-owned chat state. The chat-store provider
+trace adapter applies that
 same exact string rule before publishing no-view fallback active-turn and
 last-message sender/type/ref/source labels. The stream/current-turn chat-store
 adapters apply the same rule before publishing fallback pending refs, no-view

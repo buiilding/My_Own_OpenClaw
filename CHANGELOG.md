@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/conversation-view: require SDK display rows to carry an exact
+  `conversationRef` matching the enclosing `ConversationView` before renderer
+  chat or trace projection can consume them. No migration required.
 - frontend/current-turn: require no-view SDK live-turn presentation rows to
   carry exact `conversationRef` and `turnRef` identity before renderer thread
   presentation can append them. No migration required.

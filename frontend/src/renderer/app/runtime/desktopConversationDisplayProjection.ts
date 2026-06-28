@@ -87,6 +87,14 @@ function exactTurnRef(turnRef: string | null | undefined): string | null {
     : null;
 }
 
+function exactConversationRef(conversationRef: string | null | undefined): string | null {
+  return typeof conversationRef === 'string'
+    && conversationRef.length > 0
+    && conversationRef === conversationRef.trim()
+    ? conversationRef
+    : null;
+}
+
 function exactTraceString(value: unknown): string | null {
   return typeof value === 'string' && value.length > 0 && value === value.trim()
     ? value
@@ -97,13 +105,21 @@ function resolveTraceTextLength(value: unknown): number {
   return typeof value === 'string' ? value.length : 0;
 }
 
+function displayRowsForConversationView(view: ConversationView) {
+  const viewConversationRef = exactConversationRef(view.conversationRef);
+  return Array.isArray(view.displayRows)
+    ? view.displayRows.filter((row) => (
+      viewConversationRef
+      && exactConversationRef(row.conversationRef) === viewConversationRef
+    ))
+    : [];
+}
+
 function buildConversationViewTraceSummary(
   conversationView: unknown,
 ): ConversationViewTraceSummary {
   const view = sdkConversationViewEnvelope(conversationView);
-  const displayRows = Array.isArray(view?.displayRows)
-    ? view.displayRows
-    : [];
+  const displayRows = view ? displayRowsForConversationView(view) : [];
   const latestRow = displayRows[displayRows.length - 1] ?? null;
   const latestRecord = latestRow as Record<string, unknown> | null;
   const latestMetadata = latestRecord?.metadata as Record<string, unknown> | null | undefined;
@@ -132,9 +148,8 @@ function buildConversationViewTurnChatMessages({
   if (!view || !targetTurnRef) {
     return [];
   }
-  const displayRows = Array.isArray(view.displayRows)
-    ? view.displayRows.filter((row) => exactTurnRef(row.turnRef) === targetTurnRef)
-    : [];
+  const displayRows = displayRowsForConversationView(view)
+    .filter((row) => exactTurnRef(row.turnRef) === targetTurnRef);
   if (displayRows.length === 0) {
     return [];
   }
@@ -278,9 +293,7 @@ function buildConversationViewChatMessages({
   if (!view) {
     return [];
   }
-  const displayRows = Array.isArray(view.displayRows)
-    ? view.displayRows
-    : [];
+  const displayRows = displayRowsForConversationView(view);
   const sdkMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
   const annotatedSdkMessages = mergeRendererAnnotationsIntoSdkMessages(
     sdkMessages,

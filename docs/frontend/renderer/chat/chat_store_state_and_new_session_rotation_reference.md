@@ -715,7 +715,10 @@ exists, it builds base thread messages from
 and passes only renderer annotation records selected by the surface/interface
 selector boundary for assistant feedback. The projection helper always applies
 those explicit annotation records to matching assistant SDK rows; callers do
-not select an alternate annotation-preservation mode. The
+not select an alternate annotation-preservation mode. Display rows must carry an
+exact `conversationRef` matching the enclosing SDK `ConversationView` before the
+projection helper can turn them into chat messages or trace summary rows;
+missing, padded, or cross-conversation row refs stay inert. The
 pending bridge is projected from `pendingTurn` through
 `DesktopConversationDisplayProjection.buildPendingBridgeChatMessages(...)` for
 the no-view path and
