@@ -149,7 +149,7 @@ function buildChatInterfacePresentationState({
       allowPendingBridgeMessages: hasConversationView,
     }),
     activeRevisionId: hasConversationView
-      ? effectiveConversationView?.revisionId || null
+      ? readExactIdentityString(effectiveConversationView?.revisionId)
       : null,
   };
   chatInterfacePresentationCache = {

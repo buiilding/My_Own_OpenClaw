@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-interface: require SDK `ConversationView.revisionId` to be an
+  exact non-empty identity before exposing it as `activeRevisionId`, preventing
+  malformed revision ids from becoming renderer presentation state. No
+  migration required.
 - frontend/live-turn: stop treating legacy renderer row labels such as
   `search-source` and `tool-explanation` as SDK live presentation entry aliases.
   No migration required.

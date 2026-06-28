@@ -607,7 +607,9 @@ authority.
 - `thinkingStatus`, `tokenCounts`
 - `renderedMessages` and `activeRevisionId` from
   `DesktopChatInterfacePresentationRuntime`; edit/retry availability remains
-  on each projected SDK row's `actions`
+  on each projected SDK row's `actions`. `activeRevisionId` is copied only from
+  an exact non-empty SDK `ConversationView.revisionId`; padded or malformed
+  revision identities stay out of renderer presentation state.
 - revision menu rows from `DesktopChatRevisionActionRuntime`; React receives
   prepared checkout/fork commands, active state, labels, and disabled state
   instead of deriving revision action availability or extracting revision ids

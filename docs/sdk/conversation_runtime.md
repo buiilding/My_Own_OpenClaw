@@ -1234,6 +1234,10 @@ Active desktop completion and error phase tracking consumes
 `snapshot.currentTurn.phase` and `snapshot.currentTurn.lastError`; renderer
 terminal handlers should only materialize/persist transcript rows for
 `turn_completed` and `turn_error`.
+Desktop `ConversationView.revisionId` is SDK-owned identity. Renderer chat
+presentation exposes it as `activeRevisionId` only when it is an exact non-empty
+SDK value, so padded or malformed revision ids do not become active UI state or
+revision-action inputs.
 The current-turn projection filters benign settings-update failures and
 recoverable streamed tool-call parse failures so those non-turn errors do not
 become response-overlay errors.

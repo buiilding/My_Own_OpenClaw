@@ -237,6 +237,42 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     ]);
   });
 
+  test('ignores malformed ConversationView revision ids', () => {
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        revisionId: ' rev-padded ',
+        displayRows: [{
+          id: 'view-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-view',
+          index: 0,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'view answer',
+        }],
+        liveTurn: {
+          entries: [],
+        },
+        surfaces: {},
+        actions: {
+          canEdit: true,
+          canRetry: true,
+        },
+      },
+      messages: [],
+    });
+
+    expect(state.activeRevisionId).toBeNull();
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'view-row',
+        text: 'view answer',
+      }),
+    ]);
+  });
+
   test('projects no-view pending bridge without mutating raw messages', () => {
     const messages = [{
       id: 'old-user-row',
@@ -622,7 +658,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
           turnRef: 'turn-view',
           entries: [{
             id: 'view-live',
-            type: 'assistant_message',
+            type: 'llm-text',
             text: 'view live answer',
           }],
         },

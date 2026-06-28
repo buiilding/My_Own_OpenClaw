@@ -2272,7 +2272,9 @@ describe('renderer chat runtime boundary', () => {
     expect(continuityServiceSource).toContain("exactRevisionCommandString(conversationRef, 'conversation reference')");
     expect(continuityServiceSource).toContain('readExactConversationRef(DesktopTranscriptSessionRuntimeClient.getActiveConversationRef())');
     expect(continuityServiceSource).toContain("optionalExactRevisionCommandString(input.cutAfterRowId, 'cut row id')");
-    expect(continuityServiceSource).toContain("optionalExactRevisionCommandString(\n      input.newConversationRef,\n      'new conversation reference',\n    )");
+    expect(continuityServiceSource).toContain('const newConversationRef = optionalExactRevisionCommandString(');
+    expect(continuityServiceSource).toContain('input.newConversationRef');
+    expect(continuityServiceSource).toContain("'new conversation reference'");
     expect(continuityServiceSource).not.toContain('input.conversationRef.trim');
     expect(continuityServiceSource).not.toContain('input.messageId.trim');
     expect(continuityServiceSource).not.toContain('function optionalString(value: unknown)');
@@ -2972,7 +2974,9 @@ describe('renderer chat runtime boundary', () => {
     expect(payloadRuntimeSource).not.toContain('normalizeAttachmentFilenames');
     expect(payloadRuntimeSource).not.toContain('features/chat');
     expect(liveTurnRuntimeClientSource).toContain('conversation.send resources must use typed SDK resource shapes');
-    expect(liveTurnRuntimeClientSource).toContain('if (!normalizedResource) {\n      return null;');
+    expect(liveTurnRuntimeClientSource).toContain('const normalizedResource = normalizeTurnInputResource(resource);');
+    expect(liveTurnRuntimeClientSource).toContain('if (!normalizedResource)');
+    expect(liveTurnRuntimeClientSource).toContain('throw new Error(INVALID_SEND_RESOURCES_ERROR)');
     expect(liveTurnRuntimeClientSource).not.toContain('.filter((resource): resource is TurnInputResource');
     expect(stateRuntimeSource).toContain('export const DesktopChatSendStateRuntime = Object.freeze');
     expect(stateRuntimeSource).toContain('hasPriorUserMessages');
@@ -4118,7 +4122,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('value === value.trim()');
     expect(source).toContain('const LIVE_PRESENTATION_ENTRY_TYPES = new Set');
     expect(source).toContain('LIVE_PRESENTATION_ENTRY_TYPES.has(type)');
-    expect(source).toContain('if (!type) {\n    return null;');
+    expect(source).toContain('return type && LIVE_PRESENTATION_ENTRY_TYPES.has(type)');
+    expect(source).toContain('return null;');
     expect(source).not.toContain("type === 'tool-call' || type === 'tool-explanation'");
     expect(source).not.toContain("type === 'tool-progress' || type === 'search-source'");
     expect(source).toContain('!readExactSdkString(entry.id)');
@@ -4749,6 +4754,12 @@ describe('renderer chat runtime boundary', () => {
     expect(chatRevisionActionRuntimeSource).not.toContain('buildForkConversationRef');
     expect(chatRevisionActionRuntimeSource).not.toContain('newConversationRef');
     expect(chatRevisionActionRuntimeSource).not.toContain('features/chat');
+    expect(chatInterfacePresentationRuntimeSource).toContain(
+      'activeRevisionId: hasConversationView\n      ? readExactIdentityString(effectiveConversationView?.revisionId)\n      : null',
+    );
+    expect(chatInterfacePresentationRuntimeSource).not.toContain(
+      'effectiveConversationView?.revisionId || null',
+    );
     expect(chatInterfaceSource).not.toContain('buildChatMessagesFromSdkDisplayRows');
     expect(chatInterfaceSource).not.toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(projectionRuntimeSource).toContain('packages/windie-sdk-js/src/conversation/types.js');
@@ -4897,8 +4908,8 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnReadModelSource).not.toContain('turnRef: workspace.sdkLiveTurn.turnRef');
     expect(currentTurnReadModelSource).not.toContain('messageCount');
     expect(currentTurnReadModelSource).not.toContain('workspace.messages');
-    expect(chatStoreAdaptersSource).toContain('ChatStreamWorkspaceReadModel,\n} from');
-    expect(chatStoreAdaptersSource).toContain('CurrentTurnProjectionWorkspaceReadModel,\n} from');
+    expect(chatStoreAdaptersSource).toContain('ChatStreamWorkspaceReadModel');
+    expect(chatStoreAdaptersSource).toContain('CurrentTurnProjectionWorkspaceReadModel');
     expect(chatStoreAdaptersSource).toContain('getChatStreamWorkspaceReadModelFromChatStore');
     expect(chatStoreAdaptersSource).toContain('getCurrentTurnProjectionWorkspaceReadModelFromChatStore');
     expect(chatStoreAdaptersSource).toContain('function readWorkspaceStateFromChatStore');
@@ -4987,7 +4998,8 @@ describe('renderer chat runtime boundary', () => {
       'const responseOverlayMode = readExactLifecycleString(conversationView?.surfaces?.responseOverlay?.mode);',
     );
     expect(visibleLifecycleRuntimeSource).toContain('readExactIdentityString(presentationAnchor.rowId)');
-    expect(visibleLifecycleRuntimeSource).toContain("status: 'idle',\n      source: 'conversation-view',");
+    expect(visibleLifecycleRuntimeSource).toContain("status: 'idle'");
+    expect(visibleLifecycleRuntimeSource).toContain("source: 'conversation-view'");
     expect(visibleLifecycleRuntimeSource).not.toContain('turnRef: normalizeTurnRef(conversationView.liveTurn?.turnRef)');
     expect(visibleLifecycleRuntimeSource).not.toContain('return normalizeString(sdkLiveTurn?.phase);');
     expect(visibleLifecycleRuntimeSource).not.toContain('normalizeString(presentation.lastError)');
@@ -5023,7 +5035,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateRuntimeSource).toContain('buildWorkspaceUpdate');
     expect(chatWorkspaceStateRuntimeSource).toContain('resolveWorkspaceMutationTarget');
     expect(chatWorkspaceStateRuntimeSource).toContain('projectWorkspaceReadModelState');
-    expect(chatWorkspaceStateRuntimeSource).toContain("Pick<\n  ChatWorkspaceState");
+    expect(chatWorkspaceStateRuntimeSource).toContain('export type ChatWorkspaceReadModelState = Pick<');
+    expect(chatWorkspaceStateRuntimeSource).toContain('ChatWorkspaceState,');
     expect(chatWorkspaceStateRuntimeSource).toContain("| 'pendingTurn'");
     expect(chatWorkspaceStateRuntimeSource).not.toContain('...workspace,\n    messages: hasConversationView');
     expect(chatWorkspaceStateRuntimeSource).toContain('selectActiveWorkspaceReadModelState');
