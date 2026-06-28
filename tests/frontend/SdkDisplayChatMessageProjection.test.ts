@@ -259,6 +259,30 @@ describe('sdkDisplayChatMessageProjection', () => {
         type: 'tool_progress',
         content: 'renderer must not make this tool progress',
       },
+      {
+        id: 'padded-user-role-row',
+        conversationRef: 'conv-sdk',
+        index: 5,
+        role: ' user ',
+        type: 'user_message',
+        content: 'renderer must not repair this role',
+      },
+      {
+        id: 'padded-user-type-row',
+        conversationRef: 'conv-sdk',
+        index: 6,
+        role: 'user',
+        type: ' user_message ',
+        content: 'renderer must not repair this type',
+      },
+      {
+        id: 'unknown-row-type',
+        conversationRef: 'conv-sdk',
+        index: 7,
+        role: 'assistant',
+        type: 'assistant_delta',
+        content: 'renderer must not map unknown row types',
+      },
     ] as any)).toEqual([]);
   });
 

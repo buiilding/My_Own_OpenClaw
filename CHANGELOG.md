@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display-rows: classify SDK display rows through exact known
+  `role`/`type` pairs before projecting renderer chat-message props, leaving
+  padded or unknown row labels inert. No migration required.
 - frontend/attachments: require SDK display attachment `kind`, `source`, and
   `status` labels to be exact known lifecycle values before renderer attachment
   projection can display them. No migration required.

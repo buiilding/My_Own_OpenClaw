@@ -249,7 +249,10 @@ Display rows carry SDK-authored `metadata.toolCallDetails` and
 copy only the SDK display-detail allowlist into component metadata and must not
 rebuild details by copying request ids, bundle ids, tool-call ids, raw payloads,
 structured payloads, attachment aliases, or provider/model fields out of
-generic row metadata.
+generic row metadata. Renderer display-row adapters also classify rows only
+from exact known SDK `role`/`type` pairs; padded, unknown, or mismatched labels
+remain inert instead of being repaired into user, assistant, tool-call,
+tool-output, or progress chat rows.
 
 ```text
 ConversationView = displayRows + liveTurn + surfaces + actions
