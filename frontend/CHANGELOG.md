@@ -25,6 +25,10 @@ All notable changes to WindieOS will be documented in this file.
   root during packaging, so CI builds on Git Bash and POSIX runners can find
   `src/main/python/requirements.runtime.txt` before Electron Builder. No
   migration required.
+- frontend/package: make frontend Python wrapper fallback use the generated
+  `python-runtime` when conda is unavailable, so release package builds run the
+  builtin tool manifest generator with the dependencies they just bundled. No
+  migration required.
 - docs/agents: replace the copied private-root agent instructions with a
   public frontend agent policy that keeps commands, tests, commit search, and
   backend boundaries scoped to the public repo root. No migration required.

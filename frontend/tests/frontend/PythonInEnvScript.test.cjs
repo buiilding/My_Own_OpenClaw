@@ -104,4 +104,51 @@ describe('scripts/python-in-env.sh', () => {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
   });
+
+  test('uses generated frontend runtime for python fallback when conda is unavailable', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-python-runtime-fallback-'));
+    const runtimeDir = path.join(repoRoot, 'python-runtime');
+    const runtimeBinDir = path.join(runtimeDir, 'bin');
+    const runtimePython = path.join(runtimeBinDir, 'python3');
+
+    fs.mkdirSync(runtimeBinDir, { recursive: true });
+    fs.writeFileSync(
+      runtimePython,
+      [
+        '#!/usr/bin/env bash',
+        'printf "%s\\n" "$0"',
+        'printf "%s\\n" "${WINDIE_PYTHON_PATH:-}"',
+        'printf "%s\\n" "$*"',
+        '',
+      ].join('\n'),
+    );
+    fs.chmodSync(runtimePython, 0o755);
+
+    try {
+      const result = spawnSync(
+        'bash',
+        [pythonInEnvPath, 'frontend', 'python', '-c', 'ignored'],
+        {
+          cwd: repoRoot,
+          env: {
+            ...process.env,
+            PATH: `${tempDir}${path.delimiter}/usr/bin${path.delimiter}/bin`,
+            WINDIE_PYTHON_PATH: '/stale/base/python3',
+          },
+          encoding: 'utf8',
+        },
+      );
+
+      expect(result.status).toBe(0);
+      expect(result.stdout.split('\n').slice(0, 3)).toEqual([
+        runtimePython,
+        runtimePython,
+        '-c ignored',
+      ]);
+      expect(result.stderr).toContain('using generated frontend runtime');
+    } finally {
+      fs.rmSync(runtimeDir, { recursive: true, force: true });
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
 });
