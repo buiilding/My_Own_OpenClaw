@@ -704,8 +704,10 @@ recover legacy `sender`, `text`, or top-level source-event aliases from view
 rows. Renderer display projection and trace summaries also require each SDK
 display row to carry an exact `conversationRef` matching the enclosing
 `ConversationView`; missing, padded, or cross-conversation row refs are ignored
-instead of being repaired into view-owned chat state. The chat-store provider
-trace adapter applies that
+instead of being repaired into view-owned chat state. The same row/view
+conversation match gates SDK user-row lookup before a display row can suppress
+the renderer pending bridge, count as a prior user send, or act as visible
+same-turn replacement evidence. The chat-store provider trace adapter applies that
 same exact string rule before publishing no-view fallback active-turn and
 last-message sender/type/ref/source labels. The stream/current-turn chat-store
 adapters apply the same rule before publishing fallback pending refs, no-view

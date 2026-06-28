@@ -5057,11 +5057,14 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationDisplayRowLookupSource).toContain('hasConversationViewUserDisplayRows');
     expect(conversationDisplayRowLookupSource).toContain('ConversationView display-row lookup');
     expect(conversationDisplayRowLookupSource).toContain('exactNonEmptyString');
-    expect(conversationDisplayRowLookupSource).toContain("(row as Record<string, unknown>).role === 'user'");
+    expect(conversationDisplayRowLookupSource).toContain('function exactConversationRef');
+    expect(conversationDisplayRowLookupSource).toContain('const viewConversationRef = exactConversationRef(conversationView?.conversationRef);');
+    expect(conversationDisplayRowLookupSource).toContain('exactConversationRef(source.conversationRef) === viewConversationRef');
+    expect(conversationDisplayRowLookupSource).toContain("source.role === 'user'");
     expect(conversationDisplayRowLookupSource).toContain('conversationView?.displayRows');
     expect(conversationDisplayRowLookupSource).not.toContain('conversationView as { displayRows?: unknown[] | null }');
-    expect(conversationDisplayRowLookupSource).toContain("(row as Record<string, unknown>).type === 'user_message'");
-    expect(conversationDisplayRowLookupSource).not.toContain("(row as Record<string, unknown>).role === 'user'\n        ||");
+    expect(conversationDisplayRowLookupSource).toContain("source.type === 'user_message'");
+    expect(conversationDisplayRowLookupSource).not.toContain("source.role === 'user'\n        ||");
     expect(conversationDisplayRowLookupSource).not.toContain('value.trim() ? value.trim()');
     expect(conversationDisplayProjectionSource).not.toContain('function normalizeTurnRef');
     expect(conversationViewWorkspaceRuntimeSource).toContain('findConversationViewUserDisplayRowForTurn');

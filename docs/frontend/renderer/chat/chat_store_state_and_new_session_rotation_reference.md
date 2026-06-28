@@ -718,7 +718,10 @@ those explicit annotation records to matching assistant SDK rows; callers do
 not select an alternate annotation-preservation mode. Display rows must carry an
 exact `conversationRef` matching the enclosing SDK `ConversationView` before the
 projection helper can turn them into chat messages or trace summary rows;
-missing, padded, or cross-conversation row refs stay inert. The
+missing, padded, or cross-conversation row refs stay inert. The same exact
+row/view conversation match applies to SDK user-row lookup for pending-bridge
+suppression, first-user-message send predicates, and visible-lifecycle
+replacement checks. The
 pending bridge is projected from `pendingTurn` through
 `DesktopConversationDisplayProjection.buildPendingBridgeChatMessages(...)` for
 the no-view path and

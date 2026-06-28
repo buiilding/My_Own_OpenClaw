@@ -345,6 +345,54 @@ describe('desktopConversationDisplayProjection', () => {
     }]), ' turn-1 ')).toBeNull();
   });
 
+  test('rejects user display rows outside the enclosing ConversationView ref', () => {
+    expect(findConversationViewUserDisplayRowForTurn(conversationViewWithRows([
+      {
+        id: 'wrong-conversation-user',
+        conversationRef: 'conv-other',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'wrong conversation',
+      },
+      {
+        id: 'padded-conversation-user',
+        conversationRef: ' conv-1 ',
+        turnRef: 'turn-1',
+        index: 1,
+        role: 'user',
+        type: 'user_message',
+        content: 'padded conversation',
+      },
+      {
+        id: 'missing-conversation-user',
+        turnRef: 'turn-1',
+        index: 2,
+        role: 'user',
+        type: 'user_message',
+        content: 'missing conversation',
+      },
+    ]), 'turn-1')).toBeNull();
+
+    expect(hasConversationViewUserDisplayRows(conversationViewWithRows([
+      {
+        id: 'wrong-conversation-user',
+        conversationRef: 'conv-other',
+        turnRef: 'turn-1',
+        role: 'user',
+        type: 'user_message',
+      },
+      {
+        id: 'padded-conversation-user',
+        conversationRef: ' conv-1 ',
+        turnRef: 'turn-1',
+        role: 'user',
+        type: 'user_message',
+      },
+    ]))).toBe(false);
+  });
+
   test('does not find assistant, missing-id, or wrong-turn display rows as SDK user rows', () => {
     expect(findConversationViewUserDisplayRowForTurn(conversationViewWithRows([
       {
@@ -401,11 +449,13 @@ describe('desktopConversationDisplayProjection', () => {
     expect(hasConversationViewUserDisplayRows(conversationViewWithRows([
       {
         id: 'assistant-row',
+        conversationRef: 'conv-1',
         role: 'assistant',
         type: 'assistant_message',
       },
       {
         id: 'typed-user-row',
+        conversationRef: 'conv-1',
         role: 'user',
         type: 'user_message',
       },
@@ -413,25 +463,30 @@ describe('desktopConversationDisplayProjection', () => {
     expect(hasConversationViewUserDisplayRows(conversationViewWithRows([
       {
         id: 'assistant-row',
+        conversationRef: 'conv-1',
         role: 'assistant',
         type: 'assistant_message',
       },
       {
         id: 'mismatched-type-row',
+        conversationRef: 'conv-1',
         role: 'user',
         type: 'assistant_message',
       },
       {
         id: 'mismatched-role-row',
+        conversationRef: 'conv-1',
         role: 'assistant',
         type: 'user_message',
       },
       {
         id: '',
+        conversationRef: 'conv-1',
         role: 'user',
         type: 'user_message',
       },
       {
+        conversationRef: 'conv-1',
         role: 'user',
         type: 'user_message',
       },
@@ -865,6 +920,33 @@ describe('desktopConversationDisplayProjection', () => {
         timestamp: '2026-06-25T12:00:00.000Z',
       },
     })).toEqual([expect.objectContaining(sdkUserSameTurn)]);
+  });
+
+  test('keeps pending bridge when same-turn SDK user row belongs to another conversation', () => {
+    expect(buildConversationViewChatMessages({
+      conversationView: conversationViewWithRows([{
+        id: 'sdk-user-other-conversation',
+        conversationRef: 'conv-other',
+        turnRef: 'turn-edit',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'other conversation prompt',
+      }]),
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-edit',
+        userMessageId: 'renderer-user-edit',
+        text: 'edited prompt',
+        timestamp: '2026-06-25T12:00:00.000Z',
+      },
+    })).toEqual([
+      expect.objectContaining({
+        id: 'renderer-user-edit',
+        sender: 'user',
+        turnRef: 'turn-edit',
+      }),
+    ]);
   });
 
   test('keeps pending bridge when SDK user row has repaired turn identity', () => {

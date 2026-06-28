@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/conversation-view: scope SDK user-display-row lookup to rows whose
+  exact `conversationRef` matches the enclosing `ConversationView`, so malformed
+  rows cannot suppress pending bridges or count as same-turn replacement
+  evidence. No migration required.
 - frontend/conversation-view: require SDK display rows to carry an exact
   `conversationRef` matching the enclosing `ConversationView` before renderer
   chat or trace projection can consume them. No migration required.

@@ -15,13 +15,22 @@ function exactTurnRef(turnRef: string | null | undefined): string | null {
   return exactNonEmptyString(turnRef);
 }
 
-function isConversationViewUserDisplayRow(row: unknown): row is ConversationViewDisplayRow {
+function exactConversationRef(conversationRef: string | null | undefined): string | null {
+  return exactNonEmptyString(conversationRef);
+}
+
+function isConversationViewUserDisplayRow(
+  row: unknown,
+  viewConversationRef: string,
+): row is ConversationViewDisplayRow {
+  const source = row as Record<string, unknown>;
   return Boolean(
     row
       && typeof row === 'object'
-      && exactNonEmptyString((row as Record<string, unknown>).id)
-      && (row as Record<string, unknown>).role === 'user'
-      && (row as Record<string, unknown>).type === 'user_message',
+      && exactConversationRef(source.conversationRef) === viewConversationRef
+      && exactNonEmptyString(source.id)
+      && source.role === 'user'
+      && source.type === 'user_message',
   );
 }
 
@@ -30,13 +39,14 @@ function findConversationViewUserDisplayRowForTurn(
   turnRef: string | null | undefined,
 ): ConversationViewDisplayRow | null {
   const targetTurnRef = exactTurnRef(turnRef);
-  if (!targetTurnRef || !Array.isArray(conversationView?.displayRows)) {
+  const viewConversationRef = exactConversationRef(conversationView?.conversationRef);
+  if (!targetTurnRef || !viewConversationRef || !Array.isArray(conversationView?.displayRows)) {
     return null;
   }
   for (let index = conversationView.displayRows.length - 1; index >= 0; index -= 1) {
     const row = conversationView.displayRows[index];
     if (
-      isConversationViewUserDisplayRow(row)
+      isConversationViewUserDisplayRow(row, viewConversationRef)
       && exactTurnRef(row.turnRef) === targetTurnRef
     ) {
       return row;
@@ -48,11 +58,12 @@ function findConversationViewUserDisplayRowForTurn(
 function hasConversationViewUserDisplayRows(
   conversationView: ConversationView | null | undefined,
 ): boolean {
+  const viewConversationRef = exactConversationRef(conversationView?.conversationRef);
   const displayRows = conversationView?.displayRows;
-  if (!Array.isArray(displayRows)) {
+  if (!viewConversationRef || !Array.isArray(displayRows)) {
     return false;
   }
-  return displayRows.some(isConversationViewUserDisplayRow);
+  return displayRows.some((row) => isConversationViewUserDisplayRow(row, viewConversationRef));
 }
 
 export const DesktopConversationDisplayRowLookupRuntime = Object.freeze({
