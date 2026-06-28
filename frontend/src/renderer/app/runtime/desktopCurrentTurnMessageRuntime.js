@@ -39,6 +39,11 @@ function readExactSdkString(value) {
     : null;
 }
 
+function exactSdkStringProp(key, value) {
+  const exactValue = readExactSdkString(value);
+  return exactValue ? { [key]: exactValue } : {};
+}
+
 function resolveEntryCorrelationId(entry) {
   return (
     readExactSdkString(entry.correlationId)
@@ -256,11 +261,11 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
 function buildBaseMessageFields(entry, liveTurnContext) {
   return {
     id: entry.id,
-    sourceEventType: readExactSdkString(entry.sourceEventType),
     sourceChannel: liveTurnContext?.sourceChannel || sdkCurrentTurnSourceChannel,
-    turnRef: readExactSdkString(liveTurnContext?.turnRef) || undefined,
-    modelId: readExactSdkString(entry.modelId),
-    modelProvider: readExactSdkString(entry.modelProvider),
+    ...exactSdkStringProp('sourceEventType', entry.sourceEventType),
+    ...exactSdkStringProp('turnRef', liveTurnContext?.turnRef),
+    ...exactSdkStringProp('modelId', entry.modelId),
+    ...exactSdkStringProp('modelProvider', entry.modelProvider),
     isComplete: entry.isComplete === true,
   };
 }

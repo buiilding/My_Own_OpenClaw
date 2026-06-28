@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: omit live-entry `sourceEventType`, `turnRef`, `modelId`,
+  and `modelProvider` props when SDK presentation entries do not provide exact
+  non-empty values, instead of publishing renderer-owned `null`/`undefined`
+  placeholders. No migration required.
 - frontend/projection: omit renderer `turnRef` and `correlationId` props when
   SDK display rows do not provide exact non-empty identity values, instead of
   publishing local `null` or `undefined` placeholders. No migration required.

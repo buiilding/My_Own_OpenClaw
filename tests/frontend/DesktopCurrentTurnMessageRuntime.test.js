@@ -58,7 +58,29 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     });
 
     expect(messages).toHaveLength(1);
-    expect(messages[0].turnRef).toBeUndefined();
+    expect(messages[0]).not.toHaveProperty('turnRef');
+  });
+
+  test('omits live-entry base metadata when SDK does not provide exact strings', () => {
+    const messages = buildCurrentTurnMessagesFromPresentation({
+      turnRef: ' turn-live ',
+      presentation: {
+        entries: [{
+          id: 'entry-live',
+          type: 'llm-text',
+          text: 'streaming',
+          sourceEventType: ' assistant_delta ',
+          modelId: ' gpt-padded ',
+          modelProvider: ' openai ',
+        }],
+      },
+    });
+
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).not.toHaveProperty('turnRef');
+    expect(messages[0]).not.toHaveProperty('sourceEventType');
+    expect(messages[0]).not.toHaveProperty('modelId');
+    expect(messages[0]).not.toHaveProperty('modelProvider');
   });
 
   test('drops no-view live entries with malformed SDK row ids', () => {
@@ -124,10 +146,8 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
       },
     });
 
-    expect(messages.find(message => message.id === 'entry-assistant')).toEqual(expect.objectContaining({
-      modelId: null,
-      modelProvider: null,
-    }));
+    expect(messages.find(message => message.id === 'entry-assistant')).not.toHaveProperty('modelId');
+    expect(messages.find(message => message.id === 'entry-assistant')).not.toHaveProperty('modelProvider');
     const toolOutputMessage = messages.find(message => message.id === 'entry-tool-output');
     expect(toolOutputMessage).not.toHaveProperty('modelId');
     expect(toolOutputMessage).not.toHaveProperty('modelProvider');

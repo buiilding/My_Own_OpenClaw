@@ -4092,8 +4092,14 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('sourceEventType: entry.sourceEventType || null');
     expect(source).not.toContain("thinkingSourceEventType: entry.sourceEventType || 'reasoning_delta'");
     expect(source).not.toContain("sourceEventType: entry.sourceEventType || 'tool_output'");
-    expect(source).toContain('modelId: readExactSdkString(entry.modelId)');
-    expect(source).toContain('modelProvider: readExactSdkString(entry.modelProvider)');
+    expect(source).toContain('function exactSdkStringProp(key, value)');
+    expect(source).toContain("...exactSdkStringProp('sourceEventType', entry.sourceEventType)");
+    expect(source).toContain("...exactSdkStringProp('turnRef', liveTurnContext?.turnRef)");
+    expect(source).toContain("...exactSdkStringProp('modelId', entry.modelId)");
+    expect(source).toContain("...exactSdkStringProp('modelProvider', entry.modelProvider)");
+    expect(source).not.toContain('turnRef: readExactSdkString(liveTurnContext?.turnRef) || undefined');
+    expect(source).not.toContain('modelId: readExactSdkString(entry.modelId)');
+    expect(source).not.toContain('modelProvider: readExactSdkString(entry.modelProvider)');
     expect(source).toContain('const modelId = readExactSdkString(entry.modelId);');
     expect(source).toContain('const modelProvider = readExactSdkString(entry.modelProvider);');
     expect(source).not.toContain('modelId: entry.modelId || null');
@@ -4110,7 +4116,6 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('const toolEventId = readExactSdkString(toolEventRecord?.id);');
     expect(source).toContain('if (!toolEventRecord || !toolEventId)');
     expect(source).not.toContain('id: toolEvent.id || index');
-    expect(source).toContain('turnRef: readExactSdkString(liveTurnContext?.turnRef) || undefined');
     expect(source).toContain('const turnRef = readExactSdkString(liveTurnContext?.turnRef);');
     expect(source).toContain('conversationRef: readExactSdkString(conversationView?.conversationRef)');
     expect(source).toContain('turnRef: readExactSdkString(conversationView?.liveTurn?.turnRef)');
