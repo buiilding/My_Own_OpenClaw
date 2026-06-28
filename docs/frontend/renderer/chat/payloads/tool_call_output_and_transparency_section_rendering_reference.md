@@ -153,7 +153,9 @@ removed; SDK display-row and live-turn adapters build renderer tool-output rows
 directly from SDK-authored text, attachments, and `toolOutputDetails` instead
 of publishing parallel detail channels. SDK `tool_progress` display rows do not
 borrow `toolOutputDetails` as progress metadata; if the SDK wants a progress
-detail payload, it must author that on `toolCallDetails`.
+detail payload, it must author that on `toolCallDetails`, which the renderer
+keeps on the explicit `message.toolCallDetails` prop rather than republishing
+as legacy `toolMetadata`.
 
 Visible tool-output screenshots render through the same typed attachment path as
 user visuals:

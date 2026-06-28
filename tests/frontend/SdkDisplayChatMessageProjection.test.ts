@@ -1293,6 +1293,41 @@ describe('sdkDisplayChatMessageProjection', () => {
     expect(message).not.toHaveProperty('toolMetadata');
   });
 
+  test('keeps SDK progress details on the explicit tool call details prop', () => {
+    const [message] = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'progress-tool-call-details',
+        conversationRef: 'conv-tool',
+        turnRef: 'turn-tool',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Reading file',
+        metadata: {
+          revisionId: 'rev-tool',
+          timestamp: '2026-06-09T04:22:30.000Z',
+          toolName: 'read_file',
+          displayCorrelationId: 'req-tool-1',
+          toolCallDetails: {
+            toolName: 'read_file',
+            requestId: 'req-tool-1',
+            raw: { hidden: true },
+          },
+        },
+      },
+    ]);
+
+    expect(message).toEqual(expect.objectContaining({
+      id: 'progress-tool-call-details',
+      type: 'tool-progress',
+      toolCallDetails: {
+        toolName: 'read_file',
+        requestId: 'req-tool-1',
+      },
+    }));
+    expect(message).not.toHaveProperty('toolMetadata');
+  });
+
   test('does not forward raw SDK diagnostics into renderer chat details', () => {
     const [message] = buildChatMessagesFromSdkDisplayRows([
       {

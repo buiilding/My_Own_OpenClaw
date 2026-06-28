@@ -30,7 +30,6 @@ export interface ChatMessage {
   attachments?: SdkDisplayAttachment[] | null;
   modelId?: string | null;
   modelProvider?: string | null;
-  toolMetadata?: Record<string, unknown> | null;
   toolName?: string;
   executionTime?: number | null;
   success?: boolean;

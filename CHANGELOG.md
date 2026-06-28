@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: stop publishing SDK display-row progress details through
+  the legacy `toolMetadata` prop; progress rows now keep explicit SDK
+  `toolCallDetails`, and `ChatMessage` no longer declares `toolMetadata`. No
+  migration required.
 - frontend/projection: delete the unused transcript tool-output state helper and
   remove it from the chat message runtime client; SDK display-row and live-turn
   adapters now build tool-output rows directly. No migration required.
