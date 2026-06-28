@@ -474,7 +474,8 @@ scope.
 Renderer current-turn IPC adapters should treat a valid `presentation.entries`
 array as the normal current-turn shape and must not require raw `assistantText`
 or `toolEvents` when presentation exists. The raw field requirement remains
-only for legacy no-presentation snapshots.
+only for legacy no-presentation text/error snapshots; raw `toolEvents` alone
+does not make a current-turn packet valid.
 Renderer presentation caches follow the same split: presentation-backed
 snapshots are keyed by SDK presentation identity and exact live-turn refs,
 phase labels, and presentation error text; malformed padded values are not

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/current-turn: stop treating raw `toolEvents` as a current-turn IPC
+  validity signal; no-view fallback remains limited to legacy text/error
+  packets while SDK presentation entries own tool display. No migration
+  required.
 - frontend/response-overlay: update overlay state coverage so raw no-view
   `toolEvents` and raw chat-store tool rows stay inert while SDK presentation
   entries own live tool/progress display. No migration required.

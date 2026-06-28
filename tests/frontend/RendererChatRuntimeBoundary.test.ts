@@ -1054,6 +1054,7 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).toContain('hasSdkPresentation(projection.presentation)');
     expect(eventClientSource).not.toContain("&& typeof projection.assistantText === 'string'");
     expect(eventClientSource).not.toContain('&& Array.isArray(projection.toolEvents)');
+    expect(eventClientSource).not.toContain('projection.toolEvents');
   });
 
   test('chat attachment image presentation builds artifact URLs through app runtime client', async () => {

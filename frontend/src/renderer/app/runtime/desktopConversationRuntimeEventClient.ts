@@ -50,10 +50,9 @@ function hasSdkPresentation(value: unknown): boolean {
 
 function hasLegacyCurrentTurnContent(value: unknown): boolean {
   const projection = recordOrEmpty(value);
-  const assistantText = projection.assistantText;
-  const toolEvents = projection.toolEvents;
-  return typeof assistantText === 'string'
-    && Array.isArray(toolEvents);
+  return typeof projection.assistantText === 'string'
+    || typeof projection.reasoningText === 'string'
+    || exactOptionalString(projection.lastError) !== null;
 }
 
 function isCurrentTurnProjection(value: unknown): value is CurrentTurnProjection {

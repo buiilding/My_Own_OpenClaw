@@ -38,7 +38,6 @@ const currentTurn = {
   userMessageRowId: 'user-row',
   assistantText: 'Hello',
   reasoningText: null,
-  toolEvents: [],
   lastError: null,
   presentation: {
     entries: [],
@@ -46,6 +45,25 @@ const currentTurn = {
     overlayVisible: true,
     hasVisibleContent: true,
   },
+};
+
+const legacyNoPresentationCurrentTurn = {
+  conversationRef: 'conv-legacy',
+  turnRef: 'turn-legacy',
+  phase: 'streaming',
+  assistantText: 'Legacy text fallback',
+  reasoningText: null,
+  lastError: null,
+};
+
+const toolEventsOnlyCurrentTurn = {
+  conversationRef: 'conv-tool-events',
+  turnRef: 'turn-tool-events',
+  phase: 'streaming',
+  toolEvents: [{
+    id: 'tool-event-1',
+    kind: 'tool_call',
+  }],
 };
 
 const presentationOnlyCurrentTurn = {
@@ -119,6 +137,13 @@ describe('DesktopConversationRuntimeEventClient', () => {
     mockChannelListeners.get('windie:current-turn')?.({
       currentTurn: presentationOnlyCurrentTurn,
     });
+    mockChannelListeners.get('windie:current-turn')?.({
+      currentTurn: legacyNoPresentationCurrentTurn,
+    });
+    mockChannelListeners.get('windie:current-turn')?.({
+      conversationRef: 'conv-tool-events',
+      currentTurn: toolEventsOnlyCurrentTurn,
+    });
     mockChannelListeners.get('windie:current-turn')?.({ currentTurn: { phase: 'streaming' } });
     mockChannelListeners.get('windie:current-turn')?.({
       conversationRef: ' conv-view ',
@@ -165,6 +190,16 @@ describe('DesktopConversationRuntimeEventClient', () => {
       {
         currentTurn: presentationOnlyCurrentTurn,
         conversationRef: 'conv-2',
+        view: null,
+      },
+      {
+        currentTurn: legacyNoPresentationCurrentTurn,
+        conversationRef: 'conv-legacy',
+        view: null,
+      },
+      {
+        currentTurn: null,
+        conversationRef: 'conv-tool-events',
         view: null,
       },
       {
