@@ -1537,6 +1537,8 @@ describe('renderer chat runtime boundary', () => {
     expect(messageTypeSource).toContain('attachments?: SdkDisplayAttachment[] | null');
     expect(messageTypeSource).not.toContain('modelFacingToolCall?:');
     expect(messageTypeSource).not.toContain('toolMetadata?:');
+    expect(messageTypeSource).not.toContain('executionTime?:');
+    expect(messageTypeSource).not.toContain('success?:');
     expect(messageTypeSource).not.toContain('attachmentFilenames?:');
     expect(messageTypeSource).not.toContain('screenshot?:');
     expect(messageTypeSource).not.toContain('screenshotRef?:');
@@ -4377,6 +4379,8 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('row.metadata?.toolCallDetails ?? row.metadata?.toolOutputDetails');
     expect(projectionRuntimeSource).not.toContain('toolMetadata');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.success');
+    expect(currentTurnMessageRuntimeSource).not.toContain('success: toolEvent.status');
+    expect(currentTurnMessageRuntimeSource).not.toContain('executionTime:');
     expect(projectionRuntimeSource).not.toContain('recordFromUnknown(row.metadata?.toolCallDetails)');
     expect(projectionRuntimeSource).not.toContain('recordFromUnknown(row.metadata?.toolOutputDetails)');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.requestId');

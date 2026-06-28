@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: remove legacy top-level `executionTime` and `success`
+  from the shared renderer `ChatMessage` contract and no-view live progress
+  rows, keeping tool result status in SDK-authored detail records instead. No
+  migration required.
 - frontend/projection: stop publishing SDK display-row progress details through
   the legacy `toolMetadata` prop; progress rows now keep explicit SDK
   `toolCallDetails`, and `ChatMessage` no longer declares `toolMetadata`. No

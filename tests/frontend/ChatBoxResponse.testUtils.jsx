@@ -168,8 +168,7 @@ function buildToolEventsFromMessages(messages) {
             output: message.text || '',
           },
           toolMetadata: message.toolMetadata || null,
-          executionTime: message.executionTime ?? null,
-          success: message.success ?? (message.status === 'error' ? false : true),
+          success: message.status === 'error' ? false : true,
           payload: {
             output: message.text || '',
           },

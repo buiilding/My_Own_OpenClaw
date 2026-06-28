@@ -128,7 +128,6 @@ function buildProjectedToolProgressMessage({
     sourceChannel: sdkCurrentTurnSourceChannel,
     turnRef: liveTurnRef || undefined,
     toolName: resolveToolName(toolEvent.toolName) || undefined,
-    success: toolEvent.status === 'success' ? true : undefined,
   };
 }
 

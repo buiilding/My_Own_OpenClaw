@@ -31,8 +31,6 @@ export interface ChatMessage {
   modelId?: string | null;
   modelProvider?: string | null;
   toolName?: string;
-  executionTime?: number | null;
-  success?: boolean;
   correlationId?: string;
   timestamp?: string;
   toolCallDisplayText?: string | null;
