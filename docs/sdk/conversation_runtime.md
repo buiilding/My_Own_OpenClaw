@@ -608,8 +608,9 @@ exactness rule: `turnRef`, `metadata.displayCorrelationId`, and
 `metadata.toolName` become renderer message identity or tool metadata only when
 they are exact non-empty SDK strings, and `metadata.timestamp` is copied to
 renderer message metadata only when it is exact and non-empty. Missing, padded,
-or empty timestamps are omitted rather than converted into renderer-owned empty
-metadata placeholders; padded values are ignored instead of being trimmed into
+or empty turn refs, display correlation ids, and timestamps are omitted rather
+than converted into renderer-owned `null`, `undefined`, or empty metadata
+placeholders; padded values are ignored instead of being trimmed into
 duplicate-detection keys, visible tool labels, thinking text, row ids, or
 message timestamps. ConversationView
 display-row lookup also compares SDK row `turnRef` values exactly when filtering

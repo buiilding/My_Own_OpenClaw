@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: omit renderer `turnRef` and `correlationId` props when
+  SDK display rows do not provide exact non-empty identity values, instead of
+  publishing local `null` or `undefined` placeholders. No migration required.
 - frontend/projection: omit renderer `timestamp` metadata when SDK display rows
   do not provide an exact non-empty timestamp, instead of synthesizing empty
   timestamp placeholders in the display-row adapter. No migration required.

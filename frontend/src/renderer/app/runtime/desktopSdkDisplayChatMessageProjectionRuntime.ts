@@ -53,12 +53,22 @@ function rowCorrelationId(row: SdkDisplayRow): string | null {
   return exactNonEmptyString(row.metadata?.displayCorrelationId);
 }
 
+function rowCorrelationIdProp(row: SdkDisplayRow): Pick<ChatMessage, 'correlationId'> | Record<string, never> {
+  const correlationId = rowCorrelationId(row);
+  return correlationId ? { correlationId } : {};
+}
+
 function rowId(row: SdkDisplayRow): string | null {
   return exactNonEmptyString(row.id);
 }
 
 function rowTurnRef(row: SdkDisplayRow): string | null {
   return exactNonEmptyString(row.turnRef);
+}
+
+function rowTurnRefProp(row: SdkDisplayRow): Pick<ChatMessage, 'turnRef'> | Record<string, never> {
+  const turnRef = rowTurnRef(row);
+  return turnRef ? { turnRef } : {};
 }
 
 function rowReasoningText(row: SdkDisplayRow): string | null {
@@ -120,10 +130,10 @@ function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
     id: row.id,
     text: displayTextFromStringRowContent(row.content),
     sender: 'user',
-    turnRef: rowTurnRef(row),
     sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
     isComplete: true,
+    ...rowTurnRefProp(row),
     ...rowTimestampProp(row),
     ...(attachments.length > 0 ? { attachments } : {}),
   }, row);
@@ -202,8 +212,8 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
     type: 'tool-progress',
     sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
-    turnRef: rowTurnRef(row) ?? undefined,
-    correlationId: rowCorrelationId(row) ?? undefined,
+    ...rowTurnRefProp(row),
+    ...rowCorrelationIdProp(row),
     ...rowTimestampProp(row),
     ...(toolCallDetails ? { toolCallDetails } : {}),
   }, row);

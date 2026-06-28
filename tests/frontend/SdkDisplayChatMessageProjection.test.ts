@@ -91,7 +91,6 @@ describe('sdkDisplayChatMessageProjection', () => {
         id: 'msg-user',
         sender: 'user',
         text: 'open package json',
-        turnRef: null,
         sourceEventType: 'user_message',
         sourceChannel: 'sdk:display-rows',
         timestamp: '2026-05-15T12:00:00.000Z',
@@ -124,6 +123,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         text: 'package json is loaded',
       }),
     ]);
+    expect(messages[0]).not.toHaveProperty('turnRef');
     expect(messages[2]).not.toHaveProperty('modelFacingToolOutput');
   });
 
@@ -525,6 +525,9 @@ describe('sdkDisplayChatMessageProjection', () => {
       expect.not.objectContaining({ correlationId: 'req-1' }),
       expect.not.objectContaining({ correlationId: 'req-1' }),
     ]);
+    for (const message of messages) {
+      expect(message).not.toHaveProperty('correlationId');
+    }
   });
 
   test('preserves user row turn refs so replay pending rows dedupe after SDK projection', () => {
@@ -611,10 +614,36 @@ describe('sdkDisplayChatMessageProjection', () => {
       'msg-tool-progress-padded-turn',
     ]);
     for (const message of messages) {
-      expect(message.turnRef).toBeFalsy();
+      expect(message).not.toHaveProperty('turnRef');
       expect(message).not.toEqual(expect.objectContaining({ turnRef: ' turn-1 ' }));
       expect(message).not.toEqual(expect.objectContaining({ turnRef: 'turn-1' }));
     }
+  });
+
+  test('omits display row identity props when SDK does not provide exact values', () => {
+    const messages = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-user-without-turn',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'hello',
+      },
+      {
+        id: 'msg-tool-progress-without-identity',
+        conversationRef: 'conv-sdk',
+        index: 1,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Working',
+      },
+    ]);
+
+    expect(messages).toHaveLength(2);
+    expect(messages[0]).not.toHaveProperty('turnRef');
+    expect(messages[1]).not.toHaveProperty('turnRef');
+    expect(messages[1]).not.toHaveProperty('correlationId');
   });
 
   test('does not expose display row tool names as renderer metadata', () => {
