@@ -171,7 +171,9 @@ describe('renderer chat runtime boundary', () => {
     expect(surfaceRuntimeSource).toContain('readExactLoopSurfaceMode(conversationView?.surfaces?.[surfaceName]?.mode)');
     expect(surfaceRuntimeSource).not.toContain('conversationView?.surfaces?.[surfaceName]?.mode ?? null');
     expect(surfaceRuntimeSource).toContain('effectiveConversationView,');
-    expect(surfaceRuntimeSource).toContain('effectiveConversationView?.liveTurn?.canStop');
+    expect(surfaceRuntimeSource).toContain('DesktopStopTurnRuntime');
+    expect(surfaceRuntimeSource).toContain('resolveStopTurnTarget({');
+    expect(surfaceRuntimeSource).not.toContain('effectiveConversationView?.liveTurn?.canStop');
     expect(surfaceRuntimeSource).not.toContain('features/chat');
   });
 

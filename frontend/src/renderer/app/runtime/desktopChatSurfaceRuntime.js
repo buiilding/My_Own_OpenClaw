@@ -14,6 +14,9 @@ import {
 import {
   DesktopConversationViewWorkspaceRuntime,
 } from './desktopConversationViewWorkspaceRuntime';
+import {
+  DesktopStopTurnRuntime,
+} from './desktopStopTurnRuntime';
 
 const {
   resolveCurrentTurnPresentationState,
@@ -28,6 +31,9 @@ const {
 const {
   hasWorkspaceConversationView,
 } = DesktopConversationViewWorkspaceRuntime;
+const {
+  resolveStopTurnTarget,
+} = DesktopStopTurnRuntime;
 
 const CONVERSATION_VIEW_LOOP_SURFACE_MODES = new Set(['idle', 'busy']);
 
@@ -113,11 +119,11 @@ function buildChatSurfaceControllerState({
     : hasConversationView
       ? viewSurfaceMode === 'busy'
       : visibleTurnLifecycle.isBusy === true;
-  const canStop = isLocalPending
-    ? true
-    : hasConversationView
-      ? effectiveConversationView?.liveTurn?.canStop === true
-      : false;
+  const stopTarget = resolveStopTurnTarget({
+    conversationView: effectiveConversationView,
+    pendingTurn,
+  });
+  const canStop = stopTarget?.canStop === true;
 
   return {
     currentTurnPresentationState: currentTurnPresentationStateWithLifecycle,

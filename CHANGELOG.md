@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-surface: derive Stop affordance availability through the shared
+  stop-target runtime, requiring exact SDK view or pending-bridge identity
+  before enabling Stop. No migration required.
 - frontend/display-rows: stop using renderer row-kind checks to decide SDK
   edit/retry action availability during display-row projection; the adapter now
   only exact-gates SDK row action fields before UI controls render them. No

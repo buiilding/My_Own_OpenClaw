@@ -267,7 +267,6 @@ describe('useChatSurfaceController', () => {
           userMessageId: 'user-2',
           text: 'second',
           timestamp: '2026-06-21T00:00:00.000Z',
-          attachmentFilenames: null,
         },
         messages: [
           { id: 'user-2', type: 'user', sender: 'user', text: 'second', turnRef: 'turn-2' },
@@ -306,7 +305,7 @@ describe('useChatSurfaceController', () => {
 
     expect(result.current).toMatchObject({
       isBusy: true,
-      canStop: false,
+      canStop: true,
       surfacePhase: 'awaiting-first-chunk',
       surfaceSource: 'current-turn',
     });
@@ -325,7 +324,6 @@ describe('useChatSurfaceController', () => {
           userMessageId: 'user-local',
           text: 'local send',
           timestamp: '2026-06-21T00:00:00.000Z',
-          attachmentFilenames: null,
         },
         messages: [
           {

@@ -119,6 +119,39 @@ describe('DesktopChatSurfaceRuntime', () => {
     }
   });
 
+  test('requires exact SDK view stop target identity before enabling stop', () => {
+    const state = buildChatSurfaceControllerState({
+      conversationViewSurface: 'dashboard',
+      conversationView: buildConversationView({
+        conversationRef: 'conv-1',
+        liveTurn: {
+          turnRef: ' turn-1 ',
+          phase: 'streaming',
+          canStop: true,
+          isBusy: true,
+          entries: [],
+        },
+        surfaces: {
+          dashboard: {
+            mode: 'busy',
+          },
+        },
+      }),
+      messages: [],
+      sdkLiveTurn: null,
+    });
+
+    expect(state).toMatchObject({
+      isBusy: true,
+      canStop: false,
+      liveTurnSource: 'conversation-view',
+    });
+    expect(state.visibleTurnLifecycle).toMatchObject({
+      conversationRef: 'conv-1',
+      turnRef: null,
+    });
+  });
+
   test('keeps renderer pending bridge busy and stoppable before SDK view exists', () => {
     const state = buildChatSurfaceControllerState({
       pendingTurn: {
