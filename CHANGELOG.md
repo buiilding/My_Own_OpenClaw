@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: remove stale chat-store/message fixtures from replay runtime
+  coverage so tests exercise the public row-intent API instead of preserving
+  the old renderer-owned replay context shape. No migration required.
 - frontend/replay: reject legacy caller context/model fields at the replay
   runtime entrypoint so React can pass only row intent while SDK commands own
   session scope, model state, and replay semantics. No migration required.

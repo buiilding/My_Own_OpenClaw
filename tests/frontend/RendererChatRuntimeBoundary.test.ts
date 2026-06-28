@@ -2103,6 +2103,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js'),
       'utf8',
     );
+    const replayRuntimeTestSource = await fs.readFile(
+      path.resolve(__dirname, '../../tests/frontend/DesktopConversationReplayRuntime.test.js'),
+      'utf8',
+    );
     const chatStoreAdaptersSource = await fs.readFile(
       path.join(chatRoot, 'stores/chatStoreAdapters.ts'),
       'utf8',
@@ -2268,6 +2272,10 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('deferredQueryModelSelection');
     expect(replayRuntimeSource).not.toContain('DesktopSettingsRuntimeClient');
     expect(replayRuntimeSource).not.toContain('.setModel(');
+    expect(replayRuntimeTestSource).not.toContain('createChatStore');
+    expect(replayRuntimeTestSource).not.toContain('chatStoreBundle');
+    expect(replayRuntimeTestSource).not.toContain('chatStore:');
+    expect(replayRuntimeTestSource).not.toContain('messages:');
     expect(continuityServiceSource).not.toContain('type EditAndResendCommandInput = Omit<EditAndResendInput');
     expect(continuityServiceSource).not.toContain('type RetryTurnCommandInput = Omit<RetryTurnInput');
     expect(continuityServiceSource).not.toContain('input.payload');
