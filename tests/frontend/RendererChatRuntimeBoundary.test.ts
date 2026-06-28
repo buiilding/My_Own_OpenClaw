@@ -4514,7 +4514,7 @@ describe('renderer chat runtime boundary', () => {
     expect(displayAttachmentProjectionSource).toContain('value.flatMap((attachment) => sanitizeSdkDisplayAttachment(attachment) ?? [])');
     expect(displayAttachmentProjectionSource).not.toContain('function isDisplayableImageAttachment');
     expect(displayAttachmentProjectionSource).not.toContain('function isDisplayableScreenshotRequestAttachment');
-    expect(displayAttachmentProjectionSource).toContain('function isReadyDisplayImageAttachment');
+    expect(displayAttachmentProjectionSource).not.toContain('function isReadyDisplayImageAttachment');
     expect(displayAttachmentProjectionSource).toContain('SDK_DISPLAY_ATTACHMENT_KINDS');
     expect(displayAttachmentProjectionSource).toContain('SDK_DISPLAY_ATTACHMENT_SOURCES');
     expect(displayAttachmentProjectionSource).toContain('SDK_DISPLAY_ATTACHMENT_STATUSES');
@@ -4522,7 +4522,9 @@ describe('renderer chat runtime boundary', () => {
     expect(displayAttachmentProjectionSource).toContain('function readExactAttachmentSource(value: unknown)');
     expect(displayAttachmentProjectionSource).toContain('function readExactAttachmentStatus(value: unknown)');
     expect(displayAttachmentProjectionSource).toContain("status: 'ready'");
-    expect(displayAttachmentProjectionSource).toContain("readExactAttachmentStatus(record.status) === 'ready'");
+    expect(displayAttachmentProjectionSource).toContain("attachment.kind !== 'image' || attachment.status !== 'ready'");
+    expect(displayAttachmentProjectionSource).toContain('artifactId: attachment.screenshotRef ?? null');
+    expect(displayAttachmentProjectionSource).toContain('url: attachment.screenshotUrl ?? null');
     expect(displayAttachmentProjectionSource).not.toContain("&& record.status === 'ready'");
     expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.previewSrc)');
     expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.screenshotRef)');

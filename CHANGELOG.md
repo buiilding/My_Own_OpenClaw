@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: make ready-image source extraction consume the
+  sanitized SDK attachment descriptor instead of repeating raw lifecycle checks.
+  No migration required.
 - frontend/replay: include the SDK replay action on renderer cleanup traces and
   update replay docs to describe intent-only SDK command dispatch. No migration
   required.

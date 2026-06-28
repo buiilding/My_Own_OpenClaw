@@ -193,26 +193,17 @@ function readSdkDisplayAttachments(value: unknown): SdkDisplayAttachment[] {
     : [];
 }
 
-function isReadyDisplayImageAttachment(value: unknown): boolean {
-  const record = recordFromUnknown(value);
-  return Boolean(
-    record
-    && readExactAttachmentKind(record.kind) === 'image'
-    && readExactAttachmentStatus(record.status) === 'ready',
-  );
-}
-
 function readSdkImageAttachmentSource(value: unknown): SdkDisplayImageAttachmentSource | null {
   const attachment = sanitizeSdkDisplayAttachment(value);
-  if (!isReadyDisplayImageAttachment(attachment)) {
+  if (!attachment || attachment.kind !== 'image' || attachment.status !== 'ready') {
     return null;
   }
   return {
     id: attachment.id,
     status: 'ready',
-    artifactId: optionalExactString(attachment.screenshotRef),
-    url: optionalReadyImageUrl(attachment.screenshotUrl),
-    contentType: optionalExactString(attachment.contentType),
+    artifactId: attachment.screenshotRef ?? null,
+    url: attachment.screenshotUrl ?? null,
+    contentType: attachment.contentType ?? null,
   };
 }
 

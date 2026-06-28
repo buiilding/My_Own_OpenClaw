@@ -145,8 +145,9 @@ them into valid display inputs. Lifecycle descriptors must also be complete:
 materializing images require an exact `previewSrc`, ready images require an
 exact `screenshotRef` or non-inline `screenshotUrl`, and screenshot-request
 placeholders must come from the camera-button source. Artifact image-source
-extraction is ready-only; materializing preview bytes stay a display field on
-the attachment descriptor and are not treated as resolvable artifact state.
+extraction consumes the sanitized descriptor and is ready-only; materializing
+preview bytes stay a display field on the attachment descriptor and are not
+treated as resolvable artifact state.
 Ready attachment `screenshotUrl` values that contain inline `data:` bytes are
 dropped so persisted/replay display cannot smuggle volatile preview bytes
 through the ready-image path.
