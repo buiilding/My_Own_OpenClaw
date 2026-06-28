@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: reject malformed `conversation.send` resource arrays
+  before SDK command dispatch when a resource carries renderer display lifecycle
+  fields, preventing silent partial sends across the SDK boundary. No migration
+  required.
 - frontend/pending-turn: reject attachment-bearing pending-turn clear
   broadcasts in both renderer and main IPC adapters, keeping the local pending
   bridge limited to exact identity/text fields. No migration required.

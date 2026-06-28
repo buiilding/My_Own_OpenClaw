@@ -113,8 +113,8 @@ Clipboard image IPC trust boundary:
    - Renderer send should submit `clipboard_image` resources without uploading artifacts.
    - Live-turn command resources must use the positive SDK resource shape only;
      descriptors with renderer preview, display-lifecycle, screenshot-alias, or
-     attachment-summary fields are rejected rather than stripped into a sendable
-     resource.
+     attachment-summary fields reject the send before SDK command dispatch
+     rather than being stripped into a partial sendable resource list.
    - Boundary tests must fail if send preparation or send payload normalization
      reintroduces renderer display fields such as `previewSrc`,
      `displayAttachmentId`, `attachments`, `displayAttachments`,

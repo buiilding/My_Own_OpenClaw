@@ -11,6 +11,7 @@ import { DesktopMemoryRetrievalPreferenceRuntime } from './desktopMemoryRetrieva
 import { AgentSdkCommandInvokeClient } from './agentSdkCommandInvokeClient';
 
 const INVALID_SEND_IDENTITY_ERROR = 'conversation.send requires exact non-empty conversationRef and turnRef values';
+const INVALID_SEND_RESOURCES_ERROR = 'conversation.send resources must use typed SDK resource shapes';
 const SEND_COMMAND_FAILURE_FALLBACK = 'Failed to send command to the renderer app runtime';
 const {
   SDK_RUNTIME_COMMANDS,
@@ -124,12 +125,22 @@ function normalizeTurnInputResource(resource: unknown): TurnInputResource | null
   return null;
 }
 
-function normalizeTurnInputResources(resources: unknown): TurnInputResource[] {
-  return Array.isArray(resources)
-    ? resources
-      .map(normalizeTurnInputResource)
-      .filter((resource): resource is TurnInputResource => resource !== null)
-    : [];
+function normalizeTurnInputResources(resources: unknown): TurnInputResource[] | null {
+  if (resources === null || resources === undefined) {
+    return [];
+  }
+  if (!Array.isArray(resources)) {
+    return null;
+  }
+  const normalizedResources: TurnInputResource[] = [];
+  for (const resource of resources) {
+    const normalizedResource = normalizeTurnInputResource(resource);
+    if (!normalizedResource) {
+      return null;
+    }
+    normalizedResources.push(normalizedResource);
+  }
+  return normalizedResources;
 }
 
 function throwIfFailedIpcResult(result: unknown): void {
@@ -156,12 +167,16 @@ export const DesktopLiveTurnRuntimeClient = {
     if (!conversationRef || (hasExplicitTurnRef && !turnRef)) {
       throw new Error(INVALID_SEND_IDENTITY_ERROR);
     }
+    const resources = normalizeTurnInputResources(input.resources);
+    if (!resources) {
+      throw new Error(INVALID_SEND_RESOURCES_ERROR);
+    }
     const result = await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_SEND, {
       text: input.text,
       conversation_ref: conversationRef,
       query_message_id: turnRef ?? null,
       workspace_path: optionalExactString(input.workspacePath) ?? null,
-      resources: normalizeTurnInputResources(input.resources),
+      resources,
       memory_retrieval_enabled: DesktopMemoryRetrievalPreferenceRuntime.getMemoryRetrievalInjectionEnabled(),
     });
     throwIfFailedIpcResult(result);

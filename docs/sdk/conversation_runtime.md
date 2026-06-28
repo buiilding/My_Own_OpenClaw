@@ -384,12 +384,13 @@ Workspace bindings follow the same exactness rule in send preparation: padded
 workspace paths are omitted from both the prepared handoff and workspace SDK
 resource list.
 The renderer live-turn command facade re-normalizes resource arrays before
-`conversation.send`, preserving only typed SDK resource fields and dropping
-renderer preview/display lifecycle leftovers such as display ids, preview
-sources, screenshot aliases, or malformed exact-string handles. Optional
-clipboard image metadata and query screenshot reasons are forwarded only when
-exact; padded or missing values are omitted rather than sent as explicit `null`
-resource metadata.
+`conversation.send`, preserving only typed SDK resource fields and rejecting the
+send when any resource descriptor carries renderer preview/display lifecycle
+leftovers such as display ids, preview sources, screenshot aliases, or malformed
+required handles. It does not filter malformed resources into a partial send.
+Optional clipboard image metadata and query screenshot reasons are forwarded
+only when exact; padded or missing values are omitted rather than sent as
+explicit `null` resource metadata.
 The renderer desktop transport applies the same exactness rule to SDK-owned
 backend resource metadata that passes through `conversation.send`: padded
 `screenshot_ref`, `screenshot_url`, `screenshot_refs[]`, and

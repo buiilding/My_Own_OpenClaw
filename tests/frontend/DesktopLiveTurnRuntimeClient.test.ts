@@ -111,7 +111,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     }));
   });
 
-  test('sendQuery keeps turn input resources on the positive SDK resource contract', async () => {
+  test('sendQuery keeps exact turn input resources on the positive SDK resource contract', async () => {
     const { DesktopLiveTurnRuntimeClient } = require(
       '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
     );
@@ -128,16 +128,6 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       resources: [
         {
           kind: 'clipboard_image',
-          displayAttachmentId: 'renderer-owned-id',
-          base64: 'image-base64',
-          contentType: ' image/png ',
-          filename: 'shot.png',
-          previewSrc: 'data:image/png;base64,preview',
-          screenshotRef: 'artifact-should-not-cross',
-          required: true,
-        },
-        {
-          kind: 'clipboard_image',
           base64: 'valid-image-base64',
           contentType: 'image/png',
           filename: 'valid-shot.png',
@@ -152,14 +142,6 @@ describe('DesktopLiveTurnRuntimeClient', () => {
         },
         {
           kind: 'query_screenshot_request',
-          displayAttachmentId: 'renderer-screenshot-id',
-          isFirstUserMessage: true,
-          reason: ' capture ',
-          previewSrc: 'data:image/png;base64,preview',
-          required: false,
-        },
-        {
-          kind: 'query_screenshot_request',
           isFirstUserMessage: true,
           reason: 'capture',
           required: false,
@@ -168,21 +150,6 @@ describe('DesktopLiveTurnRuntimeClient', () => {
           kind: 'query_screenshot_request',
           isFirstUserMessage: false,
           reason: ' capture ',
-          required: true,
-        },
-        {
-          kind: 'readable_file',
-          filePath: ' /tmp/padded.txt ',
-          filename: 'notes.txt',
-          required: true,
-        },
-        {
-          kind: 'workspace',
-          workspacePath: ' /workspace/padded ',
-          required: false,
-        },
-        {
-          kind: 'unknown_resource',
           required: true,
         },
       ] as any,
@@ -218,6 +185,49 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     expect(JSON.stringify(commandPayload.resources)).not.toContain('displayAttachmentId');
     expect(JSON.stringify(commandPayload.resources)).not.toContain('previewSrc');
     expect(JSON.stringify(commandPayload.resources)).not.toContain('screenshotRef');
+  });
+
+  test('sendQuery rejects malformed or display-lifecycle turn resources before dispatch', async () => {
+    const { DesktopLiveTurnRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
+    );
+
+    await expect(DesktopLiveTurnRuntimeClient.sendQuery({
+      text: 'hello with bad resources',
+      conversationRef: 'conv-send',
+      turnRef: 'turn-explicit',
+      resources: [
+        {
+          kind: 'clipboard_image',
+          displayAttachmentId: 'renderer-owned-id',
+          base64: 'image-base64',
+          contentType: 'image/png',
+          filename: 'shot.png',
+          previewSrc: 'data:image/png;base64,preview',
+          screenshotRef: 'artifact-should-not-cross',
+          required: true,
+        },
+        {
+          kind: 'clipboard_image',
+          base64: 'valid-image-base64',
+          contentType: 'image/png',
+          filename: 'valid-shot.png',
+          required: true,
+        },
+      ] as any,
+    } as any)).rejects.toThrow('conversation.send resources must use typed SDK resource shapes');
+
+    await expect(DesktopLiveTurnRuntimeClient.sendQuery({
+      text: 'hello with unknown resource',
+      conversationRef: 'conv-send',
+      turnRef: 'turn-explicit',
+      resources: [{
+        kind: 'unknown_resource',
+        required: true,
+      }] as any,
+    } as any)).rejects.toThrow('conversation.send resources must use typed SDK resource shapes');
+
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
   });
 
   test('sendQuery rejects padded command identity before dispatch', async () => {

@@ -2860,6 +2860,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime.ts'),
       'utf8',
     );
+    const liveTurnRuntimeClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),
+      'utf8',
+    );
     const stateRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatSendStateRuntime.ts'),
       'utf8',
@@ -2967,6 +2971,9 @@ describe('renderer chat runtime boundary', () => {
     expect(payloadRuntimeSource).not.toContain('export function normalizeAttachmentFilenames');
     expect(payloadRuntimeSource).not.toContain('normalizeAttachmentFilenames');
     expect(payloadRuntimeSource).not.toContain('features/chat');
+    expect(liveTurnRuntimeClientSource).toContain('conversation.send resources must use typed SDK resource shapes');
+    expect(liveTurnRuntimeClientSource).toContain('if (!normalizedResource) {\n      return null;');
+    expect(liveTurnRuntimeClientSource).not.toContain('.filter((resource): resource is TurnInputResource');
     expect(stateRuntimeSource).toContain('export const DesktopChatSendStateRuntime = Object.freeze');
     expect(stateRuntimeSource).toContain('hasPriorUserMessages');
     expect(stateRuntimeSource).toContain('DesktopConversationDisplayRowLookupRuntime');
