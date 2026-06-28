@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-surface: require SDK `ConversationView` dashboard/pill surface
+  modes to be exact `idle` or `busy` labels before driving renderer busy state,
+  leaving padded or unknown modes inert. No migration required.
 - frontend/chat-interface: require SDK `ConversationView.revisionId` to be an
   exact non-empty identity before exposing it as `activeRevisionId`, preventing
   malformed revision ids from becoming renderer presentation state. No

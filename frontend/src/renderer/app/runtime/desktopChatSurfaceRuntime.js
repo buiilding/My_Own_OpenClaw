@@ -29,8 +29,19 @@ const {
   hasWorkspaceConversationView,
 } = DesktopConversationViewWorkspaceRuntime;
 
+const CONVERSATION_VIEW_LOOP_SURFACE_MODES = new Set(['idle', 'busy']);
+
 function isObject(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function readExactLoopSurfaceMode(value) {
+  return typeof value === 'string'
+    && value.length > 0
+    && value === value.trim()
+    && CONVERSATION_VIEW_LOOP_SURFACE_MODES.has(value)
+    ? value
+    : null;
 }
 
 function resolveSurfaceConversationRef({
@@ -50,7 +61,7 @@ function resolveConversationViewSurfaceMode(conversationView, surfaceName) {
   if (!isObject(conversationView) || typeof surfaceName !== 'string' || !surfaceName) {
     return null;
   }
-  return conversationView?.surfaces?.[surfaceName]?.mode ?? null;
+  return readExactLoopSurfaceMode(conversationView?.surfaces?.[surfaceName]?.mode);
 }
 
 function buildChatSurfaceControllerState({

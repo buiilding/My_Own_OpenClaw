@@ -76,11 +76,55 @@ describe('DesktopChatSurfaceRuntime', () => {
     expect(state.currentTurnPresentationState.activeResponse).toBeNull();
   });
 
+  test('does not repair malformed ConversationView dashboard surface modes into busy state', () => {
+    for (const mode of [' busy ', 'working']) {
+      const state = buildChatSurfaceControllerState({
+        conversationViewSurface: 'dashboard',
+        conversationView: buildConversationView({
+          conversationRef: 'conv-1',
+          liveTurn: {
+            turnRef: 'turn-1',
+            phase: 'streaming',
+            canStop: true,
+            isBusy: true,
+            entries: [],
+          },
+          surfaces: {
+            dashboard: {
+              mode,
+            },
+          },
+        }),
+        messages: [{
+          id: 'stale-raw-row',
+          sender: 'assistant',
+          text: 'stale',
+        }],
+        sdkLiveTurn: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-raw',
+          phase: 'streaming',
+        },
+      });
+
+      expect(state).toMatchObject({
+        isBusy: false,
+        canStop: true,
+        liveTurnSource: 'conversation-view',
+      });
+      expect(state.visibleTurnLifecycle).toMatchObject({
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+      });
+    }
+  });
+
   test('keeps renderer pending bridge busy and stoppable before SDK view exists', () => {
     const state = buildChatSurfaceControllerState({
       pendingTurn: {
         conversationRef: 'conv-1',
         turnRef: 'turn-pending',
+        userMessageId: 'user-pending',
         text: 'hello',
         timestamp: '2026-06-25T12:00:00.000Z',
       },
@@ -175,6 +219,9 @@ describe('DesktopChatSurfaceRuntime', () => {
       pendingTurn: {
         conversationRef: 'conv-view',
         turnRef: 'turn-pending',
+        userMessageId: 'user-pending',
+        text: 'hello',
+        timestamp: '2026-06-25T12:00:00.000Z',
       },
       sdkLiveTurn: {
         conversationRef: 'conv-view',
@@ -197,7 +244,10 @@ describe('DesktopChatSurfaceRuntime', () => {
     expect(state.visibleTurnLifecycle).toMatchObject({
       source: 'local',
       status: 'local_pending',
-      awaitingAnchor: null,
+      awaitingAnchor: {
+        kind: 'user-message',
+        rowId: 'user-pending',
+      },
       conversationRef: 'conv-view',
       turnRef: 'turn-pending',
     });

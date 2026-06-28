@@ -275,7 +275,10 @@ The minimal pill and dashboard control surfaces also consume the view for the
 busy/Stop contract: `snapshot.view.surfaces.pill.mode` drives the pill loop
 lock, `snapshot.view.surfaces.dashboard.mode` drives the dashboard composer
 loop lock, and `snapshot.view.liveTurn.canStop` drives Stop availability in
-renderer and Electron-main Stop shortcut resolution.
+renderer and Electron-main Stop shortcut resolution. Renderer adapters accept
+only exact SDK loop surface modes (`idle` or `busy`) for pill/dashboard lock
+state; padded or unknown mode labels remain inert instead of being repaired into
+busy UI.
 The pill response-overlay `turnId` is also resolved inside the app runtime from
 SDK response rows, SDK overlay intent, visible lifecycle, or the pending bridge;
 React hooks pass those inputs through instead of composing renderer-owned

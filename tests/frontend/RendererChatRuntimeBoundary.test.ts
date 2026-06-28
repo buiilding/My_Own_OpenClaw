@@ -167,6 +167,9 @@ describe('renderer chat runtime boundary', () => {
     expect(surfaceRuntimeSource).toContain('sdkLiveTurn: effectiveSdkLiveTurn');
     expect(surfaceRuntimeSource).toContain('messages: rendererFallbackMessages');
     expect(surfaceRuntimeSource).toContain('resolveConversationViewSurfaceMode(');
+    expect(surfaceRuntimeSource).toContain('CONVERSATION_VIEW_LOOP_SURFACE_MODES');
+    expect(surfaceRuntimeSource).toContain('readExactLoopSurfaceMode(conversationView?.surfaces?.[surfaceName]?.mode)');
+    expect(surfaceRuntimeSource).not.toContain('conversationView?.surfaces?.[surfaceName]?.mode ?? null');
     expect(surfaceRuntimeSource).toContain('effectiveConversationView,');
     expect(surfaceRuntimeSource).toContain('effectiveConversationView?.liveTurn?.canStop');
     expect(surfaceRuntimeSource).not.toContain('features/chat');

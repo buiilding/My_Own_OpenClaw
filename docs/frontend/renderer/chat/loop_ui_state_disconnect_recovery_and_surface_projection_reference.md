@@ -299,6 +299,10 @@ longer imports the overlay lifecycle adapter.
 - receives pill turn identity and trace snapshots from the app-runtime session
   helper, which rejects padded conversation refs, turn refs, lifecycle phases,
   and SDK pill surface modes instead of repairing them into minimal-pill state
+- receives dashboard/pill busy state from
+  `DesktopChatSurfaceRuntime`, which accepts only exact SDK loop surface modes
+  (`idle` or `busy`); padded or unknown `ConversationView` dashboard/pill modes
+  do not become renderer busy state.
 - receives response-overlay surface state from the live-surface runtime, which
   also treats SDK live-turn `phase` and response-overlay `mode` labels as exact
   values instead of trimming padded labels into awaiting or response overlays
