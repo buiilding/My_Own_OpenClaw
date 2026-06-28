@@ -498,11 +498,12 @@ no-view thinking-text fallback until that surface is fully view-backed.
 For the Phase 3 transcript migration, Electron renderer projects dashboard
 messages from `snapshot.view.displayRows` when a current-turn payload includes
 the view, and dashboard busy state reads `snapshot.view.surfaces.dashboard.mode`.
-Dashboard thread live rows also render from `snapshot.view.liveTurn.entries`
-whenever a view exists; SDK view construction removes discrete tool-call,
-tool-output, and tool-progress live entries once the same tool event has
-materialized in `snapshot.view.displayRows`, so a tool card has one UI row
-owner. Legacy no-view tool-call rows must still preserve request identity from
+Dashboard thread live rows render from `snapshot.view.liveTurn.entries` only
+for active-turn content that has not been materialized by
+`snapshot.view.displayRows`; SDK view construction removes assistant text and
+discrete tool-call, tool-output, and tool-progress live entries once the same
+turn content has materialized in display rows, so active transcript content has
+one UI row owner. Legacy no-view tool-call rows must still preserve request identity from
 the tool event or nested payload as the renderer `correlationId`, because
 display-row reconciliation keys live/materialized tool cards by that identity
 and does not treat tool name alone as a duplicate signal; exact text remains
@@ -780,9 +781,11 @@ SDK display-row messages plus the explicit renderer pending-send bridge as its
 base rows. Raw renderer transcript rows are ignored in that mode so view-owned
 live rows cannot be positioned, deduped, or suppressed by stale chat-store
 messages. `ConversationView.liveTurn.entries` render as SDK-authored live rows
-without the renderer's no-view latest-user, materialized-text, or duplicate
-suppression heuristics; those guards are retained only for legacy
-`sdkLiveTurn` fallback before a complete view exists. Main chat presentation
+only until the same active-turn content is materialized by
+`ConversationView.displayRows`; display rows are the canonical transcript
+projection once they cover assistant text or discrete tool rows for the same
+turn. Renderer no-view latest-user and duplicate heuristics remain only for
+legacy `sdkLiveTurn` fallback before a complete view exists. Main chat presentation
 also ignores raw workspace `messages` for its cache identity while a
 `ConversationView` exists; it first requires the complete SDK view envelope
 before entering that mode. Raw message-array churn is not a visible SDK-view

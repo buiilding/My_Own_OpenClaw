@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/conversation-view: filter live assistant text entries once same-turn
+  `displayRows` materialize that text, so active chat surfaces do not render
+  duplicate assistant bubbles while streaming. No migration required.
 - docs/public: move remaining backend/private planning, tool-system, run-control,
   endpoint, process-health, and doctor docs out of `frontend/docs`, and scrub
   public docs of backend source paths, private commands, VM-runs endpoints, and

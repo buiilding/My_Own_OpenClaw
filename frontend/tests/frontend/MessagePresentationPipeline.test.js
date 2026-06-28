@@ -525,7 +525,7 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
-  test('buildThreadPresentationMessages renders ConversationView live rows without materialized-text suppression', () => {
+  test('buildThreadPresentationMessages renders ConversationView live rows ahead of display rows', () => {
     const sdkUserRow = {
       id: 'sdk-user-row',
       sender: 'user',
@@ -549,7 +549,7 @@ describe('desktopThreadPresentationRuntime', () => {
         entries: [{
           id: 'view-live-entry',
           type: 'llm-text',
-          text: 'Projected answer',
+          text: 'Projected answer with more detail from live state.',
           sourceEventType: 'assistant_delta',
           turnRef: 'turn-view',
         }],
@@ -568,7 +568,7 @@ describe('desktopThreadPresentationRuntime', () => {
       expect.objectContaining({
         id: 'view-live-entry',
         sender: 'assistant',
-        text: 'Projected answer',
+        text: 'Projected answer with more detail from live state.',
         sourceChannel: 'sdk:conversation-view',
         turnRef: 'turn-view',
       }),
