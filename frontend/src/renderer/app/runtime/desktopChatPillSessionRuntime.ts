@@ -7,9 +7,6 @@ import {
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
 } from './desktopMessageSendUiRuntime';
-import type {
-  ConversationView,
-} from './desktopConversationRuntimeContracts';
 import {
   DesktopConversationViewWorkspaceRuntime,
 } from './desktopConversationViewWorkspaceRuntime';
@@ -34,15 +31,10 @@ type TurnRefSource = {
   turnRef?: string | null;
 } | null | undefined;
 
-type ChatPillCurrentTurnProjection = {
-  phase?: string | null;
-  turnRef?: string | null;
-} | null | undefined;
-
 type ChatPillSurfaceState = {
   conversationView?: unknown;
   messages?: unknown[] | null;
-  sdkLiveTurn?: ChatPillCurrentTurnProjection;
+  sdkLiveTurn?: unknown;
 } | null | undefined;
 
 type ChatPillLifecycleTraceSnapshot = {
@@ -84,16 +76,39 @@ function normalizeOptionalString(value: unknown): string | null {
   return readExactNonEmptyString(value);
 }
 
-function resolveViewLiveTurnRef(conversationView: ConversationView | null): string | null {
-  return normalizeOptionalTurnRef(conversationView?.liveTurn?.turnRef);
+function objectRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
 }
 
-function resolveViewLiveTurnPhase(conversationView: ConversationView | null): string | null {
-  return normalizeOptionalString(conversationView?.liveTurn?.phase);
+function readLiveTurn(conversationView: unknown): Record<string, unknown> | null {
+  return objectRecord(objectRecord(conversationView)?.liveTurn);
 }
 
-function resolveViewPillMode(conversationView: ConversationView | null): string | null {
-  return normalizeOptionalString(conversationView?.surfaces?.pill?.mode);
+function resolveViewLiveTurnRef(conversationView: unknown): string | null {
+  return normalizeOptionalTurnRef(readLiveTurn(conversationView)?.turnRef);
+}
+
+function resolveViewLiveTurnPhase(conversationView: unknown): string | null {
+  return normalizeOptionalString(readLiveTurn(conversationView)?.phase);
+}
+
+function resolveViewCanStop(conversationView: unknown): boolean {
+  return readLiveTurn(conversationView)?.canStop === true;
+}
+
+function resolveViewPillMode(conversationView: unknown): string | null {
+  const surfaces = objectRecord(objectRecord(conversationView)?.surfaces);
+  return normalizeOptionalString(objectRecord(surfaces?.pill)?.mode);
+}
+
+function resolveNoViewLiveTurnRef(sdkLiveTurn: unknown): string | null {
+  return normalizeOptionalTurnRef(objectRecord(sdkLiveTurn)?.turnRef);
+}
+
+function resolveNoViewLiveTurnPhase(sdkLiveTurn: unknown): string | null {
+  return normalizeOptionalString(objectRecord(sdkLiveTurn)?.phase);
 }
 
 function resolveChatPillSendLifecycle({
@@ -200,7 +215,7 @@ function buildChatPillLifecycleTraceSnapshot({
   const sdkLiveTurn = chatSurfaceState?.sdkLiveTurn ?? null;
   const candidateConversationView = chatSurfaceState?.conversationView ?? null;
   const conversationView = hasWorkspaceConversationView({ conversationView: candidateConversationView })
-    ? candidateConversationView as ConversationView
+    ? candidateConversationView
     : null;
   const viewTurnRef = resolveViewLiveTurnRef(conversationView);
   const hasConversationView = Boolean(conversationView);
@@ -208,10 +223,10 @@ function buildChatPillLifecycleTraceSnapshot({
     conversationRef: normalizeOptionalString(sessionConversationRef),
     turnRef: hasConversationView
       ? viewTurnRef
-      : normalizeOptionalTurnRef(sdkLiveTurn?.turnRef),
+      : resolveNoViewLiveTurnRef(sdkLiveTurn),
     phase: hasConversationView
       ? resolveViewLiveTurnPhase(conversationView)
-      : normalizeOptionalString(sdkLiveTurn?.phase),
+      : resolveNoViewLiveTurnPhase(sdkLiveTurn),
   };
 }
 
@@ -259,7 +274,7 @@ function buildChatPillStateTraceSnapshot({
   const sdkLiveTurn = chatSurfaceState?.sdkLiveTurn ?? null;
   const candidateConversationView = chatSurfaceState?.conversationView ?? null;
   const conversationView = hasWorkspaceConversationView({ conversationView: candidateConversationView })
-    ? candidateConversationView as ConversationView
+    ? candidateConversationView
     : null;
   const hasConversationView = Boolean(conversationView);
   const rendererFallbackMessages = hasConversationView
@@ -269,13 +284,13 @@ function buildChatPillStateTraceSnapshot({
       : [];
   const currentTurnPhase = hasConversationView
     ? resolveViewLiveTurnPhase(conversationView)
-    : normalizeOptionalString(sdkLiveTurn?.phase);
+    : resolveNoViewLiveTurnPhase(sdkLiveTurn);
   const viewTurnRef = resolveViewLiveTurnRef(conversationView);
   const currentTurnRef = hasConversationView
     ? viewTurnRef
-    : normalizeOptionalTurnRef(sdkLiveTurn?.turnRef);
+    : resolveNoViewLiveTurnRef(sdkLiveTurn);
   const viewPillMode = resolveViewPillMode(conversationView);
-  const viewCanStop = conversationView?.liveTurn?.canStop === true;
+  const viewCanStop = resolveViewCanStop(conversationView);
   return {
     signature: JSON.stringify({
       busy,

@@ -368,7 +368,9 @@ trimmed into no-view/pending routing state.
   Minimal-pill turn-id resolution and lifecycle/reset trace snapshots follow
   that exact-only rule for refs, phases, and pill surface modes, so padded SDK
   surface values cannot become visible pill identity or diagnostic handoff
-  state.
+  state. The pill session runtime reads view and no-view live-turn inputs as
+  opaque projected envelopes after the shared workspace gate, so it does not
+  import SDK `ConversationView` or current-turn projection types.
 - `acceptPendingTurnInChatStore(...)` stores the renderer-local pending turn
   before the SDK live turn opens, so dashboard/pill surfaces can
   show awaiting state and stop can target the real outgoing `turnRef`; an

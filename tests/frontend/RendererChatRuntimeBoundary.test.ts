@@ -190,17 +190,22 @@ describe('renderer chat runtime boundary', () => {
     expect(minimalPillSource).not.toContain('liveTurnSource');
   });
 
-  test('chat pill session traces require SDK ConversationView shape', async () => {
+  test('chat pill session traces read opaque SDK view envelopes through workspace gate', async () => {
     const pillSessionRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts'),
       'utf8',
     );
 
     expect(pillSessionRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
-    expect(pillSessionRuntimeSource).toContain('ConversationView');
     expect(pillSessionRuntimeSource).toContain(
       'hasWorkspaceConversationView({ conversationView: candidateConversationView })',
     );
+    expect(pillSessionRuntimeSource).toContain('sdkLiveTurn?: unknown');
+    expect(pillSessionRuntimeSource).toContain('function resolveViewCanStop');
+    expect(pillSessionRuntimeSource).toContain('function resolveNoViewLiveTurnRef');
+    expect(pillSessionRuntimeSource).not.toContain('desktopConversationRuntimeContracts');
+    expect(pillSessionRuntimeSource).not.toContain('as ConversationView');
+    expect(pillSessionRuntimeSource).not.toContain('type ChatPillCurrentTurnProjection');
     expect(pillSessionRuntimeSource).not.toContain('type ChatPillConversationView');
     expect(pillSessionRuntimeSource).not.toContain('conversationView?: ChatPillConversationView');
     expect(pillSessionRuntimeSource).not.toContain('displayRows?: unknown[] | null');

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-pill: keep pill session trace projection on opaque SDK
+  view/live-turn envelopes instead of importing SDK `ConversationView` or
+  local current-turn shapes. No migration required.
 - frontend/chat-store: route SDK view/live-turn store writes through app-runtime
   envelope gates instead of feature-store SDK type imports and casts. No
   migration required.

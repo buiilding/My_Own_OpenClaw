@@ -295,7 +295,10 @@ trace, or reset identity. Chat-pill trace snapshots treat `conversationView` as
 view-owned input only when the complete SDK view envelope is present
 (`conversationRef`, `displayRows`, `liveTurn`, `surfaces`, and `actions`);
 partial objects stay on the no-view SDK live-turn fallback path instead of
-suppressing fallback identity. The shared renderer workspace read model also
+suppressing fallback identity. The pill session runtime reads both gated view
+and no-view live-turn inputs as opaque projected envelopes instead of importing
+SDK `ConversationView` or current-turn projection types. The shared renderer
+workspace read model also
 publishes `conversationView: null` for partial objects, so stream/current-turn
 adapters cannot see partial view data beside no-view fallback state.
 Feature-store write adapters pass SDK view/live-turn payloads as opaque
