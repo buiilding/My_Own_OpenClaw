@@ -328,7 +328,13 @@ instead of being trimmed into response-overlay turn, conversation, or guard
 identity. After the overlay intent resolver has selected those exact refs, the
 live-surface presentation output consumes that resolved intent directly instead
 of recomposing turn, conversation, or guard fallbacks beside it. The same
-live-surface adapter treats SDK live-turn `phase` and
+surface lifecycle rule applies to the renderer pending bridge: once a valid
+`ConversationView` exists, local pending typing/busy state can remain visible
+only for the same exact view conversation, while replacement by SDK view state
+still requires exact same-turn evidence. Pending state from another
+conversation cannot override SDK view surface modes, live-turn lifecycle, or
+Stop availability.
+The live-surface adapter treats SDK live-turn `phase` and
 response-overlay `mode` labels as exact; padded labels fall back to hidden/idle
 surface state instead of being repaired into awaiting or response overlays.
 When a `ConversationView` overlay surface names an owner conversation different

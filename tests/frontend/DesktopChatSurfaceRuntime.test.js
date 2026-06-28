@@ -318,6 +318,49 @@ describe('DesktopChatSurfaceRuntime', () => {
     expect(state.currentTurnPresentationState.activeResponse).toBeNull();
   });
 
+  test('ignores unrelated pending bridge under ConversationView surface authority', () => {
+    const state = buildChatSurfaceControllerState({
+      conversationViewSurface: 'dashboard',
+      sessionConversationRef: 'conv-session',
+      conversationView: buildConversationView({
+        conversationRef: 'conv-view',
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'idle',
+          canStop: false,
+          isBusy: false,
+          entries: [],
+        },
+        surfaces: {
+          dashboard: {
+            mode: 'idle',
+          },
+        },
+      }),
+      pendingTurn: {
+        conversationRef: 'conv-other',
+        turnRef: 'turn-pending',
+        userMessageId: 'user-pending',
+        text: 'hello',
+        timestamp: '2026-06-25T12:00:00.000Z',
+      },
+      sdkLiveTurn: null,
+      messages: [],
+    });
+
+    expect(state).toMatchObject({
+      isBusy: false,
+      canStop: false,
+      liveTurnSource: 'conversation-view',
+    });
+    expect(state.visibleTurnLifecycle).toMatchObject({
+      source: 'conversation-view',
+      status: 'idle',
+      conversationRef: 'conv-view',
+      turnRef: null,
+    });
+  });
+
   test('surface-state adapter consumes sanitized read-model rows under ConversationView', () => {
     const state = buildChatSurfaceControllerStateFromSurfaceState({
       conversationViewSurface: 'dashboard',

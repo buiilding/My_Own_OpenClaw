@@ -129,6 +129,13 @@ function conversationViewMatchesPendingTurn(pendingTurn, conversationView) {
   );
 }
 
+function pendingTurnBelongsToConversationView(pendingTurn, conversationView) {
+  if (!pendingTurn || !conversationView) {
+    return false;
+  }
+  return normalizeConversationRef(conversationView.conversationRef) === pendingTurn.conversationRef;
+}
+
 function getConversationViewLiveTurnRef(conversationView) {
   return (
     normalizeTurnRef(conversationView?.liveTurn?.turnRef)
@@ -287,26 +294,32 @@ function resolveVisibleTurnLifecycle({
   const normalizedActiveConversationRef = normalizeConversationRef(activeConversationRef);
   const sdkLiveTurnConversationRef = normalizeConversationRef(sdkLiveTurn?.conversationRef);
   const sdkLiveTurnRef = normalizeTurnRef(sdkLiveTurn?.turnRef);
-  const sameTurnReplacement = hasAuthoritativeSameTurnSdkReplacement(
-    normalizedPendingTurn,
-    sdkLiveTurn,
-  );
   const effectiveConversationView = hasWorkspaceConversationView({ conversationView })
     ? conversationView
     : null;
+  const effectivePendingTurn = (
+    !effectiveConversationView
+    || pendingTurnBelongsToConversationView(normalizedPendingTurn, effectiveConversationView)
+  )
+    ? normalizedPendingTurn
+    : null;
+  const sameTurnReplacement = hasAuthoritativeSameTurnSdkReplacement(
+    effectivePendingTurn,
+    sdkLiveTurn,
+  );
   const viewStatus = resolveConversationViewLifecycleStatus(effectiveConversationView);
   const sameTurnConversationViewReplacement = (
-    canConversationViewReplacePendingTurn(normalizedPendingTurn, effectiveConversationView)
+    canConversationViewReplacePendingTurn(effectivePendingTurn, effectiveConversationView)
     && viewStatus !== 'idle'
   );
 
-  if (normalizedPendingTurn && !sameTurnReplacement && !sameTurnConversationViewReplacement) {
+  if (effectivePendingTurn && !sameTurnReplacement && !sameTurnConversationViewReplacement) {
     return {
       status: 'local_pending',
       source: 'local',
-      conversationRef: normalizedPendingTurn.conversationRef,
-      turnRef: normalizedPendingTurn.turnRef,
-      awaitingAnchor: findAwaitingAnchor(normalizedPendingTurn, null),
+      conversationRef: effectivePendingTurn.conversationRef,
+      turnRef: effectivePendingTurn.turnRef,
+      awaitingAnchor: findAwaitingAnchor(effectivePendingTurn, null),
       entries: [],
       terminalReason: null,
       isBusy: true,
@@ -323,7 +336,7 @@ function resolveVisibleTurnLifecycle({
       conversationRef: normalizeConversationRef(effectiveConversationView.conversationRef),
       turnRef: normalizeTurnRef(liveTurn.turnRef),
       awaitingAnchor: viewStatus === 'awaiting'
-        ? findConversationViewAwaitingAnchor(effectiveConversationView, normalizedPendingTurn)
+        ? findConversationViewAwaitingAnchor(effectiveConversationView, effectivePendingTurn)
         : null,
       entries,
       terminalReason: liveTurn.isTerminal === true ? 'complete' : null,

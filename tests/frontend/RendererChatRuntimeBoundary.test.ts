@@ -5074,6 +5074,9 @@ describe('renderer chat runtime boundary', () => {
     expect(visibleLifecycleRuntimeSource).toContain('DesktopConversationDisplayRowLookupRuntime');
     expect(visibleLifecycleRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
     expect(visibleLifecycleRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(visibleLifecycleRuntimeSource).toContain('const effectivePendingTurn = (');
+    expect(visibleLifecycleRuntimeSource).toContain('pendingTurnBelongsToConversationView(normalizedPendingTurn, effectiveConversationView)');
+    expect(visibleLifecycleRuntimeSource).toContain('if (effectivePendingTurn && !sameTurnReplacement && !sameTurnConversationViewReplacement)');
     expect(visibleLifecycleRuntimeSource).toContain('function readExactIdentityString');
     expect(visibleLifecycleRuntimeSource).toContain('function readExactLifecycleString');
     expect(visibleLifecycleRuntimeSource).toContain('return readExactIdentityString(value);');

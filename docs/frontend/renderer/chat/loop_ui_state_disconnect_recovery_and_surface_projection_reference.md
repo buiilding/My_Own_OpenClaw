@@ -54,6 +54,11 @@ stale, and visible-empty live-turn fallbacks do not replace `local_pending`.
 Same-turn handoff identity is exact: padded SDK live-turn refs,
 `ConversationView` refs, or awaiting-anchor row ids are ignored instead of
 being trimmed into pending-turn replacements or awaiting anchors.
+When a valid `ConversationView` exists, renderer-local pending lifecycle is
+eligible only if the pending turn's exact conversation ref belongs to the view.
+Pending state from another conversation cannot reclaim typing, busy, or Stop
+surface authority from the SDK view; actual pending-to-view replacement still
+requires exact same-turn evidence from SDK rows or live-turn state.
 No-view SDK live-turn fallback also requires an exact SDK conversation ref
 before it can become active surface lifecycle; malformed or missing live-turn
 conversation identity remains idle even when the live-turn packet carries
@@ -185,11 +190,12 @@ partial or malformed view objects remain on the no-view SDK-live fallback path
 instead of becoming surface state. Stop affordance gating uses
 `DesktopStopTurnRuntime.resolveStopTurnTarget(...)`, so a view with
 `liveTurn.canStop=true` still needs exact SDK conversation and turn refs before
-the renderer enables Stop; otherwise only a valid pending bridge can provide a
-temporary stop target.
-instead of suppressing raw surface inputs. The React hook owns config toggles and manual
-compaction callbacks only; it should not branch over SDK view/current-turn
-authorities directly. The response overlay uses
+the renderer enables Stop. Before a view exists, a valid pending bridge can
+provide a temporary stop target; once a view exists, that bridge must belong to
+the exact same view conversation before it can drive typing or busy state, and
+Stop still resolves through the shared stop-target runtime. The React hook owns
+config toggles and manual compaction callbacks only;
+it should not branch over SDK view/current-turn authorities directly. The response overlay uses
 `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
 only for explicit SDK response-entry data plus overlay-intent metadata instead
 of merging a fallback presentation snapshot. Actual response visibility
@@ -209,7 +215,7 @@ The live-surface adapter accepts that view only through the shared
 `DesktopConversationViewWorkspaceRuntime.hasWorkspaceConversationView(...)`
 gate, so partial or malformed envelopes fall back to the no-view SDK
 current-turn presentation path before overlay/live-turn fields are read.
-An unrelated renderer-local pending turn still owns the immediate pending
+Only a same-view renderer-local pending turn owns the immediate pending
 bridge. The live surface still prepares overlay presentation input and SDK
 overlay intent metadata, but phase, busy, awaiting, and response flags now come
 from that visible lifecycle projection. The

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-surface: scope local pending lifecycle under `ConversationView`
+  to the exact same view conversation, so stale pending bridges from other
+  conversations cannot drive typing, busy, or Stop surface authority. No
+  migration required.
 - frontend/conversation-view: scope SDK user-display-row lookup to rows whose
   exact `conversationRef` matches the enclosing `ConversationView`, so malformed
   rows cannot suppress pending bridges or count as same-turn replacement

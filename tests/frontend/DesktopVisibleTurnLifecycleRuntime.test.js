@@ -739,6 +739,45 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
   });
 
+  test('ignores unrelated pending turn when ConversationView owns lifecycle', () => {
+    const pending = pendingTurn({
+      conversationRef: 'conv-other',
+      turnRef: 'turn-other',
+      userMessageId: 'pending-user',
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      conversationView: conversationView({
+        conversationRef: 'conv-1',
+        displayRows: [],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'awaiting',
+          isBusy: true,
+          entries: [],
+        },
+        surfaces: {
+          responseOverlay: {
+            mode: 'awaiting',
+            visible: true,
+            turnRef: 'turn-view',
+            guardRef: 'turn-view',
+            ownerConversationRef: 'conv-1',
+          },
+        },
+      }),
+    })).toMatchObject({
+      status: 'awaiting',
+      source: 'conversation-view',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-view',
+      awaitingAnchor: null,
+      showTyping: true,
+    });
+  });
+
   test('does not repair padded ConversationView surface modes into lifecycle state', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
