@@ -269,7 +269,7 @@ describe('chatSelectors', () => {
     });
   });
 
-  test('surface selector rejects raw messages under direct ConversationView input', () => {
+  test('surface selector trusts projected ConversationView input', () => {
     const conversationView = buildConversationView('conv-direct', {
       liveTurn: {
         turnRef: 'turn-direct',
@@ -282,7 +282,7 @@ describe('chatSelectors', () => {
     });
 
     expect(projectDesktopChatSurfaceState({
-      activeWorkspace: {
+      activeWorkspace: projectWorkspaceReadModelState({
         messages: [{ id: 'stale-user', text: 'stale raw', sender: 'user' }],
         conversationView,
         pendingTurn: {
@@ -290,7 +290,7 @@ describe('chatSelectors', () => {
           turnRef: 'turn-pending',
         },
         sdkLiveTurn: { turnRef: 'raw-live-turn' },
-      },
+      }),
     })).toEqual({
       messages: [],
       conversationView,
@@ -302,12 +302,12 @@ describe('chatSelectors', () => {
     });
   });
 
-  test('interface selector rejects no-view runtime fields under direct ConversationView input', () => {
+  test('interface selector trusts projected ConversationView input', () => {
     const conversationView = buildConversationView('conv-direct', {
       displayRows: [{ id: 'sdk-row', role: 'assistant', type: 'assistant_message' }],
     });
 
-    expect(projectDesktopChatInterfaceState({
+    expect(projectDesktopChatInterfaceState(projectWorkspaceReadModelState({
       messages: [{ id: 'stale-user', text: 'stale raw', sender: 'user' }],
       rendererAnnotations: [{
         id: 'sdk-row',
@@ -320,7 +320,7 @@ describe('chatSelectors', () => {
       sdkLiveTurn: { turnRef: 'raw-live-turn' },
       conversationView,
       pendingTurn: null,
-    })).toEqual(expect.objectContaining({
+    }))).toEqual(expect.objectContaining({
       messages: [],
       rendererAnnotations: [{
         id: 'sdk-row',
@@ -335,12 +335,12 @@ describe('chatSelectors', () => {
     }));
   });
 
-  test('surface selector keeps no-view state for display timeline row payloads', () => {
+  test('workspace projection keeps no-view state for display timeline row payloads', () => {
     const messages = [{ id: 'raw-user', text: 'raw no-view', sender: 'user' }];
     const sdkLiveTurn = { turnRef: 'raw-live-turn' };
 
     expect(projectDesktopChatSurfaceState({
-      activeWorkspace: {
+      activeWorkspace: projectWorkspaceReadModelState({
         messages,
         conversationView: {
           conversationRef: 'conv-direct',
@@ -351,7 +351,7 @@ describe('chatSelectors', () => {
           turnRef: 'turn-pending',
         },
         sdkLiveTurn,
-      },
+      }),
     })).toEqual({
       messages,
       conversationView: null,

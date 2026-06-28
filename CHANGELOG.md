@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-surface: make the shared surface selector consume projected
+  workspace read models directly instead of repeating `ConversationView` versus
+  raw-message suppression logic. No migration required.
 - frontend/chat-store: clear stale raw workspace messages when a valid SDK
   `ConversationView` becomes authoritative, after migrating exact assistant
   feedback into renderer annotations. No migration required.

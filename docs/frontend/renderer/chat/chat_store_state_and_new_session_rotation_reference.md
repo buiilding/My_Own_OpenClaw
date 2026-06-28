@@ -187,11 +187,11 @@ workspace `ConversationView` gate before reading view live-turn or
 response-overlay surface fields, leaving malformed envelopes on the no-view SDK
 current-turn path. Live tool
 identity fields such as `correlationId`, `requestId`, and `bundleId` are exact;
-padded values fall through instead of becoming renderer dedupe keys. The legacy
-no-view SDK `toolEvents` fallback uses the same exact correlation rule instead
-of trimming malformed tool ids into rendered rows. Live-entry and legacy
-no-view `toolEvents` tool names are also exact; padded names are ignored instead
-of becoming visible labels or fallback tool text. Tool detail metadata comes
+padded values fall through instead of becoming renderer dedupe keys. Legacy
+no-view `toolEvents` are not projected into rendered tool rows; live tool rows
+come from SDK presentation or `ConversationView` entries. Live-entry tool names
+are also exact; padded names are ignored instead of becoming visible labels or
+fallback tool text. Tool detail metadata comes
 only from SDK-authored `toolCallDetails`/`toolOutputDetails`; renderer fallback
 text does not synthesize detail records from a bare tool name. Tool output
 components also do not rebuild missing details from legacy `toolMetadata`,
@@ -252,13 +252,14 @@ trimmed into no-view/pending routing state.
   complete SDK envelope is present. A partial object under `conversationView`
   remains on the no-view fallback path instead of becoming a second chat read
   model.
-- Shared chat surface selectors use that same predicate before replacing raw
-  surface messages with the empty view-owned list or nulling the no-view
-  `sdkLiveTurn`. Interface selectors also null no-view thinking status,
-  compaction debug info, and token counts when a valid SDK view is present, so
-  direct selector callers cannot mix SDK display rows with renderer fallback
-  runtime state or make partial `conversationView` objects suppress no-view
-  state.
+- Shared chat surface selectors consume the already-projected workspace read
+  model instead of repeating `ConversationView` shape checks or choosing between
+  raw messages and SDK view fields. The workspace read-model runtime is the only
+  renderer selector layer that suppresses raw `messages`, no-view `sdkLiveTurn`,
+  thinking status, compaction debug info, token counts, and stream tracking
+  when a valid SDK view is present. Surface selectors simply pass those
+  sanitized fields through, so partial `conversationView` objects stay on the
+  no-view path before they reach surface state.
 - ChatInterface presentation applies the same full SDK view-envelope predicate
   before using view display rows, active revision, or view cache identity, and
   passes `null` to the thread presenter for partial objects. Invalid

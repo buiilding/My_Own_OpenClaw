@@ -4702,27 +4702,28 @@ describe('renderer chat runtime boundary', () => {
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('hasSdkConversationView');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('function hasConversationView');
-    expect(chatSurfaceSelectorRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
-    expect(chatSurfaceSelectorRuntimeSource).toContain('hasWorkspaceConversationView(activeWorkspace)');
+    expect(chatSurfaceSelectorRuntimeSource).not.toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(chatSurfaceSelectorRuntimeSource).not.toContain('hasWorkspaceConversationView');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('emptyChatMessages');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('activeWorkspace.currentTurnProjection ?? null');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('currentTurnProjection');
-    expect(chatSurfaceSelectorRuntimeSource).toContain('const messages = conversationView ? emptySurfaceMessages : activeWorkspace.messages;');
-    expect(chatSurfaceSelectorRuntimeSource).toContain('const sdkLiveTurn = conversationView ? null : activeWorkspace.sdkLiveTurn ?? null;');
+    expect(chatSurfaceSelectorRuntimeSource).not.toContain('conversationView ? emptySurfaceMessages');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('const messages = activeWorkspace.messages;');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('const sdkLiveTurn = activeWorkspace.sdkLiveTurn ?? null;');
     expect(chatSurfaceSelectorRuntimeSource).toContain('sdkLiveTurn,');
     expect(chatSurfaceSelectorRuntimeSource).toContain('activeWorkspace.rendererAnnotations');
     expect(chatSurfaceSelectorRuntimeSource).toContain('messages: surfaceState.messages');
-    expect(chatSurfaceSelectorRuntimeSource).toContain('rendererAnnotations: surfaceState.conversationView');
-    expect(chatSurfaceSelectorRuntimeSource).toContain('const hasConversationView = Boolean(surfaceState.conversationView);');
-    expect(chatSurfaceSelectorRuntimeSource).toContain('thinkingStatus: hasConversationView ? null : activeWorkspace.thinkingStatus');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('rendererAnnotations: projectedRendererAnnotations');
+    expect(chatSurfaceSelectorRuntimeSource).not.toContain('const hasConversationView = Boolean(surfaceState.conversationView);');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('thinkingStatus: activeWorkspace.thinkingStatus');
     expect(chatSurfaceSelectorRuntimeSource).toContain(
-      'thinkingSourceEventType: hasConversationView ? null : (activeWorkspace.thinkingSourceEventType ?? null)',
+      'thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null',
     );
     expect(chatSurfaceSelectorRuntimeSource).toContain(
-      'compactionDebugInfo: hasConversationView ? null : (activeWorkspace.compactionDebugInfo ?? null)',
+      'compactionDebugInfo: activeWorkspace.compactionDebugInfo ?? null',
     );
     expect(chatSurfaceSelectorRuntimeSource).toContain(
-      'tokenCounts: hasConversationView ? null : (activeWorkspace.tokenCounts ?? null)',
+      'tokenCounts: activeWorkspace.tokenCounts ?? null',
     );
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('conversationView\n    ? emptyChatMessages\n    : interfaceState.messages');
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('messages: conversationView ?');

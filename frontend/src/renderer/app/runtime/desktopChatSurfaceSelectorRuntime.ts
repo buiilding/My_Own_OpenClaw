@@ -3,13 +3,6 @@
  */
 
 import type { ChatMessage } from './desktopChatMessageTypes';
-import {
-  DesktopConversationViewWorkspaceRuntime,
-} from './desktopConversationViewWorkspaceRuntime';
-
-const {
-  hasWorkspaceConversationView,
-} = DesktopConversationViewWorkspaceRuntime;
 
 type DesktopChatWorkspaceProjection = {
   messages: ChatMessage[];
@@ -23,7 +16,6 @@ type DesktopChatWorkspaceProjection = {
   sdkLiveTurn?: unknown | null;
 };
 
-const emptySurfaceMessages: ChatMessage[] = [];
 const emptyRendererAnnotations: unknown[] = [];
 let chatSurfaceStateCache: {
   conversationView: unknown | null | undefined;
@@ -49,11 +41,9 @@ function projectDesktopChatSurfaceState({
 }: {
   activeWorkspace: DesktopChatWorkspaceProjection;
 }) {
-  const conversationView = hasWorkspaceConversationView(activeWorkspace)
-    ? activeWorkspace.conversationView ?? null
-    : null;
-  const messages = conversationView ? emptySurfaceMessages : activeWorkspace.messages;
-  const sdkLiveTurn = conversationView ? null : activeWorkspace.sdkLiveTurn ?? null;
+  const conversationView = activeWorkspace.conversationView ?? null;
+  const messages = activeWorkspace.messages;
+  const sdkLiveTurn = activeWorkspace.sdkLiveTurn ?? null;
   const pendingTurn = activeWorkspace.pendingTurn ?? null;
   if (
     chatSurfaceStateCache.state
@@ -86,19 +76,16 @@ function projectDesktopChatInterfaceState(
   const surfaceState = projectDesktopChatSurfaceState({
     activeWorkspace,
   });
-  const hasConversationView = Boolean(surfaceState.conversationView);
   const projectedRendererAnnotations = Array.isArray(activeWorkspace.rendererAnnotations)
     ? activeWorkspace.rendererAnnotations
     : emptyRendererAnnotations;
   return {
     messages: surfaceState.messages,
-    rendererAnnotations: surfaceState.conversationView
-      ? projectedRendererAnnotations
-      : emptyRendererAnnotations,
-    thinkingStatus: hasConversationView ? null : activeWorkspace.thinkingStatus,
-    thinkingSourceEventType: hasConversationView ? null : (activeWorkspace.thinkingSourceEventType ?? null),
-    compactionDebugInfo: hasConversationView ? null : (activeWorkspace.compactionDebugInfo ?? null),
-    tokenCounts: hasConversationView ? null : (activeWorkspace.tokenCounts ?? null),
+    rendererAnnotations: projectedRendererAnnotations,
+    thinkingStatus: activeWorkspace.thinkingStatus,
+    thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null,
+    compactionDebugInfo: activeWorkspace.compactionDebugInfo ?? null,
+    tokenCounts: activeWorkspace.tokenCounts ?? null,
     sdkLiveTurn: surfaceState.sdkLiveTurn,
     conversationView: surfaceState.conversationView,
     pendingTurn: surfaceState.pendingTurn,

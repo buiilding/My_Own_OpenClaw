@@ -2072,8 +2072,11 @@ describe('renderer app runtime boundary', () => {
       'state.latestCurrentTurnProjection || state.currentTurnProjection',
     );
     expect(responseOverlaySource).toContain('selectLiveTurnSurfaceState');
-    expect(selectorRuntimeSource).toContain('const messages = conversationView ? emptySurfaceMessages : activeWorkspace.messages;');
-    expect(selectorRuntimeSource).toContain('const sdkLiveTurn = conversationView ? null : activeWorkspace.sdkLiveTurn ?? null;');
+    expect(selectorRuntimeSource).not.toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(selectorRuntimeSource).not.toContain('hasWorkspaceConversationView');
+    expect(selectorRuntimeSource).not.toContain('conversationView ? emptySurfaceMessages');
+    expect(selectorRuntimeSource).toContain('const messages = activeWorkspace.messages;');
+    expect(selectorRuntimeSource).toContain('const sdkLiveTurn = activeWorkspace.sdkLiveTurn ?? null;');
     expect(selectorRuntimeSource).toContain('sdkLiveTurn,');
     expect(chatInterfaceSelectorRuntimeSource).toContain(
       'const presentationMessages = interfaceState.messages as ChatMessage[];',
