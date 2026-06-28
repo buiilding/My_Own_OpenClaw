@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-interface: keep chat interface selectors on projected
+  surface/read-model inputs instead of importing or casting SDK
+  `ConversationView` and current-turn types. No migration required.
 - frontend/attachments: expand send-preparation coverage so renderer pending
   turns and SDK resources stay free of display attachment ids, preview sources,
   screenshot aliases, attachment filename aliases, and attachment arrays. No

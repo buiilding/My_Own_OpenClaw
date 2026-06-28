@@ -533,7 +533,10 @@ Surface, response-overlay, interface presentation, and send-read-model selector
 adapters consume that read model as their input contract. They should not
 rederive renderer annotations from raw messages or independently choose between
 `messages`, `sdkLiveTurn`, and `ConversationView`; that choice belongs
-to the workspace read-model runtime. Selected surface state passes through the
+to the workspace read-model runtime. Chat interface selectors pass projected
+view/live-turn envelopes through as unknown inputs; presentation, Stop, and
+send-state runtimes own the SDK shape gates before reading SDK fields. Selected
+surface state passes through the
 no-view live-turn fallback as `sdkLiveTurn`, so dashboard, pill, and
 response-overlay consumers receive SDK live-turn intent without reopening raw
 current-turn storage. When `ConversationView` exists,

@@ -308,6 +308,10 @@ that same complete envelope before a value can suppress raw fallback messages,
 ConversationView trace summaries and send-state user-row checks use that same
 shared full-envelope gate before reading `displayRows`; partial objects do not
 define a renderer-local trace or first-message read model.
+Chat interface selectors likewise keep SDK view and live-turn envelopes as
+projected inputs instead of importing or casting SDK `ConversationView` or
+current-turn types; presentation, Stop, and send-state runtimes own the gates
+before they read SDK fields.
 Desktop live-surface overlay identity accepts only exact SDK refs from
 `snapshot.view.liveTurn`, `snapshot.view.surfaces.responseOverlay`, or
 `snapshot.currentTurn.presentation.overlayIntent`; padded refs are ignored

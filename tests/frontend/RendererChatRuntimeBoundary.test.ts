@@ -4618,6 +4618,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('selectStableReplayReadModel');
     expect(chatInterfaceSelectorRuntimeSource).toContain('selectStableChatSendReadModel');
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('latestConversationView');
+    expect(chatInterfaceSelectorRuntimeSource).not.toContain('CurrentTurnProjection');
+    expect(chatInterfaceSelectorRuntimeSource).not.toContain('ConversationView');
+    expect(chatInterfaceSelectorRuntimeSource).not.toContain('as CurrentTurnProjection');
+    expect(chatInterfaceSelectorRuntimeSource).not.toContain('as ConversationView');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('latestConversationView');
     expect(chatInterfaceSource).not.toContain('buildRevisionCheckoutCommand');
     expect(chatInterfaceSource).not.toContain('buildRevisionForkCommand');
