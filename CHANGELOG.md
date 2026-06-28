@@ -80,6 +80,10 @@ All notable changes to WindieOS will be documented in this file.
   content, legacy visible current-turn content, or terminal lifecycle can
   replace it, so normal dashboard sends do not fall back to the empty welcome
   state while waiting for the first visible response. No migration required.
+- cli/dev: point `<windie> start dev` source-mode SDK dependency preflight at
+  `frontend/packages/windie-sdk-js`, matching the public frontend subtree split
+  so fresh launches no longer try to install dependencies in the removed root
+  `packages/windie-sdk-js` path. No migration required.
 - frontend/conversation-view: apply SDK `ConversationView` payloads carried on
   live current-turn IPC events before no-view current-turn side effects, so
   dashboard retry/resend renders the replacement user row, typing state, and

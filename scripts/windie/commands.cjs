@@ -131,7 +131,7 @@ Developer helpers:
   <windie> mock backend
 `;
 
-const SDK_JS_DIR = repoPath('packages', 'windie-sdk-js');
+const SDK_JS_DIR = repoPath('frontend', 'packages', 'windie-sdk-js');
 const FRONTEND_NODE_MODULES_DIR = path.join(FRONTEND_DIR, 'node_modules');
 const SDK_WS_MODULE_DIR = path.join(SDK_JS_DIR, 'node_modules', 'ws');
 

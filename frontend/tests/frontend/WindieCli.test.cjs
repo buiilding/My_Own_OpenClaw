@@ -14,7 +14,7 @@ try {
   DatabaseSync = null;
 }
 
-const repoRoot = path.resolve(__dirname, '../..');
+const repoRoot = path.resolve(__dirname, '../../..');
 const cliPath = path.join(repoRoot, 'scripts/windie-cli.cjs');
 const {
   buildLayerLogTailArgs,
@@ -24,10 +24,10 @@ const {
   normalizeWindieLogTarget,
   resolveFrontendLogFile,
   resolveWindieLogFile,
-} = require('../../scripts/windie/commands.cjs');
+} = require('../../../scripts/windie/commands.cjs');
 const {
   getEndpointSnapshot,
-} = require('../../scripts/windie/status.cjs');
+} = require('../../../scripts/windie/status.cjs');
 const frontendDevUrl = process.env.WINDIE_FRONTEND_DEV_URL || 'http://localhost:5173/';
 
 function runCli(args, env = {}) {
@@ -137,7 +137,10 @@ describe('windie CLI', () => {
   });
 
   test('keeps user-facing docs and CLI strings off the removed extensionless shim', () => {
-    const docs = collectFiles(path.join(repoRoot, 'docs'), (file) => file.endsWith('.md'));
+    const docs = [
+      ...collectFiles(path.join(repoRoot, 'frontend', 'docs'), (file) => file.endsWith('.md')),
+      ...collectFiles(path.join(repoRoot, 'backend', 'docs'), (file) => file.endsWith('.md')),
+    ];
     const userFacingFiles = [
       path.join(repoRoot, 'README.md'),
       path.join(repoRoot, 'AGENTS.md'),
@@ -254,7 +257,7 @@ describe('windie CLI', () => {
   test('preflights dev node installs across frontend and SDK package boundaries', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-cli-node-preflight-'));
     const frontendDir = path.join(tempRoot, 'frontend');
-    const sdkJsDir = path.join(tempRoot, 'packages', 'windie-sdk-js');
+    const sdkJsDir = path.join(tempRoot, 'frontend', 'packages', 'windie-sdk-js');
     fs.mkdirSync(frontendDir, { recursive: true });
     fs.mkdirSync(sdkJsDir, { recursive: true });
 
@@ -279,7 +282,7 @@ describe('windie CLI', () => {
   test('does not require SDK websocket install for frontend-only start', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-cli-node-preflight-'));
     const frontendDir = path.join(tempRoot, 'frontend');
-    const sdkJsDir = path.join(tempRoot, 'packages', 'windie-sdk-js');
+    const sdkJsDir = path.join(tempRoot, 'frontend', 'packages', 'windie-sdk-js');
     fs.mkdirSync(path.join(frontendDir, 'node_modules'), { recursive: true });
     fs.mkdirSync(sdkJsDir, { recursive: true });
 
