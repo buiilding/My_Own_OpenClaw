@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: require SDK display attachment `kind`, `source`, and
+  `status` labels to be exact known lifecycle values before renderer attachment
+  projection can display them. No migration required.
 - frontend/chat-surface: require SDK `ConversationView` dashboard/pill surface
   modes to be exact `idle` or `busy` labels before driving renderer busy state,
   leaving padded or unknown modes inert. No migration required.

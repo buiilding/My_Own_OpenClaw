@@ -4486,8 +4486,15 @@ describe('renderer chat runtime boundary', () => {
     expect(displayAttachmentProjectionSource).toContain('function isDisplayableImageAttachment');
     expect(displayAttachmentProjectionSource).toContain('function isDisplayableScreenshotRequestAttachment');
     expect(displayAttachmentProjectionSource).toContain('function isReadyDisplayImageAttachment');
+    expect(displayAttachmentProjectionSource).toContain('SDK_DISPLAY_ATTACHMENT_KINDS');
+    expect(displayAttachmentProjectionSource).toContain('SDK_DISPLAY_ATTACHMENT_SOURCES');
+    expect(displayAttachmentProjectionSource).toContain('SDK_DISPLAY_ATTACHMENT_STATUSES');
+    expect(displayAttachmentProjectionSource).toContain('function readExactAttachmentKind(value: unknown)');
+    expect(displayAttachmentProjectionSource).toContain('function readExactAttachmentSource(value: unknown)');
+    expect(displayAttachmentProjectionSource).toContain('function readExactAttachmentStatus(value: unknown)');
     expect(displayAttachmentProjectionSource).toContain("status: 'ready'");
-    expect(displayAttachmentProjectionSource).toContain("&& record.status === 'ready'");
+    expect(displayAttachmentProjectionSource).toContain("readExactAttachmentStatus(record.status) === 'ready'");
+    expect(displayAttachmentProjectionSource).not.toContain("&& record.status === 'ready'");
     expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.previewSrc)');
     expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.screenshotRef)');
     expect(displayAttachmentProjectionSource).toContain('optionalReadyImageUrl(record.screenshotUrl)');

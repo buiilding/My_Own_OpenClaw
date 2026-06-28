@@ -4,6 +4,8 @@
 
 import type {
   SdkDisplayAttachment,
+  SdkDisplayAttachmentSource,
+  SdkDisplayAttachmentStatus,
 } from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
 
 type SdkDisplayImageAttachmentSource = {
@@ -13,6 +15,25 @@ type SdkDisplayImageAttachmentSource = {
   url: string | null;
   contentType: string | null;
 };
+
+type SdkDisplayAttachmentKind = SdkDisplayAttachment['kind'];
+
+const SDK_DISPLAY_ATTACHMENT_KINDS = new Set<SdkDisplayAttachmentKind>([
+  'image',
+  'screenshot_request',
+]);
+const SDK_DISPLAY_ATTACHMENT_SOURCES = new Set<SdkDisplayAttachmentSource>([
+  'user_included',
+  'camera_button',
+  'tool_result',
+  'replay',
+]);
+const SDK_DISPLAY_ATTACHMENT_STATUSES = new Set<SdkDisplayAttachmentStatus>([
+  'materializing',
+  'pending_capture',
+  'ready',
+  'failed',
+]);
 
 function recordFromUnknown(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -38,29 +59,60 @@ function optionalAttachmentString(value: unknown): string | null {
   return optionalExactString(value);
 }
 
+function readExactAttachmentKind(value: unknown): SdkDisplayAttachmentKind | null {
+  return typeof value === 'string'
+    && value.length > 0
+    && value === value.trim()
+    && SDK_DISPLAY_ATTACHMENT_KINDS.has(value as SdkDisplayAttachmentKind)
+    ? value as SdkDisplayAttachmentKind
+    : null;
+}
+
+function readExactAttachmentSource(value: unknown): SdkDisplayAttachmentSource | null {
+  return typeof value === 'string'
+    && value.length > 0
+    && value === value.trim()
+    && SDK_DISPLAY_ATTACHMENT_SOURCES.has(value as SdkDisplayAttachmentSource)
+    ? value as SdkDisplayAttachmentSource
+    : null;
+}
+
+function readExactAttachmentStatus(value: unknown): SdkDisplayAttachmentStatus | null {
+  return typeof value === 'string'
+    && value.length > 0
+    && value === value.trim()
+    && SDK_DISPLAY_ATTACHMENT_STATUSES.has(value as SdkDisplayAttachmentStatus)
+    ? value as SdkDisplayAttachmentStatus
+    : null;
+}
+
 function isDisplayableImageAttachment(record: Record<string, unknown>): boolean {
-  if (record.status === 'materializing') {
+  const source = readExactAttachmentSource(record.source);
+  const status = readExactAttachmentStatus(record.status);
+  if (status === 'materializing') {
     return (
-      record.source === 'user_included'
+      source === 'user_included'
       && optionalExactString(record.previewSrc) !== null
     );
   }
-  if (record.status === 'ready') {
+  if (status === 'ready') {
     return (
       optionalExactString(record.screenshotRef) !== null
       || optionalReadyImageUrl(record.screenshotUrl) !== null
     );
   }
-  return record.status === 'failed';
+  return status === 'failed';
 }
 
 function isDisplayableScreenshotRequestAttachment(record: Record<string, unknown>): boolean {
+  const source = readExactAttachmentSource(record.source);
+  const status = readExactAttachmentStatus(record.status);
   return (
-    record.source === 'camera_button'
+    source === 'camera_button'
     && (
-      record.status === 'pending_capture'
-      || record.status === 'materializing'
-      || record.status === 'failed'
+      status === 'pending_capture'
+      || status === 'materializing'
+      || status === 'failed'
     )
   );
 }
@@ -70,29 +122,22 @@ function baseAttachmentFields(record: Record<string, unknown>): Pick<
   'id' | 'kind' | 'source' | 'status'
 > | null {
   const id = optionalExactString(record.id);
+  const kind = readExactAttachmentKind(record.kind);
+  const source = readExactAttachmentSource(record.source);
+  const status = readExactAttachmentStatus(record.status);
   if (
     !id
-    || (record.kind !== 'image' && record.kind !== 'screenshot_request')
-    || (
-      record.source !== 'user_included'
-      && record.source !== 'camera_button'
-      && record.source !== 'tool_result'
-      && record.source !== 'replay'
-    )
-    || (
-      record.status !== 'materializing'
-      && record.status !== 'pending_capture'
-      && record.status !== 'ready'
-      && record.status !== 'failed'
-    )
+    || !kind
+    || !source
+    || !status
   ) {
     return null;
   }
   return {
     id,
-    kind: record.kind,
-    source: record.source,
-    status: record.status,
+    kind,
+    source,
+    status,
   };
 }
 
@@ -164,8 +209,12 @@ function sanitizeSdkDisplayAttachment(value: unknown): SdkDisplayAttachment | nu
   if (!record) {
     return null;
   }
+  const kind = readExactAttachmentKind(record.kind);
+  if (!kind) {
+    return null;
+  }
   if (
-    record.kind === 'image'
+    kind === 'image'
       ? !isDisplayableImageAttachment(record)
       : !isDisplayableScreenshotRequestAttachment(record)
   ) {
@@ -190,8 +239,8 @@ function isReadyDisplayImageAttachment(value: unknown): boolean {
   const record = recordFromUnknown(value);
   return Boolean(
     record
-    && record.kind === 'image'
-    && record.status === 'ready',
+    && readExactAttachmentKind(record.kind) === 'image'
+    && readExactAttachmentStatus(record.status) === 'ready',
   );
 }
 

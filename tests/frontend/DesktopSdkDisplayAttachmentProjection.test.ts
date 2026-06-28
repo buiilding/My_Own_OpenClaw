@@ -38,6 +38,27 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
         status: 'unknown',
       },
       {
+        id: 'padded-kind',
+        kind: ' image ',
+        source: 'user_included',
+        status: 'ready',
+        screenshotRef: 'artifact-padded-kind',
+      },
+      {
+        id: 'padded-source',
+        kind: 'image',
+        source: ' user_included ',
+        status: 'ready',
+        screenshotRef: 'artifact-padded-source',
+      },
+      {
+        id: 'padded-status',
+        kind: 'image',
+        source: 'user_included',
+        status: ' ready ',
+        screenshotRef: 'artifact-padded-status',
+      },
+      {
         id: 'missing-ready-source',
         kind: 'image',
         source: 'user_included',
@@ -312,6 +333,60 @@ describe('DesktopSdkDisplayAttachmentProjection', () => {
       source: 'replay',
       status: 'ready',
       screenshotRef: 'artifact-ready',
+    })).toBeNull();
+  });
+
+  test('does not repair padded SDK attachment lifecycle labels', () => {
+    expect(readSdkDisplayAttachments([
+      {
+        id: 'padded-kind',
+        kind: ' image ',
+        source: 'user_included',
+        status: 'ready',
+        screenshotRef: 'artifact-padded-kind',
+      },
+      {
+        id: 'padded-source',
+        kind: 'image',
+        source: ' replay ',
+        status: 'ready',
+        screenshotRef: 'artifact-padded-source',
+      },
+      {
+        id: 'padded-status',
+        kind: 'image',
+        source: 'replay',
+        status: ' ready ',
+        screenshotRef: 'artifact-padded-status',
+      },
+      {
+        id: 'padded-request-status',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: ' pending_capture ',
+      },
+      {
+        id: 'exact-ready',
+        kind: 'image',
+        source: 'replay',
+        status: 'ready',
+        screenshotRef: 'artifact-ready',
+      },
+    ])).toEqual([
+      expect.objectContaining({
+        id: 'exact-ready',
+        kind: 'image',
+        source: 'replay',
+        status: 'ready',
+      }),
+    ]);
+
+    expect(readSdkImageAttachmentSource({
+      id: 'padded-source',
+      kind: 'image',
+      source: ' replay ',
+      status: 'ready',
+      screenshotRef: 'artifact-padded-source',
     })).toBeNull();
   });
 

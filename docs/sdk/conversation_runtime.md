@@ -329,8 +329,12 @@ That bridge may carry turn identity, text, and timestamps, but it must not
 carry filename metadata, visual attachment lifecycle descriptors, screenshots,
 preview bytes, or ready artifact refs. SDK display rows and
 `ConversationView` own user-included image, camera screenshot, and replay
-attachment presentation. Renderer visible lifecycle, live-surface, and Stop
-adapters use the same strict pending bridge validator as chat-store state, so
+attachment presentation. Renderer display attachment adapters accept only exact
+SDK lifecycle labels (`kind`, `source`, and `status`) before projecting typed
+attachments into UI props; padded or unknown lifecycle labels stay inert instead
+of being repaired into visible attachments. Renderer visible lifecycle,
+live-surface, and Stop adapters use the same strict pending bridge validator as
+chat-store state, so
 partial or attachment-bearing pending-like objects do not become local typing,
 response overlay, or Stop authority. SDK-shaped materializing display
 attachments may carry volatile `previewSrc` only inside display-row/UI

@@ -68,6 +68,9 @@ Clipboard image IPC trust boundary:
    - Live tool-output image: SDK presentation or `ConversationView` live-turn
      `attachments[]`. Legacy no-view current-turn `toolEvents` are text/status
      fallback only and must not publish attachment descriptors.
+   - Renderer attachment adapters accept only exact SDK display attachment
+     lifecycle labels: `kind`, `source`, and `status` must be known, unpadded
+     SDK values before an attachment can render.
 
 2. Preserve composer payload shape.
    - `DesktopMessageInputRuntime.buildOutgoingMessage(...)` may return a string for text-only sends.
