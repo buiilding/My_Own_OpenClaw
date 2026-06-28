@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: keep provider trace read models from carrying raw
+  fallback message counts or last-message metadata once a valid SDK
+  `ConversationView` exists, so provider diagnostics use the SDK view trace
+  summary as the only normal chat read model. No migration required.
 - frontend/live-turn: omit legacy no-presentation assistant `thinkingText`
   metadata when raw reasoning is absent, instead of publishing
   renderer-owned `null` placeholders. No migration required.

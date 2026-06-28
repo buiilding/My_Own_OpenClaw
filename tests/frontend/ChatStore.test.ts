@@ -218,6 +218,12 @@ describe('chatStore', () => {
         text: 'raw answer',
         turnRef: 'turn-raw',
       },
+      {
+        id: 'stale-raw-message',
+        sender: 'assistant',
+        text: 'stale raw answer',
+        turnRef: 'turn-stale',
+      },
     ], 'conv-trace');
     setConversationViewInChatStore({
       conversationRef: 'conv-trace',
@@ -257,6 +263,57 @@ describe('chatStore', () => {
         sourceEventType: null,
       },
     });
+  });
+
+  test('provider trace read model omits fallback rows when ConversationView exists', () => {
+    setMessagesInChatStore([
+      {
+        id: 'raw-message',
+        sender: 'assistant',
+        text: 'raw answer',
+        turnRef: 'turn-raw',
+      },
+      {
+        id: 'stale-raw-message',
+        sender: 'assistant',
+        text: 'stale raw answer',
+        turnRef: 'turn-stale',
+      },
+    ], 'conv-trace-empty-view');
+    updateStreamTrackingInChatStore((current) => ({
+      ...current,
+      activeTurnRef: 'turn-raw',
+      phase: 'streaming',
+    }), 'conv-trace-empty-view');
+    setConversationViewInChatStore({
+      conversationRef: 'conv-trace-empty-view',
+      revisionId: null,
+      displayRows: [],
+      liveTurn: {
+        turnRef: 'turn-view',
+      },
+      surfaces: {
+        dashboard: { mode: 'normal', visible: true },
+        pill: { mode: 'normal', visible: true },
+        responseOverlay: { mode: 'hidden', visible: false },
+      },
+      actions: {
+        canEdit: false,
+        canRetry: false,
+        canFork: false,
+      },
+    }, 'conv-trace-empty-view');
+
+    const snapshot = getChatProviderTraceWorkspaceSnapshotFromChatStore('conv-trace-empty-view');
+
+    expect(snapshot).toEqual({
+      activeConversationRef: null,
+      workspaceMessageCount: 0,
+      activeTurnRef: 'turn-view',
+      lastMessage: null,
+    });
+    expect(JSON.stringify(snapshot)).not.toContain('stale raw answer');
+    expect(JSON.stringify(snapshot)).not.toContain('turn-stale');
   });
 
   test('provider trace fallback metadata is exact at the store adapter boundary', () => {

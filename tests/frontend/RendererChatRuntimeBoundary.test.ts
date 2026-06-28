@@ -2788,7 +2788,11 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('hasWorkspaceConversationView(workspace)');
     expect(chatStoreAdaptersSource).toContain('conversationViewTraceSummary: hasConversationView');
     expect(chatStoreAdaptersSource).toContain('workspace: buildChatProviderTraceWorkspaceReadModel(');
-    expect(chatStoreAdaptersSource).toContain('messageCount: workspace.messages.length');
+    expect(chatStoreAdaptersSource).toContain('const fallbackMessages = hasConversationView ? [] : workspace.messages;');
+    expect(chatStoreAdaptersSource).toContain('const lastMessage = fallbackMessages[fallbackMessages.length - 1] ?? null;');
+    expect(chatStoreAdaptersSource).toContain('messageCount: fallbackMessages.length');
+    expect(chatStoreAdaptersSource).not.toContain('messageCount: workspace.messages.length');
+    expect(chatStoreAdaptersSource).not.toContain('const lastMessage = workspace.messages[workspace.messages.length - 1] ?? null');
     expect(chatStoreAdaptersSource).toContain('function exactReadModelString(value: unknown): string | null');
     expect(chatStoreAdaptersSource).toContain('activeTurnRef: exactReadModelString(workspace.streamTracking.activeTurnRef)');
     expect(chatStoreAdaptersSource).toContain('turnRef: exactReadModelString(lastMessage.turnRef)');

@@ -80,8 +80,9 @@ projected workspace read-model helper. That getter maps no-view fallback rows
 to message count, exact active turn ref, and exact last-message trace metadata;
 padded fallback sender/type/ref/source labels are reported as missing instead of
 being repaired. It maps complete SDK `ConversationView` payloads to the shared
-display trace summary,
-before calling the provider trace runtime; the trace runtime no longer scans raw
+display trace summary and clears raw fallback message count/last-message
+metadata from the provider trace read model before calling the provider trace
+runtime; the trace runtime no longer scans raw
 workspace messages or reads `ConversationView` display rows itself. Chat stream and SDK current-turn
 projection hooks likewise use purpose-named projected workspace getters; the
 generic projected workspace read helper remains private to

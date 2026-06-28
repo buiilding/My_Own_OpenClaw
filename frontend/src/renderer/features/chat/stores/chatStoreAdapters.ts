@@ -255,13 +255,14 @@ function buildCurrentTurnProjectionWorkspaceReadModel(
 function buildChatProviderTraceWorkspaceReadModel(
   workspace: ChatWorkspaceReadModelState,
 ) {
-  const lastMessage = workspace.messages[workspace.messages.length - 1] ?? null;
   const hasConversationView = hasWorkspaceConversationView(workspace);
+  const fallbackMessages = hasConversationView ? [] : workspace.messages;
+  const lastMessage = fallbackMessages[fallbackMessages.length - 1] ?? null;
   return {
     conversationViewTraceSummary: hasConversationView
       ? buildConversationViewTraceSummary(workspace.conversationView)
       : null,
-    messageCount: workspace.messages.length,
+    messageCount: fallbackMessages.length,
     activeTurnRef: exactReadModelString(workspace.streamTracking.activeTurnRef),
     lastMessage: lastMessage
       ? {

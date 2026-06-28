@@ -659,10 +659,13 @@ for a trace summary instead of scanning `ConversationView.displayRows`
 directly. Provider trace snapshots call that summary only after the shared
 workspace `ConversationView` gate accepts a complete SDK view envelope; partial
 objects fall back to the no-view raw workspace trace path instead of becoming
-debug read-model authority. The summary reads canonical SDK display-row fields
-only (`role`, `content`, `metadata.sourceEventType`, `turnRef`, and `type`) and
-does not recover legacy `sender`, `text`, or top-level source-event aliases from
-view rows. The chat-store provider trace adapter applies that
+debug read-model authority. Once that complete view envelope exists, raw
+fallback message count and last-message metadata are cleared from the provider
+trace read model, so stale renderer rows cannot travel beside the SDK view
+summary. The summary reads canonical SDK display-row fields only (`role`,
+`content`, `metadata.sourceEventType`, `turnRef`, and `type`) and does not
+recover legacy `sender`, `text`, or top-level source-event aliases from view
+rows. The chat-store provider trace adapter applies that
 same exact string rule before publishing no-view fallback active-turn and
 last-message sender/type/ref/source labels. The stream/current-turn chat-store
 adapters apply the same rule before publishing fallback pending refs, no-view
