@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: drop live presentation entries with padded or unknown SDK
+  `type` labels instead of repairing them into assistant text rows. Missing
+  labels remain a temporary legacy compatibility path. No migration required.
 - frontend/live-turn: reject malformed `conversation.send` resource arrays
   before SDK command dispatch when a resource carries renderer display lifecycle
   fields, preventing silent partial sends across the SDK boundary. No migration

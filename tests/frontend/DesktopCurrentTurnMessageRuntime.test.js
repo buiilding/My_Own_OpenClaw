@@ -161,6 +161,50 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     });
   });
 
+  test('drops live entries with malformed SDK presentation types', () => {
+    const messages = buildCurrentTurnMessagesFromPresentation({
+      turnRef: 'turn-live',
+      presentation: {
+        entries: [
+          {
+            id: 'entry-missing-type',
+            text: 'legacy missing type still renders',
+          },
+          {
+            id: 'entry-padded-type',
+            type: ' tool-output ',
+            text: 'renderer must not repair this',
+          },
+          {
+            id: 'entry-unknown-type',
+            type: 'search-source',
+            text: 'renderer must not map old labels here',
+          },
+          {
+            id: 'entry-exact-type',
+            type: 'tool-output',
+            text: 'exact tool output',
+          },
+        ],
+      },
+    });
+
+    expect(messages).toEqual([
+      expect.objectContaining({
+        id: 'entry-missing-type',
+        type: 'llm-text',
+        text: 'legacy missing type still renders',
+      }),
+      expect.objectContaining({
+        id: 'entry-exact-type',
+        type: 'tool-output',
+        text: 'exact tool output',
+      }),
+    ]);
+    expect(messages.map(message => message.id)).not.toContain('entry-padded-type');
+    expect(messages.map(message => message.id)).not.toContain('entry-unknown-type');
+  });
+
   test('does not expose padded live-entry model metadata as renderer props', () => {
     const messages = buildCurrentTurnMessagesFromPresentation({
       turnRef: 'turn-live',

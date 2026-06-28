@@ -4116,6 +4116,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('function readExactSdkString(value)');
     expect(source).toContain('value.length > 0');
     expect(source).toContain('value === value.trim()');
+    expect(source).toContain('const LIVE_PRESENTATION_ENTRY_TYPES = new Set');
+    expect(source).toContain('LIVE_PRESENTATION_ENTRY_TYPES.has(type)');
+    expect(source).toContain('if (!type) {\n    return null;');
     expect(source).toContain('!readExactSdkString(entry.id)');
     expect(source).not.toContain("typeof entry.id !== 'string'");
     expect(source).not.toContain("return typeof value === 'string' && value.trim() ? value.trim() : 'llm-text';");

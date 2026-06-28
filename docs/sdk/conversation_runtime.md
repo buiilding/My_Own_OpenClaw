@@ -1578,6 +1578,11 @@ Current-turn live presentation entries mirror the same SDK-shaped identity
 fields (`toolName`, `requestId`, `correlationId`, and `bundleId`) so renderer
 UI code can render live tool rows without re-reading backend-wire aliases from
 `structuredPayload`.
+Renderer live-entry projection also treats presentation `type` as an SDK-owned
+label: known exact labels render, while padded or unknown labels are dropped
+instead of being repaired into `llm-text` rows. Missing labels remain a legacy
+no-label compatibility path only until all renderer fixtures and old snapshots
+publish explicit SDK entry types.
 The underlying legacy `currentTurn.toolEvents` projection exposes those identity
 fields for hosts that still render directly from tool events.
 Claimed SDK-shaped events execute the local runtime, send the result back

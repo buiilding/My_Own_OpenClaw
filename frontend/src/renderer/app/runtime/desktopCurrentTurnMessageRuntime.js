@@ -27,6 +27,14 @@ const LEGACY_TOOL_EVENT_KINDS = new Set([
   'tool_output',
   'tool_progress',
 ]);
+const LIVE_PRESENTATION_ENTRY_TYPES = new Set([
+  'thinking',
+  'llm-text',
+  'tool-call',
+  'tool-progress',
+  'tool-output',
+  'error',
+]);
 
 function asRecord(value) {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -68,7 +76,13 @@ function resolveToolEventCorrelationId(toolEvent) {
 }
 
 function normalizeEntryType(value) {
-  return readExactSdkString(value) || 'llm-text';
+  if (value === null || value === undefined) {
+    return 'llm-text';
+  }
+  const type = readExactSdkString(value);
+  return type && LIVE_PRESENTATION_ENTRY_TYPES.has(type)
+    ? type
+    : null;
 }
 
 function resolveToolName(value) {
@@ -379,6 +393,9 @@ function buildChatMessageFromLiveTurnEntry(entry, liveTurnContext = null) {
     return null;
   }
   const type = normalizeEntryType(entry.type);
+  if (!type) {
+    return null;
+  }
   if (type === 'thinking') {
     return buildThinkingMessage(entry, liveTurnContext);
   }
