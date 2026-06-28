@@ -549,6 +549,11 @@ The transport and Electron main query command boundary reject removed aliases su
 `conversationRef`, `screenshotRef`, `screenshotUrl`, `screenshotRefs`,
 `attachmentContext`, `attachmentFilenames`, `workspacePath`, `turnRef`,
 `queryMessageId`, `messageId`, `message_id`, or `id`.
+The renderer transport also rejects display attachment lifecycle payloads such
+as `attachments`, `display_attachments`, `displayAttachments`,
+`displayAttachmentId`, and `previewSrc`. Those values are SDK
+`ConversationView`/display-row metadata, not command inputs; renderer sends
+must pass typed resources and let SDK projection own attachment lifecycle.
 
 If a caller passes removed aliases into `desktopRuntimeTransport` or
 directly through `windie:invoke`, those fields fail fast. Fix the caller to send

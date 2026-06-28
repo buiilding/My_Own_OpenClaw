@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/transport: reject display attachment lifecycle fields such as
+  `attachments`, `display_attachments`, `displayAttachmentId`, and `previewSrc`
+  from renderer `conversation.send` payloads, keeping attachment state owned by
+  SDK resources and `ConversationView` projection. No migration required.
 - frontend/chat-interface: route SDK `ConversationView` results through the
   chat-store adapter's exact store-ref guard instead of letting `ChatInterface`
   validate and write SDK views directly. No migration required.

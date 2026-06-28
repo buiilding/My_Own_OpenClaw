@@ -235,6 +235,30 @@ describe('desktopRuntimeTransport', () => {
     expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
   });
 
+  test('rejects display attachment lifecycle fields in send payloads', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: true,
+      messageId: 'msg-1',
+    });
+
+    const transport = createDesktopRuntimeTransport(null);
+
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      attachments: [{
+        id: 'renderer-owned-attachment',
+        status: 'ready',
+      }],
+      display_attachments: [],
+      previewSrc: 'data:image/png;base64,preview',
+      displayAttachmentId: 'renderer-display-id',
+    })).rejects.toThrow(
+      'conversation.send received SDK display attachment field(s): attachments, display_attachments, displayAttachmentId, previewSrc. Send typed resources and let SDK projection own attachment lifecycle.',
+    );
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
+  });
+
   test('rejects removed camelCase stop payload aliases', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({});
 

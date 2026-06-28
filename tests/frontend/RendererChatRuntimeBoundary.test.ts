@@ -2578,6 +2578,21 @@ describe('renderer chat runtime boundary', () => {
     expect(visibleLifecycleSource).not.toContain('hasAuthoritativeSameTurnSdkReplacement,');
   });
 
+  test('desktop send transport rejects renderer display attachment lifecycle payloads', async () => {
+    const transportSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts'),
+      'utf8',
+    );
+
+    expect(transportSource).toContain('rejectDisplayAttachmentLifecycleFields(payload');
+    expect(transportSource).toContain("'attachments'");
+    expect(transportSource).toContain("'display_attachments'");
+    expect(transportSource).toContain("'displayAttachments'");
+    expect(transportSource).toContain("'displayAttachmentId'");
+    expect(transportSource).toContain("'previewSrc'");
+    expect(transportSource).toContain('Send typed resources and let SDK projection own attachment lifecycle');
+  });
+
   test('chat stop-turn state is owned by app runtime', async () => {
     const stopHandlerSource = await fs.readFile(
       path.join(chatRoot, 'hooks/useStopTurnHandler.js'),

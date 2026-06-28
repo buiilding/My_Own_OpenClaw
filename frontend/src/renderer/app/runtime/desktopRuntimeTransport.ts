@@ -70,6 +70,19 @@ function rejectRemovedCamelCaseFields(
   }
 }
 
+function rejectDisplayAttachmentLifecycleFields(
+  payload: Record<string, unknown>,
+  fields: string[],
+  owner: string,
+): void {
+  const present = fields.filter((field) => Object.prototype.hasOwnProperty.call(payload, field));
+  if (present.length > 0) {
+    throw new Error(
+      `${owner} received SDK display attachment field(s): ${present.join(', ')}. Send typed resources and let SDK projection own attachment lifecycle.`,
+    );
+  }
+}
+
 async function sendStopQuery(conversationRef: string | null, turnRef: string | null): Promise<void> {
   await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_STOP, {
     conversation_ref: conversationRef,
@@ -93,6 +106,17 @@ async function sendQuery(
     'turnRef',
     'queryMessageId',
     'messageId',
+  ], 'conversation.send');
+  rejectDisplayAttachmentLifecycleFields(payload, [
+    'attachments',
+    'display_attachments',
+    'displayAttachments',
+    'displayAttachment',
+    'display_attachment',
+    'displayAttachmentId',
+    'display_attachment_id',
+    'previewSrc',
+    'preview_src',
   ], 'conversation.send');
   const removedSnakeCaseFields = ['message_id'].filter((field) => hasOwnField(payload, field));
   if (removedSnakeCaseFields.length > 0) {
