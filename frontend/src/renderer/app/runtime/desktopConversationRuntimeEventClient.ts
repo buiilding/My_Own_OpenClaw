@@ -37,9 +37,9 @@ function recordOrEmpty(value: unknown): Record<string, unknown> {
     : {};
 }
 
-function normalizeOptionalString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim()
-    ? value.trim()
+function exactOptionalString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
     : null;
 }
 
@@ -83,7 +83,7 @@ function normalizeCurrentTurnProjectionEvent(
   const view = hasWorkspaceConversationView({ conversationView: source.view })
     ? (source.view as ConversationView)
     : null;
-  const envelopeConversationRef = normalizeOptionalString(source.conversationRef)
+  const envelopeConversationRef = exactOptionalString(source.conversationRef)
     ?? view?.conversationRef
     ?? null;
   if (!isCurrentTurnProjection(currentTurn)) {

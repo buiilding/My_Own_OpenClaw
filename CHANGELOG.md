@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/current-turn: require exact current-turn IPC envelope
+  `conversationRef` values instead of trimming padded refs before storing SDK
+  `ConversationView` or live-turn projection state. No migration required.
 - frontend/attachments: make ready-image source extraction consume the
   sanitized SDK attachment descriptor instead of repeating raw lifecycle checks.
   No migration required.

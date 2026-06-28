@@ -2578,6 +2578,10 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).not.toContain("'screenshotRef'");
     expect(clientSource).not.toContain("'screenshot_refs'");
     expect(eventClientSource).toContain('DesktopPendingTurnRuntimeClient.resolveBroadcastAction(payload)');
+    expect(eventClientSource).toContain('function exactOptionalString(value: unknown): string | null');
+    expect(eventClientSource).toContain('value.length > 0 && value === value.trim()');
+    expect(eventClientSource).not.toContain('value.trim()\n    ? value.trim()');
+    expect(eventClientSource).not.toContain('source.conversationRef.trim()');
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBroadcastAction');
     expect(chatStoreAdaptersSource).toContain('DesktopPendingTurnBroadcastAction');
     expect(chatStoreSource).not.toContain('resolvePendingTurnForCurrentProjection');

@@ -108,6 +108,10 @@ describe('DesktopConversationRuntimeEventClient', () => {
       currentTurn,
     });
     mockChannelListeners.get('windie:current-turn')?.({
+      conversationRef: 'missing-current-turn ',
+      currentTurn: null,
+    });
+    mockChannelListeners.get('windie:current-turn')?.({
       currentTurn: presentationOnlyCurrentTurn,
     });
     mockChannelListeners.get('windie:current-turn')?.({ currentTurn: { phase: 'streaming' } });
@@ -140,7 +144,12 @@ describe('DesktopConversationRuntimeEventClient', () => {
       },
       {
         currentTurn,
-        conversationRef: 'override-conv',
+        conversationRef: 'conv-1',
+        view: null,
+      },
+      {
+        currentTurn: null,
+        conversationRef: null,
         view: null,
       },
       {
