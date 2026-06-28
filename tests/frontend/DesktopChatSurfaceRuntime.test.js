@@ -192,6 +192,37 @@ describe('DesktopChatSurfaceRuntime', () => {
     expect(state.liveTurnSource).not.toBe('conversation-view');
   });
 
+  test('does not repair malformed SDK live-turn conversation refs into no-view surface state', () => {
+    const state = buildChatSurfaceControllerState({
+      sessionConversationRef: 'conv-1',
+      sdkLiveTurn: {
+        conversationRef: ' conv-1 ',
+        turnRef: 'turn-live',
+        phase: 'streaming',
+        presentation: {
+          entries: [{
+            id: 'live-entry',
+            type: 'llm-text',
+            text: 'live fallback answer',
+          }],
+        },
+      },
+      messages: [],
+    });
+
+    expect(state).toMatchObject({
+      isBusy: false,
+      canStop: false,
+      liveTurnSource: 'idle',
+    });
+    expect(state.visibleTurnLifecycle).toMatchObject({
+      status: 'idle',
+      source: 'sdk',
+      conversationRef: 'conv-1',
+      turnRef: null,
+    });
+  });
+
   test('projects controller state from a selected chat surface object', () => {
     const state = buildChatSurfaceControllerStateFromSurfaceState({
       conversationViewSurface: 'dashboard',

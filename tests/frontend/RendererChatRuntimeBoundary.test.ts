@@ -167,6 +167,12 @@ describe('renderer chat runtime boundary', () => {
     expect(surfaceRuntimeSource).toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');
     expect(surfaceRuntimeSource).toContain('sdkLiveTurn: effectiveSdkLiveTurn');
     expect(surfaceRuntimeSource).toContain('messages: rendererFallbackMessages');
+    expect(surfaceRuntimeSource).toContain('function readExactSurfaceIdentity(value)');
+    expect(surfaceRuntimeSource).toContain('readExactSurfaceIdentity(conversationView?.conversationRef)');
+    expect(surfaceRuntimeSource).toContain('readExactSurfaceIdentity(sdkLiveTurn?.conversationRef)');
+    expect(surfaceRuntimeSource).toContain('readExactSurfaceIdentity(sessionConversationRef)');
+    expect(surfaceRuntimeSource).not.toContain('conversationView?.conversationRef\n    || sdkLiveTurn?.conversationRef');
+    expect(surfaceRuntimeSource).not.toContain('|| sessionConversationRef\n    || null');
     expect(surfaceRuntimeSource).toContain('resolveConversationViewSurfaceMode(');
     expect(surfaceRuntimeSource).toContain('CONVERSATION_VIEW_LOOP_SURFACE_MODES');
     expect(surfaceRuntimeSource).toContain('readExactLoopSurfaceMode(conversationView?.surfaces?.[surfaceName]?.mode)');

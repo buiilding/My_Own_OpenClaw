@@ -246,7 +246,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
-  test('does not repair padded SDK presentation overlay refs', () => {
+  test('does not expose padded SDK live-turn conversation refs as surface state', () => {
     const state = resolveLiveTurnPresentationInput({
       sdkLiveTurn: {
         phase: 'streaming',
@@ -273,14 +273,10 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
 
     expect(state).toMatchObject({
-      source: 'sdk-current-turn',
-      useSdkLiveTurnPresentation: true,
-      overlayIntent: expect.objectContaining({
-        mode: 'response',
-        turnRef: null,
-        conversationRef: null,
-        staleGuardRef: null,
-      }),
+      phase: 'idle',
+      source: 'idle',
+      useSdkLiveTurnPresentation: false,
+      overlayIntent: null,
       turnRef: null,
       conversationRef: null,
       guardRef: null,
@@ -709,12 +705,10 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'idle',
       isBusy: false,
-      source: 'current-turn',
+      source: 'idle',
       useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: false,
-      overlayIntent: expect.objectContaining({
-        mode: 'hidden',
-      }),
+      overlayIntent: null,
     });
   });
 
@@ -748,12 +742,10 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'idle',
       isBusy: false,
-      source: 'current-turn',
+      source: 'idle',
       useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: false,
-      overlayIntent: expect.objectContaining({
-        mode: 'hidden',
-      }),
+      overlayIntent: null,
     });
   });
 

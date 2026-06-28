@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-surface: require no-view SDK live-turn fallback to carry an
+  exact conversation ref before it can drive renderer busy/active lifecycle,
+  leaving malformed raw live-turn packets inert. No migration required.
 - frontend/response-overlay: require exact response-overlay dismissal target
   identity before deriving store dismissal keys or native responsebox hide
   values; padded overlay, entry, and no-view SDK refs now fail closed instead of

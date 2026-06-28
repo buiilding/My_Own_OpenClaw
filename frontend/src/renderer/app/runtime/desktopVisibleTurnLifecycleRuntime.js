@@ -350,6 +350,7 @@ function resolveVisibleTurnLifecycle({
   if (
     sdkLiveTurn
     && sdkStatus !== 'idle'
+    && sdkLiveTurnConversationRef
     && (!normalizedActiveConversationRef || sdkLiveTurnConversationRef === normalizedActiveConversationRef)
   ) {
     const entries = Array.isArray(sdkLiveTurn.presentation?.entries)

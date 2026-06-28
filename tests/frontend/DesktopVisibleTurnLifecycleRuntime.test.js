@@ -412,6 +412,41 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         conversationRef: ' conv-1 ',
       },
     })).toBe(pending);
+
+    expect(resolveVisibleTurnLifecycle({
+      sdkLiveTurn: {
+        ...visibleProjection,
+        conversationRef: ' conv-1 ',
+      },
+    })).toEqual({
+      status: 'idle',
+      source: 'sdk',
+      conversationRef: null,
+      turnRef: null,
+      awaitingAnchor: null,
+      entries: [],
+      terminalReason: null,
+      isBusy: false,
+      showTyping: false,
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      sdkLiveTurn: {
+        ...visibleProjection,
+        conversationRef: ' conv-1 ',
+      },
+    })).toEqual({
+      status: 'idle',
+      source: 'sdk',
+      conversationRef: 'conv-1',
+      turnRef: null,
+      awaitingAnchor: null,
+      entries: [],
+      terminalReason: null,
+      isBusy: false,
+      showTyping: false,
+    });
   });
 
   test('does not repair padded SDK live-turn phases before lifecycle projection', () => {

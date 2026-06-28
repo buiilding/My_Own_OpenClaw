@@ -307,9 +307,10 @@ function resolveLiveTurnPresentationInput({
     resolvedVisibleTurnLifecycle,
     sdkLiveTurn,
   );
+  const hasVisibleSdkLifecycle = normalizePhase(resolvedVisibleTurnLifecycle?.status) !== 'idle';
   const lifecycleIsBusy = resolvedVisibleTurnLifecycle?.isBusy === true;
 
-  if (useSdkLiveTurnPresentation) {
+  if (useSdkLiveTurnPresentation && hasVisibleSdkLifecycle) {
     const presentation = sdkLiveTurn.presentation;
     const overlayIntent = resolveSdkOverlayIntent(presentation, sdkLiveTurn);
     return {
@@ -327,7 +328,7 @@ function resolveLiveTurnPresentationInput({
   }
 
   const currentTurnPhase = mapSdkLiveTurnPhase(sdkLiveTurn?.phase);
-  if (currentTurnPhase) {
+  if (currentTurnPhase && hasVisibleSdkLifecycle) {
     const overlayIntent = resolveSdkOverlayIntent(
       sdkLiveTurn?.presentation,
       sdkLiveTurn,

@@ -50,15 +50,21 @@ function readExactLoopSurfaceMode(value) {
     : null;
 }
 
+function readExactSurfaceIdentity(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function resolveSurfaceConversationRef({
   conversationView = null,
   sdkLiveTurn = null,
   sessionConversationRef = null,
 } = {}) {
   return (
-    conversationView?.conversationRef
-    || sdkLiveTurn?.conversationRef
-    || sessionConversationRef
+    readExactSurfaceIdentity(conversationView?.conversationRef)
+    || readExactSurfaceIdentity(sdkLiveTurn?.conversationRef)
+    || readExactSurfaceIdentity(sessionConversationRef)
     || null
   );
 }

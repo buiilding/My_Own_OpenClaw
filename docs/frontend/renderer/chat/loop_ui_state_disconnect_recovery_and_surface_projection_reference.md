@@ -54,6 +54,10 @@ stale, and visible-empty live-turn fallbacks do not replace `local_pending`.
 Same-turn handoff identity is exact: padded SDK live-turn refs,
 `ConversationView` refs, or awaiting-anchor row ids are ignored instead of
 being trimmed into pending-turn replacements or awaiting anchors.
+No-view SDK live-turn fallback also requires an exact SDK conversation ref
+before it can become active surface lifecycle; malformed or missing live-turn
+conversation identity remains idle even when the live-turn packet carries
+presentation entries.
 Local pending rendering requires a valid renderer `pendingTurn`; bare
 `isSending=true` is store/diagnostic compatibility state and does not create
 visible typing or busy lifecycle by itself.
