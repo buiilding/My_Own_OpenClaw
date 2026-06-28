@@ -181,6 +181,11 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
             text: 'renderer must not map old labels here',
           },
           {
+            id: 'entry-legacy-tool-explanation',
+            type: 'tool-explanation',
+            text: 'renderer must not map legacy UI labels here',
+          },
+          {
             id: 'entry-exact-type',
             type: 'tool-output',
             text: 'exact tool output',
@@ -203,6 +208,7 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     ]);
     expect(messages.map(message => message.id)).not.toContain('entry-padded-type');
     expect(messages.map(message => message.id)).not.toContain('entry-unknown-type');
+    expect(messages.map(message => message.id)).not.toContain('entry-legacy-tool-explanation');
   });
 
   test('does not expose padded live-entry model metadata as renderer props', () => {

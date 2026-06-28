@@ -399,10 +399,10 @@ function buildChatMessageFromLiveTurnEntry(entry, liveTurnContext = null) {
   if (type === 'thinking') {
     return buildThinkingMessage(entry, liveTurnContext);
   }
-  if (type === 'tool-call' || type === 'tool-explanation') {
+  if (type === 'tool-call') {
     return buildToolCallMessage(entry, liveTurnContext);
   }
-  if (type === 'tool-progress' || type === 'search-source') {
+  if (type === 'tool-progress') {
     return buildToolProgressMessage(entry, liveTurnContext);
   }
   if (type === 'tool-output') {

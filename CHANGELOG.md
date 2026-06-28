@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: stop treating legacy renderer row labels such as
+  `search-source` and `tool-explanation` as SDK live presentation entry aliases.
+  No migration required.
 - frontend/live-turn: drop live presentation entries with padded or unknown SDK
   `type` labels instead of repairing them into assistant text rows. Missing
   labels remain a temporary legacy compatibility path. No migration required.
