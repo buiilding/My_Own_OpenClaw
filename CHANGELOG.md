@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/session: require exact conversation refs before active chat reset
+  cleanup targets a chat workspace, leaving padded renderer identity unscoped.
+  No migration required.
 - frontend/attachments: collapse SDK display attachment validation onto the
   sanitizer path so renderer projection no longer keeps a separate
   displayability preflight for typed descriptors. No migration required.

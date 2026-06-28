@@ -670,7 +670,10 @@ browser event directly.
 `DesktopActiveChatSessionRuntime.resetActiveChatSession(...)` owns the shared
 renderer rule for clearing active transcript identity plus chat workspace
 state. Chat new-session and dashboard delete/clear paths call that app-runtime
-facade instead of keeping a chat-feature-only reset helper.
+facade instead of keeping a chat-feature-only reset helper. Reset cleanup
+targets require exact conversation refs; padded or empty renderer identity is
+treated as no scoped workspace target rather than being repaired into a chat
+store cleanup key.
 
 `desktopConversationSessionRuntime.createConversationRef()` format is deterministic prefix: `conv_${crypto.randomUUID()}`.
 

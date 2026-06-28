@@ -4074,6 +4074,9 @@ describe('renderer chat runtime boundary', () => {
     expect(activeSessionRuntimeSource).not.toContain('export const resetActiveChatSession');
     expect(activeSessionRuntimeSource).toContain('applyRendererConversationSelection');
     expect(activeSessionRuntimeSource).toContain('DesktopTranscriptSessionRuntimeClient.updateTranscriptSession');
+    expect(activeSessionRuntimeSource).toContain('function readExactConversationRef');
+    expect(activeSessionRuntimeSource).toContain('const targetConversationRef = readExactConversationRef(conversationRef)');
+    expect(activeSessionRuntimeSource).not.toContain('const targetConversationRef = conversationRef || null');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/session/resetActiveChatSession.ts'),
     )).rejects.toThrow();

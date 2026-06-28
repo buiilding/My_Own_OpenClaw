@@ -59,4 +59,21 @@ describe('resetActiveChatSession', () => {
     expect(setThinkingStatus).toHaveBeenCalledWith(null, null);
     expect(setTokenCounts).toHaveBeenCalledWith(null, null);
   });
+
+  test('does not repair padded conversation refs into reset targets', () => {
+    const clearMessages = jest.fn();
+    const setThinkingStatus = jest.fn();
+    const setTokenCounts = jest.fn();
+
+    resetActiveChatSession({
+      conversationRef: ' conv-1 ',
+      clearMessages,
+      setThinkingStatus,
+      setTokenCounts,
+    });
+
+    expect(clearMessages).toHaveBeenCalledWith(null);
+    expect(setThinkingStatus).toHaveBeenCalledWith(null, null);
+    expect(setTokenCounts).toHaveBeenCalledWith(null, null);
+  });
 });
