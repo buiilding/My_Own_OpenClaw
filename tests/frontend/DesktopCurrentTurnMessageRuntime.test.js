@@ -328,6 +328,48 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     expect(messages.map((message) => message.text)).not.toContain('object id progress');
   });
 
+  test('drops legacy no-presentation tool events with malformed SDK kinds', () => {
+    const messages = buildNoViewSdkLiveTurnMessages({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-live',
+      phase: 'tool_call',
+      toolEvents: [
+        {
+          id: 'tool-padded-kind',
+          kind: ' tool_call ',
+          toolName: 'read_file',
+          text: 'padded kind',
+        },
+        {
+          id: 'tool-missing-kind',
+          toolName: 'read_file',
+          text: 'missing kind',
+        },
+        {
+          id: 'tool-unknown-kind',
+          kind: 'tool_mystery',
+          toolName: 'read_file',
+          text: 'unknown kind',
+        },
+        {
+          id: 'tool-exact-kind',
+          kind: 'tool_call',
+          toolName: 'read_file',
+          text: 'exact kind',
+        },
+      ],
+    });
+
+    expect(messages.map((message) => message.text)).toContain('exact kind');
+    expect(messages.map((message) => message.text)).not.toContain('padded kind');
+    expect(messages.map((message) => message.text)).not.toContain('missing kind');
+    expect(messages.map((message) => message.text)).not.toContain('unknown kind');
+    expect(messages.find((message) => message.text === 'exact kind')).toEqual(expect.objectContaining({
+      sourceEventType: 'tool_call',
+      type: 'tool-call',
+    }));
+  });
+
   test('keeps legacy no-presentation tool-event attachments out of live rows', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',

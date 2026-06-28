@@ -22,6 +22,11 @@ const {
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 const sdkConversationViewSourceChannel = DesktopPresentationSourceChannels
   .getSdkConversationViewSourceChannel();
+const LEGACY_TOOL_EVENT_KINDS = new Set([
+  'tool_call',
+  'tool_output',
+  'tool_progress',
+]);
 
 function asRecord(value) {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -68,6 +73,11 @@ function normalizeEntryType(value) {
 
 function resolveToolName(value) {
   return readExactSdkString(value);
+}
+
+function resolveLegacyToolEventKind(value) {
+  const kind = readExactSdkString(value);
+  return LEGACY_TOOL_EVENT_KINDS.has(kind) ? kind : null;
 }
 
 function buildProjectedToolCallMessage({
@@ -210,12 +220,14 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
     toolEvents.forEach((toolEvent) => {
       const toolEventRecord = asRecord(toolEvent);
       const toolEventId = readExactSdkString(toolEventRecord?.id);
-      if (!toolEventRecord || !toolEventId) {
+      const toolEventKind = resolveLegacyToolEventKind(toolEventRecord?.kind);
+      if (!toolEventRecord || !toolEventId || !toolEventKind) {
         return;
       }
       const projectedToolEvent = {
         ...toolEventRecord,
         id: toolEventId,
+        kind: toolEventKind,
       };
       const message = buildProjectedToolMessage({
         baseId,

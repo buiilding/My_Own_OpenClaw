@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: require legacy no-view SDK tool events to carry exact
+  known `kind` values before projecting fallback tool rows, so malformed or
+  unknown tool kinds no longer fall through as renderer-local tool calls. No
+  migration required.
 - frontend/live-turn: omit live-entry `sourceEventType`, `turnRef`, `modelId`,
   and `modelProvider` props when SDK presentation entries do not provide exact
   non-empty values, instead of publishing renderer-owned `null`/`undefined`

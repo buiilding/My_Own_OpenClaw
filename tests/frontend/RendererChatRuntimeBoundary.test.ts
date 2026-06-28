@@ -4114,7 +4114,11 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('turnRef: entry.turnRef || liveTurnContext?.turnRef || null');
     expect(source).not.toContain('readExactSdkString(entry.turnRef)');
     expect(source).toContain('const toolEventId = readExactSdkString(toolEventRecord?.id);');
-    expect(source).toContain('if (!toolEventRecord || !toolEventId)');
+    expect(source).toContain('const toolEventKind = resolveLegacyToolEventKind(toolEventRecord?.kind);');
+    expect(source).toContain('if (!toolEventRecord || !toolEventId || !toolEventKind)');
+    expect(source).toContain('kind: toolEventKind');
+    expect(source).toContain('const LEGACY_TOOL_EVENT_KINDS = new Set');
+    expect(source).toContain('function resolveLegacyToolEventKind(value)');
     expect(source).not.toContain('id: toolEvent.id || index');
     expect(source).toContain('const turnRef = readExactSdkString(liveTurnContext?.turnRef);');
     expect(source).toContain('conversationRef: readExactSdkString(conversationView?.conversationRef)');
@@ -4467,6 +4471,9 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnMessageRuntimeSource).not.toContain('normalizeOptionalText(entry.toolName)');
     expect(currentTurnMessageRuntimeSource).not.toContain('readString(toolEvent.toolName)');
     expect(currentTurnMessageRuntimeSource).not.toContain('readString(toolEvent.requestId)');
+    expect(currentTurnMessageRuntimeSource).toContain('const toolEventKind = resolveLegacyToolEventKind(toolEventRecord?.kind);');
+    expect(currentTurnMessageRuntimeSource).toContain('if (!toolEventRecord || !toolEventId || !toolEventKind)');
+    expect(currentTurnMessageRuntimeSource).toContain('kind: toolEventKind');
     expect(currentTurnMessageRuntimeSource).not.toContain('function resolveLiveTurnIdentity');
     expect(currentTurnMessageRuntimeSource).not.toContain("resolveLiveTurnIdentity(conversationRef, 'conversation')");
     expect(currentTurnMessageRuntimeSource).not.toContain('const baseId = `${conversationRef ||');
