@@ -325,6 +325,56 @@ describe('DesktopChatSurfaceRuntime', () => {
     expect(state.currentTurnPresentationState.visibleResponse).toBeNull();
   });
 
+  test('surface-state adapter leaves malformed ConversationView input on no-view fallback', () => {
+    const state = buildChatSurfaceControllerStateFromSurfaceState({
+      conversationViewSurface: 'dashboard',
+      sessionConversationRef: 'conv-1',
+      chatSurfaceState: {
+        conversationView: {
+          conversationRef: 'conv-1',
+          displayRows: [],
+          liveTurn: [],
+          surfaces: {
+            dashboard: {
+              mode: 'busy',
+            },
+          },
+          actions: {},
+        },
+        sdkLiveTurn: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-live',
+          phase: 'streaming',
+          presentation: {
+            isBusy: true,
+            entries: [{
+              id: 'live-entry',
+              type: 'llm-text',
+              text: 'live fallback answer',
+            }],
+          },
+        },
+        messages: [{
+          id: 'raw-message',
+          sender: 'user',
+          text: 'raw fallback',
+        }],
+      },
+    });
+
+    expect(state).toMatchObject({
+      isBusy: true,
+      canStop: false,
+      liveTurnSource: 'sdk-current-turn',
+    });
+    expect(state.visibleTurnLifecycle).toMatchObject({
+      status: 'active',
+      source: 'sdk',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-live',
+    });
+  });
+
   test('keeps malformed ConversationView envelopes on the no-view surface path', () => {
     const state = buildChatSurfaceControllerState({
       conversationViewSurface: 'dashboard',

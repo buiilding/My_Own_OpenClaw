@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-surface: let the selected surface-state wrapper pass
+  `ConversationView` through to the controller guard instead of repeating the
+  SDK view-shape check. No migration required.
 - frontend/chat-surface: make the shared surface selector consume projected
   workspace read models directly instead of repeating `ConversationView` versus
   raw-message suppression logic. No migration required.

@@ -152,7 +152,7 @@ describe('renderer chat runtime boundary', () => {
     expect(surfaceRuntimeSource).toContain('buildChatSurfaceControllerStateFromSurfaceState');
     expect(surfaceRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
     expect(surfaceRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
-    expect(surfaceRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView: surfaceState.conversationView })');
+    expect(surfaceRuntimeSource).not.toContain('hasWorkspaceConversationView({ conversationView: surfaceState.conversationView })');
     expect(surfaceRuntimeSource).not.toContain('function isConversationView(value)');
     expect(surfaceRuntimeSource).not.toContain('readExactRef(value.conversationRef)');
     expect(surfaceRuntimeSource).not.toContain('Array.isArray(value.displayRows)');
@@ -162,6 +162,7 @@ describe('renderer chat runtime boundary', () => {
     expect(surfaceRuntimeSource).not.toContain('const conversationView = isConversationView(surfaceState.conversationView)');
     expect(surfaceRuntimeSource).not.toContain('sdkLiveTurn: hasConversationView ? null : surfaceState.sdkLiveTurn ?? null');
     expect(surfaceRuntimeSource).not.toContain('surfaceState.currentTurnProjection');
+    expect(surfaceRuntimeSource).toContain('conversationView: surfaceState.conversationView ?? null');
     expect(surfaceRuntimeSource).toContain('const rendererFallbackMessages = hasConversationView');
     expect(surfaceRuntimeSource).toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');
     expect(surfaceRuntimeSource).toContain('sdkLiveTurn: effectiveSdkLiveTurn');

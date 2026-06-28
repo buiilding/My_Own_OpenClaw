@@ -538,9 +538,8 @@ no-view live-turn fallback as `sdkLiveTurn`, so dashboard, pill, and
 response-overlay consumers receive SDK live-turn intent without reopening raw
 current-turn storage. When `ConversationView` exists,
 `sdkLiveTurn` is `null` and raw messages have already been replaced by the
-stable empty list before those adapters run; the surface selector also enforces
-that blanking for direct app-runtime callers. The chat surface controller
-repeats the guard before visible lifecycle projection, so direct controller
+stable empty list before those adapters run. The chat surface controller
+keeps the direct-call guard before visible lifecycle projection, so controller
 calls cannot combine `ConversationView` with raw messages or the no-view
 `sdkLiveTurn` fallback; it also delegates that decision to the shared workspace
 gate instead of keeping a local view-shape predicate. Response-overlay surface
