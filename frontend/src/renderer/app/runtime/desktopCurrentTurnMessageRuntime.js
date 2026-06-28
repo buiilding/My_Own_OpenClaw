@@ -284,6 +284,7 @@ function buildBaseMessageFields(entry, liveTurnContext) {
 
 function buildThinkingMessage(entry, liveTurnContext) {
   const thinkingText = normalizeText(entry.text);
+  const thinkingSourceEventType = readExactSdkString(entry.sourceEventType);
   if (!thinkingText) {
     return null;
   }
@@ -293,7 +294,7 @@ function buildThinkingMessage(entry, liveTurnContext) {
     sender: 'assistant',
     type: 'llm-text',
     thinkingText,
-    thinkingSourceEventType: readExactSdkString(entry.sourceEventType) || 'reasoning_delta',
+    ...(thinkingSourceEventType ? { thinkingSourceEventType } : {}),
     isComplete: false,
   };
 }
@@ -361,24 +362,15 @@ function buildToolOutputMessage(entry, liveTurnContext) {
   const text = normalizeText(entry.text) || (toolName ? `${toolName} completed` : 'Tool completed');
   const attachments = readSdkDisplayAttachments(entry.attachments);
   const correlationId = resolveEntryCorrelationId(entry);
-  const turnRef = readExactSdkString(liveTurnContext?.turnRef);
   const toolOutputDetails = sanitizeSdkToolDetailRecord(asRecord(entry.toolOutputDetails));
-  const modelId = readExactSdkString(entry.modelId);
-  const modelProvider = readExactSdkString(entry.modelProvider);
   return {
-    id: entry.id,
+    ...buildBaseMessageFields(entry, liveTurnContext),
     text,
     sender: 'assistant',
     type: 'tool-output',
-    sourceEventType: readExactSdkString(entry.sourceEventType) || 'tool_output',
-    sourceChannel: liveTurnContext?.sourceChannel || sdkCurrentTurnSourceChannel,
     toolOutputDetails,
     ...(attachments.length > 0 ? { attachments } : {}),
     ...(correlationId ? { correlationId } : {}),
-    ...(turnRef ? { turnRef } : {}),
-    ...(modelId ? { modelId } : {}),
-    ...(modelProvider ? { modelProvider } : {}),
-    isComplete: entry.isComplete === true,
   };
 }
 

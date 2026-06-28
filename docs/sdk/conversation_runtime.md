@@ -532,14 +532,16 @@ Current-turn and `ConversationView.liveTurn.entries[]` type discriminators are
 SDK-authored exact strings; padded or empty entry `type` values fall back to
 generic assistant text rather than being trimmed into tool, thinking, progress,
 or error rows by the renderer. Live-entry `sourceEventType` values follow the
-same exactness rule; invalid labels fall back to the generic source for the
-rendered live row instead of being preserved or trimmed as authored SDK event
-identity. Live-entry `modelId` and `modelProvider` values are also exact SDK
+same exactness rule; missing, padded, or empty labels are omitted instead of
+being preserved, trimmed, or replaced with renderer-authored event identity.
+Live-entry `modelId` and `modelProvider` values are also exact SDK
 metadata; missing, padded, or empty values are omitted instead of being
 preserved as renderer message props or converted into local `null` placeholders.
-Live-entry base turn refs and source-event labels follow the same
-presence-based rule outside explicit legacy fallback labels. Renderer live-turn
-side-effect dedupe also treats SDK
+Live-entry base turn refs, source-event labels, and thinking source labels
+follow the same presence-based rule outside explicit legacy no-presentation
+fallback labels; renderer live-entry projection does not synthesize
+`reasoning_delta` or `tool_output` labels when SDK presentation metadata is
+missing or malformed. Renderer live-turn side-effect dedupe also treats SDK
 presentation entry ids as exact-only. Padded entry ids fall back to the local
 entry index/type key instead of being trimmed into a key that can suppress a
 later exact SDK entry. Visible live-entry projection uses the same exact id gate:

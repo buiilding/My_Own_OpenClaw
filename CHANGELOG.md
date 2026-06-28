@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: omit live-entry source-event labels when SDK presentation
+  entries do not provide exact metadata, including thinking and tool-output
+  rows, instead of synthesizing `reasoning_delta` or `tool_output`. No migration
+  required.
 - frontend/display-rows: omit renderer `sourceEventType` props when SDK display
   rows do not provide exact source-event metadata, so the adapter no longer
   backfills event labels from display row type. No migration required.

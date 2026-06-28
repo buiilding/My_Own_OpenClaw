@@ -83,6 +83,47 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     expect(messages[0]).not.toHaveProperty('modelProvider');
   });
 
+  test('omits synthesized source labels for live thinking and tool-output entries', () => {
+    const messages = buildCurrentTurnMessagesFromPresentation({
+      turnRef: 'turn-live',
+      presentation: {
+        entries: [{
+          id: 'entry-thinking-missing-source',
+          type: 'thinking',
+          text: 'thinking',
+        }, {
+          id: 'entry-tool-output-padded-source',
+          type: 'tool-output',
+          text: 'done',
+          sourceEventType: ' tool_output ',
+        }, {
+          id: 'entry-tool-output-exact-source',
+          type: 'tool-output',
+          text: 'exact done',
+          sourceEventType: 'tool_output',
+        }],
+      },
+    });
+
+    expect(messages.find(message => message.id === 'entry-thinking-missing-source')).toEqual(
+      expect.objectContaining({
+        type: 'llm-text',
+        thinkingText: 'thinking',
+      }),
+    );
+    expect(messages.find(message => message.id === 'entry-thinking-missing-source'))
+      .not.toHaveProperty('thinkingSourceEventType');
+    expect(messages.find(message => message.id === 'entry-thinking-missing-source'))
+      .not.toHaveProperty('sourceEventType');
+    expect(messages.find(message => message.id === 'entry-tool-output-padded-source'))
+      .not.toHaveProperty('sourceEventType');
+    expect(messages.find(message => message.id === 'entry-tool-output-exact-source')).toEqual(
+      expect.objectContaining({
+        sourceEventType: 'tool_output',
+      }),
+    );
+  });
+
   test('drops no-view live entries with malformed SDK row ids', () => {
     const messages = buildCurrentTurnMessagesFromPresentation({
       turnRef: 'turn-live',
