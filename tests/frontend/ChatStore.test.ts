@@ -565,6 +565,22 @@ describe('chatStore', () => {
     });
   });
 
+  test('SDK store write facades normalize malformed view and live-turn envelopes', () => {
+    setNoViewSdkLiveTurnInChatStore({
+      conversationRef: 'conv-runtime-gate',
+      turnRef: ' turn-live ',
+      phase: 'streaming',
+    }, 'conv-runtime-gate');
+    setConversationViewInChatStore({
+      conversationRef: 'conv-runtime-gate',
+      displayRows: [],
+    }, 'conv-runtime-gate');
+
+    const workspace = getWorkspaceStateFromChatStore('conv-runtime-gate');
+    expect(workspace.sdkLiveTurn).toBeNull();
+    expect(workspace.conversationView).toBeNull();
+  });
+
   test('current-turn projection read model omits raw message state', () => {
     setMessagesInChatStore([
       {

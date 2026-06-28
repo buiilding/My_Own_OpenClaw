@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: route SDK view/live-turn store writes through app-runtime
+  envelope gates instead of feature-store SDK type imports and casts. No
+  migration required.
 - frontend/chat-interface: keep chat interface selectors on projected
   surface/read-model inputs instead of importing or casting SDK
   `ConversationView` and current-turn types. No migration required.

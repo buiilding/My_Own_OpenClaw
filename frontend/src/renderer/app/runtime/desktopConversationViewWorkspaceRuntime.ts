@@ -73,6 +73,10 @@ function isConversationView(value: unknown): value is ConversationView {
     && isObjectRecord(source.actions);
 }
 
+function normalizeConversationView(value: unknown): ConversationView | null {
+  return isConversationView(value) ? value : null;
+}
+
 function hasWorkspaceConversationView(workspace: unknown): workspace is { conversationView: ConversationView } {
   return Boolean(
     workspace
@@ -170,7 +174,7 @@ function mergeRendererAnnotations(
 }
 
 function shouldClearRawMessagesForConversationView(
-  conversationView: ConversationView | null,
+  conversationView: unknown,
   currentWorkspace: ConversationViewWorkspace,
 ): boolean {
   return Boolean(
@@ -252,15 +256,16 @@ function buildConversationViewWorkspaceMutation<TWorkspace extends ConversationV
   conversationView,
   currentWorkspace,
 }: {
-  conversationView: ConversationView | null;
+  conversationView: unknown;
   currentWorkspace: TWorkspace;
 }): ConversationViewWorkspaceMutation<TWorkspace> | null {
-  const hasWorkspaceUpdate = currentWorkspace.conversationView !== conversationView;
+  const normalizedConversationView = normalizeConversationView(conversationView);
+  const hasWorkspaceUpdate = currentWorkspace.conversationView !== normalizedConversationView;
   const shouldClearPendingTurn = shouldClearPendingTurnForConversationView(
     currentWorkspace.pendingTurn,
-    conversationView,
+    normalizedConversationView,
   );
-  const nextRendererAnnotations = conversationView
+  const nextRendererAnnotations = normalizedConversationView
     ? mergeRendererAnnotations(
       currentWorkspace.rendererAnnotations,
       selectRendererAnnotationsFromMessages(currentWorkspace.messages),
@@ -274,7 +279,7 @@ function buildConversationViewWorkspaceMutation<TWorkspace extends ConversationV
       ))
     );
   const shouldClearRawMessages = shouldClearRawMessagesForConversationView(
-    conversationView,
+    normalizedConversationView,
     currentWorkspace,
   );
 
@@ -294,7 +299,7 @@ function buildConversationViewWorkspaceMutation<TWorkspace extends ConversationV
       || shouldClearRawMessages
       ? {
         ...currentWorkspace,
-        conversationView,
+        conversationView: normalizedConversationView,
         ...(shouldClearRawMessages ? {
           messages: [],
         } : {}),
@@ -320,17 +325,18 @@ function buildSetConversationViewStateUpdate<
   state,
 }: {
   conversationRef?: string | null;
-  conversationView: ConversationView | null;
+  conversationView: unknown;
   deps: ConversationViewStateDependencies<TState, TWorkspace>;
   state: TState;
 }): Partial<TState> | TState | null {
+  const normalizedConversationView = normalizeConversationView(conversationView);
   const targetWorkspaceRef = deps.resolveWorkspaceKey(
-    conversationRef ?? conversationView?.conversationRef,
+    conversationRef ?? normalizedConversationView?.conversationRef,
     state.activeConversationRef,
   );
   const currentWorkspace = deps.readWorkspaceState(state, targetWorkspaceRef);
   const conversationViewMutation = buildConversationViewWorkspaceMutation({
-    conversationView,
+    conversationView: normalizedConversationView,
     currentWorkspace,
   });
   if (!conversationViewMutation) {

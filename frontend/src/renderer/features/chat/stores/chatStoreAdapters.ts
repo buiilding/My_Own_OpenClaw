@@ -3,10 +3,6 @@
  */
 
 import type {
-  ConversationView,
-  CurrentTurnProjection,
-} from '../../../app/runtime/desktopConversationRuntimeContracts';
-import type {
   ChatMessage,
   TokenCounts,
 } from '../../../app/runtime/desktopChatMessageTypes';
@@ -442,7 +438,7 @@ export function acceptStoppedTurnInChatStore(
 }
 
 export function setNoViewSdkLiveTurnInChatStore(
-  sdkLiveTurn: CurrentTurnProjection | null,
+  sdkLiveTurn: unknown | null,
   conversationRef?: string | null,
 ): void {
   useChatStore.setState((state) => (
@@ -456,7 +452,7 @@ export function setNoViewSdkLiveTurnInChatStore(
 }
 
 export function setConversationViewInChatStore(
-  conversationView: ConversationView | null,
+  conversationView: unknown | null,
   conversationRef?: string | null,
 ): void {
   useChatStore.setState((state) => (
@@ -486,7 +482,7 @@ export function applyConversationViewToChatStore({
   if (!conversationRef) {
     return null;
   }
-  setConversationViewInChatStore(view as ConversationView, conversationRef);
+  setConversationViewInChatStore(view, conversationRef);
   return conversationRef;
 }
 

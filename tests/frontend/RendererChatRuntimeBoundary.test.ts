@@ -4991,6 +4991,12 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).not.toContain('editUserMessageReplayFromChatStore');
     expect(chatStoreAdaptersSource).not.toContain('retryAssistantMessageReplayFromChatStore');
     expect(chatStoreAdaptersSource).not.toContain('executeReplayActionFromChatStore');
+    expect(chatStoreAdaptersSource).not.toContain('desktopConversationRuntimeContracts');
+    expect(chatStoreAdaptersSource).toContain('sdkLiveTurn: unknown | null');
+    expect(chatStoreAdaptersSource).toContain('conversationView: unknown | null');
+    expect(chatStoreAdaptersSource).not.toContain('view as ConversationView');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('function normalizeNoViewSdkLiveTurn');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('function normalizeConversationView');
     expect(chatStoreAdaptersSource).toContain('setNoViewSdkLiveTurnInChatStore');
     expect(chatStoreAdaptersSource).toContain('setConversationViewInChatStore');
     expect(chatStoreAdaptersSource).toContain('updateStreamTrackingInChatStore');

@@ -25,6 +25,16 @@ const {
   resolvePendingTurnForSdkLiveTurn,
 } = DesktopVisibleTurnLifecycleRuntime;
 
+const CURRENT_TURN_PROJECTION_PHASES = new Set([
+  'idle',
+  'awaiting',
+  'streaming',
+  'tool_call',
+  'tool_output',
+  'complete',
+  'error',
+]);
+
 type CurrentTurnWorkspace = NoViewSdkLiveTurnStorage & {
   conversationView?: unknown | null;
   pendingTurn: unknown | null;
@@ -50,13 +60,46 @@ type CurrentTurnStateDependencies<
   ) => string;
 };
 
+function exactNonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function isCurrentTurnProjection(value: unknown): value is CurrentTurnProjection {
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+  const phase = exactNonEmptyString(value.phase);
+  const turnRef = value.turnRef;
+  return Boolean(
+    exactNonEmptyString(value.conversationRef)
+      && phase
+      && CURRENT_TURN_PROJECTION_PHASES.has(phase)
+      && (
+        turnRef === null
+        || turnRef === undefined
+        || exactNonEmptyString(turnRef)
+      ),
+  );
+}
+
+function normalizeNoViewSdkLiveTurn(value: unknown): CurrentTurnProjection | null {
+  return isCurrentTurnProjection(value) ? value : null;
+}
+
 function buildNoViewSdkLiveTurnWorkspaceMutation<TWorkspace extends CurrentTurnWorkspace>({
   currentWorkspace,
   sdkLiveTurn,
 }: {
   currentWorkspace: TWorkspace;
-  sdkLiveTurn: CurrentTurnProjection | null;
+  sdkLiveTurn: unknown;
 }): TWorkspace | null {
+  const nextSdkLiveTurn = normalizeNoViewSdkLiveTurn(sdkLiveTurn);
   const currentSdkLiveTurn = readNoViewSdkLiveTurnStorage(currentWorkspace);
   if (hasWorkspaceConversationView(currentWorkspace)) {
     return currentSdkLiveTurn === null
@@ -65,16 +108,16 @@ function buildNoViewSdkLiveTurnWorkspaceMutation<TWorkspace extends CurrentTurnW
   }
   const nextPendingTurn = resolvePendingTurnForSdkLiveTurn({
     pendingTurn: currentWorkspace.pendingTurn,
-    sdkLiveTurn,
+    sdkLiveTurn: nextSdkLiveTurn,
   });
   if (
-    currentSdkLiveTurn === sdkLiveTurn
+    currentSdkLiveTurn === nextSdkLiveTurn
     && currentWorkspace.pendingTurn === nextPendingTurn
   ) {
     return null;
   }
   return {
-    ...buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace, sdkLiveTurn),
+    ...buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace, nextSdkLiveTurn),
     pendingTurn: nextPendingTurn,
   };
 }
@@ -90,7 +133,7 @@ function buildSetNoViewSdkLiveTurnStorageStateUpdate<
 }: {
   conversationRef?: string | null;
   deps: CurrentTurnStateDependencies<TState, TWorkspace>;
-  sdkLiveTurn: CurrentTurnProjection | null;
+  sdkLiveTurn: unknown;
   state: TState;
 }): Partial<TState> | TState | null {
   const targetWorkspaceRef = deps.resolveWorkspaceKey(conversationRef, state.activeConversationRef);
@@ -116,7 +159,7 @@ function buildSetNoViewSdkLiveTurnStateUpdate<
 }: {
   conversationRef?: string | null;
   deps: CurrentTurnStateDependencies<TState, TWorkspace>;
-  sdkLiveTurn: CurrentTurnProjection | null;
+  sdkLiveTurn: unknown;
   state: TState;
 }): Partial<TState> | TState | null {
   return buildSetNoViewSdkLiveTurnStorageStateUpdate({

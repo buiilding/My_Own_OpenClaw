@@ -298,6 +298,9 @@ partial objects stay on the no-view SDK live-turn fallback path instead of
 suppressing fallback identity. The shared renderer workspace read model also
 publishes `conversationView: null` for partial objects, so stream/current-turn
 adapters cannot see partial view data beside no-view fallback state.
+Feature-store write adapters pass SDK view/live-turn payloads as opaque
+envelopes; app-runtime workspace writers perform the envelope gates before
+those values become stored chat authority.
 ChatInterface presentation uses the same envelope before choosing SDK view
 rows, active revision, or view cache identity, and passes `null` downstream for
 partial objects so no-view messages and `sdkLiveTurn` remain the only fallback

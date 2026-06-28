@@ -344,7 +344,10 @@ trimmed into no-view/pending routing state.
   `setConversationViewInChatStore(...)` adapter instead of a Zustand action.
   The conversation-view workspace state update lives in
   `desktopConversationViewWorkspaceRuntime.ts`; the adapter module delegates
-  conversation-view intent plus workspace dependency adapters. A same-turn SDK
+  conversation-view intent plus workspace dependency adapters. The adapter
+  treats SDK view and no-view live-turn payloads as opaque envelopes; the
+  app-runtime workspace writers normalize malformed envelopes before they can
+  become stored chat authority. A same-turn SDK
   `ConversationView` clears the renderer-local pending bridge only after the
   view has a visible replacement for that pending send: a same-turn SDK user
   display row, live entries, or terminal lifecycle. Awaiting-only or busy-only
