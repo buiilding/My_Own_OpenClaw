@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: clear stale raw workspace messages when a valid SDK
+  `ConversationView` becomes authoritative, after migrating exact assistant
+  feedback into renderer annotations. No migration required.
 - frontend/current-turn: stop projecting legacy no-view raw `toolEvents` into
   renderer live tool rows; live tool display now comes from SDK presentation
   entries or `ConversationView` entries. No migration required.

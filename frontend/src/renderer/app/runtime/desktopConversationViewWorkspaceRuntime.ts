@@ -169,6 +169,17 @@ function mergeRendererAnnotations(
   return nextAnnotations;
 }
 
+function shouldClearRawMessagesForConversationView(
+  conversationView: ConversationView | null,
+  currentWorkspace: ConversationViewWorkspace,
+): boolean {
+  return Boolean(
+    isConversationView(conversationView)
+      && Array.isArray(currentWorkspace.messages)
+      && currentWorkspace.messages.length > 0,
+  );
+}
+
 function normalizePendingTurn(value: unknown): {
   conversationRef: string;
   turnRef: string;
@@ -262,16 +273,31 @@ function buildConversationViewWorkspaceMutation<TWorkspace extends ConversationV
         currentWorkspace.rendererAnnotations?.[index] !== annotation
       ))
     );
+  const shouldClearRawMessages = shouldClearRawMessagesForConversationView(
+    conversationView,
+    currentWorkspace,
+  );
 
-  if (!hasWorkspaceUpdate && !shouldClearPendingTurn && !hasRendererAnnotationUpdate) {
+  if (
+    !hasWorkspaceUpdate
+    && !shouldClearPendingTurn
+    && !hasRendererAnnotationUpdate
+    && !shouldClearRawMessages
+  ) {
     return null;
   }
 
   return {
-    workspace: hasWorkspaceUpdate || shouldClearPendingTurn || hasRendererAnnotationUpdate
+    workspace: hasWorkspaceUpdate
+      || shouldClearPendingTurn
+      || hasRendererAnnotationUpdate
+      || shouldClearRawMessages
       ? {
         ...currentWorkspace,
         conversationView,
+        ...(shouldClearRawMessages ? {
+          messages: [],
+        } : {}),
         ...(hasRendererAnnotationUpdate ? {
           rendererAnnotations: nextRendererAnnotations,
         } : {}),

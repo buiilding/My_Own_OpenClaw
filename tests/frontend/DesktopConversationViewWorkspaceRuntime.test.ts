@@ -165,7 +165,7 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     const nextView = buildConversationView('conv-1');
     const workspace = {
       conversationView: previousView,
-      messages: ['keep-ui-state'],
+      messages: ['stale-raw-row'],
     };
 
     const mutation = buildConversationViewWorkspaceMutation({
@@ -176,10 +176,24 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     expect(mutation).toEqual({
       workspace: {
         conversationView: nextView,
-        messages: ['keep-ui-state'],
+        messages: [],
       },
     });
     expect(mutation?.workspace).not.toBe(workspace);
+  });
+
+  test('keeps workspace stable when current view already owns an empty raw message list', () => {
+    const conversationView = buildConversationView('conv-1');
+    const workspace = {
+      conversationView,
+      messages: [],
+      rendererAnnotations: [],
+    };
+
+    expect(buildConversationViewWorkspaceMutation({
+      conversationView,
+      currentWorkspace: workspace,
+    })).toBeNull();
   });
 
   test('migrates assistant feedback into explicit renderer annotations when view becomes authoritative', () => {
@@ -208,7 +222,7 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
       currentWorkspace: workspace,
     });
 
-    expect(mutation?.workspace.messages).toBe(workspace.messages);
+    expect(mutation?.workspace.messages).toEqual([]);
     expect(mutation?.workspace.rendererAnnotations).toEqual([
       {
         id: 'assistant-row',
@@ -598,7 +612,7 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
       'conv-1',
       expect.objectContaining({
         conversationView: nextView,
-        messages: ['keep-ui-state'],
+        messages: [],
       }),
     );
     expect(nextState).toEqual(expect.objectContaining({

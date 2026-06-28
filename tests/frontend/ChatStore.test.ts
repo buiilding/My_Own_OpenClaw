@@ -252,6 +252,7 @@ describe('chatStore', () => {
       },
     }, 'conv-trace');
 
+    expect(getWorkspaceStateFromChatStore('conv-trace').messages).toEqual([]);
     expect(getChatProviderTraceWorkspaceSnapshotFromChatStore('conv-trace')).toEqual({
       activeConversationRef: null,
       workspaceMessageCount: 1,

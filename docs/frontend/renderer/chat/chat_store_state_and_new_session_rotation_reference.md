@@ -300,8 +300,10 @@ trimmed into no-view/pending routing state.
   `ConversationView` first becomes authoritative, existing no-view assistant
   feedback with exact row ids is migrated into `rendererAnnotations` once;
   padded fallback message ids are ignored instead of repaired during that
-  migration. The projected read model must not recover annotations from raw
-  `messages` under a view.
+  migration. The same handoff clears the raw `messages` list after harvesting
+  annotations, so stale renderer transcript rows do not remain as hidden
+  alternate display authority. The projected read model must not recover
+  annotations from raw `messages` under a view.
 - Scalar workspace-field writes enter through the module-level
   `setIsSendingInChatStore(...)`, `setThinkingStatusInChatStore(...)`,
   `setThinkingSourceEventTypeInChatStore(...)`,
@@ -348,6 +350,9 @@ trimmed into no-view/pending routing state.
   view snapshots may drive surface state, but they do not erase the pending
   bridge because that bridge owns the only visible dashboard user row and
   typing anchor before SDK rows arrive.
+  The same view write removes stale raw workspace messages after migrating
+  exact assistant feedback into renderer annotations; `ConversationView` plus
+  annotations and the pending bridge are the normal chat read model.
   ConversationView handoff uses the same exact identity rule for
   `conversationRef`, `liveTurn.turnRef`, response-overlay turn refs, and SDK
   user-row anchors; malformed padded refs keep the renderer pending bridge
