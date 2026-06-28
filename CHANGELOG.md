@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-store: require provider trace snapshots to use exact active
+  conversation refs instead of forwarding padded renderer identity into trace
+  state. No migration required.
 - frontend/display-rows: classify SDK display rows through exact known
   `role`/`type` pairs before projecting renderer chat-message props, leaving
   padded or unknown row labels inert. No migration required.

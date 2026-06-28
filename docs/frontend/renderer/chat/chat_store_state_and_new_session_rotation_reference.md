@@ -90,11 +90,14 @@ generic projected workspace read helper remains private to
 purpose-shaped stream/current-turn read models, not the raw
 `ChatWorkspaceState`, so callers do not type against raw fallback fields as
 durable chat authority or casually reach across SDK-view boundaries. The
-chat-stream read model exposes only pending-turn identity, stream-tracking
-state, a purpose-named `viewLiveTurnRef`, and thinking source labels; the view
-turn ref is read through the ConversationView workspace runtime's exact SDK
-identity gate rather than by publishing nested `ConversationView.liveTurn`
-shape. The adapter also exact-gates fallback pending turn refs, no-view
+provider trace snapshot also exact-gates the active conversation ref before it
+becomes trace state, so padded renderer identity cannot be repaired into a
+diagnostic conversation scope. The chat-stream read model exposes only
+pending-turn identity, stream-tracking state, a purpose-named
+`viewLiveTurnRef`, and thinking source labels; the view turn ref is read
+through the ConversationView workspace runtime's exact SDK identity gate rather
+than by publishing nested `ConversationView.liveTurn` shape. The adapter also
+exact-gates fallback pending turn refs, no-view
 `sdkLiveTurn` refs/phases, and thinking source labels before publishing
 stream/current-turn read models, so padded fallback values leave the adapter as
 missing instead of being repaired. Renderer and main pending-turn clear

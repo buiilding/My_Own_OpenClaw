@@ -2786,6 +2786,7 @@ describe('renderer chat runtime boundary', () => {
     expect(providerTraceRuntimeSource).not.toContain('buildConversationViewTraceSummary');
     expect(providerTraceRuntimeSource).not.toContain('conversationView.displayRows');
     expect(providerTraceRuntimeSource).toContain('value.length > 0 && value === value.trim()');
+    expect(providerTraceRuntimeSource).toContain('activeConversationRef: normalizeTraceString(activeConversationRef)');
     expect(providerTraceRuntimeSource).toContain('traceLastMessageFromReadModel(workspace?.lastMessage)');
     expect(providerTraceRuntimeSource).toContain('normalizeTraceString(workspace?.activeTurnRef)');
     expect(providerTraceRuntimeSource).toContain("typeof workspace?.messageCount === 'number'");
@@ -2795,6 +2796,7 @@ describe('renderer chat runtime boundary', () => {
     expect(providerTraceRuntimeSource).not.toContain("Boolean(workspace?.conversationView && typeof workspace.conversationView === 'object')");
     expect(providerTraceRuntimeSource).not.toContain('turnRef: lastMessage.turnRef || null');
     expect(providerTraceRuntimeSource).not.toContain('sourceEventType: lastMessage.sourceEventType || null');
+    expect(providerTraceRuntimeSource).not.toContain('activeConversationRef,');
     expect(providerTraceRuntimeSource).not.toContain('conversationView?.displayRows');
     expect(providerTraceRuntimeSource).not.toContain('displayRows.length');
     expect(providerTraceRuntimeSource).not.toContain('return displayRows ? displayRows.length : messages.length');

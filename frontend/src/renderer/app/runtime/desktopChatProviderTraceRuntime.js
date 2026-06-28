@@ -57,7 +57,7 @@ function buildChatProviderTraceWorkspaceSnapshot({
 } = {}) {
   const conversationViewTraceSummary = traceConversationViewSummaryFromReadModel(workspace);
   return {
-    activeConversationRef,
+    activeConversationRef: normalizeTraceString(activeConversationRef),
     workspaceMessageCount: resolveTraceMessageCount(workspace, conversationViewTraceSummary),
     activeTurnRef: resolveTraceActiveTurnRef(workspace, conversationViewTraceSummary),
     lastMessage: resolveTraceLastMessage(workspace, conversationViewTraceSummary),

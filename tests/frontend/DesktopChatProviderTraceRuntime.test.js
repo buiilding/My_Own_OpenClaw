@@ -161,4 +161,21 @@ describe('DesktopChatProviderTraceRuntime', () => {
       },
     });
   });
+
+  test('does not repair padded active conversation refs into provider trace state', () => {
+    expect(buildChatProviderTraceWorkspaceSnapshot({
+      activeConversationRef: ' conv-provider ',
+      workspace: {
+        messageCount: 0,
+        activeTurnRef: null,
+        lastMessage: null,
+        conversationViewTraceSummary: null,
+      },
+    })).toEqual({
+      activeConversationRef: null,
+      workspaceMessageCount: 0,
+      activeTurnRef: null,
+      lastMessage: null,
+    });
+  });
 });
