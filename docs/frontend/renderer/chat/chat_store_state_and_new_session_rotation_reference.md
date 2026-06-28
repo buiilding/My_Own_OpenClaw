@@ -707,12 +707,17 @@ the no-view path and
 for the ConversationView path, so pending rendering does not write the
 renderer-composed row into raw workspace `messages`. Raw `ROWS`/display-row stream events remain Electron IPC
 compatibility plumbing only; the renderer chat projection hook does not
-subscribe to them or write those rows into `ChatWorkspaceState.messages`. The
-component consumes that view model and does not choose between raw messages,
-current-turn rows, and `ConversationView` action metadata inline.
-When checkout/fork commands return a `ConversationView`, `ChatInterface` stores
-only that SDK view for the target conversation; it does not project
-`displayRows` back into active workspace messages.
+subscribe to them or write those rows into `ChatWorkspaceState.messages`.
+`DesktopChatInterfaceSelectorRuntime` invokes the presentation runtime from
+`selectChatInterfaceState`, and the component consumes that view model without
+choosing between raw messages, current-turn rows, and `ConversationView` action
+metadata inline.
+When checkout/fork commands return a `ConversationView`, `ChatInterface` passes
+the result to `applyConversationViewToChatStore(...)`; the chat-store adapter
+uses `DesktopConversationViewWorkspaceRuntime.resolveConversationViewStoreRef`
+to choose the exact SDK view store target. The component does not project
+`displayRows` back into active workspace messages or import the presentation
+runtime to validate SDK view identity inline.
 Replay actions do not consume selector row models. The hook passes only row
 ids/text to `DesktopConversationReplayRuntime`, which forwards intent to SDK
 command APIs and resolves replay conversation scope from transcript/session

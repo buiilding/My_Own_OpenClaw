@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-interface: align app-runtime boundary coverage with the thinner
+  selector/adapter path so `ChatInterface` consumes `selectChatInterfaceState`
+  and `applyConversationViewToChatStore(...)` instead of importing presentation
+  runtime helpers. No migration required.
 - frontend/session: require exact conversation refs before active chat reset
   cleanup targets a chat workspace, leaving padded renderer identity unscoped.
   No migration required.

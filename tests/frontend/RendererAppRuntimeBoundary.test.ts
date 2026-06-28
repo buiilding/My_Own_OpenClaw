@@ -635,6 +635,10 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/chat/components/ChatInterface.jsx'),
       'utf8',
     );
+    const chatStoreSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/stores/chatStore.ts'),
+      'utf8',
+    );
     const chatSurfaceControllerSource = await fs.readFile(
       path.join(rendererRoot, 'features/chat/hooks/useChatSurfaceController.js'),
       'utf8',
@@ -827,7 +831,10 @@ describe('renderer app runtime boundary', () => {
     expect(chatSurfaceControllerSource).not.toContain('resolveSdkCurrentTurnPresentationState');
     expect(chatInterfacePresentationSource).toContain('desktopThreadPresentationRuntime');
     expect(chatInterfacePresentationSource).toContain('DesktopThreadPresentationRuntime');
-    expect(chatInterfaceSource).toContain('DesktopChatInterfacePresentationRuntime');
+    expect(chatInterfaceSource).toContain('selectChatInterfaceState');
+    expect(chatInterfaceSource).not.toContain('DesktopChatInterfacePresentationRuntime');
+    expect(chatStoreSource).toContain('DesktopChatInterfaceSelectorRuntime');
+    expect(chatStoreSource).toContain('buildChatInterfaceSelectorState');
     expect(chatInterfaceSource).not.toContain('desktopThreadPresentationRuntime');
     expect(chatInterfaceSource).not.toContain('DesktopThreadPresentationRuntime');
     expect(chatInterfaceSource).not.toContain('showToolLogs');
