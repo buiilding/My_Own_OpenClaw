@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: expand send-preparation coverage so renderer pending
+  turns and SDK resources stay free of display attachment ids, preview sources,
+  screenshot aliases, attachment filename aliases, and attachment arrays. No
+  migration required.
 - frontend/display-rows: pass accepted SDK display-row ids through renderer
   projection builders instead of re-reading raw `row.id` after the exact id
   gate. No migration required.

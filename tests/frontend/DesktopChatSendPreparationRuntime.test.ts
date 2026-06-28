@@ -140,9 +140,15 @@ describe('DesktopChatSendPreparationRuntime', () => {
           base64: 'image-base64',
           contentType: 'image/png',
           filename: 'shot.png',
+          attachmentContext: 'hidden legacy context',
+          attachmentFilenames: ['legacy-shot.png'],
+          attachments: [{ id: 'renderer-attachment' }],
           displayAttachmentId: 'renderer-display-id',
+          displayAttachments: [{ id: 'renderer-display-id' }],
           previewSrc: 'data:image/png;base64,preview',
           screenshotRef: 'artifact-legacy',
+          screenshotRefs: ['artifact-legacy'],
+          screenshotUrl: '/api/artifacts/artifact-legacy',
         }, {
           base64: 'image-without-metadata',
         }],
@@ -179,8 +185,13 @@ describe('DesktopChatSendPreparationRuntime', () => {
     });
     expect(mockSetPending).toHaveBeenCalledWith(mockAcceptPendingTurn.mock.calls[0][0]);
     expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('attachments');
+    expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('attachmentContext');
+    expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('attachmentFilenames');
     expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('screenshotRef');
+    expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('screenshotRefs');
+    expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('screenshotUrl');
     expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('displayAttachmentId');
+    expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('displayAttachments');
     expect(preparedTurn).toEqual(expect.objectContaining({
       conversationRef: 'conv_turn-1',
       text: 'look here',
@@ -227,7 +238,12 @@ describe('DesktopChatSendPreparationRuntime', () => {
       },
     ]);
     expect(JSON.stringify(preparedTurn?.resources)).not.toContain('displayAttachmentId');
+    expect(JSON.stringify(preparedTurn?.resources)).not.toContain('displayAttachments');
     expect(JSON.stringify(preparedTurn?.resources)).not.toContain('previewSrc');
+    expect(JSON.stringify(preparedTurn?.resources)).not.toContain('attachmentContext');
+    expect(JSON.stringify(preparedTurn?.resources)).not.toContain('attachmentFilenames');
+    expect(JSON.stringify(preparedTurn?.resources)).not.toContain('screenshotRefs');
+    expect(JSON.stringify(preparedTurn?.resources)).not.toContain('screenshotUrl');
     expect(JSON.stringify(preparedTurn?.resources)).not.toContain('screenshotRef');
     expect(JSON.stringify(preparedTurn?.resources)).not.toContain('attachments');
   });
