@@ -274,9 +274,13 @@ passes `ConversationView` into the live-surface runtime, and applies
 `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
 directly before deriving response-overlay view intent. The response overlay
 therefore shows awaiting only for renderer local pending or SDK awaiting
-lifecycle, and shows response only for visible SDK entries. Phase-only `streaming`,
-`tool_call`, or `tool_output` projections with no visible text, tool event,
-progress, error, or pending turn do not independently show typing. The
+lifecycle, and shows response only for visible SDK entries after the
+live-surface source is `conversation-view`, `sdk-current-turn`, or
+`current-turn`. Idle no-view SDK live-turn packets do not rebuild overlay rows
+or raw thinking text even when their raw packet still carries presentation
+entries. Phase-only `streaming`, `tool_call`, or `tool_output` projections with
+no visible text, tool event, progress, error, or pending turn do not
+independently show typing. The
 response-overlay view contract reads `visibleTurnLifecycle.status` directly
 when suppressing stale previous responses during a new awaiting turn, so it no
 longer imports the overlay lifecycle adapter.

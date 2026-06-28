@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/response-overlay: gate no-view SDK response entries and raw thinking
+  fallback on the live-surface source, so idle or malformed live-turn packets
+  cannot rebuild overlay rows after lifecycle gating. No migration required.
 - frontend/chat-surface: require no-view SDK live-turn fallback to carry an
   exact conversation ref before it can drive renderer busy/active lifecycle,
   leaving malformed raw live-turn packets inert. No migration required.

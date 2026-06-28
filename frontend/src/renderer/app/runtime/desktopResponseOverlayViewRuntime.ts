@@ -728,6 +728,10 @@ function resolveResponseOverlayThinkingText({
   return resolveNoViewResponseOverlayThinkingText(sdkLiveTurn);
 }
 
+function isNoViewSdkLiveTurnResponseSource(source: unknown): boolean {
+  return source === 'sdk-current-turn' || source === 'current-turn';
+}
+
 function resolveResponseOverlaySurfaceState({
   chatSurfaceState = null,
 }: {
@@ -781,7 +785,9 @@ function resolveResponseOverlaySurfaceState({
     sdkLiveTurn,
     thinkingText: resolveResponseOverlayThinkingText({
       responseOverlayEntries,
-      sdkLiveTurn,
+      sdkLiveTurn: isNoViewSdkLiveTurnResponseSource(liveTurnPresentationInput.source)
+        ? sdkLiveTurn
+        : null,
     }),
     useLocalPendingTurn,
     useSdkLiveTurnPresentation,
@@ -807,6 +813,9 @@ function resolveResponseOverlayEntries({
   }
   if (hasWorkspaceConversationView({ conversationView })) {
     return mergeConversationViewOverlayMessages(conversationView);
+  }
+  if (!isNoViewSdkLiveTurnResponseSource(liveTurnPresentationInput.source)) {
+    return [];
   }
   return buildSdkLiveTurnMessages({
     conversationView: null,

@@ -908,7 +908,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
         phase: 'streaming',
         assistantText: 'raw fallback remains visible',
       },
-      liveTurnPresentationInput: {},
+      liveTurnPresentationInput: {
+        source: 'current-turn',
+      },
     })).toEqual([
       expect.objectContaining({
         text: 'raw fallback remains visible',
@@ -942,7 +944,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
         phase: 'streaming',
         assistantText: 'raw fallback remains visible',
       },
-      liveTurnPresentationInput: {},
+      liveTurnPresentationInput: {
+        source: 'current-turn',
+      },
     })).toEqual([
       expect.objectContaining({
         text: 'raw fallback remains visible',
@@ -959,6 +963,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
         assistantText: 'visible raw fallback',
       },
       liveTurnPresentationInput: {
+        source: 'current-turn',
         useSdkLiveTurnPresentation: false,
       },
     })).toEqual([
@@ -978,7 +983,27 @@ describe('desktopResponseOverlayViewRuntime', () => {
         },
       },
       liveTurnPresentationInput: {
+        source: 'sdk-current-turn',
         useSdkLiveTurnPresentation: true,
+      },
+    })).toEqual([]);
+
+    expect(resolveResponseOverlayEntries({
+      sdkLiveTurn: {
+        conversationRef: 'conv-sdk',
+        turnRef: 'turn-sdk',
+        phase: 'streaming',
+        presentation: {
+          entries: [{
+            id: 'assistant-sdk',
+            type: 'llm-text',
+            text: 'hidden by idle surface gate',
+          }],
+        },
+      },
+      liveTurnPresentationInput: {
+        source: 'idle',
+        useSdkLiveTurnPresentation: false,
       },
     })).toEqual([]);
   });
@@ -1102,6 +1127,42 @@ describe('desktopResponseOverlayViewRuntime', () => {
     });
 
     expect(hiddenPresentationState.thinkingText).toBe('');
+  });
+
+  test('does not rebuild response entries from idle no-view SDK surface state', () => {
+    const state = resolveResponseOverlaySurfaceState({
+      chatSurfaceState: {
+        sdkLiveTurn: {
+          conversationRef: ' conv-sdk ',
+          turnRef: 'turn-sdk',
+          phase: 'streaming',
+          reasoningText: 'raw reasoning fallback',
+          presentation: {
+            entries: [{
+              id: 'assistant-sdk',
+              type: 'llm-text',
+              text: 'must stay hidden',
+            }],
+            overlayIntent: {
+              visible: true,
+              mode: 'response',
+              conversationRef: ' conv-sdk ',
+              turnRef: 'turn-sdk',
+              staleGuardRef: 'turn-sdk',
+            },
+          },
+        },
+      },
+    });
+
+    expect(state.liveTurnPresentationInput).toEqual(expect.objectContaining({
+      source: 'idle',
+      useSdkLiveTurnPresentation: false,
+    }));
+    expect(state.responseOverlayEntries).toEqual([]);
+    expect(state.responseOverlayMessages).toEqual([]);
+    expect(state.responseOverlayDismissalTarget).toBeNull();
+    expect(state.thinkingText).toBe('');
   });
 
   test('response overlay surface state blanks raw fallback under direct ConversationView input', () => {
