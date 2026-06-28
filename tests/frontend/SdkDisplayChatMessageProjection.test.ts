@@ -387,6 +387,9 @@ describe('sdkDisplayChatMessageProjection', () => {
       },
     ]);
 
+    for (const message of messages.slice(0, 4)) {
+      expect(message).not.toHaveProperty('timestamp');
+    }
     expect(messages).toEqual([
       expect.not.objectContaining({ timestamp: ' 2026-05-15T12:00:00.000Z ' }),
       expect.not.objectContaining({ timestamp: ' 2026-05-15T12:00:00.000Z ' }),
@@ -400,6 +403,40 @@ describe('sdkDisplayChatMessageProjection', () => {
       expect.not.objectContaining({ timestamp: '2026-05-15T12:00:00.000Z' }),
       expect.not.objectContaining({ timestamp: '2026-05-15T12:00:00.000Z' }),
     ]);
+  });
+
+  test('omits display row timestamp metadata when SDK does not provide one', () => {
+    const messages = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-user-without-timestamp',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'hello',
+      },
+      {
+        id: 'msg-assistant-without-timestamp',
+        conversationRef: 'conv-sdk',
+        index: 1,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'hi',
+      },
+      {
+        id: 'msg-tool-progress-without-timestamp',
+        conversationRef: 'conv-sdk',
+        index: 2,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Working',
+      },
+    ]);
+
+    expect(messages).toHaveLength(3);
+    for (const message of messages) {
+      expect(message).not.toHaveProperty('timestamp');
+    }
   });
 
   test('drops display rows with malformed SDK row ids', () => {

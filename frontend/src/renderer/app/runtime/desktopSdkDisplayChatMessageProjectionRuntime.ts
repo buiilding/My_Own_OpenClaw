@@ -22,8 +22,13 @@ function displayTextFromStringRowContent(content: unknown): string {
   return typeof content === 'string' ? content : '';
 }
 
-function rowTimestamp(row: SdkDisplayRow): string {
-  return exactNonEmptyString(row.metadata?.timestamp) ?? '';
+function rowTimestamp(row: SdkDisplayRow): string | null {
+  return exactNonEmptyString(row.metadata?.timestamp);
+}
+
+function rowTimestampProp(row: SdkDisplayRow): Pick<ChatMessage, 'timestamp'> | Record<string, never> {
+  const timestamp = rowTimestamp(row);
+  return timestamp ? { timestamp } : {};
 }
 
 function rowSourceEventType(row: SdkDisplayRow): string {
@@ -118,8 +123,8 @@ function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
     turnRef: rowTurnRef(row),
     sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
-    timestamp: rowTimestamp(row),
     isComplete: true,
+    ...rowTimestampProp(row),
     ...(attachments.length > 0 ? { attachments } : {}),
   }, row);
 }
@@ -141,7 +146,7 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
       thinkingText,
       thinkingSourceEventType: 'reasoning_delta',
     } : {}),
-    timestamp: rowTimestamp(row),
+    ...rowTimestampProp(row),
   }, row);
 }
 
@@ -162,7 +167,7 @@ function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
     ...(toolCallDetails ? { toolCallDetails } : {}),
     ...(correlationId ? { correlationId } : {}),
     ...(turnRef ? { turnRef } : {}),
-    timestamp: rowTimestamp(row),
+    ...rowTimestampProp(row),
   }, row);
 }
 
@@ -184,7 +189,7 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
     ...(attachments.length > 0 ? { attachments } : {}),
     ...(correlationId ? { correlationId } : {}),
     ...(turnRef ? { turnRef } : {}),
-    timestamp: rowTimestamp(row),
+    ...rowTimestampProp(row),
   }, row);
 }
 
@@ -198,8 +203,8 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
     sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
     turnRef: rowTurnRef(row) ?? undefined,
-    timestamp: rowTimestamp(row),
     correlationId: rowCorrelationId(row) ?? undefined,
+    ...rowTimestampProp(row),
     ...(toolCallDetails ? { toolCallDetails } : {}),
   }, row);
 }

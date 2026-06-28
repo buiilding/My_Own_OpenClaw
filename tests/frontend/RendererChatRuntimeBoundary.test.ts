@@ -4365,7 +4365,10 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain("if (row.type === 'assistant_message')");
     expect(projectionRuntimeSource).not.toContain("if (row.type === 'tool_output' || row.type === 'tool_bundle_output')");
     expect(projectionRuntimeSource).toContain('function rowTimestamp(row: SdkDisplayRow)');
-    expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.timestamp) ?? \'\';');
+    expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.timestamp);');
+    expect(projectionRuntimeSource).toContain('function rowTimestampProp(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('return timestamp ? { timestamp } : {};');
+    expect(projectionRuntimeSource).not.toContain('timestamp: rowTimestamp(row)');
     expect(projectionRuntimeSource).not.toContain("typeof row.metadata?.timestamp === 'string' ? row.metadata.timestamp : ''");
     expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.displayCorrelationId);');
     expect(projectionRuntimeSource).toContain('function rowTurnRef(row: SdkDisplayRow)');

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: omit renderer `timestamp` metadata when SDK display rows
+  do not provide an exact non-empty timestamp, instead of synthesizing empty
+  timestamp placeholders in the display-row adapter. No migration required.
 - frontend/projection: remove the legacy `modelFacingToolOutput` renderer chat
   prop; tool-output cards, thread-find indexing, and estimated token tags now
   consume SDK-authored `message.text` directly. No migration required.
