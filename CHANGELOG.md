@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/response-overlay: update overlay state coverage so raw no-view
+  `toolEvents` and raw chat-store tool rows stay inert while SDK presentation
+  entries own live tool/progress display. No migration required.
 - frontend/response-overlay: keep response-overlay view projection on opaque
   SDK `ConversationView` envelopes after the shared workspace gate instead of
   importing or casting SDK view types in the overlay runtime. No migration

@@ -254,7 +254,7 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
-  test('buildNoViewSdkLiveTurnMessages uses SDK tool-event identity fields', () => {
+  test('buildNoViewSdkLiveTurnMessages ignores raw tool-event identity fields', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-test',
       turnRef: 'turn-live',
@@ -293,18 +293,19 @@ describe('ChatBoxResponse state behavior', () => {
       }],
     });
 
-    const toolMessage = messages.find(message => message.type === 'tool-call');
-    expect(toolMessage).toEqual(expect.objectContaining({
-      correlationId: 'corr-read',
-      text: 'Using read_file for README.md',
-      toolCallDisplayText: 'Using read_file for README.md',
-    }));
-    expect(toolMessage).not.toHaveProperty('modelFacingToolCall');
-    expect(toolMessage.text).not.toContain('wrong_backend_tool');
-    expect(toolMessage.text).not.toContain('wrong.md');
+    expect(messages).toEqual([
+      expect.objectContaining({
+        id: 'conv-test:turn-live:user-marker',
+      }),
+    ]);
+    expect(messages.map(message => message.type)).not.toContain('tool-call');
+    expect(JSON.stringify(messages)).not.toContain('corr-read');
+    expect(JSON.stringify(messages)).not.toContain('read_file');
+    expect(JSON.stringify(messages)).not.toContain('wrong_backend_tool');
+    expect(JSON.stringify(messages)).not.toContain('wrong.md');
   });
 
-  test('buildNoViewSdkLiveTurnMessages renders SDK tool-output text', () => {
+  test('buildNoViewSdkLiveTurnMessages ignores raw tool-output event text', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-test',
       turnRef: 'turn-live',
@@ -333,14 +334,16 @@ describe('ChatBoxResponse state behavior', () => {
       }],
     });
 
-    const toolMessage = messages.find(message => message.type === 'tool-output');
-    expect(toolMessage).toEqual(expect.objectContaining({
-      text: 'README contents',
-      correlationId: 'corr-read',
-    }));
-    expect(toolMessage).not.toHaveProperty('toolOutputDetails');
-    expect(toolMessage.text).not.toContain('wrong output');
-    expect(toolMessage.text).not.toContain('wrong step');
+    expect(messages).toEqual([
+      expect.objectContaining({
+        id: 'conv-test:turn-live:user-marker',
+      }),
+    ]);
+    expect(messages.map(message => message.type)).not.toContain('tool-output');
+    expect(JSON.stringify(messages)).not.toContain('README contents');
+    expect(JSON.stringify(messages)).not.toContain('corr-read');
+    expect(JSON.stringify(messages)).not.toContain('wrong output');
+    expect(JSON.stringify(messages)).not.toContain('wrong step');
   });
 
   test('logs when the awaiting typing indicator is actually rendered and removed', async () => {
@@ -541,21 +544,21 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
-  test('renders tool explanations as persistent transcript lines', async () => {
+  test('renders SDK presentation tool explanations as persistent overlay lines', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
-      {
+    ]);
+    setNoViewSdkLiveTurnInChatStore(sdkPresentationProjection({
+      mode: 'response',
+      entries: [{
         id: 'assistant-1',
-        text: 'partial answer',
-        sender: 'assistant',
         type: 'llm-text',
-        isComplete: false,
-      },
-      {
+        text: 'partial answer',
+        sourceEventType: 'assistant_delta',
+      }, {
         id: 'tool-call-1',
-        text: 'Click the submit button',
-        sender: 'assistant',
         type: 'tool-call',
+        text: 'Click the submit button',
         sourceEventType: 'tool-call',
         toolCallDetails: {
           tool_name: 'click',
@@ -563,11 +566,10 @@ describe('ChatBoxResponse state behavior', () => {
             explanation: 'Click the submit button',
           },
         },
-      },
-    ]);
+      }],
+    }));
 
     render(<ChatBoxResponse />);
-    emitOverlayPhase('tool-output');
 
     await waitFor(() => {
       expect(screen.getByText('partial answer')).toBeInTheDocument();
@@ -576,14 +578,16 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
-  test('shows explanation-only overlay before the first llm-text arrives', async () => {
+  test('shows SDK presentation explanation-only overlay before the first llm-text arrives', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
-      {
+    ]);
+    setNoViewSdkLiveTurnInChatStore(sdkPresentationProjection({
+      mode: 'response',
+      entries: [{
         id: 'tool-call-1',
-        text: 'Open the Settings app',
-        sender: 'assistant',
         type: 'tool-call',
+        text: 'Open the Settings app',
         sourceEventType: 'tool-call',
         modelFacingToolCall: {
           name: 'open_app',
@@ -591,11 +595,10 @@ describe('ChatBoxResponse state behavior', () => {
             explanation: 'Open the Settings app',
           },
         },
-      },
-    ]);
+      }],
+    }));
 
     render(<ChatBoxResponse />);
-    emitOverlayPhase('tool-call');
 
     await waitFor(() => {
       expect(screen.getByText(/Open the Settings app/)).toBeInTheDocument();
@@ -603,7 +606,7 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
-  test('shows direct tool explanation-only overlay before the first llm-text arrives', async () => {
+  test('ignores raw chat-store tool rows before SDK presentation arrives', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
       {
@@ -626,35 +629,30 @@ describe('ChatBoxResponse state behavior', () => {
     render(<ChatBoxResponse />);
     emitOverlayPhase('tool-call');
 
-    await waitFor(() => {
-      expect(screen.getByText(/Verify the currently focused workspace/)).toBeInTheDocument();
-    });
+    expect(screen.queryByText(/Verify the currently focused workspace/)).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
-  test('shows live web-search progress rows before the first llm-text arrives', async () => {
+  test('shows live SDK web-search progress entries before the first llm-text arrives', async () => {
     setChatState([
       { id: 'user-1', text: 'search for this', sender: 'user' },
-      {
-        id: 'search-1',
-        text: 'Searched youtube.com',
-        sender: 'assistant',
-        type: 'search-source',
-        sourceEventType: 'web-search-progress',
-        sourceChannel: 'sdk:conversation-event',
-      },
-      {
-        id: 'search-2',
-        text: 'Searched ncbi.nlm.nih.gov',
-        sender: 'assistant',
-        type: 'search-source',
-        sourceEventType: 'web-search-progress',
-        sourceChannel: 'sdk:conversation-event',
-      },
     ]);
+    setNoViewSdkLiveTurnInChatStore(sdkPresentationProjection({
+      mode: 'response',
+      entries: [{
+        id: 'search-1',
+        type: 'tool-progress',
+        text: 'Searched youtube.com',
+        sourceEventType: 'web-search-progress',
+      }, {
+        id: 'search-2',
+        type: 'tool-progress',
+        text: 'Searched ncbi.nlm.nih.gov',
+        sourceEventType: 'web-search-progress',
+      }],
+    }));
 
     render(<ChatBoxResponse />);
-    emitOverlayPhase('tool-call');
 
     await waitFor(() => {
       expect(screen.getByText('Searched youtube.com')).toBeInTheDocument();

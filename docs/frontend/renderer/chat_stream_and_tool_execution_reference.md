@@ -395,6 +395,11 @@ SDK dispatch behavior:
   - the renderer consumes SDK presentation entries directly. It keeps `llm-thought` as the UI/tracking source label, but does not fall back to backend-wire `llm-thought` payloads.
 - SDK presentation `llm-text` entries from the conversation runtime projection: dashboard and response overlay render live assistant text from the projection, while the projection listener clears the send latch and records `streaming-response` chunk tracking
   - backend-wire `streaming-response` and normalized SDK `assistant_delta` are not live-row fallbacks in renderer chat code.
+- SDK presentation tool/progress entries from the conversation runtime
+  projection: response overlay renders tool explanations and web-search
+  progress only from SDK presentation entries or `ConversationView` live
+  entries. Raw chat-store tool rows and raw no-view `toolEvents` do not create
+  overlay tool/progress display before the SDK presentation arrives.
 - SDK `currentTurn.phase` from the conversation runtime projection: records terminal `streaming-complete`/`error` tracking and clears transient send/thinking state for `complete` and `error`
   - benign settings-update errors and recoverable streamed tool-call parse errors are filtered before they become SDK current-turn terminal errors.
   - dashboard and minimal chat pill busy/typing/stop state resolve from SDK
