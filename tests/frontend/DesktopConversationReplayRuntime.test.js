@@ -71,13 +71,14 @@ function createChatStore() {
 }
 
 function replayArgs(overrides = {}) {
-  const chatStoreBundle = overrides.chatStoreBundle || createChatStore();
-  const { chatStore } = chatStoreBundle;
-  return {
-    chatStore,
-    messages: [],
-    ...overrides,
+  const args = {
+    action: overrides.action,
+    targetRowId: overrides.targetRowId ?? null,
   };
+  if (Object.prototype.hasOwnProperty.call(overrides, 'editedText')) {
+    args.editedText = overrides.editedText;
+  }
+  return args;
 }
 
 describe('desktopConversationReplayRuntime', () => {
@@ -301,39 +302,34 @@ describe('desktopConversationReplayRuntime', () => {
     expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
   });
 
-  test('resolves replay session behind the runtime boundary without forwarding model overrides', async () => {
-    const chatStoreBundle = createChatStore();
-    const callerModel = {
-      modelProvider: 'caller-provider',
-      modelId: 'caller-model',
-    };
+  test('rejects legacy caller context and model overrides before SDK dispatch', async () => {
     DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo.mockReturnValue({
       conversationRef: 'conv-runtime-session',
       userId: 'user-runtime',
     });
 
-    await expect(executeReplayAction(replayArgs({
+    await expect(executeReplayAction({
       action: 'retry',
       targetRowId: 'assistant-runtime',
-      chatStoreBundle,
       sessionInfo: {
         conversationRef: 'conv-caller-session',
         userId: 'user-caller',
       },
-      model: callerModel,
-    }))).resolves.toBe(true);
+      model: {
+        modelProvider: 'caller-provider',
+        modelId: 'caller-model',
+      },
+    })).resolves.toBe(false);
 
-    const replayCommand = DesktopConversationContinuityService.retryTurn.mock.calls[0][0];
-    expect(replayCommand).toEqual(expect.objectContaining({
-      conversationRef: 'conv-replay',
-      userId: 'user-runtime',
-      messageId: 'assistant-runtime',
+    expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
+    expect(DesktopConversationContinuityService.editAndResend).not.toHaveBeenCalled();
+    expect(DesktopRendererTraceRuntime.logRendererReplayTrace).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'replay_failed_cleanup',
+      conversationRef: null,
+      errorKind: 'UnknownReplayActionField',
+      replayAction: null,
+      targetRowId: null,
     }));
-    expect(replayCommand).not.toEqual(expect.objectContaining({
-      conversationRef: 'conv-caller-session',
-      userId: 'user-caller',
-    }));
-    expect(replayCommand).not.toHaveProperty('model');
   });
 
   test('rejects empty replay row targets before SDK dispatch', async () => {

@@ -130,10 +130,11 @@ flowchart LR
      replacement display rows.
    - React replay hooks should pass edit/retry intent through
      `desktopConversationReplayRuntime`. Hooks call the runtime's single
-     replay-action entrypoint with row ids/text only; active conversation scope
-     is resolved from transcript/session state behind the app-runtime boundary
-     instead of selected in React, passed as a caller override, projected from
-     workspace rows, or read through the full Zustand store contract. If
+     replay-action entrypoint with only `action`, `targetRowId`, and optional
+     `editedText`; active conversation scope is resolved from
+     transcript/session state behind the app-runtime boundary instead of
+     selected in React, passed as a caller override, projected from workspace
+     rows, or read through the full Zustand store contract. If
      transcript/session state has no conversation ref, replay returns a traced
      failure instead of falling back to chat-store active workspace or creating
      a fresh conversation whose SDK display rows cannot own the target id.

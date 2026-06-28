@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: reject legacy caller context/model fields at the replay
+  runtime entrypoint so React can pass only row intent while SDK commands own
+  session scope, model state, and replay semantics. No migration required.
 - frontend/chat-interface: align app-runtime boundary coverage with the thinner
   selector/adapter path so `ChatInterface` consumes `selectChatInterfaceState`
   and `applyConversationViewToChatStore(...)` instead of importing presentation

@@ -2237,6 +2237,11 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).toContain('executeReplayAction');
     expect(replayRuntimeSource).toContain('executeReplayIntent');
     expect(replayRuntimeSource).not.toContain('replayUiContext');
+    expect(replayRuntimeSource).toContain('REPLAY_ACTION_INTENT_FIELDS');
+    expect(replayRuntimeSource).toContain("'action'");
+    expect(replayRuntimeSource).toContain("'editedText'");
+    expect(replayRuntimeSource).toContain("'targetRowId'");
+    expect(replayRuntimeSource).toContain('UnknownReplayActionField');
     expect(replayRuntimeSource).toContain('DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.editAndResend');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.retryTurn');

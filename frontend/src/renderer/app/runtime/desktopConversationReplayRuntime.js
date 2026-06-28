@@ -28,6 +28,37 @@ function readExactReplayTargetRowId(value) {
     : null;
 }
 
+const REPLAY_ACTION_INTENT_FIELDS = new Set([
+  'action',
+  'editedText',
+  'targetRowId',
+]);
+
+function readReplayActionIntent(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return {
+      intent: null,
+      unknownField: null,
+    };
+  }
+  for (const fieldName of Object.keys(input)) {
+    if (!REPLAY_ACTION_INTENT_FIELDS.has(fieldName)) {
+      return {
+        intent: null,
+        unknownField: fieldName,
+      };
+    }
+  }
+  return {
+    intent: {
+      action: input.action,
+      editedText: input.editedText ?? null,
+      targetRowId: input.targetRowId ?? null,
+    },
+    unknownField: null,
+  };
+}
+
 function resolveExistingConversationRef(sessionConversationRef) {
   return readExactReplayConversationRef(DesktopTranscriptSessionRuntimeClient.getActiveConversationRef())
     || readExactReplayConversationRef(sessionConversationRef)
@@ -135,11 +166,23 @@ async function executeReplayIntent({
   }
 }
 
-async function executeReplayAction({
-  action,
-  editedText = null,
-  targetRowId = null,
-}) {
+async function executeReplayAction(input) {
+  const { intent, unknownField } = readReplayActionIntent(input);
+  if (!intent) {
+    logRendererReplayTrace({
+      action: 'replay_failed_cleanup',
+      conversationRef: null,
+      errorKind: unknownField ? 'UnknownReplayActionField' : 'InvalidReplayActionIntent',
+      replayAction: null,
+      targetRowId: null,
+    });
+    return false;
+  }
+  const {
+    action,
+    editedText,
+    targetRowId,
+  } = intent;
   if (action !== 'edit_resend' && action !== 'retry') {
     return undefined;
   }
