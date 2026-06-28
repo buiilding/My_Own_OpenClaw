@@ -276,7 +276,10 @@ The response overlay is migrated first: renderer adapters render
 `snapshot.view.surfaces.responseOverlay`. Raw
 `snapshot.currentTurn.presentation.overlayIntent` remains available only as
 legacy payload/debug input and no longer controls the native responsebox when
-the main-process live surface controller applies normal UI state.
+the main-process live surface controller applies normal UI state. The
+response-overlay runtime treats gated view input as an opaque envelope and
+delegates display-row projection to the app-runtime display projection owner,
+so the overlay runtime does not import or cast SDK `ConversationView` types.
 The minimal pill and dashboard control surfaces also consume the view for the
 busy/Stop contract: `snapshot.view.surfaces.pill.mode` drives the pill loop
 lock, `snapshot.view.surfaces.dashboard.mode` drives the dashboard composer

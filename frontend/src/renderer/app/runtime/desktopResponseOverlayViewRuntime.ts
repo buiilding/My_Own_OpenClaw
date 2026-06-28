@@ -9,7 +9,6 @@ import { DesktopLiveTurnSurfaceRuntime } from './desktopLiveTurnSurfaceRuntime';
 import { DesktopVisibleTurnLifecycleRuntime } from './desktopVisibleTurnLifecycleRuntime';
 import { DesktopConversationDisplayProjection } from './desktopConversationDisplayProjection';
 import { DesktopConversationViewWorkspaceRuntime } from './desktopConversationViewWorkspaceRuntime';
-import type { ConversationView } from './desktopConversationRuntimeContracts';
 
 const AWAITING_VISIBLE_LIFECYCLE_STATUSES = new Set(['local_pending', 'awaiting']);
 const {
@@ -207,7 +206,7 @@ function exactToolIdentityField(
   return null;
 }
 
-function conversationViewLiveTurnRef(conversationView: ConversationView): string | null {
+function conversationViewLiveTurnRef(conversationView: unknown): string | null {
   const view = recordFromUnknown(conversationView);
   const liveTurn = recordFromUnknown(view.liveTurn);
   const surfaces = recordFromUnknown(view.surfaces);
@@ -219,7 +218,7 @@ function conversationViewLiveTurnRef(conversationView: ConversationView): string
   );
 }
 
-function responseOverlayDisplayRowMessages(conversationView: ConversationView): ResponseOverlayEntryLike[] {
+function responseOverlayDisplayRowMessages(conversationView: unknown): ResponseOverlayEntryLike[] {
   const liveTurnRef = conversationViewLiveTurnRef(conversationView);
   if (!liveTurnRef) {
     return [];
@@ -335,7 +334,7 @@ function liveEntryMaterializedByDisplayRows(
   return Boolean(type && materializedTypes.has(type));
 }
 
-function mergeConversationViewOverlayMessages(conversationView: ConversationView): ResponseOverlayEntryLike[] {
+function mergeConversationViewOverlayMessages(conversationView: unknown): ResponseOverlayEntryLike[] {
   const displayMessages = responseOverlayDisplayRowMessages(conversationView);
   const liveMessages = buildSdkLiveTurnMessages({
     conversationView,
@@ -736,7 +735,7 @@ function resolveResponseOverlaySurfaceState({
 } = {}) {
   const surfaceState = recordFromUnknown(chatSurfaceState);
   const conversationView = hasWorkspaceConversationView({ conversationView: surfaceState.conversationView })
-    ? surfaceState.conversationView as ConversationView
+    ? surfaceState.conversationView
     : null;
   const messages = conversationView
     ? []
@@ -807,7 +806,7 @@ function resolveResponseOverlayEntries({
     return [];
   }
   if (hasWorkspaceConversationView({ conversationView })) {
-    return mergeConversationViewOverlayMessages(conversationView as ConversationView);
+    return mergeConversationViewOverlayMessages(conversationView);
   }
   return buildSdkLiveTurnMessages({
     conversationView: null,

@@ -44,7 +44,7 @@ type RendererMessageAnnotation = {
 };
 
 type BuildConversationViewMessagesInput = {
-  conversationView?: ConversationView | null;
+  conversationView?: unknown;
   pendingTurn?: PendingTurnLike;
   rendererAnnotations?: RendererMessageAnnotation[];
 };
@@ -55,7 +55,7 @@ type BuildPendingBridgeMessagesInput = {
 };
 
 type BuildConversationViewTurnMessagesInput = {
-  conversationView?: ConversationView | null;
+  conversationView?: unknown;
   turnRef?: string | null;
 };
 

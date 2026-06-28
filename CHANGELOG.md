@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/response-overlay: keep response-overlay view projection on opaque
+  SDK `ConversationView` envelopes after the shared workspace gate instead of
+  importing or casting SDK view types in the overlay runtime. No migration
+  required.
 - frontend/chat-pill: keep pill session trace projection on opaque SDK
   view/live-turn envelopes instead of importing SDK `ConversationView` or
   local current-turn shapes. No migration required.

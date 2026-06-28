@@ -555,6 +555,9 @@ state applies the same guard before resolving overlay entries and dismissal
 targets. The React overlay component renders, traces, and resolves transparency
 from those selected `responseOverlayEntries`, not the broader surface `messages`
 fallback. The view plus pending bridge own visible lifecycle and stop authority.
+The response-overlay runtime keeps the shared-gated view as an opaque envelope
+and lets `DesktopConversationDisplayProjection` own SDK `ConversationView`
+typing and display-row projection.
 The interface presentation adapter also requires the complete SDK
 `ConversationView` envelope through the shared workspace gate before it blanks
 the no-view `sdkLiveTurn` fallback or passes a view to the thread presenter, so
