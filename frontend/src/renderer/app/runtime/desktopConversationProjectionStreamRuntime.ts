@@ -49,7 +49,9 @@ export type CurrentTurnProjectionWorkspaceReadModel = {
 };
 
 type CurrentTurnProjectionStreamDeps = {
-  getWorkspaceState: (conversationRef?: string | null) => CurrentTurnProjectionWorkspaceReadModel;
+  getCurrentTurnProjectionWorkspaceReadModel: (
+    conversationRef?: string | null,
+  ) => CurrentTurnProjectionWorkspaceReadModel;
   setNoViewSdkLiveTurn: (
     currentTurn: SdkLiveTurnEffectsInput,
     conversationRef?: string | null,
@@ -178,7 +180,7 @@ function applyCurrentTurnProjectionEvent({
     return;
   }
 
-  const preProjectionWorkspace = deps.getWorkspaceState(conversationRef);
+  const preProjectionWorkspace = deps.getCurrentTurnProjectionWorkspaceReadModel(conversationRef);
   // Check stale-turn status before current-turn storage can resolve pendingTurn.
   deps.setNoViewSdkLiveTurn(currentTurn, conversationRef);
 
@@ -189,7 +191,7 @@ function applyCurrentTurnProjectionEvent({
   const shouldSkipDerivedSideEffects = (
     !shouldAcceptCurrentTurnBeforeLocalSend(currentTurn)
     && shouldIgnoreConversationEventIdentityForStaleTurn(currentTurnIdentity, conversationRef, {
-      getWorkspaceState: () => preProjectionWorkspace,
+      getChatStreamWorkspaceReadModel: () => preProjectionWorkspace,
     })
   );
   logRendererCurrentTurnAppliedTrace({
@@ -199,11 +201,16 @@ function applyCurrentTurnProjectionEvent({
     skipDerivedSideEffects: shouldSkipDerivedSideEffects,
   });
   if (shouldSkipDerivedSideEffects) {
-    logReplayProjectionTrace('sdk_current_turn_stale_side_effects_skipped', conversationRef, deps.getWorkspaceState(conversationRef), {
-      newTurnRef: currentTurn.turnRef ?? null,
-      currentTurnRef: currentTurn.turnRef ?? null,
-      currentTurnPhase: currentTurn.phase ?? null,
-    });
+    logReplayProjectionTrace(
+      'sdk_current_turn_stale_side_effects_skipped',
+      conversationRef,
+      deps.getCurrentTurnProjectionWorkspaceReadModel(conversationRef),
+      {
+        newTurnRef: currentTurn.turnRef ?? null,
+        currentTurnRef: currentTurn.turnRef ?? null,
+        currentTurnPhase: currentTurn.phase ?? null,
+      },
+    );
     return;
   }
 
@@ -214,7 +221,7 @@ function applyCurrentTurnProjectionEvent({
     currentTurn,
     cursor: previousCursor,
     deps: {
-      getWorkspaceState: deps.getWorkspaceState,
+      getWorkspaceState: deps.getCurrentTurnProjectionWorkspaceReadModel,
       setIsSending: deps.setIsSending,
       setThinkingStatus: deps.setThinkingStatus,
       setThinkingSourceEventType: deps.setThinkingSourceEventType,
@@ -222,11 +229,16 @@ function applyCurrentTurnProjectionEvent({
       recordTrackingEvent,
     },
   }));
-  logReplayProjectionTrace('sdk_current_turn_applied', conversationRef, deps.getWorkspaceState(conversationRef), {
-    newTurnRef: currentTurn.turnRef ?? null,
-    currentTurnRef: currentTurn.turnRef ?? null,
-    currentTurnPhase: currentTurn.phase ?? null,
-  });
+  logReplayProjectionTrace(
+    'sdk_current_turn_applied',
+    conversationRef,
+    deps.getCurrentTurnProjectionWorkspaceReadModel(conversationRef),
+    {
+      newTurnRef: currentTurn.turnRef ?? null,
+      currentTurnRef: currentTurn.turnRef ?? null,
+      currentTurnPhase: currentTurn.phase ?? null,
+    },
+  );
 }
 
 export const DesktopConversationProjectionStreamRuntime = Object.freeze({

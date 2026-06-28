@@ -48,7 +48,7 @@ export function useConversationRuntimeProjectionStream(): void {
         currentTurn,
         projectionCursors: projectionCursorsRef.current,
         deps: {
-          getWorkspaceState: getCurrentTurnProjectionWorkspaceReadModelFromChatStore,
+          getCurrentTurnProjectionWorkspaceReadModel: getCurrentTurnProjectionWorkspaceReadModelFromChatStore,
           setNoViewSdkLiveTurn: setNoViewSdkLiveTurnInChatStore,
           setIsSending: setIsSendingInChatStore,
           setThinkingStatus: setThinkingStatusInChatStore,

@@ -249,7 +249,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
 
   test('applies accepted current-turn projection events through runtime side effects', () => {
     const deps = {
-      getWorkspaceState: jest.fn(() => ({
+      getCurrentTurnProjectionWorkspaceReadModel: jest.fn(() => ({
         pendingTurn: null,
         sdkLiveTurn: {
           turnRef: 'turn-1',

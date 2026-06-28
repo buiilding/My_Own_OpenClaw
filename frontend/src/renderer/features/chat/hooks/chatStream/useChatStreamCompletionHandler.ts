@@ -14,7 +14,7 @@ const {
 } = DesktopChatStreamEventRuntime;
 
 type UseChatStreamCompletionHandlerOptions = {
-  getWorkspaceState: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel;
+  getChatStreamWorkspaceReadModel: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel;
   recordTrackingEvent: (
     eventType: string,
     turnRef: string | null | undefined,
@@ -30,7 +30,7 @@ type UseChatStreamCompletionHandlerOptions = {
 };
 
 export const useChatStreamCompletionHandler = ({
-  getWorkspaceState,
+  getChatStreamWorkspaceReadModel,
   recordTrackingEvent,
   setIsSending,
   setThinkingStatus,
@@ -41,7 +41,7 @@ export const useChatStreamCompletionHandler = ({
       event,
       conversationRef,
       {
-        getWorkspaceState,
+        getChatStreamWorkspaceReadModel,
       },
     );
     if (!completionState) {
@@ -61,7 +61,7 @@ export const useChatStreamCompletionHandler = ({
       }, resolvedConversationRef);
     }
   }, [
-    getWorkspaceState,
+    getChatStreamWorkspaceReadModel,
     recordTrackingEvent,
     setIsSending,
     setThinkingSourceEventType,

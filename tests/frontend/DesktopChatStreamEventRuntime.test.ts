@@ -57,7 +57,7 @@ function pendingTurn(turnRef = 'turn-new', conversationRef = 'conv-default') {
   };
 }
 
-function getWorkspaceState(conversationRef?: string | null) {
+function getChatStreamWorkspaceReadModel(conversationRef?: string | null) {
   return getChatStreamWorkspaceReadModelFromChatStore(conversationRef);
 }
 
@@ -65,7 +65,7 @@ function shouldIgnore(event: ReturnType<typeof createEvent>, conversationRef?: s
   return shouldIgnoreConversationEventIdentityForStaleTurn(
     resolveConversationStreamEventIdentity(event, conversationRef),
     conversationRef,
-    { getWorkspaceState },
+    { getChatStreamWorkspaceReadModel },
   );
 }
 
@@ -301,7 +301,7 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
       null,
       {
-        getWorkspaceState: jest.fn(() => workspace),
+        getChatStreamWorkspaceReadModel: jest.fn(() => workspace),
       },
     )).toEqual({
       conversationRef: 'conv-complete',
@@ -319,7 +319,7 @@ describe('DesktopChatStreamEventRuntime', () => {
       },
       null,
       {
-        getWorkspaceState: jest.fn(() => {
+        getChatStreamWorkspaceReadModel: jest.fn(() => {
           throw new Error('workspace should not be read');
         }),
       },
@@ -327,22 +327,22 @@ describe('DesktopChatStreamEventRuntime', () => {
   });
 
   test('resolves workspace thinking source event type through runtime dependency', () => {
-    const getWorkspaceState = jest.fn(() => ({
+    const getChatStreamWorkspaceReadModel = jest.fn(() => ({
       thinkingSourceEventType: ' context-compaction-started ',
     }));
 
     expect(resolveWorkspaceThinkingSourceEventType('conv-thinking', {
-      getWorkspaceState,
+      getChatStreamWorkspaceReadModel,
     })).toBe('context-compaction-started');
-    expect(getWorkspaceState).toHaveBeenCalledWith('conv-thinking');
+    expect(getChatStreamWorkspaceReadModel).toHaveBeenCalledWith('conv-thinking');
   });
 
   test('normalizes missing workspace thinking source event type to null', () => {
     expect(resolveWorkspaceThinkingSourceEventType('conv-thinking', {
-      getWorkspaceState: jest.fn(() => null),
+      getChatStreamWorkspaceReadModel: jest.fn(() => null),
     })).toBeNull();
     expect(resolveWorkspaceThinkingSourceEventType('conv-thinking', {
-      getWorkspaceState: jest.fn(() => ({
+      getChatStreamWorkspaceReadModel: jest.fn(() => ({
         thinkingSourceEventType: '   ',
       })),
     })).toBeNull();

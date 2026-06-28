@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat-stream: name stream and current-turn projection runtime
+  workspace dependencies after their projected read models, so hook wiring no
+  longer exposes raw `getWorkspaceState` terminology across the SDK stream
+  boundary. No migration required.
 - frontend/replay: remove stale chat-store/message fixtures from replay runtime
   coverage so tests exercise the public row-intent API instead of preserving
   the old renderer-owned replay context shape. No migration required.

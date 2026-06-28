@@ -595,7 +595,7 @@ describe('renderer chat runtime boundary', () => {
 
     expect(streamSource).toContain('resolveWorkspaceThinkingSourceEventType');
     expect(streamSource).toContain('getChatStreamWorkspaceReadModelFromChatStore');
-    expect(streamSource).toContain('getWorkspaceState: getChatStreamWorkspaceReadModelFromChatStore');
+    expect(streamSource).toContain('getChatStreamWorkspaceReadModel: getChatStreamWorkspaceReadModelFromChatStore');
     expect(streamSource).not.toContain('getProjectedWorkspaceReadModelFromChatStore');
     expect(streamSource).not.toContain('getWorkspaceStateFromChatStore');
     expect(streamSource).not.toContain('.thinkingSourceEventType');
@@ -1203,7 +1203,7 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSource).not.toContain('getProjectedWorkspaceReadModelFromChatStore');
     expect(projectionSource).not.toContain('projectWorkspaceReadModelState');
     expect(projectionSource).not.toContain('getWorkspaceState(conversationRef)');
-    expect(projectionSource).toContain('getWorkspaceState: getCurrentTurnProjectionWorkspaceReadModelFromChatStore');
+    expect(projectionSource).toContain('getCurrentTurnProjectionWorkspaceReadModel: getCurrentTurnProjectionWorkspaceReadModelFromChatStore');
     expect(projectionSource).not.toContain('getWorkspaceState: useChatStore.getState().getWorkspaceState');
     expect(projectionSource).not.toContain('applyDisplayRowsProjectionEvent');
     expect(projectionSource).not.toContain('buildDisplayRowsProjection');
@@ -1933,11 +1933,11 @@ describe('renderer chat runtime boundary', () => {
     expect(runtimeSource).toContain('normalizeTurnRef(workspace.viewLiveTurnRef)');
     expect(runtimeSource).not.toContain('conversationView?: {');
     expect(runtimeSource).not.toContain('resolveWorkspaceViewLiveTurnRef');
-    expect(source).toContain('getWorkspaceState: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel');
+    expect(source).toContain('getChatStreamWorkspaceReadModel: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel');
     expect(source).not.toContain('ChatWorkspaceReadModelState');
     expect(source).not.toContain('stores/chatStoreAdapters');
     expect(source).not.toContain('getWorkspaceStateFromChatStore');
-    expect(streamSource).toContain('getWorkspaceState: getChatStreamWorkspaceReadModelFromChatStore');
+    expect(streamSource).toContain('getChatStreamWorkspaceReadModel: getChatStreamWorkspaceReadModelFromChatStore');
     expect(streamSource).not.toContain('getProjectedWorkspaceReadModelFromChatStore');
     expect(streamSource).not.toContain('getWorkspaceStateFromChatStore');
     expect(source).not.toContain('isTurnCompletedConversationStreamEvent');

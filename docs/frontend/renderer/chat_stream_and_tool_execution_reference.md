@@ -58,10 +58,10 @@ Ownership boundaries:
 - `AppStatusProvider`: transient settings-save status (`idle/saving/success/error`) with timeout-based transitions
 - `ChatProvider`: mounts `useChatStream`, mirrors transcript session `conversationRef` into chat-store `activeConversationRef`, and wires the active workspace read model into renderer trace transport through chat-store adapter getters. `DesktopChatProviderTraceRuntime` owns the ConversationView-first trace snapshot summary so the provider does not inspect display rows, raw messages, or raw Zustand workspace state directly; once a `ConversationView` exists, stale raw messages and stream-tracking turn refs are not trace fallback evidence. No-view diagnostic trace refs and source labels are exact-only, so padded raw values are dropped instead of trimmed into trace identity. Local tool execution is owned by the Agent SDK runtime.
 - Chat stream and current-turn projection hooks receive projected workspace
-  state through purpose-named chat-store adapter getters, not a production
-  export of the generic projected workspace helper. This keeps each hook tied
-  to its owning runtime boundary: stream event handling or SDK current-turn
-  projection.
+  state through purpose-named chat-store adapter getters and runtime dependency
+  names, not a production export of the generic projected workspace helper.
+  This keeps each hook tied to its owning runtime boundary: stream event
+  handling or SDK current-turn projection.
 
 ## Chat Message and Store Contracts
 
@@ -196,7 +196,8 @@ Stale-turn gating uses
 `DesktopChatStreamEventRuntime.shouldIgnoreConversationEventIdentityForStaleTurn(...)`
 with the runtime-built event identity object; hooks should not pass raw event
 turn-ref shapes into stale-turn checks.
-The hook passes `getChatStreamWorkspaceReadModelFromChatStore` as the only
+The hook passes `getChatStreamWorkspaceReadModelFromChatStore` through
+purpose-named `getChatStreamWorkspaceReadModel` dependencies as the only
 workspace reader for stream stale-turn, thinking-source, and completion
 handlers; broad projected workspace helper access stays private to the
 chat-store adapter module.

@@ -27,15 +27,15 @@ const {
 } = DesktopChatStreamTerminalHandoffRuntime;
 
 type ShouldIgnoreForStaleTurnDeps = {
-  getWorkspaceState: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel;
+  getChatStreamWorkspaceReadModel: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel;
 };
 
 type ResolveTerminalCompletionDeps = {
-  getWorkspaceState: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel;
+  getChatStreamWorkspaceReadModel: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel;
 };
 
 type ResolveThinkingSourceDeps = {
-  getWorkspaceState: (conversationRef?: string | null) => {
+  getChatStreamWorkspaceReadModel: (conversationRef?: string | null) => {
     thinkingSourceEventType?: string | null;
   } | null | undefined;
 };
@@ -99,7 +99,7 @@ function resolveWorkspaceThinkingSourceEventType(
   conversationRef: string | null | undefined,
   deps: ResolveThinkingSourceDeps,
 ): string | null {
-  const sourceEventType = deps.getWorkspaceState(conversationRef)?.thinkingSourceEventType;
+  const sourceEventType = deps.getChatStreamWorkspaceReadModel(conversationRef)?.thinkingSourceEventType;
   return optionalString(sourceEventType);
 }
 
@@ -241,7 +241,7 @@ function shouldIgnoreForStaleTurn(
   if (!eventTurnRef) {
     return false;
   }
-  const workspace = deps?.getWorkspaceState(conversationRef);
+  const workspace = deps?.getChatStreamWorkspaceReadModel(conversationRef);
   if (!workspace) {
     return false;
   }
@@ -311,7 +311,7 @@ function resolveTurnCompletedStreamEventState(
     conversationRef ?? resolveConversationStreamEventConversationRef(event)
   );
   const eventTurnRef = resolveConversationStreamEventTurnRef(event);
-  const workspace = deps.getWorkspaceState(resolvedConversationRef);
+  const workspace = deps.getChatStreamWorkspaceReadModel(resolvedConversationRef);
   return {
     conversationRef: resolvedConversationRef,
     shouldRecordTerminalTracking: shouldRecordTerminalCompletionTracking(
