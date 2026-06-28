@@ -82,6 +82,20 @@ describe('DesktopPendingTurnRuntimeClient', () => {
     });
   });
 
+  test('rejects clear broadcasts with visual pending-turn fields', () => {
+    expect(DesktopPendingTurnRuntimeClient.resolveBroadcastAction({
+      type: 'clear',
+      conversationRef: 'conv-clear',
+      turnRef: 'turn-clear',
+      attachments: [{ id: 'attachment-1' }],
+      displayAttachmentId: 'renderer-display-id',
+      previewSrc: 'data:image/png;base64,preview',
+    })).toEqual({
+      kind: 'pending',
+      pendingTurn: undefined,
+    });
+  });
+
   test('does not repair padded clear broadcast filters', () => {
     expect(DesktopPendingTurnRuntimeClient.resolveBroadcastAction({
       type: 'clear',

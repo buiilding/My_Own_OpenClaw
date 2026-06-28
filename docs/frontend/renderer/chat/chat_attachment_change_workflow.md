@@ -83,7 +83,9 @@ Clipboard image IPC trust boundary:
      only conversation ref, turn ref, pending user-row id, text, and timestamp;
      any attachment descriptors, screenshot refs, filename aliases, or
      lifecycle fields reject the pending-turn payload instead of being
-     stripped. Renderer-local pending user rows also omit the `attachments` prop
+     stripped. Pending-turn clear broadcasts use the same positive field list
+     and reject attachment-bearing clear commands instead of treating them as
+     identity-only cleanup. Renderer-local pending user rows also omit the `attachments` prop
      entirely; SDK display rows are the only attachment-bearing user rows.
      Visible lifecycle, live-surface, and Stop adapters consume the same strict
      pending bridge shape, so partial or attachment-bearing pending-like objects

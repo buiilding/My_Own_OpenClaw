@@ -97,7 +97,10 @@ identity gate rather than by publishing nested `ConversationView.liveTurn`
 shape. The adapter also exact-gates fallback pending turn refs, no-view
 `sdkLiveTurn` refs/phases, and thinking source labels before publishing
 stream/current-turn read models, so padded fallback values leave the adapter as
-missing instead of being repaired. It does not carry raw messages, renderer
+missing instead of being repaired. Renderer and main pending-turn clear
+broadcasts use the same positive bridge contract as pending rows: attachment,
+screenshot, preview, and display-lifecycle fields make the clear payload
+invalid instead of silently clearing local pending state. It does not carry raw messages, renderer
 annotations, the no-view
 `sdkLiveTurn`, or the full or partial `ConversationView` payload. The
 current-turn projection read model keeps

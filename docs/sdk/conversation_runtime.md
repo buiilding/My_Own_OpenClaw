@@ -342,7 +342,9 @@ before projection may append the temporary user row. Cross-conversation,
 missing, or padded pending refs stay out of the authoritative view path instead
 of being repaired into visible chat state. Pending-turn user rows also omit the
 `attachments` prop entirely instead of publishing a null display-attachment
-placeholder.
+placeholder. Pending-turn clear broadcasts follow the same positive bridge
+contract: only the clear type plus exact conversation and turn refs may cross,
+so attachment or display-lifecycle fields do not clear renderer pending state.
 Pending bridge identity fields are exact non-empty values. Renderer and main
 pending-turn adapters reject padded conversation refs, turn refs, and pending
 user-row ids instead of trimming them into bridge or Stop targets. Pending-turn

@@ -254,6 +254,48 @@ describe('pending turn IPC handlers', () => {
     expect(broadcastToRenderers).not.toHaveBeenCalled();
   });
 
+  test('rejects clear payloads with visual pending-turn fields', () => {
+    const {
+      broadcastToRenderers,
+      getLatestPendingTurn,
+      liveTurnState,
+      listeners,
+    } = createHarness();
+
+    listeners['windie:pending-turn']({}, {
+      type: 'pending',
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        userMessageId: 'user-1',
+        text: 'hello',
+        timestamp: '2026-06-19T00:00:00.000Z',
+      },
+    });
+    liveTurnState.setLatestPendingTurn.mockClear();
+    broadcastToRenderers.mockClear();
+
+    listeners['windie:pending-turn']({}, {
+      type: 'clear',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      attachments: [{
+        id: 'attachment-1',
+        kind: 'image',
+        status: 'ready',
+      }],
+      displayAttachmentId: 'renderer-display-id',
+      previewSrc: 'data:image/png;base64,preview',
+    });
+
+    expect(getLatestPendingTurn()).toEqual(expect.objectContaining({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+    }));
+    expect(liveTurnState.setLatestPendingTurn).not.toHaveBeenCalledWith(null);
+    expect(broadcastToRenderers).not.toHaveBeenCalled();
+  });
+
   test('clears matching pending-turn state and can broadcast fallback refs', () => {
     let latestPendingTurn = {
       conversationRef: 'conv-1',

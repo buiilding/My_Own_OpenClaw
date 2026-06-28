@@ -674,6 +674,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(initializationRuntimeSource).toContain('pendingTurnRuntime.register({ ipcMain })');
     expect(source).not.toContain('liveTurnState.setLatestPendingTurn(');
     expect(pendingTurnHandlersSource).toContain('function createPendingTurnRuntime');
+    expect(pendingTurnHandlersSource).toContain('const PENDING_TURN_CLEAR_FIELDS = new Set');
+    expect(pendingTurnHandlersSource).toContain('hasOnlyPendingTurnClearFields(source)');
     expect(pendingTurnHandlersSource).toContain('liveTurnState.setLatestPendingTurn(pendingTurn)');
     expect(pendingTurnHandlersSource).not.toContain('  registerPendingTurnHandlers,');
     expect(pendingTurnHandlersSource).not.toContain('  normalizePendingTurnPayload,');
@@ -812,7 +814,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain("baseRevisionId: requireExactCommandString(payload, 'baseRevisionId', 'base revision id')");
     expect(source).toContain("sourceRevisionId: requireExactCommandString(payload, 'sourceRevisionId', 'source revision id')");
     expect(source).toContain("cutAfterRowId: readOptionalExactCommandString(payload, 'cutAfterRowId', 'cut row id')");
-    expect(source).toContain("readOptionalExactCommandString(\n        payload,\n        'newConversationRef',");
+    expect(source).toContain('const newConversationRef = readOptionalExactCommandString(');
+    expect(source).toContain("'newConversationRef',");
     expect(source).not.toContain('optionalExactCommandString');
     expect(
       source.match(/messageId: requireExactCommandString\(payload, 'messageId', 'message id'\)/g)

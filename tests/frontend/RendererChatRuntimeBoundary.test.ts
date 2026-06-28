@@ -2544,6 +2544,8 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('function resolveDesktopPendingTurnBroadcastAction');
     expect(clientSource).toContain('function normalizePendingTurn(value: unknown)');
     expect(clientSource).toContain('hasOnlyPendingTurnFields(source)');
+    expect(clientSource).toContain('const PENDING_TURN_CLEAR_FIELDS = new Set');
+    expect(clientSource).toContain('hasOnlyPendingTurnClearFields(source)');
     expect(clientSource).toContain('pendingTurn: normalizePendingTurn(source.pendingTurn)');
     expect(clientSource).not.toContain('export function resolveDesktopPendingTurnBroadcastAction');
     expect(clientSource).toContain('resolveBroadcastAction(payload');

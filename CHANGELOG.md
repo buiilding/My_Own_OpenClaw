@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pending-turn: reject attachment-bearing pending-turn clear
+  broadcasts in both renderer and main IPC adapters, keeping the local pending
+  bridge limited to exact identity/text fields. No migration required.
 - frontend/transport: reject display attachment lifecycle fields such as
   `attachments`, `display_attachments`, `displayAttachmentId`, and `previewSrc`
   from renderer `conversation.send` payloads, keeping attachment state owned by

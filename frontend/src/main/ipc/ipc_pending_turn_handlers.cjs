@@ -21,8 +21,18 @@ const PENDING_TURN_FIELDS = new Set([
   'userMessageId',
 ]);
 
+const PENDING_TURN_CLEAR_FIELDS = new Set([
+  'conversationRef',
+  'turnRef',
+  'type',
+]);
+
 function hasOnlyPendingTurnFields(source) {
   return Object.keys(source).every((key) => PENDING_TURN_FIELDS.has(key));
+}
+
+function hasOnlyPendingTurnClearFields(source) {
+  return Object.keys(source).every((key) => PENDING_TURN_CLEAR_FIELDS.has(key));
 }
 
 function normalizePendingTurnPayload(value) {
@@ -123,6 +133,9 @@ function registerPendingTurnHandlers({
       ? payload
       : {};
     if (source.type === 'clear') {
+      if (!hasOnlyPendingTurnClearFields(source)) {
+        return;
+      }
       if (
         Object.prototype.hasOwnProperty.call(source, 'conversation_ref')
         || Object.prototype.hasOwnProperty.call(source, 'turn_ref')

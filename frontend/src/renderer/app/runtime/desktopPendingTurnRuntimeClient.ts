@@ -49,8 +49,18 @@ const PENDING_TURN_FIELDS = new Set([
   'userMessageId',
 ]);
 
+const PENDING_TURN_CLEAR_FIELDS = new Set([
+  'conversationRef',
+  'turnRef',
+  'type',
+]);
+
 function hasOnlyPendingTurnFields(source: Record<string, unknown>): boolean {
   return Object.keys(source).every((key) => PENDING_TURN_FIELDS.has(key));
+}
+
+function hasOnlyPendingTurnClearFields(source: Record<string, unknown>): boolean {
+  return Object.keys(source).every((key) => PENDING_TURN_CLEAR_FIELDS.has(key));
 }
 
 function normalizePendingTurn(value: unknown): DesktopPendingTurn | undefined {
@@ -82,6 +92,12 @@ function resolveDesktopPendingTurnBroadcastAction(
 ): DesktopPendingTurnBroadcastAction {
   const source = recordOrEmpty(payload);
   if (source.type === 'clear') {
+    if (!hasOnlyPendingTurnClearFields(source)) {
+      return {
+        kind: 'pending',
+        pendingTurn: undefined,
+      };
+    }
     return {
       kind: 'clear',
       conversationRef: readExactOptionalString(source.conversationRef),
