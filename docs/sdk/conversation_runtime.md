@@ -600,14 +600,15 @@ uses exact conversation refs for live-row conversation gating and exact turn
 refs for live-row insertion placement; padded refs cannot be trimmed into
 visibility or ordering decisions.
 Streaming assistant display rows keep exact SDK-authored
-`metadata.sourceEventType` when present and otherwise use the generic
-`assistant_message` display-row type; padded or empty source event metadata
-falls back to the row type instead of being repaired. Renderer completion state
-comes from the SDK row's `isStreaming` flag, not from relabeling the row as an
-`assistant_delta` event. Display-row reasoning metadata also follows the exact
-SDK string rule: `metadata.reasoningText` becomes renderer thinking text only
-when it is exact and non-empty; padded values are ignored instead of being
-trimmed into thinking rows. SDK display row identity follows the same rule:
+`metadata.sourceEventType` when present and omit source-event props when that
+metadata is missing, padded, or empty instead of deriving labels from the row
+type. Renderer completion state comes from the SDK row's `isStreaming` flag,
+not from relabeling the row as an `assistant_delta` event. Display-row
+reasoning metadata also follows the exact SDK string rule:
+`metadata.reasoningText` becomes renderer thinking text only when it is exact
+and non-empty, without synthesizing a separate `reasoning_delta` source label;
+padded values are ignored instead of being trimmed into thinking rows. SDK
+display row identity follows the same rule:
 `row.id` must be exact and non-empty before the renderer projects a chat
 message from the row. Display-row turn and tool metadata follow the same
 exactness rule: `turnRef`, `metadata.displayCorrelationId`, and

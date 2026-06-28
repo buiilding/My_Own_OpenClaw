@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display-rows: omit synthetic `thinkingSourceEventType` labels for
+  SDK display rows that provide reasoning text, preserving the text without
+  inventing a renderer-owned `reasoning_delta` source. No migration required.
 - frontend/live-turn: omit `toolOutputDetails` on live tool-output rows when SDK
   presentation entries do not provide sanitized detail metadata, instead of
   publishing renderer-owned `null` placeholders. No migration required.

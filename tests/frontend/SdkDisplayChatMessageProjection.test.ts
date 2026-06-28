@@ -1221,10 +1221,23 @@ describe('sdkDisplayChatMessageProjection', () => {
         text: 'Partial answer',
         isComplete: false,
         thinkingText: 'Thinking through it.',
-        thinkingSourceEventType: 'reasoning_delta',
         sourceEventType: 'assistant_message',
       }),
     ]);
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'conv-1:turn-1:assistant',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'Partial answer',
+        metadata: {
+          reasoningText: 'Thinking through it.',
+        },
+      },
+    ])[0]).not.toHaveProperty('thinkingSourceEventType');
   });
 
   test('does not expose padded reasoning text from display rows', () => {

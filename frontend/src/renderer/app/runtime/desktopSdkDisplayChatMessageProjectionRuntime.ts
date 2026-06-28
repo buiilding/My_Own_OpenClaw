@@ -150,7 +150,6 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
     isComplete: !isSdkDisplayRowStreaming(row),
     ...(thinkingText ? {
       thinkingText,
-      thinkingSourceEventType: 'reasoning_delta',
     } : {}),
     ...rowTimestampProp(row),
   }, row);
