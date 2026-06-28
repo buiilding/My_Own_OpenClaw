@@ -759,6 +759,10 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationSource).toContain('resolveSdkResponseOverlayPresentationState');
     expect(currentTurnPresentationSource).toContain('resolveResponseOverlayDismissalTarget');
     expect(currentTurnPresentationSource).toContain('resolveSdkOverlayIntent');
+    expect(currentTurnPresentationSource).toContain('function exactOverlayIdentityString');
+    expect(currentTurnPresentationSource).toContain('const responseEntryId = exactOverlayIdentityString(latestEntry?.id);');
+    expect(currentTurnPresentationSource).toContain('exactOverlayIdentityString(latestEntry.turnRef)');
+    expect(currentTurnPresentationSource).toContain('exactOverlayIdentityString(sdkLiveTurn?.turnRef)');
     expect(currentTurnPresentationSource).toContain('sdkLiveTurn = null');
     expect(currentTurnPresentationSource).not.toContain('currentTurnProjection');
     expect(currentTurnPresentationSource).not.toContain('desktopChatLoopUiRuntime');
@@ -774,6 +778,9 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationSource).not.toContain('function resolveSdkAwaitingDotTargetMessageId');
     expect(currentTurnPresentationSource).not.toContain('export function resolveResponseOverlayDismissalTarget');
     expect(currentTurnPresentationSource).not.toContain('export const VISIBLE_ASSISTANT_REPLY_TYPE_SET');
+    expect(currentTurnPresentationSource).not.toContain('latestEntry.turnRef\n    || sdkLiveTurn?.turnRef');
+    expect(currentTurnPresentationSource).not.toContain('sdkOverlayIntent?.turnRef\n    || latestEntry.turnRef');
+    expect(currentTurnPresentationSource).not.toContain('sdkOverlayIntent?.conversationRef\n    || sdkLiveTurn?.conversationRef');
     expect(currentTurnPresentationSource).not.toContain('features/chat');
     expect(currentTurnPresentationSource).not.toContain('features/minimalChatPill');
     expect(overlayViewModelSource).toContain('DesktopCurrentTurnPresentationRuntime');

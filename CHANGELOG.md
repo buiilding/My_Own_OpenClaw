@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/response-overlay: require exact response-overlay dismissal target
+  identity before deriving store dismissal keys or native responsebox hide
+  values; padded overlay, entry, and no-view SDK refs now fail closed instead of
+  being repaired. No migration required.
 - frontend/current-turn: stop treating raw `toolEvents` as a current-turn IPC
   validity signal; no-view fallback remains limited to legacy text/error
   packets while SDK presentation entries own tool display. No migration

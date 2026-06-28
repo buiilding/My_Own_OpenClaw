@@ -188,7 +188,10 @@ Contract ownership:
   and trace context rather than lifecycle authority.
 - `DesktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
   owns the dismissal target projection from SDK overlay intent, current-turn
-  refs, latest response entry id, and stale guard ref.
+  refs, latest response entry id, and stale guard ref. It accepts only exact
+  non-empty overlay, entry, and no-view SDK current-turn refs; padded values
+  become `null` or fail closed before store dismissal keys or native responsebox
+  hide values are built.
 - `DesktopResponseOverlayViewRuntime.buildResponseOverlayDismissalKey(...)`
   owns exact response-overlay dismissal key construction, and
   `DesktopResponseOverlayViewRuntime.buildDismissResponseOverlayAction(...)`

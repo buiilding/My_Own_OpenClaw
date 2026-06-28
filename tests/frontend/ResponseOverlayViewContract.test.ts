@@ -632,6 +632,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
                 explanation: 'Validate the scripted model tool path.',
               },
             },
+            metadata: {
+              sourceEventType: 'tool_call',
+            },
           },
           {
             id: 'row-tool-output',
@@ -642,6 +645,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
             type: 'tool_output',
             content: 'Screenshot captured successfully.',
             metadata: {
+              sourceEventType: 'tool_output',
               toolName: 'screenshot',
             },
           },
@@ -653,6 +657,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
             role: 'assistant',
             type: 'assistant_message',
             content: 'Scripted runtime completed 1 tool call(s): screenshot.',
+            metadata: {
+              sourceEventType: 'assistant_message',
+            },
           },
         ],
         liveTurn: {
