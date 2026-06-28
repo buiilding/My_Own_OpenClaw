@@ -1,0 +1,250 @@
+name: Desktop Release Artifacts
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      run_signing:
+        description: "Sign/notarize artifacts (requires secrets)"
+        required: true
+        default: true
+        type: boolean
+      publish_release:
+        description: "Publish GitHub release with built artifacts"
+        required: true
+        default: false
+        type: boolean
+      release_tag:
+        description: "Required when publish_release=true on manual runs (example: v0.6.2)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-release:
+    name: Prepare GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      publish_release: ${{ steps.release_mode.outputs.publish_release }}
+      release_tag: ${{ steps.release_mode.outputs.release_tag }}
+    steps:
+      - name: Resolve release mode
+        id: release_mode
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          publish_release="false"
+          release_tag=""
+
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            publish_release="true"
+            release_tag="${GITHUB_REF_NAME}"
+          elif [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${{ github.event.inputs.publish_release }}" == "true" ]]; then
+            release_tag="${{ github.event.inputs.release_tag }}"
+            if [[ -z "${release_tag}" ]]; then
+              echo "release_tag input is required for manual publish_release runs." >&2
+              exit 1
+            fi
+            if [[ "${release_tag}" != v* ]]; then
+              echo "release_tag must start with 'v' (example: v0.6.2)." >&2
+              exit 1
+            fi
+            publish_release="true"
+          fi
+
+          echo "publish_release=${publish_release}" >> "${GITHUB_OUTPUT}"
+          echo "release_tag=${release_tag}" >> "${GITHUB_OUTPUT}"
+
+      - name: Create or update release
+        if: ${{ steps.release_mode.outputs.publish_release == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_mode.outputs.release_tag }}
+          generate_release_notes: true
+
+  package:
+    name: Package (${{ matrix.label }})
+    needs: prepare-release
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            label: linux
+            package_script: package:linux
+            artifacts: |
+              frontend/release/windieos_*_x86_64.AppImage
+              frontend/release/windieos_*_amd64.deb
+              frontend/release/windieos_*_x86_64.rpm
+            smoke_script: scripts/ci/smoke-linux-packages.sh
+          - os: windows-latest
+            label: windows
+            package_script: package:win
+            artifacts: |
+              frontend/release/*.exe
+            smoke_script: scripts/ci/smoke-windows-packages.ps1
+          - os: macos-14
+            label: macos
+            package_script: package:mac
+            artifacts: |
+              frontend/release/*.dmg
+              frontend/release/*.zip
+            smoke_script: scripts/ci/smoke-macos-packages.sh
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Resolve signing mode
+        id: signing
+        shell: bash
+        working-directory: .
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          publish_release="${{ needs.prepare-release.outputs.publish_release }}"
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            requested="${{ github.event.inputs.run_signing }}"
+          else
+            requested="true"
+          fi
+
+          effective="${requested}"
+          reason="requested"
+
+          if [[ "${requested}" == "true" ]]; then
+            case "${{ matrix.label }}" in
+              windows)
+                if [[ -z "${WIN_CSC_LINK}" || -z "${WIN_CSC_KEY_PASSWORD}" ]]; then
+                  effective="false"
+                  reason="missing_windows_signing_secrets"
+                fi
+                ;;
+              macos)
+                if [[ -z "${CSC_LINK}" || -z "${CSC_KEY_PASSWORD}" || -z "${APPLE_ID}" || -z "${APPLE_APP_SPECIFIC_PASSWORD}" || -z "${APPLE_TEAM_ID}" ]]; then
+                  effective="false"
+                  reason="missing_macos_signing_or_notarization_secrets"
+                fi
+                ;;
+              *)
+                if [[ -z "${CSC_LINK}" || -z "${CSC_KEY_PASSWORD}" ]]; then
+                  effective="false"
+                  reason="missing_signing_secrets"
+                fi
+                ;;
+            esac
+          else
+            reason="disabled_by_input"
+          fi
+
+          echo "requested=${requested}" >> "${GITHUB_OUTPUT}"
+          echo "effective=${effective}" >> "${GITHUB_OUTPUT}"
+          echo "reason=${reason}" >> "${GITHUB_OUTPUT}"
+
+          if [[ "${requested}" == "true" && "${effective}" != "true" ]]; then
+            echo "::warning::Signing requested for ${{ matrix.label }}, but required secrets are missing. Building unsigned artifacts instead."
+          fi
+
+          if [[ "${{ matrix.label }}" == "macos" && "${publish_release}" == "true" && "${effective}" != "true" ]]; then
+            echo "macOS published releases must be signed and notarized; refusing to publish an unsigned DMG/ZIP." >&2
+            exit 1
+          fi
+
+      - name: Log signing mode
+        shell: bash
+        run: |
+          echo "requested signing: ${{ steps.signing.outputs.requested }}"
+          echo "effective signing: ${{ steps.signing.outputs.effective }}"
+          echo "resolution reason: ${{ steps.signing.outputs.reason }}"
+
+      - name: Install Linux smoke dependencies
+        if: ${{ matrix.label == 'linux' }}
+        shell: bash
+        working-directory: .
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y rpm xvfb
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Package desktop artifact
+        shell: bash
+        env:
+          RUN_SIGNING: ${{ steps.signing.outputs.effective }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          if [[ "${RUN_SIGNING}" != "true" ]]; then
+            export CSC_IDENTITY_AUTO_DISCOVERY="false"
+            unset CSC_LINK CSC_KEY_PASSWORD WIN_CSC_LINK WIN_CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
+          elif [[ "${{ matrix.label }}" == "windows" ]]; then
+            export CSC_LINK="${WIN_CSC_LINK}"
+            export CSC_KEY_PASSWORD="${WIN_CSC_KEY_PASSWORD}"
+            unset APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
+          fi
+          npm run "${{ matrix.package_script }}"
+
+      - name: Smoke test packaged artifact (Linux/macOS)
+        if: ${{ matrix.label == 'linux' || matrix.label == 'macos' }}
+        env:
+          WINDIE_REQUIRE_SIGNING: ${{ steps.signing.outputs.effective }}
+          WINDIE_VALIDATE_DOWNLOADED_APP: ${{ matrix.label == 'macos' && steps.signing.outputs.effective == 'true' }}
+        shell: bash
+        run: bash ${{ matrix.smoke_script }}
+
+      - name: Smoke test packaged artifact (Windows)
+        if: ${{ matrix.label == 'windows' }}
+        env:
+          WINDIE_REQUIRE_SIGNING: ${{ steps.signing.outputs.effective }}
+        shell: pwsh
+        run: pwsh -File ${{ matrix.smoke_script }}
+
+      - name: Publish packaged artifacts to GitHub release
+        if: ${{ needs.prepare-release.outputs.publish_release == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare-release.outputs.release_tag }}
+          files: ${{ matrix.artifacts }}
+          fail_on_unmatched_files: true

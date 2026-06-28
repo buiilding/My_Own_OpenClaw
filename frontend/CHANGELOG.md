@@ -13,6 +13,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/types: remove stale response-overlay and conversation-view
   TypeScript assumptions so release package validation reaches the actual
   Electron packaging path. No migration required.
+- ci/release: add a private-root desktop release workflow that runs packaging
+  from `frontend/` while reading private WindieOS signing and Apple
+  notarization secrets, so notarized macOS release artifacts can be produced
+  without copying secrets into the public split repo. No migration required.
 - docs/agents: replace the copied private-root agent instructions with a
   public frontend agent policy that keeps commands, tests, commit search, and
   backend boundaries scoped to the public repo root. No migration required.
