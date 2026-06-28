@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: stop publishing top-level `toolName` on renderer chat
+  messages; SDK tool names may still feed display text and detail records, but
+  renderer rows no longer carry a parallel metadata prop. No migration
+  required.
 - frontend/projection: remove legacy top-level `executionTime` and `success`
   from the shared renderer `ChatMessage` contract and no-view live progress
   rows, keeping tool result status in SDK-authored detail records instead. No

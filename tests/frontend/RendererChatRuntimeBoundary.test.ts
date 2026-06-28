@@ -1537,6 +1537,7 @@ describe('renderer chat runtime boundary', () => {
     expect(messageTypeSource).toContain('attachments?: SdkDisplayAttachment[] | null');
     expect(messageTypeSource).not.toContain('modelFacingToolCall?:');
     expect(messageTypeSource).not.toContain('toolMetadata?:');
+    expect(messageTypeSource).not.toContain('toolName?:');
     expect(messageTypeSource).not.toContain('executionTime?:');
     expect(messageTypeSource).not.toContain('success?:');
     expect(messageTypeSource).not.toContain('attachmentFilenames?:');
@@ -4362,8 +4363,8 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.displayCorrelationId);');
     expect(projectionRuntimeSource).toContain('function rowTurnRef(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.turnRef);');
-    expect(projectionRuntimeSource).toContain('function rowToolName(row: SdkDisplayRow)');
-    expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.toolName);');
+    expect(projectionRuntimeSource).not.toContain('function rowToolName(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).not.toContain('return exactNonEmptyString(row.metadata?.toolName);');
     expect(projectionRuntimeSource).toContain('function rowReasoningText(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.reasoningText);');
     expect(projectionRuntimeSource).toContain('const thinkingText = rowReasoningText(row);');
@@ -4372,6 +4373,8 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('row.metadata?.displayCorrelationId ?? undefined');
     expect(projectionRuntimeSource).not.toContain('toolName: row.metadata?.toolName ?? null');
     expect(projectionRuntimeSource).not.toContain('toolName: row.metadata?.toolName ?? undefined');
+    expect(projectionRuntimeSource).not.toContain('toolName: rowToolName');
+    expect(currentTurnMessageRuntimeSource).not.toContain('toolName: resolveToolName');
     expect(projectionRuntimeSource).not.toContain('turnRef: row.turnRef ?? null');
     expect(projectionRuntimeSource).not.toContain('turnRef: row.turnRef ?? undefined');
     expect(projectionRuntimeSource).toContain('row.metadata?.toolCallDetails');

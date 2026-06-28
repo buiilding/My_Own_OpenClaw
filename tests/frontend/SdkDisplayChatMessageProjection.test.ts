@@ -580,7 +580,7 @@ describe('sdkDisplayChatMessageProjection', () => {
     }
   });
 
-  test('does not expose malformed display row tool names as renderer metadata', () => {
+  test('does not expose display row tool names as renderer metadata', () => {
     const messages = buildChatMessagesFromSdkDisplayRows([
       {
         id: 'msg-tool-output-padded-name',
@@ -620,9 +620,13 @@ describe('sdkDisplayChatMessageProjection', () => {
     expect(messages).toEqual([
       expect.not.objectContaining({ toolName: ' read_file ' }),
       expect.not.objectContaining({ toolName: { name: 'read_file' } }),
-      expect.objectContaining({ toolName: 'read_file' }),
+      expect.not.objectContaining({ toolName: 'read_file' }),
     ]);
     expect(messages[0]).not.toEqual(expect.objectContaining({ toolName: 'read_file' }));
+    expect(messages[2]).toEqual(expect.objectContaining({
+      type: 'tool-progress',
+      text: 'Working',
+    }));
   });
 
   test('passes exact SDK row replay actions only for SDK-owned row kinds', () => {
@@ -1223,11 +1227,22 @@ describe('sdkDisplayChatMessageProjection', () => {
         sourceEventType: 'web-search-progress',
         sourceChannel: 'sdk:display-rows',
         turnRef: 'turn-search',
-        toolName: 'web_search',
         correlationId: 'req-search-1',
         timestamp: '2026-06-09T04:20:00.000Z',
       }),
     ]);
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'progress-1',
+        conversationRef: 'conv-search',
+        turnRef: 'turn-search',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Searched example.com',
+        metadata: { toolName: 'web_search' },
+      },
+    ])[0]).not.toHaveProperty('toolName');
   });
 
   test('does not relabel generic SDK tool progress rows as web search progress', () => {
@@ -1255,7 +1270,6 @@ describe('sdkDisplayChatMessageProjection', () => {
         type: 'tool-progress',
         text: 'Preparing tool result',
         sourceEventType: 'tool_progress',
-        toolName: 'read_file',
         correlationId: 'req-tool-1',
       }),
     ]);
@@ -1287,9 +1301,9 @@ describe('sdkDisplayChatMessageProjection', () => {
     expect(message).toEqual(expect.objectContaining({
       id: 'progress-output-details-only',
       type: 'tool-progress',
-      toolName: 'read_file',
       correlationId: 'req-tool-1',
     }));
+    expect(message).not.toHaveProperty('toolName');
     expect(message).not.toHaveProperty('toolMetadata');
   });
 

@@ -30,7 +30,6 @@ export interface ChatMessage {
   attachments?: SdkDisplayAttachment[] | null;
   modelId?: string | null;
   modelProvider?: string | null;
-  toolName?: string;
   correlationId?: string;
   timestamp?: string;
   toolCallDisplayText?: string | null;

@@ -127,7 +127,6 @@ function buildProjectedToolProgressMessage({
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
     turnRef: liveTurnRef || undefined,
-    toolName: resolveToolName(toolEvent.toolName) || undefined,
   };
 }
 
@@ -337,7 +336,6 @@ function buildToolProgressMessage(entry, liveTurnContext) {
     text,
     sender: 'assistant',
     type: 'tool-progress',
-    toolName: resolveToolName(entry.toolName) || undefined,
   };
 }
 

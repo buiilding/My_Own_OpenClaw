@@ -56,10 +56,6 @@ function rowTurnRef(row: SdkDisplayRow): string | null {
   return exactNonEmptyString(row.turnRef);
 }
 
-function rowToolName(row: SdkDisplayRow): string | null {
-  return exactNonEmptyString(row.metadata?.toolName);
-}
-
 function rowReasoningText(row: SdkDisplayRow): string | null {
   return exactNonEmptyString(row.metadata?.reasoningText);
 }
@@ -203,7 +199,6 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
     sourceChannel: sdkDisplayRowsSourceChannel,
     turnRef: rowTurnRef(row) ?? undefined,
     timestamp: rowTimestamp(row),
-    toolName: rowToolName(row) ?? undefined,
     correlationId: rowCorrelationId(row) ?? undefined,
     ...(toolCallDetails ? { toolCallDetails } : {}),
   }, row);

@@ -149,9 +149,9 @@ attachment lifecycle descriptors; those stay on SDK display fields such as
 do not rebuild missing details from `toolMetadata`, `toolName`,
 `executionTime`, or `success`; SDK `toolOutputDetails` is the only details
 payload authority. The shared renderer `ChatMessage` contract no longer
-declares top-level `executionTime` or `success`, and no-view live adapters do
-not republish SDK tool status on those legacy fields. The old transcript
-tool-output state helper has been
+declares top-level `toolName`, `executionTime`, or `success`, and no-view live
+adapters do not republish SDK tool names or status on those legacy fields. The
+old transcript tool-output state helper has been
 removed; SDK display-row and live-turn adapters build renderer tool-output rows
 directly from SDK-authored text, attachments, and `toolOutputDetails` instead
 of publishing parallel detail channels. SDK `tool_progress` display rows do not
