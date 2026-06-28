@@ -43,7 +43,6 @@ describe('toolOutputChatMessageState', () => {
       sourceEventType: 'tool-output',
       sourceChannel: 'sdk:conversation-event',
       correlationId: 'req-1',
-      modelFacingToolOutput: 'clicked',
       toolOutputDetails: { request_id: 'req-1' },
       attachments: [{
         id: 'tool-output-state-1:attachment:000',
@@ -60,6 +59,7 @@ describe('toolOutputChatMessageState', () => {
     expect(message).not.toHaveProperty('screenshotRef');
     expect(message).not.toHaveProperty('screenshotUrl');
     expect(message).not.toHaveProperty('screenshotContentType');
+    expect(message).not.toHaveProperty('modelFacingToolOutput');
     expect(message).not.toHaveProperty('toolMetadata');
     expect(message).not.toHaveProperty('toolName');
     expect(message).not.toHaveProperty('executionTime');

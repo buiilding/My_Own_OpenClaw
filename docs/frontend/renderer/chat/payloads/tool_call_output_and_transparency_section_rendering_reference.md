@@ -149,9 +149,9 @@ attachment lifecycle descriptors; those stay on SDK display fields such as
 do not rebuild missing details from `toolMetadata`, `toolName`,
 `executionTime`, or `success`; SDK `toolOutputDetails` is the only details
 payload authority. The transcript tool-output state helper also omits
-`toolMetadata`, `toolName`, `executionTime`, and `success`, so adapters must
-pass explicit `toolOutputDetails` instead of publishing parallel detail
-channels. SDK `tool_progress` display rows do not borrow
+`modelFacingToolOutput`, `toolMetadata`, `toolName`, `executionTime`, and
+`success`, so adapters must pass explicit `toolOutputDetails` instead of
+publishing parallel detail channels. SDK `tool_progress` display rows do not borrow
 `toolOutputDetails` as progress metadata; if the SDK wants a progress detail
 payload, it must author that on `toolCallDetails`.
 

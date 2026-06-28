@@ -16,7 +16,6 @@ type ToolOutputChatMessageStateInput = {
   modelId?: string | null;
   modelProvider?: string | null;
   isComplete?: boolean | null;
-  modelFacingToolOutput?: string | null;
   preserveNullToolOutputDetails?: boolean;
 };
 
@@ -32,7 +31,6 @@ export function buildToolOutputChatMessageState({
   modelId = null,
   modelProvider = null,
   isComplete = null,
-  modelFacingToolOutput = outputText,
   preserveNullToolOutputDetails = true,
 }: ToolOutputChatMessageStateInput) {
   return {
@@ -43,7 +41,6 @@ export function buildToolOutputChatMessageState({
     ...(sourceEventType ? { sourceEventType } : {}),
     ...(sourceChannel ? { sourceChannel } : {}),
     ...(correlationId ? { correlationId } : {}),
-    ...(modelFacingToolOutput !== null ? { modelFacingToolOutput } : {}),
     ...(preserveNullToolOutputDetails || toolOutputDetails !== null ? { toolOutputDetails } : {}),
     ...(attachments && attachments.length > 0 ? { attachments } : {}),
     ...(turnRef ? { turnRef } : {}),

@@ -3058,6 +3058,7 @@ describe('renderer chat runtime boundary', () => {
     expect(attachmentListSource).toContain('visibleAttachments.length === 0');
     expect(toolOutputSource).not.toContain('useResolvedMessageScreenshotSrc');
     expect(toolOutputStateSource).not.toContain('screenshotMessageState');
+    expect(toolOutputStateSource).not.toContain('modelFacingToolOutput');
     expect(toolOutputStateSource).not.toContain('screenshotRef');
     expect(toolOutputStateSource).not.toContain('screenshotUrl');
     expect(toolOutputStateSource).not.toContain('toolMetadata');

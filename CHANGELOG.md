@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: stop the shared transcript tool-output state helper from
+  publishing the legacy `modelFacingToolOutput` duplicate; newly built renderer
+  tool-output rows use `text` plus explicit SDK `toolOutputDetails`. No
+  migration required.
 - frontend/projection: stop duplicating SDK live-turn tool-output text into the
   legacy `modelFacingToolOutput` prop; current-turn and ConversationView live
   tool-output rows now reach components through `message.text` only. No
