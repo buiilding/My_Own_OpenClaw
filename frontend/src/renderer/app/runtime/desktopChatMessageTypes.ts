@@ -33,7 +33,6 @@ export interface ChatMessage {
   correlationId?: string;
   timestamp?: string;
   toolCallDisplayText?: string | null;
-  modelFacingToolOutput?: string | null;
   toolCallDetails?: Record<string, unknown> | null;
   toolOutputDetails?: Record<string, unknown> | null;
   actionExplanations?: string[] | null;

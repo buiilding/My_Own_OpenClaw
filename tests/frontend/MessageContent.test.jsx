@@ -315,20 +315,19 @@ describe('MessageContent', () => {
     expect(screen.getByText('result')).toBeInTheDocument();
   });
 
-  test('tool output details button reveals model-facing output and details payload', () => {
+  test('tool output details button reveals display output and details payload', () => {
     render(
       <MessageContent
         message={{
           sender: 'assistant',
           type: 'tool-output',
-          text: 'fallback output',
-          modelFacingToolOutput: 'model-facing output',
+          text: 'display output',
           toolOutputDetails: { request_id: 'req-1', metadata: { source: 'backend' } },
         }}
       />,
     );
 
-    expect(screen.getByText('model-facing output')).toBeInTheDocument();
+    expect(screen.getByText('display output')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Details' }));
     expect(screen.getByText('Tool Output Details')).toBeInTheDocument();
     expect(screen.getByText(/"request_id": "req-1"/)).toBeInTheDocument();

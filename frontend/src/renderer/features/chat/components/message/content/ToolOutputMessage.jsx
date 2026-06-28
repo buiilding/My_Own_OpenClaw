@@ -14,11 +14,6 @@ export default function ToolOutputMessage({
   activeFindMatchIndex = null,
 }) {
   const [showDetails, setShowDetails] = useState(false);
-  const modelFacingOutput = (
-    typeof message.modelFacingToolOutput === 'string'
-      ? message.modelFacingToolOutput
-      : message.text
-  );
   const detailsPayload = (
     message.toolOutputDetails
     && typeof message.toolOutputDetails === 'object'
@@ -42,7 +37,7 @@ export default function ToolOutputMessage({
       <HighlightedPlainText
         as="pre"
         className="tool-output-content"
-        text={modelFacingOutput}
+        text={message.text}
         findQuery={findQuery}
         findMatchIndexes={findMatchIndexes}
         activeFindMatchIndex={activeFindMatchIndex}
@@ -75,7 +70,6 @@ ToolOutputMessage.propTypes = {
       source: PropTypes.oneOf(['user_included', 'camera_button', 'tool_result', 'replay']).isRequired,
       status: PropTypes.oneOf(['materializing', 'pending_capture', 'ready', 'failed']).isRequired,
     })),
-    modelFacingToolOutput: PropTypes.string,
     toolOutputDetails: PropTypes.object,
   }).isRequired,
   findQuery: PropTypes.string,

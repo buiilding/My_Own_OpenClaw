@@ -125,15 +125,11 @@ Structured JSON support:
 
 ## Tool Output Card Contract
 
-Displayed output precedence:
-
-1. `message.modelFacingToolOutput` string
-2. fallback `message.text`
-
-SDK display-row and live-turn projections set `message.text` directly from
-`tool_output`/`tool_bundle_output` row `content` or live-entry text and do not
-republish that same content on `modelFacingToolOutput`; the prop remains
-component compatibility for older message shapes only.
+Displayed output comes from `message.text`. SDK display-row and live-turn
+projections set that field directly from `tool_output`/`tool_bundle_output` row
+`content` or live-entry text and do not republish that same content on a legacy
+`modelFacingToolOutput` prop. Thread find, token estimates, and
+`ToolOutputMessage` all use the same display text contract.
 
 Details payload precedence:
 
@@ -149,9 +145,10 @@ attachment lifecycle descriptors; those stay on SDK display fields such as
 do not rebuild missing details from `toolMetadata`, `toolName`,
 `executionTime`, or `success`; SDK `toolOutputDetails` is the only details
 payload authority. The shared renderer `ChatMessage` contract no longer
-declares top-level `toolName`, `executionTime`, or `success`, and no-view live
-adapters do not republish SDK tool names or status on those legacy fields. The
-old transcript tool-output state helper has been
+declares top-level `modelFacingToolOutput`, `toolName`, `executionTime`, or
+`success`, and no-view live adapters do not republish SDK tool output text,
+tool names, or status on those legacy fields. The old transcript tool-output
+state helper has been
 removed; SDK display-row and live-turn adapters build renderer tool-output rows
 directly from SDK-authored text, attachments, and `toolOutputDetails` instead
 of publishing parallel detail channels. SDK `tool_progress` display rows do not

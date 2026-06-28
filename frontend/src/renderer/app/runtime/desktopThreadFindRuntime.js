@@ -18,9 +18,6 @@ function resolveToolCallSearchText(message) {
 }
 
 function resolveToolOutputSearchText(message) {
-  if (typeof message?.modelFacingToolOutput === 'string') {
-    return message.modelFacingToolOutput;
-  }
   return typeof message?.text === 'string' ? message.text : '';
 }
 

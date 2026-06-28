@@ -27,7 +27,7 @@ describe('desktopThreadFindRuntime', () => {
         id: 'tool-output-1',
         sender: 'tool',
         type: 'tool-output',
-        modelFacingToolOutput: 'alpha result',
+        text: 'alpha result',
       },
       {
         id: 'summary-1',

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: remove the legacy `modelFacingToolOutput` renderer chat
+  prop; tool-output cards, thread-find indexing, and estimated token tags now
+  consume SDK-authored `message.text` directly. No migration required.
 - frontend/projection: stop publishing top-level `toolName` on renderer chat
   messages; SDK tool names may still feed display text and detail records, but
   renderer rows no longer carry a parallel metadata prop. No migration

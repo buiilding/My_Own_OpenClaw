@@ -1426,6 +1426,7 @@ describe('renderer chat runtime boundary', () => {
     expect(threadFindRuntimeSource).toContain('DesktopThreadFindRuntime');
     expect(threadFindRuntimeSource).toContain('message?.toolCallDisplayText');
     expect(threadFindRuntimeSource).not.toContain('modelFacingToolCall');
+    expect(threadFindRuntimeSource).not.toContain('modelFacingToolOutput');
     expect(threadFindRuntimeSource).not.toContain('export function buildThreadFindState');
     expect(markdownMessageSource).toContain('DesktopMarkdownMessageRuntime');
     expect(threadFindRuntimeSource).not.toContain('import { buildMarkdownRenderModel }');
@@ -1518,6 +1519,7 @@ describe('renderer chat runtime boundary', () => {
     expect(messageContentSource).not.toContain('screenshotContentType: PropTypes');
     expect(messageContentSource).not.toContain('screenshot: PropTypes');
     expect(messageContentSource).not.toContain('modelFacingToolCall: PropTypes');
+    expect(messageContentSource).not.toContain('modelFacingToolOutput: PropTypes');
     expect(messageContentSource).not.toContain('toolMetadata: PropTypes');
     expect(messageContentSource).not.toContain('toolName: PropTypes');
     expect(messageContentSource).not.toContain('executionTime: PropTypes');
@@ -1536,6 +1538,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatBoxResponseTestUtilsSource).not.toContain('screenshotContentType: message.screenshotContentType');
     expect(messageTypeSource).toContain('attachments?: SdkDisplayAttachment[] | null');
     expect(messageTypeSource).not.toContain('modelFacingToolCall?:');
+    expect(messageTypeSource).not.toContain('modelFacingToolOutput?:');
     expect(messageTypeSource).not.toContain('toolMetadata?:');
     expect(messageTypeSource).not.toContain('toolName?:');
     expect(messageTypeSource).not.toContain('executionTime?:');
@@ -1562,6 +1565,7 @@ describe('renderer chat runtime boundary', () => {
     expect(tokenUsageRuntimeSource).not.toContain('readSdkDisplayAttachments');
     expect(tokenUsageRuntimeSource).not.toContain('screenshot: message?.screenshot');
     expect(tokenUsageRuntimeSource).not.toContain('modelFacingToolCall');
+    expect(tokenUsageRuntimeSource).not.toContain('modelFacingToolOutput');
     expect(tokenUsageRuntimeSource).toContain('DesktopMessageTokenUsageRuntime');
     expect(tokenUsageRuntimeSource).not.toContain('export function resolveMessageTokenUsageTag');
     expect(tokenUsageRuntimeSource).not.toContain('features/chat');
@@ -3050,6 +3054,9 @@ describe('renderer chat runtime boundary', () => {
     expect(toolOutputSource).not.toContain('tool_name: message.toolName');
     expect(toolOutputSource).not.toContain('execution_time: message.executionTime');
     expect(toolOutputSource).not.toContain('success: message.success');
+    expect(toolOutputSource).not.toContain('message.modelFacingToolOutput');
+    expect(toolOutputSource).not.toContain('modelFacingToolOutput: PropTypes');
+    expect(toolOutputSource).toContain('text={message.text}');
     expect(toolOutputSource).not.toContain('toolName: PropTypes');
     expect(toolOutputSource).not.toContain('executionTime: PropTypes');
     expect(toolOutputSource).not.toContain('success: PropTypes');

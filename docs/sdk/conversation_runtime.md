@@ -526,8 +526,8 @@ tool-output, and progress rows. Producers must normalize those rows before they
 reach `ConversationView`; the renderer may only stringify SDK-declared
 structured tool rows such as tool calls and bundle outputs for component
 compatibility. SDK display-row tool-output projection writes visible output to
-`message.text` only and does not duplicate row content into the legacy
-`modelFacingToolOutput` prop.
+`message.text` only, and the renderer chat message contract no longer carries a
+legacy `modelFacingToolOutput` prop.
 Current-turn and `ConversationView.liveTurn.entries[]` type discriminators are
 SDK-authored exact strings; padded or empty entry `type` values fall back to
 generic assistant text rather than being trimmed into tool, thinking, progress,
@@ -556,8 +556,9 @@ props. The
 `ConversationView.liveTurn.turnRef` context follows the same exact rule before
 renderer adapters copy it into live row props, so padded view-level live-turn
 refs cannot become visible component identity.
-Live-entry tool-output projection writes visible output to `message.text` only
-and does not duplicate entry text into the legacy `modelFacingToolOutput` prop.
+Live-entry tool-output projection writes visible output to `message.text` only;
+renderer tool-output components, thread find, and token estimates consume that
+display field rather than a legacy `modelFacingToolOutput` prop.
 Tool live-entry identity fields such as `correlationId`, `requestId`, and
 `bundleId` are exact SDK strings in renderer presentation; padded or empty
 values are ignored rather than trimmed into duplicate-detection keys. Legacy

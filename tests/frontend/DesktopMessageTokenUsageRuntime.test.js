@@ -179,12 +179,11 @@ describe('desktopMessageTokenUsageRuntime', () => {
     expect(tag).toBeNull();
   });
 
-  test('estimates tool-output tokens from model-facing output text', () => {
+  test('estimates tool-output tokens from display text', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'assistant',
       type: 'tool-output',
-      text: 'fallback',
-      modelFacingToolOutput: 'abcd',
+      text: 'abcd',
     });
 
     expect(tag).toBe('tokens~ 1');

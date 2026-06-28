@@ -125,7 +125,6 @@ MessageContent.propTypes = {
       status: PropTypes.oneOf(['materializing', 'pending_capture', 'ready', 'failed']).isRequired,
     })),
     toolCallDisplayText: PropTypes.string,
-    modelFacingToolOutput: PropTypes.string,
     toolCallDetails: PropTypes.object,
     toolOutputDetails: PropTypes.object,
     actionExplanations: PropTypes.arrayOf(PropTypes.string),

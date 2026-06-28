@@ -43,10 +43,7 @@ function resolveToolMessageText(message) {
     return '';
   }
   if (message?.type === 'tool-output') {
-    const modelFacingOutput = normalizeText(message?.modelFacingToolOutput);
-    if (modelFacingOutput) {
-      return modelFacingOutput;
-    }
+    return normalizeText(message?.text);
   }
   return normalizeText(message?.text);
 }
