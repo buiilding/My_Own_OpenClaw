@@ -92,13 +92,16 @@ describe('desktopCurrentTurnMessageRuntime', () => {
 
     expect(messages).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        type: 'tool-call',
-        text: expect.stringContaining('Reading README.md'),
+        id: 'conv-1:turn-1:thinking',
+        type: 'llm-text',
+        thinkingText: 'Inspecting files',
       }),
     ]));
+    expect(messages.map(message => message.type)).not.toContain('tool-call');
+    expect(JSON.stringify(messages)).not.toContain('Reading README.md');
   });
 
-  test('buildNoViewSdkLiveTurnMessages preserves projected request ids for tool correlation', () => {
+  test('buildNoViewSdkLiveTurnMessages ignores raw tool-event request ids', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
@@ -118,16 +121,16 @@ describe('desktopCurrentTurnMessageRuntime', () => {
       }],
     });
 
-    expect(messages).toEqual(expect.arrayContaining([
+    expect(messages).toEqual([
       expect.objectContaining({
-        type: 'tool-call',
-        text: 'Using read_file',
-        correlationId: 'request-tool-1',
+        id: 'conv-1:turn-1:user-marker',
       }),
-    ]));
+    ]);
+    expect(JSON.stringify(messages)).not.toContain('request-tool-1');
+    expect(JSON.stringify(messages)).not.toContain('wrong_backend_tool');
   });
 
-  test('buildNoViewSdkLiveTurnMessages prefers explicit tool correlation ids', () => {
+  test('buildNoViewSdkLiveTurnMessages ignores explicit raw tool correlation ids', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
@@ -146,15 +149,15 @@ describe('desktopCurrentTurnMessageRuntime', () => {
       }],
     });
 
-    expect(messages).toEqual(expect.arrayContaining([
+    expect(messages).toEqual([
       expect.objectContaining({
-        type: 'tool-call',
-        correlationId: 'corr-tool-1',
+        id: 'conv-1:turn-1:user-marker',
       }),
-    ]));
+    ]);
+    expect(JSON.stringify(messages)).not.toContain('corr-tool-1');
   });
 
-  test('buildNoViewSdkLiveTurnMessages does not repair padded legacy tool event ids', () => {
+  test('buildNoViewSdkLiveTurnMessages ignores legacy tool event ids', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
@@ -182,22 +185,18 @@ describe('desktopCurrentTurnMessageRuntime', () => {
       ],
     });
 
-    expect(messages).toEqual(expect.arrayContaining([
+    expect(messages).toEqual([
       expect.objectContaining({
-        type: 'tool-call',
-        correlationId: 'request-tool-1',
+        id: 'conv-1:turn-1:user-marker',
       }),
-      expect.objectContaining({
-        type: 'tool-output',
-        correlationId: 'bundle-1',
-      }),
-    ]));
-    expect(messages.map(message => message.correlationId)).not.toContain('corr-tool-1');
-    expect(messages.map(message => message.correlationId)).not.toContain(' corr-tool-1 ');
-    expect(messages.map(message => message.correlationId)).not.toContain('request-bundle-1');
+    ]);
+    expect(JSON.stringify(messages)).not.toContain('tool-call-1');
+    expect(JSON.stringify(messages)).not.toContain('bundle-output-1');
+    expect(JSON.stringify(messages)).not.toContain('request-tool-1');
+    expect(JSON.stringify(messages)).not.toContain('bundle-1');
   });
 
-  test('buildNoViewSdkLiveTurnMessages does not repair padded legacy tool event names', () => {
+  test('buildNoViewSdkLiveTurnMessages ignores legacy tool event names', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
@@ -226,22 +225,14 @@ describe('desktopCurrentTurnMessageRuntime', () => {
       ],
     });
 
-    expect(messages).toEqual(expect.arrayContaining([
+    expect(messages).toEqual([
       expect.objectContaining({
-        type: 'tool-call',
-        text: 'Using tool',
+        id: 'conv-1:turn-1:user-marker',
       }),
-      expect.objectContaining({
-        type: 'tool-output',
-        text: 'Tool completed',
-      }),
-    ]));
-    expect(messages.some(message => message.id.includes('tool-progress-1'))).toBe(false);
-    expect(messages.map(message => message.toolName)).not.toContain('read_file');
-    expect(messages.map(message => message.toolName)).not.toContain(' read_file ');
-    expect(messages.map(message => message.toolName)).not.toContain('screenshot');
-    expect(messages.map(message => message.toolName)).not.toContain(' screenshot ');
-    expect(messages.map(message => message.text)).not.toContain(' web_search ');
+    ]);
+    expect(JSON.stringify(messages)).not.toContain('read_file');
+    expect(JSON.stringify(messages)).not.toContain('screenshot');
+    expect(JSON.stringify(messages)).not.toContain('web_search');
   });
 
   test('buildNoViewSdkLiveTurnMessages rejects missing or padded conversation refs', () => {
@@ -318,9 +309,9 @@ describe('desktopCurrentTurnMessageRuntime', () => {
       expect.objectContaining({
         id: 'conv-1:turn-1:assistant',
         text: 'Projected response',
-        turnRef: undefined,
       }),
     ]);
+    expect(messages[0]).not.toHaveProperty('turnRef');
     expect(messages.map(message => message.turnRef)).not.toContain(' turn-1 ');
     expect(messages.map(message => message.turnRef)).not.toContain('turn-1');
   });
@@ -355,7 +346,7 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     ]);
   });
 
-  test('buildNoViewSdkLiveTurnMessages renders SDK tool-output text', () => {
+  test('buildNoViewSdkLiveTurnMessages ignores raw tool-output event text', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
@@ -385,14 +376,13 @@ describe('desktopCurrentTurnMessageRuntime', () => {
       }],
     });
 
-    expect(messages).toEqual(expect.arrayContaining([
+    expect(messages).toEqual([
       expect.objectContaining({
-        type: 'tool-output',
-        text: expect.stringContaining('README contents'),
+        id: 'conv-1:turn-1:user-marker',
       }),
-    ]));
-    expect(messages.find(message => message.type === 'tool-output'))
-      .not.toHaveProperty('modelFacingToolOutput');
+    ]);
+    expect(messages.map(message => message.type)).not.toContain('tool-output');
+    expect(JSON.stringify(messages)).not.toContain('README contents');
   });
 
 });

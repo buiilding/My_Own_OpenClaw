@@ -376,126 +376,32 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     });
   });
 
-  test('does not synthesize legacy tool details from fallback tool names', () => {
+  test('ignores legacy no-presentation raw tool events in renderer live rows', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',
       turnRef: 'turn-live',
-      phase: 'tool_call',
-      toolEvents: [{
-        id: 'tool-call-1',
-        kind: 'tool_call',
-        toolName: 'read_file',
-      }],
-    });
-
-    expect(messages).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: 'conv-1:turn-live:tool:tool-call-1',
-        type: 'tool-call',
-        text: 'Using read_file',
-      }),
-    ]));
-    const toolMessage = messages.find((message) => message.id.endsWith(':tool:tool-call-1'));
-    expect(toolMessage).not.toHaveProperty('toolCallDetails');
-  });
-
-  test('drops legacy no-presentation tool events with malformed SDK row ids', () => {
-    const messages = buildNoViewSdkLiveTurnMessages({
-      conversationRef: 'conv-1',
-      turnRef: 'turn-live',
-      phase: 'tool_call',
-      toolEvents: [
-        {
-          id: ' tool-padded ',
-          kind: 'tool_call',
-          toolName: 'read_file',
-        },
-        {
-          id: '',
-          kind: 'tool_output',
-          toolName: 'read_file',
-          text: 'empty id output',
-        },
-        {
-          id: { value: 'tool-object' },
-          kind: 'tool_progress',
-          text: 'object id progress',
-        },
-        {
-          id: 'tool-exact',
-          kind: 'tool_call',
-          toolName: 'read_file',
-        },
-      ],
-    });
-
-    expect(messages).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: 'conv-1:turn-live:tool:tool-exact',
-        type: 'tool-call',
-      }),
-    ]));
-    expect(messages.map((message) => message.id)).not.toContain('conv-1:turn-live:tool: tool-padded ');
-    expect(messages.map((message) => message.text)).not.toContain('empty id output');
-    expect(messages.map((message) => message.text)).not.toContain('object id progress');
-  });
-
-  test('drops legacy no-presentation tool events with malformed SDK kinds', () => {
-    const messages = buildNoViewSdkLiveTurnMessages({
-      conversationRef: 'conv-1',
-      turnRef: 'turn-live',
-      phase: 'tool_call',
-      toolEvents: [
-        {
-          id: 'tool-padded-kind',
-          kind: ' tool_call ',
-          toolName: 'read_file',
-          text: 'padded kind',
-        },
-        {
-          id: 'tool-missing-kind',
-          toolName: 'read_file',
-          text: 'missing kind',
-        },
-        {
-          id: 'tool-unknown-kind',
-          kind: 'tool_mystery',
-          toolName: 'read_file',
-          text: 'unknown kind',
-        },
-        {
-          id: 'tool-exact-kind',
-          kind: 'tool_call',
-          toolName: 'read_file',
-          text: 'exact kind',
-        },
-      ],
-    });
-
-    expect(messages.map((message) => message.text)).toContain('exact kind');
-    expect(messages.map((message) => message.text)).not.toContain('padded kind');
-    expect(messages.map((message) => message.text)).not.toContain('missing kind');
-    expect(messages.map((message) => message.text)).not.toContain('unknown kind');
-    expect(messages.find((message) => message.text === 'exact kind')).toEqual(expect.objectContaining({
-      sourceEventType: 'tool_call',
-      type: 'tool-call',
-    }));
-  });
-
-  test('keeps legacy no-presentation tool-event attachments out of live rows', () => {
-    const messages = buildNoViewSdkLiveTurnMessages({
-      conversationRef: 'conv-1',
-      turnRef: 'turn-1',
       phase: 'tool_output',
       assistantText: '',
       reasoningText: null,
       lastError: null,
       toolEvents: [{
+        id: 'tool-call-1',
+        kind: 'tool_call',
+        toolName: 'read_file',
+        text: 'Using read_file',
+        toolCallDetails: {
+          toolName: 'read_file',
+          requestId: 'req-1',
+        },
+      }, {
         id: 'tool-output-1',
         kind: 'tool_output',
         toolName: 'screenshot',
-        status: 'success',
         text: 'captured screen',
+        toolOutputDetails: {
+          toolName: 'screenshot',
+          requestId: 'req-1',
+        },
         attachments: [{
           id: 'tool-output-1:attachment:000',
           kind: 'image',
@@ -503,16 +409,26 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
           status: 'ready',
           screenshotRef: 'artifact-legacy-live',
         }],
+      }, {
+        id: 'tool-progress-1',
+        kind: 'tool_progress',
+        text: 'Reading',
       }],
     });
 
-    const toolMessage = messages.find(message => message.type === 'tool-output');
-    expect(toolMessage).toEqual(expect.objectContaining({
-      text: 'captured screen',
-      sourceChannel: 'sdk:current-turn',
-    }));
-    expect(toolMessage).not.toHaveProperty('modelFacingToolOutput');
-    expect(toolMessage).not.toHaveProperty('attachments');
+    expect(messages).toEqual([
+      expect.objectContaining({
+        id: 'conv-1:turn-live:user-marker',
+        sourceChannel: 'sdk:current-turn',
+      }),
+    ]);
+    expect(messages.map((message) => message.type)).not.toEqual(expect.arrayContaining([
+      'tool-call',
+      'tool-output',
+      'tool-progress',
+    ]));
+    expect(JSON.stringify(messages)).not.toContain('artifact-legacy-live');
+    expect(JSON.stringify(messages)).not.toContain('captured screen');
   });
 
   test('does not repair padded legacy no-presentation lastError into a live row', () => {
@@ -560,51 +476,6 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
       sourceEventType: 'assistant_delta',
     }));
     expect(assistantMessage).not.toHaveProperty('thinkingText');
-  });
-
-  test('keeps legacy no-presentation tool-event detail payloads out of live rows', () => {
-    const messages = buildNoViewSdkLiveTurnMessages({
-      conversationRef: 'conv-1',
-      turnRef: 'turn-1',
-      phase: 'tool_output',
-      toolEvents: [{
-        id: 'tool-call-1',
-        kind: 'tool_call',
-        toolName: 'read_file',
-        text: 'Using read_file',
-        toolCallDetails: {
-          toolName: 'read_file',
-          requestId: 'req-1',
-        },
-      }, {
-        id: 'tool-output-1',
-        kind: 'tool_output',
-        toolName: 'read_file',
-        text: 'done',
-        toolMetadata: {
-          requestId: 'req-1',
-        },
-        toolOutputDetails: {
-          toolName: 'read_file',
-          requestId: 'req-1',
-        },
-      }, {
-        id: 'tool-progress-1',
-        kind: 'tool_progress',
-        text: 'Reading',
-        toolMetadata: {
-          requestId: 'req-1',
-        },
-      }],
-    });
-
-    expect(messages.find(message => message.id.endsWith(':tool:tool-call-1')))
-      .not.toHaveProperty('toolCallDetails');
-    const toolOutputMessage = messages.find(message => message.id.endsWith(':tool:tool-output-1'));
-    expect(toolOutputMessage).not.toHaveProperty('toolMetadata');
-    expect(toolOutputMessage).not.toHaveProperty('toolOutputDetails');
-    expect(messages.find(message => message.id.endsWith(':tool:tool-progress-1')))
-      .not.toHaveProperty('toolMetadata');
   });
 
   test('buildSdkLiveTurnMessages falls back to no-view live turn for partial ConversationView input', () => {

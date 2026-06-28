@@ -205,15 +205,7 @@ describe('desktopThreadPresentationRuntime', () => {
     expect(buildThreadPresentationMessages(messages, {
       sdkLiveTurn,
       activeConversationRef: 'conv-1',
-    })).toEqual([
-      messages[0],
-      expect.objectContaining({
-        id: 'conv-1:turn-1:padded-tool-output',
-        sender: 'assistant',
-        type: 'llm-text',
-        text: 'Tool completed',
-      }),
-    ]);
+    })).toEqual([messages[0]]);
   });
 
   test('buildThreadPresentationMessages does not preserve padded SDK live source event types', () => {
@@ -237,19 +229,21 @@ describe('desktopThreadPresentationRuntime', () => {
       },
     };
 
-    expect(buildThreadPresentationMessages(messages, {
+    const projectedMessages = buildThreadPresentationMessages(messages, {
       sdkLiveTurn,
       activeConversationRef: 'conv-1',
-    })).toEqual([
+    });
+
+    expect(projectedMessages).toEqual([
       messages[0],
       expect.objectContaining({
         id: 'conv-1:turn-1:tool-output',
         sender: 'assistant',
         type: 'tool-output',
-        sourceEventType: 'tool_output',
         text: 'Tool completed',
       }),
     ]);
+    expect(projectedMessages[1]).not.toHaveProperty('sourceEventType');
   });
 
   test('buildThreadPresentationMessages assigns SDK source channel for current-turn entries', () => {

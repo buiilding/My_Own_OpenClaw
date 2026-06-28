@@ -4184,12 +4184,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('turnRef: entry.turnRef || liveTurnContext?.turnRef || undefined');
     expect(source).not.toContain('turnRef: entry.turnRef || liveTurnContext?.turnRef || null');
     expect(source).not.toContain('readExactSdkString(entry.turnRef)');
-    expect(source).toContain('const toolEventId = readExactSdkString(toolEventRecord?.id);');
-    expect(source).toContain('const toolEventKind = resolveLegacyToolEventKind(toolEventRecord?.kind);');
-    expect(source).toContain('if (!toolEventRecord || !toolEventId || !toolEventKind)');
-    expect(source).toContain('kind: toolEventKind');
-    expect(source).toContain('const LEGACY_TOOL_EVENT_KINDS = new Set');
-    expect(source).toContain('function resolveLegacyToolEventKind(value)');
+    expect(source).not.toContain('toolEvents');
+    expect(source).not.toContain('resolveLegacyToolEventKind');
+    expect(source).not.toContain('LEGACY_TOOL_EVENT_KINDS');
     expect(source).not.toContain('id: toolEvent.id || index');
     expect(source).not.toContain('const turnRef = readExactSdkString(liveTurnContext?.turnRef);');
     expect(source).toContain("...exactSdkStringProp('turnRef', liveTurnContext?.turnRef)");
@@ -4228,7 +4225,7 @@ describe('renderer chat runtime boundary', () => {
     expect(toolDetailProjectionSource).toContain('sanitizeSdkToolDetailRecord');
   });
 
-  test('current-turn tool-event fallback does not read backend-shaped payload details', async () => {
+  test('current-turn no-view fallback does not read raw tool events or backend-shaped payload details', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js'),
       'utf8',
@@ -4238,6 +4235,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('toolOutputDetails');
     expect(source).toContain('buildLegacyNoPresentationCurrentTurnMessages');
     expect(source).toContain('buildNoViewSdkLiveTurnMessages');
+    expect(source).not.toContain('toolEvents');
     expect(source).not.toContain('resolveNoViewSdkLiveTurnThinkingText');
     expect(source).not.toContain('  buildLegacyNoPresentationCurrentTurnMessages,');
     expect(source).not.toContain('formatProjectedToolOutputText');
@@ -4552,23 +4550,24 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnMessageRuntimeSource).not.toContain('attachments: [],');
     expect(currentTurnMessageRuntimeSource).not.toContain('modelFacingToolOutput');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveEntryCorrelationId(entry)');
-    expect(currentTurnMessageRuntimeSource).toContain('function resolveToolEventCorrelationId(toolEvent)');
     expect(currentTurnMessageRuntimeSource).toContain('function resolveToolName(value)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('toolEvents');
+    expect(currentTurnMessageRuntimeSource).not.toContain('function resolveToolEventCorrelationId(toolEvent)');
     expect(currentTurnMessageRuntimeSource).toContain('const liveConversationRef = readExactSdkString(conversationRef);');
     expect(currentTurnMessageRuntimeSource).toContain('if (!liveConversationRef) {');
     expect(currentTurnMessageRuntimeSource).toContain('const liveTurnRef = readExactSdkString(turnRef);');
     expect(currentTurnMessageRuntimeSource).toContain('if (!liveTurnRef) {');
     expect(currentTurnMessageRuntimeSource).not.toContain("liveTurnRef || 'turn'");
     expect(currentTurnMessageRuntimeSource).toContain('readExactSdkString(entry.requestId)');
-    expect(currentTurnMessageRuntimeSource).toContain('readExactSdkString(toolEvent.requestId)');
-    expect(currentTurnMessageRuntimeSource).toContain('readExactSdkString(toolEvent.bundleId)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('readExactSdkString(toolEvent.requestId)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('readExactSdkString(toolEvent.bundleId)');
     expect(currentTurnMessageRuntimeSource).not.toContain('normalizeOptionalText(entry.requestId)');
     expect(currentTurnMessageRuntimeSource).not.toContain('normalizeOptionalText(entry.toolName)');
     expect(currentTurnMessageRuntimeSource).not.toContain('readString(toolEvent.toolName)');
     expect(currentTurnMessageRuntimeSource).not.toContain('readString(toolEvent.requestId)');
-    expect(currentTurnMessageRuntimeSource).toContain('const toolEventKind = resolveLegacyToolEventKind(toolEventRecord?.kind);');
-    expect(currentTurnMessageRuntimeSource).toContain('if (!toolEventRecord || !toolEventId || !toolEventKind)');
-    expect(currentTurnMessageRuntimeSource).toContain('kind: toolEventKind');
+    expect(currentTurnMessageRuntimeSource).not.toContain('const toolEventKind = resolveLegacyToolEventKind(toolEventRecord?.kind);');
+    expect(currentTurnMessageRuntimeSource).not.toContain('if (!toolEventRecord || !toolEventId || !toolEventKind)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('kind: toolEventKind');
     expect(currentTurnMessageRuntimeSource).not.toContain('function resolveLiveTurnIdentity');
     expect(currentTurnMessageRuntimeSource).not.toContain("resolveLiveTurnIdentity(conversationRef, 'conversation')");
     expect(currentTurnMessageRuntimeSource).not.toContain('const baseId = `${conversationRef ||');

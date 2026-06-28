@@ -22,11 +22,6 @@ const {
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 const sdkConversationViewSourceChannel = DesktopPresentationSourceChannels
   .getSdkConversationViewSourceChannel();
-const LEGACY_TOOL_EVENT_KINDS = new Set([
-  'tool_call',
-  'tool_output',
-  'tool_progress',
-]);
 const LIVE_PRESENTATION_ENTRY_TYPES = new Set([
   'thinking',
   'llm-text',
@@ -66,15 +61,6 @@ function resolveEntryCorrelationId(entry) {
   );
 }
 
-function resolveToolEventCorrelationId(toolEvent) {
-  return (
-    readExactSdkString(toolEvent.correlationId)
-    || readExactSdkString(toolEvent.requestId)
-    || readExactSdkString(toolEvent.bundleId)
-    || null
-  );
-}
-
 function normalizeEntryType(value) {
   if (value === null || value === undefined) {
     return 'llm-text';
@@ -87,86 +73,6 @@ function normalizeEntryType(value) {
 
 function resolveToolName(value) {
   return readExactSdkString(value);
-}
-
-function resolveLegacyToolEventKind(value) {
-  const kind = readExactSdkString(value);
-  return LEGACY_TOOL_EVENT_KINDS.has(kind) ? kind : null;
-}
-
-function buildProjectedToolCallMessage({
-  baseId,
-  liveTurnRef,
-  toolEvent,
-}) {
-  const toolName = resolveToolName(toolEvent.toolName) || '';
-  const correlationId = resolveToolEventCorrelationId(toolEvent);
-  const text = normalizeText(toolEvent.text) || (toolName ? `Using ${toolName}` : 'Using tool');
-
-  return {
-    id: `${baseId}:tool:${toolEvent.id}`,
-    text,
-    sender: 'assistant',
-    type: 'tool-call',
-    toolCallDisplayText: text,
-    sourceEventType: toolEvent.kind,
-    sourceChannel: sdkCurrentTurnSourceChannel,
-    ...(correlationId ? { correlationId } : {}),
-    ...(liveTurnRef ? { turnRef: liveTurnRef } : {}),
-  };
-}
-
-function buildProjectedToolOutputMessage({
-  baseId,
-  liveTurnRef,
-  toolEvent,
-}) {
-  const toolName = resolveToolName(toolEvent.toolName);
-  const correlationId = resolveToolEventCorrelationId(toolEvent);
-  const outputText = normalizeText(toolEvent.text)
-    || (toolName ? `${toolName} completed` : 'Tool completed');
-  return {
-    id: `${baseId}:tool:${toolEvent.id}`,
-    text: outputText,
-    sender: 'assistant',
-    type: 'tool-output',
-    sourceEventType: toolEvent.kind,
-    sourceChannel: sdkCurrentTurnSourceChannel,
-    ...(correlationId ? { correlationId } : {}),
-    ...(liveTurnRef ? { turnRef: liveTurnRef } : {}),
-  };
-}
-
-function buildProjectedToolProgressMessage({
-  baseId,
-  liveTurnRef,
-  toolEvent,
-}) {
-  const text = typeof toolEvent?.text === 'string' && toolEvent.text.trim()
-    ? toolEvent.text
-    : (resolveToolName(toolEvent?.toolName) || '');
-  if (!text) {
-    return null;
-  }
-  return {
-    id: `${baseId}:tool:${toolEvent.id}`,
-    text,
-    sender: 'assistant',
-    type: 'tool-progress',
-    sourceEventType: toolEvent.kind,
-    sourceChannel: sdkCurrentTurnSourceChannel,
-    turnRef: liveTurnRef || undefined,
-  };
-}
-
-function buildProjectedToolMessage({ baseId, liveTurnRef, toolEvent }) {
-  if (toolEvent.kind === 'tool_output') {
-    return buildProjectedToolOutputMessage({ baseId, liveTurnRef, toolEvent });
-  }
-  if (toolEvent.kind === 'tool_progress') {
-    return buildProjectedToolProgressMessage({ baseId, liveTurnRef, toolEvent });
-  }
-  return buildProjectedToolCallMessage({ baseId, liveTurnRef, toolEvent });
 }
 
 function hasPresentationObject(sdkLiveTurn) {
@@ -186,15 +92,13 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
     phase,
     assistantText,
     reasoningText,
-    toolEvents,
     lastError,
   } = sdkLiveTurn;
   const hasText = typeof assistantText === 'string' && assistantText.trim();
   const hasReasoning = typeof reasoningText === 'string' && reasoningText.trim();
   const errorText = readExactSdkString(lastError);
   const hasError = Boolean(errorText);
-  const hasToolEvents = Array.isArray(toolEvents) && toolEvents.length > 0;
-  if (phase === 'idle' && !hasText && !hasReasoning && !hasError && !hasToolEvents) {
+  if (phase === 'idle' && !hasText && !hasReasoning && !hasError) {
     return [];
   }
 
@@ -227,30 +131,6 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
       sourceChannel: sdkCurrentTurnSourceChannel,
       turnRef: liveTurnRef || undefined,
       isComplete: false,
-    });
-  }
-
-  if (hasToolEvents) {
-    toolEvents.forEach((toolEvent) => {
-      const toolEventRecord = asRecord(toolEvent);
-      const toolEventId = readExactSdkString(toolEventRecord?.id);
-      const toolEventKind = resolveLegacyToolEventKind(toolEventRecord?.kind);
-      if (!toolEventRecord || !toolEventId || !toolEventKind) {
-        return;
-      }
-      const projectedToolEvent = {
-        ...toolEventRecord,
-        id: toolEventId,
-        kind: toolEventKind,
-      };
-      const message = buildProjectedToolMessage({
-        baseId,
-        liveTurnRef,
-        toolEvent: projectedToolEvent,
-      });
-      if (message) {
-        messages.push(message);
-      }
     });
   }
 

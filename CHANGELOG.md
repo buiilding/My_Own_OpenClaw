@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/current-turn: stop projecting legacy no-view raw `toolEvents` into
+  renderer live tool rows; live tool display now comes from SDK presentation
+  entries or `ConversationView` entries. No migration required.
 - frontend/chat-surface: derive Stop affordance availability through the shared
   stop-target runtime, requiring exact SDK view or pending-bridge identity
   before enabling Stop. No migration required.
