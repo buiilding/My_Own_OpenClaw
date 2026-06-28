@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: omit `toolOutputDetails` on live tool-output rows when SDK
+  presentation entries do not provide sanitized detail metadata, instead of
+  publishing renderer-owned `null` placeholders. No migration required.
 - frontend/live-turn: omit live-entry source-event labels when SDK presentation
   entries do not provide exact metadata, including thinking and tool-output
   rows, instead of synthesizing `reasoning_delta` or `tool_output`. No migration

@@ -368,7 +368,7 @@ function buildToolOutputMessage(entry, liveTurnContext) {
     text,
     sender: 'assistant',
     type: 'tool-output',
-    toolOutputDetails,
+    ...(toolOutputDetails ? { toolOutputDetails } : {}),
     ...(attachments.length > 0 ? { attachments } : {}),
     ...(correlationId ? { correlationId } : {}),
   };

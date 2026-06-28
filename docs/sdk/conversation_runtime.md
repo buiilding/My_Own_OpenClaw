@@ -577,13 +577,13 @@ rule: padded names are ignored instead of being trimmed into visible tool labels
 or fallback status text. Live-entry and legacy no-view tool detail
 metadata comes only from SDK-authored `toolCallDetails`/`toolOutputDetails`;
 renderer text fallbacks may label a tool row, but they must not synthesize
-detail records from a bare tool name. Tool output React components follow the
-same rule: when `toolOutputDetails` is absent, they show an empty details panel
-instead of rebuilding details from legacy `toolMetadata`, `toolName`,
-`executionTime`, or `success` props. Thread duplicate suppression and response
-overlay live/display materialization also ignore legacy `toolMetadata`; tool
-identity comes from exact `correlationId`, `toolCallDetails`, or
-`toolOutputDetails` only.
+detail records from a bare tool name or publish explicit `null` detail
+placeholders. Tool output React components follow the same rule: when
+`toolOutputDetails` is absent, they show an empty details panel instead of
+rebuilding details from legacy `toolMetadata`, `toolName`, `executionTime`, or
+`success` props. Thread duplicate suppression and response overlay live/display
+materialization also ignore legacy `toolMetadata`; tool identity comes from
+exact `correlationId`, `toolCallDetails`, or `toolOutputDetails` only.
 Display-row `tool_progress` projection does not borrow
 `metadata.toolOutputDetails` as progress metadata; progress rows may pass
 SDK-authored `toolCallDetails` only, leaving output details scoped to

@@ -244,6 +244,27 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     expect(messages.find(message => message.id === 'entry-tool-output')).not.toHaveProperty('toolMetadata');
     expect(messages.find(message => message.id === 'entry-tool-output')?.toolOutputDetails)
       .not.toHaveProperty('rawPayload');
+    expect(buildCurrentTurnMessagesFromPresentation({
+      turnRef: 'turn-live',
+      presentation: {
+        entries: [{
+          id: 'entry-tool-output-without-details',
+          type: 'tool-output',
+          text: 'done without details',
+        }, {
+          id: 'entry-tool-output-padded-details',
+          type: 'tool-output',
+          text: 'done padded details',
+          toolOutputDetails: {
+            requestId: ' req-output ',
+            toolName: '',
+          },
+        }],
+      },
+    })).toEqual([
+      expect.not.objectContaining({ toolOutputDetails: expect.anything() }),
+      expect.not.objectContaining({ toolOutputDetails: expect.anything() }),
+    ]);
     expect(messages.find(message => message.id === 'entry-tool-progress')).toEqual(
       expect.objectContaining({
         id: 'entry-tool-progress',
