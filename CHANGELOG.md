@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: include the SDK replay action on renderer cleanup traces and
+  update replay docs to describe intent-only SDK command dispatch. No migration
+  required.
 - frontend/chat-surface: let the selected surface-state wrapper pass
   `ConversationView` through to the controller guard instead of repeating the
   SDK view-shape check. No migration required.

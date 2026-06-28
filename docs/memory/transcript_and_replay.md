@@ -74,11 +74,11 @@ write hidden replay rows or fall back to visible transcript rows for runtime
 truth.
 
 Edit/resend and try-again no longer cut the canonical local-runtime chat-event
-log. The renderer loads the active display timeline, asks the SDK to
-`replaceRows` with the preserved prefix as a child revision, and publishes the
-pending replacement turn only after that replacement succeeds. Raw events stay
-available for audit/diagnostics while the active display timeline becomes the
-user-visible document.
+log. The renderer passes row intent to SDK replay commands, and the SDK resolves
+the target display row, preserves resources, writes the child display/model
+revision, supersedes old live work, and sends the replacement turn. Raw events
+stay available for audit/diagnostics while the active display timeline becomes
+the user-visible document.
 
 Live sends use one stable turn/message id across the pending renderer row and
 the SDK query turn. Replay matches canonical local-runtime events by event/payload id;
@@ -106,9 +106,9 @@ Key files:
   `desktopSdkDisplayChatMessageProjectionRuntime.ts`,
 - diagnostic rehydrate snapshot projection: `packages/windie-sdk-js/src/projections/conversationProjections.ts`,
 - model-history resume dispatch: `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`,
-- tool-message reconstruction and replay payload/turn shaping:
+- tool-message reconstruction and replay command intent:
   `DesktopConversationReplayRuntime` in `desktopConversationReplayRuntime.js`,
-- edit/resend and try-again replay row-index selection:
+- edit/resend and try-again replay command dispatch:
   `DesktopConversationReplayRuntime` in `desktopConversationReplayRuntime.js`,
 - backend rehydrate services: `backend/src/api/services/rehydrate_*`.
 

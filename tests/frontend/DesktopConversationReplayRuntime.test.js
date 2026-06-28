@@ -135,6 +135,7 @@ describe('desktopConversationReplayRuntime', () => {
       action: 'replay_failed_cleanup',
       conversationRef: null,
       errorKind: 'MissingConversationRef',
+      replayAction: 'retry',
       targetRowId: 'assistant-1',
     }));
     errorSpy.mockRestore();
@@ -314,6 +315,7 @@ describe('desktopConversationReplayRuntime', () => {
       action: 'replay_failed_cleanup',
       conversationRef: null,
       errorKind: 'MissingConversationRef',
+      replayAction: 'retry',
       targetRowId: 'assistant-1',
     }));
     expect(DesktopRendererTraceRuntime.logRendererReplayTrace).not.toHaveBeenCalledWith(expect.objectContaining({
@@ -346,6 +348,7 @@ describe('desktopConversationReplayRuntime', () => {
       action: 'replay_failed_cleanup',
       conversationRef: 'conv-replay',
       errorKind: 'Error',
+      replayAction: 'retry',
       targetRowId: 'assistant-1',
     }));
     expect(DesktopRendererTraceRuntime.logRendererReplayTrace).not.toHaveBeenCalledWith(expect.objectContaining({

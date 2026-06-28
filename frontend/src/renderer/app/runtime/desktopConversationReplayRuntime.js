@@ -104,6 +104,7 @@ async function executeReplayIntent({
       action: 'replay_failed_cleanup',
       conversationRef: null,
       errorKind: 'MissingConversationRef',
+      replayAction: action,
       targetRowId,
     });
     return false;
@@ -160,6 +161,7 @@ async function executeReplayIntent({
     logReplayTimeline('replay_failed_cleanup', {
       conversationRef,
       errorKind: traceErrorKind(error),
+      replayAction: action,
       targetRowId,
     });
     return false;
