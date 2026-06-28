@@ -307,6 +307,11 @@ function buildCurrentTurnMessagesFromPresentation(sdkLiveTurn = null) {
 }
 
 function buildNoViewSdkLiveTurnMessages(sdkLiveTurn = null) {
+  const noViewConversationRef = readExactSdkString(sdkLiveTurn?.conversationRef);
+  const noViewTurnRef = readExactSdkString(sdkLiveTurn?.turnRef);
+  if (!noViewConversationRef || !noViewTurnRef) {
+    return [];
+  }
   const presentationMessages = buildCurrentTurnMessagesFromPresentation(sdkLiveTurn);
   if (presentationMessages.length > 0) {
     return presentationMessages;

@@ -4223,6 +4223,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('buildLegacyNoPresentationCurrentTurnMessages');
     expect(source).toContain('buildNoViewSdkLiveTurnMessages');
     expect(source).toContain('buildSdkLiveTurnMessages');
+    expect(source).toContain('const noViewConversationRef = readExactSdkString(sdkLiveTurn?.conversationRef);');
+    expect(source).toContain('const noViewTurnRef = readExactSdkString(sdkLiveTurn?.turnRef);');
+    expect(source).toContain('if (!noViewConversationRef || !noViewTurnRef) {');
     expect(source).not.toContain('resolveNoViewSdkLiveTurnThinkingText');
     expect(source).not.toContain('  buildLegacyNoPresentationCurrentTurnMessages,');
     expect(source).not.toContain('buildCurrentTurnMessagesFromProjection');

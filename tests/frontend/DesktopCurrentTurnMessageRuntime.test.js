@@ -478,6 +478,44 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     expect(assistantMessage).not.toHaveProperty('thinkingText');
   });
 
+  test('requires exact no-view live-turn refs before projecting SDK presentation rows', () => {
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'entry-raw',
+          type: 'llm-text',
+          text: 'raw current turn',
+        }],
+      },
+    };
+
+    expect(buildNoViewSdkLiveTurnMessages({
+      ...sdkLiveTurn,
+      conversationRef: undefined,
+    })).toEqual([]);
+    expect(buildNoViewSdkLiveTurnMessages({
+      ...sdkLiveTurn,
+      conversationRef: ' conv-1 ',
+    })).toEqual([]);
+    expect(buildNoViewSdkLiveTurnMessages({
+      ...sdkLiveTurn,
+      turnRef: undefined,
+    })).toEqual([]);
+    expect(buildNoViewSdkLiveTurnMessages({
+      ...sdkLiveTurn,
+      turnRef: ' turn-1 ',
+    })).toEqual([]);
+    expect(buildNoViewSdkLiveTurnMessages(sdkLiveTurn)).toEqual([
+      expect.objectContaining({
+        id: 'entry-raw',
+        sourceChannel: 'sdk:current-turn',
+      }),
+    ]);
+  });
+
   test('buildSdkLiveTurnMessages falls back to no-view live turn for partial ConversationView input', () => {
     const messages = buildSdkLiveTurnMessages({
       conversationView: {

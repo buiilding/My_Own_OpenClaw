@@ -591,9 +591,9 @@ Projected live rows take `turnRef` only from the containing SDK live-turn
 context and ignore entry-level `turnRef` fields, so stale entry payload identity
 cannot move a current live row onto an older turn. No-view SDK current-turn
 `conversationRef` and `turnRef` values are exact in renderer fallback
-projection; missing or padded refs leave the legacy no-presentation fallback
-inert instead of being exposed through generated live row ids or row `turnRef`
-props. The
+projection; missing or padded refs leave presentation-backed rows and the
+legacy no-presentation fallback inert instead of being exposed through
+generated live row ids or row `turnRef` props. The
 `ConversationView.liveTurn.turnRef` context follows the same exact rule before
 renderer adapters copy it into live row props, so padded view-level live-turn
 refs cannot become visible component identity.
@@ -756,6 +756,9 @@ That adapter requires the shared complete `ConversationView` envelope before a
 view can suppress no-view current-turn fallback rows. Partial view-shaped
 inputs stay on the no-view fallback path instead of claiming live-row
 authority.
+No-view fallback rows still require exact current-turn `conversationRef` and
+`turnRef` identity before thread presentation can append them, even when the
+caller has no active conversation ref to compare against.
 When a caller supplies `ConversationView`, thread presentation accepts only
 SDK display-row messages plus the explicit renderer pending-send bridge as its
 base rows. Raw renderer transcript rows are ignored in that mode so view-owned
@@ -823,9 +826,9 @@ projected detail objects, not backend-wire payload recovery.
 The raw no-presentation current-turn fallback builder stays private to the
 renderer message runtime; callers use the no-view SDK live-turn facade so the
 legacy raw-field bridge cannot become a parallel presentation API.
-That legacy bridge also requires an exact SDK `conversationRef` before it
-builds fallback row ids; malformed or missing conversation refs are ignored
-instead of being repaired into synthetic renderer identities.
+That facade requires exact SDK `conversationRef` and `turnRef` values before it
+builds presentation-backed or legacy fallback rows; malformed or missing refs
+are ignored instead of being repaired into synthetic renderer identities.
 
 ### Removed Renderer Transcript and Rehydrate Helpers
 

@@ -1128,6 +1128,52 @@ describe('desktopThreadPresentationRuntime', () => {
     })).toBe(messages);
   });
 
+  test('buildThreadPresentationMessages requires exact no-view current-turn refs without an active ref', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:assistant',
+          type: 'llm-text',
+          text: 'Projected answer',
+          turnRef: 'turn-1',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn: {
+        ...sdkLiveTurn,
+        conversationRef: undefined,
+      },
+      activeConversationRef: null,
+    })).toBe(messages);
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn: {
+        ...sdkLiveTurn,
+        turnRef: ' turn-1 ',
+      },
+      activeConversationRef: null,
+    })).toBe(messages);
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: null,
+    })).toEqual([
+      messages[0],
+      expect.objectContaining({
+        id: 'conv-1:turn-1:assistant',
+        sourceChannel: 'sdk:current-turn',
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages suppresses live assistant text once materialized', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },

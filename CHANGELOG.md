@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/current-turn: require no-view SDK live-turn presentation rows to
+  carry exact `conversationRef` and `turnRef` identity before renderer thread
+  presentation can append them. No migration required.
 - frontend/response-overlay: gate no-view SDK response entries and raw thinking
   fallback on the live-surface source, so idle or malformed live-turn packets
   cannot rebuild overlay rows after lifecycle gating. No migration required.
