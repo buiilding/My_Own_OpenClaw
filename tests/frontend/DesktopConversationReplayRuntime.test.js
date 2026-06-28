@@ -355,7 +355,7 @@ describe('desktopConversationReplayRuntime', () => {
       conversationRef: null,
       errorKind: 'MissingReplayTargetRowId',
       replayAction: 'retry',
-      targetRowId: ' ',
+      targetRowId: null,
     }));
     errorSpy.mockRestore();
   });
@@ -384,14 +384,14 @@ describe('desktopConversationReplayRuntime', () => {
       conversationRef: null,
       errorKind: 'MissingReplayTargetRowId',
       replayAction: 'retry',
-      targetRowId: ' assistant-1 ',
+      targetRowId: null,
     }));
     expect(DesktopRendererTraceRuntime.logRendererReplayTrace).toHaveBeenCalledWith(expect.objectContaining({
       action: 'replay_failed_cleanup',
       conversationRef: null,
       errorKind: 'MissingReplayTargetRowId',
       replayAction: 'edit_resend',
-      targetRowId: ' user-1 ',
+      targetRowId: null,
     }));
     errorSpy.mockRestore();
   });

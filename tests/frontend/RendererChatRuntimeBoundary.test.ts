@@ -2296,6 +2296,7 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('prepareReplayRetryIntent');
     expect(replayRuntimeSource).toContain('readExactReplayTargetRowId');
     expect(replayRuntimeSource).toContain('MissingReplayTargetRowId');
+    expect(replayRuntimeSource).toContain('targetRowId: null');
     expect(replayRuntimeSource).toContain('readExactReplayConversationRef');
     expect(replayRuntimeSource).not.toContain('resolveRendererConversationSessionSnapshot');
     expect(replayRuntimeSource).not.toContain('normalizeReplayMessageId');

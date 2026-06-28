@@ -154,7 +154,7 @@ async function executeReplayAction({
       conversationRef: null,
       errorKind: 'MissingReplayTargetRowId',
       replayAction: action,
-      targetRowId,
+      targetRowId: null,
     });
     return false;
   }

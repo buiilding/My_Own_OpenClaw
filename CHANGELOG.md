@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: keep rejected padded or empty replay target ids out of
+  renderer replay trace state, reporting them as missing targets instead of
+  diagnostic row identity. No migration required.
 - frontend/chat-store: require provider trace snapshots to use exact active
   conversation refs instead of forwarding padded renderer identity into trace
   state. No migration required.

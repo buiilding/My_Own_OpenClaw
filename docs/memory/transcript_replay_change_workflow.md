@@ -195,7 +195,10 @@ flowchart LR
      exact-identity rule: padded transcript/session/store refs are
      treated as missing scope, and Electron main rejects padded replay command
      `conversationRef`/`messageId` fields instead of trimming them before SDK
-     dispatch.
+     dispatch. Renderer replay diagnostics publish target row identity only
+     after the exact target gate accepts it; rejected padded or empty target ids
+     are traced as missing targets instead of being copied into diagnostic
+     replay state.
 
 5. Preserve model-history resume shape.
    - SDK `modelHistoryPayloadFromCheckpoint(...)` should emit
