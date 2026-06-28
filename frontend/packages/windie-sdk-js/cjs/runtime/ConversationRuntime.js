@@ -106,19 +106,6 @@ function eventText(event) {
     }
     return '';
 }
-function mergeReplayPayload(resolvedPayload, overridePayload) {
-    const payload = { ...resolvedPayload };
-    if (!overridePayload) {
-        return payload;
-    }
-    for (const [key, value] of Object.entries(overridePayload)) {
-        if (value === null || value === undefined) {
-            continue;
-        }
-        payload[key] = value;
-    }
-    return payload;
-}
 function displayRowMatchesId(row, messageId) {
     return row.id === messageId
         || row.metadata?.eventId === messageId
@@ -180,7 +167,9 @@ function replayPayloadFromDisplayRow(row) {
     }
     const attachments = readyImageAttachmentsFromDisplayRow(row);
     if (attachments.length > 0) {
-        payload.screenshot_refs = attachments.map(attachment => attachment.id.trim());
+        payload.screenshot_refs = attachments.map(attachment => (typeof attachment.screenshotRef === 'string' && attachment.screenshotRef.trim()
+            ? attachment.screenshotRef.trim()
+            : attachment.id.trim()));
         const attachmentFilenames = attachments
             .map(attachment => (typeof attachment.filename === 'string' && attachment.filename.trim()
             ? attachment.filename.trim()
@@ -1468,9 +1457,9 @@ class SdkConversationRuntime {
         if (userIndex < 0) {
             throw new Error(`Cannot edit missing user message: ${input.messageId}`);
         }
-        const replayPayload = mergeReplayPayload(replayPayloadFromDisplayRow(displayTimeline.rows[userIndex]), input.payload);
+        const replayPayload = replayPayloadFromDisplayRow(displayTimeline.rows[userIndex]);
         replayPayload.text = normalizedText;
-        const turnRef = input.turnRef ?? (0, events_js_1.createRuntimeId)('turn');
+        const turnRef = (0, events_js_1.createRuntimeId)('turn');
         const timestamp = new Date().toISOString();
         const checkpoint = await this.replaceRows({
             rows: [
@@ -1497,19 +1486,19 @@ class SdkConversationRuntime {
         return this.send({
             text: normalizedText,
             turnRef,
-            model: input.model,
             payload: replayPayload,
         });
     }
-    async retryTurn(input = {}) {
+    async retryTurn(input) {
+        if (!input?.messageId) {
+            throw new Error('retryTurn requires a target message id');
+        }
         const displayTimeline = await this.loadDisplayTimeline();
-        const targetIndex = input.messageId
-            ? displayTimeline.rows.findIndex(row => displayRowMatchesId(row, input.messageId))
-            : displayTimeline.rows.length - 1;
-        if (input.messageId && targetIndex < 0) {
+        const targetIndex = displayTimeline.rows.findIndex(row => displayRowMatchesId(row, input.messageId));
+        if (targetIndex < 0) {
             throw new Error(`Cannot retry missing message: ${input.messageId}`);
         }
-        const searchStart = targetIndex >= 0 ? targetIndex : displayTimeline.rows.length - 1;
+        const searchStart = targetIndex;
         let userIndex = -1;
         for (let index = searchStart; index >= 0; index -= 1) {
             const row = displayTimeline.rows[index];
@@ -1526,9 +1515,9 @@ class SdkConversationRuntime {
         if (!retryText.trim()) {
             throw new Error('Cannot retry a user message with empty text');
         }
-        const replayPayload = mergeReplayPayload(replayPayloadFromDisplayRow(userRow), input.payload);
+        const replayPayload = replayPayloadFromDisplayRow(userRow);
         replayPayload.text = retryText;
-        const turnRef = input.turnRef ?? (0, events_js_1.createRuntimeId)('turn');
+        const turnRef = (0, events_js_1.createRuntimeId)('turn');
         const timestamp = new Date().toISOString();
         const checkpoint = await this.replaceRows({
             rows: [
@@ -1555,7 +1544,6 @@ class SdkConversationRuntime {
         return this.send({
             text: retryText,
             turnRef,
-            model: input.model,
             payload: replayPayload,
         });
     }
@@ -2764,8 +2752,7 @@ class SdkConversationRuntime {
             if (resource.kind !== 'clipboard_image' && resource.kind !== 'query_screenshot_request') {
                 return resource;
             }
-            const displayAttachmentId = stringPayloadField({ value: resource.displayAttachmentId }, 'value')
-                ?? `${turnRef}:attachment:${visualIndex.toString().padStart(3, '0')}`;
+            const displayAttachmentId = `${turnRef}:attachment:${visualIndex.toString().padStart(3, '0')}`;
             visualIndex += 1;
             return {
                 ...resource,
@@ -2777,7 +2764,9 @@ class SdkConversationRuntime {
         const attachments = [];
         for (const resource of resources) {
             if (resource.kind === 'clipboard_image') {
-                const id = stringPayloadField({ value: resource.displayAttachmentId }, 'value');
+                const id = stringPayloadField({
+                    value: resource.displayAttachmentId,
+                }, 'value');
                 if (!id) {
                     continue;
                 }
@@ -2793,7 +2782,9 @@ class SdkConversationRuntime {
                 });
             }
             else if (resource.kind === 'query_screenshot_request') {
-                const id = stringPayloadField({ value: resource.displayAttachmentId }, 'value');
+                const id = stringPayloadField({
+                    value: resource.displayAttachmentId,
+                }, 'value');
                 if (!id) {
                     continue;
                 }

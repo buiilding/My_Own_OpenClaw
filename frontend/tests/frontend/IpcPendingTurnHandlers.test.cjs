@@ -43,15 +43,15 @@ function createHarness() {
 }
 
 describe('pending turn IPC handlers', () => {
-  test('normalizes pending-turn envelopes and drops visual payload fields through the runtime', () => {
-    const { getLatestPendingTurn, listeners } = createHarness();
+  test('rejects pending-turn envelopes with visual payload fields through the runtime', () => {
+    const { broadcastToRenderers, getLatestPendingTurn, liveTurnState, listeners } = createHarness();
 
     listeners['windie:pending-turn']({}, {
       type: 'pending',
       pendingTurn: {
-        conversationRef: ' conv-1 ',
-        turnRef: ' turn-1 ',
-        userMessageId: ' user-1 ',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        userMessageId: 'user-1',
         text: '',
         timestamp: ' 2026-06-19T00:00:00.000Z ',
         attachmentFilenames: [' one.png ', '', 42, 'two.png'],
@@ -84,14 +84,48 @@ describe('pending turn IPC handlers', () => {
       },
     });
 
-    expect(getLatestPendingTurn()).toEqual({
-      conversationRef: 'conv-1',
-      turnRef: 'turn-1',
-      userMessageId: 'user-1',
-      text: '',
-      timestamp: ' 2026-06-19T00:00:00.000Z ',
+    expect(getLatestPendingTurn()).toBeNull();
+    expect(liveTurnState.setLatestPendingTurn).not.toHaveBeenCalled();
+    expect(broadcastToRenderers).not.toHaveBeenCalled();
+  });
+
+  test('rejects padded pending-turn identity fields through the runtime', () => {
+    const { broadcastToRenderers, getLatestPendingTurn, liveTurnState, listeners } = createHarness();
+
+    listeners['windie:pending-turn']({}, {
+      type: 'pending',
+      pendingTurn: {
+        conversationRef: ' conv-1 ',
+        turnRef: 'turn-1',
+        userMessageId: 'user-1',
+        text: 'hello',
+        timestamp: '2026-06-19T00:00:00.000Z',
+      },
     });
-    expect(getLatestPendingTurn()).not.toHaveProperty('attachmentFilenames');
+    listeners['windie:pending-turn']({}, {
+      type: 'pending',
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: ' turn-1 ',
+        userMessageId: 'user-1',
+        text: 'hello',
+        timestamp: '2026-06-19T00:00:00.000Z',
+      },
+    });
+    listeners['windie:pending-turn']({}, {
+      type: 'pending',
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        userMessageId: ' user-1 ',
+        text: 'hello',
+        timestamp: '2026-06-19T00:00:00.000Z',
+      },
+    });
+
+    expect(getLatestPendingTurn()).toBeNull();
+    expect(liveTurnState.setLatestPendingTurn).not.toHaveBeenCalled();
+    expect(broadcastToRenderers).not.toHaveBeenCalled();
   });
 
   test('rejects incomplete pending-turn payloads through the runtime', () => {
@@ -172,8 +206,8 @@ describe('pending turn IPC handlers', () => {
 
     listeners['windie:pending-turn']({}, {
       type: 'clear',
-      conversationRef: ' conv-1 ',
-      turnRef: ' turn-1 ',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
     });
 
     expect(liveTurnState.setLatestPendingTurn).toHaveBeenCalledWith(null);
@@ -183,6 +217,83 @@ describe('pending turn IPC handlers', () => {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
     });
+  });
+
+  test('does not clear pending turns from padded clear filters', () => {
+    const {
+      broadcastToRenderers,
+      getLatestPendingTurn,
+      liveTurnState,
+      listeners,
+    } = createHarness();
+
+    listeners['windie:pending-turn']({}, {
+      type: 'pending',
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        userMessageId: 'user-1',
+        text: 'hello',
+        timestamp: '2026-06-19T00:00:00.000Z',
+      },
+    });
+    liveTurnState.setLatestPendingTurn.mockClear();
+    broadcastToRenderers.mockClear();
+
+    listeners['windie:pending-turn']({}, {
+      type: 'clear',
+      conversationRef: ' conv-1 ',
+      turnRef: 'turn-1',
+    });
+
+    expect(getLatestPendingTurn()).toEqual(expect.objectContaining({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+    }));
+    expect(liveTurnState.setLatestPendingTurn).not.toHaveBeenCalledWith(null);
+    expect(broadcastToRenderers).not.toHaveBeenCalled();
+  });
+
+  test('rejects clear payloads with visual pending-turn fields', () => {
+    const {
+      broadcastToRenderers,
+      getLatestPendingTurn,
+      liveTurnState,
+      listeners,
+    } = createHarness();
+
+    listeners['windie:pending-turn']({}, {
+      type: 'pending',
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        userMessageId: 'user-1',
+        text: 'hello',
+        timestamp: '2026-06-19T00:00:00.000Z',
+      },
+    });
+    liveTurnState.setLatestPendingTurn.mockClear();
+    broadcastToRenderers.mockClear();
+
+    listeners['windie:pending-turn']({}, {
+      type: 'clear',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      attachments: [{
+        id: 'attachment-1',
+        kind: 'image',
+        status: 'ready',
+      }],
+      displayAttachmentId: 'renderer-display-id',
+      previewSrc: 'data:image/png;base64,preview',
+    });
+
+    expect(getLatestPendingTurn()).toEqual(expect.objectContaining({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+    }));
+    expect(liveTurnState.setLatestPendingTurn).not.toHaveBeenCalledWith(null);
+    expect(broadcastToRenderers).not.toHaveBeenCalled();
   });
 
   test('clears matching pending-turn state and can broadcast fallback refs', () => {
@@ -333,6 +444,8 @@ describe('pending turn IPC handlers', () => {
     expect(helperSource).toContain('function createPendingTurnRuntime');
     expect(helperSource).toContain('return clearPendingTurnState({');
     expect(helperSource).toContain('matchesCurrentTurn');
+    expect(helperSource).toContain('readExactOptionalString');
+    expect(helperSource).not.toContain('normalizeOptionalString');
     expect(helperSource).not.toContain('  clearPendingTurnState,');
     expect(helperSource).not.toContain('  normalizePendingTurnPayload,');
     expect(helperSource).not.toContain('  pendingTurnMatchesCurrentTurn,');

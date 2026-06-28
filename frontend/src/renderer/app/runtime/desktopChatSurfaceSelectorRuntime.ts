@@ -16,7 +16,6 @@ type DesktopChatWorkspaceProjection = {
   sdkLiveTurn?: unknown | null;
 };
 
-const emptySurfaceMessages: ChatMessage[] = [];
 const emptyRendererAnnotations: unknown[] = [];
 let chatSurfaceStateCache: {
   conversationView: unknown | null | undefined;
@@ -43,8 +42,8 @@ function projectDesktopChatSurfaceState({
   activeWorkspace: DesktopChatWorkspaceProjection;
 }) {
   const conversationView = activeWorkspace.conversationView ?? null;
-  const messages = conversationView ? emptySurfaceMessages : activeWorkspace.messages;
-  const sdkLiveTurn = conversationView ? null : activeWorkspace.sdkLiveTurn ?? null;
+  const messages = activeWorkspace.messages;
+  const sdkLiveTurn = activeWorkspace.sdkLiveTurn ?? null;
   const pendingTurn = activeWorkspace.pendingTurn ?? null;
   if (
     chatSurfaceStateCache.state
@@ -82,9 +81,7 @@ function projectDesktopChatInterfaceState(
     : emptyRendererAnnotations;
   return {
     messages: surfaceState.messages,
-    rendererAnnotations: surfaceState.conversationView
-      ? projectedRendererAnnotations
-      : emptyRendererAnnotations,
+    rendererAnnotations: projectedRendererAnnotations,
     thinkingStatus: activeWorkspace.thinkingStatus,
     thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null,
     compactionDebugInfo: activeWorkspace.compactionDebugInfo ?? null,

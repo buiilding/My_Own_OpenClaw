@@ -125,6 +125,25 @@ describe('SDK live-turn side effects', () => {
     expect(deps.setIsSending).not.toHaveBeenCalledWith(false, 'conv-1');
   });
 
+  test('does not clear sending for padded SDK presentation errors', () => {
+    const deps = createDeps();
+
+    applySdkLiveTurnSideEffects({
+      conversationRef: 'conv-1',
+      currentTurn: projection({
+        presentation: {
+          entries: [],
+          lastError: ' padded error ',
+        },
+      }),
+      cursor: createProjectionCursor(),
+      deps,
+    });
+
+    expect(deps.setIsSending).toHaveBeenCalledWith(true, 'conv-1');
+    expect(deps.setIsSending).not.toHaveBeenCalledWith(false, 'conv-1');
+  });
+
   test('clears sending when SDK presentation contains visible entries', () => {
     const deps = createDeps();
     const awaitingCursor = applySdkLiveTurnSideEffects({
@@ -349,5 +368,85 @@ describe('SDK live-turn side effects', () => {
     });
 
     expect(deps.recordTrackingEvent).not.toHaveBeenCalled();
+  });
+
+  test('does not repair padded SDK presentation errors into tracking text', () => {
+    const deps = createDeps();
+
+    const cursor = applySdkLiveTurnSideEffects({
+      conversationRef: 'conv-1',
+      currentTurn: projection({
+        phase: 'error',
+        presentation: {
+          entries: [],
+          lastError: ' padded error ',
+        },
+      }),
+      cursor: createProjectionCursor(),
+      deps,
+    });
+
+    expect(deps.recordTrackingEvent).toHaveBeenCalledWith(
+      deps.updateStreamTracking,
+      'error',
+      'turn-1',
+      { phase: 'error', errorText: 'Unknown runtime error' },
+      'conv-1',
+    );
+    expect(cursor.lastError).toBeNull();
+  });
+
+  test('does not trim padded SDK live entry ids into dedupe keys', () => {
+    const deps = createDeps();
+    const cursor = applySdkLiveTurnSideEffects({
+      conversationRef: 'conv-1',
+      currentTurn: projection({
+        phase: 'tool_call',
+        presentation: {
+          entries: [{
+            id: ' tool-1 ',
+            type: 'tool-call',
+            text: 'Using read_file',
+            toolName: 'read_file',
+          }],
+        },
+      }),
+      cursor: createProjectionCursor(),
+      deps,
+    });
+
+    expect(deps.recordTrackingEvent).toHaveBeenCalledWith(
+      deps.updateStreamTracking,
+      'tool-call',
+      'turn-1',
+      { phase: 'tool-call', toolCall: true },
+      'conv-1',
+    );
+
+    deps.recordTrackingEvent.mockClear();
+    applySdkLiveTurnSideEffects({
+      conversationRef: 'conv-1',
+      currentTurn: projection({
+        phase: 'tool_call',
+        presentation: {
+          entries: [{
+            id: 'tool-1',
+            type: 'tool-call',
+            text: 'Using read_file',
+            toolName: 'read_file',
+          }],
+        },
+      }),
+      cursor,
+      deps,
+    });
+
+    expect(deps.recordTrackingEvent).toHaveBeenCalledWith(
+      deps.updateStreamTracking,
+      'tool-call',
+      'turn-1',
+      { phase: 'tool-call', toolCall: true },
+      'conv-1',
+    );
   });
 });

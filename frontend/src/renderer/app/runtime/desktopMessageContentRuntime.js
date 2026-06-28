@@ -8,7 +8,7 @@ const MESSAGE_CONTENT_RENDER_KIND = Object.freeze({
   TOOL_CALL: 'tool-call',
   TOOL_EXPLANATION: 'tool-explanation',
   TOOL_ACTIONS_SUMMARY: 'tool-actions-summary',
-  USER_WITH_ATTACHMENTS: 'user-with-attachments',
+  USER_MESSAGE: 'user-message',
   ASSISTANT_RESPONSE: 'assistant-response',
   MARKDOWN: 'markdown',
 });
@@ -24,17 +24,6 @@ function isAssistantLlmTextMessage(message) {
   );
 }
 
-function hasSdkDisplayAttachments(message) {
-  return message?.sender === 'user'
-    && Array.isArray(message.attachments)
-    && message.attachments.some((attachment) => (
-      attachment
-      && typeof attachment === 'object'
-      && typeof attachment.id === 'string'
-      && attachment.id.trim().length > 0
-    ));
-}
-
 function resolveMessageContentPresentation(message) {
   if (message?.type === 'error') {
     return { renderKind: MESSAGE_CONTENT_RENDER_KIND.ERROR };
@@ -48,7 +37,11 @@ function resolveMessageContentPresentation(message) {
     return { renderKind: MESSAGE_CONTENT_RENDER_KIND.TOOL_CALL };
   }
 
-  if (message?.type === 'tool-explanation' || message?.type === 'search-source') {
+  if (
+    message?.type === 'tool-explanation'
+    || message?.type === 'tool-progress'
+    || message?.type === 'search-source'
+  ) {
     return { renderKind: MESSAGE_CONTENT_RENDER_KIND.TOOL_EXPLANATION };
   }
 
@@ -56,8 +49,8 @@ function resolveMessageContentPresentation(message) {
     return { renderKind: MESSAGE_CONTENT_RENDER_KIND.TOOL_ACTIONS_SUMMARY };
   }
 
-  if (hasSdkDisplayAttachments(message)) {
-    return { renderKind: MESSAGE_CONTENT_RENDER_KIND.USER_WITH_ATTACHMENTS };
+  if (message?.sender === 'user') {
+    return { renderKind: MESSAGE_CONTENT_RENDER_KIND.USER_MESSAGE };
   }
 
   if (isAssistantLlmTextMessage(message)) {
@@ -94,8 +87,8 @@ function isToolActionsSummaryMessageContentPresentation(contentPresentation) {
   return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.TOOL_ACTIONS_SUMMARY);
 }
 
-function isUserAttachmentMessageContentPresentation(contentPresentation) {
-  return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.USER_WITH_ATTACHMENTS);
+function isUserMessageContentPresentation(contentPresentation) {
+  return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.USER_MESSAGE);
 }
 
 function isAssistantResponseMessageContentPresentation(contentPresentation) {
@@ -114,6 +107,6 @@ export const DesktopMessageContentRuntime = Object.freeze({
   isToolCallMessageContentPresentation,
   isToolExplanationMessageContentPresentation,
   isToolOutputMessageContentPresentation,
-  isUserAttachmentMessageContentPresentation,
+  isUserMessageContentPresentation,
   resolveMessageContentPresentation,
 });

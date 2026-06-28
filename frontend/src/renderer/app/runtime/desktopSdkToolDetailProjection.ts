@@ -2,26 +2,30 @@
  * Sanitizes SDK tool detail records before renderer message presentation.
  */
 
-const sdkToolDetailOwnedChannelKeys = new Set([
-  'attachments',
-  'modelFacingToolCall',
-  'modelId',
-  'modelProvider',
-  'payload',
-  'raw',
-  'screenshot',
-  'screenshotRef',
-  'screenshotUrl',
-  'screenshot_ref',
-  'screenshot_refs',
-  'screenshot_url',
-  'screenshotRefs',
-  'structuredPayload',
-]);
+const sdkToolDetailDisplayStringKeys = [
+  'bundleId',
+  'correlationId',
+  'displayCorrelationId',
+  'displaySource',
+  'requestId',
+  'sourceEventType',
+  'toolCallId',
+  'toolName',
+];
+
+const sdkToolDetailDisplayBooleanKeys = [
+  'success',
+];
 
 function recordFromUnknown(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
+    : null;
+}
+
+function exactString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
     : null;
 }
 
@@ -31,8 +35,15 @@ function sanitizeSdkToolDetailRecord(value: unknown): Record<string, unknown> | 
     return null;
   }
   const sanitized: Record<string, unknown> = {};
-  Object.entries(record).forEach(([key, entryValue]) => {
-    if (!sdkToolDetailOwnedChannelKeys.has(key)) {
+  sdkToolDetailDisplayStringKeys.forEach((key) => {
+    const entryValue = exactString(record[key]);
+    if (entryValue) {
+      sanitized[key] = entryValue;
+    }
+  });
+  sdkToolDetailDisplayBooleanKeys.forEach((key) => {
+    const entryValue = record[key];
+    if (typeof entryValue === 'boolean') {
       sanitized[key] = entryValue;
     }
   });

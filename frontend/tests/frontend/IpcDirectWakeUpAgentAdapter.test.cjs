@@ -567,7 +567,7 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       revisionId: 'rev-1',
       store: { ignored: true },
     })).resolves.toEqual({
-      turnRef: 'turn-edit',
+      turnRef: undefined,
       queryMessageId: 'msg-edit',
     });
 
@@ -579,22 +579,49 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       revisionId: 'rev-1',
       store: { ignored: true },
     })).resolves.toEqual({
-      turnRef: 'turn-retry',
+      turnRef: undefined,
       queryMessageId: 'msg-retry',
     });
 
     expect(runtime.editAndResend).toHaveBeenCalledWith({
       messageId: 'row-user',
       text: 'edited text',
-      turnRef: 'turn-edit',
-      payload: { screenshot_refs: ['artifact-one'] },
     });
     expect(runtime.retryTurn).toHaveBeenCalledWith({
       messageId: 'row-assistant',
-      turnRef: 'turn-retry',
-      payload: { screenshot_ref: 'artifact-one' },
     });
     expect(runtime.load).toHaveBeenCalledTimes(2);
+  });
+
+  test('rejects padded direct replay identities before selecting a runtime handle', async () => {
+    const runtime = createRuntime();
+    const agent = createAgent(() => runtime);
+    const adapter = createDirectWakeUpAgentAdapter({
+      agent,
+      deps: createDeps(),
+    });
+    agent.conversation.mockClear();
+    runtime.editAndResend.mockClear();
+    runtime.retryTurn.mockClear();
+
+    await expect(adapter.editAndResend({
+      conversationRef: ' conv-replay ',
+      messageId: 'row-user',
+      text: 'edited text',
+    })).rejects.toThrow('Agent SDK replay commands require exact conversation reference.');
+    await expect(adapter.editAndResend({
+      conversationRef: 'conv-replay',
+      messageId: ' row-user ',
+      text: 'edited text',
+    })).rejects.toThrow('Agent SDK replay commands require exact message id.');
+    await expect(adapter.retryTurn({
+      conversationRef: 'conv-replay',
+      messageId: '',
+    })).rejects.toThrow('Agent SDK replay commands require exact message id.');
+
+    expect(agent.conversation).not.toHaveBeenCalled();
+    expect(runtime.editAndResend).not.toHaveBeenCalled();
+    expect(runtime.retryTurn).not.toHaveBeenCalled();
   });
 
   test('forwards revision checkout and fork commands through the selected conversation handle', async () => {

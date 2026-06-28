@@ -14,24 +14,13 @@ export default function ToolOutputMessage({
   activeFindMatchIndex = null,
 }) {
   const [showDetails, setShowDetails] = useState(false);
-  const attachments = Array.isArray(message.attachments) ? message.attachments : [];
-  const modelFacingOutput = (
-    typeof message.modelFacingToolOutput === 'string'
-      ? message.modelFacingToolOutput
-      : message.text
-  );
   const detailsPayload = (
     message.toolOutputDetails
     && typeof message.toolOutputDetails === 'object'
     && !Array.isArray(message.toolOutputDetails)
   )
     ? message.toolOutputDetails
-    : {
-      tool_name: message.toolName || null,
-      execution_time: message.executionTime ?? null,
-      success: message.success ?? null,
-      metadata: message.toolMetadata || null,
-    };
+    : {};
 
   return (
     <div className="tool-output-container">
@@ -48,17 +37,18 @@ export default function ToolOutputMessage({
       <HighlightedPlainText
         as="pre"
         className="tool-output-content"
-        text={modelFacingOutput}
+        text={message.text}
         findQuery={findQuery}
         findMatchIndexes={findMatchIndexes}
         activeFindMatchIndex={activeFindMatchIndex}
       />
-      {attachments.length > 0 ? (
-        <div className="tool-screenshot-container">
-          <div className="tool-screenshot-header">📸 Screenshot After Action</div>
-          <AttachmentList attachments={attachments} surface="tool-output" />
-        </div>
-      ) : null}
+      <AttachmentList
+        attachments={message.attachments}
+        containerClassName="tool-attachment-container"
+        headerClassName="tool-attachment-header"
+        headerText="Visual Output"
+        surface="tool-output"
+      />
       {showDetails ? (
         <div className="tool-details-panel">
           <div className="tool-details-block">
@@ -80,12 +70,7 @@ ToolOutputMessage.propTypes = {
       source: PropTypes.oneOf(['user_included', 'camera_button', 'tool_result', 'replay']).isRequired,
       status: PropTypes.oneOf(['materializing', 'pending_capture', 'ready', 'failed']).isRequired,
     })),
-    modelFacingToolOutput: PropTypes.string,
     toolOutputDetails: PropTypes.object,
-    toolMetadata: PropTypes.object,
-    toolName: PropTypes.string,
-    executionTime: PropTypes.number,
-    success: PropTypes.bool,
   }).isRequired,
   findQuery: PropTypes.string,
   findMatchIndexes: PropTypes.arrayOf(PropTypes.number),

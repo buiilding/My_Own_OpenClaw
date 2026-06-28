@@ -38,6 +38,7 @@ title: "Chat Store State and New Session Rotation Reference"
 Primary `ChatWorkspaceState` fields:
 
 - `messages`
+- `rendererAnnotations`
 - `isSending`
 - `thinkingStatus`
 - `thinkingSourceEventType`
@@ -66,17 +67,69 @@ The default workspace key is private to
 initialization uses `createInitialWorkspaceRecord()` so `chatStore.ts` and
 feature callers do not import the raw sentinel string.
 
-All mutating actions accept optional `conversationRef` and write into that workspace. The workspace record is the read authority. `chatStore.ts` no longer mirrors workspace fields such as `messages`, `isSending`, `sdkLiveTurn`, `conversationView`, or `pendingTurn` onto the store root; production callers use selectors or `getWorkspaceState(...)` instead.
+All mutating actions accept optional `conversationRef` and write into that workspace. Workspace conversation refs are exact identities: padded or empty refs are missing, not repaired into workspace keys. The workspace record is the raw storage authority, but `chatStore.ts` does not expose a raw workspace getter on the Zustand state. It also no longer mirrors workspace fields such as `messages`, `isSending`, `sdkLiveTurn`, `conversationView`, or `pendingTurn` onto the store root. Production callers use selectors or the focused `chatStoreAdapters.ts` read helpers instead.
 `chatStore.ts` is the Zustand state/selector module. Workspace mutation
 adapter functions live in `chatStoreAdapters.ts`, which imports the runtime
 mutation helpers and applies their returned state updates through
-`useChatStore.setState(...)`. Hooks that need active conversation, workspace,
-projected read-model, or send read-model snapshots use named
-`chatStoreAdapters.ts` getters instead of calling `useChatStore.getState()`
-directly.
-Dashboard conversation-open reset code receives
-`getWorkspaceStateFromChatStore` from the adapter layer rather than a raw
-Zustand `getWorkspaceState` method from `DashboardShell`.
+`useChatStore.setState(...)`. Hooks that need active conversation,
+projected read-model, send read-model, or chat-provider trace snapshots use
+named `chatStoreAdapters.ts` getters instead of calling
+`useChatStore.getState()` directly. The ChatProvider trace resolver uses the
+purpose-built provider trace snapshot getter rather than importing the broad
+projected workspace read-model helper. That getter maps no-view fallback rows
+to message count, exact active turn ref, and exact last-message trace metadata;
+padded fallback sender/type/ref/source labels are reported as missing instead of
+being repaired. It maps complete SDK `ConversationView` payloads to the shared
+display trace summary and clears raw fallback message count/last-message
+metadata from the provider trace read model before calling the provider trace
+runtime; the trace runtime no longer scans raw
+workspace messages or reads `ConversationView` display rows itself. Chat stream and SDK current-turn
+projection hooks likewise use purpose-named projected workspace getters; the
+generic projected workspace read helper remains private to
+`chatStoreAdapters.ts`. Those public projected getters return
+purpose-shaped stream/current-turn read models, not the raw
+`ChatWorkspaceState`, so callers do not type against raw fallback fields as
+durable chat authority or casually reach across SDK-view boundaries. The
+provider trace snapshot also exact-gates the active conversation ref before it
+becomes trace state, so padded renderer identity cannot be repaired into a
+diagnostic conversation scope. The chat-stream read model exposes only
+pending-turn identity, stream-tracking state, a purpose-named
+`viewLiveTurnRef`, and thinking source labels; the view turn ref is read
+through the ConversationView workspace runtime's exact SDK identity gate rather
+than by publishing nested `ConversationView.liveTurn` shape. The adapter also
+exact-gates fallback pending turn refs, no-view
+`sdkLiveTurn` refs/phases, and thinking source labels before publishing
+stream/current-turn read models, so padded fallback values leave the adapter as
+missing instead of being repaired. Renderer and main pending-turn clear
+broadcasts use the same positive bridge contract as pending rows: attachment,
+screenshot, preview, and display-lifecycle fields make the clear payload
+invalid instead of silently clearing local pending state. It does not carry raw messages, renderer
+annotations, the no-view
+`sdkLiveTurn`, or the full or partial `ConversationView` payload. The
+current-turn projection read model keeps
+the SDK view envelope needed for trace summaries, pending turn identity,
+no-view live-turn identity/phase, stream tracking, and thinking status; it does
+not carry raw messages, raw-message counts, or renderer annotations into
+projection side effects. That read model is typed against the SDK
+`ConversationView` contract after the shared full-envelope gate, so projection
+stream code cannot publish or depend on a renderer-local partial view shape. The
+display projection trace helper and send-read-model user-row predicate use the
+same narrowed SDK view before reading `displayRows`; partial view-like objects
+stay on no-view fallback paths. The trace helper reads canonical SDK
+display-row fields only and does not recover legacy `sender`, `text`, or
+top-level source-event aliases from view rows. The projected workspace read model is
+assembled from an allowlist of fields and
+does not expose the raw `isSending` storage latch; visible busy/typing state is
+derived by lifecycle/surface runtimes from the pending bridge and SDK view/live
+turn state. Raw
+workspace inspection is test-only and lives in
+`tests/frontend/chatStoreTestUtils.ts`; production adapters keep raw workspace
+reads private to projected selectors and mutation helpers.
+Dashboard conversation-open reset code does not receive a raw workspace getter
+from `DashboardShell`. It calls the chat-store clear adapter with
+`preserveConversationView: true`; the clear-message app-runtime owner decides
+whether a cached complete SDK `ConversationView` should survive while stale
+no-view messages, live-turn fallback state, and pending bridges are cleared.
 Stream compaction handlers persist SDK replay replacement snapshots through
 `DesktopChatStreamCompactionRuntime`; React handlers should not call the
 conversation continuity service directly.
@@ -96,10 +149,70 @@ current-turn projection does not keep a separate attachment descriptor
 validator. Artifact image rendering also receives normalized SDK image source
 fields from `DesktopSdkDisplayAttachmentProjection.readSdkImageAttachmentSource(...)`
 instead of validating attachment lifecycle fields in the React hook.
-SDK current-turn tool detail rows sanitize attachment, model-facing, raw payload,
-and screenshot compatibility fields through
-`DesktopSdkToolDetailProjection.sanitizeSdkToolDetailRecord(...)`, keeping
-current-turn row construction on typed SDK presentation fields.
+SDK live-turn `phase` values and `ConversationView` response-overlay surface
+`mode` values are exact lifecycle labels; renderer visible-lifecycle projection
+does not trim padded labels into busy, awaiting, terminal, or response state.
+SDK presentation `lastError` text follows that exact rule before it can count as
+visible lifecycle evidence, overlay response content, side-effect cursor state,
+or a legacy no-view error row.
+SDK current-turn presentation entries provide narrow `toolCallDetails` and
+`toolOutputDetails` records instead of raw payload mirrors. Renderer current-
+turn row construction maps SDK entries directly to chat-message props with
+typed `attachments[]` instead of routing through legacy transcript message-state
+builders; `DesktopSdkToolDetailProjection.sanitizeSdkToolDetailRecord(...)`
+remains a compatibility guard only for legacy/no-presentation tool detail
+shapes. Live entry `type` dispatch is exact: padded SDK entry types are not
+trimmed into tool/thinking/progress rows by renderer presentation. Live entry
+`sourceEventType` labels use the same exact rule and fall back to generic row
+sources when SDK sends padded or empty labels. Live entry `modelId` and
+`modelProvider` props follow the same exact rule, so padded provider/model
+metadata is ignored instead of becoming renderer row metadata. Live-turn
+side-effect dedupe also keeps SDK presentation entry ids exact, so padded ids
+fall back to the local entry index/type key instead of being trimmed into SDK
+identity. Renderer presentation assigns
+`sourceChannel` from the adapter path (`sdk:current-turn` or
+`sdk:conversation-view`) instead of trusting live entry payload fields for
+visibility gating. Live row `turnRef` projection similarly uses only the
+containing SDK live turn's `turnRef` and ignores entry-level payload refs.
+No-view SDK current-turn `conversationRef` and `turnRef` values are exact;
+padded or missing refs leave the legacy no-presentation fallback inert instead
+of being exposed through fallback live row ids or row `turnRef` props.
+Legacy no-presentation assistant rows omit `thinkingText` when raw reasoning is
+absent instead of publishing `thinkingText: null`; raw reasoning remains a
+fallback-only display hint, not a durable renderer-owned field.
+`ConversationView.liveTurn.turnRef` uses the same exact gate before the
+renderer copies it into live row props, so padded view-level live-turn refs stay
+out of component identity. The live-surface adapter also requires the shared
+workspace `ConversationView` gate before reading view live-turn or
+response-overlay surface fields, leaving malformed envelopes on the no-view SDK
+current-turn path. Live tool
+identity fields such as `correlationId`, `requestId`, and `bundleId` are exact;
+padded values fall through instead of becoming renderer dedupe keys. Legacy
+no-view `toolEvents` are not projected into rendered tool rows; live tool rows
+come from SDK presentation or `ConversationView` entries. Live-entry tool names
+are also exact; padded names are ignored instead of becoming visible labels or
+fallback tool text. Tool detail metadata comes
+only from SDK-authored `toolCallDetails`/`toolOutputDetails`; renderer fallback
+text does not synthesize detail records from a bare tool name. Tool output
+components also do not rebuild missing details from legacy `toolMetadata`,
+`toolName`, `executionTime`, or `success` props. Thread dedupe and response
+overlay live/display materialization ignore legacy `toolMetadata`; tool
+identity comes from exact `correlationId`, `toolCallDetails`, or
+`toolOutputDetails` only. Thread dedupe checks live row ids and nested tool
+detail identity with the same exactness, so malformed padded
+live ids or `toolCallDetails`/`toolOutputDetails` ids cannot suppress SDK
+display rows. Thread live/display dedupe also compares materialized and live
+turn refs exactly; padded turn refs are not trimmed into same-turn duplicate
+evidence. Thread live-row conversation gating and insertion placement use exact
+conversation and turn refs too, so padded refs cannot be trimmed into visibility
+or ordering decisions. Display-row `turnRef` and
+`metadata.displayCorrelationId` are also exact-only when projected into renderer
+chat-message identity props, and display-row `metadata.toolName` is exact-only
+when projected into tool row metadata; padded values are ignored rather than
+exposed as turn, tool, or visible label identity. The renderer
+turn-to-conversation fallback map applies the same rule to both keys and
+values, so padded turn or conversation refs are ignored instead of being
+trimmed into no-view/pending routing state.
 
 `streamTracking` fields capture turn identity, phase, counters, and timestamps per workspace:
 
@@ -125,6 +238,51 @@ current-turn row construction on typed SDK presentation fields.
   `DesktopChatWorkspaceMessageRuntime.buildUpdateStreamTargetMessageStateUpdate(...)`
   so chat-stream hooks pass target intent instead of reading workspace
   `messages` to choose row ids.
+- Raw message add/update/set helpers ask
+  `DesktopConversationViewWorkspaceRuntime.hasWorkspaceConversationView(...)`
+  before mutating `messages`; when SDK `ConversationView` is present, only
+  renderer-local annotation updates such as feedback may be written beside the
+  SDK view. That predicate requires the SDK view shape (`displayRows`,
+  `liveTurn`, `surfaces`, and `actions`); display-timeline `rows` payloads or
+  other partial objects do not become chat read-model authority.
+- Active workspace read-model projection uses the same SDK view-shape predicate
+  before suppressing raw `messages`, no-view `sdkLiveTurn`, thinking status,
+  compaction debug info, token counts, stream tracking, or exposing
+  `rendererAnnotations`, and it publishes `conversationView: null` unless the
+  complete SDK envelope is present. A partial object under `conversationView`
+  remains on the no-view fallback path instead of becoming a second chat read
+  model.
+- Shared chat surface selectors consume the already-projected workspace read
+  model instead of repeating `ConversationView` shape checks or choosing between
+  raw messages and SDK view fields. The workspace read-model runtime is the only
+  renderer selector layer that suppresses raw `messages`, no-view `sdkLiveTurn`,
+  thinking status, compaction debug info, token counts, and stream tracking
+  when a valid SDK view is present. Surface selectors simply pass those
+  sanitized fields through, so partial `conversationView` objects stay on the
+  no-view path before they reach surface state.
+- ChatInterface presentation applies the same full SDK view-envelope predicate
+  before using view display rows, active revision, or view cache identity, and
+  passes `null` to the thread presenter for partial objects. Invalid
+  `conversationView` values stay on the no-view messages/`sdkLiveTurn` fallback
+  path and do not churn the view-owned presentation cache. The presentation
+  runtime builds ConversationView live rows through a separate view-owned
+  thread path, so SDK view live entries do not pass through renderer no-view
+  duplicate or latest-user fallback heuristics. It memoizes legacy
+  no-presentation current turns as opaque live-turn snapshots. Presentation
+  cache keys accept only exact SDK live-turn refs, phase labels, and
+  presentation error text, so malformed padded values do not churn presentation
+  state. Raw fallback fields such as `assistantText`, `reasoningText`,
+  `toolEvents`, and `lastError` are interpreted only by the thread presenter
+  fallback path. The
+  current-turn message runtime does not export a standalone
+  raw `reasoningText` accessor; the response-overlay runtime owns its temporary
+  no-view thinking fallback locally until that surface is fully SDK-view-owned.
+- Stop-target resolution and stopped-turn workspace cleanup also use the shared
+  SDK view-shape predicate before treating `conversationView` as stop
+  authority or suppressing no-view `sdkLiveTurn`, leaving partial objects on
+  the no-view/pending fallback path. Electron main-process global stop uses
+  the same full SDK view-envelope gate before letting `latestConversationView`
+  suppress a pending bridge stop target.
 - `setMessagesInChatStore(...)` no-ops when array reference is unchanged; when hydrating a concrete
   conversation workspace, it records message `turnRef` values through the
   app-runtime turn-routing registry so later turn-scoped stream events can
@@ -136,8 +294,17 @@ current-turn row construction on typed SDK presentation fields.
   dependency adapters.
   Once a workspace has a `ConversationView`, raw message add/set/stream-target
   writes no-op because SDK display rows are authoritative. Direct id updates
-  under a view are narrowed to renderer-local feedback, stored only so
-  `rendererAnnotations` can merge them back onto SDK rows.
+  under a view are narrowed to renderer-local assistant feedback and write the
+  explicit `rendererAnnotations` list instead of adding synthetic rows to
+  `messages`. Annotation row ids must already be exact SDK display-row ids;
+  padded or empty ids do not get trimmed into annotation records. When a
+  `ConversationView` first becomes authoritative, existing no-view assistant
+  feedback with exact row ids is migrated into `rendererAnnotations` once;
+  padded fallback message ids are ignored instead of repaired during that
+  migration. The same handoff clears the raw `messages` list after harvesting
+  annotations, so stale renderer transcript rows do not remain as hidden
+  alternate display authority. The projected read model must not recover
+  annotations from raw `messages` under a view.
 - Scalar workspace-field writes enter through the module-level
   `setIsSendingInChatStore(...)`, `setThinkingStatusInChatStore(...)`,
   `setThinkingSourceEventTypeInChatStore(...)`,
@@ -165,19 +332,45 @@ current-turn row construction on typed SDK presentation fields.
   until SDK display rows or `ConversationView` arrive. Raw
   no-view SDK live-turn storage is read, written, and reset through
   `DesktopChatWorkspaceStateRuntime` helpers; pending-turn replacement and
-  no-op guards live in `desktopCurrentTurnWorkspaceRuntime.ts`. The store
-  module delegates SDK live-turn intent plus workspace dependency adapters.
+  no-op guards live in `desktopCurrentTurnWorkspaceRuntime.ts`. Those
+  same-turn replacement checks compare SDK live-turn identity exactly; padded
+  conversation or turn refs do not clear the pending bridge by being trimmed
+  into a match. The store module delegates SDK live-turn intent plus workspace
+  dependency adapters. The workspace-state runtime does not expose an
+  active-workspace predicate; feature code should select projected read models
+  or pass explicit mutation targets instead of branching on raw workspace
+  identity.
 - SDK `ConversationView` writes enter through the module-level
   `setConversationViewInChatStore(...)` adapter instead of a Zustand action.
   The conversation-view workspace state update lives in
   `desktopConversationViewWorkspaceRuntime.ts`; the adapter module delegates
-  conversation-view intent plus workspace dependency adapters. A same-turn SDK
+  conversation-view intent plus workspace dependency adapters. The adapter
+  treats SDK view and no-view live-turn payloads as opaque envelopes; the
+  app-runtime workspace writers normalize malformed envelopes before they can
+  become stored chat authority. A same-turn SDK
   `ConversationView` clears the renderer-local pending bridge only after the
   view has a visible replacement for that pending send: a same-turn SDK user
   display row, live entries, or terminal lifecycle. Awaiting-only or busy-only
   view snapshots may drive surface state, but they do not erase the pending
   bridge because that bridge owns the only visible dashboard user row and
   typing anchor before SDK rows arrive.
+  The same view write removes stale raw workspace messages after migrating
+  exact assistant feedback into renderer annotations; `ConversationView` plus
+  annotations and the pending bridge are the normal chat read model.
+  ConversationView handoff uses the same exact identity rule for
+  `conversationRef`, `liveTurn.turnRef`, response-overlay turn refs, and SDK
+  user-row anchors; malformed padded refs keep the renderer pending bridge
+  visible instead of being repaired into lifecycle authority. ChatInterface
+  store writes also use `view.conversationRef` as the only store identity; an
+  explicit requested conversation ref must match exactly, and the active
+  conversation ref only guards the write when no explicit target was supplied.
+  Neither ref can replace, trim, or repair the SDK view identity.
+  Minimal-pill turn-id resolution and lifecycle/reset trace snapshots follow
+  that exact-only rule for refs, phases, and pill surface modes, so padded SDK
+  surface values cannot become visible pill identity or diagnostic handoff
+  state. The pill session runtime reads view and no-view live-turn inputs as
+  opaque projected envelopes after the shared workspace gate, so it does not
+  import SDK `ConversationView` or current-turn projection types.
 - `acceptPendingTurnInChatStore(...)` stores the renderer-local pending turn
   before the SDK live turn opens, so dashboard/pill surfaces can
   show awaiting state and stop can target the real outgoing `turnRef`; an
@@ -198,19 +391,29 @@ current-turn row construction on typed SDK presentation fields.
   store. Pending-turn IPC broadcasts use
   `applyPendingTurnBroadcastToChatStore(...)` instead of a Zustand action, so
   React components do not select broadcast handling from store state.
-- Replay/edit/retry commands do not use the renderer pending-turn bridge.
-  `desktopConversationReplayRuntime` passes only row ids/text, workspace path,
-  model selection, and session identity to SDK command APIs; SDK runtime owns
+- Replay/edit/retry commands do not use the renderer pending-turn bridge or
+  chat-store active conversation refs as command scope.
+  `desktopConversationReplayRuntime` passes only the UI replay action, target
+  row id, edited text when applicable, and session identity to SDK command
+  APIs; it rejects missing or padded target row ids before invoking the
+  continuity service, and the renderer continuity facade also rejects empty or
+  padded command ids before IPC without repairing them. SDK runtime owns
   target-row lookup, child display revision cuts, supersession, replacement
-  display rows, and display-row `attachments[]`. The legacy replay-pending
-  reducer and renderer superseded-turn ledger have been removed; renderer
-  pending state is now only the normal post-send bridge.
-  `useConversationReplayActions(...)` passes replay intent plus renderer config
-  into `executeReplayActionFromChatStore(...)`; the chat-store adapter supplies
-  the store bridge and the replay runtime derives the deferred SDK model
-  selection before dispatching SDK commands. Replay requires an existing
-  conversation ref from the transcript session or chat-store active workspace;
-  it must not create a fresh conversation for a row id the SDK cannot resolve.
+  display rows, edit-text normalization/validation, and display-row
+  `attachments[]`. The legacy
+  replay-pending reducer and renderer superseded-turn ledger have been removed;
+  renderer pending state is now only the normal post-send bridge.
+  `useConversationReplayActions(...)` passes replay intent to
+  `DesktopConversationReplayRuntime.executeReplayAction(...)` with no
+  chat-store adapter context. `chatStoreAdapters.ts` does not expose replay
+  wrapper commands, active-scope helpers for replay, or projected workspace rows
+  to replay. Replay trace metadata names edit/retry targets as generic SDK
+  `targetRowId` values before mapping them into the SDK command `messageId`
+  field. Replay must not call the renderer settings facade to apply the model
+  directly, derive model-selection command data, or depend on the full Zustand
+  store object. Replay requires an existing conversation ref from
+  transcript/session state; it must not create a fresh conversation or fall
+  back to chat-store active workspace for a row id the SDK cannot resolve.
 - `clearPendingTurnInChatStore(...)` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn.
   Pending-turn clear matching, broadcast action branching, and workspace
@@ -241,6 +444,15 @@ current-turn row construction on typed SDK presentation fields.
   handlers wire UI dependencies into the runtime instead of consuming
   `conversationRef`, `turnRef`, `canStop`, or `shouldClearPendingBridge` plan
   values directly.
+  Stop-target refs from SDK `ConversationView` and the pending bridge must be
+  exact non-empty strings; the runtime rejects padded stoppable refs instead of
+  trimming them into stop commands or pending-bridge cleanup.
+  When neither SDK `ConversationView` nor the pending bridge provides a
+  stoppable target, the selector publishes `stopTurnTarget: null`; active
+  conversation refs are not repaired into disabled stop-target state.
+  Stopped-turn mutation uses the same exact match for incoming targets and
+  stored no-view SDK live turns or pending bridge records, so malformed refs do
+  not get repaired into terminal workspace cleanup.
   When a workspace already has a `ConversationView`, stopped-turn mutation
   ignores the raw no-view live-turn fallback, clears it to `null`, and only
   applies renderer-local cleanup for a matching pending bridge.
@@ -271,11 +483,15 @@ current-turn row construction on typed SDK presentation fields.
   registry adapter methods or add a second Zustand-owned copy; it only injects
   registry dependencies into message mutation helpers that need to index
   hydrated message rows.
-- response-overlay dismissal state is persisted by the store, but normalized
+- response-overlay dismissal state is persisted by the store, but exact
   conversation/turn/entry dismissal-key construction plus state update/read
   helpers live in `DesktopResponseOverlayViewRuntime`; the store only binds
   those helpers to Zustand, and response-overlay view models ask the runtime
   for the dismissed response id instead of reading dismissal keys directly.
+  The runtime uses exact conversation, turn, guard, stale-guard, and
+  response-entry ids for response-overlay dismissal and native responsebox
+  window identity; padded refs are not trimmed into persisted dismissal keys,
+  guard snapshots, size values, or hide IPC values.
 
 No-op guards reduce unnecessary re-renders on high-frequency stream paths.
 
@@ -295,45 +511,85 @@ import chat feature store internals.
 
 `DesktopChatWorkspaceStateRuntime.selectActiveWorkspaceReadModelState(...)` is
 the normal read entrypoint for chat UI selectors. It always returns a cached
-selector read model rather than the raw workspace object. While no SDK
+selector read model rather than the raw workspace object, and the raw active
+workspace selector remains private to the workspace runtime. While no SDK
 `ConversationView` exists, raw stored messages remain available and the
 temporary live fallback is exposed as `sdkLiveTurn`.
 Once `ConversationView` exists, raw `messages` are replaced by the
-stable empty list and `sdkLiveTurn` is also `null`. The short `pendingTurn`
-bridge remains available, and renderer-only feedback is carried separately as
-`rendererAnnotations` for display-row annotation merge.
+stable empty list, `sdkLiveTurn` is `null`, and renderer stream tracking is
+projected as a stable idle snapshot instead of stale turn phase/counters. The
+short `pendingTurn` bridge remains available, and renderer-only assistant
+feedback is carried separately as `rendererAnnotations` for display-row
+annotation merge. Those annotation records are not a generic message overlay
+channel and must not modify SDK user rows.
+Dashboard-loaded `ConversationView` snapshots must include an exact
+`view.conversationRef` matching the requested conversation before they enter
+the chat store; the renderer library facade rejects missing, padded, or
+mismatched view identity instead of repairing it from dashboard selection state.
+Feature components call `applyConversationViewToChatStore(...)`; the
+chat-store adapter applies the same exact guard through
+`DesktopConversationViewWorkspaceRuntime.resolveConversationViewStoreRef(...)`
+before writing the accepted SDK view. Active chat session state cannot store a
+malformed or mismatched SDK view under a renderer-selected conversation ref.
+Revision fork results may target the newly forked conversation explicitly, but
+that target still has to match the returned SDK `view.conversationRef` exactly.
 
 Surface, response-overlay, interface presentation, and send-read-model selector
 adapters consume that read model as their input contract. They should not
 rederive renderer annotations from raw messages or independently choose between
 `messages`, `sdkLiveTurn`, and `ConversationView`; that choice belongs
-to the workspace read-model runtime. Selected surface state passes through the
+to the workspace read-model runtime. Chat interface selectors pass projected
+view/live-turn envelopes through as unknown inputs; presentation, Stop, and
+send-state runtimes own the SDK shape gates before reading SDK fields. Selected
+surface state passes through the
 no-view live-turn fallback as `sdkLiveTurn`, so dashboard, pill, and
 response-overlay consumers receive SDK live-turn intent without reopening raw
 current-turn storage. When `ConversationView` exists,
 `sdkLiveTurn` is `null` and raw messages have already been replaced by the
-stable empty list before those adapters run; the surface selector also enforces
-that blanking for direct app-runtime callers. The chat surface controller
-repeats the guard before visible lifecycle projection, so direct controller
+stable empty list before those adapters run. The chat surface controller
+keeps the direct-call guard before visible lifecycle projection, so controller
 calls cannot combine `ConversationView` with raw messages or the no-view
-`sdkLiveTurn` fallback. Response-overlay surface state applies the same guard
-before resolving overlay entries and dismissal targets. The view plus pending
-bridge own visible lifecycle and stop authority.
-The interface presentation adapter also blanks the no-view `sdkLiveTurn`
-fallback before invoking the thread presenter when a `ConversationView` exists,
-so stale raw current-turn rows cannot re-enter through the presentation layer.
+`sdkLiveTurn` fallback; it also delegates that decision to the shared workspace
+gate instead of keeping a local view-shape predicate. Response-overlay surface
+state applies the same guard before resolving overlay entries and dismissal
+targets. The React overlay component renders, traces, and resolves transparency
+from those selected `responseOverlayEntries`, not the broader surface `messages`
+fallback. The view plus pending bridge own visible lifecycle and stop authority.
+The response-overlay runtime keeps the shared-gated view as an opaque envelope
+and lets `DesktopConversationDisplayProjection` own SDK `ConversationView`
+typing and display-row projection.
+The interface presentation adapter also requires the complete SDK
+`ConversationView` envelope through the shared workspace gate before it blanks
+the no-view `sdkLiveTurn` fallback or passes a view to the thread presenter, so
+partial objects cannot suppress raw fallback rows and stale raw current-turn
+rows cannot re-enter through the presentation layer after a real view exists.
+No-view SDK live-turn workspace storage uses the same shared gate before it
+clears stored fallback state for a `ConversationView`; partial display-row-like
+objects remain on the no-view `sdkLiveTurn` path until the SDK emits the full
+view envelope.
 The thread presenter enforces the same read-model boundary for direct
-app-runtime callers: with `ConversationView` present, its base rows must be
-SDK display-row messages or the explicit renderer pending bridge. Untagged raw
-chat-store rows are ignored before live-row insertion and duplicate checks.
+app-runtime callers through that shared gate: with `ConversationView` present,
+its base rows must be SDK display-row messages or the explicit renderer pending
+bridge. Untagged raw chat-store rows are ignored before live-row insertion and
+duplicate checks. `ConversationView.liveTurn.entries` are SDK-authored live
+rows, so the thread presenter renders them without applying no-view
+raw-message duplicate suppression, latest-user-turn checks, or materialized
+assistant-text suppression. Those heuristics remain only for legacy
+`sdkLiveTurn` fallback projection before a complete SDK view exists.
 The conversation projection-stream hook applies the same rule when it needs
-workspace context for stale-turn checks and replay traces: it wraps raw store
+workspace context for stale-turn checks and projection diagnostics: it wraps raw store
 workspace reads with `projectWorkspaceReadModelState(...)`, so projection-stream
-diagnostics consume `sdkLiveTurn`.
-Replay action diagnostics also route workspace snapshots through that read-model
-runtime before calling `buildReplayProjectionTracePayload(...)`, so SDK replay
-commands and their traces do not restore raw message/current-turn authority when
-`ConversationView` exists.
+diagnostics consume `sdkLiveTurn` only on the no-view path. Replay projection
+traces require the complete SDK `ConversationView` envelope before consuming
+view display-row or live-turn trace state; the shared workspace gate requires an
+exact non-empty `conversationRef` plus object-shaped `liveTurn`, `surfaces`, and
+`actions`, so partial or malformed objects stay on the no-view
+raw-message/`sdkLiveTurn` diagnostic path. They accept exact pending, live, and
+stream-tracking turn refs only; padded refs are reported as missing instead of
+being trimmed into same-turn match diagnostics.
+Replay action diagnostics no longer route workspace snapshots through that
+read-model runtime; SDK replay commands log command intent/results without
+reading raw message/current-turn authority when `ConversationView` exists.
 
 When `ConversationView` exists, the shared interface projection returns the
 stable empty message list plus narrow `rendererAnnotations`; it does not pass
@@ -344,24 +600,45 @@ rendering; the pending-send bridge is carried separately as `pendingTurn`.
 First-class `ConversationView` presentation still projects the pending bridge
 while the view has not yet supplied a same-turn SDK user display row, so an
 awaiting/busy view snapshot cannot render an empty transcript between user
-send acceptance and the first display-row/live-entry projection.
-Send-read-model helpers follow the same rule: once a `ConversationView` object
-is present, first-user-message decisions read only `displayRows` and do not
-fall back to raw chat-store messages, even if a direct app-runtime caller passes
-a partial view shape.
+send acceptance and the first display-row/live-entry projection. The bridge is
+same-view only: `pendingTurn.conversationRef` must exactly match
+`ConversationView.conversationRef` before the projection can append the
+temporary user row, so cross-conversation or padded pending refs cannot enter
+the SDK-owned view read model. That same-turn SDK user row check goes through
+`DesktopConversationDisplayRowLookupRuntime.findConversationViewUserDisplayRowForTurn(...)`
+instead of inferring SDK row presence from already-projected chat messages. The
+lookup compares SDK row `turnRef` and requested pending-turn refs exactly;
+padded display-row refs do not suppress the pending bridge or enter
+turn-specific ConversationView projections by being trimmed into same-turn
+matches. The same lookup treats only canonical SDK user rows with an exact
+non-empty row id (`role: "user"` plus `type: "user_message"`) as user rows, so
+missing-id or mismatched role/type rows cannot claim pending-bridge replacement
+or first-message send-state authority.
+Send-read-model helpers follow the same rule: once the shared complete
+`ConversationView` gate accepts the SDK envelope, first-user-message decisions ask
+`DesktopConversationDisplayRowLookupRuntime` whether SDK user display rows
+exist and do not fall back to raw chat-store messages. Partial view-shaped
+objects stay on the no-view fallback path instead of becoming first-message
+authority.
 
 `selectChatInterfaceState` exposes the active workspace selector model:
 
 - `thinkingStatus`, `tokenCounts`
 - `renderedMessages` and `activeRevisionId` from
   `DesktopChatInterfacePresentationRuntime`; edit/retry availability remains
-  on each projected SDK row's `actions`
+  on each projected SDK row's `actions`. `activeRevisionId` is copied only from
+  an exact non-empty SDK `ConversationView.revisionId`; padded or malformed
+  revision identities stay out of renderer presentation state.
 - revision menu rows from `DesktopChatRevisionActionRuntime`; React receives
-  prepared checkout/fork action ids, active state, labels, and disabled state
-  instead of deriving revision action availability in the header component
+  prepared checkout/fork commands, active state, labels, and disabled state
+  instead of deriving revision action availability or extracting revision ids
+  in the header component
 - `stopTurnTarget` from `DesktopStopTurnRuntime.resolveStopTurnTarget(...)`,
   selected from SDK `ConversationView` first and the renderer pending bridge
-  second
+  second. A pending bridge can remain stoppable beside a non-stoppable
+  `ConversationView` only when its exact `conversationRef` matches the SDK view;
+  cross-conversation pending state is ignored rather than becoming stop
+  authority.
 - `chatSurfaceState`, a nested selected surface read model for
   `useChatSurfaceController(...)`; it carries `sdkLiveTurn` only for the
   no-view fallback path and never exposes raw `currentTurnProjection`
@@ -369,10 +646,10 @@ a partial view shape.
 `selectChatSendReadModel` is the send-only read model for
 `useChatMessageSender(...)`. It exposes only the resolved
 `hasPriorUserMessages` predicate. The selector computes that predicate from SDK
-`ConversationView.displayRows` when a view exists and from raw `messages` only
-for the no-view first-message fallback, without passing either row source into
-send preparation or adding those raw fields back to the React chat-interface
-selector.
+display-row lookup helpers when a view exists and from the shared
+surface-selector `messages` only for the no-view first-message fallback. Send
+preparation receives neither row source, and the raw fields are not added back
+to the React chat-interface selector.
 
 Minimal chat pill and response overlay state now route through the live-turn
 presentation/view-model helpers instead of a separate chat-box selector. The
@@ -381,7 +658,12 @@ raw workspace `isSending` stays store/diagnostic state rather than dashboard sur
 authority. Response overlay view-model tracing must not subscribe to raw
 workspace `streamTracking`; overlay diagnostics should use the selected
 `chatSurfaceState`/visible lifecycle instead of reopening store runtime state
-as a surface input.
+as a surface input. Minimal pill state traces follow the same split: raw
+surface message counts are no-view fallback diagnostics only, and a valid SDK
+`ConversationView` blanks them before trace payload construction. The pill
+runtime treats inbound `conversationView` as unknown until the shared full SDK
+view-envelope gate accepts it, then reads the SDK `ConversationView` type
+directly instead of maintaining a separate pill-local partial view shape.
 
 ## New Chat Session Lifecycle
 
@@ -404,7 +686,10 @@ browser event directly.
 `DesktopActiveChatSessionRuntime.resetActiveChatSession(...)` owns the shared
 renderer rule for clearing active transcript identity plus chat workspace
 state. Chat new-session and dashboard delete/clear paths call that app-runtime
-facade instead of keeping a chat-feature-only reset helper.
+facade instead of keeping a chat-feature-only reset helper. Reset cleanup
+targets require exact conversation refs; padded or empty renderer identity is
+treated as no scoped workspace target rather than being repaired into a chat
+store cleanup key.
 
 `desktopConversationSessionRuntime.createConversationRef()` format is deterministic prefix: `conv_${crypto.randomUUID()}`.
 
@@ -421,11 +706,22 @@ Workspace-binding invariant:
 presentation view model. It combines SDK `ConversationView`, the no-view
 current-turn bridge, stored messages, the local pending bridge, and
 SDK display-row `actions` into `renderedMessages`, edit/retry availability, and
-active revision id. When a view exists, it builds base thread messages from
+active revision id. It delegates the SDK-owned input decision to
+`DesktopConversationViewWorkspaceRuntime.hasWorkspaceConversationView(...)` so
+presentation does not duplicate `ConversationView` shape authority. When a view
+exists, it builds base thread messages from
 `ConversationView.displayRows` through
 `DesktopConversationDisplayProjection.buildConversationViewChatMessages(...)`
 and passes only renderer annotation records selected by the surface/interface
-selector boundary for feedback. The
+selector boundary for assistant feedback. The projection helper always applies
+those explicit annotation records to matching assistant SDK rows; callers do
+not select an alternate annotation-preservation mode. Display rows must carry an
+exact `conversationRef` matching the enclosing SDK `ConversationView` before the
+projection helper can turn them into chat messages or trace summary rows;
+missing, padded, or cross-conversation row refs stay inert. The same exact
+row/view conversation match applies to SDK user-row lookup for pending-bridge
+suppression, first-user-message send predicates, and visible-lifecycle
+replacement checks. The
 pending bridge is projected from `pendingTurn` through
 `DesktopConversationDisplayProjection.buildPendingBridgeChatMessages(...)` for
 the no-view path and
@@ -433,20 +729,37 @@ the no-view path and
 for the ConversationView path, so pending rendering does not write the
 renderer-composed row into raw workspace `messages`. Raw `ROWS`/display-row stream events remain Electron IPC
 compatibility plumbing only; the renderer chat projection hook does not
-subscribe to them or write those rows into `ChatWorkspaceState.messages`. The
-component consumes that view model and does not choose between raw messages,
-current-turn rows, and `ConversationView` action metadata inline.
-When checkout/fork commands return a `ConversationView`, `ChatInterface` stores
-only that SDK view for the target conversation; it does not project
-`displayRows` back into active workspace messages.
+subscribe to them or write those rows into `ChatWorkspaceState.messages`.
+`DesktopChatInterfaceSelectorRuntime` invokes the presentation runtime from
+`selectChatInterfaceState`, and the component consumes that view model without
+choosing between raw messages, current-turn rows, and `ConversationView` action
+metadata inline.
+When checkout/fork commands return a `ConversationView`, `ChatInterface` passes
+the result to `applyConversationViewToChatStore(...)`; the chat-store adapter
+uses `DesktopConversationViewWorkspaceRuntime.resolveConversationViewStoreRef`
+to choose the exact SDK view store target. The component does not project
+`displayRows` back into active workspace messages or import the presentation
+runtime to validate SDK view identity inline.
 Replay actions do not consume selector row models. The hook passes only row
-ids/text plus UI dependencies to `DesktopConversationReplayRuntime`, which
-forwards intent to SDK command APIs. SDK runtime resolves display rows and
-resources from its canonical `ConversationView`/display timeline state.
+ids/text to `DesktopConversationReplayRuntime`, which forwards intent to SDK
+command APIs and resolves replay conversation scope from transcript/session
+state, not chat-store active workspace or a caller-provided
+active-conversation override. The chat-store adapter surface does not publish
+replay actions. SDK runtime resolves display rows and resources from its
+canonical `ConversationView`/display timeline state.
+When `ConversationView` exists, `DesktopChatInterfacePresentationRuntime` also
+keeps raw workspace `messages` out of its cache identity; stale raw message
+array churn cannot invalidate or reshape the SDK-view presentation. Raw
+messages remain a no-view fallback input only. The read-model annotation
+selector reuses a stable empty annotation list unless raw rows contain
+renderer-local assistant feedback, so no-feedback raw rows are not a cache
+invalidation signal beside the SDK view.
 
 `DesktopChatRevisionActionRuntime` owns checkout/fork command input shaping for
-the revision menu: revision id normalization, action ids, default user id, and
-active row marking after checkout. `ChatInterface` calls the SDK command facade
+the revision menu: exact revision/conversation identity validation, action ids,
+default user id, and active row marking after checkout. Padded revision ids or
+conversation refs disable checkout/fork command construction instead of being
+trimmed into SDK command identity. `ChatInterface` calls the SDK command facade
 with those prepared inputs instead of constructing revision command payloads or
 comparing revision ids inline.
 

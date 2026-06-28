@@ -15,17 +15,33 @@ function conversationView({
     type: 'llm-text',
     text: 'view response',
   }],
+  displayRows = [],
+  actions = {
+    canEdit: false,
+    canRetry: false,
+    canFork: false,
+  },
 } = {}) {
   return {
     conversationRef,
+    revisionId: null,
+    displayRows,
     liveTurn: {
       turnRef,
-      phase: mode === 'awaiting' ? 'awaiting' : 'streaming',
+      phase: mode === 'hidden' ? 'idle' : mode === 'awaiting' ? 'awaiting' : 'streaming',
       isBusy: mode !== 'hidden',
       isTerminal: false,
       entries,
     },
     surfaces: {
+      dashboard: {
+        mode: 'normal',
+        visible: true,
+      },
+      pill: {
+        mode: 'normal',
+        visible: true,
+      },
       responseOverlay: {
         mode,
         visible: mode !== 'hidden',
@@ -34,6 +50,7 @@ function conversationView({
         turnRef,
       },
     },
+    actions,
   };
 }
 
@@ -78,7 +95,7 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
-  test('keeps local pending before an unrelated ConversationView live turn', () => {
+  test('ignores local pending before an unrelated ConversationView live turn', () => {
     const result = resolveLiveTurnPresentationInput({
       conversationView: conversationView({
         conversationRef: 'conv-other',
@@ -90,17 +107,46 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
         userMessageId: 'user-local',
         text: 'hello',
         timestamp: '2026-06-25T12:00:00.000Z',
-        attachmentFilenames: null,
       },
     });
 
     expect(result).toMatchObject({
-      source: 'pending-turn',
-      useLocalPendingTurn: true,
-      turnRef: 'turn-local',
-      conversationRef: 'conv-1',
+      source: 'conversation-view',
+      useLocalPendingTurn: false,
+      turnRef: 'turn-other',
+      conversationRef: 'conv-other',
       overlayIntent: expect.objectContaining({
-        mode: 'awaiting',
+        mode: 'response',
+      }),
+    });
+  });
+
+  test('does not borrow live-turn refs for a conflicting ConversationView overlay owner', () => {
+    const view = conversationView({
+      conversationRef: 'conv-view',
+      mode: 'response',
+      turnRef: 'turn-live',
+    });
+    view.surfaces.responseOverlay.ownerConversationRef = 'conv-overlay';
+    delete view.surfaces.responseOverlay.turnRef;
+    delete view.surfaces.responseOverlay.guardRef;
+
+    const result = resolveLiveTurnPresentationInput({
+      conversationView: view,
+    });
+
+    expect(result).toMatchObject({
+      source: 'conversation-view',
+      phase: 'streaming',
+      turnRef: null,
+      conversationRef: 'conv-overlay',
+      guardRef: null,
+      overlayIntent: expect.objectContaining({
+        mode: 'response',
+        visible: true,
+        turnRef: null,
+        conversationRef: 'conv-overlay',
+        staleGuardRef: null,
       }),
     });
   });
@@ -113,7 +159,6 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
         userMessageId: 'user-local',
         text: 'hello',
         timestamp: '2026-06-25T12:00:00.000Z',
-        attachmentFilenames: null,
       },
       sdkLiveTurn: {
         conversationRef: 'conv-stale',
@@ -136,16 +181,12 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
 
   test('does not fall through to raw current-turn surface state when ConversationView is idle', () => {
     const result = resolveLiveTurnPresentationInput({
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-view',
-        liveTurn: null,
-        surfaces: {
-          responseOverlay: {
-            mode: 'hidden',
-            visible: false,
-          },
-        },
-      },
+        mode: 'hidden',
+        turnRef: null,
+        entries: [],
+      }),
       sdkLiveTurn: {
         conversationRef: 'conv-stale',
         turnRef: 'turn-stale',
@@ -178,6 +219,97 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
+  test('does not repair padded SDK presentation errors into overlay response state', () => {
+    const paddedResult = resolveLiveTurnPresentationInput({
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-live',
+        phase: 'idle',
+        presentation: {
+          entries: [],
+          lastError: ' padded error ',
+        },
+      },
+    });
+
+    expect(paddedResult).toMatchObject({
+      source: 'idle',
+      phase: 'idle',
+      overlayIntent: null,
+    });
+
+    const exactResult = resolveLiveTurnPresentationInput({
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-live',
+        phase: 'idle',
+        presentation: {
+          entries: [],
+          lastError: 'exact error',
+        },
+      },
+    });
+
+    expect(exactResult).toMatchObject({
+      source: 'current-turn',
+      overlayIntent: expect.objectContaining({
+        mode: 'response',
+        visible: true,
+      }),
+    });
+  });
+
+  test('falls back to SDK current-turn presentation for malformed ConversationView envelopes', () => {
+    const result = resolveLiveTurnPresentationInput({
+      conversationView: {
+        conversationRef: ' conv-1 ',
+        revisionId: null,
+        displayRows: [],
+        liveTurn: [],
+        surfaces: {
+          responseOverlay: {
+            mode: 'response',
+            visible: true,
+            ownerConversationRef: 'conv-1',
+            turnRef: 'turn-view',
+          },
+        },
+        actions: {
+          canEdit: false,
+          canRetry: false,
+          canFork: false,
+        },
+      },
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-live',
+        phase: 'streaming',
+        presentation: {
+          entries: [{
+            id: 'entry-live',
+            type: 'llm-text',
+            text: 'current-turn response',
+          }],
+        },
+      },
+    });
+
+    expect(result).toMatchObject({
+      source: 'sdk-current-turn',
+      phase: 'streaming',
+      turnRef: 'turn-live',
+      conversationRef: 'conv-1',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: true,
+      entries: [
+        expect.objectContaining({
+          id: 'entry-live',
+          text: 'current-turn response',
+        }),
+      ],
+    });
+  });
+
   test('lets same-turn ConversationView replace local pending surface state', () => {
     const result = resolveLiveTurnPresentationInput({
       conversationView: conversationView({
@@ -190,7 +322,6 @@ describe('DesktopLiveTurnSurfaceRuntime', () => {
         userMessageId: 'user-local',
         text: 'hello',
         timestamp: '2026-06-25T12:00:00.000Z',
-        attachmentFilenames: null,
       },
     });
 

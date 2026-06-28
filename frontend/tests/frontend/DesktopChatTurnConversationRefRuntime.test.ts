@@ -23,22 +23,25 @@ describe('DesktopChatTurnConversationRefRuntime', () => {
     expect(normalizeTurnRef(undefined)).toBeNull();
     expect(normalizeTurnRef(null)).toBeNull();
     expect(normalizeTurnRef('   ')).toBeNull();
-    expect(normalizeTurnRef(' turn-1 ')).toBe('turn-1');
+    expect(normalizeTurnRef(' turn-1 ')).toBeNull();
+    expect(normalizeTurnRef('turn-1')).toBe('turn-1');
   });
 
-  test('registers normalized turn to conversation refs without rewriting identical maps', () => {
+  test('registers exact turn to conversation refs without rewriting identical maps', () => {
     const current = {};
 
     expect(registerTurnConversationRef(current, '', 'conv-a')).toBe(current);
     expect(registerTurnConversationRef(current, 'turn-1', '')).toBe(current);
+    expect(registerTurnConversationRef(current, ' turn-1 ', 'conv-a')).toBe(current);
+    expect(registerTurnConversationRef(current, 'turn-1', ' conv-a ')).toBe(current);
 
-    const next = registerTurnConversationRef(current, ' turn-1 ', ' conv-a ');
+    const next = registerTurnConversationRef(current, 'turn-1', 'conv-a');
 
     expect(next).toEqual({ 'turn-1': 'conv-a' });
     expect(registerTurnConversationRef(next, 'turn-1', 'conv-a')).toBe(next);
   });
 
-  test('merges message turn refs and resolves trimmed lookups', () => {
+  test('merges exact message turn refs and resolves exact lookups', () => {
     const current = { 'turn-existing': 'conv-old' };
     const next = mergeTurnConversationRefs(
       current,
@@ -47,7 +50,7 @@ describe('DesktopChatTurnConversationRefRuntime', () => {
           id: 'message-1',
           sender: 'assistant',
           text: 'hello',
-          turnRef: ' turn-1 ',
+          turnRef: 'turn-1',
         },
         {
           id: 'message-2',
@@ -56,14 +59,15 @@ describe('DesktopChatTurnConversationRefRuntime', () => {
           turnRef: '   ',
         },
       ],
-      ' conv-a ',
+      'conv-a',
     );
 
     expect(next).toEqual({
       'turn-existing': 'conv-old',
       'turn-1': 'conv-a',
     });
-    expect(resolveConversationRefForTurn(next, ' turn-1 ')).toBe('conv-a');
+    expect(resolveConversationRefForTurn(next, 'turn-1')).toBe('conv-a');
+    expect(resolveConversationRefForTurn(next, ' turn-1 ')).toBeNull();
     expect(resolveConversationRefForTurn(next, '')).toBeNull();
   });
 
@@ -76,7 +80,7 @@ describe('DesktopChatTurnConversationRefRuntime', () => {
           id: 'message-1',
           sender: 'assistant',
           text: 'hello',
-          turnRef: ' turn-existing ',
+          turnRef: ' turn-new ',
         },
         {
           id: 'message-2',
@@ -91,19 +95,22 @@ describe('DesktopChatTurnConversationRefRuntime', () => {
   });
 
   test('stores renderer turn routing outside chat store state', () => {
-    registerRendererTurnConversationRef(' turn-explicit ', ' conv-a ');
+    registerRendererTurnConversationRef(' turn-ignored ', 'conv-ignored');
+    registerRendererTurnConversationRef('turn-explicit', ' conv-ignored ');
+    registerRendererTurnConversationRef('turn-explicit', 'conv-a');
     recordRendererTurnConversationRefs(
       [{
         id: 'message-1',
         sender: 'assistant',
         text: 'hello',
-        turnRef: ' turn-from-message ',
+        turnRef: 'turn-from-message',
       }],
-      ' conv-b ',
+      'conv-b',
     );
 
     expect(resolveRendererConversationRefForTurn('turn-explicit')).toBe('conv-a');
     expect(resolveRendererConversationRefForTurn('turn-from-message')).toBe('conv-b');
+    expect(resolveRendererConversationRefForTurn(' turn-explicit ')).toBeNull();
     expect(getRendererTurnConversationRefsSnapshot()).toEqual({
       'turn-explicit': 'conv-a',
       'turn-from-message': 'conv-b',

@@ -18,23 +18,29 @@ import type {
 import {
   DesktopChatStreamTrackingRuntime,
 } from './desktopChatStreamTrackingRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 import type {
   ChatMessage,
   TokenCounts,
 } from './desktopChatMessageTypes';
-import {
-  DesktopConversationDisplayProjection,
-} from './desktopConversationDisplayProjection';
 
 const {
   createInitialStreamTracking,
 } = DesktopChatStreamTrackingRuntime;
 const {
-  selectRendererMessageAnnotations,
-} = DesktopConversationDisplayProjection;
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
+
+type RendererMessageAnnotation = {
+  feedback?: ChatMessage['feedback'];
+  id: string;
+};
 
 export interface ChatWorkspaceState {
   messages: ChatMessage[];
+  rendererAnnotations: RendererMessageAnnotation[];
   isSending: boolean;
   thinkingStatus: string | null;
   thinkingSourceEventType: string | null;
@@ -51,8 +57,20 @@ interface ChatWorkspaceStoreSnapshot {
   workspaces?: Record<string, ChatWorkspaceState>;
 }
 
-export type ChatWorkspaceReadModelState = ChatWorkspaceState & {
-  rendererAnnotations?: unknown[];
+export type ChatWorkspaceReadModelState = Pick<
+  ChatWorkspaceState,
+  | 'messages'
+  | 'rendererAnnotations'
+  | 'thinkingStatus'
+  | 'thinkingSourceEventType'
+  | 'compactionDebugInfo'
+  | 'tokenCounts'
+  | 'streamTracking'
+  | 'sdkLiveTurn'
+  | 'conversationView'
+  | 'pendingTurn'
+> & {
+  rendererAnnotations: RendererMessageAnnotation[];
 };
 
 export type NoViewSdkLiveTurnStorage = {
@@ -61,14 +79,15 @@ export type NoViewSdkLiveTurnStorage = {
 
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 const emptyChatMessages: ChatMessage[] = [];
+const emptyRendererAnnotations: RendererMessageAnnotation[] = [];
+const emptyStreamTracking: StreamTracking = createInitialStreamTracking();
 const workspaceReadModelCache = new WeakMap<ChatWorkspaceState, ChatWorkspaceReadModelState>();
 
 export function normalizeConversationRef(value: string | null | undefined): string | null {
   if (typeof value !== 'string') {
     return null;
   }
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
+  return value.length > 0 && value === value.trim() ? value : null;
 }
 
 export function resolveChatWorkspaceRef(conversationRef: string | null | undefined): string {
@@ -94,6 +113,7 @@ export function resolveWorkspaceKey(
 export function createInitialWorkspaceState(): ChatWorkspaceState {
   return {
     messages: [],
+    rendererAnnotations: [],
     isSending: false,
     thinkingStatus: null,
     thinkingSourceEventType: null,
@@ -104,6 +124,15 @@ export function createInitialWorkspaceState(): ChatWorkspaceState {
     conversationView: null,
     pendingTurn: null,
   };
+}
+
+function readRendererAnnotations(
+  workspace: Partial<ChatWorkspaceState>,
+): RendererMessageAnnotation[] {
+  const annotations = Array.isArray(workspace.rendererAnnotations)
+    ? workspace.rendererAnnotations
+    : [];
+  return annotations.length > 0 ? annotations : emptyRendererAnnotations;
 }
 
 export function createInitialWorkspaceRecord(): Record<string, ChatWorkspaceState> {
@@ -117,13 +146,6 @@ export function readWorkspaceState(
   workspaceRef: string,
 ): ChatWorkspaceState {
   return state.workspaces?.[workspaceRef] ?? createInitialWorkspaceState();
-}
-
-export function isActiveWorkspaceRef(
-  state: ChatWorkspaceStoreSnapshot,
-  workspaceRef: string,
-): boolean {
-  return workspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
 }
 
 export function buildWorkspaceUpdate<TState extends ChatWorkspaceStoreSnapshot>(
@@ -187,7 +209,7 @@ export function buildActiveConversationWorkspaceUpdate<TState extends ChatWorksp
   } as unknown as Partial<TState>;
 }
 
-export function selectActiveWorkspaceState(
+function selectActiveWorkspaceState(
   state: ChatWorkspaceStoreSnapshot,
 ): ChatWorkspaceState {
   const activeWorkspaceRef = resolveChatWorkspaceRef(state.activeConversationRef);
@@ -219,16 +241,23 @@ export function projectWorkspaceReadModelState(
   if (cachedReadModel) {
     return cachedReadModel;
   }
-  const hasConversationView = Boolean(workspace.conversationView);
+  const hasConversationView = hasWorkspaceConversationView(workspace as unknown);
+  const conversationView = hasConversationView ? workspace.conversationView : null;
   const readModelWorkspace = {
-    ...workspace,
-    messages: hasConversationView ? emptyChatMessages : workspace.messages,
+    messages: conversationView ? emptyChatMessages : workspace.messages,
+    thinkingStatus: conversationView ? null : workspace.thinkingStatus,
+    thinkingSourceEventType: conversationView ? null : workspace.thinkingSourceEventType,
+    compactionDebugInfo: conversationView ? null : workspace.compactionDebugInfo,
+    tokenCounts: conversationView ? null : workspace.tokenCounts,
+    streamTracking: conversationView ? emptyStreamTracking : workspace.streamTracking,
     sdkLiveTurn: hasConversationView
       ? null
       : readNoViewSdkLiveTurnStorage(workspace),
-    rendererAnnotations: hasConversationView
-      ? selectRendererMessageAnnotations(workspace.messages)
-      : [],
+    rendererAnnotations: conversationView
+      ? readRendererAnnotations(workspace)
+      : emptyRendererAnnotations,
+    conversationView,
+    pendingTurn: workspace.pendingTurn,
   };
   workspaceReadModelCache.set(workspace, readModelWorkspace);
   return readModelWorkspace;
@@ -246,7 +275,6 @@ export const DesktopChatWorkspaceStateRuntime = Object.freeze({
   buildWorkspaceUpdate,
   createInitialWorkspaceRecord,
   createInitialWorkspaceState,
-  isActiveWorkspaceRef,
   normalizeConversationRef,
   readWorkspaceState,
   resolveChatWorkspaceRef,
@@ -256,5 +284,4 @@ export const DesktopChatWorkspaceStateRuntime = Object.freeze({
   readNoViewSdkLiveTurnStorage,
   projectWorkspaceReadModelState,
   selectActiveWorkspaceReadModelState,
-  selectActiveWorkspaceState,
 });

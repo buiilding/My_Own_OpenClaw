@@ -95,6 +95,12 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
+function readExactSdkString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function normalizeEntryText(entry: SdkLiveTurnPresentationEntry): string {
   return typeof entry.text === 'string' ? entry.text : '';
 }
@@ -120,14 +126,11 @@ function resolveSdkPresentationHasVisibleContent(currentTurn: SdkLiveTurnEffects
   if (Array.isArray(presentation?.entries) && presentation.entries.length > 0) {
     return true;
   }
-  return typeof presentation?.lastError === 'string'
-    && presentation.lastError.trim().length > 0;
+  return Boolean(readExactSdkString(presentation?.lastError));
 }
 
 function resolveSdkPresentationLastError(currentTurn: SdkLiveTurnEffectsInput): string | null {
-  return typeof currentTurn.presentation?.lastError === 'string'
-    ? currentTurn.presentation.lastError
-    : null;
+  return readExactSdkString(currentTurn.presentation?.lastError);
 }
 
 function isExecutionSkippedToolEntry(entry: SdkLiveTurnPresentationEntry): boolean {
@@ -135,8 +138,8 @@ function isExecutionSkippedToolEntry(entry: SdkLiveTurnPresentationEntry): boole
 }
 
 function presentationEntryId(entry: SdkLiveTurnPresentationEntry, index: number): string {
-  return typeof entry.id === 'string' && entry.id.trim()
-    ? entry.id.trim()
+  return typeof entry.id === 'string' && entry.id.length > 0 && entry.id === entry.id.trim()
+    ? entry.id
     : `entry:${index}:${entry.type || 'unknown'}`;
 }
 
@@ -270,9 +273,7 @@ function applySdkLiveTurnSideEffects({
     }
   } else if (currentTurn.phase === 'error') {
     const currentError = resolveSdkPresentationLastError(currentTurn);
-    const errorText = typeof currentError === 'string' && currentError.trim()
-      ? currentError
-      : 'Unknown runtime error';
+    const errorText = currentError ?? 'Unknown runtime error';
     deps.setIsSending(false, conversationRef);
     deps.setThinkingStatus('', conversationRef);
     deps.setThinkingSourceEventType(null, conversationRef);

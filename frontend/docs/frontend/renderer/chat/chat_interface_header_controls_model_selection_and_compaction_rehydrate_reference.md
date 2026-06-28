@@ -75,10 +75,11 @@ or session conversation refs stay in the selector runtime so React event
 handlers do not run a second stop-target authority beside the SDK view/pending
 bridge selection.
 
-`DesktopStopTurnRuntime.buildStoppedSdkLiveTurn(...)` terminalizes
-the stopped SDK live turn without restamping SDK `typingVisible` or
-`overlayVisible`; renderer visible lifecycle owns post-stop typing and response
-visibility from terminal phase and visible entries.
+Stopped-turn acceptance terminalizes the stopped SDK live turn inside
+`DesktopStopTurnRuntime` without publishing that helper as a public runtime
+entrypoint or restamping SDK `typingVisible` / `overlayVisible`; renderer
+visible lifecycle owns post-stop typing and response visibility from terminal
+phase and visible entries.
 
 Keyboard binding:
 
@@ -179,6 +180,10 @@ Utility controls:
 
 The overlay chatbox dev compaction button uses the same helper, so dashboard and
 overlay compaction controls share the same rehydrate-before-compact behavior.
+`DesktopConversationContinuityService.compactHistory(...)` forwards only exact
+conversation refs. Explicit padded refs fail before IPC dispatch, and malformed
+active-session fallback refs leave the compact command inert instead of being
+trimmed into SDK command identity.
 
 Failure behavior:
 

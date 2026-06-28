@@ -6,6 +6,9 @@ import {
   DesktopCurrentTurnMessageRuntime,
 } from './desktopCurrentTurnMessageRuntime';
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
 const {
   buildSdkLiveTurnMessages,
@@ -14,6 +17,9 @@ const {
   isSdkDisplayRowsSourceChannel,
   isSdkLiveTurnSourceChannel,
 } = DesktopPresentationSourceChannels;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 function findLastUserIndex(messages) {
   if (!Array.isArray(messages)) {
@@ -35,12 +41,10 @@ function normalizeText(value) {
   return trimmed.length > 0 ? value : null;
 }
 
-function normalizeRef(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
-function isConversationView(value) {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+function readExactRef(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
 function isRendererPendingBridgeMessage(message) {
@@ -51,10 +55,12 @@ function isRendererPendingBridgeMessage(message) {
   );
 }
 
-function isConversationViewBaseMessage(message) {
+function isConversationViewBaseMessage(message, {
+  allowPendingBridgeMessages = false,
+} = {}) {
   return (
     isSdkDisplayRowsSourceChannel(message?.sourceChannel)
-    || isRendererPendingBridgeMessage(message)
+    || (allowPendingBridgeMessages && isRendererPendingBridgeMessage(message))
   );
 }
 
@@ -77,6 +83,7 @@ function isVisibleCurrentTurnMessage(message) {
       || normalizeText(message.thinkingText)
       || message.type === 'tool-output'
       || message.type === 'tool-call'
+      || message.type === 'tool-progress'
       || message.type === 'search-source'
       || message.type === 'tool-explanation'
       || message.type === 'error'
@@ -109,8 +116,8 @@ function belongsToLatestUserTurn(messages, message) {
 }
 
 function sameTurnRef(left, right) {
-  const leftTurnRef = normalizeRef(left);
-  const rightTurnRef = normalizeRef(right);
+  const leftTurnRef = readExactRef(left);
+  const rightTurnRef = readExactRef(right);
   return Boolean(leftTurnRef && rightTurnRef && leftTurnRef === rightTurnRef);
 }
 
@@ -118,23 +125,58 @@ function messageTypesMatch(left, right) {
   return (left || 'llm-text') === (right || 'llm-text');
 }
 
-function resolveToolName(message) {
-  const candidates = [
-    message?.toolName,
-    message?.toolCallDetails?.toolName,
-    message?.toolOutputDetails?.toolName,
-  ];
-  for (const candidate of candidates) {
-    const normalized = normalizeRef(candidate);
-    if (normalized) {
-      return normalized;
+function asRecord(value) {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value
+    : null;
+}
+
+function stringField(record, ...keys) {
+  for (const key of keys) {
+    const value = readExactRef(record?.[key]);
+    if (value) {
+      return value;
     }
   }
   return null;
 }
 
+function identityFromToolRecord(record) {
+  const metadata = asRecord(record?.metadata);
+  return stringField(
+    record,
+    'displayCorrelationId',
+    'toolCallId',
+    'tool_call_id',
+    'id',
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'correlationId',
+    'correlation_id',
+  ) ?? stringField(
+    metadata,
+    'displayCorrelationId',
+    'toolCallId',
+    'tool_call_id',
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'correlationId',
+    'correlation_id',
+  );
+}
+
+function toolMessageIdentity(message) {
+  return readExactRef(message?.correlationId)
+    || identityFromToolRecord(asRecord(message?.toolCallDetails))
+    || identityFromToolRecord(asRecord(message?.toolOutputDetails));
+}
+
 function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
-  const liveId = normalizeRef(liveMessage?.id);
+  const liveId = readExactRef(liveMessage?.id);
   const liveText = normalizeText(liveMessage?.text);
   const liveThinkingText = normalizeText(liveMessage?.thinkingText);
   return messages.some((message) => {
@@ -164,9 +206,9 @@ function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
     if (liveMessage?.correlationId && message.correlationId === liveMessage.correlationId) {
       return true;
     }
-    const liveToolName = resolveToolName(liveMessage);
-    if (liveToolName && resolveToolName(message) === liveToolName) {
-      return true;
+    const liveToolIdentity = toolMessageIdentity(liveMessage);
+    if (liveToolIdentity) {
+      return toolMessageIdentity(message) === liveToolIdentity;
     }
     const materializedText = normalizeText(message.text);
     return Boolean(liveText && materializedText && materializedText === liveText);
@@ -186,17 +228,24 @@ function resolveCurrentTurnMessages({
 function selectVisibleCurrentTurnMessages({
   messages,
   liveTurnMessages,
-  sdkLiveTurn,
-  conversationView,
+  projectionConversationRefValue,
   activeConversationRef,
 }) {
   if (!Array.isArray(liveTurnMessages) || liveTurnMessages.length === 0) {
     return [];
   }
-  const projectionConversationRef = normalizeRef(
-    conversationView?.conversationRef || sdkLiveTurn?.conversationRef,
-  );
-  const normalizedActiveConversationRef = normalizeRef(activeConversationRef);
+  const hasProjectionConversationRef = projectionConversationRefValue !== null
+    && projectionConversationRefValue !== undefined;
+  const hasActiveConversationRef = activeConversationRef !== null
+    && activeConversationRef !== undefined;
+  const projectionConversationRef = readExactRef(projectionConversationRefValue);
+  const normalizedActiveConversationRef = readExactRef(activeConversationRef);
+  if (
+    (hasProjectionConversationRef && !projectionConversationRef)
+    || (hasActiveConversationRef && !normalizedActiveConversationRef)
+  ) {
+    return [];
+  }
   if (
     projectionConversationRef
     && normalizedActiveConversationRef
@@ -215,14 +264,46 @@ function selectVisibleCurrentTurnMessages({
   ));
 }
 
+function selectVisibleConversationViewLiveMessages({
+  liveTurnMessages,
+  projectionConversationRefValue,
+  activeConversationRef,
+}) {
+  if (!Array.isArray(liveTurnMessages) || liveTurnMessages.length === 0) {
+    return [];
+  }
+  const hasProjectionConversationRef = projectionConversationRefValue !== null
+    && projectionConversationRefValue !== undefined;
+  const hasActiveConversationRef = activeConversationRef !== null
+    && activeConversationRef !== undefined;
+  const projectionConversationRef = readExactRef(projectionConversationRefValue);
+  const normalizedActiveConversationRef = readExactRef(activeConversationRef);
+  if (
+    (hasProjectionConversationRef && !projectionConversationRef)
+    || (hasActiveConversationRef && !normalizedActiveConversationRef)
+  ) {
+    return [];
+  }
+  if (
+    projectionConversationRef
+    && normalizedActiveConversationRef
+    && projectionConversationRef !== normalizedActiveConversationRef
+  ) {
+    return [];
+  }
+  return liveTurnMessages.filter((message) => (
+    isVisibleCurrentTurnMessage(message)
+  ));
+}
+
 function resolveLiveMessageInsertIndex(messages, liveMessages) {
   if (!Array.isArray(messages) || messages.length === 0) {
     return 0;
   }
-  const liveTurnRef = normalizeRef(liveMessages[0]?.turnRef);
+  const liveTurnRef = readExactRef(liveMessages[0]?.turnRef);
   if (liveTurnRef) {
     for (let index = messages.length - 1; index >= 0; index -= 1) {
-      if (normalizeRef(messages[index]?.turnRef) === liveTurnRef) {
+      if (readExactRef(messages[index]?.turnRef) === liveTurnRef) {
         return index + 1;
       }
     }
@@ -237,32 +318,44 @@ function buildThreadPresentationMessages(
     sdkLiveTurn = null,
     conversationView = null,
     activeConversationRef = null,
+    allowPendingBridgeMessages = false,
   } = {},
 ) {
-  const hasConversationView = isConversationView(conversationView);
+  const hasConversationView = hasWorkspaceConversationView({ conversationView });
+  const effectiveConversationView = hasConversationView ? conversationView : null;
   const inputMessages = Array.isArray(messages) ? messages : [];
   const baseMessages = hasConversationView
-    ? inputMessages.filter(isConversationViewBaseMessage)
+    ? inputMessages.filter((message) => isConversationViewBaseMessage(message, {
+      allowPendingBridgeMessages,
+    }))
     : inputMessages;
   const resolvedCurrentTurnMessages = resolveCurrentTurnMessages({
     sdkLiveTurn,
-    conversationView,
+    conversationView: effectiveConversationView,
   });
-  const liveMessages = selectVisibleCurrentTurnMessages({
-    messages: baseMessages,
-    liveTurnMessages: resolvedCurrentTurnMessages,
-    sdkLiveTurn,
-    conversationView,
-    activeConversationRef,
-  });
-  if (liveMessages.length === 0) {
+  const projectionConversationRefValue = hasConversationView
+    ? effectiveConversationView?.conversationRef
+    : sdkLiveTurn?.conversationRef;
+  const visibleLiveMessages = hasConversationView
+    ? selectVisibleConversationViewLiveMessages({
+      liveTurnMessages: resolvedCurrentTurnMessages,
+      projectionConversationRefValue,
+      activeConversationRef,
+    })
+    : selectVisibleCurrentTurnMessages({
+      messages: baseMessages,
+      liveTurnMessages: resolvedCurrentTurnMessages,
+      projectionConversationRefValue,
+      activeConversationRef,
+    });
+  if (visibleLiveMessages.length === 0) {
     return baseMessages;
   }
 
-  const insertIndex = resolveLiveMessageInsertIndex(baseMessages, liveMessages);
+  const insertIndex = resolveLiveMessageInsertIndex(baseMessages, visibleLiveMessages);
   return [
     ...baseMessages.slice(0, insertIndex),
-    ...liveMessages,
+    ...visibleLiveMessages,
     ...baseMessages.slice(insertIndex),
   ];
 }

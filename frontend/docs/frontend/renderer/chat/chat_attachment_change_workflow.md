@@ -19,16 +19,17 @@ The core rule is: the composer owns selection and preview; renderer send prepara
 flowchart LR
     A["MessageInput paste or file picker"] --> B["clipboardImages and readableFiles state"]
     B --> C["DesktopMessageInputRuntime.buildOutgoingMessage"]
-    C --> D["useChatMessageSender"]
-    D --> E["typed TurnInputResource handles"]
-    E --> F["DesktopLiveTurnRuntimeClient.sendQuery"]
-    F --> G["Electron query IPC preserves SDK-only resources"]
-    G --> H["SDK ConversationRuntime base user row"]
-    H --> I["SDK DefaultTurnResourceResolvers"]
-    I --> J["backend-compatible payload fields"]
-    J --> K["Backend query_execution_inputs"]
-    K --> L["model image/content context"]
-    H --> M["SDK display rows and continuity replay helpers"]
+    C --> D["DesktopChatSendPayloadRuntime.normalizeOutgoingPayload"]
+    D --> E["useChatMessageSender"]
+    E --> F["typed TurnInputResource handles"]
+    F --> G["DesktopLiveTurnRuntimeClient.sendQuery"]
+    G --> H["Electron query IPC preserves SDK-only resources"]
+    H --> I["SDK ConversationRuntime base user row"]
+    I --> J["SDK DefaultTurnResourceResolvers"]
+    J --> K["backend-compatible payload fields"]
+    K --> L["Backend query_execution_inputs"]
+    L --> M["model image/content context"]
+    I --> N["SDK display rows and continuity replay helpers"]
 ```
 
 ## Fast Owner Map
@@ -64,19 +65,63 @@ Clipboard image IPC trust boundary:
    - Selected image file: image bucket that becomes `clipboardImages[]`.
    - Selected readable file: `readableFiles[]`.
    - Query screenshot: sender-triggered screenshot capture, not a composer preview.
+   - Live tool-output image: SDK presentation or `ConversationView` live-turn
+     `attachments[]`. Legacy no-view current-turn `toolEvents` are text/status
+     fallback only and must not publish attachment descriptors.
+   - Renderer attachment adapters accept only exact SDK display attachment
+     lifecycle labels: `kind`, `source`, and `status` must be known, unpadded
+     SDK values before an attachment can render.
 
 2. Preserve composer payload shape.
    - `DesktopMessageInputRuntime.buildOutgoingMessage(...)` may return a string for text-only sends.
    - It must return an object payload when images or readable files are attached.
+   - It delegates resource-array normalization to
+     `DesktopChatSendPayloadRuntime.normalizeOutgoingPayload(...)` instead of
+     duplicating clipboard/readable-file handle rules.
+   - Renderer send payload normalization accepts only `text`,
+     `clipboardImages[]`, and `readableFiles[]`; extra fields are rejected
+     without naming removed screenshot or attachment aliases in the send
+     runtime.
+   - Pending-turn broadcasts are a separate identity/text bridge. They accept
+     only conversation ref, turn ref, pending user-row id, text, and timestamp;
+     any attachment descriptors, screenshot refs, filename aliases, or
+     lifecycle fields reject the pending-turn payload instead of being
+     stripped. Pending-turn clear broadcasts use the same positive field list
+     and reject attachment-bearing clear commands instead of treating them as
+     identity-only cleanup. Renderer-local pending user rows also omit the `attachments` prop
+     entirely; SDK display rows are the only attachment-bearing user rows.
+     Visible lifecycle, live-surface, and Stop adapters consume the same strict
+     pending bridge shape, so partial or attachment-bearing pending-like objects
+     cannot drive local typing, response overlay, or stop authority.
    - Attachment-only sends should use the existing fallback text rather than blocking submission.
    - Clear the composer draft immediately after local send acceptance so renderer
      inputs do not wait on SDK resource preparation; rejected async sends must
      restore the captured text, pasted images, and selected readable files for
      retry.
+   - The prepared renderer send handoff carries typed SDK resources and the
+     pending bridge cleanup id only; transcript session snapshots, pending-row
+     timestamps, and duplicate turn-ref fields stay out of the dispatch object.
+   - Typed resource handle strings are exact. The renderer rejects padded
+     `base64`, `filePath`, and `filename` values instead of trimming them into
+     SDK resources; malformed optional clipboard metadata is omitted so SDK
+     resource resolution can choose fallback names. Prepared resources do not
+     publish explicit `null` placeholders for missing optional clipboard
+     metadata.
+   - Workspace bindings follow the same exact rule during send preparation:
+     padded workspace paths do not enter the prepared handoff or the workspace
+     SDK resource list.
 
 3. Preserve image handles.
    - Keep `base64`, `contentType`, `filename`, and `previewUrl` through composer preview.
    - Renderer send should submit `clipboard_image` resources without uploading artifacts.
+   - Live-turn command resources must use the positive SDK resource shape only;
+     descriptors with renderer preview, display-lifecycle, screenshot-alias, or
+     attachment-summary fields reject the send before SDK command dispatch
+     rather than being stripped into a partial sendable resource list.
+   - Boundary tests must fail if send preparation or send payload normalization
+     reintroduces renderer display fields such as `previewSrc`,
+     `displayAttachmentId`, `attachments`, `displayAttachments`,
+     `screenshotRef`, `screenshotUrl`, or `attachmentFilenames`.
    - SDK resource resolvers upload images, preserve content type, and choose a deterministic filename when none is provided.
 
 4. Preserve readable-file behavior.
@@ -111,7 +156,7 @@ Clipboard image IPC trust boundary:
 | File picker image/readable bucketing | `cd frontend && npm run test -- MessageInput FileAttachmentUtils` |
 | Outgoing composer payload shape | `cd frontend && npm run test -- DesktopMessageInputRuntime MessageInput` |
 | Sender payload normalization | `cd frontend && npm run test -- DesktopChatSendPayloadRuntime DesktopChatSendStateRuntime` |
-| Sender upload/query payload path | `cd frontend && npm run test -- ChatMessageSender AgentSdkConversationRuntime RuntimeEndpointStore ArtifactImageUtils` |
+| Sender upload/query payload path | `cd frontend && npm run test -- DesktopChatSendPreparationRuntime ChatMessageSender AgentSdkConversationRuntime RuntimeEndpointStore ArtifactImageUtils` |
 | Main-process query payload normalization | `cd frontend && npm run test -- IpcQueryRuntime` |
 | Backend screenshot/query input resolution | private backend test runner |
 | Artifact route/store behavior | private backend test runner |

@@ -60,16 +60,11 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
 
   test('normalizes valid pending turns without retaining visual attachment state', () => {
     expect(normalizePendingTurn({
-      conversationRef: ' conv-1 ',
-      turnRef: ' turn-1 ',
-      userMessageId: ' user-row-1 ',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      userMessageId: 'user-row-1',
       text: '',
       timestamp: '2026-06-25T12:00:00.000Z',
-      attachments: [{
-        id: 'attachment-1',
-        kind: 'image',
-        status: 'ready',
-      }],
     })).toEqual({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
@@ -79,7 +74,34 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
     });
   });
 
-  test('rejects pending turns missing identity fields', () => {
+  test('rejects pending turns that carry visual attachment fields', () => {
+    const basePendingTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      userMessageId: 'user-row-1',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    };
+
+    expect(normalizePendingTurn({
+      ...basePendingTurn,
+      attachments: [{
+        id: 'attachment-1',
+        kind: 'image',
+        status: 'ready',
+      }],
+    })).toBeNull();
+    expect(normalizePendingTurn({
+      ...basePendingTurn,
+      attachmentFilenames: ['image.png'],
+    })).toBeNull();
+    expect(normalizePendingTurn({
+      ...basePendingTurn,
+      screenshotRef: 'artifact-1',
+    })).toBeNull();
+  });
+
+  test('rejects pending turns missing or repairing identity fields', () => {
     expect(normalizePendingTurn(null)).toBeNull();
     expect(normalizePendingTurn({
       conversationRef: 'conv-1',
@@ -94,6 +116,27 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
       userMessageId: 'row-1',
       timestamp: '2026-06-25T12:00:00.000Z',
     })).toBeNull();
+    expect(normalizePendingTurn({
+      conversationRef: ' conv-1 ',
+      turnRef: 'turn-1',
+      userMessageId: 'row-1',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    })).toBeNull();
+    expect(normalizePendingTurn({
+      conversationRef: 'conv-1',
+      turnRef: ' turn-1 ',
+      userMessageId: 'row-1',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    })).toBeNull();
+    expect(normalizePendingTurn({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      userMessageId: ' row-1 ',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    })).toBeNull();
   });
 
   test('matches pending turns by optional conversation and turn filters', () => {
@@ -106,8 +149,10 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
     });
 
     expect(doesPendingTurnMatch(pendingTurn, null)).toBe(true);
-    expect(doesPendingTurnMatch(pendingTurn, { conversationRef: ' conv-1 ' })).toBe(true);
-    expect(doesPendingTurnMatch(pendingTurn, { turnRef: ' turn-1 ' })).toBe(true);
+    expect(doesPendingTurnMatch(pendingTurn, { conversationRef: 'conv-1' })).toBe(true);
+    expect(doesPendingTurnMatch(pendingTurn, { turnRef: 'turn-1' })).toBe(true);
+    expect(doesPendingTurnMatch(pendingTurn, { conversationRef: ' conv-1 ' })).toBe(false);
+    expect(doesPendingTurnMatch(pendingTurn, { turnRef: ' turn-1 ' })).toBe(false);
     expect(doesPendingTurnMatch(pendingTurn, {
       conversationRef: 'conv-other',
       turnRef: 'turn-1',
@@ -214,11 +259,15 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
 
     expect(buildPendingTurnClearWorkspaceMutation({
       currentWorkspace,
-      input: { conversationRef: ' conv-1 ', turnRef: ' turn-1 ' },
+      input: { conversationRef: 'conv-1', turnRef: 'turn-1' },
     })).toEqual(expect.objectContaining({
       isSending: false,
       pendingTurn: null,
     }));
+    expect(buildPendingTurnClearWorkspaceMutation({
+      currentWorkspace,
+      input: { conversationRef: ' conv-1 ', turnRef: 'turn-1' },
+    })).toBeNull();
   });
 
   test('does not clear non-matching pending-turn workspace state', () => {

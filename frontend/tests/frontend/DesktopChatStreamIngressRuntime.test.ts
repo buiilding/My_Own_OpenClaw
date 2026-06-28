@@ -63,8 +63,8 @@ describe('desktopChatStreamIngressRuntime', () => {
 
     handleConversationEventIngress({
       type: 'user_message',
-      conversationRef: ' conv-next ',
-      turnRef: ' turn-1 ',
+      conversationRef: 'conv-next',
+      turnRef: 'turn-1',
       payload: { userId: ' user-1 ' },
     } as any, deps);
 
@@ -75,7 +75,7 @@ describe('desktopChatStreamIngressRuntime', () => {
       'user-1',
     );
     expect(deps.dispatchConversationEvent).toHaveBeenCalledWith(
-      expect.objectContaining({ conversationRef: ' conv-next ' }),
+      expect.objectContaining({ conversationRef: 'conv-next' }),
       'conv-next',
     );
   });

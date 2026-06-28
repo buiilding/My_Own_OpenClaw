@@ -682,7 +682,6 @@ export type TurnInputResource =
     }
   | {
       kind: 'clipboard_image';
-      displayAttachmentId?: string | null;
       base64: string;
       contentType?: string | null;
       filename?: string | null;
@@ -690,7 +689,6 @@ export type TurnInputResource =
     }
   | {
       kind: 'query_screenshot_request';
-      displayAttachmentId?: string | null;
       isFirstUserMessage?: boolean;
       reason?: string | null;
       required?: boolean;

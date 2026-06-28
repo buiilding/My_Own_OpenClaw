@@ -21,6 +21,9 @@ import { DesktopSettingsRuntimeClient } from '../../src/renderer/app/runtime/des
 import {
   DesktopChatInterfacePresentationRuntime,
 } from '../../src/renderer/app/runtime/desktopChatInterfacePresentationRuntime';
+import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+} from './chatStoreTestUtils';
 
 let mockRendererConfig: Record<string, unknown> = {
   include_query_screenshot: true,
@@ -74,7 +77,7 @@ const { buildChatInterfacePresentationState } = DesktopChatInterfacePresentation
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 
 function getActiveWorkspace() {
-  return useChatStore.getState().getWorkspaceState();
+  return getWorkspaceStateFromChatStore();
 }
 
 function createInitialStreamTracking() {
@@ -137,6 +140,7 @@ describe('useChatMessageSender', () => {
     expect(call).not.toHaveProperty('captureMeta');
     expect(call).not.toHaveProperty('attachmentContext');
     expect(call).not.toHaveProperty('metadata');
+    expect(call).not.toHaveProperty('model');
     if (expectedResources) {
       expect(call.resources).toEqual(expectedResources);
     }
@@ -169,9 +173,9 @@ describe('useChatMessageSender', () => {
         sourceEventType: 'renderer-compose',
         sourceChannel: 'renderer-local',
         isComplete: true,
-        attachments: null,
       }),
     ]);
+    expect(renderedMessages[0]).not.toHaveProperty('attachments');
     return renderedMessages[0];
   }
 
@@ -564,7 +568,7 @@ describe('useChatMessageSender', () => {
       reason: 'query_send_with_capture',
       required: false,
     }]);
-    expect(expectPendingBridgeUserMessage('hello').attachments).toBeNull();
+    expect(expectPendingBridgeUserMessage('hello')).not.toHaveProperty('attachments');
     expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
   });
@@ -580,6 +584,19 @@ describe('useChatMessageSender', () => {
       required: false,
     }]);
     expectPendingBridgeUserMessage('hello auto screenshot');
+  });
+
+  test('ignores removed renderer attachment alias payloads before accepting a pending turn', async () => {
+    const { result } = renderSender({ senderSurface: 'main-window' });
+
+    await sendPayload(result, {
+      text: 'legacy screenshot payload',
+      screenshotRef: 'artifact-legacy',
+    });
+
+    expect(mockSendQuery).not.toHaveBeenCalled();
+    expect(getActiveWorkspace().pendingTurn).toBeNull();
+    expect(getActiveWorkspace().messages).toEqual([]);
   });
 
   test('sends pasted clipboard image as a SDK resource handle', async () => {
@@ -604,6 +621,52 @@ describe('useChatMessageSender', () => {
       required: true,
     }]);
     expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('attachmentFilenames');
+    expectPendingBridgeUserMessage('Please inspect this image');
+  });
+
+  test('does not repair padded attachment resource fields before SDK send', async () => {
+    const { result } = renderSender({ senderSurface: 'main-window' });
+
+    await sendPayload(result, {
+      text: 'Please inspect this malformed image',
+      clipboardImages: [
+        {
+          base64: ' clipboard-image-base64 ',
+          contentType: 'image/png',
+          filename: 'clipboard-image.png',
+        },
+      ],
+      readableFiles: [
+        {
+          filePath: ' /tmp/notes.txt ',
+          filename: 'notes.txt',
+        },
+      ],
+    });
+
+    expectSingleSendQueryCall('Please inspect this malformed image', 'conv_msg-1', []);
+    expectPendingBridgeUserMessage('Please inspect this malformed image');
+  });
+
+  test('drops padded optional clipboard metadata before SDK send', async () => {
+    const { result } = renderSender({ senderSurface: 'main-window' });
+
+    await sendPayload(result, {
+      text: 'Please inspect this image',
+      clipboardImages: [
+        {
+          base64: 'clipboard-image-base64',
+          contentType: ' image/png ',
+          filename: ' clipboard-image.png ',
+        },
+      ],
+    });
+
+    expectSingleSendQueryCall('Please inspect this image', 'conv_msg-1', [{
+      kind: 'clipboard_image',
+      base64: 'clipboard-image-base64',
+      required: true,
+    }]);
     expectPendingBridgeUserMessage('Please inspect this image');
   });
 

@@ -30,6 +30,10 @@ describe('useChatComposerDraft', () => {
       filename: 'context.txt',
       contentType: 'text/plain',
     };
+    const sentReadableFile = {
+      filePath: '/tmp/context.txt',
+      filename: 'context.txt',
+    };
     const { result } = renderHook(() => useChatComposerDraft({ onSendMessage }));
 
     act(() => {
@@ -47,7 +51,7 @@ describe('useChatComposerDraft', () => {
     expect(onSendMessage).toHaveBeenCalledWith({
       text: 'send this now',
       clipboardImages: [clipboardImage],
-      readableFiles: [readableFile],
+      readableFiles: [sentReadableFile],
     });
     expect(result.current.inputValue).toBe('');
     expect(result.current.getInputValue()).toBe('');
@@ -80,6 +84,10 @@ describe('useChatComposerDraft', () => {
       filename: 'context.txt',
       contentType: 'text/plain',
     };
+    const sentReadableFile = {
+      filePath: '/tmp/context.txt',
+      filename: 'context.txt',
+    };
     const { result } = renderHook(() => useChatComposerDraft({
       onSendMessage,
       onBeforeSend,
@@ -106,7 +114,7 @@ describe('useChatComposerDraft', () => {
     expect(onSendMessage).toHaveBeenCalledWith({
       text: 'retry this with context',
       clipboardImages: [clipboardImage],
-      readableFiles: [readableFile],
+      readableFiles: [sentReadableFile],
     });
     expect(result.current.inputValue).toBe('retry this with context');
     expect(result.current.getInputValue()).toBe('retry this with context');
@@ -127,6 +135,10 @@ describe('useChatComposerDraft', () => {
       filename: 'context.txt',
       contentType: 'text/plain',
     };
+    const sentReadableFile = {
+      filePath: '/tmp/context.txt',
+      filename: 'context.txt',
+    };
     const { result } = renderHook(() => useChatComposerDraft({ onSendMessage }));
 
     act(() => {
@@ -143,7 +155,7 @@ describe('useChatComposerDraft', () => {
     expect(onSendMessage).toHaveBeenCalledWith({
       text: 'send this with context',
       clipboardImages: [clipboardImage],
-      readableFiles: [readableFile],
+      readableFiles: [sentReadableFile],
     });
     expect(result.current.inputValue).toBe('');
     expect(result.current.getInputValue()).toBe('');

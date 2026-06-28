@@ -8,6 +8,7 @@ const AGENT_LOOP_AUTO_SCROLL_MESSAGE_TYPES = new Set([
   'llm-text',
   'tool-call',
   'tool-output',
+  'tool-progress',
   'tool-explanation',
   'tool-actions-summary',
   'search-source',

@@ -990,7 +990,6 @@ describe('ChatBox overlay mouse ignore', () => {
       userMessageId: 'user-pending',
       text: 'pending',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     };
     syncMockWorkspace();
     render(<MinimalChatPill />);

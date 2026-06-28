@@ -3,10 +3,6 @@
  */
 
 import type {
-  ConversationView,
-  CurrentTurnProjection,
-} from '../../../app/runtime/desktopConversationRuntimeContracts';
-import type {
   ChatMessage,
   TokenCounts,
 } from '../../../app/runtime/desktopChatMessageTypes';
@@ -18,13 +14,13 @@ import {
   resolveWorkspaceMutationTarget,
   resolveWorkspaceKey,
 } from '../../../app/runtime/desktopChatWorkspaceStateRuntime';
-import type { ChatWorkspaceState } from '../../../app/runtime/desktopChatWorkspaceStateRuntime';
+import type {
+  ChatWorkspaceReadModelState,
+  ChatWorkspaceState,
+} from '../../../app/runtime/desktopChatWorkspaceStateRuntime';
 import {
   DesktopStopTurnRuntime,
 } from '../../../app/runtime/desktopStopTurnRuntime';
-import {
-  DesktopConversationReplayRuntime,
-} from '../../../app/runtime/desktopConversationReplayRuntime';
 import {
   DesktopChatPendingTurnStateRuntime,
 } from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
@@ -50,11 +46,23 @@ import {
   DesktopChatTurnConversationRefRuntime,
 } from '../../../app/runtime/desktopChatTurnConversationRefRuntime';
 import {
+  DesktopChatProviderTraceRuntime,
+} from '../../../app/runtime/desktopChatProviderTraceRuntime';
+import {
+  DesktopConversationDisplayProjection,
+} from '../../../app/runtime/desktopConversationDisplayProjection';
+import type {
+  ChatStreamWorkspaceReadModel,
+} from '../../../app/runtime/desktopChatStreamEventRuntime';
+import {
   DesktopCurrentTurnWorkspaceRuntime,
 } from '../../../app/runtime/desktopCurrentTurnWorkspaceRuntime';
 import {
   DesktopConversationViewWorkspaceRuntime,
 } from '../../../app/runtime/desktopConversationViewWorkspaceRuntime';
+import type {
+  CurrentTurnProjectionWorkspaceReadModel,
+} from '../../../app/runtime/desktopConversationProjectionStreamRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 import {
   selectChatSendReadModel,
@@ -89,13 +97,6 @@ const {
   }) => Partial<TState> | TState | null;
 };
 const {
-  executeReplayAction,
-} = DesktopConversationReplayRuntime as {
-  executeReplayAction: (input: ReplayActionFromChatStoreInput & {
-    chatStore: typeof useChatStore;
-  }) => Promise<boolean | undefined>;
-};
-const {
   buildAcceptPendingTurnStateUpdate,
   buildClearPendingTurnStateUpdate,
   buildPendingTurnBroadcastStateUpdate,
@@ -120,10 +121,19 @@ const {
   recordRendererTurnConversationRefs,
 } = DesktopChatTurnConversationRefRuntime;
 const {
+  buildChatProviderTraceWorkspaceSnapshot,
+} = DesktopChatProviderTraceRuntime;
+const {
+  buildConversationViewTraceSummary,
+} = DesktopConversationDisplayProjection;
+const {
   buildSetNoViewSdkLiveTurnStateUpdate,
 } = DesktopCurrentTurnWorkspaceRuntime;
 const {
   buildSetConversationViewStateUpdate,
+  hasWorkspaceConversationView,
+  readConversationViewLiveTurnRef,
+  resolveConversationViewStoreRef,
 } = DesktopConversationViewWorkspaceRuntime;
 
 const pendingTurnStateRuntimeDependencies = {
@@ -181,22 +191,118 @@ export function getActiveConversationRefFromChatStore(): string | null {
   return useChatStore.getState().activeConversationRef;
 }
 
-export function getWorkspaceStateFromChatStore(
+function readWorkspaceStateFromChatStore(
   conversationRef?: string | null,
 ): ChatWorkspaceState {
-  return useChatStore.getState().getWorkspaceState(conversationRef);
+  const state = useChatStore.getState();
+  const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+  return readWorkspaceState(state, workspaceRef);
 }
 
-export function getProjectedWorkspaceReadModelFromChatStore(
+function getProjectedWorkspaceReadModelFromChatStore(
   conversationRef?: string | null,
-): ChatWorkspaceState {
+): ChatWorkspaceReadModelState {
   return projectWorkspaceReadModelState(
-    getWorkspaceStateFromChatStore(conversationRef),
+    readWorkspaceStateFromChatStore(conversationRef),
+  );
+}
+
+function exactReadModelString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
+function buildChatStreamWorkspaceReadModel(
+  workspace: ChatWorkspaceReadModelState,
+): ChatStreamWorkspaceReadModel {
+  return {
+    pendingTurn: workspace.pendingTurn
+      ? {
+        turnRef: exactReadModelString(workspace.pendingTurn.turnRef),
+      }
+      : null,
+    streamTracking: workspace.streamTracking,
+    thinkingSourceEventType: exactReadModelString(workspace.thinkingSourceEventType),
+    viewLiveTurnRef: readConversationViewLiveTurnRef(workspace.conversationView),
+  };
+}
+
+function buildCurrentTurnProjectionWorkspaceReadModel(
+  workspace: ChatWorkspaceReadModelState,
+): CurrentTurnProjectionWorkspaceReadModel {
+  return {
+    conversationView: workspace.conversationView,
+    pendingTurn: workspace.pendingTurn
+      ? {
+        turnRef: exactReadModelString(workspace.pendingTurn.turnRef),
+      }
+      : null,
+    sdkLiveTurn: workspace.sdkLiveTurn
+      ? {
+        phase: exactReadModelString(workspace.sdkLiveTurn.phase),
+        turnRef: exactReadModelString(workspace.sdkLiveTurn.turnRef),
+      }
+      : null,
+    streamTracking: workspace.streamTracking,
+    thinkingStatus: workspace.thinkingStatus,
+  };
+}
+
+function buildChatProviderTraceWorkspaceReadModel(
+  workspace: ChatWorkspaceReadModelState,
+) {
+  const hasConversationView = hasWorkspaceConversationView(workspace as unknown);
+  const conversationView = hasConversationView ? workspace.conversationView : null;
+  const fallbackMessages = conversationView ? [] : workspace.messages;
+  const lastMessage = fallbackMessages[fallbackMessages.length - 1] ?? null;
+  return {
+    conversationViewTraceSummary: conversationView
+      ? buildConversationViewTraceSummary(conversationView)
+      : null,
+    messageCount: fallbackMessages.length,
+    activeTurnRef: exactReadModelString(workspace.streamTracking.activeTurnRef),
+    lastMessage: lastMessage
+      ? {
+        sender: exactReadModelString(lastMessage.sender),
+        type: exactReadModelString(lastMessage.type),
+        textLength: typeof lastMessage.text === 'string' ? lastMessage.text.length : 0,
+        turnRef: exactReadModelString(lastMessage.turnRef),
+        sourceEventType: exactReadModelString(lastMessage.sourceEventType),
+      }
+      : null,
+  };
+}
+
+export function getChatStreamWorkspaceReadModelFromChatStore(
+  conversationRef?: string | null,
+): ChatStreamWorkspaceReadModel {
+  return buildChatStreamWorkspaceReadModel(
+    getProjectedWorkspaceReadModelFromChatStore(conversationRef),
+  );
+}
+
+export function getCurrentTurnProjectionWorkspaceReadModelFromChatStore(
+  conversationRef?: string | null,
+): CurrentTurnProjectionWorkspaceReadModel {
+  return buildCurrentTurnProjectionWorkspaceReadModel(
+    getProjectedWorkspaceReadModelFromChatStore(conversationRef),
   );
 }
 
 export function getChatSendReadModelFromChatStore(): ReturnType<typeof selectChatSendReadModel> {
   return selectChatSendReadModel(useChatStore.getState());
+}
+
+export function getChatProviderTraceWorkspaceSnapshotFromChatStore(
+  conversationRef?: string | null,
+): ReturnType<typeof buildChatProviderTraceWorkspaceSnapshot> {
+  return buildChatProviderTraceWorkspaceSnapshot({
+    activeConversationRef: getActiveConversationRefFromChatStore(),
+    workspace: buildChatProviderTraceWorkspaceReadModel(
+      getProjectedWorkspaceReadModelFromChatStore(conversationRef),
+    ),
+  });
 }
 
 export function applyPendingTurnBroadcastToChatStore(
@@ -280,11 +386,13 @@ export function setMessagesInChatStore(
 
 export function clearMessagesInChatStore(
   conversationRef?: string | null,
+  options: { preserveConversationView?: boolean } = {},
 ): void {
   useChatStore.setState((state) => (
     buildClearMessagesStateUpdate<ChatState, StreamTracking, ChatWorkspaceState>({
       conversationRef,
       deps: clearMessagesStateRuntimeDependencies,
+      preserveConversationView: options.preserveConversationView === true,
       state,
     })
   ));
@@ -314,29 +422,6 @@ export function clearPendingTurnInChatStore(
   ));
 }
 
-type ReplayActionFromChatStoreInput = {
-  action?: string | null;
-  activeConversationRef?: string | null;
-  assistantMessageId?: string | null;
-  config?: Record<string, unknown> | null;
-  deferredQueryModelSelection?: unknown;
-  editedText?: string | null;
-  sessionInfo?: {
-    conversationRef?: string | null;
-    userId?: string | null;
-  } | null;
-  userMessageId?: string | null;
-};
-
-export function executeReplayActionFromChatStore(
-  input: ReplayActionFromChatStoreInput,
-): Promise<boolean | undefined> {
-  return executeReplayAction({
-    ...input,
-    chatStore: useChatStore,
-  });
-}
-
 export function acceptStoppedTurnInChatStore(
   input: {
     conversationRef?: string | null;
@@ -354,7 +439,7 @@ export function acceptStoppedTurnInChatStore(
 }
 
 export function setNoViewSdkLiveTurnInChatStore(
-  sdkLiveTurn: CurrentTurnProjection | null,
+  sdkLiveTurn: unknown | null,
   conversationRef?: string | null,
 ): void {
   useChatStore.setState((state) => (
@@ -368,7 +453,7 @@ export function setNoViewSdkLiveTurnInChatStore(
 }
 
 export function setConversationViewInChatStore(
-  conversationView: ConversationView | null,
+  conversationView: unknown | null,
   conversationRef?: string | null,
 ): void {
   useChatStore.setState((state) => (
@@ -379,6 +464,27 @@ export function setConversationViewInChatStore(
       state,
     }) ?? state
   ));
+}
+
+export function applyConversationViewToChatStore({
+  activeConversationRef = null,
+  targetConversationRef = null,
+  view = null,
+}: {
+  activeConversationRef?: string | null;
+  targetConversationRef?: string | null;
+  view?: unknown;
+}): string | null {
+  const conversationRef = resolveConversationViewStoreRef({
+    activeConversationRef,
+    targetConversationRef,
+    view,
+  });
+  if (!conversationRef) {
+    return null;
+  }
+  setConversationViewInChatStore(view, conversationRef);
+  return conversationRef;
 }
 
 export function updateStreamTrackingInChatStore(

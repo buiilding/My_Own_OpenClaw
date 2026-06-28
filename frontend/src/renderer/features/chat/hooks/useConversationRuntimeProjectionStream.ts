@@ -5,7 +5,7 @@
 import { useEffect, useRef } from 'react';
 import {
   applyPendingTurnBroadcastToChatStore,
-  getProjectedWorkspaceReadModelFromChatStore,
+  getCurrentTurnProjectionWorkspaceReadModelFromChatStore,
   setIsSendingInChatStore,
   setConversationViewInChatStore,
   setNoViewSdkLiveTurnInChatStore,
@@ -48,7 +48,7 @@ export function useConversationRuntimeProjectionStream(): void {
         currentTurn,
         projectionCursors: projectionCursorsRef.current,
         deps: {
-          getWorkspaceState: getProjectedWorkspaceReadModelFromChatStore,
+          getCurrentTurnProjectionWorkspaceReadModel: getCurrentTurnProjectionWorkspaceReadModelFromChatStore,
           setNoViewSdkLiveTurn: setNoViewSdkLiveTurnInChatStore,
           setIsSending: setIsSendingInChatStore,
           setThinkingStatus: setThinkingStatusInChatStore,

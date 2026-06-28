@@ -220,7 +220,11 @@ function screenshotResolutionFromMaterialized(
   if (!materialized) {
     return null;
   }
-  const displayAttachmentId = optionalString(resource.displayAttachmentId);
+  const displayAttachmentId = optionalString(
+    (resource as Extract<TurnInputResource, { kind: 'clipboard_image' | 'query_screenshot_request' }> & {
+      displayAttachmentId?: unknown;
+    }).displayAttachmentId,
+  );
   const screenshotRef = materialized.screenshot_ref ?? null;
   const screenshotUrl = materialized.screenshot_url ?? null;
   const filename = resource.kind === 'clipboard_image' ? optionalString(resource.filename) : null;

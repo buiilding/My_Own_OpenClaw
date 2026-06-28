@@ -16,6 +16,9 @@ import {
   acceptPendingTurnInChatStore,
 } from '../../src/renderer/features/chat/stores/chatStoreAdapters';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../src/renderer/infrastructure/ipc/channels';
+import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+} from './chatStoreTestUtils';
 
 describe('useConversationRuntimeProjectionStream display row merging', () => {
   beforeEach(() => {
@@ -104,10 +107,72 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       });
     });
 
-    const workspace = useChatStore.getState().getWorkspaceState('conv-1');
+    const workspace = getWorkspaceStateFromChatStore('conv-1');
     expect(workspace.conversationView).toBe(conversationView);
     expect(workspace.pendingTurn).toBeNull();
     expect(workspace.sdkLiveTurn).toBeNull();
+  });
+
+  test('applies view-only renderer sync without raw current-turn fallback', () => {
+    useChatStore.setState({ activeConversationRef: 'conv-1' });
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
+    const conversationView = {
+      conversationRef: 'conv-1',
+      revisionId: 'rev-loaded',
+      displayRows: [{
+        id: 'loaded-row',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-loaded',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'restored answer',
+      }],
+      liveTurn: {
+        turnRef: null,
+        phase: 'idle',
+        entries: [],
+        isBusy: false,
+        isTerminal: true,
+        canStop: false,
+        lastError: null,
+      },
+      surfaces: {
+        pill: { mode: 'idle' },
+        dashboard: { mode: 'idle' },
+        responseOverlay: {
+          mode: 'hidden',
+          visible: false,
+          guardRef: null,
+          ownerConversationRef: 'conv-1',
+          turnRef: null,
+        },
+      },
+      actions: {
+        canEdit: false,
+        canRetry: false,
+        canFork: false,
+      },
+    };
+
+    act(() => {
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-1',
+        currentTurn: null,
+        view: conversationView,
+      });
+    });
+
+    const workspace = getWorkspaceStateFromChatStore('conv-1');
+    expect(workspace.conversationView).toBe(conversationView);
+    expect(workspace.sdkLiveTurn).toBeNull();
+    expect(selectChatInterfaceState(useChatStore.getState()).renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'loaded-row',
+        sender: 'assistant',
+        text: 'restored answer',
+      }),
+    ]);
   });
 
   test('keeps pending user row visible through awaiting current-turn projection without view rows', () => {
@@ -146,7 +211,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     });
 
     const storeState = useChatStore.getState();
-    const workspace = storeState.getWorkspaceState('conv-1');
+    const workspace = getWorkspaceStateFromChatStore('conv-1');
     expect(workspace.pendingTurn).toEqual(expect.objectContaining({
       turnRef: 'turn-awaiting',
     }));
@@ -172,8 +237,8 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       workspaceTurnRef: string | null;
       pendingTurnRef: string | null;
     }> = [];
-    const unsubscribe = useChatStore.subscribe((state) => {
-      const workspace = state.getWorkspaceState('conv-1');
+    const unsubscribe = useChatStore.subscribe(() => {
+      const workspace = getWorkspaceStateFromChatStore('conv-1');
       observedSnapshots.push({
         workspaceTurnRef: workspace.sdkLiveTurn?.turnRef ?? null,
         pendingTurnRef: workspace.pendingTurn?.turnRef ?? null,
@@ -215,7 +280,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       ]),
     );
     const state = useChatStore.getState();
-    const workspace = state.getWorkspaceState('conv-1');
+    const workspace = getWorkspaceStateFromChatStore('conv-1');
     expect(state).not.toHaveProperty('latestCurrentTurnProjection');
     expect(workspace.sdkLiveTurn).toEqual(expect.objectContaining({
       turnRef: 'turn-new',

@@ -204,6 +204,9 @@ UI adapters:
   presentation fields plus phase. They must not scan raw `assistantText`,
   `reasoningText`, or `toolEvents` to decide overlay/thread visibility, side
   effects, or trace counts when a presentation object exists.
+  Renderer adapters treat `presentation.lastError` as exact SDK text; padded
+  values are ignored instead of being trimmed into visible lifecycle, overlay,
+  side-effect, or error-row authority.
 - `presentation.entries[*].sourceChannel`: SDK presentation metadata uses
   `sdk:current-turn`; host IPC channel names are adapter details and must not
   leak into reusable SDK projections
@@ -217,9 +220,24 @@ UI adapters:
   preview text from recovery previews or normalized tool identity/arguments, so
   renderer adapters should render live tool calls and tool outputs from entry
   `text` and typed display fields instead of decoding `modelFacingToolCall`,
-  `toolOutputDetails`, backend-wire event payloads, or whole-message screenshot
-  aliases. Screenshot aliases remain compatibility metadata for replay/provider
-  boundaries.
+  backend-wire event payloads, or whole-message screenshot aliases. Entry
+  `toolCallDetails` and `toolOutputDetails` are narrow display details, not raw
+  payload mirrors; renderer adapters preserve only explicit display detail
+  fields such as tool/request/correlation ids, source event type, display
+  source, and success. Attachment descriptors and screenshot refs stay on
+  `attachments[]` or compatibility fields. Renderer adapters sanitize
+  `toolMetadata` through the same display-detail allowlist before publishing
+  message props, so raw nested tool payloads and screenshot aliases cannot leak
+  through progress/output rows. Screenshot aliases remain compatibility metadata
+  for replay/provider boundaries.
+- Legacy no-view current-turn fallback rows are text/status continuity only for
+  renderer migration. Attachment display for live tool output must come from
+  SDK presentation entries or `ConversationView.liveTurn.entries`, not raw
+  `currentTurn.toolEvents`. The legacy fallback ignores raw `toolEvents`
+  entirely instead of constructing renderer-owned tool-call, tool-progress, or
+  tool-output rows. Raw `toolCallDetails`, `toolOutputDetails`, and
+  `toolMetadata` display details are owned by SDK presentation entries and
+  `ConversationView` live-turn entries.
 
 Runtime snapshots also expose `snapshot.view`, and callers may use
 `conversation.getView()` or `conversation.subscribeView(...)` for the Phase 0
@@ -229,10 +247,15 @@ capabilities into one conversation-scoped object:
 
 Display rows carry SDK-authored `metadata.toolCallDetails` and
 `metadata.toolOutputDetails` for renderer tool cards. Renderer adapters should
-pass those detail records through as component metadata and must not rebuild
-them by copying request ids, bundle ids, tool-call ids, raw payloads, structured
-payloads, attachment aliases, or provider/model fields out of generic row
-metadata.
+copy only the SDK display-detail allowlist into component metadata and must not
+rebuild details by copying request ids, bundle ids, tool-call ids, raw payloads,
+structured payloads, attachment aliases, or provider/model fields out of
+generic row metadata. Renderer display-row adapters also classify rows only
+from exact known SDK `role`/`type` pairs; padded, unknown, or mismatched labels
+remain inert instead of being repaired into user, assistant, tool-call,
+tool-output, or progress chat rows. Accepted display-row ids are threaded
+through the renderer projection builders as the chat-message identity; builders
+must not re-read raw `row.id` after the exact SDK id gate has passed.
 
 ```text
 ConversationView = displayRows + liveTurn + surfaces + actions
@@ -253,28 +276,181 @@ The response overlay is migrated first: renderer adapters render
 `snapshot.view.surfaces.responseOverlay`. Raw
 `snapshot.currentTurn.presentation.overlayIntent` remains available only as
 legacy payload/debug input and no longer controls the native responsebox when
-the main-process live surface controller applies normal UI state.
+the main-process live surface controller applies normal UI state. The
+response-overlay runtime treats gated view input as an opaque envelope and
+delegates display-row projection to the app-runtime display projection owner,
+so the overlay runtime does not import or cast SDK `ConversationView` types.
 The minimal pill and dashboard control surfaces also consume the view for the
 busy/Stop contract: `snapshot.view.surfaces.pill.mode` drives the pill loop
 lock, `snapshot.view.surfaces.dashboard.mode` drives the dashboard composer
 loop lock, and `snapshot.view.liveTurn.canStop` drives Stop availability in
-renderer and Electron-main Stop shortcut resolution.
+renderer and Electron-main Stop shortcut resolution. Renderer adapters accept
+only exact SDK loop surface modes (`idle` or `busy`) for pill/dashboard lock
+state; padded or unknown mode labels remain inert instead of being repaired into
+busy UI.
 The pill response-overlay `turnId` is also resolved inside the app runtime from
 SDK response rows, SDK overlay intent, visible lifecycle, or the pending bridge;
 React hooks pass those inputs through instead of composing renderer-owned
-turn-ref fallbacks.
+turn-ref fallbacks. The same resolver and chat-pill trace snapshots accept only
+exact conversation refs, turn refs, lifecycle phases, and pill surface modes;
+padded SDK values are ignored instead of being trimmed into pill visibility,
+trace, or reset identity. Chat-pill trace snapshots treat `conversationView` as
+view-owned input only when the complete SDK view envelope is present
+(`conversationRef`, `displayRows`, `liveTurn`, `surfaces`, and `actions`);
+partial objects stay on the no-view SDK live-turn fallback path instead of
+suppressing fallback identity. The pill session runtime reads both gated view
+and no-view live-turn inputs as opaque projected envelopes instead of importing
+SDK `ConversationView` or current-turn projection types. The shared renderer
+workspace read model also
+publishes `conversationView: null` for partial objects, so stream/current-turn
+adapters cannot see partial view data beside no-view fallback state.
+Feature-store write adapters pass SDK view/live-turn payloads as opaque
+envelopes; app-runtime workspace writers perform the envelope gates before
+those values become stored chat authority.
+ChatInterface presentation uses the same envelope before choosing SDK view
+rows, active revision, or view cache identity, and passes `null` downstream for
+partial objects so no-view messages and `sdkLiveTurn` remain the only fallback
+inputs. Thread presentation, chat-surface, live-turn surface,
+visible-lifecycle helpers, and no-view live-turn workspace storage now require
+that same complete envelope before a value can suppress raw fallback messages,
+`sdkLiveTurn`, or pending bridge state.
+ConversationView trace summaries and send-state user-row checks use that same
+shared full-envelope gate before reading `displayRows`; partial objects do not
+define a renderer-local trace or first-message read model.
+Chat interface selectors likewise keep SDK view and live-turn envelopes as
+projected inputs instead of importing or casting SDK `ConversationView` or
+current-turn types; presentation, Stop, and send-state runtimes own the gates
+before they read SDK fields.
+Desktop live-surface overlay identity accepts only exact SDK refs from
+`snapshot.view.liveTurn`, `snapshot.view.surfaces.responseOverlay`, or
+`snapshot.currentTurn.presentation.overlayIntent`; padded refs are ignored
+instead of being trimmed into response-overlay turn, conversation, or guard
+identity. After the overlay intent resolver has selected those exact refs, the
+live-surface presentation output consumes that resolved intent directly instead
+of recomposing turn, conversation, or guard fallbacks beside it. The same
+surface lifecycle rule applies to the renderer pending bridge: once a valid
+`ConversationView` exists, local pending typing/busy state can remain visible
+only for the same exact view conversation, while replacement by SDK view state
+still requires exact same-turn evidence. Pending state from another
+conversation cannot override SDK view surface modes, live-turn lifecycle, or
+Stop availability.
+The live-surface adapter treats SDK live-turn `phase` and
+response-overlay `mode` labels as exact; padded labels fall back to hidden/idle
+surface state instead of being repaired into awaiting or response overlays.
+When a `ConversationView` overlay surface names an owner conversation different
+from the view conversation, it must also provide its exact surface turn ref; the
+renderer does not pair that owner with `view.liveTurn.turnRef`.
+Renderer response-overlay dismissal keys and native responsebox window
+guard/size values apply that same exact-only rule, rejecting padded
+conversation, turn, guard, stale-guard, and response-entry refs instead of
+repairing them into persisted dismissal state or IPC payloads.
 Renderer pending-turn state remains a short pre-view bridge immediately after
 send acceptance; raw current-turn snapshots and idle conversation refs must not
 enable Stop or become the main-process stop target, even before a view arrives.
+When no stoppable view or pending bridge exists, renderer and main stop-target
+resolution returns no target instead of publishing an idle active-conversation
+identity.
 That bridge may carry turn identity, text, and timestamps, but it must not
 carry filename metadata, visual attachment lifecycle descriptors, screenshots,
 preview bytes, or ready artifact refs. SDK display rows and
 `ConversationView` own user-included image, camera screenshot, and replay
-attachment presentation. Renderer display projection may synthesize only this
-explicit `pendingTurn` bridge beside SDK display rows; it must not scan prior
-`renderer-compose` chat messages and carry them forward as visible user rows.
-Conversation-view chat projection receives renderer annotation records, not raw
-current chat messages, when copying local feedback state onto SDK rows.
+attachment presentation. Renderer display attachment adapters accept only exact
+SDK lifecycle labels (`kind`, `source`, and `status`) before projecting typed
+attachments into UI props; padded or unknown lifecycle labels stay inert instead
+of being repaired into visible attachments. Renderer visible lifecycle,
+live-surface, and Stop adapters use the same strict pending bridge validator as
+chat-store state, so
+partial or attachment-bearing pending-like objects do not become local typing,
+response overlay, or Stop authority. SDK-shaped materializing display
+attachments may carry volatile `previewSrc` only inside display-row/UI
+projection state; backend-origin
+attachment normalization strips preview/data URL fields before they become
+durable or backend-owned descriptors. Renderer display projection may synthesize
+only this explicit `pendingTurn` bridge beside SDK display rows; it must not
+scan prior `renderer-compose` chat messages and carry them forward as visible
+user rows. When `ConversationView` is present, that bridge is same-view only:
+the pending `conversationRef` must exactly match the SDK view `conversationRef`
+before projection may append the temporary user row. Cross-conversation,
+missing, or padded pending refs stay out of the authoritative view path instead
+of being repaired into visible chat state. Response-overlay reconciliation
+between `ConversationView.displayRows` and `ConversationView.liveTurn.entries`
+also treats adapted `sourceEventType` and message `type` labels as exact SDK
+output; padded labels are ignored instead of being trimmed into materialized-row
+checks. Pending-turn user rows also omit the
+`attachments` prop entirely instead of publishing a null display-attachment
+placeholder. Pending-turn clear broadcasts follow the same positive bridge
+contract: only the clear type plus exact conversation and turn refs may cross,
+so attachment or display-lifecycle fields do not clear renderer pending state.
+Pending bridge identity fields are exact non-empty values. Renderer and main
+pending-turn adapters reject padded conversation refs, turn refs, and pending
+user-row ids instead of trimming them into bridge or Stop targets. Pending-turn
+payloads are a positive contract: only conversation ref, turn ref, pending user
+row id, text, and timestamp may cross the bridge. Payloads carrying attachment
+descriptors, screenshot refs, filename aliases, or other lifecycle fields are
+rejected rather than accepted and stripped.
+The renderer turn-to-conversation fallback map uses that same exact rule for
+its turn-ref keys and conversation-ref values, ignoring padded refs instead of
+repairing them into no-view/pending routing state.
+Renderer visible-lifecycle handoff applies that same exactness rule when SDK
+live turns or `ConversationView` state replace the pending bridge; padded SDK
+conversation refs, turn refs, response-overlay refs, or awaiting-anchor row ids
+are ignored instead of being trimmed into same-turn lifecycle authority.
+The workspace `ConversationView` mutation that actually clears `pendingTurn`
+uses the same exact-only rule for pending refs, `ConversationView` refs,
+response-overlay turn refs, and terminal phase labels, so a padded SDK-like view
+may update the cached view but cannot end the local pending bridge.
+Renderer and main stop-target resolution applies the same exact identity rule
+to stoppable `ConversationView` live turns and pending bridge targets; padded
+view or pending refs resolve as non-stoppable idle state instead of being
+repaired into SDK stop commands. Renderer stopped-turn cleanup also matches
+stored no-view SDK live turns and pending bridge records with exact refs only;
+padded stored or incoming refs are ignored instead of being trimmed into
+terminal workspace mutations.
+Normal renderer send payload normalization is a positive contract: object
+payloads may contain only `text`, `clipboardImages[]`, and `readableFiles[]`.
+Any extra renderer field is rejected generically, so send prep does not carry
+removed screenshot or attachment alias vocabulary. Composer sends pass only
+typed resource handles into SDK turn preparation. Required resource strings
+such as clipboard `base64`, readable-file `filePath`, and readable-file
+`filename` must already be exact non-empty values; the renderer drops malformed
+attachment items rather than trimming them into SDK resources. Optional
+clipboard metadata such as `contentType` and `filename` is forwarded only when
+exact, leaving SDK resource resolution to choose fallback metadata when omitted.
+Workspace bindings follow the same exactness rule in send preparation: padded
+workspace paths are omitted from both the prepared handoff and workspace SDK
+resource list.
+The renderer live-turn command facade re-normalizes resource arrays before
+`conversation.send`, preserving only typed SDK resource fields and rejecting the
+send when any resource descriptor carries renderer preview/display lifecycle
+leftovers such as display ids, preview sources, screenshot aliases, or malformed
+required handles. It does not filter malformed resources into a partial send.
+Optional clipboard image metadata and query screenshot reasons are forwarded
+only when exact; padded or missing values are omitted rather than sent as
+explicit `null` resource metadata.
+The renderer desktop transport applies the same exactness rule to SDK-owned
+backend resource metadata that passes through `conversation.send`: padded
+`screenshot_ref`, `screenshot_url`, `screenshot_refs[]`, and
+`attachment_filenames[]` values are omitted instead of being repaired after SDK
+resource resolution, and malformed non-object `capture_meta` values are dropped
+instead of becoming renderer-owned attachment lifecycle blobs. SDK-generated
+`attachment_context` is hidden prompt text rather than renderer identity
+metadata, so the renderer/main command bridge preserves non-empty context
+whitespace instead of trimming file-content boundaries. Accepted
+`messageId` results returned from main also remain exact-only; padded results
+are ignored instead of being trimmed into SDK send identity. Renderer send
+transport rejects display attachment lifecycle payloads such as `attachments`,
+`display_attachments`, `displayAttachmentId`, and `previewSrc`; those fields
+belong to SDK `ConversationView`/display-row projection and cannot be sent as
+backend command input. Renderer send command error text follows the same rule:
+exact non-empty main/SDK errors may surface, while padded error strings fall
+back to the generic send failure instead of being repaired into diagnostics.
+Conversation-view chat projection receives explicit renderer annotation records,
+not raw current chat messages, when copying local assistant feedback state onto
+SDK assistant rows. The renderer stores those annotations beside the
+`ConversationView` workspace state and migrates pre-view assistant feedback into
+that list once when the SDK view becomes authoritative. The display projection
+adapter does not expose a raw-message annotation selector. Renderer annotations
+are not a generic message overlay channel.
 Raw current-turn snapshots remain live context for migrated display/surface
 handoff and diagnostics, while normal Stop authority is only the view or the
 local pending bridge. Minimal live surfaces receive a null raw current-turn
@@ -283,7 +459,13 @@ overlay do not run a separate "latest current turn wins" decision beside the
 SDK view. Dashboard chat selectors apply the same rule for the active
 conversation: once `conversationView` is present, dashboard live rows, busy/Stop
 state, and action wiring receive `currentTurnProjection: null` and use the SDK
-view as the only normal UI authority.
+view as the only normal UI authority. Idle `ConversationView` lifecycle output
+does not expose `ConversationView.liveTurn.turnRef`; live-turn identity is
+presented only for active, awaiting, or terminal view lifecycle states.
+Renderer send-state predicates also require the shared complete
+`ConversationView` envelope before treating SDK display rows as first-message
+authority; partial view-shaped objects fall back to the no-view raw-message
+predicate instead of becoming a separate send read model.
 Renderer no longer retains a global raw `latestCurrentTurnProjection` in the
 chat store or consumes it as a normal UI authority; cross-surface live state
 comes from `latestConversationView`, while per-workspace current-turn
@@ -292,11 +474,27 @@ snapshots and diagnostics.
 Electron main also hydrates newly tracked renderer windows with the cached
 `ConversationView` on the `windie:current-turn` envelope, so renderer reloads
 enter the same view-owned path as live runtime updates instead of starting from
-a raw current-turn-only sync.
+a raw current-turn-only sync. Renderer current-turn IPC normalization applies
+the same complete-view gate before accepting that envelope's `view`; partial
+view-shaped payloads remain no-view current-turn events instead of claiming SDK
+view authority. Envelope `conversationRef` values follow the same exact-identity
+rule as view and live-turn refs: padded envelope or nested current-turn refs
+are ignored instead of being trimmed into view storage or no-view projection
+scope.
 Renderer current-turn IPC adapters should treat a valid `presentation.entries`
 array as the normal current-turn shape and must not require raw `assistantText`
 or `toolEvents` when presentation exists. The raw field requirement remains
-only for legacy no-presentation snapshots.
+only for legacy no-presentation text/error snapshots; raw `toolEvents` alone
+does not make a current-turn packet valid.
+Renderer presentation caches follow the same split: presentation-backed
+snapshots are keyed by SDK presentation identity and exact live-turn refs,
+phase labels, and presentation error text; malformed padded values are not
+cache invalidation signals. Raw `assistantText`, `reasoningText`, `toolEvents`,
+and `lastError` participate only in the explicitly named legacy no-presentation
+cache path.
+The renderer does not expose a reusable raw `reasoningText` helper from its
+current-turn message adapter; the response-overlay runtime owns its local
+no-view thinking-text fallback until that surface is fully view-backed.
 For the Phase 3 transcript migration, Electron renderer projects dashboard
 messages from `snapshot.view.displayRows` when a current-turn payload includes
 the view, and dashboard busy state reads `snapshot.view.surfaces.dashboard.mode`.
@@ -307,10 +505,17 @@ materialized in `snapshot.view.displayRows`, so a tool card has one UI row
 owner. Legacy no-view tool-call rows must still preserve request identity from
 the tool event or nested payload as the renderer `correlationId`, because
 display-row reconciliation keys live/materialized tool cards by that identity
-before falling back to tool name or text. Raw
+and does not treat tool name alone as a duplicate signal; exact text remains
+only a last-resort fallback when no SDK identity is available. Raw
 `snapshot.currentTurn.presentation.entries` and phase-derived current-turn rows
 remain only as the no-view bridge and must not append visible rows beside the
 SDK view.
+Renderer visible-lifecycle projection treats SDK live-turn `phase` and
+`ConversationView` response-overlay surface `mode` as exact SDK labels; padded
+labels are ignored instead of being trimmed into busy, awaiting, terminal, or
+response state. SDK presentation `lastError` text follows the same exact rule:
+padded values do not create visible content, terminal error reasons, overlay
+responses, side-effect cursor state, or legacy no-view error rows.
 The `conversation.loadDisplay` command also carries `snapshot.view`, and
 desktop renderer display-row facades consume `snapshot.view.displayRows`
 without falling back to legacy `snapshot.displayRows`. SDK snapshots may still
@@ -323,29 +528,208 @@ dashboard chats use the same SDK view authority as active chat surfaces.
 The renderer dashboard conversation library facade exposes only
 `loadConversationView` for this path; raw display-row and legacy display-message
 load helpers remain outside normal React dashboard resume ownership.
+Loaded dashboard views must carry an exact `snapshot.view.conversationRef`
+matching the requested conversation. The renderer facade rejects missing,
+padded, or mismatched view identity instead of patching the SDK view with the
+requested conversation ref. The chat-store adapter applies the same rule before writing a
+view into the chat store: `view.conversationRef` is the store identity, an
+explicit target conversation ref must match it exactly, and the active
+conversation ref is only a fallback guard when no explicit target was supplied.
 For the Phase 4 action migration, renderer chat surfaces no longer turn
 `snapshot.view.actions.canEdit` or `snapshot.view.actions.canRetry` into a
 global message-list gate. `snapshot.view.displayRows[]` carries row `actions`
 metadata with `canEdit`/`editTargetRowId` for user rows and
 `canRetry`/`retryTargetRowId` for terminal assistant rows. The renderer projects
-those row targets into chat messages so a replacement row can remain the visible
-edit surface while replay targets the SDK-provided original row identity;
-row-level SDK action metadata gates whether the edit/resend or Try again
-controls are shown, and missing row action booleans on SDK display rows mean
-the command is unavailable rather than defaulting to a renderer heuristic.
+those row targets into chat messages and keeps renderer action props named as
+row targets so a replacement row can remain the visible edit surface while
+replay targets the SDK-provided original row identity; row-level SDK action
+metadata gates whether the edit/resend or Try again controls are shown.
+Renderer display-row adapters do not re-derive action eligibility from row
+role/type. They allowlist exact SDK `row.actions` fields
+(`canEdit`, `editTargetRowId`, `canRetry`, and `retryTargetRowId`) into
+chat-message props without using renderer row-kind checks as an action
+authority. Component surfaces still decide which controls can render for a
+message shape, but malformed or misplaced SDK actions are not repaired into a
+different target. They do not trim, repair, or reconstruct action target ids.
+Renderer action-control helpers also reject
+padded or empty target
+ids instead of normalizing them; missing or invalid row action booleans or
+target row ids on SDK display rows mean the command is unavailable rather than
+defaulting to a renderer heuristic. The low-level action buttons use the same
+shared runtime target-id reader, so direct component renders cannot show
+edit/retry controls from padded or missing SDK row targets.
+Direct Electron-main SDK revision commands follow that exactness rule for
+display timeline, checkout, replace, and fork identity fields: conversation
+refs, revision ids, fork cut-row ids, and new conversation refs must already be
+exact non-empty strings before main invokes SDK revision APIs.
 Renderer message-list controls apply the same rule for all rows: copy and
 feedback remain renderer-local affordances, but edit/resend and Try again are
-shown only when row `actions.canEdit` or `actions.canRetry` is explicitly
-`true`.
+shown only when row `actions.canEdit`/`actions.editTargetRowId` or
+`actions.canRetry`/`actions.retryTargetRowId` is explicitly present.
 Renderer display-row adapters do not JSON-stringify malformed content for row
 types whose SDK contract owns string content, such as user, assistant,
 tool-output, and progress rows. Producers must normalize those rows before they
 reach `ConversationView`; the renderer may only stringify SDK-declared
 structured tool rows such as tool calls and bundle outputs for component
-compatibility.
+compatibility. SDK display-row tool-output projection writes visible output to
+`message.text` only, and the renderer chat message contract no longer carries a
+legacy `modelFacingToolOutput` prop.
+Current-turn and `ConversationView.liveTurn.entries[]` type discriminators are
+SDK-authored exact strings; padded or empty entry `type` values fall back to
+generic assistant text rather than being trimmed into tool, thinking, progress,
+or error rows by the renderer. Live-entry `sourceEventType` values follow the
+same exactness rule; missing, padded, or empty labels are omitted instead of
+being preserved, trimmed, or replaced with renderer-authored event identity.
+Live-entry `modelId` and `modelProvider` values are also exact SDK
+metadata; missing, padded, or empty values are omitted instead of being
+preserved as renderer message props or converted into local `null` placeholders.
+Live-entry base turn refs, source-event labels, and thinking source labels
+follow the same presence-based rule outside explicit legacy no-presentation
+fallback labels; renderer live-entry projection does not synthesize
+`reasoning_delta` or `tool_output` labels when SDK presentation metadata is
+missing or malformed. Renderer live-turn side-effect dedupe also treats SDK
+presentation entry ids as exact-only. Padded entry ids fall back to the local
+entry index/type key instead of being trimmed into a key that can suppress a
+later exact SDK entry. Visible live-entry projection uses the same exact id gate:
+entries with padded, empty, or malformed `id` values are dropped before they can
+become renderer message identity.
+Renderer live-entry adapters assign their own presentation `sourceChannel`
+based on whether the input came from no-view SDK current-turn presentation or
+first-class `ConversationView.liveTurn.entries`; live entry payloads cannot
+override that channel to enter or leave the live-row visibility path.
+Projected live rows take `turnRef` only from the containing SDK live-turn
+context and ignore entry-level `turnRef` fields, so stale entry payload identity
+cannot move a current live row onto an older turn. No-view SDK current-turn
+`conversationRef` and `turnRef` values are exact in renderer fallback
+projection; missing or padded refs leave presentation-backed rows and the
+legacy no-presentation fallback inert instead of being exposed through
+generated live row ids or row `turnRef` props. The
+`ConversationView.liveTurn.turnRef` context follows the same exact rule before
+renderer adapters copy it into live row props, so padded view-level live-turn
+refs cannot become visible component identity.
+Live-entry tool-output projection writes visible output to `message.text` only;
+renderer tool-output components, thread find, and token estimates consume that
+display field rather than a legacy `modelFacingToolOutput` prop.
+Tool live-entry identity fields such as `correlationId`, `requestId`, and
+`bundleId` are exact SDK strings in renderer presentation; padded or empty
+values are ignored rather than trimmed into duplicate-detection keys. Legacy
+no-view SDK `toolEvents` use the same exact rule when projected into renderer
+correlation ids, and legacy `toolEvents` need exact non-empty `id` fields plus
+an exact known `kind` (`tool_call`, `tool_output`, or `tool_progress`) before
+they can become fallback tool rows, so fallback current-turn rows do not repair
+malformed tool identity, unknown tool kinds, or synthesize ids from event
+indexes. Live-entry and legacy no-view `toolEvents` tool names follow the same
+rule: padded names are ignored instead of being trimmed into visible tool labels
+or fallback status text. Live-entry and legacy no-view tool detail
+metadata comes only from SDK-authored `toolCallDetails`/`toolOutputDetails`;
+renderer text fallbacks may label a tool row, but they must not synthesize
+detail records from a bare tool name or publish explicit `null` detail
+placeholders. Tool output React components follow the same rule: when
+`toolOutputDetails` is absent, they show an empty details panel instead of
+rebuilding details from legacy `toolMetadata`, `toolName`, `executionTime`, or
+`success` props. Thread duplicate suppression and response overlay live/display
+materialization also ignore legacy `toolMetadata`; tool identity comes from
+exact `correlationId`, `toolCallDetails`, or `toolOutputDetails` only.
+Display-row `tool_progress` projection does not borrow
+`metadata.toolOutputDetails` as progress metadata; progress rows may pass
+SDK-authored `toolCallDetails` only, leaving output details scoped to
+tool-output rows. Renderer chat-message contracts no longer include the legacy
+`toolMetadata` prop; progress detail metadata stays on `message.toolCallDetails`
+when present.
+Thread presentation duplicate suppression also treats live row ids and tool
+detail identity fields as exact SDK identity; padded live ids or nested
+`toolCallDetails`/`toolOutputDetails` ids do not suppress materialized display
+rows by being trimmed into a match. Materialized and live turn refs use the same
+exact comparison for duplicate suppression, so padded turn refs are not repaired
+into same-turn matches that can hide SDK live rows. Thread presentation also
+uses exact conversation refs for live-row conversation gating and exact turn
+refs for live-row insertion placement; padded refs cannot be trimmed into
+visibility or ordering decisions.
+Streaming assistant display rows keep exact SDK-authored
+`metadata.sourceEventType` when present and omit source-event props when that
+metadata is missing, padded, or empty instead of deriving labels from the row
+type. Renderer completion state comes from the SDK row's `isStreaming` flag,
+not from relabeling the row as an `assistant_delta` event. Display-row
+reasoning metadata also follows the exact SDK string rule:
+`metadata.reasoningText` becomes renderer thinking text only when it is exact
+and non-empty, without synthesizing a separate `reasoning_delta` source label;
+padded values are ignored instead of being trimmed into thinking rows. SDK
+display row identity follows the same rule:
+`row.id` must be exact and non-empty before the renderer projects a chat
+message from the row. Display-row turn and tool metadata follow the same
+exactness rule: `turnRef`, `metadata.displayCorrelationId`, and
+`metadata.toolName` become renderer message identity or tool metadata only when
+they are exact non-empty SDK strings, and `metadata.timestamp` is copied to
+renderer message metadata only when it is exact and non-empty. Missing, padded,
+or empty turn refs, display correlation ids, and timestamps are omitted rather
+than converted into renderer-owned `null`, `undefined`, or empty metadata
+placeholders; padded values are ignored instead of being trimmed into
+duplicate-detection keys, visible tool labels, thinking text, row ids, or
+message timestamps. ConversationView
+display-row lookup also compares SDK row `turnRef` values exactly when filtering
+a requested turn or deciding whether a SDK user row can replace the renderer
+pending bridge; padded row refs do not suppress the pending bridge by being
+repaired into same-turn matches. A row must also have an exact non-empty
+`row.id` and the canonical SDK user display shape (`role: "user"` and
+`type: "user_message"`) before it can count as a user row for pending-bridge
+replacement or first-message send-state checks; missing-id and malformed
+role/type combinations remain inert instead of claiming SDK row authority.
+Renderer display-row projection applies that same canonical
+role/type gate to visible rows too: assistant text, tool-call/progress, and
+tool-output rows are mapped only when the SDK-authored role matches the row
+type, so the renderer does not assign sender or tool semantics from `type`
+alone.
 Renderer display-row and live-turn adapters also keep SDK attachment
-descriptors on the typed `attachments[]` prop only. Tool detail panels may
-receive display identity fields such as `toolName`, `requestId`,
+descriptors on the typed `attachments[]` prop only. Renderer attachment helpers
+may perform narrow component checks such as artifact image-source resolution,
+content-kind classification, row-class tagging, and token-cost estimation
+through the SDK attachment projection helper, but they must not expose
+aggregate lifecycle summaries that make the renderer a second attachment state
+authority. `AttachmentList` also runs the same projection helper before
+rendering, so loose component inputs cannot bypass SDK descriptor validation.
+The renderer registry beneath that list is a visual dispatcher only: it renders
+already-validated descriptors and does not duplicate preview/lifecycle checks
+or call the SDK attachment projection helper itself.
+Malformed or padded attachment descriptors are dropped before they can affect
+those presentation decisions. The renderer does not repair malformed attachment
+lifecycle records: materializing images without exact preview sources, ready
+images without exact artifact refs or URLs, and non-camera screenshot-request
+placeholders are omitted instead of being coerced into another display status.
+Artifact image-source resolution is ready-only; materializing previews render
+directly from the SDK descriptor's exact `previewSrc` and do not enter the
+artifact resolver path.
+Renderer replay/provider diagnostics that need display-row counts, latest row
+shape, or live-turn identity ask
+`DesktopConversationDisplayProjection.buildConversationViewTraceSummary(...)`
+for a trace summary instead of scanning `ConversationView.displayRows`
+directly. Provider trace snapshots call that summary only after the shared
+workspace `ConversationView` gate accepts a complete SDK view envelope; partial
+objects fall back to the no-view raw workspace trace path instead of becoming
+debug read-model authority. Once that complete view envelope exists, raw
+fallback message count and last-message metadata are cleared from the provider
+trace read model, so stale renderer rows cannot travel beside the SDK view
+summary. The summary reads canonical SDK display-row fields only (`role`,
+`content`, `metadata.sourceEventType`, `turnRef`, and `type`) and does not
+recover legacy `sender`, `text`, or top-level source-event aliases from view
+rows. Renderer display projection and trace summaries also require each SDK
+display row to carry an exact `conversationRef` matching the enclosing
+`ConversationView`; missing, padded, or cross-conversation row refs are ignored
+instead of being repaired into view-owned chat state. The same row/view
+conversation match gates SDK user-row lookup before a display row can suppress
+the renderer pending bridge, count as a prior user send, or act as visible
+same-turn replacement evidence. The chat-store provider trace adapter applies that
+same exact string rule before publishing no-view fallback active-turn and
+last-message sender/type/ref/source labels. The stream/current-turn chat-store
+adapters apply the same rule before publishing fallback pending refs, no-view
+`sdkLiveTurn` refs/phases, and thinking source labels. Replay projection traces
+apply the same exact string rule to pending, live, stream-tracking, live-turn
+phase, latest-row sender, type, and source-event inputs; padded values are
+reported as missing instead of being trimmed into same-turn diagnostic matches.
+Renderer token-usage presentation may estimate image cost from SDK
+`attachments[]`, but only by counting SDK image descriptors in
+`materializing` or `ready` states; pending screenshot requests and failed
+descriptors are display lifecycle states, not renderer-inferred model images.
+Tool detail panels may receive display identity fields such as `toolName`, `requestId`,
 `correlationId`, `bundleId`, `toolCallId`, and `success`, plus SDK-authored
 display details, but component correlation identity comes from the SDK-authored
 `displayCorrelationId` field. Renderer adapters must not recover correlation
@@ -353,29 +737,57 @@ identity by trying request, bundle, tool-call, or legacy correlation fields in
 fallback order. Tool detail panels must not receive provider-facing
 `modelFacingToolCall`, model-selection metadata, raw payloads, screenshot
 aliases, or SDK attachment lifecycle descriptors as generic detail payload.
-Copy/feedback actions remain renderer-local affordances. Renderer
-replay execution calls the SDK edit/resend and retry commands directly; when a
-`ConversationView` exists, replay target preparation derives its row model from
-`ConversationView.displayRows` instead of raw `chatStore.messages`.
-`ChatInterface` no longer passes a replay row model or fallback transcript into
-replay hooks. The renderer's temporary replay bridge retains already projected
-visible prefix rows as UI rows only; it does not filter tool pairs, reconstruct
-model context, or provide fallback rows for replay command resolution.
+Copy/feedback actions remain renderer-local affordances. Renderer replay
+execution calls the SDK edit/resend and retry commands directly, passing row
+ids, edited text, and UI adapter context as intent. Edited text is not trimmed
+or rejected as blank by the renderer before dispatch; SDK replay commands own
+that normalization and validation. `ChatInterface` no longer passes a replay
+row model or fallback transcript into replay hooks. The
+renderer's temporary replay bridge retains already projected visible prefix rows
+as UI rows only; it does not inspect `ConversationView.displayRows`, filter tool
+pairs, reconstruct model context, or provide fallback rows for replay command
+resolution.
 React replay hooks do not select store `activeConversationRef`, `addMessage`,
 or skin failure copy for replay orchestration; `desktopConversationReplayRuntime`
-resolves active conversation state from its store dependency and leaves replay
-failure display to SDK/main conversation events rather than publishing a
-renderer-local row. SDK replay commands own the durable child revision and
+resolves active conversation state through a narrow UI adapter for the active
+conversation ref only, without depending on projected workspace reads, the full
+chat-store object, or `getState()` contract. It leaves replay failure display
+to SDK/main conversation events rather than publishing a renderer-local row.
+Replay execution does not accept a caller-supplied active-conversation override.
+The replay runtime treats transcript/session/store conversation refs as exact
+identity values; padded refs are missing scope, not repaired active
+conversations.
+Replay diagnostic error-kind labels follow the same rule for SDK command error
+names: exact non-empty names may be logged, while padded names fall back to the
+generic `Error` label instead of being trimmed into renderer-owned diagnostics.
+It does not read renderer config context, pass selected-model overrides, or call
+the renderer settings facade before dispatch. SDK replay commands own the
+durable child revision, any model-selection application through `send()`, and
 provider-safe replacement history.
 Thread presentation no longer accepts caller-built `currentTurnMessages` as an
 alternate live-row input; no-view live rows must come from the SDK current-turn
 projection/presentation adapter, and `ConversationView` remains the normal
 read model once present.
+That adapter requires the shared complete `ConversationView` envelope before a
+view can suppress no-view current-turn fallback rows. Partial view-shaped
+inputs stay on the no-view fallback path instead of claiming live-row
+authority.
+No-view fallback rows still require exact current-turn `conversationRef` and
+`turnRef` identity before thread presentation can append them, even when the
+caller has no active conversation ref to compare against.
 When a caller supplies `ConversationView`, thread presentation accepts only
 SDK display-row messages plus the explicit renderer pending-send bridge as its
 base rows. Raw renderer transcript rows are ignored in that mode so view-owned
 live rows cannot be positioned, deduped, or suppressed by stale chat-store
-messages.
+messages. `ConversationView.liveTurn.entries` render as SDK-authored live rows
+without the renderer's no-view latest-user, materialized-text, or duplicate
+suppression heuristics; those guards are retained only for legacy
+`sdkLiveTurn` fallback before a complete view exists. Main chat presentation
+also ignores raw workspace `messages` for its cache identity while a
+`ConversationView` exists; it first requires the complete SDK view envelope
+before entering that mode. Raw message-array churn is not a visible SDK-view
+invalidation signal. Empty renderer annotation projections are stable; only
+actual renderer-local assistant feedback creates an annotation signal.
 
 For debugging, use:
 
@@ -427,6 +839,12 @@ display details from raw `payload` or `structuredPayload` fallbacks.
 Older renderer fallback adapters that read `snapshot.currentTurn.toolEvents`
 directly follow the same boundary: use projected tool-event fields and
 projected detail objects, not backend-wire payload recovery.
+The raw no-presentation current-turn fallback builder stays private to the
+renderer message runtime; callers use the no-view SDK live-turn facade so the
+legacy raw-field bridge cannot become a parallel presentation API.
+That facade requires exact SDK `conversationRef` and `turnRef` values before it
+builds presentation-backed or legacy fallback rows; malformed or missing refs
+are ignored instead of being repaired into synthetic renderer identities.
 
 ### Removed Renderer Transcript and Rehydrate Helpers
 
@@ -558,7 +976,9 @@ Desktop may render a temporary, textless thinking disclosure from
 disclosure is not a transcript assistant row and must disappear once the SDK
 display row contains assistant-visible text for the same turn. Raw
 `snapshot.currentTurn.reasoningText` is legacy no-presentation fallback context
-only.
+only. When the legacy no-presentation fallback projects assistant text, it
+copies reasoning text only when present and omits `thinkingText` otherwise
+instead of publishing a renderer-owned `null` placeholder.
 
 Terminal `turn_error` and `runtime_error` events are authoritative for their
 turn. If assistant text or deltas were already projected for the same
@@ -619,10 +1039,18 @@ calling the SDK fork command with the selected `sourceRevisionId`. When
 display row and returns the forked SDK view to the newly active conversation,
 so renderer code does not load display timelines just to reconstruct a branch
 prefix. Renderer revision controls receive app-runtime-prepared menu items:
-the adapter owns revision id normalization, active-row metadata,
-checkout/fork action ids, disabled state, and checkout-result active revision
-marking, while React renders the item and sends only the selected
-checkout/fork intent to SDK commands. Renderer
+the adapter owns exact revision/conversation identity validation, active-row
+metadata, checkout/fork command objects, disabled state, and checkout-result
+active revision marking. Padded or empty revision ids and conversation refs fail
+closed instead of being trimmed into SDK checkout/fork command inputs, while
+React renders the item and passes only the selected prepared command back to the
+app-runtime executor.
+The desktop continuity facade enforces the same exact-only identity contract
+before invoking SDK revision commands, including list/checkout conversation
+refs, checkout revision ids, fork source revision ids, optional fork cut row
+ids, and explicit fork conversation refs. Direct facade callers cannot bypass
+the menu adapter by sending padded revision command identity.
+Renderer
 app-runtime facades should not expose direct display timeline
 load/replace helpers to React; low-level timeline mutation remains SDK/main
 command-handler and diagnostics ownership. Diagnostics can inspect a
@@ -844,6 +1272,10 @@ Desktop completion projection consumes SDK `turn_completed` identity directly.
 The SDK event carries `conversationRef`, `turnRef`, and `payload.userId` for
 renderer transcript writes, so the completion handler should not unwrap
 `payload.sourceEvent` to recover backend `conversation_ref` or `user_id`.
+Renderer conversation-event identity helpers treat SDK conversation refs and
+turn refs as exact values; padded refs are ignored instead of being trimmed into
+workspace routing, stale-turn guards, terminal pending handoff, or completion
+tracking.
 Completed-turn model metadata is normalized onto `payload.modelId` and
 `payload.modelProvider` before runtime title generation, so runtime code does
 not unwrap backend-wire payloads to recover model identity.
@@ -851,6 +1283,10 @@ Active desktop completion and error phase tracking consumes
 `snapshot.currentTurn.phase` and `snapshot.currentTurn.lastError`; renderer
 terminal handlers should only materialize/persist transcript rows for
 `turn_completed` and `turn_error`.
+Desktop `ConversationView.revisionId` is SDK-owned identity. Renderer chat
+presentation exposes it as `activeRevisionId` only when it is an exact non-empty
+SDK value, so padded or malformed revision ids do not become active UI state or
+revision-action inputs.
 The current-turn projection filters benign settings-update failures and
 recoverable streamed tool-call parse failures so those non-turn errors do not
 become response-overlay errors.
@@ -861,7 +1297,12 @@ source labels such as `tool-call`, `tool-output`, and `web-search-progress`,
 but active tool rows and phase tracking should come from the SDK current-turn
 presentation instead of a separate normalized-event live-state path. Raw
 `snapshot.currentTurn.toolEvents` is legacy no-presentation fallback context
-only.
+only. Display-row adapters preserve exact SDK-authored `sourceEventType` values
+and omit that renderer message prop when display-row metadata is missing or
+malformed; the renderer does not synthesize source event labels from row type or
+infer `web-search-progress` for unlabeled progress rows.
+SDK-authored progress rows remain `tool-progress` renderer messages; legacy
+`search-source` remains a readable presentation type for old rows only.
 When provider-native web search progress has to be rehydrated as a synthetic
 `web_search` tool pair, the SDK projection uses provider-neutral display text.
 Backend web-search docs remain the source of truth for whether OpenAI native,
@@ -924,6 +1365,9 @@ commands such as `loadForDisplay`, `rehydrateFromStore`, and
 service. Manual compaction follows the same boundary: callers use
 `SdkConversationRuntime.compactHistory(...)`, and the host agent runtime transport
 maps that SDK command to the backend `compact-history` control message.
+Desktop renderer continuity facades must not repair compaction command identity:
+explicit compact conversation refs are exact SDK command inputs, and malformed
+active-session fallback refs are ignored instead of trimmed.
 
 Responsibility split:
 
@@ -958,7 +1402,8 @@ renderer handlers do not need to unwrap `payload.sourceEvent`. Applied compactio
 payloads also expose replay fields (`entries`, `entryCount`, `complete`,
 `active`, `sourceRevisionId`, `sourceTurnRef`, and `createdAt`) so store
 adapters can use the persisted `compaction_applied` event itself as the compacted
-rehydrate base.
+rehydrate base. Renderer adapters must not synthesize replacement revision ids
+when that SDK/event revision identity is absent.
 
 After applied manual compaction, backend also emits a `model-history-updated`
 checkpoint for the active revision. That checkpoint is the normal resume source:
@@ -996,7 +1441,7 @@ rehydrate message types.
 Edit/resend and retry are display revision operations:
 
 ```text
-visible row action/message id selects the SDK target
+visible row action target id selects the SDK target
   -> SDK editAndResend/retryTurn resolves the stored display row
   -> SDK replaces the retained prefix plus replacement user row
   -> SDK send() sends the replacement user message as the same new turn
@@ -1017,8 +1462,19 @@ The renderer active path calls `conversation.editAndResend` or
 `conversation.rewrite_after_event`, or backend rehydrate as part of normal
 edit/retry execution. The SDK commands resolve the stored target display row,
 preserve display attachments and legacy screenshot refs from that row, write
-the child display/model revision, emit supersession for old live work, apply
-model overrides, and dispatch the replacement through the normal `send()` path.
+the child display/model revision, emit supersession for old live work, and
+dispatch the replacement through the normal `send()` path without accepting
+caller-supplied replay payload, model, or replacement turn-ref overrides.
+Renderer replay facades pass the SDK row id from row action metadata as replay
+intent without trimming or repairing it. Electron main applies an exact-only
+rule to replay SDK command `conversationRef` and `messageId` payload fields
+before calling SDK `editAndResend` or `retryTurn`; the renderer continuity
+facade applies that same exact-only rule before invoking the command bridge so
+direct renderer callers cannot dispatch repaired replay identities. Empty or
+padded command identities fail instead of dispatching against trimmed rows.
+Edit text remains raw command data from the renderer inline edit composer
+through replay runtime and main IPC adapters, so SDK replay commands own text
+normalization and non-empty validation.
 
 Resource preservation comes from the target display row. Typed display
 attachments become the edited pending user row's visible `attachments[]` and
@@ -1027,18 +1483,31 @@ typed image attachment has a display-local id and a separate `screenshotRef`,
 replay uses the real screenshot/artifact ref for the backend payload and carries
 the typed attachment as SDK display metadata. Legacy display-row
 `screenshot_refs` and single screenshot refs still flow through replay
-screenshot resolution inside the SDK command. Renderer replay command payloads
-must not infer or forward screenshot aliases; absent renderer payload fields
-must not erase prior resolved resources without an explicit removal operation.
+screenshot resolution inside the SDK command. Replay command callers must not
+infer or forward screenshot aliases; the SDK does not merge caller replay
+payload fields, so absent or stale caller payload fields cannot erase or
+replace prior resolved resources.
+The checked-in CommonJS SDK runtime artifact must preserve this same contract
+as the TypeScript source because Electron dev/runtime paths may load the CJS
+export; CJS replay commands must not reintroduce caller payload, model, or
+replacement turn-ref overrides.
 
 The Electron renderer does not publish a replay-specific pending turn, retained
-display prefix, or separate replacement query. It passes row intent, edited
-text when applicable, workspace context, model override, user id, conversation
-ref, and no renderer-owned replacement turn ref into the SDK command. The SDK
-command chooses the replacement turn ref. If the SDK command cannot resolve
-the stored target row or fails, the renderer records replay diagnostics and
-returns failure without rolling its own display replacement, failure row, or
-resource restoration. Typed
+display prefix, separate replacement query, renderer replay payload, or
+selected-model override. It passes row intent, edited text when applicable,
+user id, conversation ref, and no renderer-owned replacement turn ref into the
+SDK command through a renderer continuity facade that does not expose replay
+payload or model fields. Renderer replay diagnostics name
+that target as a generic
+`targetRowId`; edit and retry both map it to the SDK command's `messageId`
+field without classifying the row as a user-message target. It must not call
+the renderer settings facade or read renderer config to pre-apply the replay
+model; replay uses the SDK runtime's current model state when the replacement
+flows through `send()`. The SDK command chooses the replacement turn ref. If the SDK
+command cannot resolve the stored target row or fails, the renderer records
+replay diagnostics and returns
+failure without rolling its own display replacement, failure row, or resource
+restoration. Typed
 visual `attachments[]`, screenshot descriptors, preview bytes, ready artifact
 refs, and replacement event ids remain SDK display-row state.
 
@@ -1162,6 +1631,13 @@ Current-turn live presentation entries mirror the same SDK-shaped identity
 fields (`toolName`, `requestId`, `correlationId`, and `bundleId`) so renderer
 UI code can render live tool rows without re-reading backend-wire aliases from
 `structuredPayload`.
+Renderer live-entry projection also treats presentation `type` as an SDK-owned
+label: known exact labels render, while padded or unknown labels are dropped
+instead of being repaired into `llm-text` rows. Missing labels remain a legacy
+no-label compatibility path only until all renderer fixtures and old snapshots
+publish explicit SDK entry types. Legacy renderer row labels such as
+`search-source` and `tool-explanation` are not live presentation entry aliases;
+they remain readable UI message labels only outside SDK live-entry dispatch.
 The underlying legacy `currentTurn.toolEvents` projection exposes those identity
 fields for hosts that still render directly from tool events.
 Claimed SDK-shaped events execute the local runtime, send the result back

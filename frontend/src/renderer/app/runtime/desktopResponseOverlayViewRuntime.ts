@@ -7,7 +7,8 @@ import { DesktopCurrentTurnMessageRuntime } from './desktopCurrentTurnMessageRun
 import { DesktopCurrentTurnPresentationRuntime } from './desktopCurrentTurnPresentationRuntime';
 import { DesktopLiveTurnSurfaceRuntime } from './desktopLiveTurnSurfaceRuntime';
 import { DesktopVisibleTurnLifecycleRuntime } from './desktopVisibleTurnLifecycleRuntime';
-import { DesktopSdkDisplayChatMessageProjectionRuntime } from './desktopSdkDisplayChatMessageProjectionRuntime';
+import { DesktopConversationDisplayProjection } from './desktopConversationDisplayProjection';
+import { DesktopConversationViewWorkspaceRuntime } from './desktopConversationViewWorkspaceRuntime';
 
 const AWAITING_VISIBLE_LIFECYCLE_STATUSES = new Set(['local_pending', 'awaiting']);
 const {
@@ -16,7 +17,6 @@ const {
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
   isVisibleResponseOverlayMessage,
-  resolveNoViewSdkLiveTurnThinkingText,
 } = DesktopCurrentTurnMessageRuntime;
 const {
   resolveResponseOverlayDismissalTarget,
@@ -30,10 +30,11 @@ const {
   resolveVisibleTurnLifecycle,
 } = DesktopVisibleTurnLifecycleRuntime;
 const {
-  buildChatMessagesFromSdkDisplayRows,
-} = DesktopSdkDisplayChatMessageProjectionRuntime;
-
-type SdkDisplayRowsInput = Parameters<typeof buildChatMessagesFromSdkDisplayRows>[0];
+  buildConversationViewTurnChatMessages,
+} = DesktopConversationDisplayProjection;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 type CurrentTurnPresentationStateLike = {
   visibleTurnLifecycle?: {
@@ -45,7 +46,10 @@ type CurrentTurnPresentationStateLike = {
 };
 
 type ResponseOverlayEntryLike = {
+  correlationId?: string | null;
   id?: string | null;
+  toolCallDetails?: Record<string, unknown> | null;
+  toolOutputDetails?: Record<string, unknown> | null;
   text?: string | null;
   type?: string | null;
   sourceEventType?: string | null;
@@ -115,6 +119,23 @@ type ResponseOverlayTraceSummaryInput = {
   turnId?: string | null;
 };
 
+type ResponseOverlayTypingRenderedTraceInput = {
+  awaitingVisible?: boolean;
+  currentTurnPhase?: string | null;
+  isVisible?: boolean;
+  overlayIntent?: {
+    conversationRef?: unknown;
+    mode?: unknown;
+    staleGuardRef?: unknown;
+    turnRef?: unknown;
+  } | null;
+  overlayLayoutMode?: string | null;
+  responseOverlayEntryCount?: number | null;
+  responseVisible?: boolean;
+  turnId?: string | null;
+  typingRendered?: boolean;
+};
+
 function normalizeString(value: string | null | undefined): string | null {
   if (typeof value !== 'string') {
     return null;
@@ -125,6 +146,16 @@ function normalizeString(value: string | null | undefined): string | null {
 
 function normalizeUnknownString(value: unknown): string | null {
   return typeof value === 'string' ? normalizeString(value) : null;
+}
+
+function exactIdentityString(value: string | null | undefined): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
+function exactUnknownIdentityString(value: unknown): string | null {
+  return typeof value === 'string' ? exactIdentityString(value) : null;
 }
 
 function normalizeCount(value: number | null | undefined): number {
@@ -150,14 +181,29 @@ function recordFromUnknown(value: unknown): Record<string, unknown> {
     : {};
 }
 
-function isConversationView(value: unknown): boolean {
-  const view = recordFromUnknown(value);
-  return Boolean(
-    view.conversationRef
-      || view.displayRows
-      || view.liveTurn
-      || view.surfaces,
-  );
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function resolveNoViewResponseOverlayThinkingText(sdkLiveTurn: unknown): string {
+  const liveTurn = recordFromUnknown(sdkLiveTurn);
+  if (isRecord(liveTurn.presentation)) {
+    return '';
+  }
+  return normalizeUnknownString(liveTurn.reasoningText) || '';
+}
+
+function exactToolIdentityField(
+  record: Record<string, unknown> | null | undefined,
+  ...keys: string[]
+): string | null {
+  for (const key of keys) {
+    const value = exactUnknownIdentityString(record?.[key]);
+    if (value) {
+      return value;
+    }
+  }
+  return null;
 }
 
 function conversationViewLiveTurnRef(conversationView: unknown): string | null {
@@ -166,31 +212,21 @@ function conversationViewLiveTurnRef(conversationView: unknown): string | null {
   const surfaces = recordFromUnknown(view.surfaces);
   const responseOverlay = recordFromUnknown(surfaces.responseOverlay);
   return (
-    normalizeUnknownString(liveTurn.turnRef)
-    || normalizeUnknownString(responseOverlay.turnRef)
+    exactUnknownIdentityString(liveTurn.turnRef)
+    || exactUnknownIdentityString(responseOverlay.turnRef)
     || null
   );
 }
 
-function displayRowsForLiveTurn(conversationView: unknown): unknown[] {
-  const view = recordFromUnknown(conversationView);
-  const displayRows = Array.isArray(view.displayRows) ? view.displayRows : [];
+function responseOverlayDisplayRowMessages(conversationView: unknown): ResponseOverlayEntryLike[] {
   const liveTurnRef = conversationViewLiveTurnRef(conversationView);
   if (!liveTurnRef) {
     return [];
   }
-  return displayRows.filter((row) => {
-    const record = recordFromUnknown(row);
-    return normalizeUnknownString(record.turnRef) === liveTurnRef;
-  });
-}
-
-function responseOverlayDisplayRowMessages(conversationView: unknown): ResponseOverlayEntryLike[] {
-  const displayRows = displayRowsForLiveTurn(conversationView);
-  if (displayRows.length === 0) {
-    return [];
-  }
-  return buildChatMessagesFromSdkDisplayRows(displayRows as SdkDisplayRowsInput)
+  return buildConversationViewTurnChatMessages({
+    conversationView,
+    turnRef: liveTurnRef,
+  })
     .filter(isVisibleResponseOverlayMessage);
 }
 
@@ -199,11 +235,14 @@ function responseOverlayMaterializedSourceTypes(
 ): Set<string> {
   const materializedTypes = new Set<string>();
   displayMessages.forEach((message) => {
-    const sourceEventType = normalizeString(message.sourceEventType);
+    if (isToolOverlayMessage(message)) {
+      return;
+    }
+    const sourceEventType = exactIdentityString(message.sourceEventType);
     if (sourceEventType) {
       materializedTypes.add(sourceEventType);
     }
-    const type = normalizeString(message.type);
+    const type = exactIdentityString(message.type);
     if (type) {
       materializedTypes.add(type);
     }
@@ -211,22 +250,94 @@ function responseOverlayMaterializedSourceTypes(
   return materializedTypes;
 }
 
+const TOOL_OVERLAY_MESSAGE_TYPES = new Set([
+  'tool-call',
+  'tool-output',
+  'tool-progress',
+  'search-source',
+  'tool-explanation',
+]);
+
+function isToolOverlayMessage(message: ResponseOverlayEntryLike): boolean {
+  return Boolean(TOOL_OVERLAY_MESSAGE_TYPES.has(exactIdentityString(message.type) || ''));
+}
+
+function identityFromToolRecord(record: Record<string, unknown> | null): string | null {
+  const metadata = recordFromUnknown(record?.metadata);
+  return exactToolIdentityField(
+    record,
+    'displayCorrelationId',
+    'toolCallId',
+    'tool_call_id',
+    'id',
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'correlationId',
+    'correlation_id',
+  ) ?? exactToolIdentityField(
+    metadata,
+    'displayCorrelationId',
+    'toolCallId',
+    'tool_call_id',
+    'requestId',
+    'request_id',
+    'bundleId',
+    'bundle_id',
+    'correlationId',
+    'correlation_id',
+  );
+}
+
+function toolOverlayMessageIdentity(message: ResponseOverlayEntryLike): string | null {
+  return exactIdentityString(message.correlationId)
+    ?? identityFromToolRecord(recordFromUnknown(message.toolCallDetails))
+    ?? identityFromToolRecord(recordFromUnknown(message.toolOutputDetails));
+}
+
+function toolOverlayTypesMatch(
+  displayMessage: ResponseOverlayEntryLike,
+  liveMessage: ResponseOverlayEntryLike,
+): boolean {
+  return exactIdentityString(displayMessage.type) === exactIdentityString(liveMessage.type);
+}
+
+function toolLiveEntryMaterializedByDisplayRows(
+  liveMessage: ResponseOverlayEntryLike,
+  displayMessages: ResponseOverlayEntryLike[],
+): boolean {
+  const liveIdentity = toolOverlayMessageIdentity(liveMessage);
+  if (!liveIdentity) {
+    return false;
+  }
+  return displayMessages.some((displayMessage) => (
+    isToolOverlayMessage(displayMessage)
+    && toolOverlayTypesMatch(displayMessage, liveMessage)
+    && toolOverlayMessageIdentity(displayMessage) === liveIdentity
+  ));
+}
+
 function liveEntryMaterializedByDisplayRows(
   liveMessage: ResponseOverlayEntryLike,
+  displayMessages: ResponseOverlayEntryLike[],
   materializedTypes: Set<string>,
 ): boolean {
-  const sourceEventType = normalizeString(liveMessage.sourceEventType);
+  if (isToolOverlayMessage(liveMessage)) {
+    return toolLiveEntryMaterializedByDisplayRows(liveMessage, displayMessages);
+  }
+  const sourceEventType = exactIdentityString(liveMessage.sourceEventType);
   if (sourceEventType && materializedTypes.has(sourceEventType)) {
     return true;
   }
-  const type = normalizeString(liveMessage.type);
+  const type = exactIdentityString(liveMessage.type);
   return Boolean(type && materializedTypes.has(type));
 }
 
 function mergeConversationViewOverlayMessages(conversationView: unknown): ResponseOverlayEntryLike[] {
   const displayMessages = responseOverlayDisplayRowMessages(conversationView);
   const liveMessages = buildSdkLiveTurnMessages({
-    conversationView: isConversationView(conversationView) ? conversationView : null,
+    conversationView,
     sdkLiveTurn: null,
   }).filter(isVisibleResponseOverlayMessage);
   if (displayMessages.length === 0) {
@@ -234,7 +345,7 @@ function mergeConversationViewOverlayMessages(conversationView: unknown): Respon
   }
   const materializedTypes = responseOverlayMaterializedSourceTypes(displayMessages);
   const liveOnlyMessages = liveMessages.filter(
-    (message) => !liveEntryMaterializedByDisplayRows(message, materializedTypes),
+    (message) => !liveEntryMaterializedByDisplayRows(message, displayMessages, materializedTypes),
   );
   return [
     ...displayMessages,
@@ -247,13 +358,13 @@ function buildResponseOverlayDismissalKey({
   turnRef,
   responseEntryId,
 }: ResponseOverlayDismissalInput): string | null {
-  const normalizedResponseEntryId = normalizeString(responseEntryId);
+  const normalizedResponseEntryId = exactIdentityString(responseEntryId);
   if (!normalizedResponseEntryId) {
     return null;
   }
   return [
-    normalizeString(conversationRef) || '',
-    normalizeString(turnRef) || '',
+    exactIdentityString(conversationRef) || '',
+    exactIdentityString(turnRef) || '',
     normalizedResponseEntryId,
   ].join('\u0001');
 }
@@ -291,7 +402,7 @@ function resolveDismissedResponseOverlayEntryId(
   state: ResponseOverlayDismissalState,
   input: ResponseOverlayDismissalInput | null | undefined,
 ): string | null {
-  const responseEntryId = normalizeString(input?.responseEntryId);
+  const responseEntryId = exactIdentityString(input?.responseEntryId);
   if (!responseEntryId || !isResponseOverlayEntryDismissedInState(state, {
     conversationRef: input?.conversationRef,
     turnRef: input?.turnRef,
@@ -306,7 +417,7 @@ function buildDismissResponseOverlayAction({
   responseEntryId = null,
   responseOverlayDismissalTarget = null,
 }: DismissResponseOverlayActionInput = {}) {
-  const normalizedResponseEntryId = normalizeString(responseEntryId);
+  const normalizedResponseEntryId = exactIdentityString(responseEntryId);
   if (!responseOverlayDismissalTarget || !normalizedResponseEntryId) {
     return null;
   }
@@ -317,8 +428,8 @@ function buildDismissResponseOverlayAction({
   return {
     dismissalTarget,
     responseboxDismissalValues: {
-      turnRef: normalizeString(dismissalTarget.turnRef),
-      guardRef: normalizeString(dismissalTarget.guardRef),
+      turnRef: exactIdentityString(dismissalTarget.turnRef),
+      guardRef: exactIdentityString(dismissalTarget.guardRef),
     },
   };
 }
@@ -448,6 +559,32 @@ function buildResponseOverlayTraceSummary({
   };
 }
 
+function buildResponseOverlayTypingRenderedTraceValues({
+  awaitingVisible = false,
+  currentTurnPhase = null,
+  isVisible = false,
+  overlayIntent = null,
+  overlayLayoutMode = null,
+  responseOverlayEntryCount = 0,
+  responseVisible = false,
+  turnId = null,
+  typingRendered = false,
+}: ResponseOverlayTypingRenderedTraceInput = {}) {
+  const normalizedTurnId = normalizeString(turnId);
+  return {
+    typingRendered: typingRendered === true,
+    turnRef: normalizedTurnId,
+    currentTurnId: normalizedTurnId,
+    phase: normalizeString(currentTurnPhase) || 'idle',
+    overlayIntent,
+    overlayLayoutMode: normalizeString(overlayLayoutMode) || null,
+    isVisible: isVisible === true,
+    awaitingVisible: awaitingVisible === true,
+    responseVisible: responseVisible === true,
+    responseOverlayEntryCount: normalizeCount(responseOverlayEntryCount),
+  };
+}
+
 function createResponseOverlayWindowGuardSnapshot(): ResponseOverlayWindowGuardSnapshot {
   return {
     conversationRef: null,
@@ -460,14 +597,14 @@ function resolveResponseOverlayWindowGuardSnapshot({
   overlayIntent = null,
   previousSnapshot = null,
 }: ResponseOverlayWindowGuardSnapshotInput = {}): ResponseOverlayWindowGuardSnapshot {
-  const currentConversationRef = normalizeUnknownString(overlayIntent?.conversationRef);
-  const currentTurnRef = normalizeUnknownString(overlayIntent?.turnRef);
+  const currentConversationRef = exactUnknownIdentityString(overlayIntent?.conversationRef);
+  const currentTurnRef = exactUnknownIdentityString(overlayIntent?.turnRef);
   const currentStaleGuardRef = (
-    normalizeUnknownString(overlayIntent?.staleGuardRef)
+    exactUnknownIdentityString(overlayIntent?.staleGuardRef)
     || currentTurnRef
   );
-  const previousTurnRef = normalizeString(previousSnapshot?.turnRef);
-  const previousStaleGuardRef = normalizeString(previousSnapshot?.staleGuardRef);
+  const previousTurnRef = exactIdentityString(previousSnapshot?.turnRef);
+  const previousStaleGuardRef = exactIdentityString(previousSnapshot?.staleGuardRef);
 
   if (currentTurnRef || currentStaleGuardRef) {
     return {
@@ -491,14 +628,14 @@ function resolveResponseOverlayWindowSizeIdentity({
   overlayIntent?: ResponseOverlayWindowGuardSnapshotInput['overlayIntent'];
   guardSnapshot?: Partial<ResponseOverlayWindowGuardSnapshot> | null;
 } = {}): ResponseOverlayWindowGuardSnapshot {
-  const intentConversationRef = normalizeUnknownString(overlayIntent?.conversationRef);
-  const intentTurnRef = normalizeUnknownString(overlayIntent?.turnRef);
-  const guardTurnRef = normalizeString(guardSnapshot?.turnRef);
+  const intentConversationRef = exactUnknownIdentityString(overlayIntent?.conversationRef);
+  const intentTurnRef = exactUnknownIdentityString(overlayIntent?.turnRef);
+  const guardTurnRef = exactIdentityString(guardSnapshot?.turnRef);
   const turnRef = intentTurnRef || guardTurnRef;
   const staleGuardRef = (
-    normalizeUnknownString(overlayIntent?.staleGuardRef)
+    exactUnknownIdentityString(overlayIntent?.staleGuardRef)
     || intentTurnRef
-    || normalizeString(guardSnapshot?.staleGuardRef)
+    || exactIdentityString(guardSnapshot?.staleGuardRef)
     || guardTurnRef
   );
 
@@ -522,14 +659,14 @@ function buildResponseOverlayWindowSizeTraceValues({
 }: ResponseOverlayWindowSizeRuntimeInput) {
   return {
     action,
-    conversationRef: normalizeString(sizeIdentity?.conversationRef),
+    conversationRef: exactIdentityString(sizeIdentity?.conversationRef),
     visible: visible === true,
     layoutMode,
     responseVisible,
     thinkingText,
     compactHover: Boolean(compactHover),
-    turnRef: normalizeString(sizeIdentity?.turnRef),
-    staleGuardRef: normalizeString(sizeIdentity?.staleGuardRef),
+    turnRef: exactIdentityString(sizeIdentity?.turnRef),
+    staleGuardRef: exactIdentityString(sizeIdentity?.staleGuardRef),
     width,
     height,
   };
@@ -553,8 +690,8 @@ function buildResponseOverlayWindowSizeValues({
     visible: visible === true,
     width,
     height,
-    turnRef: normalizeString(sizeIdentity?.turnRef),
-    staleGuardRef: normalizeString(sizeIdentity?.staleGuardRef),
+    turnRef: exactIdentityString(sizeIdentity?.turnRef),
+    staleGuardRef: exactIdentityString(sizeIdentity?.staleGuardRef),
   };
   if (visible === true) {
     values.compactHover = Boolean(compactHover);
@@ -568,9 +705,9 @@ function buildResponseOverlayWindowLifecycleTraceValues({
 }: ResponseOverlayWindowLifecycleRuntimeInput) {
   return {
     action,
-    conversationRef: normalizeString(guardSnapshot?.conversationRef),
-    turnRef: normalizeString(guardSnapshot?.turnRef),
-    staleGuardRef: normalizeString(guardSnapshot?.staleGuardRef),
+    conversationRef: exactIdentityString(guardSnapshot?.conversationRef),
+    turnRef: exactIdentityString(guardSnapshot?.turnRef),
+    staleGuardRef: exactIdentityString(guardSnapshot?.staleGuardRef),
   };
 }
 
@@ -588,7 +725,11 @@ function resolveResponseOverlayThinkingText({
   if (thinkingText) {
     return thinkingText;
   }
-  return resolveNoViewSdkLiveTurnThinkingText(sdkLiveTurn);
+  return resolveNoViewResponseOverlayThinkingText(sdkLiveTurn);
+}
+
+function isNoViewSdkLiveTurnResponseSource(source: unknown): boolean {
+  return source === 'sdk-current-turn' || source === 'current-turn';
 }
 
 function resolveResponseOverlaySurfaceState({
@@ -597,7 +738,7 @@ function resolveResponseOverlaySurfaceState({
   chatSurfaceState?: unknown;
 } = {}) {
   const surfaceState = recordFromUnknown(chatSurfaceState);
-  const conversationView = isConversationView(surfaceState.conversationView)
+  const conversationView = hasWorkspaceConversationView({ conversationView: surfaceState.conversationView })
     ? surfaceState.conversationView
     : null;
   const messages = conversationView
@@ -644,7 +785,9 @@ function resolveResponseOverlaySurfaceState({
     sdkLiveTurn,
     thinkingText: resolveResponseOverlayThinkingText({
       responseOverlayEntries,
-      sdkLiveTurn,
+      sdkLiveTurn: isNoViewSdkLiveTurnResponseSource(liveTurnPresentationInput.source)
+        ? sdkLiveTurn
+        : null,
     }),
     useLocalPendingTurn,
     useSdkLiveTurnPresentation,
@@ -668,8 +811,11 @@ function resolveResponseOverlayEntries({
   if (liveTurnPresentationInput.useLocalPendingTurn) {
     return [];
   }
-  if (isConversationView(conversationView)) {
+  if (hasWorkspaceConversationView({ conversationView })) {
     return mergeConversationViewOverlayMessages(conversationView);
+  }
+  if (!isNoViewSdkLiveTurnResponseSource(liveTurnPresentationInput.source)) {
+    return [];
   }
   return buildSdkLiveTurnMessages({
     conversationView: null,
@@ -809,6 +955,7 @@ export const DesktopResponseOverlayViewRuntime = Object.freeze({
   buildResponseOverlayEntrySignature,
   buildResponseOverlayDismissalKey,
   buildResponseOverlayTraceSummary,
+  buildResponseOverlayTypingRenderedTraceValues,
   buildResponseOverlayWindowLifecycleTraceValues,
   buildResponseOverlayWindowSizeTraceValues,
   buildResponseOverlayWindowSizeValues,

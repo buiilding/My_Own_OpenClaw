@@ -303,6 +303,9 @@ function displayAttachmentFromRecord(record: JsonRecord): SdkDisplayAttachment |
     ...(stringField(record, 'screenshotUrl', 'screenshot_url') ? {
       screenshotUrl: stringField(record, 'screenshotUrl', 'screenshot_url'),
     } : {}),
+    ...(stringField(record, 'previewSrc', 'preview_src') ? {
+      previewSrc: stringField(record, 'previewSrc', 'preview_src'),
+    } : {}),
     ...(stringField(record, 'errorCode', 'error_code') ? { errorCode: stringField(record, 'errorCode', 'error_code') } : {}),
   };
 }
@@ -1100,6 +1103,7 @@ function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEven
   const success = typeof event.payload.success === 'boolean' ? event.payload.success : null;
   const attachments = displayAttachmentsField(event.payload, 'attachments', 'display_attachments')
     ?? legacyVisualAttachmentReplayAdapter(event);
+  const toolDetails = toolDisplayDetailsFromEvent(event);
   return {
     id: event.eventId,
     kind,
@@ -1110,8 +1114,12 @@ function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEven
     modelFacingToolCall,
     toolCalls: event.type === 'tool_bundle_call' ? bundleToolCallsFromPayload(event.payload) : null,
     toolArguments: toolArgumentsFromPayload(event.payload, modelFacingToolCall),
-    toolCallDetails: structuredPayload ?? event.payload,
-    toolOutputDetails: structuredPayload ?? event.payload,
+    toolCallDetails: event.type === 'tool_call' || event.type === 'tool_bundle_call'
+      ? toolDetails
+      : null,
+    toolOutputDetails: event.type === 'tool_output' || event.type === 'tool_bundle_output'
+      ? toolDetails
+      : null,
     toolMetadata,
     toolDisplayMetadata: toolDisplayMetadataFromMetadata(toolMetadata),
     attachments,

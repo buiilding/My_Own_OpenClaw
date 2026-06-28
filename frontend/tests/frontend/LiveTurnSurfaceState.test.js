@@ -19,7 +19,6 @@ function pendingTurn(overrides = {}) {
     userMessageId: 'user-pending',
     text: 'start now',
     timestamp: '2026-06-16T00:00:00.000Z',
-    attachmentFilenames: null,
     ...overrides,
   };
 }
@@ -97,6 +96,29 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
         mode: 'awaiting',
         staleGuardRef: preflightGuardRef,
       }),
+    });
+  });
+
+  test('rejects attachment-bearing pending turns for local live-surface authority', () => {
+    const state = resolveLiveTurnPresentationInput({
+      sdkLiveTurn: null,
+      pendingTurn: pendingTurn({
+        attachments: [{
+          id: 'attachment-1',
+          kind: 'image',
+          status: 'ready',
+        }],
+      }),
+    });
+
+    expect(state).toMatchObject({
+      phase: 'idle',
+      isBusy: false,
+      source: 'idle',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: false,
+      overlayIntent: null,
+      turnRef: null,
     });
   });
 
@@ -221,6 +243,163 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       turnRef: 'turn-2',
       conversationRef: 'conv-1',
       guardRef: 'turn-2',
+    });
+  });
+
+  test('does not expose padded SDK live-turn conversation refs as surface state', () => {
+    const state = resolveLiveTurnPresentationInput({
+      sdkLiveTurn: {
+        phase: 'streaming',
+        conversationRef: ' conv-1 ',
+        turnRef: ' turn-2 ',
+        presentation: {
+          entries: [
+            {
+              id: 'assistant-entry',
+              sender: 'assistant',
+              text: 'Visible response',
+              type: 'llm-text',
+            },
+          ],
+          overlayIntent: {
+            visible: true,
+            mode: 'response',
+            turnRef: ' turn-2 ',
+            conversationRef: ' conv-1 ',
+            staleGuardRef: ' turn-2 ',
+          },
+        },
+      },
+    });
+
+    expect(state).toMatchObject({
+      phase: 'idle',
+      source: 'idle',
+      useSdkLiveTurnPresentation: false,
+      overlayIntent: null,
+      turnRef: null,
+      conversationRef: null,
+      guardRef: null,
+    });
+  });
+
+  test('does not repair padded ConversationView surface refs', () => {
+    const state = resolveLiveTurnPresentationInput({
+      conversationView: {
+        conversationRef: 'conv-1',
+        revisionId: null,
+        displayRows: [],
+        liveTurn: {
+          turnRef: ' turn-view ',
+          phase: 'streaming',
+          isBusy: true,
+          entries: [
+            {
+              id: 'assistant-entry',
+              sender: 'assistant',
+              text: 'Visible response',
+              type: 'llm-text',
+            },
+          ],
+        },
+        surfaces: {
+          responseOverlay: {
+            visible: true,
+            mode: 'response',
+            turnRef: ' turn-view ',
+            guardRef: ' guard-view ',
+            ownerConversationRef: ' conv-1 ',
+          },
+        },
+        actions: {
+          canEdit: false,
+          canRetry: false,
+          canFork: false,
+        },
+      },
+    });
+
+    expect(state).toMatchObject({
+      source: 'conversation-view',
+      useSdkLiveTurnPresentation: true,
+      overlayIntent: expect.objectContaining({
+        mode: 'response',
+        turnRef: null,
+        conversationRef: 'conv-1',
+        staleGuardRef: null,
+      }),
+      turnRef: null,
+      conversationRef: 'conv-1',
+      guardRef: null,
+    });
+  });
+
+  test('does not repair padded SDK live-turn phases into surface state', () => {
+    const state = resolveLiveTurnPresentationInput({
+      sdkLiveTurn: {
+        phase: ' streaming ',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+      },
+    });
+
+    expect(state).toEqual({
+      phase: 'idle',
+      isBusy: false,
+      source: 'idle',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: false,
+      overlayIntent: null,
+      entries: [],
+      turnRef: null,
+      conversationRef: null,
+      guardRef: null,
+    });
+  });
+
+  test('does not repair padded ConversationView surface modes into surface state', () => {
+    const state = resolveLiveTurnPresentationInput({
+      conversationView: {
+        conversationRef: 'conv-1',
+        revisionId: null,
+        displayRows: [],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'idle',
+          isBusy: false,
+          entries: [],
+        },
+        surfaces: {
+          responseOverlay: {
+            visible: true,
+            mode: ' response ',
+            turnRef: 'turn-view',
+            guardRef: 'turn-view',
+            ownerConversationRef: 'conv-1',
+          },
+        },
+        actions: {
+          canEdit: false,
+          canRetry: false,
+          canFork: false,
+        },
+      },
+    });
+
+    expect(state).toMatchObject({
+      phase: 'idle',
+      isBusy: false,
+      source: 'conversation-view',
+      useSdkLiveTurnPresentation: false,
+      overlayIntent: expect.objectContaining({
+        mode: 'hidden',
+        turnRef: 'turn-view',
+        conversationRef: 'conv-1',
+        staleGuardRef: 'turn-view',
+      }),
+      turnRef: 'turn-view',
+      conversationRef: 'conv-1',
+      guardRef: 'turn-view',
     });
   });
 
@@ -526,12 +705,10 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'idle',
       isBusy: false,
-      source: 'current-turn',
+      source: 'idle',
       useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: false,
-      overlayIntent: expect.objectContaining({
-        mode: 'hidden',
-      }),
+      overlayIntent: null,
     });
   });
 
@@ -565,12 +742,10 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'idle',
       isBusy: false,
-      source: 'current-turn',
+      source: 'idle',
       useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: false,
-      overlayIntent: expect.objectContaining({
-        mode: 'hidden',
-      }),
+      overlayIntent: null,
     });
   });
 

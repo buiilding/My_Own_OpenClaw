@@ -1,0 +1,331 @@
+/**
+ * Covers desktop chat send preparation runtime boundaries.
+ */
+
+const mockAcceptPendingTurn = jest.fn();
+const mockClearPendingTurn = jest.fn();
+const mockFetchActiveWorkspaceSelection = jest.fn();
+const mockGetConversationWorkspaceBinding = jest.fn();
+const mockSetConversationWorkspaceBinding = jest.fn();
+const mockSetPending = jest.fn();
+const mockClearPending = jest.fn();
+const mockSendQuery = jest.fn();
+const mockSetModel = jest.fn();
+const mockShowChatboxWithValues = jest.fn();
+const mockLogUserSentMessage = jest.fn();
+const mockLogRendererChatSendLifecycleTrace = jest.fn();
+const mockSetTranscriptConversationRef = jest.fn();
+const mockUpdateTranscriptSession = jest.fn();
+const mockGetActiveTranscriptConversationRef = jest.fn();
+const mockGetTranscriptSessionInfo = jest.fn();
+
+jest.mock('../../src/renderer/app/runtime/desktopWorkspaceRuntimeClient', () => ({
+  DesktopWorkspaceRuntimeClient: {
+    fetchActiveWorkspaceSelection: (...args: unknown[]) => mockFetchActiveWorkspaceSelection(...args),
+    getConversationWorkspaceBinding: (...args: unknown[]) => mockGetConversationWorkspaceBinding(...args),
+    setConversationWorkspaceBinding: (...args: unknown[]) => mockSetConversationWorkspaceBinding(...args),
+    workspaceSelectionToBinding: (workspace: any) => ({
+      workspacePath: workspace?.activeWorkspacePath || '',
+      workspaceName: workspace?.activeWorkspaceName || '',
+    }),
+  },
+}));
+
+jest.mock('../../src/renderer/app/runtime/desktopPendingTurnRuntimeClient', () => ({
+  DesktopPendingTurnRuntimeClient: {
+    setPending: (...args: unknown[]) => mockSetPending(...args),
+    clear: (...args: unknown[]) => mockClearPending(...args),
+  },
+}));
+
+jest.mock('../../src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
+  DesktopLiveTurnRuntimeClient: {
+    sendQuery: (...args: unknown[]) => mockSendQuery(...args),
+  },
+}));
+
+jest.mock('../../src/renderer/app/runtime/desktopSettingsRuntimeClient', () => ({
+  DesktopSettingsRuntimeClient: {
+    setModel: (...args: unknown[]) => mockSetModel(...args),
+  },
+}));
+
+jest.mock('../../src/renderer/app/runtime/desktopWindowRuntimeClient', () => ({
+  DesktopWindowRuntimeClient: {
+    showChatboxWithValues: (...args: unknown[]) => mockShowChatboxWithValues(...args),
+  },
+}));
+
+jest.mock('../../src/renderer/app/runtime/desktopInteractionRuntimeClient', () => ({
+  DesktopInteractionRuntimeClient: {
+    logUserSentMessage: (...args: unknown[]) => mockLogUserSentMessage(...args),
+  },
+}));
+
+jest.mock('../../src/renderer/app/runtime/desktopRendererTraceRuntime', () => ({
+  DesktopRendererTraceRuntime: {
+    logRendererChatSendLifecycleTrace: (...args: unknown[]) => mockLogRendererChatSendLifecycleTrace(...args),
+  },
+}));
+
+jest.mock('../../src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
+  DesktopTranscriptSessionRuntimeClient: {
+    getActiveConversationRef: (...args: unknown[]) => mockGetActiveTranscriptConversationRef(...args),
+    getTranscriptSessionInfo: (...args: unknown[]) => mockGetTranscriptSessionInfo(...args),
+    setActiveConversationRef: (...args: unknown[]) => mockSetTranscriptConversationRef(...args),
+    updateTranscriptSession: (...args: unknown[]) => mockUpdateTranscriptSession(...args),
+  },
+}));
+
+import { DesktopChatSendPreparationRuntime } from '../../src/renderer/app/runtime/desktopChatSendPreparationRuntime';
+
+const {
+  dispatchPreparedDesktopChatTurn,
+  prepareDesktopChatSend,
+} = DesktopChatSendPreparationRuntime;
+
+describe('DesktopChatSendPreparationRuntime', () => {
+  beforeEach(() => {
+    jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('turn-1');
+    mockAcceptPendingTurn.mockReset();
+    mockClearPendingTurn.mockReset();
+    mockClearPending.mockReset();
+    mockFetchActiveWorkspaceSelection.mockReset();
+    mockGetConversationWorkspaceBinding.mockReset();
+    mockSetConversationWorkspaceBinding.mockReset();
+    mockSetPending.mockReset();
+    mockSendQuery.mockReset();
+    mockSetModel.mockReset();
+    mockShowChatboxWithValues.mockReset();
+    mockLogUserSentMessage.mockReset();
+    mockLogRendererChatSendLifecycleTrace.mockReset();
+    mockSetTranscriptConversationRef.mockReset();
+    mockUpdateTranscriptSession.mockReset();
+    mockGetActiveTranscriptConversationRef.mockReset();
+    mockGetTranscriptSessionInfo.mockReset();
+
+    mockGetActiveTranscriptConversationRef.mockReturnValue(null);
+    mockGetTranscriptSessionInfo.mockReturnValue({
+      conversationRef: null,
+      userId: 'user-1',
+    });
+    mockGetConversationWorkspaceBinding.mockReturnValue({
+      workspacePath: '',
+      workspaceName: '',
+    });
+    mockFetchActiveWorkspaceSelection.mockResolvedValue({
+      workspace: {
+        activeWorkspacePath: '/workspace/project',
+        activeWorkspaceName: 'Project',
+      },
+    });
+    mockSetConversationWorkspaceBinding.mockImplementation((_conversationRef, binding) => ({
+      workspacePath: binding?.workspacePath || '',
+      workspaceName: binding?.workspaceName || '',
+    }));
+    mockSendQuery.mockResolvedValue(undefined);
+    mockSetModel.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test('prepares only pending bridge identity and typed SDK resources', async () => {
+    const setChatActiveConversationRef = jest.fn();
+    const preparedTurn = await prepareDesktopChatSend({
+      payload: {
+        text: 'look here',
+        clipboardImages: [{
+          base64: 'image-base64',
+          contentType: 'image/png',
+          filename: 'shot.png',
+          attachmentContext: 'hidden legacy context',
+          attachmentFilenames: ['legacy-shot.png'],
+          attachments: [{ id: 'renderer-attachment' }],
+          displayAttachmentId: 'renderer-display-id',
+          displayAttachments: [{ id: 'renderer-display-id' }],
+          previewSrc: 'data:image/png;base64,preview',
+          screenshotRef: 'artifact-legacy',
+          screenshotRefs: ['artifact-legacy'],
+          screenshotUrl: '/api/artifacts/artifact-legacy',
+        }, {
+          base64: 'image-without-metadata',
+        }],
+        readableFiles: [{
+          filePath: '/workspace/project/notes.txt',
+          filename: 'notes.txt',
+        }],
+      } as any,
+      config: {
+        selected_model_id: 'gpt-5.4',
+        model_provider: 'openai',
+      },
+      dependencies: {
+        acceptPendingTurn: mockAcceptPendingTurn,
+        getActiveConversationRef: () => null,
+        getSendReadModel: () => ({ hasPriorUserMessages: false }),
+        setChatActiveConversationRef,
+      },
+      senderSurface: 'overlay-chatbox',
+      sendLifecycle: {
+        shouldCaptureQueryScreenshot: true,
+        shouldReturnToChatboxOnSend: false,
+        surfaceReason: 'overlay-chatbox',
+      },
+    });
+
+    expect(setChatActiveConversationRef).toHaveBeenCalledWith('conv_turn-1');
+    expect(mockAcceptPendingTurn).toHaveBeenCalledWith({
+      conversationRef: 'conv_turn-1',
+      turnRef: 'turn-1',
+      userMessageId: 'turn-1-sdk-evt-000002-user_message',
+      text: 'look here',
+      timestamp: expect.any(String),
+    });
+    expect(mockSetPending).toHaveBeenCalledWith(mockAcceptPendingTurn.mock.calls[0][0]);
+    expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('attachments');
+    expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('attachmentContext');
+    expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('attachmentFilenames');
+    expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('screenshotRef');
+    expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('screenshotRefs');
+    expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('screenshotUrl');
+    expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('displayAttachmentId');
+    expect(mockAcceptPendingTurn.mock.calls[0][0]).not.toHaveProperty('displayAttachments');
+    expect(preparedTurn).toEqual(expect.objectContaining({
+      conversationRef: 'conv_turn-1',
+      text: 'look here',
+      turnId: 'turn-1',
+      workspacePath: '/workspace/project',
+      deferredQueryModelSelection: {
+        modelId: 'gpt-5.4',
+        modelProvider: 'openai',
+      },
+    }));
+    expect(preparedTurn).not.toHaveProperty('model');
+    expect(preparedTurn).not.toHaveProperty('sessionInfo');
+    expect(preparedTurn).not.toHaveProperty('timestamp');
+    expect(preparedTurn).not.toHaveProperty('turnRef');
+    expect(preparedTurn?.resources).toEqual([
+      {
+        kind: 'readable_file',
+        filePath: '/workspace/project/notes.txt',
+        filename: 'notes.txt',
+        required: true,
+      },
+      {
+        kind: 'clipboard_image',
+        base64: 'image-base64',
+        contentType: 'image/png',
+        filename: 'shot.png',
+        required: true,
+      },
+      {
+        kind: 'clipboard_image',
+        base64: 'image-without-metadata',
+        required: true,
+      },
+      {
+        kind: 'query_screenshot_request',
+        isFirstUserMessage: true,
+        reason: 'overlay-chatbox',
+        required: false,
+      },
+      {
+        kind: 'workspace',
+        workspacePath: '/workspace/project',
+        required: false,
+      },
+    ]);
+    expect(JSON.stringify(preparedTurn?.resources)).not.toContain('displayAttachmentId');
+    expect(JSON.stringify(preparedTurn?.resources)).not.toContain('displayAttachments');
+    expect(JSON.stringify(preparedTurn?.resources)).not.toContain('previewSrc');
+    expect(JSON.stringify(preparedTurn?.resources)).not.toContain('attachmentContext');
+    expect(JSON.stringify(preparedTurn?.resources)).not.toContain('attachmentFilenames');
+    expect(JSON.stringify(preparedTurn?.resources)).not.toContain('screenshotRefs');
+    expect(JSON.stringify(preparedTurn?.resources)).not.toContain('screenshotUrl');
+    expect(JSON.stringify(preparedTurn?.resources)).not.toContain('screenshotRef');
+    expect(JSON.stringify(preparedTurn?.resources)).not.toContain('attachments');
+  });
+
+  test('does not repair padded workspace bindings into prepared send resources', async () => {
+    mockGetConversationWorkspaceBinding.mockReturnValue({
+      workspacePath: ' /workspace/stale ',
+      workspaceName: 'Stale',
+    });
+    mockFetchActiveWorkspaceSelection.mockResolvedValue({
+      workspace: {
+        activeWorkspacePath: ' /workspace/padded ',
+        activeWorkspaceName: 'Padded',
+      },
+    });
+    const setChatActiveConversationRef = jest.fn();
+
+    const preparedTurn = await prepareDesktopChatSend({
+      payload: 'hello',
+      config: null,
+      dependencies: {
+        acceptPendingTurn: mockAcceptPendingTurn,
+        getActiveConversationRef: () => null,
+        getSendReadModel: () => ({ hasPriorUserMessages: true }),
+        setChatActiveConversationRef,
+      },
+      senderSurface: 'main-window',
+      sendLifecycle: {
+        shouldCaptureQueryScreenshot: false,
+        shouldReturnToChatboxOnSend: false,
+        surfaceReason: 'main-window',
+      },
+    });
+
+    expect(mockFetchActiveWorkspaceSelection).toHaveBeenCalled();
+    expect(preparedTurn?.workspacePath).toBeNull();
+    expect(preparedTurn?.resources).toEqual([]);
+    expect(JSON.stringify(preparedTurn)).not.toContain('/workspace/padded');
+    expect(JSON.stringify(preparedTurn)).not.toContain('/workspace/stale');
+  });
+
+  test('dispatch clears the pending bridge when SDK send fails before turn authority opens', async () => {
+    mockSendQuery.mockRejectedValue(new Error('send failed'));
+    const preparedTurn = {
+      conversationRef: 'conv-1',
+      deferredQueryModelSelection: null,
+      resources: [{
+        kind: 'clipboard_image',
+        base64: 'image-base64',
+        contentType: 'image/png',
+        filename: 'shot.png',
+        required: true,
+      }],
+      sendLifecycle: {
+        shouldCaptureQueryScreenshot: false,
+        shouldReturnToChatboxOnSend: false,
+        surfaceReason: 'overlay-chatbox',
+      },
+      text: 'hello',
+      turnId: 'turn-1',
+      workspacePath: null,
+    };
+
+    await expect(dispatchPreparedDesktopChatTurn(
+      preparedTurn as any,
+      { clearPendingTurn: mockClearPendingTurn },
+    )).rejects.toThrow('send failed');
+
+    expect(mockSendQuery).toHaveBeenCalledWith({
+      text: 'hello',
+      conversationRef: 'conv-1',
+      workspacePath: null,
+      resources: preparedTurn.resources,
+      turnRef: preparedTurn.turnId,
+    });
+    expect(mockClearPendingTurn).toHaveBeenCalledWith({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+    });
+    expect(mockClearPending).toHaveBeenCalledWith({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+    });
+  });
+});

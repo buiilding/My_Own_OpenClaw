@@ -7,6 +7,55 @@ const {
   buildSetNoViewSdkLiveTurnStateUpdate,
 } = DesktopCurrentTurnWorkspaceRuntime;
 
+function conversationView(overrides = {}) {
+  return {
+    conversationRef: 'conv-1',
+    revisionId: null,
+    displayRows: [],
+    liveTurn: {
+      turnRef: 'turn-2',
+      phase: 'streaming',
+      canStop: true,
+      entries: [],
+      isBusy: true,
+      isTerminal: false,
+      lastError: null,
+    },
+    surfaces: {
+      pill: {
+        mode: 'busy',
+      },
+      dashboard: {
+        mode: 'busy',
+      },
+      responseOverlay: {
+        mode: 'response',
+        visible: true,
+        guardRef: 'turn-2',
+        ownerConversationRef: 'conv-1',
+        turnRef: 'turn-2',
+      },
+    },
+    actions: {
+      canEdit: false,
+      canRetry: false,
+      canFork: false,
+    },
+    ...overrides,
+  };
+}
+
+function pendingTurn(overrides = {}) {
+  return {
+    conversationRef: 'conv-1',
+    turnRef: 'turn-1',
+    userMessageId: 'user-1',
+    text: 'pending prompt',
+    timestamp: '2026-06-27T12:00:00.000Z',
+    ...overrides,
+  };
+}
+
 describe('DesktopCurrentTurnWorkspaceRuntime', () => {
   test('returns null when SDK live turn and pending turn do not change', () => {
     const sdkLiveTurn = {
@@ -33,11 +82,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
   test('keeps matching pending turn when SDK live turn has no visible replacement rows', () => {
     const currentWorkspace = {
       sdkLiveTurn: null,
-      pendingTurn: {
-        conversationRef: 'conv-1',
-        turnRef: 'turn-1',
-        userMessageId: 'user-1',
-      },
+      pendingTurn: pendingTurn(),
       messages: [],
     };
     const sdkLiveTurn = {
@@ -64,11 +109,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
   });
 
   test('keeps pending turn through non-authoritative same-turn idle live turn', () => {
-    const pendingTurn = {
-      conversationRef: 'conv-1',
-      turnRef: 'turn-1',
-      userMessageId: 'user-1',
-    };
+    const currentPendingTurn = pendingTurn();
     const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
@@ -82,13 +123,13 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
     expect(buildNoViewSdkLiveTurnWorkspaceMutation({
       currentWorkspace: {
         sdkLiveTurn: null,
-        pendingTurn,
+        pendingTurn: currentPendingTurn,
         messages: [],
       },
       sdkLiveTurn,
     })).toEqual({
       sdkLiveTurn: sdkLiveTurn,
-      pendingTurn,
+      pendingTurn: currentPendingTurn,
       messages: [],
     });
   });
@@ -112,43 +153,42 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       toolEvents: [],
       lastError: null,
     };
-    const pendingTurn = {
-      conversationRef: 'conv-1',
+    const currentPendingTurn = pendingTurn({
       turnRef: 'turn-2',
       userMessageId: 'user-2',
-    };
+    });
 
     expect(buildNoViewSdkLiveTurnWorkspaceMutation({
       currentWorkspace: {
-        conversationView: {
-          conversationRef: 'conv-1',
-          displayRows: [],
-          liveTurn: {
-            turnRef: 'turn-2',
-            phase: 'streaming',
-          },
-        },
+        conversationView: conversationView(),
         sdkLiveTurn: staleProjection,
-        pendingTurn,
+        pendingTurn: currentPendingTurn,
         messages: [],
       },
       sdkLiveTurn,
     })).toEqual({
-      conversationView: {
-        conversationRef: 'conv-1',
-        displayRows: [],
-        liveTurn: {
-          turnRef: 'turn-2',
-          phase: 'streaming',
-        },
-      },
+      conversationView: conversationView(),
       sdkLiveTurn: null,
-      pendingTurn,
+      pendingTurn: currentPendingTurn,
       messages: [],
     });
   });
 
-  test('returns null when conversation view already owns live-turn state', () => {
+  test('keeps partial conversation view objects on the no-view live-turn path', () => {
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-2',
+      phase: 'streaming',
+      assistantText: 'no-view fallback',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    };
+    const currentPendingTurn = pendingTurn({
+      turnRef: 'turn-2',
+      userMessageId: 'user-2',
+    });
+
     expect(buildNoViewSdkLiveTurnWorkspaceMutation({
       currentWorkspace: {
         conversationView: {
@@ -156,11 +196,27 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
           displayRows: [],
         },
         sdkLiveTurn: null,
-        pendingTurn: {
-          conversationRef: 'conv-1',
-          turnRef: 'turn-1',
-          userMessageId: 'user-1',
-        },
+        pendingTurn: currentPendingTurn,
+        messages: [],
+      },
+      sdkLiveTurn,
+    })).toEqual({
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [],
+      },
+      sdkLiveTurn,
+      pendingTurn: currentPendingTurn,
+      messages: [],
+    });
+  });
+
+  test('returns null when conversation view already owns live-turn state', () => {
+    expect(buildNoViewSdkLiveTurnWorkspaceMutation({
+      currentWorkspace: {
+        conversationView: conversationView(),
+        sdkLiveTurn: null,
+        pendingTurn: pendingTurn(),
         messages: [],
       },
       sdkLiveTurn: {
@@ -181,11 +237,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       workspaces: {
         'conv-1': {
           sdkLiveTurn: null,
-          pendingTurn: {
-            conversationRef: 'conv-1',
-            turnRef: 'turn-1',
-            userMessageId: 'user-1',
-          },
+          pendingTurn: pendingTurn(),
           messages: [],
         },
       },
@@ -228,22 +280,14 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
       'conv-1',
       expect.objectContaining({
         sdkLiveTurn: sdkLiveTurn,
-        pendingTurn: {
-          conversationRef: 'conv-1',
-          turnRef: 'turn-1',
-          userMessageId: 'user-1',
-        },
+        pendingTurn: pendingTurn(),
       }),
     );
     expect(nextState).toEqual(expect.objectContaining({
       workspaces: {
         'conv-1': expect.objectContaining({
           sdkLiveTurn: sdkLiveTurn,
-          pendingTurn: {
-            conversationRef: 'conv-1',
-            turnRef: 'turn-1',
-            userMessageId: 'user-1',
-          },
+          pendingTurn: pendingTurn(),
         }),
       },
     }));

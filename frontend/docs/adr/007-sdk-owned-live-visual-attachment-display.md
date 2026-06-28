@@ -136,7 +136,24 @@ MessageRow
 ```
 
 The registry dispatches by SDK attachment `kind`, `status`, and, where needed,
-`source`. It is not a state authority and must not merge screenshot metadata.
+`source`. It is not a state authority and must not merge screenshot metadata or
+publish aggregate attachment lifecycle summaries.
+Renderer projection adapters and the `AttachmentList` component entrypoint may
+drop malformed SDK descriptors before rendering, but only as display-contract
+validation: materializing images need an exact preview source, ready images need
+an exact artifact ref or non-inline URL, and screenshot request placeholders
+must be camera-button descriptors. The renderer must not repair incomplete
+lifecycle state into another status or infer visuals from screenshot aliases.
+The validation gate returns an allowlisted display descriptor rather than
+forwarding the original object, so raw screenshot aliases, ready-row preview
+bytes, backend/provider payloads, and other extra fields cannot leak into
+component props.
+Renderers below `AttachmentList` assume the descriptor has already passed that
+gate; they choose the visual component for the SDK-authored `kind`/`status` and
+do not duplicate attachment lifecycle validation.
+Materializing image previews render directly from SDK-authored `previewSrc`.
+The renderer artifact image resolver is ready-only and must not treat preview
+bytes as artifact/source state.
 
 ## Persistence And Privacy
 

@@ -57,21 +57,27 @@ function messageActionFlag(message, key) {
 }
 
 function messageActionTargetId(message, key) {
-  const value = message?.actions?.[key];
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+  return resolveReplayTargetRowId(message?.actions?.[key]);
+}
+
+function resolveReplayTargetRowId(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim() ? value : null;
 }
 
 function resolveMessageReplayActions(message) {
+  const retryTargetRowId = messageActionTargetId(message, 'retryTargetRowId');
+  const editTargetRowId = messageActionTargetId(message, 'editTargetRowId');
   return {
-    canRetryMessage: messageActionFlag(message, 'canRetry'),
-    canEditMessage: messageActionFlag(message, 'canEdit'),
-    retryTargetMessageId: messageActionTargetId(message, 'retryTargetRowId') || message?.id || null,
-    editTargetMessageId: messageActionTargetId(message, 'editTargetRowId') || message?.id || null,
+    canRetryMessage: messageActionFlag(message, 'canRetry') && Boolean(retryTargetRowId),
+    canEditMessage: messageActionFlag(message, 'canEdit') && Boolean(editTargetRowId),
+    retryTargetRowId,
+    editTargetRowId,
   };
 }
 
 export const DesktopMessageActionRuntime = Object.freeze({
   clearMessageActionTimer,
+  resolveReplayTargetRowId,
   resolveMessageReplayActions,
   scheduleMessageActionTimer,
 });

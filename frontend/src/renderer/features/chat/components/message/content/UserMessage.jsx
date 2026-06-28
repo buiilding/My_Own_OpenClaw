@@ -12,16 +12,9 @@ export default function UserMessage({
   findMatchIndexes = [],
   activeFindMatchIndex = null,
 }) {
-  const displayAttachments = Array.isArray(message.attachments)
-    ? message.attachments
-    : [];
-  const hasDisplayAttachments = displayAttachments.length > 0;
-
   return (
     <div className="user-message-container">
-      {hasDisplayAttachments ? (
-        <AttachmentList attachments={displayAttachments} />
-      ) : null}
+      <AttachmentList attachments={message.attachments} />
       <MarkdownMessage
         text={message.text}
         sender="user"

@@ -95,14 +95,14 @@ describe('ipc_query_runtime', () => {
     });
   });
 
-  test('prepareRendererQueryPayload normalizes attachment fields and requires resolved conversation ref', () => {
+  test('prepareRendererQueryPayload preserves exact attachment fields and requires resolved conversation ref', () => {
     const result = prepareRendererQueryPayload(
       {
         text: 'hello',
         attachment_context: 'file context',
         attachment_filenames: [' notes.txt ', '', 42, 'todo.md'],
         memory_retrieval_enabled: false,
-        query_message_id: ' turn-transport ',
+        query_message_id: 'turn-transport',
       },
       'conv-current',
       jest.fn(() => 'conv-resolved'),
@@ -112,7 +112,7 @@ describe('ipc_query_runtime', () => {
       payload: {
         text: 'hello',
         attachment_context: 'file context',
-        attachment_filenames: ['notes.txt', 'todo.md'],
+        attachment_filenames: ['todo.md'],
         memory_retrieval_enabled: false,
         conversation_ref: 'conv-resolved',
       },
@@ -121,6 +121,18 @@ describe('ipc_query_runtime', () => {
       memoryRetrievalEnabled: false,
       queryMessageId: 'turn-transport',
     });
+  });
+
+  test('prepareRendererQueryPayload rejects padded query ids before turn replay state', () => {
+    expect(() => prepareRendererQueryPayload(
+      {
+        text: 'hello',
+        conversation_ref: 'conv-1',
+        query_message_id: ' turn-transport ',
+      },
+      'conv-current',
+      jest.fn(() => 'conv-1'),
+    )).toThrow('Renderer query command requires exact query_message_id.');
   });
 
   test('prepareRendererQueryPayload rejects removed query id aliases', () => {

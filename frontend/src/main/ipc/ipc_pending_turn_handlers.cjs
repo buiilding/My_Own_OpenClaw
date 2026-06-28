@@ -7,8 +7,32 @@ const {
   DESKTOP_RUNTIME_ON_CHANNELS,
 } = require('./ipc_desktop_runtime_channels.cjs');
 
-function normalizeOptionalString(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+function readExactOptionalString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
+const PENDING_TURN_FIELDS = new Set([
+  'conversationRef',
+  'text',
+  'timestamp',
+  'turnRef',
+  'userMessageId',
+]);
+
+const PENDING_TURN_CLEAR_FIELDS = new Set([
+  'conversationRef',
+  'turnRef',
+  'type',
+]);
+
+function hasOnlyPendingTurnFields(source) {
+  return Object.keys(source).every((key) => PENDING_TURN_FIELDS.has(key));
+}
+
+function hasOnlyPendingTurnClearFields(source) {
+  return Object.keys(source).every((key) => PENDING_TURN_CLEAR_FIELDS.has(key));
 }
 
 function normalizePendingTurnPayload(value) {
@@ -18,9 +42,12 @@ function normalizePendingTurnPayload(value) {
   const pendingTurn = source.pendingTurn && typeof source.pendingTurn === 'object'
     ? source.pendingTurn
     : source;
-  const conversationRef = normalizeOptionalString(pendingTurn.conversationRef);
-  const turnRef = normalizeOptionalString(pendingTurn.turnRef);
-  const userMessageId = normalizeOptionalString(pendingTurn.userMessageId);
+  if (!hasOnlyPendingTurnFields(pendingTurn)) {
+    return null;
+  }
+  const conversationRef = readExactOptionalString(pendingTurn.conversationRef);
+  const turnRef = readExactOptionalString(pendingTurn.turnRef);
+  const userMessageId = readExactOptionalString(pendingTurn.userMessageId);
   const text = typeof pendingTurn.text === 'string' ? pendingTurn.text : null;
   const timestamp = typeof pendingTurn.timestamp === 'string' && pendingTurn.timestamp.trim()
     ? pendingTurn.timestamp
@@ -50,8 +77,20 @@ function pendingTurnMatchesTarget(pendingTurn, input = {}) {
   if (!pendingTurn) {
     return false;
   }
-  const conversationRef = normalizeOptionalString(input.conversationRef);
-  const turnRef = normalizeOptionalString(input.turnRef);
+  const hasConversationRefFilter = Object.prototype.hasOwnProperty.call(input, 'conversationRef')
+    && input.conversationRef !== null
+    && input.conversationRef !== undefined;
+  const hasTurnRefFilter = Object.prototype.hasOwnProperty.call(input, 'turnRef')
+    && input.turnRef !== null
+    && input.turnRef !== undefined;
+  const conversationRef = readExactOptionalString(input.conversationRef);
+  const turnRef = readExactOptionalString(input.turnRef);
+  if (
+    (hasConversationRefFilter && !conversationRef)
+    || (hasTurnRefFilter && !turnRef)
+  ) {
+    return false;
+  }
   return (
     (!conversationRef || pendingTurn.conversationRef === conversationRef)
     && (!turnRef || pendingTurn.turnRef === turnRef)
@@ -76,8 +115,8 @@ function clearPendingTurnState({
   if (broadcast === true) {
     broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN, {
       type: 'clear',
-      conversationRef: normalizeOptionalString(conversationRef) || pendingTurn.conversationRef,
-      turnRef: normalizeOptionalString(turnRef) || pendingTurn.turnRef,
+      conversationRef: readExactOptionalString(conversationRef) || pendingTurn.conversationRef,
+      turnRef: readExactOptionalString(turnRef) || pendingTurn.turnRef,
     });
   }
   return true;
@@ -94,14 +133,23 @@ function registerPendingTurnHandlers({
       ? payload
       : {};
     if (source.type === 'clear') {
+      if (!hasOnlyPendingTurnClearFields(source)) {
+        return;
+      }
       if (
         Object.prototype.hasOwnProperty.call(source, 'conversation_ref')
         || Object.prototype.hasOwnProperty.call(source, 'turn_ref')
       ) {
         return;
       }
-      const conversationRef = normalizeOptionalString(source.conversationRef);
-      const turnRef = normalizeOptionalString(source.turnRef);
+      const conversationRef = readExactOptionalString(source.conversationRef);
+      const turnRef = readExactOptionalString(source.turnRef);
+      if (
+        (source.conversationRef !== null && source.conversationRef !== undefined && !conversationRef)
+        || (source.turnRef !== null && source.turnRef !== undefined && !turnRef)
+      ) {
+        return;
+      }
       clearLatestPendingTurn({ conversationRef, turnRef });
       broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN, {
         type: 'clear',

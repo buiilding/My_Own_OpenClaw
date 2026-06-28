@@ -4,8 +4,23 @@ import {
 
 const {
   buildChatInterfacePresentationState,
-  resolveConversationViewStoreRef,
 } = DesktopChatInterfacePresentationRuntime;
+
+function sdkConversationView(overrides = {}) {
+  return {
+    conversationRef: 'conv-1',
+    displayRows: [],
+    liveTurn: {
+      entries: [],
+    },
+    surfaces: {},
+    actions: {
+      canEdit: true,
+      canRetry: true,
+    },
+    ...overrides,
+  };
+}
 
 describe('DesktopChatInterfacePresentationRuntime', () => {
   test('does not project ConversationView action metadata as a global message gate', () => {
@@ -18,6 +33,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         liveTurn: {
           entries: [],
         },
+        surfaces: {},
         actions: {
           canEdit: false,
           canRetry: true,
@@ -63,6 +79,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         liveTurn: {
           entries: [],
         },
+        surfaces: {},
         actions: {
           canEdit: true,
           canRetry: true,
@@ -105,6 +122,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         liveTurn: {
           entries: [],
         },
+        surfaces: {},
         actions: {
           canEdit: true,
           canRetry: true,
@@ -149,6 +167,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         liveTurn: {
           entries: [],
         },
+        surfaces: {},
         actions: {
           canEdit: true,
           canRetry: true,
@@ -172,6 +191,84 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
       expect.objectContaining({
         id: 'pending-user',
         text: 'pending prompt',
+      }),
+    ]);
+  });
+
+  test('keeps cross-conversation pending bridge out of ConversationView rendering', () => {
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-view',
+      conversationView: {
+        conversationRef: 'conv-view',
+        revisionId: 'rev-1',
+        displayRows: [{
+          id: 'view-row',
+          conversationRef: 'conv-view',
+          turnRef: 'turn-view',
+          index: 0,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'view answer',
+        }],
+        liveTurn: {
+          entries: [],
+        },
+        surfaces: {},
+        actions: {
+          canEdit: true,
+          canRetry: true,
+        },
+      },
+      messages: [],
+      pendingTurn: {
+        conversationRef: 'conv-other',
+        turnRef: 'turn-pending',
+        userMessageId: 'pending-user',
+        text: 'pending prompt from another conversation',
+        timestamp: '2026-06-25T12:00:00.000Z',
+      },
+    });
+
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'view-row',
+        text: 'view answer',
+      }),
+    ]);
+  });
+
+  test('ignores malformed ConversationView revision ids', () => {
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        revisionId: ' rev-padded ',
+        displayRows: [{
+          id: 'view-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-view',
+          index: 0,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'view answer',
+        }],
+        liveTurn: {
+          entries: [],
+        },
+        surfaces: {},
+        actions: {
+          canEdit: true,
+          canRetry: true,
+        },
+      },
+      messages: [],
+    });
+
+    expect(state.activeRevisionId).toBeNull();
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'view-row',
+        text: 'view answer',
       }),
     ]);
   });
@@ -211,9 +308,9 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
         text: 'pending prompt',
         sourceEventType: 'renderer-compose',
         sourceChannel: 'renderer-local',
-        attachments: null,
       }),
     ]);
+    expect(state.renderedMessages[1]).not.toHaveProperty('attachments');
   });
 
   test('does not project no-view pending bridge when a user row already owns the turn', () => {
@@ -261,6 +358,288 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     expect(state).not.toHaveProperty('replayFallbackMessages');
   });
 
+  test('keeps partial conversation view objects on the no-view fallback path', () => {
+    const messages = [{
+      id: 'raw-user-row',
+      sender: 'user',
+      text: 'raw prompt',
+      turnRef: 'turn-live',
+    }];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-live',
+      phase: 'streaming',
+      assistantText: 'fallback live answer',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    };
+    const rendererAnnotations = [];
+    const firstState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        liveTurn: {
+          entries: [],
+        },
+      },
+      messages,
+      rendererAnnotations,
+      sdkLiveTurn,
+    });
+    const secondState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [],
+      },
+      messages,
+      rendererAnnotations,
+      sdkLiveTurn,
+    });
+
+    expect(secondState).toBe(firstState);
+    expect(secondState.activeRevisionId).toBeNull();
+    expect(secondState.renderedMessages).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'raw-user-row',
+        text: 'raw prompt',
+      }),
+      expect.objectContaining({
+        text: 'fallback live answer',
+      }),
+    ]));
+  });
+
+  test('keeps malformed conversation view envelopes on the no-view fallback path', () => {
+    const messages = [{
+      id: 'raw-user-row',
+      sender: 'user',
+      text: 'raw prompt',
+      turnRef: 'turn-live',
+    }];
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: sdkConversationView({
+        conversationRef: ' conv-1 ',
+        revisionId: 'rev-malformed',
+        liveTurn: [],
+        displayRows: [{
+          id: 'view-row-ignored',
+          conversationRef: ' conv-1 ',
+          turnRef: 'turn-live',
+          index: 0,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'malformed view answer',
+        }],
+      }),
+      messages,
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-live',
+        phase: 'streaming',
+        presentation: {
+          entries: [{
+            id: 'live-entry',
+            type: 'llm-text',
+            text: 'fallback live answer',
+            turnRef: 'turn-live',
+          }],
+        },
+      },
+    });
+
+    expect(state.activeRevisionId).toBeNull();
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'raw-user-row',
+        text: 'raw prompt',
+      }),
+      expect.objectContaining({
+        id: 'live-entry',
+        text: 'fallback live answer',
+        sourceChannel: 'sdk:current-turn',
+      }),
+    ]);
+  });
+
+  test('keeps no-view SDK presentation cached across ignored raw live-turn changes', () => {
+    const messages = [];
+    const rendererAnnotations = [];
+    const presentation = {
+      entries: [{
+        id: 'live-answer',
+        type: 'llm-text',
+        text: 'presentation answer',
+      }],
+    };
+    const firstState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: null,
+      messages,
+      rendererAnnotations,
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        phase: 'streaming',
+        presentation,
+        assistantText: 'ignored raw answer a',
+        reasoningText: 'ignored raw thought a',
+        toolEvents: [],
+      },
+    });
+    const secondState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: null,
+      messages,
+      rendererAnnotations,
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        phase: 'streaming',
+        presentation,
+        assistantText: 'ignored raw answer b',
+        reasoningText: 'ignored raw thought b',
+        toolEvents: [{
+          id: 'ignored-tool',
+          kind: 'tool_call',
+          toolName: 'ignored',
+        }],
+      },
+    });
+
+    expect(secondState).toBe(firstState);
+    expect(secondState.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'live-answer',
+        text: 'presentation answer',
+      }),
+    ]);
+  });
+
+  test('keeps no-view SDK presentation cached across malformed live-turn identity changes', () => {
+    const messages = [];
+    const rendererAnnotations = [];
+    const presentation = {
+      entries: [{
+        id: 'live-answer',
+        type: 'llm-text',
+        text: 'presentation answer',
+      }],
+    };
+    const firstState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: null,
+      messages,
+      rendererAnnotations,
+      sdkLiveTurn: {
+        conversationRef: ' conv-1',
+        turnRef: ' turn-1',
+        phase: ' streaming',
+        presentation,
+      },
+    });
+    const secondState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: null,
+      messages,
+      rendererAnnotations,
+      sdkLiveTurn: {
+        conversationRef: 'conv-1 ',
+        turnRef: 'turn-1 ',
+        phase: 'streaming ',
+        presentation,
+      },
+    });
+
+    expect(secondState).toBe(firstState);
+    expect(secondState.renderedMessages).toEqual([]);
+  });
+
+  test('updates no-view SDK presentation when presentation entries change', () => {
+    const firstState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: null,
+      messages: [],
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        phase: 'streaming',
+        presentation: {
+          entries: [{
+            id: 'live-answer-a',
+            type: 'llm-text',
+            text: 'first presentation answer',
+          }],
+        },
+      },
+    });
+    const secondState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: null,
+      messages: [],
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        phase: 'streaming',
+        presentation: {
+          entries: [{
+            id: 'live-answer-b',
+            type: 'llm-text',
+            text: 'second presentation answer',
+          }],
+        },
+      },
+    });
+
+    expect(secondState).not.toBe(firstState);
+    expect(secondState.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'live-answer-b',
+        text: 'second presentation answer',
+      }),
+    ]);
+  });
+
+  test('updates legacy no-presentation rows when raw live-turn text changes', () => {
+    const firstState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: null,
+      messages: [],
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-legacy',
+        phase: 'streaming',
+        assistantText: 'legacy answer a',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      },
+    });
+    const secondState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: null,
+      messages: [],
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-legacy',
+        phase: 'streaming',
+        assistantText: 'legacy answer b',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      },
+    });
+
+    expect(secondState).not.toBe(firstState);
+    expect(secondState.renderedMessages).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        text: 'legacy answer b',
+      }),
+    ]));
+  });
+
   test('renders ConversationView live rows instead of stale raw current-turn rows', () => {
     const state = buildChatInterfacePresentationState({
       activeConversationRef: 'conv-1',
@@ -279,10 +658,11 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
           turnRef: 'turn-view',
           entries: [{
             id: 'view-live',
-            type: 'assistant_message',
+            type: 'llm-text',
             text: 'view live answer',
           }],
         },
+        surfaces: {},
         actions: {
           canEdit: true,
           canRetry: true,
@@ -323,6 +703,67 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     ]));
   });
 
+  test('does not suppress ConversationView live rows as raw duplicate materialized messages', () => {
+    const state = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [{
+          id: 'user-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-view',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'view prompt',
+        }, {
+          id: 'assistant-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-view',
+          index: 1,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'view live answer final',
+        }],
+        liveTurn: {
+          turnRef: 'turn-view',
+          entries: [{
+            id: 'view-live',
+            type: 'llm-text',
+            text: 'view live answer',
+          }],
+        },
+        surfaces: {},
+        actions: {
+          canEdit: true,
+          canRetry: true,
+        },
+      },
+      messages: [{
+        id: 'raw-duplicate',
+        sender: 'assistant',
+        type: 'llm-text',
+        text: 'raw duplicate should not decide view live rows',
+        turnRef: 'turn-view',
+      }],
+    });
+
+    expect(state.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'user-row',
+      }),
+      expect.objectContaining({
+        id: 'assistant-row',
+        text: 'view live answer final',
+      }),
+      expect.objectContaining({
+        id: 'view-live',
+        text: 'view live answer',
+        turnRef: 'turn-view',
+      }),
+    ]);
+  });
+
   test('does not fall back to raw current-turn rows when ConversationView live rows are empty', () => {
     const state = buildChatInterfacePresentationState({
       activeConversationRef: 'conv-1',
@@ -341,6 +782,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
           turnRef: 'turn-view',
           entries: [],
         },
+        surfaces: {},
         actions: {
           canEdit: true,
           canRetry: true,
@@ -371,40 +813,109 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     ]));
   });
 
-  test('resolves a conversation view store target ref', () => {
-    expect(resolveConversationViewStoreRef({
-      activeConversationRef: 'conv-1',
-      view: {
+  test('keeps ConversationView presentation cached across ignored raw live-turn changes', () => {
+    const messages = [];
+    const rendererAnnotations = [];
+    const conversationView = {
+      conversationRef: 'conv-1',
+      displayRows: [{
+        id: 'user-row',
         conversationRef: 'conv-1',
-        displayRows: [{
-          id: 'user-row',
-          conversationRef: 'conv-1',
-          turnRef: 'turn-1',
-          index: 0,
-          role: 'user',
-          type: 'user_message',
-          content: 'new text',
-        }],
+        turnRef: 'turn-view',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'view prompt',
+      }],
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries: [],
       },
-    })).toBe('conv-1');
+      surfaces: {},
+      actions: {
+        canEdit: true,
+        canRetry: true,
+      },
+    };
+    const firstState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView,
+      messages,
+      rendererAnnotations,
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-stale-a',
+        phase: 'streaming',
+        assistantText: 'ignored raw answer',
+      },
+    });
+    const secondState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView,
+      messages,
+      rendererAnnotations,
+      sdkLiveTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-stale-b',
+        phase: 'tool_call',
+        assistantText: 'ignored raw tool turn',
+      },
+    });
 
-    expect(resolveConversationViewStoreRef({
-      activeConversationRef: 'conv-active',
-      targetConversationRef: 'conv-target',
-      view: {
-        conversationRef: 'conv-view',
-        displayRows: [],
-      },
-    })).toBe('conv-target');
+    expect(secondState).toBe(firstState);
   });
 
-  test('returns null when a view has no resolvable conversation ref', () => {
-    expect(resolveConversationViewStoreRef({
-      activeConversationRef: null,
-      targetConversationRef: null,
-      view: {
-        displayRows: [],
+  test('keeps ConversationView presentation cached across ignored raw message changes', () => {
+    const rendererAnnotations = [];
+    const conversationView = {
+      conversationRef: 'conv-1',
+      displayRows: [{
+        id: 'user-row',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-view',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'view prompt',
+      }],
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries: [],
       },
-    })).toBeNull();
+      surfaces: {},
+      actions: {
+        canEdit: true,
+        canRetry: true,
+      },
+    };
+    const firstState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView,
+      messages: [{
+        id: 'stale-raw-a',
+        sender: 'user',
+        text: 'ignored raw prompt a',
+      }],
+      rendererAnnotations,
+    });
+    const secondState = buildChatInterfacePresentationState({
+      activeConversationRef: 'conv-1',
+      conversationView,
+      messages: [{
+        id: 'stale-raw-b',
+        sender: 'user',
+        text: 'ignored raw prompt b',
+      }],
+      rendererAnnotations,
+    });
+
+    expect(secondState).toBe(firstState);
+    expect(secondState.renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'user-row',
+        text: 'view prompt',
+      }),
+    ]);
   });
+
 });

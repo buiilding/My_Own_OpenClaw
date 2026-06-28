@@ -57,7 +57,7 @@ Run tests on both sides of the boundary when a payload crosses processes.
 | Contract | Run |
 | --- | --- |
 | Backend model-facing tool schema and local-runtime executable tools | private backend tests |
-| SDK result envelope and renderer tool display | private backend tests plus `<windie> test frontend -- AgentSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState ToolOutputContent` |
+| SDK result envelope and renderer tool display | `<windie> test backend -- tests/backend/test_incoming_tool_result_schemas.py -q` plus `<windie> test frontend -- AgentSdkConversationRuntime LocalRuntimeExecuteToolRuntime DesktopCurrentTurnMessageRuntime SdkDisplayChatMessageProjection ToolOutputContent` |
 | Response overlay phase names | `<windie> test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js IpcOverlayPhaseContract.test.cjs` |
 | Transcript/replay/display rows | `<windie> test frontend -- DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts ConversationRuntimeProjectionStream.test.ts SdkDisplayChatMessageProjection.test.ts` |
 | Artifact refs and URLs | private backend tests plus `<windie> test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs` |

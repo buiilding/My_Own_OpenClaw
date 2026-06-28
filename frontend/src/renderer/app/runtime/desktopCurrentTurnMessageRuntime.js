@@ -2,29 +2,34 @@
  * Projects SDK current-turn state into renderer chat message rows.
  */
 
-import { DesktopChatMessageRuntimeClient } from './desktopChatMessageRuntimeClient';
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
 import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
 import { DesktopSdkToolDetailProjection } from './desktopSdkToolDetailProjection';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
-const {
-  buildToolCallChatMessageState,
-  buildToolOutputChatMessageState,
-} = DesktopChatMessageRuntimeClient;
 const {
   readSdkDisplayAttachments,
 } = DesktopSdkDisplayAttachmentProjection;
 const {
   sanitizeSdkToolDetailRecord,
 } = DesktopSdkToolDetailProjection;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 const sdkConversationViewSourceChannel = DesktopPresentationSourceChannels
   .getSdkConversationViewSourceChannel();
-
-function asObject(value) {
-  return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
-}
+const LIVE_PRESENTATION_ENTRY_TYPES = new Set([
+  'thinking',
+  'llm-text',
+  'tool-call',
+  'tool-progress',
+  'tool-output',
+  'error',
+]);
 
 function asRecord(value) {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -32,125 +37,42 @@ function asRecord(value) {
     : null;
 }
 
-function readString(value) {
-  return typeof value === 'string' ? value : null;
-}
-
 function normalizeText(value) {
   return typeof value === 'string' && value.trim() ? value : '';
 }
 
-function normalizeOptionalText(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+function readExactSdkString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
-function resolveNoViewSdkLiveTurnThinkingText(sdkLiveTurn = null) {
-  if (hasPresentationObject(sdkLiveTurn)) {
-    return '';
-  }
-  return normalizeOptionalText(asRecord(sdkLiveTurn)?.reasoningText) || '';
+function exactSdkStringProp(key, value) {
+  const exactValue = readExactSdkString(value);
+  return exactValue ? { [key]: exactValue } : {};
+}
+
+function resolveEntryCorrelationId(entry) {
+  return (
+    readExactSdkString(entry.correlationId)
+    || readExactSdkString(entry.requestId)
+    || readExactSdkString(entry.bundleId)
+    || null
+  );
 }
 
 function normalizeEntryType(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : 'llm-text';
-}
-
-function buildProjectedToolCallMessage({
-  baseId,
-  turnRef,
-  toolEvent,
-}) {
-  const payload = asObject(toolEvent.payload);
-  const toolCallDetails = asObject(toolEvent.toolCallDetails);
-  const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);
-  const toolName = readString(toolEvent.toolName) || readString(payload?.toolName) || '';
-  const correlationId = (
-    readString(toolEvent.correlationId)
-    || readString(toolEvent.requestId)
-    || readString(payload?.requestId)
-  );
-  const text = normalizeText(toolEvent.text) || (toolName ? `Using ${toolName}` : 'Using tool');
-
-  return buildToolCallChatMessageState({
-    id: `${baseId}:tool:${toolEvent.id}`,
-    text,
-    toolCallDisplayText: text,
-    toolCallDetails: displayToolCallDetails,
-    correlationId: correlationId ?? null,
-    sourceEventType: toolEvent.kind,
-    sourceChannel: sdkCurrentTurnSourceChannel,
-    turnRef: turnRef || undefined,
-  });
-}
-
-function buildProjectedToolOutputMessage({
-  baseId,
-  turnRef,
-  toolEvent,
-}) {
-  const toolOutputDetails = asObject(toolEvent.toolOutputDetails) || {};
-  const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);
-  const toolName = readString(toolEvent.toolName);
-  const requestId = readString(toolEvent.requestId);
-  const correlationId = (
-    readString(toolEvent.correlationId)
-    || requestId
-    || undefined
-  );
-  const attachments = readSdkDisplayAttachments(toolEvent.attachments);
-  const outputText = normalizeText(toolEvent.text)
-    || (toolName ? `${toolName} completed` : 'Tool completed');
-  return buildToolOutputChatMessageState({
-    id: `${baseId}:tool:${toolEvent.id}`,
-    outputText,
-    sourceEventType: toolEvent.kind,
-    sourceChannel: sdkCurrentTurnSourceChannel,
-    attachments,
-    toolMetadata: asObject(toolEvent.toolMetadata),
-    toolName,
-    executionTime: typeof toolEvent.executionTime === 'number' ? toolEvent.executionTime : null,
-    success: typeof toolEvent.success === 'boolean' ? toolEvent.success : null,
-    correlationId,
-    toolOutputDetails: displayToolOutputDetails,
-    turnRef: turnRef || null,
-    modelId: null,
-    modelProvider: null,
-  });
-}
-
-function buildProjectedToolProgressMessage({
-  baseId,
-  turnRef,
-  toolEvent,
-}) {
-  const text = typeof toolEvent?.text === 'string' && toolEvent.text.trim()
-    ? toolEvent.text
-    : (typeof toolEvent?.toolName === 'string' ? toolEvent.toolName : '');
-  if (!text) {
-    return null;
+  if (value === null || value === undefined) {
+    return 'llm-text';
   }
-  return {
-    id: `${baseId}:tool:${toolEvent.id}`,
-    text,
-    sender: 'assistant',
-    type: 'search-source',
-    sourceEventType: toolEvent.kind,
-    sourceChannel: sdkCurrentTurnSourceChannel,
-    turnRef: turnRef || undefined,
-    toolName: toolEvent.toolName || undefined,
-    success: toolEvent.status === 'success' ? true : undefined,
-    toolMetadata: toolEvent.toolMetadata || null,
-  };
+  const type = readExactSdkString(value);
+  return type && LIVE_PRESENTATION_ENTRY_TYPES.has(type)
+    ? type
+    : null;
 }
 
-function buildProjectedToolMessage({ baseId, turnRef, toolEvent }) {
-  if (toolEvent.kind === 'tool_output') {
-    return buildProjectedToolOutputMessage({ baseId, turnRef, toolEvent });
-  }
-  if (toolEvent.kind === 'tool_progress') {
-    return buildProjectedToolProgressMessage({ baseId, turnRef, toolEvent });
-  }
-  return buildProjectedToolCallMessage({ baseId, turnRef, toolEvent });
+function resolveToolName(value) {
+  return readExactSdkString(value);
 }
 
 function hasPresentationObject(sdkLiveTurn) {
@@ -170,23 +92,30 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
     phase,
     assistantText,
     reasoningText,
-    toolEvents,
     lastError,
   } = sdkLiveTurn;
   const hasText = typeof assistantText === 'string' && assistantText.trim();
   const hasReasoning = typeof reasoningText === 'string' && reasoningText.trim();
-  const hasError = typeof lastError === 'string' && lastError.trim();
-  const hasToolEvents = Array.isArray(toolEvents) && toolEvents.length > 0;
-  if (phase === 'idle' && !hasText && !hasReasoning && !hasError && !hasToolEvents) {
+  const errorText = readExactSdkString(lastError);
+  const hasError = Boolean(errorText);
+  if (phase === 'idle' && !hasText && !hasReasoning && !hasError) {
     return [];
   }
 
-  const baseId = `${conversationRef || 'conversation'}:${turnRef || 'turn'}`;
+  const liveConversationRef = readExactSdkString(conversationRef);
+  if (!liveConversationRef) {
+    return [];
+  }
+  const liveTurnRef = readExactSdkString(turnRef);
+  if (!liveTurnRef) {
+    return [];
+  }
+  const baseId = `${liveConversationRef}:${liveTurnRef}`;
   const messages = [{
     id: `${baseId}:user-marker`,
     text: '',
     sender: 'user',
-    turnRef: turnRef || undefined,
+    turnRef: liveTurnRef || undefined,
     sourceEventType: 'sdk-current-turn',
     sourceChannel: sdkCurrentTurnSourceChannel,
   }];
@@ -200,21 +129,8 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
       thinkingText: reasoningText,
       sourceEventType: 'reasoning_delta',
       sourceChannel: sdkCurrentTurnSourceChannel,
-      turnRef: turnRef || undefined,
+      turnRef: liveTurnRef || undefined,
       isComplete: false,
-    });
-  }
-
-  if (hasToolEvents) {
-    toolEvents.forEach((toolEvent, index) => {
-      const projectedToolEvent = {
-        ...toolEvent,
-        id: toolEvent.id || index,
-      };
-      const message = buildProjectedToolMessage({ baseId, turnRef, toolEvent: projectedToolEvent });
-      if (message) {
-        messages.push(message);
-      }
     });
   }
 
@@ -224,10 +140,10 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
       text: assistantText,
       sender: 'assistant',
       type: 'llm-text',
-      thinkingText: hasReasoning ? reasoningText : null,
+      ...(hasReasoning ? { thinkingText: reasoningText } : {}),
       sourceEventType: 'assistant_delta',
       sourceChannel: sdkCurrentTurnSourceChannel,
-      turnRef: turnRef || undefined,
+      turnRef: liveTurnRef || undefined,
       isComplete: phase === 'complete',
     });
   }
@@ -235,12 +151,12 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
   if (hasError) {
     messages.push({
       id: `${baseId}:error`,
-      text: lastError,
+      text: errorText,
       sender: 'assistant',
       type: 'error',
       sourceEventType: 'runtime_error',
       sourceChannel: sdkCurrentTurnSourceChannel,
-      turnRef: turnRef || undefined,
+      turnRef: liveTurnRef || undefined,
       isComplete: true,
     });
   }
@@ -251,17 +167,18 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
 function buildBaseMessageFields(entry, liveTurnContext) {
   return {
     id: entry.id,
-    sourceEventType: entry.sourceEventType || null,
-    sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel,
-    turnRef: entry.turnRef || liveTurnContext?.turnRef || undefined,
-    modelId: entry.modelId || null,
-    modelProvider: entry.modelProvider || null,
+    sourceChannel: liveTurnContext?.sourceChannel || sdkCurrentTurnSourceChannel,
+    ...exactSdkStringProp('sourceEventType', entry.sourceEventType),
+    ...exactSdkStringProp('turnRef', liveTurnContext?.turnRef),
+    ...exactSdkStringProp('modelId', entry.modelId),
+    ...exactSdkStringProp('modelProvider', entry.modelProvider),
     isComplete: entry.isComplete === true,
   };
 }
 
 function buildThinkingMessage(entry, liveTurnContext) {
   const thinkingText = normalizeText(entry.text);
+  const thinkingSourceEventType = readExactSdkString(entry.sourceEventType);
   if (!thinkingText) {
     return null;
   }
@@ -271,7 +188,7 @@ function buildThinkingMessage(entry, liveTurnContext) {
     sender: 'assistant',
     type: 'llm-text',
     thinkingText,
-    thinkingSourceEventType: entry.sourceEventType || 'reasoning_delta',
+    ...(thinkingSourceEventType ? { thinkingSourceEventType } : {}),
     isComplete: false,
   };
 }
@@ -304,23 +221,25 @@ function buildErrorMessage(entry, liveTurnContext) {
 }
 
 function buildToolCallMessage(entry, liveTurnContext) {
-  const toolName = normalizeOptionalText(entry.toolName);
+  const toolName = resolveToolName(entry.toolName);
   const text = normalizeText(entry.text);
-  const toolDetails = asRecord(entry.toolCallDetails);
-  const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);
   const displayText = text || (toolName ? `Using ${toolName}` : 'Using tool');
+  const toolCallDetails = sanitizeSdkToolDetailRecord(asRecord(entry.toolCallDetails));
+  const correlationId = resolveEntryCorrelationId(entry);
 
-  return buildToolCallChatMessageState({
+  return {
     ...buildBaseMessageFields(entry, liveTurnContext),
     text: displayText,
+    sender: 'assistant',
+    type: 'tool-call',
     toolCallDisplayText: displayText,
-    toolCallDetails: displayToolDetails,
-    correlationId: normalizeOptionalText(entry.correlationId),
-  });
+    ...(toolCallDetails ? { toolCallDetails } : {}),
+    ...(correlationId ? { correlationId } : {}),
+  };
 }
 
 function buildToolProgressMessage(entry, liveTurnContext) {
-  const text = normalizeText(entry.text) || normalizeOptionalText(entry.toolName);
+  const text = normalizeText(entry.text) || resolveToolName(entry.toolName);
   if (!text) {
     return null;
   }
@@ -328,49 +247,42 @@ function buildToolProgressMessage(entry, liveTurnContext) {
     ...buildBaseMessageFields(entry, liveTurnContext),
     text,
     sender: 'assistant',
-    type: 'search-source',
-    toolName: entry.toolName || undefined,
-    toolMetadata: entry.toolMetadata || null,
+    type: 'tool-progress',
   };
 }
 
 function buildToolOutputMessage(entry, liveTurnContext) {
-  const toolDetails = asRecord(entry.toolOutputDetails);
-  const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);
-  const toolName = normalizeOptionalText(entry.toolName);
+  const toolName = resolveToolName(entry.toolName);
   const text = normalizeText(entry.text) || (toolName ? `${toolName} completed` : 'Tool completed');
   const attachments = readSdkDisplayAttachments(entry.attachments);
-  return buildToolOutputChatMessageState({
-    id: entry.id,
-    outputText: text,
-    sourceEventType: entry.sourceEventType || 'tool_output',
-    sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel,
-    attachments,
-    toolMetadata: asRecord(entry.toolMetadata),
-    toolName,
-    executionTime: typeof entry.executionTime === 'number' ? entry.executionTime : null,
-    success: typeof entry.success === 'boolean' ? entry.success : null,
-    correlationId: normalizeOptionalText(entry.correlationId),
-    toolOutputDetails: displayToolDetails,
-    turnRef: entry.turnRef || liveTurnContext?.turnRef || null,
-    modelId: entry.modelId || null,
-    modelProvider: entry.modelProvider || null,
-    isComplete: entry.isComplete === true,
-  });
+  const correlationId = resolveEntryCorrelationId(entry);
+  const toolOutputDetails = sanitizeSdkToolDetailRecord(asRecord(entry.toolOutputDetails));
+  return {
+    ...buildBaseMessageFields(entry, liveTurnContext),
+    text,
+    sender: 'assistant',
+    type: 'tool-output',
+    ...(toolOutputDetails ? { toolOutputDetails } : {}),
+    ...(attachments.length > 0 ? { attachments } : {}),
+    ...(correlationId ? { correlationId } : {}),
+  };
 }
 
 function buildChatMessageFromLiveTurnEntry(entry, liveTurnContext = null) {
-  if (!entry || typeof entry !== 'object' || typeof entry.id !== 'string') {
+  if (!entry || typeof entry !== 'object' || !readExactSdkString(entry.id)) {
     return null;
   }
   const type = normalizeEntryType(entry.type);
+  if (!type) {
+    return null;
+  }
   if (type === 'thinking') {
     return buildThinkingMessage(entry, liveTurnContext);
   }
-  if (type === 'tool-call' || type === 'tool-explanation') {
+  if (type === 'tool-call') {
     return buildToolCallMessage(entry, liveTurnContext);
   }
-  if (type === 'tool-progress' || type === 'search-source') {
+  if (type === 'tool-progress') {
     return buildToolProgressMessage(entry, liveTurnContext);
   }
   if (type === 'tool-output') {
@@ -395,6 +307,11 @@ function buildCurrentTurnMessagesFromPresentation(sdkLiveTurn = null) {
 }
 
 function buildNoViewSdkLiveTurnMessages(sdkLiveTurn = null) {
+  const noViewConversationRef = readExactSdkString(sdkLiveTurn?.conversationRef);
+  const noViewTurnRef = readExactSdkString(sdkLiveTurn?.turnRef);
+  if (!noViewConversationRef || !noViewTurnRef) {
+    return [];
+  }
   const presentationMessages = buildCurrentTurnMessagesFromPresentation(sdkLiveTurn);
   if (presentationMessages.length > 0) {
     return presentationMessages;
@@ -413,14 +330,12 @@ function buildConversationViewLiveTurnMessages(conversationView = null) {
     return [];
   }
   const liveTurnContext = {
-    conversationRef: conversationView?.conversationRef || null,
-    turnRef: conversationView?.liveTurn?.turnRef || null,
+    conversationRef: readExactSdkString(conversationView?.conversationRef),
+    turnRef: readExactSdkString(conversationView?.liveTurn?.turnRef),
+    sourceChannel: sdkConversationViewSourceChannel,
   };
   return entries
-    .map((entry) => buildChatMessageFromLiveTurnEntry({
-      ...entry,
-      sourceChannel: sdkConversationViewSourceChannel,
-    }, liveTurnContext))
+    .map((entry) => buildChatMessageFromLiveTurnEntry(entry, liveTurnContext))
     .filter(Boolean);
 }
 
@@ -428,11 +343,13 @@ function buildSdkLiveTurnMessages({
   conversationView = null,
   sdkLiveTurn = null,
 } = {}) {
-  const conversationViewMessages = buildConversationViewLiveTurnMessages(conversationView);
+  const hasConversationView = hasWorkspaceConversationView({ conversationView });
+  const effectiveConversationView = hasConversationView ? conversationView : null;
+  const conversationViewMessages = buildConversationViewLiveTurnMessages(effectiveConversationView);
   if (conversationViewMessages.length > 0) {
     return conversationViewMessages;
   }
-  if (conversationView && typeof conversationView === 'object') {
+  if (hasConversationView) {
     return [];
   }
   return buildNoViewSdkLiveTurnMessages(sdkLiveTurn);
@@ -451,6 +368,7 @@ function isResponseCloseable(response) {
 const RESPONSE_OVERLAY_VISIBLE_MESSAGE_TYPES = new Set([
   'tool-call',
   'tool-output',
+  'tool-progress',
   'search-source',
   'tool-explanation',
   'error',
@@ -459,6 +377,7 @@ const RESPONSE_OVERLAY_VISIBLE_MESSAGE_TYPES = new Set([
 const RESPONSE_OVERLAY_PROGRESS_MESSAGE_TYPES = new Set([
   'tool-call',
   'tool-output',
+  'tool-progress',
   'search-source',
   'tool-explanation',
 ]);
@@ -488,7 +407,7 @@ function isResponseOverlaySourceTaggedMessage(message) {
     && (
       message.type === 'llm-text'
       || message.type === 'error'
-      || normalizeOptionalText(message.sourceEventType)
+      || readExactSdkString(message.sourceEventType)
     ),
   );
 }
@@ -496,12 +415,10 @@ function isResponseOverlaySourceTaggedMessage(message) {
 export const DesktopCurrentTurnMessageRuntime = Object.freeze({
   buildConversationViewLiveTurnMessages,
   buildCurrentTurnMessagesFromPresentation,
-  buildLegacyNoPresentationCurrentTurnMessages,
   buildNoViewSdkLiveTurnMessages,
   buildSdkLiveTurnMessages,
   isResponseCloseable,
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
   isVisibleResponseOverlayMessage,
-  resolveNoViewSdkLiveTurnThinkingText,
 });

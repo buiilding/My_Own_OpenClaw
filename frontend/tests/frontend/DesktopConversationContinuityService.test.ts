@@ -55,11 +55,6 @@ describe('DesktopConversationContinuityService', () => {
           conversationRef: 'conv-display',
           messageId: 'row-user',
           text: 'edited text',
-          payload: { screenshot_refs: ['artifact-one'] },
-          model: {
-            modelProvider: 'anthropic',
-            modelId: 'claude-sonnet-4-5',
-          },
         },
       });
     } finally {
@@ -104,13 +99,68 @@ describe('DesktopConversationContinuityService', () => {
           userId: 'user-1',
           conversationRef: 'conv-display',
           messageId: 'row-assistant',
-          payload: { screenshot_ref: 'artifact-one' },
-          model: {
-            modelProvider: 'anthropic',
-            modelId: 'claude-sonnet-4-5',
-          },
         },
       });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('replay command facade rejects padded conversation refs before IPC dispatch', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({ ok: true, data: null })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.editAndResend({
+        userId: 'user-1',
+        conversationRef: ' conv-display ',
+        messageId: 'row-user',
+        text: 'edited text',
+      })).rejects.toThrow('Desktop replay command requires exact conversation reference.');
+      await expect(DesktopConversationContinuityService.retryTurn({
+        userId: 'user-1',
+        conversationRef: ' conv-display ',
+        messageId: 'row-assistant',
+      })).rejects.toThrow('Desktop replay command requires exact conversation reference.');
+      expect(window.ipc.invoke).not.toHaveBeenCalled();
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('replay command facade rejects empty or padded row ids before IPC dispatch', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({ ok: true, data: null })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.editAndResend({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        messageId: ' row-user ',
+        text: 'edited text',
+      })).rejects.toThrow('Desktop replay command requires exact message id.');
+      await expect(DesktopConversationContinuityService.retryTurn({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        messageId: '',
+      })).rejects.toThrow('Desktop replay command requires exact message id.');
+      expect(window.ipc.invoke).not.toHaveBeenCalled();
     } finally {
       window.ipc = originalIpc;
     }
@@ -217,6 +267,40 @@ describe('DesktopConversationContinuityService', () => {
     }
   });
 
+  test('revision command facade rejects padded checkout and list identity before IPC dispatch', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({ ok: true, data: null })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.checkoutRevision({
+        userId: 'user-1',
+        conversationRef: ' conv-display ',
+        revisionId: 'rev-child',
+      })).rejects.toThrow('Desktop revision command requires exact conversation reference.');
+      await expect(DesktopConversationContinuityService.checkoutRevision({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        revisionId: ' rev-child ',
+      })).rejects.toThrow('Desktop revision command requires exact revision id.');
+      await expect(DesktopConversationContinuityService.listRevisions(
+        'user-1',
+        ' conv-display ',
+        25,
+      )).rejects.toThrow('Desktop revision command requires exact conversation reference.');
+      expect(window.ipc.invoke).not.toHaveBeenCalled();
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
   test('forkConversation routes revision forks through the SDK command bridge', async () => {
     const originalIpc = window.ipc;
     window.ipc = {
@@ -263,6 +347,95 @@ describe('DesktopConversationContinuityService', () => {
     }
   });
 
+  test('forkConversation forwards only exact optional fork identity', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: {
+          conversationRef: 'conv-forked-explicit',
+          revisionId: 'rev-forked',
+          sourceConversationRef: 'conv-display',
+          sourceRevisionId: 'rev-base',
+          cutAfterRowId: 'row-user',
+          displayRowCount: 1,
+          modelHistoryRowCount: 1,
+        },
+      })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.forkConversation({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        sourceRevisionId: 'rev-base',
+        cutAfterRowId: 'row-user',
+        newConversationRef: 'conv-forked-explicit',
+      })).resolves.toEqual(expect.objectContaining({
+        conversationRef: 'conv-forked-explicit',
+      }));
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.fork',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-display',
+          sourceRevisionId: 'rev-base',
+          cutAfterRowId: 'row-user',
+          newConversationRef: 'conv-forked-explicit',
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('forkConversation rejects padded revision identity before IPC dispatch', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({ ok: true, data: null })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.forkConversation({
+        userId: 'user-1',
+        conversationRef: ' conv-display ',
+        sourceRevisionId: 'rev-base',
+      })).rejects.toThrow('Desktop revision command requires exact conversation reference.');
+      await expect(DesktopConversationContinuityService.forkConversation({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        sourceRevisionId: ' rev-base ',
+      })).rejects.toThrow('Desktop revision command requires exact source revision id.');
+      await expect(DesktopConversationContinuityService.forkConversation({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        sourceRevisionId: 'rev-base',
+        cutAfterRowId: ' row-user ',
+      })).rejects.toThrow('Desktop revision command requires exact cut row id.');
+      await expect(DesktopConversationContinuityService.forkConversation({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        sourceRevisionId: 'rev-base',
+        newConversationRef: ' conv-forked ',
+      })).rejects.toThrow('Desktop revision command requires exact new conversation reference.');
+      expect(window.ipc.invoke).not.toHaveBeenCalled();
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
   test('compactHistory routes through the SDK runtime transport', async () => {
     const send = jest.fn();
     const originalIpc = window.ipc;
@@ -286,6 +459,54 @@ describe('DesktopConversationContinuityService', () => {
           conversation_ref: 'conv-compact',
         },
       });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('compactHistory rejects padded explicit conversation refs before IPC dispatch', async () => {
+    const send = jest.fn();
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send,
+      invoke: jest.fn(async () => ({ ok: true, data: null })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.compactHistory(
+        false,
+        ' conv-compact ',
+      )).rejects.toThrow('Desktop revision command requires exact conversation reference.');
+
+      expect(window.ipc.invoke).not.toHaveBeenCalled();
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('compactHistory ignores padded active conversation fallback refs', async () => {
+    const send = jest.fn();
+    const originalIpc = window.ipc;
+    mockGetActiveConversationRef.mockReturnValue(' conv-active ');
+    window.ipc = {
+      send,
+      invoke: jest.fn(async () => ({ ok: true, data: null })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await DesktopConversationContinuityService.compactHistory();
+
+      expect(window.ipc.invoke).not.toHaveBeenCalled();
     } finally {
       window.ipc = originalIpc;
     }

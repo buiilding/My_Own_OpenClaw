@@ -5,24 +5,27 @@
 import PropTypes from 'prop-types';
 import { Check, Copy, Pencil } from 'lucide-react';
 import { useCopyMessageAction } from '../../hooks/useCopyMessageAction';
+import { DesktopMessageActionRuntime } from '../../../../app/runtime/desktopMessageActionRuntime';
 
 function UserMessageActions({
   messageId,
   messageText = '',
   canEdit = false,
-  editTargetMessageId = null,
+  editTargetRowId = null,
   onEdit = null,
 }) {
   const { copySuccess, handleCopy } = useCopyMessageAction({
     messageText,
     warningPrefix: 'UserMessageActions',
   });
+  const resolvedEditTargetRowId = DesktopMessageActionRuntime.resolveReplayTargetRowId(editTargetRowId);
+  const canRenderEdit = canEdit && Boolean(resolvedEditTargetRowId);
 
   const handleEdit = () => {
-    if (!canEdit || typeof onEdit !== 'function') {
+    if (!canRenderEdit || typeof onEdit !== 'function') {
       return;
     }
-    onEdit(messageId, messageText, editTargetMessageId || messageId);
+    onEdit(messageId, messageText, resolvedEditTargetRowId);
   };
 
   return (
@@ -36,7 +39,7 @@ function UserMessageActions({
       >
         {copySuccess ? <Check size={16} /> : <Copy size={16} />}
       </button>
-      {canEdit ? (
+      {canRenderEdit ? (
         <button
           type="button"
           className="user-action-btn"
@@ -55,7 +58,7 @@ UserMessageActions.propTypes = {
   messageId: PropTypes.string.isRequired,
   messageText: PropTypes.string,
   canEdit: PropTypes.bool,
-  editTargetMessageId: PropTypes.string,
+  editTargetRowId: PropTypes.string,
   onEdit: PropTypes.func,
 };
 

@@ -27,7 +27,6 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/infrastructure/transcript/toolCallMessageState.js`
-- `frontend/src/renderer/infrastructure/transcript/toolOutputChatMessageState.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `packages/windie-sdk-js/src/projections/conversationProjections.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`
@@ -81,9 +80,12 @@ Responsibility split:
 - `DesktopTranscriptSessionRuntimeClient` is the renderer facade for active conversation/user identity.
 - `DesktopConversationContinuityService` owns replay, rewrite, and rehydrate orchestration through SDK store commands.
 - `DesktopConversationReplayRuntime` owns renderer replay intent dispatch,
-  active conversation selection, workspace IPC context, and trace logging.
-  SDK replay commands own target-row selection, supersession, tool-message context,
-  resource preservation, and replacement row construction.
+  active conversation selection, and trace logging through narrow UI adapters
+  rather than the full chat-store object. It forwards the UI-provided target row
+  id unchanged to the continuity command facade, where exact identity guards run
+  before SDK command IPC. SDK replay commands own target-row selection,
+  supersession, tool-message context, resource preservation, and replacement row
+  construction.
 - `DesktopConversationLibraryClient` owns list/load/delete/search through the SDK store path.
 
 Renderer consumers subscribe through
@@ -102,7 +104,9 @@ Transcript conversation pagination helper:
 
 - dashboard open uses `DesktopConversationLibraryClient.loadConversationView(...)`
   to invoke the SDK-shaped `conversation.loadDisplay` command and then renders
-  the returned `ConversationView.displayRows`.
+  the returned `ConversationView.displayRows`. The renderer library client
+  validates the returned view identity, but it does not filter or repair the
+  SDK-authored display rows inside that view.
 - manual compaction and continuity rehydrate use SDK store load helpers such as
   `conversation.loadRehydrate`; renderer feature code should stay on these
   app-runtime and store facades instead of direct conversation IPC fetches.

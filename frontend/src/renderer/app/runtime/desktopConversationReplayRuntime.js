@@ -6,268 +6,210 @@ import { DesktopConversationContinuityService } from './desktopConversationConti
 import {
   DesktopConversationSessionRuntime,
 } from './desktopConversationSessionRuntime';
-import {
-  DesktopConversationProjectionStreamRuntime,
-} from './desktopConversationProjectionStreamRuntime';
-import { DesktopRendererConfigRuntimeClient } from './desktopRendererConfigRuntimeClient';
-import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
-import {
-  projectWorkspaceReadModelState,
-} from './desktopChatWorkspaceStateRuntime';
 import { DesktopRendererTraceRuntime } from './desktopRendererTraceRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
-import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
 
 const {
   applyRendererConversationSelection,
-  resolveRendererConversationSessionSnapshot,
 } = DesktopConversationSessionRuntime;
 const {
   logRendererReplayTrace,
 } = DesktopRendererTraceRuntime;
-const {
-  buildReplayProjectionTracePayload,
-} = DesktopConversationProjectionStreamRuntime;
 
-function normalizeReplayMessageId(messageId) {
-  return typeof messageId === 'string' ? messageId.trim() : '';
+function readExactReplayConversationRef(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
-function prepareReplayEditIntent({ userMessageId, editedText }) {
-  const normalizedEditedText = typeof editedText === 'string'
-    ? editedText.trim()
-    : '';
-  const normalizedMessageId = normalizeReplayMessageId(userMessageId);
-  if (!normalizedEditedText || !normalizedMessageId) {
-    return null;
+function readExactReplayTargetRowId(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
+const REPLAY_ACTION_INTENT_FIELDS = new Set([
+  'action',
+  'editedText',
+  'targetRowId',
+]);
+
+function readReplayActionIntent(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return {
+      intent: null,
+      unknownField: null,
+    };
+  }
+  for (const fieldName of Object.keys(input)) {
+    if (!REPLAY_ACTION_INTENT_FIELDS.has(fieldName)) {
+      return {
+        intent: null,
+        unknownField: fieldName,
+      };
+    }
   }
   return {
-    action: 'edit_resend',
-    errorPrefix: 'Failed to edit user message',
-    messageId: normalizedMessageId,
-    queryText: normalizedEditedText,
+    intent: {
+      action: input.action,
+      editedText: input.editedText ?? null,
+      targetRowId: input.targetRowId ?? null,
+    },
+    unknownField: null,
   };
 }
 
-function prepareReplayRetryIntent({ assistantMessageId }) {
-  const normalizedMessageId = normalizeReplayMessageId(assistantMessageId);
-  if (!normalizedMessageId) {
-    return null;
-  }
-  return {
-    action: 'retry',
-    errorPrefix: 'Failed to retry assistant message',
-    messageId: normalizedMessageId,
-  };
-}
-
-function resolveExistingConversationRef(sessionConversationRef, storeConversationRef) {
-  return resolveRendererConversationSessionSnapshot({
-    transcriptConversationRef: DesktopTranscriptSessionRuntimeClient.getActiveConversationRef() || sessionConversationRef,
-    storeConversationRef,
-  }).conversationRef;
+function resolveExistingConversationRef(sessionConversationRef) {
+  return readExactReplayConversationRef(DesktopTranscriptSessionRuntimeClient.getActiveConversationRef())
+    || readExactReplayConversationRef(sessionConversationRef)
+    || null;
 }
 
 function traceErrorKind(error) {
   if (!error) {
     return null;
   }
-  if (typeof error.name === 'string' && error.name.trim()) {
-    return error.name.trim();
+  if (
+    typeof error.name === 'string'
+    && error.name.length > 0
+    && error.name === error.name.trim()
+  ) {
+    return error.name;
   }
   return error instanceof Error ? 'Error' : typeof error;
 }
 
-function replayTraceSnapshot(chatStore, conversationRef) {
-  const state = chatStore.getState();
-  const rawWorkspace = typeof state.getWorkspaceState === 'function'
-    ? state.getWorkspaceState(conversationRef)
-    : state;
-  const workspace = projectWorkspaceReadModelState(rawWorkspace);
-  const tracePayload = buildReplayProjectionTracePayload({
-    action: 'replay_trace_snapshot',
-    conversationRef,
-    workspace,
-  });
-  return Object.fromEntries(
-    Object.entries(tracePayload).filter(
-      ([key]) => key !== 'action' && key !== 'conversationRef',
-    ),
-  );
-}
-
-function logReplayTimeline(chatStore, action, {
+function logReplayTimeline(action, {
   conversationRef,
   ...values
 }) {
   logRendererReplayTrace({
     action,
     conversationRef,
-    ...replayTraceSnapshot(chatStore, conversationRef),
     ...values,
   });
 }
 
 async function executeReplayIntent({
-  activeConversationRef,
-  chatStore,
-  deferredQueryModelSelection,
-  intent,
-  sessionInfo,
+  action,
+  errorPrefix,
+  queryText,
+  targetRowId,
 }) {
-  if (!intent || !chatStore || typeof chatStore.getState !== 'function') {
-    return false;
-  }
-  const {
-    action,
-    errorPrefix,
-    messageId,
-    queryText,
-  } = intent;
-  const conversationRef = resolveExistingConversationRef(
-    sessionInfo.conversationRef,
-    activeConversationRef,
-  );
+  const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
+  const conversationRef = resolveExistingConversationRef(sessionInfo.conversationRef);
   if (!conversationRef) {
     console.error(`[ChatInterface] ${errorPrefix}: missing active conversation`);
     logRendererReplayTrace({
       action: 'replay_failed_cleanup',
       conversationRef: null,
       errorKind: 'MissingConversationRef',
-      targetUserMessageId: messageId,
+      replayAction: action,
+      targetRowId,
     });
     return false;
   }
-  const workspaceBinding = DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding(conversationRef);
   applyRendererConversationSelection({
     conversationRef,
     userId: sessionInfo.userId || undefined,
     updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
   });
-  logReplayTimeline(chatStore, 'replay_start', {
+  logReplayTimeline('replay_start', {
     conversationRef,
-    targetUserMessageId: messageId,
+    targetRowId,
   });
   try {
-    const sdkReplayPayload = {
-      ...(workspaceBinding.workspacePath ? { workspace_path: workspaceBinding.workspacePath } : {}),
-    };
     try {
-      if (deferredQueryModelSelection) {
-        await DesktopSettingsRuntimeClient.setModel(deferredQueryModelSelection);
-      }
-      logReplayTimeline(chatStore, 'sdk_replay_sent', {
+      logReplayTimeline('sdk_replay_sent', {
         conversationRef,
-        action,
-        targetUserMessageId: messageId,
+        replayAction: action,
+        targetRowId,
       });
       if (action === 'edit_resend') {
         await DesktopConversationContinuityService.editAndResend({
           userId: sessionInfo.userId,
           conversationRef,
-          messageId,
+          messageId: targetRowId,
           text: queryText,
-          payload: sdkReplayPayload,
-          model: deferredQueryModelSelection || undefined,
         });
       } else {
         await DesktopConversationContinuityService.retryTurn({
           userId: sessionInfo.userId,
           conversationRef,
-          messageId,
-          payload: sdkReplayPayload,
-          model: deferredQueryModelSelection || undefined,
+          messageId: targetRowId,
         });
       }
-      logReplayTimeline(chatStore, 'sdk_replay_done', {
+      logReplayTimeline('sdk_replay_done', {
         conversationRef,
-        action,
+        replayAction: action,
         replaySucceeded: true,
-        targetUserMessageId: messageId,
+        targetRowId,
       });
     } catch (sdkReplayError) {
-      logReplayTimeline(chatStore, 'sdk_replay_failed', {
+      logReplayTimeline('sdk_replay_failed', {
         conversationRef,
-        action,
+        replayAction: action,
         replaySucceeded: false,
         errorKind: traceErrorKind(sdkReplayError),
-        targetUserMessageId: messageId,
+        targetRowId,
       });
-      if (sdkReplayError && typeof sdkReplayError === 'object') {
-        sdkReplayError.__desktopRuntimeReplayStep = 'send';
-      }
       throw sdkReplayError;
     }
     return true;
   } catch (error) {
     console.error(`[ChatInterface] ${errorPrefix}:`, error);
-    logReplayTimeline(chatStore, 'replay_failed_cleanup', {
+    logReplayTimeline('replay_failed_cleanup', {
       conversationRef,
       errorKind: traceErrorKind(error),
-      targetUserMessageId: messageId,
+      replayAction: action,
+      targetRowId,
     });
     return false;
   }
 }
 
-function prepareReplayActionIntent({
-  action,
-  assistantMessageId,
-  editedText,
-  userMessageId,
-}) {
-  if (action === 'edit_resend') {
-    return prepareReplayEditIntent({ userMessageId, editedText });
-  }
-  if (action === 'retry') {
-    return prepareReplayRetryIntent({ assistantMessageId });
-  }
-  return null;
-}
-
-function resolveReplayModelSelection({
-  config = null,
-  deferredQueryModelSelection,
-} = {}) {
-  return deferredQueryModelSelection
-    ?? DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection(config);
-}
-
-async function executeReplayAction({
-  action,
-  activeConversationRef,
-  assistantMessageId = null,
-  config = null,
-  chatStore,
-  deferredQueryModelSelection,
-  editedText = null,
-  sessionInfo = null,
-  userMessageId = null,
-}) {
-  const intent = prepareReplayActionIntent({
-    action,
-    assistantMessageId,
-    editedText,
-    userMessageId,
-  });
+async function executeReplayAction(input) {
+  const { intent, unknownField } = readReplayActionIntent(input);
   if (!intent) {
+    logRendererReplayTrace({
+      action: 'replay_failed_cleanup',
+      conversationRef: null,
+      errorKind: unknownField ? 'UnknownReplayActionField' : 'InvalidReplayActionIntent',
+      replayAction: null,
+      targetRowId: null,
+    });
+    return false;
+  }
+  const {
+    action,
+    editedText,
+    targetRowId,
+  } = intent;
+  if (action !== 'edit_resend' && action !== 'retry') {
     return undefined;
   }
-  const resolvedSessionInfo = sessionInfo
-    || DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
-  const storeState = chatStore && typeof chatStore.getState === 'function'
-    ? chatStore.getState()
-    : null;
-  const resolvedActiveConversationRef = activeConversationRef ?? storeState?.activeConversationRef ?? null;
+  const exactTargetRowId = readExactReplayTargetRowId(targetRowId);
+  if (!exactTargetRowId) {
+    const errorPrefix = action === 'edit_resend'
+      ? 'Failed to edit user message'
+      : 'Failed to retry assistant message';
+    console.error(`[ChatInterface] ${errorPrefix}: missing replay target row`);
+    logRendererReplayTrace({
+      action: 'replay_failed_cleanup',
+      conversationRef: null,
+      errorKind: 'MissingReplayTargetRowId',
+      replayAction: action,
+      targetRowId: null,
+    });
+    return false;
+  }
   return executeReplayIntent({
-    activeConversationRef: resolvedActiveConversationRef,
-    chatStore,
-    deferredQueryModelSelection: resolveReplayModelSelection({
-      config,
-      deferredQueryModelSelection,
-    }),
-    intent,
-    sessionInfo: resolvedSessionInfo,
+    action,
+    errorPrefix: action === 'edit_resend'
+      ? 'Failed to edit user message'
+      : 'Failed to retry assistant message',
+    queryText: editedText,
+    targetRowId: exactTargetRowId,
   });
 }
 

@@ -10,6 +10,19 @@ const {
   buildThreadPresentationMessages,
 } = DesktopThreadPresentationRuntime;
 
+function conversationViewFixture(overrides = {}) {
+  return {
+    conversationRef: 'conv-1',
+    displayRows: [],
+    liveTurn: {
+      entries: [],
+    },
+    surfaces: {},
+    actions: {},
+    ...overrides,
+  };
+}
+
 describe('desktopThreadPresentationRuntime', () => {
   test('buildThreadPresentationMessages keeps durable row order without tool-log filtering', () => {
     const messages = [
@@ -168,6 +181,138 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
+  test('buildThreadPresentationMessages does not repair padded SDK live entry types', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_output',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:padded-tool-output',
+          type: ' tool-output ',
+          text: 'Tool completed',
+          sourceEventType: 'tool_output',
+          sourceChannel: 'sdk:current-turn',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    })).toEqual([messages[0]]);
+  });
+
+  test('buildThreadPresentationMessages does not preserve padded SDK live source event types', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_output',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:tool-output',
+          type: 'tool-output',
+          text: 'Tool completed',
+          sourceEventType: ' tool_output ',
+          sourceChannel: 'sdk:current-turn',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+        }],
+      },
+    };
+
+    const projectedMessages = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(projectedMessages).toEqual([
+      messages[0],
+      expect.objectContaining({
+        id: 'conv-1:turn-1:tool-output',
+        sender: 'assistant',
+        type: 'tool-output',
+        text: 'Tool completed',
+      }),
+    ]);
+    expect(projectedMessages[1]).not.toHaveProperty('sourceEventType');
+  });
+
+  test('buildThreadPresentationMessages assigns SDK source channel for current-turn entries', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:assistant',
+          type: 'llm-text',
+          text: 'Projected answer',
+          sourceChannel: 'renderer-local',
+          sourceEventType: 'assistant_delta',
+          turnRef: 'turn-1',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      messages[0],
+      expect.objectContaining({
+        id: 'conv-1:turn-1:assistant',
+        sender: 'assistant',
+        sourceChannel: 'sdk:current-turn',
+        text: 'Projected answer',
+      }),
+    ]);
+  });
+
+  test('buildThreadPresentationMessages uses live turn context before entry turn refs', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:assistant',
+          type: 'llm-text',
+          text: 'Projected answer',
+          sourceEventType: 'assistant_delta',
+          turnRef: 'turn-stale',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      messages[0],
+      expect.objectContaining({
+        id: 'conv-1:turn-1:assistant',
+        sender: 'assistant',
+        turnRef: 'turn-1',
+        text: 'Projected answer',
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages derives current-turn rows only when SDK presentation is absent', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
@@ -247,8 +392,7 @@ describe('desktopThreadPresentationRuntime', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-view' },
     ];
-    const conversationView = {
-      conversationRef: 'conv-1',
+    const conversationView = conversationViewFixture({
       liveTurn: {
         turnRef: 'turn-view',
         entries: [{
@@ -259,7 +403,7 @@ describe('desktopThreadPresentationRuntime', () => {
           turnRef: 'turn-view',
         }],
       },
-    };
+    });
     const sdkLiveTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-stale',
@@ -308,8 +452,7 @@ describe('desktopThreadPresentationRuntime', () => {
       text: 'stale raw prompt',
       turnRef: 'turn-view',
     };
-    const conversationView = {
-      conversationRef: 'conv-1',
+    const conversationView = conversationViewFixture({
       liveTurn: {
         turnRef: 'turn-view',
         entries: [{
@@ -320,7 +463,7 @@ describe('desktopThreadPresentationRuntime', () => {
           turnRef: 'turn-view',
         }],
       },
-    };
+    });
 
     expect(buildThreadPresentationMessages([
       rawRow,
@@ -340,7 +483,7 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
-  test('buildThreadPresentationMessages keeps pending bridge rows with ConversationView', () => {
+  test('buildThreadPresentationMessages requires explicit pending bridge authority with ConversationView', () => {
     const rawRow = {
       id: 'raw-user-row',
       sender: 'user',
@@ -355,13 +498,12 @@ describe('desktopThreadPresentationRuntime', () => {
       sourceChannel: 'renderer-local',
       sourceEventType: 'renderer-compose',
     };
-    const conversationView = {
-      conversationRef: 'conv-1',
+    const conversationView = conversationViewFixture({
       liveTurn: {
         turnRef: 'turn-view',
         entries: [],
       },
-    };
+    });
 
     expect(buildThreadPresentationMessages([
       rawRow,
@@ -369,8 +511,203 @@ describe('desktopThreadPresentationRuntime', () => {
     ], {
       conversationView,
       activeConversationRef: 'conv-1',
+    })).toEqual([]);
+
+    expect(buildThreadPresentationMessages([
+      rawRow,
+      pendingBridgeRow,
+    ], {
+      conversationView,
+      activeConversationRef: 'conv-1',
+      allowPendingBridgeMessages: true,
     })).toEqual([
       pendingBridgeRow,
+    ]);
+  });
+
+  test('buildThreadPresentationMessages renders ConversationView live rows without materialized-text suppression', () => {
+    const sdkUserRow = {
+      id: 'sdk-user-row',
+      sender: 'user',
+      text: 'Inspect workspace',
+      turnRef: 'turn-view',
+      sourceChannel: 'sdk:display-rows',
+      sourceEventType: 'user_message',
+    };
+    const sdkAssistantRow = {
+      id: 'sdk-assistant-row',
+      sender: 'assistant',
+      text: 'Projected answer with more detail.',
+      type: 'llm-text',
+      turnRef: 'turn-view',
+      sourceChannel: 'sdk:display-rows',
+      sourceEventType: 'assistant_message',
+    };
+    const conversationView = conversationViewFixture({
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries: [{
+          id: 'view-live-entry',
+          type: 'llm-text',
+          text: 'Projected answer',
+          sourceEventType: 'assistant_delta',
+          turnRef: 'turn-view',
+        }],
+      },
+    });
+
+    expect(buildThreadPresentationMessages([
+      sdkUserRow,
+      sdkAssistantRow,
+    ], {
+      conversationView,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      sdkUserRow,
+      sdkAssistantRow,
+      expect.objectContaining({
+        id: 'view-live-entry',
+        sender: 'assistant',
+        text: 'Projected answer',
+        sourceChannel: 'sdk:conversation-view',
+        turnRef: 'turn-view',
+      }),
+    ]);
+  });
+
+  test('buildThreadPresentationMessages keeps partial ConversationView objects on no-view fallback path', () => {
+    const rawRow = {
+      id: 'raw-user-row',
+      sender: 'user',
+      text: 'raw prompt',
+      turnRef: 'turn-live',
+    };
+    const partialConversationView = {
+      conversationRef: 'conv-1',
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries: [{
+          id: 'view-entry-ignored',
+          type: 'llm-text',
+          text: 'partial view answer',
+        }],
+      },
+    };
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-live',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'live-entry',
+          type: 'llm-text',
+          text: 'live fallback answer',
+          turnRef: 'turn-live',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages([rawRow], {
+      conversationView: partialConversationView,
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      rawRow,
+      expect.objectContaining({
+        id: 'live-entry',
+        text: 'live fallback answer',
+        sourceChannel: 'sdk:current-turn',
+      }),
+    ]);
+  });
+
+  test('buildThreadPresentationMessages does not let partial ConversationView refs gate fallback live rows', () => {
+    const rawRow = {
+      id: 'raw-user-row',
+      sender: 'user',
+      text: 'raw prompt',
+      turnRef: 'turn-live',
+    };
+    const partialConversationView = {
+      conversationRef: 'conv-other',
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries: [{
+          id: 'partial-view-entry-ignored',
+          type: 'llm-text',
+          text: 'partial view answer',
+        }],
+      },
+    };
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-live',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'live-entry',
+          type: 'llm-text',
+          text: 'live fallback answer',
+          turnRef: 'turn-live',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages([rawRow], {
+      conversationView: partialConversationView,
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      rawRow,
+      expect.objectContaining({
+        id: 'live-entry',
+        text: 'live fallback answer',
+        sourceChannel: 'sdk:current-turn',
+      }),
+    ]);
+  });
+
+  test('buildThreadPresentationMessages keeps malformed ConversationView envelopes on no-view fallback path', () => {
+    const rawRow = {
+      id: 'raw-user-row',
+      sender: 'user',
+      text: 'raw prompt',
+      turnRef: 'turn-live',
+    };
+    const conversationView = conversationViewFixture({
+      conversationRef: ' conv-1 ',
+      liveTurn: [],
+      displayRows: [{
+        id: 'view-entry-ignored',
+        sender: 'assistant',
+        text: 'malformed view answer',
+      }],
+    });
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-live',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'live-entry',
+          type: 'llm-text',
+          text: 'live fallback answer',
+          turnRef: 'turn-live',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages([rawRow], {
+      conversationView,
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      rawRow,
+      expect.objectContaining({
+        id: 'live-entry',
+        text: 'live fallback answer',
+        sourceChannel: 'sdk:current-turn',
+      }),
     ]);
   });
 
@@ -464,6 +801,100 @@ describe('desktopThreadPresentationRuntime', () => {
     expect(rendered[1].toolCallDetails).not.toHaveProperty('modelProvider');
     expect(rendered[1].toolCallDetails).not.toHaveProperty('screenshotRef');
     expect(rendered[1].toolCallDetails).not.toHaveProperty('structuredPayload');
+  });
+
+  test('buildThreadPresentationMessages does not repair padded SDK live identity fields', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:tool:tool-1',
+          type: 'tool-call',
+          text: 'Using read_file',
+          sourceEventType: 'tool_call',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+          correlationId: ' corr-read ',
+          requestId: 'req-read',
+          bundleId: 'bundle-read',
+          toolCallDetails: {
+            requestId: ' corr-read ',
+            correlationId: 'wrong-detail-correlation',
+          },
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered[1]).toEqual(expect.objectContaining({
+      sender: 'assistant',
+      type: 'tool-call',
+      correlationId: 'req-read',
+    }));
+    expect(rendered[1].correlationId).not.toBe('corr-read');
+    expect(rendered[1].correlationId).not.toBe(' corr-read ');
+  });
+
+  test('buildThreadPresentationMessages does not repair padded SDK live tool names', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [
+          {
+            id: 'conv-1:turn-1:tool:tool-call-1',
+            type: 'tool-call',
+            text: '',
+            sourceEventType: 'tool_call',
+            turnRef: 'turn-1',
+            toolName: ' read_file ',
+            requestId: 'req-read',
+          },
+          {
+            id: 'conv-1:turn-1:tool:tool-output-1',
+            type: 'tool-output',
+            text: '',
+            sourceEventType: 'tool_output',
+            turnRef: 'turn-1',
+            toolName: ' screenshot ',
+            requestId: 'req-shot',
+          },
+        ],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'tool-call',
+        text: 'Using tool',
+      }),
+      expect.objectContaining({
+        type: 'tool-output',
+        text: 'Tool completed',
+      }),
+    ]));
+    expect(rendered.map(message => message.toolName)).not.toContain('read_file');
+    expect(rendered.map(message => message.toolName)).not.toContain(' read_file ');
+    expect(rendered.map(message => message.toolName)).not.toContain('screenshot');
+    expect(rendered.map(message => message.toolName)).not.toContain(' screenshot ');
   });
 
   test('buildThreadPresentationMessages keeps live attachments out of tool details', () => {
@@ -665,6 +1096,84 @@ describe('desktopThreadPresentationRuntime', () => {
     })).toBe(messages);
   });
 
+  test('buildThreadPresentationMessages does not repair padded current-turn conversation refs', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: ' conv-1 ',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:assistant',
+          type: 'llm-text',
+          text: 'Wrongly repaired chat',
+          turnRef: 'turn-1',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    })).toBe(messages);
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn: {
+        ...sdkLiveTurn,
+        conversationRef: 'conv-1',
+      },
+      activeConversationRef: ' conv-1 ',
+    })).toBe(messages);
+  });
+
+  test('buildThreadPresentationMessages requires exact no-view current-turn refs without an active ref', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:assistant',
+          type: 'llm-text',
+          text: 'Projected answer',
+          turnRef: 'turn-1',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn: {
+        ...sdkLiveTurn,
+        conversationRef: undefined,
+      },
+      activeConversationRef: null,
+    })).toBe(messages);
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn: {
+        ...sdkLiveTurn,
+        turnRef: ' turn-1 ',
+      },
+      activeConversationRef: null,
+    })).toBe(messages);
+
+    expect(buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: null,
+    })).toEqual([
+      messages[0],
+      expect.objectContaining({
+        id: 'conv-1:turn-1:assistant',
+        sourceChannel: 'sdk:current-turn',
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages suppresses live assistant text once materialized', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
@@ -748,6 +1257,261 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
+  test('buildThreadPresentationMessages keeps same-tool live rows with distinct SDK identity', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+      {
+        id: 'materialized-tool-call',
+        sender: 'assistant',
+        text: 'Using read_file',
+        type: 'tool-call',
+        turnRef: 'turn-1',
+        toolName: 'read_file',
+        correlationId: 'req-a',
+      },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: 'live-tool-call-b',
+          type: 'tool-call',
+          text: 'Using read_file',
+          sourceEventType: 'tool_call',
+          sourceChannel: 'sdk:current-turn',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+          requestId: 'req-b',
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered).toEqual([
+      ...messages,
+      expect.objectContaining({
+        id: 'live-tool-call-b',
+        type: 'tool-call',
+        correlationId: 'req-b',
+      }),
+    ]);
+  });
+
+  test('buildThreadPresentationMessages rejects padded live row ids before dedupe', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+      {
+        id: 'materialized-tool-call',
+        sender: 'assistant',
+        text: 'Using read_file',
+        type: 'tool-call',
+        turnRef: 'turn-1',
+      },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: ' materialized-tool-call ',
+          type: 'tool-call',
+          text: 'Using read_file live',
+          sourceEventType: 'tool_call',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered).toBe(messages);
+  });
+
+  test('buildThreadPresentationMessages does not repair padded materialized turn refs for dedupe', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+      {
+        id: 'materialized-tool-call',
+        sender: 'assistant',
+        text: 'Using read_file',
+        type: 'tool-call',
+        turnRef: ' turn-1 ',
+      },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: 'live-tool-call',
+          type: 'tool-call',
+          text: 'Using read_file',
+          sourceEventType: 'tool_call',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered).toEqual([
+      messages[0],
+      expect.objectContaining({
+        id: 'live-tool-call',
+        type: 'tool-call',
+        toolCallDisplayText: 'Using read_file',
+      }),
+      messages[1],
+    ]);
+  });
+
+  test('buildThreadPresentationMessages does not repair padded turn refs for live row placement', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-live' },
+      {
+        id: 'materialized-tool-call',
+        sender: 'assistant',
+        text: 'Using read_file',
+        type: 'tool-call',
+        turnRef: ' turn-live ',
+      },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-live',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: 'live-tool-call',
+          type: 'tool-call',
+          text: 'Using exact live row',
+          sourceEventType: 'tool_call',
+          turnRef: 'turn-live',
+          toolName: 'read_file',
+          requestId: 'req-live',
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered).toEqual([
+      messages[0],
+      expect.objectContaining({
+        id: 'live-tool-call',
+        type: 'tool-call',
+        correlationId: 'req-live',
+      }),
+      messages[1],
+    ]);
+  });
+
+  test('buildThreadPresentationMessages does not repair padded tool detail ids for dedupe', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+      {
+        id: 'materialized-tool-call',
+        sender: 'assistant',
+        text: 'Using read_file',
+        type: 'tool-call',
+        turnRef: 'turn-1',
+        correlationId: ' req-read ',
+        toolCallDetails: { requestId: ' req-read ' },
+      },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: 'live-tool-call',
+          type: 'tool-call',
+          text: 'Using read_file',
+          sourceEventType: 'tool_call',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+          requestId: 'req-read',
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered).toEqual([
+      ...messages,
+      expect.objectContaining({
+        id: 'live-tool-call',
+        type: 'tool-call',
+        correlationId: 'req-read',
+      }),
+    ]);
+  });
+
+  test('buildThreadPresentationMessages does not use legacy tool metadata for dedupe', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+      {
+        id: 'materialized-tool-call',
+        sender: 'assistant',
+        text: 'Using read_file',
+        type: 'tool-call',
+        turnRef: 'turn-1',
+        toolMetadata: { requestId: 'req-read' },
+      },
+    ];
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      presentation: {
+        entries: [{
+          id: 'live-tool-call',
+          type: 'tool-call',
+          text: 'Using read_file',
+          sourceEventType: 'tool_call',
+          requestId: 'req-read',
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      sdkLiveTurn,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered).toEqual([
+      ...messages,
+      expect.objectContaining({
+        id: 'live-tool-call',
+        type: 'tool-call',
+        correlationId: 'req-read',
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages drops current-turn thinking once assistant text is materialized', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
@@ -810,7 +1574,22 @@ describe('desktopThreadPresentationRuntime', () => {
     })).toBe(messages);
   });
 
-  test('keeps live search-source rows visible in thread presentation', () => {
+  test('keeps live tool-progress rows visible in thread presentation', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Search the web' },
+      {
+        id: 'search-1',
+        sender: 'assistant',
+        type: 'tool-progress',
+        text: 'Searched youtube.com',
+        sourceEventType: 'web-search-progress',
+      },
+    ];
+
+    expect(buildThreadPresentationMessages(messages)).toEqual(messages);
+  });
+
+  test('keeps legacy search-source rows visible in thread presentation', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Search the web' },
       {

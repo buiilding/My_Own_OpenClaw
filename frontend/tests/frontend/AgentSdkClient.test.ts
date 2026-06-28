@@ -5357,9 +5357,6 @@ describe('Agent SDK client behavior', () => {
     await expect(conversation.editAndResend({
       messageId: originalUserMessageId as string,
       text: 'edited runtime',
-      payload: {
-        screenshot_ref: 'artifact-edit',
-      },
     })).resolves.toEqual(expect.objectContaining({
       turnRef: expect.any(String),
     }));
@@ -5368,7 +5365,6 @@ describe('Agent SDK client behavior', () => {
       payload: {
         text: 'edited runtime',
         conversation_ref: 'conv-runtime-public',
-        screenshot_ref: 'artifact-edit',
       },
     });
     const editedTimeline = await conversation.loadDisplayTimeline();

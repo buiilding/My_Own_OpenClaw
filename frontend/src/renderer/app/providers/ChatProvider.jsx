@@ -8,27 +8,17 @@ import { useConversationRuntimeProjectionStream } from '../../features/chat/hook
 import { useChatSessionBootstrap } from '../../features/chat/hooks/useChatSessionBootstrap';
 import { useConversationSessionProjection } from '../../features/chat/session/useConversationSessionProjection';
 import {
-  getActiveConversationRefFromChatStore,
-  getProjectedWorkspaceReadModelFromChatStore,
+  getChatProviderTraceWorkspaceSnapshotFromChatStore,
 } from '../../features/chat/stores/chatStoreAdapters';
-import {
-  DesktopChatProviderTraceRuntime,
-} from '../runtime/desktopChatProviderTraceRuntime';
 import { DesktopRendererTraceRuntime } from '../runtime/desktopRendererTraceRuntime';
 import { DesktopTranscriptSessionInfoRuntimeClient } from '../runtime/desktopTranscriptSessionInfoRuntimeClient';
 
-const {
-  buildChatProviderTraceWorkspaceSnapshot,
-} = DesktopChatProviderTraceRuntime;
 const {
   configureRendererTraceWorkspaceSnapshotResolver,
 } = DesktopRendererTraceRuntime;
 
 function resolveChatTraceWorkspaceSnapshot(conversationRef) {
-  return buildChatProviderTraceWorkspaceSnapshot({
-    activeConversationRef: getActiveConversationRefFromChatStore(),
-    workspace: getProjectedWorkspaceReadModelFromChatStore(conversationRef),
-  });
+  return getChatProviderTraceWorkspaceSnapshotFromChatStore(conversationRef);
 }
 
 configureRendererTraceWorkspaceSnapshotResolver(resolveChatTraceWorkspaceSnapshot);

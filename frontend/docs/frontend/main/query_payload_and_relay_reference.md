@@ -100,7 +100,8 @@ When the `conversation.send` command is invoked, main performs extra steps befor
   - resolves `conversation_ref` from payload or current backend conversation state
   - injects resolved ref into payload when missing
   - preserves SDK enrichment fields (`attachment_context`, `memory_retrieval_enabled`) for the SDK handoff
-  - normalizes `attachment_filenames` for local optimistic message metadata
+  - preserves only exact `attachment_filenames` entries for local optimistic
+    message metadata and rejects padded `query_message_id` values
 
 ### 3) SDK-owned user row/event projection
 

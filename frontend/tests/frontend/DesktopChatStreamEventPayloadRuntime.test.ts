@@ -195,6 +195,47 @@ describe('desktopChatStreamEventPayloadRuntime', () => {
     }));
   });
 
+  test('uses SDK compaction payload source revision for compacted replay snapshots', () => {
+    const snapshot = buildCompactedReplaySnapshot({
+      eventId: 'event-1',
+      type: 'compaction_applied',
+      conversationRef: 'conversation-1',
+      turnRef: 'turn-1',
+      revisionId: null,
+      timestamp: '2026-06-19T00:00:00.000Z',
+      payload: {
+        generationId: 'generation-1',
+        sourceRevisionId: 'rev-payload',
+        replacementHistoryEntries: [
+          { role: 'assistant', content: 'summary', message_type: 'context_compaction' },
+        ],
+      },
+    } as any, 'conversation-1');
+
+    expect(snapshot).toEqual(expect.objectContaining({
+      sourceRevisionId: 'rev-payload',
+    }));
+  });
+
+  test('does not synthesize compacted replay revision ids in renderer', () => {
+    const snapshot = buildCompactedReplaySnapshot({
+      eventId: 'event-1',
+      type: 'compaction_applied',
+      conversationRef: 'conversation-1',
+      turnRef: 'turn-1',
+      revisionId: null,
+      timestamp: '2026-06-19T00:00:00.000Z',
+      payload: {
+        generationId: 'generation-1',
+        replacementHistoryEntries: [
+          { role: 'assistant', content: 'summary', message_type: 'context_compaction' },
+        ],
+      },
+    } as any, 'conversation-1');
+
+    expect(snapshot).toBeNull();
+  });
+
   test('normalizes tool-schema metadata aliases before message updates', () => {
     expect(resolveToolSchemasMetadataPayload({
       toolSchemas: [{ name: 'read_file' }],

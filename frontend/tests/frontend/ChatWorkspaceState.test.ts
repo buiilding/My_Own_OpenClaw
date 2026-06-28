@@ -3,13 +3,13 @@
  */
 
 import type { StreamTracking } from '../../src/renderer/features/chat/stores/chatStore';
+import type { ConversationView } from '../../src/renderer/app/runtime/desktopConversationRuntimeContracts';
 import {
   buildActiveConversationWorkspaceUpdate,
   buildNoViewSdkLiveTurnStorageUpdate,
   buildWorkspaceUpdate,
   createInitialWorkspaceRecord,
   createInitialWorkspaceState,
-  isActiveWorkspaceRef,
   normalizeConversationRef,
   projectWorkspaceReadModelState,
   readNoViewSdkLiveTurnStorage,
@@ -41,12 +41,62 @@ function createStreamTracking(overrides: Partial<StreamTracking> = {}): StreamTr
   };
 }
 
+function buildConversationView(
+  conversationRef: string,
+  overrides: Partial<ConversationView> = {},
+): ConversationView {
+  const base: ConversationView = {
+    conversationRef,
+    revisionId: null,
+    displayRows: [],
+    liveTurn: {
+      turnRef: null,
+      phase: 'idle',
+      entries: [],
+      isBusy: false,
+      isTerminal: true,
+      canStop: false,
+    },
+    surfaces: {
+      pill: { mode: 'idle' },
+      dashboard: { mode: 'idle' },
+      responseOverlay: {
+        mode: 'hidden',
+        visible: false,
+        guardRef: null,
+        ownerConversationRef: conversationRef,
+        turnRef: null,
+      },
+    },
+    actions: {
+      canEdit: false,
+      canRetry: false,
+      canFork: false,
+    },
+  };
+  return {
+    ...base,
+    ...overrides,
+    liveTurn: overrides.liveTurn ?? base.liveTurn,
+    surfaces: {
+      ...base.surfaces,
+      ...overrides.surfaces,
+    },
+    actions: {
+      ...base.actions,
+      ...overrides.actions,
+    },
+  };
+}
+
 describe('chatWorkspaceState', () => {
   test('normalizes conversation refs and falls back for empty values', () => {
-    expect(normalizeConversationRef(' conversation-1 ')).toBe('conversation-1');
+    expect(normalizeConversationRef('conversation-1')).toBe('conversation-1');
+    expect(normalizeConversationRef(' conversation-1 ')).toBeNull();
     expect(normalizeConversationRef('   ')).toBeNull();
     expect(normalizeConversationRef(undefined)).toBeNull();
-    expect(resolveChatWorkspaceRef(' conversation-2 ')).toBe('conversation-2');
+    expect(resolveChatWorkspaceRef('conversation-2')).toBe('conversation-2');
+    expect(resolveChatWorkspaceRef(' conversation-2 ')).toBe('__default__');
     expect(resolveChatWorkspaceRef('')).toBe('__default__');
   });
 
@@ -64,10 +114,13 @@ describe('chatWorkspaceState', () => {
   });
 
   test('resolves workspace conversation refs using explicit then active value', () => {
-    expect(resolveWorkspaceConversationRef(' ref-1 ', 'active-ref')).toBe('ref-1');
-    expect(resolveWorkspaceConversationRef(undefined, ' active-ref ')).toBe('active-ref');
+    expect(resolveWorkspaceConversationRef('ref-1', 'active-ref')).toBe('ref-1');
+    expect(resolveWorkspaceConversationRef(' ref-1 ', 'active-ref')).toBeNull();
+    expect(resolveWorkspaceConversationRef(undefined, 'active-ref')).toBe('active-ref');
+    expect(resolveWorkspaceConversationRef(undefined, ' active-ref ')).toBeNull();
     expect(resolveWorkspaceConversationRef(undefined, null)).toBeNull();
-    expect(resolveWorkspaceKey(undefined, ' active-ref ')).toBe('active-ref');
+    expect(resolveWorkspaceKey(undefined, 'active-ref')).toBe('active-ref');
+    expect(resolveWorkspaceKey(undefined, ' active-ref ')).toBe('__default__');
     expect(resolveWorkspaceKey(undefined, null)).toBe('__default__');
   });
 
@@ -153,35 +206,6 @@ describe('chatWorkspaceState', () => {
     }));
   });
 
-  test('selects active workspace from the workspace record, not top-level mirrors', () => {
-    const workspace = {
-      ...createInitialWorkspaceState(),
-      messages: [{ id: 'workspace', text: 'workspace', sender: 'assistant' as const }],
-    };
-    const rootMessages = [{ id: 'root', text: 'root', sender: 'assistant' as const }];
-    const state = {
-      activeConversationRef: 'thread-1',
-      workspaces: {
-        'thread-1': workspace,
-      },
-      messages: rootMessages,
-      isSending: true,
-      thinkingStatus: 'thinking',
-      thinkingSourceEventType: 'llm-thought',
-      tokenCounts: { total_tokens: 4 },
-      streamTracking: createStreamTracking({ phase: 'streaming', eventCount: 2 }),
-    };
-
-    const resolved = selectActiveWorkspaceState(state);
-    expect(resolved).toBe(workspace);
-    expect(resolved.messages).toEqual([
-      { id: 'workspace', text: 'workspace', sender: 'assistant' },
-    ]);
-    expect(resolved.isSending).toBe(false);
-    expect(resolved.thinkingStatus).toBeNull();
-    expect(resolved.streamTracking.phase).toBe('idle');
-  });
-
   test('projects no-view workspace read model with only sdk live-turn fallback', () => {
     const workspace = {
       ...createInitialWorkspaceState(),
@@ -199,6 +223,7 @@ describe('chatWorkspaceState', () => {
 
     expect(readModel).not.toBe(workspace);
     expect(readModel.messages).toBe(workspace.messages);
+    expect(readModel).not.toHaveProperty('isSending');
     expect(readModel).not.toHaveProperty('currentTurnProjection');
     expect(readModel.sdkLiveTurn).toBe(workspace.sdkLiveTurn);
     expect(readModel.rendererAnnotations).toEqual([]);
@@ -220,14 +245,9 @@ describe('chatWorkspaceState', () => {
   });
 
   test('projects ConversationView workspace read model without raw fallback authorities', () => {
-    const conversationView = {
-      conversationRef: 'thread-1',
-      displayRows: [{ id: 'sdk-row', role: 'user' }],
-      liveTurn: null,
-      surfaces: {
-        pill: { mode: 'idle' },
-      },
-    };
+    const conversationView = buildConversationView('thread-1', {
+      displayRows: [{ id: 'sdk-row', role: 'assistant' }],
+    } as never);
     const pendingTurn = {
       conversationRef: 'thread-1',
       turnRef: 'turn-pending',
@@ -238,10 +258,19 @@ describe('chatWorkspaceState', () => {
       messages: [{
         id: 'sdk-row',
         text: 'raw fallback',
-        sender: 'user' as const,
-        fullUserMessage: 'full prompt',
-        feedback: 'like',
+        sender: 'assistant' as const,
+        fullAssistantMessage: 'full response',
+        feedback: 'dislike',
       }],
+      rendererAnnotations: [{
+        id: 'sdk-row',
+        feedback: 'like' as const,
+      }],
+      thinkingStatus: 'Compacting conversation history...',
+      thinkingSourceEventType: 'compaction_started',
+      compactionDebugInfo: { strategy: 'summarize' } as never,
+      tokenCounts: { total_tokens: 42 },
+      streamTracking: createStreamTracking({ phase: 'streaming' }),
       sdkLiveTurn: { turnRef: 'turn-raw' } as never,
       conversationView,
       pendingTurn: pendingTurn as never,
@@ -258,8 +287,19 @@ describe('chatWorkspaceState', () => {
 
     expect(readModel).not.toBe(workspace);
     expect(readModel.messages).toEqual([]);
+    expect(readModel).not.toHaveProperty('isSending');
     expect(readModel).not.toHaveProperty('currentTurnProjection');
     expect(readModel.sdkLiveTurn).toBeNull();
+    expect(readModel.thinkingStatus).toBeNull();
+    expect(readModel.thinkingSourceEventType).toBeNull();
+    expect(readModel.compactionDebugInfo).toBeNull();
+    expect(readModel.tokenCounts).toBeNull();
+    expect(readModel.streamTracking).toEqual(expect.objectContaining({
+      phase: 'idle',
+      activeTurnRef: null,
+      eventCount: 0,
+    }));
+    expect(readModel.streamTracking).not.toBe(workspace.streamTracking);
     expect(readModel.conversationView).toBe(conversationView);
     expect(readModel.pendingTurn).toBe(pendingTurn);
     expect(readModel.rendererAnnotations).toEqual([{
@@ -268,6 +308,58 @@ describe('chatWorkspaceState', () => {
     }]);
     expect(selectedReadModel).toBe(readModel);
     expect(projectWorkspaceReadModelState(workspace)).toBe(readModel);
+  });
+
+  test('keeps empty renderer annotations stable across raw message churn with ConversationView', () => {
+    const conversationView = buildConversationView('thread-1', {
+      displayRows: [{ id: 'sdk-row', role: 'assistant' }],
+    } as never);
+    const firstWorkspace = {
+      ...createInitialWorkspaceState(),
+      conversationView,
+      messages: [{
+        id: 'raw-a',
+        text: 'raw fallback a',
+        sender: 'assistant' as const,
+      }],
+    };
+    const secondWorkspace = {
+      ...createInitialWorkspaceState(),
+      conversationView,
+      messages: [{
+        id: 'raw-b',
+        text: 'raw fallback b',
+        sender: 'assistant' as const,
+      }],
+    };
+
+    const firstReadModel = projectWorkspaceReadModelState(firstWorkspace);
+    const secondReadModel = projectWorkspaceReadModelState(secondWorkspace);
+
+    expect(firstReadModel.messages).toEqual([]);
+    expect(secondReadModel.messages).toEqual([]);
+    expect(firstReadModel.rendererAnnotations).toEqual([]);
+    expect(secondReadModel.rendererAnnotations).toBe(firstReadModel.rendererAnnotations);
+    expect(secondReadModel.streamTracking).toBe(firstReadModel.streamTracking);
+  });
+
+  test('does not let display timeline rows claim ConversationView read-model authority', () => {
+    const workspace = {
+      ...createInitialWorkspaceState(),
+      messages: [{ id: 'raw-row', text: 'raw fallback', sender: 'assistant' as const }],
+      sdkLiveTurn: { turnRef: 'turn-raw' } as never,
+      conversationView: {
+        conversationRef: 'thread-1',
+        rows: [],
+      } as never,
+    };
+
+    const readModel = projectWorkspaceReadModelState(workspace);
+
+    expect(readModel.messages).toBe(workspace.messages);
+    expect(readModel.sdkLiveTurn).toBe(workspace.sdkLiveTurn);
+    expect(readModel.conversationView).toBeNull();
+    expect(readModel.rendererAnnotations).toEqual([]);
   });
 
   test('builds workspace updates without projecting inactive workspace fields', () => {
@@ -281,8 +373,6 @@ describe('chatWorkspaceState', () => {
       messages: [{ id: 'active', text: 'active', sender: 'assistant' as const }],
     };
 
-    expect(isActiveWorkspaceRef(state, 'active-thread')).toBe(true);
-    expect(isActiveWorkspaceRef(state, 'inactive-thread')).toBe(false);
     expect(buildWorkspaceUpdate(state, 'inactive-thread', workspace, {
       extraUiState: true,
     })).toEqual({
@@ -334,10 +424,17 @@ describe('chatWorkspaceState', () => {
       workspaceRef: 'active-thread',
       workspace: activeWorkspace,
     });
-    expect(resolveWorkspaceMutationTarget(state, ' other-thread ')).toEqual({
+    expect(resolveWorkspaceMutationTarget(state, 'other-thread')).toEqual({
       normalizedConversationRef: 'other-thread',
       workspaceRef: 'other-thread',
       workspace: otherWorkspace,
+    });
+    expect(resolveWorkspaceMutationTarget(state, ' other-thread ')).toEqual({
+      normalizedConversationRef: null,
+      workspaceRef: '__default__',
+      workspace: expect.objectContaining({
+        messages: [],
+      }),
     });
   });
 
@@ -345,17 +442,7 @@ describe('chatWorkspaceState', () => {
     const nextWorkspace = {
       ...createInitialWorkspaceState(),
       messages: [{ id: 'next', text: 'next', sender: 'assistant' as const }],
-      conversationView: {
-        conversationRef: 'next-thread',
-        rows: [],
-        actions: {
-          canEdit: false,
-          canRetry: false,
-        },
-        revisions: [],
-        activeRevisionId: null,
-        liveTurn: null,
-      },
+      conversationView: buildConversationView('next-thread'),
     };
     const state = {
       activeConversationRef: 'active-thread',
@@ -365,9 +452,18 @@ describe('chatWorkspaceState', () => {
       messages: [{ id: 'active', text: 'active', sender: 'assistant' as const }],
     };
 
-    expect(buildActiveConversationWorkspaceUpdate(state, ' next-thread ')).toEqual({
+    expect(buildActiveConversationWorkspaceUpdate(state, 'next-thread')).toEqual({
       activeConversationRef: 'next-thread',
       workspaces: state.workspaces,
+    });
+    expect(buildActiveConversationWorkspaceUpdate(state, ' next-thread ')).toEqual({
+      activeConversationRef: null,
+      workspaces: {
+        ...state.workspaces,
+        __default__: expect.objectContaining({
+          messages: [],
+        }),
+      },
     });
   });
 

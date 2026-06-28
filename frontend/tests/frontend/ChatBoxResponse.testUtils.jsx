@@ -51,6 +51,10 @@ import {
   setMessagesInChatStore,
   setThinkingStatusInChatStore,
 } from '../../src/renderer/features/chat/stores/chatStoreAdapters';
+import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+  resetChatStoreForTests,
+} from './chatStoreTestUtils';
 
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 const WORKSPACE_MIRROR_FIELDS = [
@@ -165,12 +169,7 @@ function buildToolEventsFromMessages(messages) {
             output: message.text || '',
           },
           toolMetadata: message.toolMetadata || null,
-          screenshot: message.screenshot || null,
-          screenshotRef: message.screenshotRef || null,
-          screenshotUrl: message.screenshotUrl || null,
-          screenshotContentType: message.screenshotContentType || null,
-          executionTime: message.executionTime ?? null,
-          success: message.success ?? (message.status === 'error' ? false : true),
+          success: message.status === 'error' ? false : true,
           payload: {
             output: message.text || '',
           },
@@ -216,20 +215,87 @@ function buildToolEventsFromMessages(messages) {
     .filter(Boolean);
 }
 
+function presentationEntryFromMessage(message, index) {
+  if (!message || message.sender !== 'assistant') {
+    return null;
+  }
+  const id = typeof message.id === 'string' && message.id.length > 0 && message.id === message.id.trim()
+    ? message.id
+    : `overlay-entry-${index}`;
+  if (message.type === 'error') {
+    return {
+      id,
+      type: 'error',
+      text: message.text || '',
+      sourceEventType: message.sourceEventType || 'error',
+      isComplete: true,
+    };
+  }
+  if (
+    message.type === 'tool-output'
+    || message.type === 'search-source'
+    || message.type === 'tool-call'
+    || message.type === 'tool-explanation'
+  ) {
+    return null;
+  }
+  if (message.thinkingText) {
+    return {
+      id,
+      type: 'thinking',
+      text: message.thinkingText,
+      sourceEventType: message.thinkingSourceEventType || 'reasoning',
+      isComplete: false,
+    };
+  }
+  return {
+    id,
+    type: 'llm-text',
+    text: message.text || '',
+    sourceEventType: message.sourceEventType || 'assistant_message',
+    isComplete: message.isComplete === true,
+  };
+}
+
+function buildPresentationFromMessages(messages, phase) {
+  const entries = messages
+    .map((message, index) => presentationEntryFromMessage(message, index))
+    .filter(Boolean);
+  const mode = entries.length > 0 ? 'response' : (phase === 'awaiting' ? 'awaiting' : 'hidden');
+  return {
+    conversationRef: 'conv-test',
+    turnRef: 'turn-test',
+    phase,
+    entries,
+    hasVisibleContent: entries.length > 0,
+    isBusy: phase !== 'complete' && phase !== 'error' && phase !== 'idle',
+    isTerminal: phase === 'complete' || phase === 'error',
+    overlayIntent: {
+      visible: mode !== 'hidden',
+      mode,
+      conversationRef: 'conv-test',
+      turnRef: 'turn-test',
+      staleGuardRef: 'turn-test',
+    },
+  };
+}
+
 function buildCurrentTurnProjection(messages, phase = null) {
   const assistantMessages = messages.filter((message) => message?.sender === 'assistant');
   const latestTextMessage = [...assistantMessages].reverse().find((message) => (
     message.type === 'llm-text' || (!message.type && typeof message.text === 'string')
   ));
   const latestError = [...assistantMessages].reverse().find((message) => message.type === 'error');
+  const normalizedPhase = normalizeProjectionPhase(phase, messages);
   return {
     conversationRef: 'conv-test',
     turnRef: 'turn-test',
-    phase: normalizeProjectionPhase(phase, messages),
+    phase: normalizedPhase,
     assistantText: latestTextMessage?.text || '',
     reasoningText: latestTextMessage?.thinkingText || null,
     toolEvents: buildToolEventsFromMessages(messages),
     lastError: latestError?.text || null,
+    presentation: buildPresentationFromMessages(messages, normalizedPhase),
   };
 }
 
@@ -245,7 +311,7 @@ export function setChatState(messages) {
 
 export function emitOverlayPhase(phase) {
   act(() => {
-    const workspace = useChatStore.getState().getWorkspaceState();
+    const workspace = getWorkspaceStateFromChatStore();
     const currentTurnProjection = buildCurrentTurnProjection(workspace.messages || [], phase);
     setNoViewSdkLiveTurnInChatStore(currentTurnProjection);
     setConversationViewInChatStore(null);
@@ -281,6 +347,7 @@ export function resetChatBoxResponseTestState() {
     return Promise.resolve({ success: true });
   });
   mockListeners.clear();
+  resetChatStoreForTests(null);
   setChatState([]);
 }
 

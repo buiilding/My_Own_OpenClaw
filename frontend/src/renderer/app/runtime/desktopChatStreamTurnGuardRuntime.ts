@@ -8,12 +8,16 @@ function isStaleTurnForActiveStream(
 ): boolean {
   const normalizedEventTurnRef = (
     typeof eventTurnRef === 'string'
-      ? eventTurnRef.trim()
+      && eventTurnRef.length > 0
+      && eventTurnRef === eventTurnRef.trim()
+      ? eventTurnRef
       : ''
   );
   const normalizedActiveTurnRef = (
     typeof activeTurnRef === 'string'
-      ? activeTurnRef.trim()
+      && activeTurnRef.length > 0
+      && activeTurnRef === activeTurnRef.trim()
+      ? activeTurnRef
       : ''
   );
   if (!normalizedEventTurnRef || !normalizedActiveTurnRef) {

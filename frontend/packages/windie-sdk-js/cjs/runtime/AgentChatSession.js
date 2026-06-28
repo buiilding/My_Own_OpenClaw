@@ -54,7 +54,7 @@ class AgentChatSession {
     async editAndResend(input) {
         return this.runtime.editAndResend(input);
     }
-    async retry(input = {}) {
+    async retry(input) {
         return this.runtime.retryTurn(input);
     }
     async replaceRows(input) {

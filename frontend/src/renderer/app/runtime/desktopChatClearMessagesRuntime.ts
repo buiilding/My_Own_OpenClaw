@@ -8,6 +8,9 @@ import type {
 import {
   DesktopChatWorkspaceStateRuntime,
 } from './desktopChatWorkspaceStateRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
 type ClearMessagesStateSnapshot = {
   activeConversationRef: string | null;
@@ -15,6 +18,7 @@ type ClearMessagesStateSnapshot = {
 
 type ClearMessagesWorkspace<TStreamTracking> = NoViewSdkLiveTurnStorage & {
   messages: unknown[];
+  rendererAnnotations?: unknown[];
   isSending: boolean;
   thinkingSourceEventType: string | null;
   compactionDebugInfo: unknown;
@@ -44,6 +48,9 @@ type ClearMessagesStateDependencies<
 const {
   buildNoViewSdkLiveTurnStorageUpdate,
 } = DesktopChatWorkspaceStateRuntime;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 function buildClearMessagesStateUpdate<
   TState extends ClearMessagesStateSnapshot,
@@ -52,22 +59,33 @@ function buildClearMessagesStateUpdate<
 >({
   conversationRef = null,
   deps,
+  preserveConversationView = false,
   state,
 }: {
   conversationRef?: string | null;
   deps: ClearMessagesStateDependencies<TState, TStreamTracking, TWorkspace>;
+  preserveConversationView?: boolean;
   state: TState;
 }): Partial<TState> | TState {
   const targetWorkspaceRef = deps.resolveWorkspaceKey(conversationRef, state.activeConversationRef);
   const currentWorkspace = deps.readWorkspaceState(state, targetWorkspaceRef);
+  const shouldPreserveConversationView = (
+    preserveConversationView === true
+    && hasWorkspaceConversationView(currentWorkspace)
+  );
   return deps.buildWorkspaceUpdate(state, targetWorkspaceRef, {
     ...buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace, null),
     messages: [],
+    rendererAnnotations: shouldPreserveConversationView
+      ? currentWorkspace.rendererAnnotations
+      : [],
     isSending: false,
     thinkingSourceEventType: null,
     compactionDebugInfo: null,
     streamTracking: deps.createInitialStreamTracking(),
-    conversationView: null,
+    conversationView: shouldPreserveConversationView
+      ? currentWorkspace.conversationView
+      : null,
     pendingTurn: null,
   });
 }

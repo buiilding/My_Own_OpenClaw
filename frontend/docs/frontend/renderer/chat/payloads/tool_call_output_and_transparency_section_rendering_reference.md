@@ -60,9 +60,9 @@ Dashboard thread presentation no longer branches on the frontend
 `show_tool_logs` setting or active loop busy state. `ChatInterface` passes
 durable rows and SDK current-turn projection data into
 `DesktopThreadPresentationRuntime.buildThreadPresentationMessages(...)`, and
-the runtime keeps tool-call, tool-output, search-source, and tool-explanation
-rows as rendering data rather than using them as typing or busy lifecycle
-authority.
+the runtime keeps tool-call, tool-output, SDK tool-progress, legacy
+search-source, and tool-explanation rows as rendering data rather than using
+them as typing or busy lifecycle authority.
 
 The old hidden-tool-log filtering path was removed from the dashboard thread
 projection. Tests now assert that toggling `show_tool_logs` does not reorder or
@@ -125,19 +125,37 @@ Structured JSON support:
 
 ## Tool Output Card Contract
 
-Displayed output precedence:
-
-1. `message.modelFacingToolOutput` string
-2. fallback `message.text`
+Displayed output comes from `message.text`. SDK display-row and live-turn
+projections set that field directly from `tool_output`/`tool_bundle_output` row
+`content` or live-entry text and do not republish that same content on a legacy
+`modelFacingToolOutput` prop. Thread find, token estimates, and
+`ToolOutputMessage` all use the same display text contract.
 
 Details payload precedence:
 
 1. object `message.toolOutputDetails`
-2. synthesized object from:
-- `toolName`
-- `executionTime`
-- `success`
-- `toolMetadata`
+2. empty object when SDK-authored details are absent
+
+SDK display-row and live-turn adapters sanitize SDK-authored
+`toolCallDetails` and `toolOutputDetails` before those records reach the
+component detail panels. Generic details must not carry provider-facing
+payloads, raw payload mirrors, screenshot aliases, model metadata, or typed
+attachment lifecycle descriptors; those stay on SDK display fields such as
+`attachments[]` or compatibility-only SDK/backend paths. Tool-output components
+do not rebuild missing details from `toolMetadata`, `toolName`,
+`executionTime`, or `success`; SDK `toolOutputDetails` is the only details
+payload authority. The shared renderer `ChatMessage` contract no longer
+declares top-level `modelFacingToolOutput`, `toolName`, `executionTime`, or
+`success`, and no-view live adapters do not republish SDK tool output text,
+tool names, or status on those legacy fields. The old transcript tool-output
+state helper has been
+removed; SDK display-row and live-turn adapters build renderer tool-output rows
+directly from SDK-authored text, attachments, and `toolOutputDetails` instead
+of publishing parallel detail channels. SDK `tool_progress` display rows do not
+borrow `toolOutputDetails` as progress metadata; if the SDK wants a progress
+detail payload, it must author that on `toolCallDetails`, which the renderer
+keeps on the explicit `message.toolCallDetails` prop rather than republishing
+as legacy `toolMetadata`.
 
 Visible tool-output screenshots render through the same typed attachment path as
 user visuals:

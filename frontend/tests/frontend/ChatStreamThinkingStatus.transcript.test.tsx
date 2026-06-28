@@ -22,6 +22,9 @@ import {
   setMockConfig,
   transcriptSpies,
 } from './ChatStreamThinkingStatus.testUtils';
+import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+} from './chatStoreTestUtils';
 
 describe('useChatStream live SDK event ownership', () => {
   beforeEach(() => {
@@ -95,7 +98,7 @@ describe('useChatStream live SDK event ownership', () => {
       });
     });
 
-    expect(useChatStore.getState().getWorkspaceState('conv-1').messages.at(-1)).toEqual(
+    expect(getWorkspaceStateFromChatStore('conv-1').messages.at(-1)).toEqual(
       expect.objectContaining({
         id: 'assistant-1',
         text: 'answer',
@@ -295,7 +298,7 @@ describe('useChatStream live SDK event ownership', () => {
       });
     });
 
-    expect(useChatStore.getState().getWorkspaceState('conv-1').messages.at(-1)).toEqual(
+    expect(getWorkspaceStateFromChatStore('conv-1').messages.at(-1)).toEqual(
       expect.objectContaining({
         id: 'assistant-1',
         text: '',
@@ -333,7 +336,7 @@ describe('useChatStream live SDK event ownership', () => {
       });
     });
 
-    expect(useChatStore.getState().getWorkspaceState('conv-1').messages.at(-1)).toEqual(
+    expect(getWorkspaceStateFromChatStore('conv-1').messages.at(-1)).toEqual(
       expect.objectContaining({ id: 'assistant-1', isComplete: false }),
     );
   });
@@ -412,7 +415,7 @@ describe('useChatStream live SDK event ownership', () => {
         sender: 'assistant',
       },
     ], 'conv-active');
-    const activeBefore = useChatStore.getState().getWorkspaceState('conv-active');
+    const activeBefore = getWorkspaceStateFromChatStore('conv-active');
 
     act(() => {
       emitBackendEvent({
@@ -430,12 +433,19 @@ describe('useChatStream live SDK event ownership', () => {
           reasoningText: null,
           toolEvents: [],
           lastError: null,
+          presentation: {
+            entries: [{
+              id: 'entry-stale-assistant',
+              type: 'llm-text',
+              text: 'stale chunk',
+            }],
+          },
         },
       });
     });
 
-    const activeAfter = useChatStore.getState().getWorkspaceState('conv-active');
-    const staleWorkspace = useChatStore.getState().getWorkspaceState('conv-stale');
+    const activeAfter = getWorkspaceStateFromChatStore('conv-active');
+    const staleWorkspace = getWorkspaceStateFromChatStore('conv-stale');
     expect(activeAfter).toEqual(activeBefore);
     expect(staleWorkspace.messages).toEqual([]);
     expect(staleWorkspace.streamTracking).toEqual(expect.objectContaining({
@@ -463,7 +473,7 @@ describe('useChatStream live SDK event ownership', () => {
       });
     });
 
-    expect(useChatStore.getState().getWorkspaceState('conv-active').tokenCounts).not.toEqual(
+    expect(getWorkspaceStateFromChatStore('conv-active').tokenCounts).not.toEqual(
       expect.objectContaining({
         prompt_tokens: 1,
         visible_output_tokens: 1,

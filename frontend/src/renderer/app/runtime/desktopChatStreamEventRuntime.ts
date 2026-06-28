@@ -27,15 +27,15 @@ const {
 } = DesktopChatStreamTerminalHandoffRuntime;
 
 type ShouldIgnoreForStaleTurnDeps = {
-  getWorkspaceState: (conversationRef?: string | null) => StreamGuardWorkspace;
+  getChatStreamWorkspaceReadModel: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel;
 };
 
 type ResolveTerminalCompletionDeps = {
-  getWorkspaceState: (conversationRef?: string | null) => StreamCompletionWorkspace;
+  getChatStreamWorkspaceReadModel: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel;
 };
 
 type ResolveThinkingSourceDeps = {
-  getWorkspaceState: (conversationRef?: string | null) => {
+  getChatStreamWorkspaceReadModel: (conversationRef?: string | null) => {
     thinkingSourceEventType?: string | null;
   } | null | undefined;
 };
@@ -49,22 +49,33 @@ type ConversationStreamEventIdentityEvent = {
   turnRef?: string | null;
 };
 
-type StreamCompletionWorkspace = StreamGuardWorkspace;
+export type ChatStreamWorkspaceReadModel = StreamGuardWorkspace & {
+  thinkingSourceEventType?: string | null;
+  viewLiveTurnRef?: string | null;
+};
+
+type StreamCompletionWorkspace = ChatStreamWorkspaceReadModel;
 
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
+function readExactIdentityString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function resolveConversationStreamEventConversationRef(
   event: ConversationStreamEventIdentityEvent | null | undefined,
 ): string | null {
-  return optionalString(event?.conversationRef);
+  return readExactIdentityString(event?.conversationRef);
 }
 
 function resolveConversationStreamEventTurnRef(
   event: ConversationStreamEventIdentityEvent | null | undefined,
 ): string | null {
-  return optionalString(event?.turnRef);
+  return readExactIdentityString(event?.turnRef);
 }
 
 function resolveConversationStreamEventIdentity(
@@ -77,7 +88,7 @@ function resolveConversationStreamEventIdentity(
 } {
   const turnRef = resolveConversationStreamEventTurnRef(event);
   return {
-    conversationRef: optionalString(fallbackConversationRef)
+    conversationRef: readExactIdentityString(fallbackConversationRef)
       ?? resolveConversationStreamEventConversationRef(event),
     turnRef,
     turnRefForUpdate: turnRef ?? undefined,
@@ -88,23 +99,13 @@ function resolveWorkspaceThinkingSourceEventType(
   conversationRef: string | null | undefined,
   deps: ResolveThinkingSourceDeps,
 ): string | null {
-  const sourceEventType = deps.getWorkspaceState(conversationRef)?.thinkingSourceEventType;
+  const sourceEventType = deps.getChatStreamWorkspaceReadModel(conversationRef)?.thinkingSourceEventType;
   return optionalString(sourceEventType);
 }
 
-function resolveWorkspaceViewLiveTurnRef(workspace: StreamGuardWorkspace | null | undefined): string | null {
-  return normalizeTurnRef((workspace as {
-      conversationView?: {
-        liveTurn?: {
-          turnRef?: string | null;
-        } | null;
-      } | null;
-    } | null | undefined)?.conversationView?.liveTurn?.turnRef);
-}
-
-function resolveWorkspaceActiveTurnRef(workspace: StreamGuardWorkspace | null | undefined): string | null {
+function resolveWorkspaceActiveTurnRef(workspace: ChatStreamWorkspaceReadModel | null | undefined): string | null {
   return (
-    resolveWorkspaceViewLiveTurnRef(workspace)
+    normalizeTurnRef(workspace?.viewLiveTurnRef)
     || normalizeTurnRef(workspace?.streamTracking?.activeTurnRef)
   );
 }
@@ -240,7 +241,7 @@ function shouldIgnoreForStaleTurn(
   if (!eventTurnRef) {
     return false;
   }
-  const workspace = deps?.getWorkspaceState(conversationRef);
+  const workspace = deps?.getChatStreamWorkspaceReadModel(conversationRef);
   if (!workspace) {
     return false;
   }
@@ -283,7 +284,7 @@ function shouldRecordTerminalCompletionTracking(
     return true;
   }
   const normalizedEventTurnRef = normalizeTurnRef(eventTurnRef);
-  const normalizedViewTurnRef = resolveWorkspaceViewLiveTurnRef(workspace);
+  const normalizedViewTurnRef = normalizeTurnRef(workspace.viewLiveTurnRef);
   if (normalizedViewTurnRef && normalizedEventTurnRef === normalizedViewTurnRef) {
     return true;
   }
@@ -310,7 +311,7 @@ function resolveTurnCompletedStreamEventState(
     conversationRef ?? resolveConversationStreamEventConversationRef(event)
   );
   const eventTurnRef = resolveConversationStreamEventTurnRef(event);
-  const workspace = deps.getWorkspaceState(resolvedConversationRef);
+  const workspace = deps.getChatStreamWorkspaceReadModel(resolvedConversationRef);
   return {
     conversationRef: resolvedConversationRef,
     shouldRecordTerminalTracking: shouldRecordTerminalCompletionTracking(

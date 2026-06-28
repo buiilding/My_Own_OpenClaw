@@ -3,10 +3,6 @@
  */
 
 import type {
-  ConversationView,
-  CurrentTurnProjection,
-} from './desktopConversationRuntimeContracts';
-import type {
   ChatMessage,
 } from './desktopChatMessageTypes';
 import {
@@ -28,10 +24,10 @@ type DesktopChatWorkspaceProjection = {
   thinkingSourceEventType?: string | null;
   compactionDebugInfo?: unknown | null;
   tokenCounts?: unknown | null;
-  conversationView?: ConversationView | null;
+  conversationView?: unknown | null;
   pendingTurn?: unknown | null;
   rendererAnnotations?: unknown[];
-  sdkLiveTurn?: CurrentTurnProjection | null;
+  sdkLiveTurn?: unknown | null;
 };
 
 type PendingTurnProjection = {
@@ -48,7 +44,7 @@ type StopTurnTarget = {
   conversationRef: string | null;
   turnRef: string | null;
   canStop: boolean;
-};
+} | null;
 
 const {
   projectDesktopChatSurfaceState,
@@ -76,7 +72,7 @@ function selectStableChatSendReadModel({
   conversationView = null,
   messages = [],
 }: {
-  conversationView?: ConversationView | null;
+  conversationView?: unknown | null;
   messages?: ChatMessage[];
 }): ChatSendReadModel {
   const fallbackMessages = Array.isArray(messages) ? messages : [];
@@ -89,6 +85,9 @@ function selectStableChatSendReadModel({
 }
 
 function buildStopTurnTargetSignature(stopTurnTarget: StopTurnTarget): string {
+  if (!stopTurnTarget) {
+    return 'none';
+  }
   return [
     stopTurnTarget.source,
     stopTurnTarget.conversationRef ?? '',
@@ -99,7 +98,7 @@ function buildStopTurnTargetSignature(stopTurnTarget: StopTurnTarget): string {
 
 function selectStableStopTurnTarget(input: {
   conversationRef?: string | null;
-  conversationView?: ConversationView | null;
+  conversationView?: unknown | null;
   pendingTurn?: PendingTurnProjection;
 }): StopTurnTarget {
   const stopTurnTarget = resolveStopTurnTarget(input);
@@ -123,7 +122,7 @@ function buildChatInterfaceSelectorState({
   activeWorkspace: DesktopChatWorkspaceProjection;
 }) {
   const interfaceState = projectDesktopChatInterfaceState(activeWorkspace);
-  const conversationView = interfaceState.conversationView as ConversationView | null;
+  const conversationView = interfaceState.conversationView;
   const pendingTurn = interfaceState.pendingTurn as PendingTurnProjection;
   const presentationMessages = interfaceState.messages as ChatMessage[];
   const chatPresentationState = buildChatInterfacePresentationState({
@@ -132,7 +131,7 @@ function buildChatInterfaceSelectorState({
     messages: presentationMessages,
     pendingTurn,
     rendererAnnotations: interfaceState.rendererAnnotations,
-    sdkLiveTurn: interfaceState.sdkLiveTurn as CurrentTurnProjection | null,
+    sdkLiveTurn: interfaceState.sdkLiveTurn,
   });
   const chatSurfaceState = projectDesktopChatSurfaceState({
     activeWorkspace,
@@ -157,11 +156,12 @@ function buildChatSendReadModelSelectorState({
 }: {
   activeWorkspace: DesktopChatWorkspaceProjection;
 }): ChatSendReadModel {
-  const conversationView = activeWorkspace.conversationView ?? null;
-  const messages = conversationView ? [] : activeWorkspace.messages;
+  const surfaceState = projectDesktopChatSurfaceState({
+    activeWorkspace,
+  });
   return selectStableChatSendReadModel({
-    conversationView,
-    messages,
+    conversationView: surfaceState.conversationView,
+    messages: surfaceState.messages,
   });
 }
 
@@ -189,7 +189,7 @@ function buildLiveTurnSurfaceSelectorState({
     ...liveTurnSurfaceState,
     stopTurnTarget: selectStableStopTurnTarget({
       conversationRef: activeConversationRef,
-      conversationView: liveTurnSurfaceState.conversationView as ConversationView | null,
+      conversationView: liveTurnSurfaceState.conversationView,
       pendingTurn: liveTurnSurfaceState.pendingTurn as PendingTurnProjection,
     }),
   };

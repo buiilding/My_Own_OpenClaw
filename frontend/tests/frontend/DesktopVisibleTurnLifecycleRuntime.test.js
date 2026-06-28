@@ -19,7 +19,6 @@ function pendingTurn(overrides = {}) {
     userMessageId: 'user-1',
     text: 'hello',
     timestamp: '2026-06-21T00:00:00.000Z',
-    attachmentFilenames: null,
     ...overrides,
   };
 }
@@ -48,6 +47,31 @@ function projection(overrides = {}) {
       },
     },
     ...overrides,
+  };
+}
+
+function conversationView({
+  conversationRef = 'conv-1',
+  displayRows = [],
+  liveTurn = {},
+  surfaces = {
+    pill: { mode: 'idle' },
+    dashboard: { mode: 'idle' },
+    responseOverlay: { mode: 'hidden', visible: false },
+  },
+  actions = {
+    canEdit: false,
+    canRetry: false,
+    canFork: false,
+  },
+} = {}) {
+  return {
+    conversationRef,
+    revisionId: null,
+    displayRows,
+    liveTurn,
+    surfaces,
+    actions,
   };
 }
 
@@ -331,6 +355,228 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
   });
 
+  test('rejects attachment-bearing pending turns as local visible lifecycle authority', () => {
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pendingTurn({
+        attachmentFilenames: ['image.png'],
+      }),
+      sdkLiveTurn: null,
+    })).toMatchObject({
+      status: 'idle',
+      source: 'sdk',
+      conversationRef: 'conv-1',
+      turnRef: null,
+      isBusy: false,
+      showTyping: false,
+    });
+  });
+
+  test('does not repair padded SDK live-turn identities before replacing local pending', () => {
+    const pending = pendingTurn();
+    const visibleProjection = projection({
+      phase: 'streaming',
+      presentation: {
+        entries: [{
+          id: 'entry-1',
+          type: 'llm-text',
+          text: 'Hello there',
+        }],
+      },
+    });
+
+    expect(resolvePendingTurnForSdkLiveTurn({
+      pendingTurn: pending,
+      sdkLiveTurn: {
+        ...visibleProjection,
+        turnRef: ' turn-1 ',
+      },
+    })).toBe(pending);
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      sdkLiveTurn: {
+        ...visibleProjection,
+        turnRef: ' turn-1 ',
+      },
+    })).toMatchObject({
+      status: 'local_pending',
+      source: 'local',
+      turnRef: 'turn-1',
+    });
+
+    expect(resolvePendingTurnForSdkLiveTurn({
+      pendingTurn: pending,
+      sdkLiveTurn: {
+        ...visibleProjection,
+        conversationRef: ' conv-1 ',
+      },
+    })).toBe(pending);
+
+    expect(resolveVisibleTurnLifecycle({
+      sdkLiveTurn: {
+        ...visibleProjection,
+        conversationRef: ' conv-1 ',
+      },
+    })).toEqual({
+      status: 'idle',
+      source: 'sdk',
+      conversationRef: null,
+      turnRef: null,
+      awaitingAnchor: null,
+      entries: [],
+      terminalReason: null,
+      isBusy: false,
+      showTyping: false,
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      sdkLiveTurn: {
+        ...visibleProjection,
+        conversationRef: ' conv-1 ',
+      },
+    })).toEqual({
+      status: 'idle',
+      source: 'sdk',
+      conversationRef: 'conv-1',
+      turnRef: null,
+      awaitingAnchor: null,
+      entries: [],
+      terminalReason: null,
+      isBusy: false,
+      showTyping: false,
+    });
+  });
+
+  test('does not repair padded SDK live-turn phases before lifecycle projection', () => {
+    const pending = pendingTurn();
+
+    expect(resolvePendingTurnForSdkLiveTurn({
+      pendingTurn: pending,
+      sdkLiveTurn: projection({
+        phase: ' complete ',
+        presentation: {
+          isTerminal: false,
+          entries: [],
+        },
+      }),
+    })).toBe(pending);
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      sdkLiveTurn: projection({
+        phase: ' streaming ',
+        presentation: {
+          entries: [],
+        },
+      }),
+    })).toMatchObject({
+      status: 'local_pending',
+      source: 'local',
+      turnRef: 'turn-1',
+      isBusy: true,
+      showTyping: true,
+    });
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      sdkLiveTurn: projection({
+        phase: ' awaiting ',
+        presentation: {
+          isBusy: false,
+          entries: [],
+        },
+      }),
+    })).toEqual({
+      status: 'idle',
+      source: 'sdk',
+      conversationRef: 'conv-1',
+      turnRef: null,
+      awaitingAnchor: null,
+      entries: [],
+      terminalReason: null,
+      isBusy: false,
+      showTyping: false,
+    });
+  });
+
+  test('does not repair padded SDK presentation errors into lifecycle evidence', () => {
+    const pending = pendingTurn();
+
+    expect(resolvePendingTurnForSdkLiveTurn({
+      pendingTurn: pending,
+      sdkLiveTurn: projection({
+        presentation: {
+          entries: [],
+          lastError: ' padded error ',
+        },
+      }),
+    })).toBe(pending);
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      sdkLiveTurn: projection({
+        presentation: {
+          entries: [],
+          lastError: ' padded error ',
+        },
+      }),
+    })).toEqual({
+      status: 'idle',
+      source: 'sdk',
+      conversationRef: 'conv-1',
+      turnRef: null,
+      awaitingAnchor: null,
+      entries: [],
+      terminalReason: null,
+      isBusy: false,
+      showTyping: false,
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      sdkLiveTurn: projection({
+        presentation: {
+          entries: [],
+          lastError: 'exact error',
+        },
+      }),
+    })).toMatchObject({
+      status: 'active',
+      source: 'sdk',
+      terminalReason: 'error',
+    });
+  });
+
+  test('does not repair padded SDK awaiting anchors before lifecycle projection', () => {
+    const pending = pendingTurn({
+      userMessageId: 'pending-user',
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      sdkLiveTurn: projection({
+        phase: 'awaiting',
+        presentation: {
+          isBusy: true,
+          entries: [],
+          awaitingAnchor: {
+            kind: 'user-message',
+            rowId: ' sdk-user ',
+          },
+        },
+      }),
+    })).toMatchObject({
+      status: 'awaiting',
+      source: 'sdk',
+      awaitingAnchor: {
+        kind: 'user-message',
+        rowId: 'pending-user',
+      },
+    });
+  });
+
   test('lets same-turn ConversationView replace local pending lifecycle', () => {
     const pending = pendingTurn({
       conversationRef: 'conv-1',
@@ -340,8 +586,9 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-1',
+        displayRows: [],
         liveTurn: {
           turnRef: 'turn-view',
           phase: 'streaming',
@@ -361,7 +608,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
             ownerConversationRef: 'conv-1',
           },
         },
-      },
+      }),
     })).toMatchObject({
       status: 'active',
       source: 'conversation-view',
@@ -377,6 +624,79 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
   });
 
+  test('does not repair padded ConversationView identities before replacing local pending', () => {
+    const pending = pendingTurn({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-view',
+      userMessageId: 'pending-user',
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      conversationView: conversationView({
+        conversationRef: 'conv-1',
+        displayRows: [{
+          id: 'sdk-user-row',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-view',
+          role: 'user',
+          type: 'user_message',
+          content: 'hello',
+        }],
+        liveTurn: {
+          turnRef: ' turn-view ',
+          phase: 'streaming',
+          isBusy: true,
+          entries: [{
+            id: 'entry-view',
+            type: 'llm-text',
+            text: 'view response',
+          }],
+        },
+        surfaces: {
+          pill: { mode: 'busy' },
+          dashboard: { mode: 'busy' },
+          responseOverlay: {
+            mode: 'response',
+            visible: true,
+            turnRef: ' turn-view ',
+            guardRef: ' turn-view ',
+            ownerConversationRef: 'conv-1',
+          },
+        },
+      }),
+    })).toMatchObject({
+      status: 'local_pending',
+      source: 'local',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-view',
+      awaitingAnchor: {
+        kind: 'user-message',
+        rowId: 'pending-user',
+      },
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      conversationView: conversationView({
+        conversationRef: ' conv-1 ',
+        displayRows: [],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'complete',
+          isTerminal: true,
+          entries: [],
+        },
+        surfaces: {},
+      }),
+    })).toMatchObject({
+      status: 'local_pending',
+      source: 'local',
+    });
+  });
+
   test('keeps local pending through awaiting ConversationView before visible view rows arrive', () => {
     const pending = pendingTurn({
       conversationRef: 'conv-1',
@@ -387,7 +707,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-1',
         displayRows: [],
         liveTurn: {
@@ -405,7 +725,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
             ownerConversationRef: 'conv-1',
           },
         },
-      },
+      }),
     })).toMatchObject({
       status: 'local_pending',
       source: 'local',
@@ -419,6 +739,115 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
   });
 
+  test('ignores unrelated pending turn when ConversationView owns lifecycle', () => {
+    const pending = pendingTurn({
+      conversationRef: 'conv-other',
+      turnRef: 'turn-other',
+      userMessageId: 'pending-user',
+    });
+
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      conversationView: conversationView({
+        conversationRef: 'conv-1',
+        displayRows: [],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'awaiting',
+          isBusy: true,
+          entries: [],
+        },
+        surfaces: {
+          responseOverlay: {
+            mode: 'awaiting',
+            visible: true,
+            turnRef: 'turn-view',
+            guardRef: 'turn-view',
+            ownerConversationRef: 'conv-1',
+          },
+        },
+      }),
+    })).toMatchObject({
+      status: 'awaiting',
+      source: 'conversation-view',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-view',
+      awaitingAnchor: null,
+      showTyping: true,
+    });
+  });
+
+  test('does not repair padded ConversationView surface modes into lifecycle state', () => {
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      conversationView: conversationView({
+        conversationRef: 'conv-1',
+        displayRows: [],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'idle',
+          isBusy: false,
+          entries: [],
+        },
+        surfaces: {
+          responseOverlay: {
+            mode: ' response ',
+            visible: true,
+            turnRef: 'turn-view',
+            guardRef: 'turn-view',
+            ownerConversationRef: 'conv-1',
+          },
+        },
+      }),
+    })).toEqual({
+      status: 'idle',
+      source: 'conversation-view',
+      conversationRef: 'conv-1',
+      turnRef: null,
+      awaitingAnchor: null,
+      entries: [],
+      terminalReason: null,
+      isBusy: false,
+      showTyping: false,
+    });
+  });
+
+  test('does not expose ConversationView live-turn refs while view lifecycle is idle', () => {
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      conversationView: conversationView({
+        conversationRef: 'conv-1',
+        displayRows: [],
+        liveTurn: {
+          turnRef: 'turn-idle',
+          phase: 'idle',
+          isBusy: false,
+          entries: [],
+        },
+        surfaces: {
+          responseOverlay: {
+            mode: 'hidden',
+            visible: false,
+            turnRef: 'turn-idle',
+            guardRef: 'turn-idle',
+            ownerConversationRef: 'conv-1',
+          },
+        },
+      }),
+    })).toEqual({
+      status: 'idle',
+      source: 'conversation-view',
+      conversationRef: 'conv-1',
+      turnRef: null,
+      awaitingAnchor: null,
+      entries: [],
+      terminalReason: null,
+      isBusy: false,
+      showTyping: false,
+    });
+  });
+
   test('anchors ConversationView awaiting lifecycle to SDK user display row', () => {
     const pending = pendingTurn({
       conversationRef: 'conv-1',
@@ -429,7 +858,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-1',
         displayRows: [{
           id: 'sdk-user-row',
@@ -454,7 +883,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
             ownerConversationRef: 'conv-1',
           },
         },
-      },
+      }),
     })).toMatchObject({
       status: 'awaiting',
       source: 'conversation-view',
@@ -471,16 +900,17 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
   test('does not fall through to raw current-turn lifecycle when ConversationView is idle', () => {
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-view',
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-view',
-        liveTurn: null,
+        displayRows: [],
+        liveTurn: {},
         surfaces: {
           responseOverlay: {
             mode: 'hidden',
             visible: false,
           },
         },
-      },
+      }),
       sdkLiveTurn: projection({
         conversationRef: 'conv-stale',
         turnRef: 'turn-stale',
@@ -502,6 +932,55 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       terminalReason: null,
       isBusy: false,
       showTyping: false,
+    });
+  });
+
+  test('ignores partial ConversationView shapes before visible lifecycle projection', () => {
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      conversationView: {
+        conversationRef: 'conv-1',
+        displayRows: [],
+        liveTurn: {
+          turnRef: 'turn-partial-view',
+          phase: 'streaming',
+          isBusy: true,
+          entries: [{
+            id: 'view-entry',
+            type: 'llm-text',
+            text: 'partial view should not own lifecycle',
+          }],
+        },
+        surfaces: {
+          responseOverlay: {
+            mode: 'response',
+            visible: true,
+            turnRef: 'turn-partial-view',
+          },
+        },
+      },
+      sdkLiveTurn: projection({
+        conversationRef: 'conv-1',
+        turnRef: 'turn-sdk',
+        phase: 'streaming',
+        presentation: {
+          entries: [{
+            id: 'sdk-entry',
+            type: 'llm-text',
+            text: 'sdk fallback owns lifecycle',
+          }],
+        },
+      }),
+    })).toMatchObject({
+      status: 'active',
+      source: 'sdk',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-sdk',
+      entries: [{
+        id: 'sdk-entry',
+        type: 'llm-text',
+        text: 'sdk fallback owns lifecycle',
+      }],
     });
   });
 

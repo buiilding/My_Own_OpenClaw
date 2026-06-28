@@ -24,10 +24,26 @@ function createWorkspace({
 }
 
 describe('DesktopChatStreamTerminalHandoffRuntime', () => {
-  test('normalizes empty and whitespace turn refs', () => {
+  test('reads only exact non-empty turn refs', () => {
     expect(normalizeTurnRef(undefined)).toBe('');
     expect(normalizeTurnRef(null)).toBe('');
-    expect(normalizeTurnRef(' turn-1 ')).toBe('turn-1');
+    expect(normalizeTurnRef('')).toBe('');
+    expect(normalizeTurnRef('   ')).toBe('');
+    expect(normalizeTurnRef(' turn-1 ')).toBe('');
+    expect(normalizeTurnRef('turn-1')).toBe('turn-1');
+  });
+
+  test('does not repair padded pending turn refs into terminal handoff state', () => {
+    expect(hasTerminalPendingHandoff(createWorkspace({
+      phase: 'complete',
+      pendingTurn: { turnRef: ' turn-new ' },
+    }))).toBe(false);
+
+    expect(isAwaitingFirstChunkMismatch(
+      createWorkspace({ phase: 'awaiting-first-chunk', pendingTurn: { turnRef: ' turn-new ' } }),
+      'turn-new',
+      'turn-old',
+    )).toBe(false);
   });
 
   test('detects awaiting-first-chunk mismatch only with a renderer pending turn', () => {

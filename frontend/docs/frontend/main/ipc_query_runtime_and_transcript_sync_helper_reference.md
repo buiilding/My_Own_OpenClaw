@@ -29,8 +29,10 @@ title: "IPC Query Runtime and Transcript Sync Helper Reference"
 
 Responsibilities:
 
-- clone and normalize incoming renderer payload object
-- normalize `attachment_filenames` to trimmed non-empty string array
+- clone incoming renderer payload object
+- preserve exact non-empty `attachment_filenames[]` entries and omit padded
+  entries instead of trimming them into local metadata
+- reject padded `query_message_id` values before turn replay state starts
 - extract and remove `attachment_context` from outbound payload
 - extract and remove `memory_retrieval_enabled` (defaults to enabled when omitted)
 - resolve `conversationRef` through
@@ -128,7 +130,8 @@ Returns:
 
 ### Renderer query path (`windie:invoke` command `conversation.send`)
 
-1. `prepareRendererQueryPayload(...)` normalizes mutable relay payload.
+1. `prepareRendererQueryPayload(...)` validates the renderer relay payload and
+   preserves exact SDK-owned identities/attachment filename entries.
 2. optimistic local-user message uses normalized conversation/attachment context.
 3. `buildQueryPayload(...)` filters backend query fields and preserves required identity fields; SDK context enrichment renders model-facing XML-style content later.
 4. `buildRendererBackendQueryPayloadWithAgentDefinition(...)` attaches

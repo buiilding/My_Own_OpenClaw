@@ -222,13 +222,26 @@ describe('ChatProvider', () => {
             liveTurn: {
               turnRef: 'turn-view',
             },
+            surfaces: {
+              dashboard: { mode: 'normal', visible: true },
+              pill: { mode: 'normal', visible: true },
+              responseOverlay: { mode: 'hidden', visible: false },
+            },
+            actions: {
+              canEdit: false,
+              canRetry: false,
+              canFork: false,
+            },
             displayRows: [{
               id: 'view-row',
+              conversationRef: 'conv-provider',
               role: 'assistant',
               type: 'assistant_message',
               content: 'view answer',
               turnRef: 'turn-view',
-              sourceEventType: 'assistant-message-full',
+              metadata: {
+                sourceEventType: 'assistant-message-full',
+              },
             }],
           },
         },

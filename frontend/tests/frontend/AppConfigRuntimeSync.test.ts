@@ -7,6 +7,7 @@ import {
   hasImmediateRuntimeConfigChanges,
 } from '../../src/renderer/app/providers/appConfigRuntimeSync';
 import { DesktopRendererConfigRuntimeClient } from '../../src/renderer/app/runtime/desktopRendererConfigRuntimeClient';
+import { DesktopRendererConfigStorageRuntime } from '../../src/renderer/app/runtime/desktopRendererConfigStorageRuntime';
 
 describe('appConfigRuntimeSync', () => {
   test('builds deferred model selection for SDK setModel callers', () => {
@@ -16,6 +17,15 @@ describe('appConfigRuntimeSync', () => {
     })).toEqual({
       modelId: 'claude-sonnet-4-5',
       modelProvider: 'anthropic',
+    });
+
+    DesktopRendererConfigStorageRuntime.saveConfigToStorage({
+      selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
+      model_provider: 'openai',
+    });
+    expect(DesktopRendererConfigRuntimeClient.readDeferredQueryModelSelection()).toEqual({
+      modelId: 'gpt-5.4@@gpt-5-4-none-thinking',
+      modelProvider: 'openai',
     });
   });
 

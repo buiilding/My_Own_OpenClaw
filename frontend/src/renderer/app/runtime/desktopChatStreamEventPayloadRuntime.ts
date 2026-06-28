@@ -202,6 +202,11 @@ function hasCompactionReplacementHistoryEntries(
   return getCompactionReplacementHistoryEntries(payload).length > 0;
 }
 
+function resolveCompactionSourceRevisionId(event: CompactionEvent): string | null {
+  return optionalString(event.payload.sourceRevisionId)
+    ?? optionalString(event.revisionId);
+}
+
 function buildCompactionDebugInfo(
   payload: EventPayload | null | undefined,
   skippedReason = resolveCompactionSkippedReason(payload),
@@ -232,7 +237,8 @@ function buildCompactedReplaySnapshot(
   conversationRef: string,
 ): CompactedReplaySnapshot | null {
   const entries = getCompactionReplacementHistoryEntries(event.payload);
-  if (entries.length === 0) {
+  const sourceRevisionId = resolveCompactionSourceRevisionId(event);
+  if (entries.length === 0 || !sourceRevisionId) {
     return null;
   }
   const stableSuffix = optionalString(event.eventId)
@@ -241,7 +247,7 @@ function buildCompactedReplaySnapshot(
   return {
     generationId: optionalString(event.payload.generationId) ?? `compaction-${conversationRef}-${stableSuffix}`,
     conversationRef,
-    sourceRevisionId: optionalString(event.revisionId) ?? `rev-compaction-${conversationRef}-${stableSuffix}`,
+    sourceRevisionId,
     sourceTurnRef: optionalString(event.turnRef),
     createdAt: event.timestamp,
     entries,

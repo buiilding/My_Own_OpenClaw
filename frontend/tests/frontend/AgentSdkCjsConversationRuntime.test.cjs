@@ -175,4 +175,112 @@ describe('Agent SDK CJS conversation runtime', () => {
       }),
     ]);
   });
+
+  test('editAndResend ignores caller replay payload, model, and turn ref in CJS runtime', async () => {
+    const sentQueries = [];
+    const updateSettings = jest.fn(async () => 'settings-edit');
+    const store = new InMemoryConversationStore();
+    await store.replaceDisplayTimeline({
+      conversationRef: 'conv-sdk-cjs-runtime',
+      revisionId: 'rev-display',
+      createdAt: '2026-06-27T12:00:00.000Z',
+      reason: null,
+      baseRevisionId: null,
+      rows: [{
+        id: 'display-user-edit',
+        conversationRef: 'conv-sdk-cjs-runtime',
+        revisionId: 'rev-display',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'old text',
+        metadata: {
+          attachments: [{
+            id: 'display-attachment-one',
+            kind: 'image',
+            source: 'user_included',
+            status: 'ready',
+            screenshotRef: 'artifact-one',
+            filename: 'one.png',
+          }],
+        },
+      }, {
+        id: 'display-assistant-stale',
+        conversationRef: 'conv-sdk-cjs-runtime',
+        revisionId: 'rev-display',
+        index: 1,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'stale answer',
+      }],
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-cjs-runtime',
+      store,
+      transport: createMockAgentRuntimeTransport({
+        sendQuery: jest.fn(async payload => {
+          sentQueries.push(payload);
+          return 'query-edited';
+        }),
+        updateSettings,
+      }),
+    });
+
+    await runtime.load();
+    const result = await runtime.editAndResend({
+      messageId: 'display-user-edit',
+      text: 'new text',
+      payload: { screenshot_refs: ['stale-caller-artifact'] },
+      model: {
+        modelProvider: 'anthropic',
+        modelId: 'claude-sonnet-4-5',
+      },
+      turnRef: 'caller-owned-turn',
+    });
+
+    expect(updateSettings).not.toHaveBeenCalled();
+    expect(sentQueries).toHaveLength(1);
+    expect(sentQueries[0]).toEqual(expect.objectContaining({
+      text: 'new text',
+      screenshot_refs: ['artifact-one'],
+      attachment_filenames: ['one.png'],
+    }));
+    expect(sentQueries[0]).not.toEqual(expect.objectContaining({
+      screenshot_refs: ['stale-caller-artifact'],
+    }));
+    expect(result.turnRef).not.toBe('caller-owned-turn');
+    const displayTimeline = await runtime.loadDisplayTimeline();
+    expect(displayTimeline.rows[0]).toEqual(expect.objectContaining({
+      id: `${result.turnRef}-sdk-evt-000002-user_message`,
+      turnRef: result.turnRef,
+    }));
+  });
+
+  test('retryTurn requires an explicit target row in CJS runtime', async () => {
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-cjs-runtime',
+        revisionId: 'rev-old',
+        eventId: 'user-retry',
+        payload: { text: 'try again' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-cjs-runtime',
+        revisionId: 'rev-old',
+        eventId: 'assistant-retry',
+        payload: { text: 'stale answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-cjs-runtime',
+      store,
+      transport: createMockAgentRuntimeTransport(),
+    });
+
+    await runtime.load();
+    await expect(runtime.retryTurn()).rejects.toThrow('retryTurn requires a target message id');
+  });
 });

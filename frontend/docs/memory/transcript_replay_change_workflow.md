@@ -83,7 +83,7 @@ flowchart LR
 | Symptom | First owner | Inspect first | Then inspect |
 | --- | --- | --- | --- |
 | User or assistant row appears in UI but is missing after restart | SDK store/display projection | `desktopConversationStore.ts`, `desktopSdkDisplayChatMessageProjectionRuntime.ts`, SDK conversation runtime/store | `DesktopConversationStore.test.ts`, `SdkDisplayChatMessageProjection.test.ts`, local-runtime Python `conversation.append_event` tests |
-| Tool call/output rows are missing or replay drops screenshot refs/attachment filenames | Renderer transcript tool message state, SDK display projection, and replay runtime shaping | `toolCallMessageState.js`, `toolOutputChatMessageState.ts`, `desktopSdkDisplayChatMessageProjectionRuntime.ts`, `desktopConversationReplayRuntime.js` | `DesktopConversationReplayRuntime.test.js`, `SdkDisplayChatMessageProjection.test.ts`, backend linkage validation tests |
+| Tool call/output rows are missing or replay drops screenshot refs/attachment filenames | Renderer transcript tool-call state, SDK display projection, and replay runtime shaping | `toolCallMessageState.js`, `desktopCurrentTurnMessageRuntime.js`, `desktopSdkDisplayChatMessageProjectionRuntime.ts`, `desktopConversationReplayRuntime.js` | `DesktopConversationReplayRuntime.test.js`, `DesktopCurrentTurnMessageRuntime.test.js`, `SdkDisplayChatMessageProjection.test.ts`, backend linkage validation tests |
 | Transcript writes happen under the wrong conversation | Transcript session runtime and Electron sync | `transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionSyncPayload.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md) |
 | Dashboard conversation list is missing, stale, or ordered wrong | Local-runtime conversation storage plus dashboard loader | `frontend/src/main/python/memory/chat_event_store.py`, `local_store.py`, dashboard conversation hooks | `tests/sidecar/test_chat_event_store.py`, `tests/frontend/DashboardConversationLoad.test.js` |
 | Dashboard resume displays wrong rows | SDK display projection and conversation load command | `desktopConversationContinuityService.ts`, `desktopConversationStore.ts`, SDK conversation store/runtime | `DesktopConversationContinuityService.test.ts`, `DesktopConversationStore.test.ts` |
@@ -130,26 +130,76 @@ flowchart LR
      replacement display rows.
    - React replay hooks should pass edit/retry intent through
      `desktopConversationReplayRuntime`. Hooks call the runtime's single
-     replay-action entrypoint with row ids/text plus UI dependencies; active
-     conversation state is resolved by the runtime from the store dependency
-     instead of selected in React. If neither transcript session nor chat-store
-     active workspace has a conversation ref, replay returns a traced failure
-     instead of creating a fresh conversation whose SDK display rows cannot own
-     the target id. Replay failures are trace/status outcomes rather than
+     replay-action entrypoint with only `action`, `targetRowId`, and optional
+     `editedText`; active conversation scope is resolved from
+     transcript/session state behind the app-runtime boundary instead of
+     selected in React, passed as a caller override, projected from workspace
+     rows, or read through the full Zustand store contract. If
+     transcript/session state has no conversation ref, replay returns a traced
+     failure instead of falling back to chat-store active workspace or creating
+     a fresh conversation whose SDK display rows cannot own the target id.
+     Replay failures are
+     trace/status outcomes rather than
      renderer-published chat rows. That public facade exports only
      `executeReplayAction`, and hooks do not call replay preparation helpers,
      inspect `ConversationView`/message arrays, or call replay SDK commands
-     directly.
+     directly. The public replay action must not accept caller-provided
+     transcript session or selected-model overrides; the replay runtime facade
+     reads only session scope behind the app-runtime boundary. It must not read
+     renderer config or call the renderer settings facade to apply the model
+     before dispatch; SDK replay commands use the runtime's current model state
+     through their normal `send()` path and do not accept replay model
+     overrides.
+     Renderer continuity service replay methods expose only user id,
+     conversation ref, target row id, and edited text; they must not forward
+     replay payloads, attachment aliases, turn refs, or model overrides. They
+     also reject padded or empty replay conversation refs and target row ids
+     before invoking the Electron SDK command bridge, so direct facade callers
+     cannot bypass the public replay runtime's exact-identity gate.
+     Electron main `windie:invoke` replay command handlers are intent-only as
+     well: they accept exact user/conversation/target identity plus edit text,
+     do not build replay runtime payloads, attach query runtime context, trace
+     runtime sends, or forward caller-supplied `payload`, `model`, or `turnRef`
+     fields, and retry requires an exact target row id. Direct AgentClient
+     wake-up replay commands use the same exact conversation-ref and target-row
+     gates before selecting a conversation runtime handle; they must not trim
+     padded replay identities into SDK command input.
+     Chat-store adapters should not export replay wrapper commands, active-scope
+     helpers for replay, or projected workspace rows; the store shape and
+     `getState()` contract must not be passed into the replay runtime.
    - Renderer app-runtime facades should not expose direct display timeline
      load/replace helpers to React. Low-level display timeline operations remain
      SDK/main-owner diagnostics and command-handler concerns; normal UI paths
      use SDK intent commands such as retry, edit/resend, checkout, and fork.
+     Direct Electron-main display timeline, checkout, replace, and fork command
+     handlers apply the same exact-identity rule to conversation refs, revision
+     ids, fork row ids, and new child conversation refs; padded values are
+     rejected instead of being trimmed into SDK revision API inputs.
    - If the SDK replay command fails, record renderer replay diagnostics and
      return failure without publishing a renderer-local chat row, restoring
      renderer-cut prefixes, or clearing renderer replay pending state. Do not
      restore event-log cutting through `conversation.rewrite_after_event`, SDK
      `prepareEditAndResend`, SDK `prepareRetryTurn`, or durable row replacement
-     from React.
+     from React. Renderer replay diagnostics must also leave rejected SDK error
+     objects untouched; trace event `action` values name the renderer timeline
+     event, while `replayAction` carries `retry` or `edit_resend` command kind
+     when needed instead of stamping private renderer markers onto SDK command
+     errors. SDK error `name` values are trace labels only when they are already
+     exact non-empty strings; padded names fall back to the generic error kind
+     instead of being trimmed into a repaired diagnostic label.
+   - Replay target ids are exact SDK display-row ids from action metadata.
+     Renderer replay facades reject padded or empty ids instead of trimming
+     them into targets. Edit text is forwarded as UI intent from the inline
+     edit composer through the replay facade without renderer trimming or
+     empty-after-trim rejection; SDK replay commands own text normalization and
+     non-empty validation. Replay conversation scope follows the same
+     exact-identity rule: padded transcript/session/store refs are
+     treated as missing scope, and Electron main rejects padded replay command
+     `conversationRef`/`messageId` fields instead of trimming them before SDK
+     dispatch. Renderer replay diagnostics publish target row identity only
+     after the exact target gate accepts it; rejected padded or empty target ids
+     are traced as missing targets instead of being copied into diagnostic
+     replay state.
 
 5. Preserve model-history resume shape.
    - SDK `modelHistoryPayloadFromCheckpoint(...)` should emit

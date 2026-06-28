@@ -73,6 +73,12 @@ function shortDiagnosticError(error) {
   return message.length > 160 ? `${message.slice(0, 157)}...` : message;
 }
 
+function readExactIdentityString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function emitConversationListDiagnostic(context, event) {
   const payload = {
     _diagnostics: context,
@@ -94,13 +100,6 @@ function emitConversationListDiagnostic(context, event) {
   void Promise.resolve(invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.DIAGNOSTICS_APPEND, payload)).catch(() => undefined);
 }
 
-function readSnapshotDisplayRows(snapshot, conversationRef) {
-  const rows = Array.isArray(snapshot?.view?.displayRows)
-    ? snapshot.view.displayRows
-    : [];
-  return rows.filter((row) => row?.conversationRef === conversationRef);
-}
-
 function readSnapshotConversationView(snapshot, conversationRef) {
   const view = snapshot?.view && typeof snapshot.view === 'object'
     ? snapshot.view
@@ -108,10 +107,14 @@ function readSnapshotConversationView(snapshot, conversationRef) {
   if (!view) {
     return null;
   }
+  const requestedConversationRef = readExactIdentityString(conversationRef);
+  const viewConversationRef = readExactIdentityString(view.conversationRef);
+  if (!requestedConversationRef || !viewConversationRef || viewConversationRef !== requestedConversationRef) {
+    return null;
+  }
   return {
     ...view,
-    conversationRef: view.conversationRef || conversationRef,
-    displayRows: readSnapshotDisplayRows(snapshot, conversationRef),
+    conversationRef: viewConversationRef,
   };
 }
 

@@ -3,66 +3,64 @@
  */
 
 function normalizeTraceString(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
-function resolveTraceTextLength(value) {
-  return typeof value === 'string' ? value.length : 0;
-}
-
-function resolveLatestConversationViewRow(conversationView) {
-  const displayRows = Array.isArray(conversationView?.displayRows)
-    ? conversationView.displayRows
-    : [];
-  return displayRows[displayRows.length - 1] || null;
-}
-
-function resolveTraceLastMessage(workspace) {
-  const latestViewRow = resolveLatestConversationViewRow(workspace?.conversationView);
-  if (latestViewRow) {
-    return {
-      sender: normalizeTraceString(latestViewRow.role) || normalizeTraceString(latestViewRow.sender),
-      type: normalizeTraceString(latestViewRow.type),
-      textLength: resolveTraceTextLength(latestViewRow.content ?? latestViewRow.text),
-      turnRef: normalizeTraceString(latestViewRow.turnRef),
-      sourceEventType: normalizeTraceString(latestViewRow.sourceEventType),
-    };
-  }
-  const messages = Array.isArray(workspace?.messages) ? workspace.messages : [];
-  const lastMessage = messages[messages.length - 1] || null;
-  return lastMessage ? {
-    sender: lastMessage.sender,
-    type: lastMessage.type || null,
-    textLength: typeof lastMessage.text === 'string' ? lastMessage.text.length : 0,
-    turnRef: lastMessage.turnRef || null,
-    sourceEventType: lastMessage.sourceEventType || null,
-  } : null;
-}
-
-function resolveTraceActiveTurnRef(workspace) {
-  return (
-    normalizeTraceString(workspace?.conversationView?.liveTurn?.turnRef)
-    || normalizeTraceString(workspace?.streamTracking?.activeTurnRef)
-  );
-}
-
-function resolveTraceMessageCount(workspace) {
-  const displayRows = Array.isArray(workspace?.conversationView?.displayRows)
-    ? workspace.conversationView.displayRows
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
     : null;
-  const messages = Array.isArray(workspace?.messages) ? workspace.messages : [];
-  return displayRows ? displayRows.length : messages.length;
+}
+
+function traceLastMessageFromReadModel(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  return {
+    sender: value.sender ?? null,
+    type: value.type || null,
+    textLength: typeof value.textLength === 'number' ? value.textLength : 0,
+    turnRef: normalizeTraceString(value.turnRef),
+    sourceEventType: normalizeTraceString(value.sourceEventType),
+  };
+}
+
+function traceConversationViewSummaryFromReadModel(workspace) {
+  const value = workspace?.conversationViewTraceSummary;
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value
+    : null;
+}
+
+function resolveTraceLastMessage(workspace, conversationViewTraceSummary) {
+  if (conversationViewTraceSummary) {
+    return traceLastMessageFromReadModel(conversationViewTraceSummary.lastMessage);
+  }
+  return traceLastMessageFromReadModel(workspace?.lastMessage);
+}
+
+function resolveTraceActiveTurnRef(workspace, conversationViewTraceSummary) {
+  if (conversationViewTraceSummary) {
+    return normalizeTraceString(conversationViewTraceSummary.liveTurnRef);
+  }
+  return normalizeTraceString(workspace?.activeTurnRef);
+}
+
+function resolveTraceMessageCount(workspace, conversationViewTraceSummary) {
+  if (conversationViewTraceSummary) {
+    return typeof conversationViewTraceSummary.displayRowCount === 'number'
+      ? conversationViewTraceSummary.displayRowCount
+      : 0;
+  }
+  return typeof workspace?.messageCount === 'number' ? workspace.messageCount : 0;
 }
 
 function buildChatProviderTraceWorkspaceSnapshot({
   activeConversationRef = null,
   workspace = null,
 } = {}) {
+  const conversationViewTraceSummary = traceConversationViewSummaryFromReadModel(workspace);
   return {
-    activeConversationRef,
-    workspaceMessageCount: resolveTraceMessageCount(workspace),
-    activeTurnRef: resolveTraceActiveTurnRef(workspace),
-    lastMessage: resolveTraceLastMessage(workspace),
+    activeConversationRef: normalizeTraceString(activeConversationRef),
+    workspaceMessageCount: resolveTraceMessageCount(workspace, conversationViewTraceSummary),
+    activeTurnRef: resolveTraceActiveTurnRef(workspace, conversationViewTraceSummary),
+    lastMessage: resolveTraceLastMessage(workspace, conversationViewTraceSummary),
   };
 }
 

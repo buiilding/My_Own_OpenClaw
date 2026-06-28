@@ -18,6 +18,7 @@ import {
 import { normalizeBackendEventToConversationEvent } from '../../packages/windie-sdk-js/src/transport/backendEventNormalizer';
 import {
   createAssistantSeedMessage,
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
   resetChatStoreForTests,
 } from './chatStoreTestUtils';
 import {
@@ -71,13 +72,13 @@ export function resetChatStreamTestState() {
 }
 
 export function getActiveWorkspaceStateForTest() {
-  return useChatStore.getState().getWorkspaceState();
+  return getWorkspaceStateFromChatStore();
 }
 
 export function setActiveWorkspaceStateForTest(update: Record<string, unknown>) {
   const store = useChatStore.getState();
   const workspaceRef = store.activeConversationRef || '__default__';
-  const workspace = store.getWorkspaceState();
+  const workspace = getWorkspaceStateFromChatStore();
   useChatStore.setState({
     workspaces: {
       ...store.workspaces,

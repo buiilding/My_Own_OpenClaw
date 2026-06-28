@@ -5,11 +5,11 @@
 import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
 
 const {
-  hasReadyDisplayImageAttachment,
+  readSdkDisplayAttachments,
 } = DesktopSdkDisplayAttachmentProjection;
 
 function hasVisualAttachment(message) {
-  return hasReadyDisplayImageAttachment(message?.attachments);
+  return readSdkDisplayAttachments(message?.attachments).length > 0;
 }
 
 function buildMessageClassName(message) {
@@ -24,7 +24,7 @@ function buildMessageClassName(message) {
   }
 
   if (hasVisualAttachment(message)) {
-    classNames.push('message-has-screenshot');
+    classNames.push('message-has-attachment');
   }
 
   return classNames.join(' ');

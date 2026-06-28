@@ -8,6 +8,9 @@ import {
 import {
   DesktopConversationDisplayProjection,
 } from './desktopConversationDisplayProjection';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
 const {
   buildThreadPresentationMessages,
@@ -16,9 +19,15 @@ const {
   buildConversationViewChatMessages,
   buildPendingBridgeChatMessages,
 } = DesktopConversationDisplayProjection;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
-function isConversationView(value) {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+function readExactIdentityString(value) {
+  if (typeof value !== 'string' || value.length === 0 || value !== value.trim()) {
+    return null;
+  }
+  return value;
 }
 
 let chatInterfacePresentationCache = {
@@ -30,13 +39,63 @@ let chatInterfacePresentationCache = {
   messages: null,
   pendingTurn: null,
   rendererAnnotations: null,
-  sdkLiveTurn: null,
+  sdkLiveTurnConversationRef: null,
+  sdkLiveTurnTurnRef: null,
   sdkLiveTurnPhase: null,
-  sdkLiveTurnAssistantText: null,
-  sdkLiveTurnReasoningText: null,
-  sdkLiveTurnToolEvents: null,
+  sdkLiveTurnPresentation: null,
+  sdkLiveTurnPresentationEntries: null,
+  sdkLiveTurnPresentationLastError: null,
+  sdkLiveTurnLegacyNoPresentation: null,
   state: null,
 };
+
+function recordOrNull(value) {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value
+    : null;
+}
+
+function buildSdkLiveTurnCacheKey(sdkLiveTurn) {
+  const liveTurn = recordOrNull(sdkLiveTurn);
+  if (!liveTurn) {
+    return {
+      conversationRef: null,
+      turnRef: null,
+      phase: null,
+      presentation: null,
+      presentationEntries: null,
+      presentationLastError: null,
+      legacyNoPresentation: null,
+    };
+  }
+  const presentation = recordOrNull(liveTurn.presentation);
+  const presentationEntries = Array.isArray(presentation?.entries)
+    ? presentation.entries
+    : null;
+  const conversationRef = readExactIdentityString(liveTurn.conversationRef);
+  const turnRef = readExactIdentityString(liveTurn.turnRef);
+  const phase = readExactIdentityString(liveTurn.phase);
+  if (presentation) {
+    return {
+      conversationRef,
+      turnRef,
+      phase,
+      presentation,
+      presentationEntries,
+      presentationLastError: readExactIdentityString(presentation.lastError),
+      legacyNoPresentation: null,
+    };
+  }
+  return {
+    conversationRef,
+    turnRef,
+    phase,
+    presentation: null,
+    presentationEntries: null,
+    presentationLastError: null,
+    legacyNoPresentation: liveTurn,
+  };
+}
 
 function buildChatInterfacePresentationState({
   activeConversationRef = null,
@@ -46,82 +105,74 @@ function buildChatInterfacePresentationState({
   rendererAnnotations = [],
   sdkLiveTurn = null,
 } = {}) {
+  const hasConversationView = hasWorkspaceConversationView({ conversationView });
+  const effectiveConversationView = hasConversationView ? conversationView : null;
+  const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
+  const effectiveMessages = hasConversationView ? null : messages;
+  const sdkLiveTurnCacheKey = buildSdkLiveTurnCacheKey(effectiveSdkLiveTurn);
   if (
     chatInterfacePresentationCache.state
     && chatInterfacePresentationCache.activeConversationRef === activeConversationRef
-    && chatInterfacePresentationCache.conversationView === conversationView
-    && chatInterfacePresentationCache.conversationViewDisplayRows === conversationView?.displayRows
-    && chatInterfacePresentationCache.conversationViewLiveTurn === conversationView?.liveTurn
-    && chatInterfacePresentationCache.conversationViewLiveEntries === conversationView?.liveTurn?.entries
-    && chatInterfacePresentationCache.messages === messages
+    && chatInterfacePresentationCache.conversationView === effectiveConversationView
+    && chatInterfacePresentationCache.conversationViewDisplayRows === effectiveConversationView?.displayRows
+    && chatInterfacePresentationCache.conversationViewLiveTurn === effectiveConversationView?.liveTurn
+    && chatInterfacePresentationCache.conversationViewLiveEntries === effectiveConversationView?.liveTurn?.entries
+    && chatInterfacePresentationCache.messages === effectiveMessages
     && chatInterfacePresentationCache.pendingTurn === pendingTurn
     && chatInterfacePresentationCache.rendererAnnotations === rendererAnnotations
-    && chatInterfacePresentationCache.sdkLiveTurn === sdkLiveTurn
-    && chatInterfacePresentationCache.sdkLiveTurnPhase === sdkLiveTurn?.phase
-    && chatInterfacePresentationCache.sdkLiveTurnAssistantText === sdkLiveTurn?.assistantText
-    && chatInterfacePresentationCache.sdkLiveTurnReasoningText === sdkLiveTurn?.reasoningText
-    && chatInterfacePresentationCache.sdkLiveTurnToolEvents === sdkLiveTurn?.toolEvents
+    && chatInterfacePresentationCache.sdkLiveTurnConversationRef === sdkLiveTurnCacheKey.conversationRef
+    && chatInterfacePresentationCache.sdkLiveTurnTurnRef === sdkLiveTurnCacheKey.turnRef
+    && chatInterfacePresentationCache.sdkLiveTurnPhase === sdkLiveTurnCacheKey.phase
+    && chatInterfacePresentationCache.sdkLiveTurnPresentation === sdkLiveTurnCacheKey.presentation
+    && chatInterfacePresentationCache.sdkLiveTurnPresentationEntries === sdkLiveTurnCacheKey.presentationEntries
+    && chatInterfacePresentationCache.sdkLiveTurnPresentationLastError === sdkLiveTurnCacheKey.presentationLastError
+    && chatInterfacePresentationCache.sdkLiveTurnLegacyNoPresentation
+      === sdkLiveTurnCacheKey.legacyNoPresentation
   ) {
     return chatInterfacePresentationCache.state;
   }
-  const hasConversationView = isConversationView(conversationView);
   const baseMessages = hasConversationView
     ? buildConversationViewChatMessages({
-      conversationView,
+      conversationView: effectiveConversationView,
       pendingTurn,
-      preserveRendererAnnotations: true,
       rendererAnnotations,
     })
     : buildPendingBridgeChatMessages({
       messages,
       pendingTurn,
     });
-  const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
   const state = {
     renderedMessages: buildThreadPresentationMessages(baseMessages, {
-      conversationView,
+      conversationView: effectiveConversationView,
       sdkLiveTurn: effectiveSdkLiveTurn,
       activeConversationRef,
+      allowPendingBridgeMessages: hasConversationView,
     }),
     activeRevisionId: hasConversationView
-      ? conversationView?.revisionId || null
+      ? readExactIdentityString(effectiveConversationView?.revisionId)
       : null,
   };
   chatInterfacePresentationCache = {
     activeConversationRef,
-    conversationView,
-    conversationViewDisplayRows: conversationView?.displayRows,
-    conversationViewLiveTurn: conversationView?.liveTurn,
-    conversationViewLiveEntries: conversationView?.liveTurn?.entries,
-    messages,
+    conversationView: effectiveConversationView,
+    conversationViewDisplayRows: effectiveConversationView?.displayRows,
+    conversationViewLiveTurn: effectiveConversationView?.liveTurn,
+    conversationViewLiveEntries: effectiveConversationView?.liveTurn?.entries,
+    messages: effectiveMessages,
     pendingTurn,
     rendererAnnotations,
-    sdkLiveTurn,
-    sdkLiveTurnPhase: sdkLiveTurn?.phase,
-    sdkLiveTurnAssistantText: sdkLiveTurn?.assistantText,
-    sdkLiveTurnReasoningText: sdkLiveTurn?.reasoningText,
-    sdkLiveTurnToolEvents: sdkLiveTurn?.toolEvents,
+    sdkLiveTurnConversationRef: sdkLiveTurnCacheKey.conversationRef,
+    sdkLiveTurnTurnRef: sdkLiveTurnCacheKey.turnRef,
+    sdkLiveTurnPhase: sdkLiveTurnCacheKey.phase,
+    sdkLiveTurnPresentation: sdkLiveTurnCacheKey.presentation,
+    sdkLiveTurnPresentationEntries: sdkLiveTurnCacheKey.presentationEntries,
+    sdkLiveTurnPresentationLastError: sdkLiveTurnCacheKey.presentationLastError,
+    sdkLiveTurnLegacyNoPresentation: sdkLiveTurnCacheKey.legacyNoPresentation,
     state,
   };
   return state;
 }
 
-function resolveConversationViewStoreRef({
-  activeConversationRef = null,
-  targetConversationRef = null,
-  view = null,
-} = {}) {
-  if (!isConversationView(view)) {
-    return null;
-  }
-  const conversationRef = targetConversationRef || view.conversationRef || activeConversationRef;
-  if (!conversationRef) {
-    return null;
-  }
-  return conversationRef;
-}
-
 export const DesktopChatInterfacePresentationRuntime = Object.freeze({
   buildChatInterfacePresentationState,
-  resolveConversationViewStoreRef,
 });

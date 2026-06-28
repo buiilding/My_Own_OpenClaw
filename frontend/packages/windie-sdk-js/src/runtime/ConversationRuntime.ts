@@ -191,16 +191,10 @@ export type TurnResult = {
 export type EditAndResendInput = {
   messageId: string;
   text: string;
-  turnRef?: string;
-  payload?: JsonRecord;
-  model?: AgentModelSelection;
 };
 
 export type RetryTurnInput = {
-  messageId?: string;
-  turnRef?: string;
-  payload?: JsonRecord;
-  model?: AgentModelSelection;
+  messageId: string;
 };
 
 export type CompactHistoryInput = {
@@ -312,23 +306,6 @@ function eventText(event: ConversationEvent): string {
   return '';
 }
 
-function mergeReplayPayload(
-  resolvedPayload: JsonRecord,
-  overridePayload?: JsonRecord | null,
-): JsonRecord {
-  const payload: JsonRecord = { ...resolvedPayload };
-  if (!overridePayload) {
-    return payload;
-  }
-  for (const [key, value] of Object.entries(overridePayload)) {
-    if (value === null || value === undefined) {
-      continue;
-    }
-    payload[key] = value;
-  }
-  return payload;
-}
-
 function displayRowMatchesId(row: DisplayTimelineRow, messageId: string): boolean {
   return row.id === messageId
     || row.metadata?.eventId === messageId
@@ -405,7 +382,11 @@ function replayPayloadFromDisplayRow(row: DisplayTimelineRow): JsonRecord {
   }
   const attachments = readyImageAttachmentsFromDisplayRow(row);
   if (attachments.length > 0) {
-    payload.screenshot_refs = attachments.map(attachment => attachment.id.trim());
+    payload.screenshot_refs = attachments.map(attachment => (
+      typeof attachment.screenshotRef === 'string' && attachment.screenshotRef.trim()
+        ? attachment.screenshotRef.trim()
+        : attachment.id.trim()
+    ));
     const attachmentFilenames = attachments
       .map(attachment => (
         typeof attachment.filename === 'string' && attachment.filename.trim()
@@ -1825,12 +1806,9 @@ export class SdkConversationRuntime {
     if (userIndex < 0) {
       throw new Error(`Cannot edit missing user message: ${input.messageId}`);
     }
-    const replayPayload = mergeReplayPayload(
-      replayPayloadFromDisplayRow(displayTimeline.rows[userIndex]),
-      input.payload,
-    );
+    const replayPayload = replayPayloadFromDisplayRow(displayTimeline.rows[userIndex]);
     replayPayload.text = normalizedText;
-    const turnRef = input.turnRef ?? createRuntimeId('turn');
+    const turnRef = createRuntimeId('turn');
     const timestamp = new Date().toISOString();
     const checkpoint = await this.replaceRows({
       rows: [
@@ -1857,20 +1835,20 @@ export class SdkConversationRuntime {
     return this.send({
       text: normalizedText,
       turnRef,
-      model: input.model,
       payload: replayPayload,
     });
   }
 
-  async retryTurn(input: RetryTurnInput = {}): Promise<TurnResult> {
+  async retryTurn(input: RetryTurnInput): Promise<TurnResult> {
+    if (!input?.messageId) {
+      throw new Error('retryTurn requires a target message id');
+    }
     const displayTimeline = await this.loadDisplayTimeline();
-    const targetIndex = input.messageId
-      ? displayTimeline.rows.findIndex(row => displayRowMatchesId(row, input.messageId as string))
-      : displayTimeline.rows.length - 1;
-    if (input.messageId && targetIndex < 0) {
+    const targetIndex = displayTimeline.rows.findIndex(row => displayRowMatchesId(row, input.messageId));
+    if (targetIndex < 0) {
       throw new Error(`Cannot retry missing message: ${input.messageId}`);
     }
-    const searchStart = targetIndex >= 0 ? targetIndex : displayTimeline.rows.length - 1;
+    const searchStart = targetIndex;
     let userIndex = -1;
     for (let index = searchStart; index >= 0; index -= 1) {
       const row = displayTimeline.rows[index];
@@ -1887,12 +1865,9 @@ export class SdkConversationRuntime {
     if (!retryText.trim()) {
       throw new Error('Cannot retry a user message with empty text');
     }
-    const replayPayload = mergeReplayPayload(
-      replayPayloadFromDisplayRow(userRow),
-      input.payload,
-    );
+    const replayPayload = replayPayloadFromDisplayRow(userRow);
     replayPayload.text = retryText;
-    const turnRef = input.turnRef ?? createRuntimeId('turn');
+    const turnRef = createRuntimeId('turn');
     const timestamp = new Date().toISOString();
     const checkpoint = await this.replaceRows({
       rows: [
@@ -1919,7 +1894,6 @@ export class SdkConversationRuntime {
     return this.send({
       text: retryText,
       turnRef,
-      model: input.model,
       payload: replayPayload,
     });
   }
@@ -3216,8 +3190,7 @@ export class SdkConversationRuntime {
       if (resource.kind !== 'clipboard_image' && resource.kind !== 'query_screenshot_request') {
         return resource;
       }
-      const displayAttachmentId = stringPayloadField({ value: resource.displayAttachmentId }, 'value')
-        ?? `${turnRef}:attachment:${visualIndex.toString().padStart(3, '0')}`;
+      const displayAttachmentId = `${turnRef}:attachment:${visualIndex.toString().padStart(3, '0')}`;
       visualIndex += 1;
       return {
         ...resource,
@@ -3230,7 +3203,9 @@ export class SdkConversationRuntime {
     const attachments: SdkDisplayAttachment[] = [];
     for (const resource of resources) {
       if (resource.kind === 'clipboard_image') {
-        const id = stringPayloadField({ value: resource.displayAttachmentId }, 'value');
+        const id = stringPayloadField({
+          value: (resource as TurnInputResource & { displayAttachmentId?: unknown }).displayAttachmentId,
+        }, 'value');
         if (!id) {
           continue;
         }
@@ -3245,7 +3220,9 @@ export class SdkConversationRuntime {
           previewSrc: `data:${contentType};base64,${resource.base64}`,
         });
       } else if (resource.kind === 'query_screenshot_request') {
-        const id = stringPayloadField({ value: resource.displayAttachmentId }, 'value');
+        const id = stringPayloadField({
+          value: (resource as TurnInputResource & { displayAttachmentId?: unknown }).displayAttachmentId,
+        }, 'value');
         if (!id) {
           continue;
         }

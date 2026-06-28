@@ -106,6 +106,36 @@ describe('DesktopAttachmentImageRuntime', () => {
     expect(DesktopArtifactRuntimeClient.fetchArtifactImage).not.toHaveBeenCalled();
   });
 
+  test('does not resolve materializing preview attachments through artifact runtime', () => {
+    const { result } = renderHook(
+      () => DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc({
+        id: 'attachment-preview',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        previewSrc: 'data:image/png;base64,preview',
+      }),
+    );
+
+    expect(result.current).toBeNull();
+    expect(DesktopArtifactRuntimeClient.fetchArtifactImage).not.toHaveBeenCalled();
+  });
+
+  test('does not repair padded artifact refs before fetching', () => {
+    const { result } = renderHook(
+      () => DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc({
+        id: 'attachment-padded',
+        kind: 'image',
+        source: 'replay',
+        status: 'ready',
+        screenshotRef: ' artifact-padded ',
+      }),
+    );
+
+    expect(result.current).toBeNull();
+    expect(DesktopArtifactRuntimeClient.fetchArtifactImage).not.toHaveBeenCalled();
+  });
+
   test('ignores whole-message screenshot aliases outside typed attachments', () => {
     const { result } = renderHook(
       () => DesktopAttachmentImageRuntime.useResolvedAttachmentImageSrc({

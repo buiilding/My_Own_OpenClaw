@@ -2,76 +2,85 @@
  * Resolves main-process stop targets for SDK conversation turns.
  */
 
-function normalizeOptionalString(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+function readExactNonEmptyString(value) {
+  return typeof value === 'string' && value && value.trim() === value ? value : null;
 }
 
 function isPendingTurn(value) {
   return Boolean(
     value
       && typeof value === 'object'
-      && normalizeOptionalString(value.conversationRef)
-      && normalizeOptionalString(value.turnRef)
+      && readExactNonEmptyString(value.conversationRef)
+      && readExactNonEmptyString(value.turnRef)
+  );
+}
+
+function isSdkConversationView(conversationView) {
+  return Boolean(
+    conversationView
+      && typeof conversationView === 'object'
+      && readExactNonEmptyString(conversationView.conversationRef)
+      && Array.isArray(conversationView.displayRows)
+      && conversationView.liveTurn
+      && typeof conversationView.liveTurn === 'object'
+      && conversationView.surfaces
+      && typeof conversationView.surfaces === 'object'
+      && conversationView.actions
+      && typeof conversationView.actions === 'object'
   );
 }
 
 function isStoppableConversationView(conversationView) {
   return Boolean(
-    conversationView
-      && typeof conversationView === 'object'
+    isSdkConversationView(conversationView)
       && conversationView.liveTurn?.canStop === true
-      && normalizeOptionalString(conversationView.conversationRef)
-      && normalizeOptionalString(conversationView.liveTurn?.turnRef)
+      && readExactNonEmptyString(conversationView.liveTurn?.turnRef)
+  );
+}
+
+function pendingTurnMatchesConversationView(conversationView, pendingTurn) {
+  const viewConversationRef = readExactNonEmptyString(conversationView?.conversationRef);
+  return Boolean(
+    viewConversationRef
+      && isPendingTurn(pendingTurn)
+      && readExactNonEmptyString(pendingTurn.conversationRef) === viewConversationRef,
   );
 }
 
 function resolveMainStopTarget({
   latestConversationView = null,
   latestPendingTurn = null,
-  currentConversationRef = null,
 } = {}) {
   if (isStoppableConversationView(latestConversationView)) {
     return {
       source: 'conversation-view',
-      conversationRef: normalizeOptionalString(latestConversationView.conversationRef),
-      turnRef: normalizeOptionalString(latestConversationView.liveTurn?.turnRef),
+      conversationRef: readExactNonEmptyString(latestConversationView.conversationRef),
+      turnRef: readExactNonEmptyString(latestConversationView.liveTurn?.turnRef),
       canStop: true,
     };
   }
 
-  if (latestConversationView && typeof latestConversationView === 'object') {
-    if (isPendingTurn(latestPendingTurn)) {
+  if (isSdkConversationView(latestConversationView)) {
+    if (pendingTurnMatchesConversationView(latestConversationView, latestPendingTurn)) {
       return {
         source: 'pending-turn',
-        conversationRef: normalizeOptionalString(latestPendingTurn.conversationRef),
-        turnRef: normalizeOptionalString(latestPendingTurn.turnRef),
+        conversationRef: readExactNonEmptyString(latestPendingTurn.conversationRef),
+        turnRef: readExactNonEmptyString(latestPendingTurn.turnRef),
         canStop: true,
       };
     }
-    return {
-      source: 'idle',
-      conversationRef: normalizeOptionalString(latestConversationView.conversationRef)
-        || normalizeOptionalString(currentConversationRef),
-      turnRef: normalizeOptionalString(latestConversationView.liveTurn?.turnRef),
-      canStop: false,
-    };
+    return null;
   }
 
   if (isPendingTurn(latestPendingTurn)) {
     return {
       source: 'pending-turn',
-      conversationRef: normalizeOptionalString(latestPendingTurn.conversationRef),
-      turnRef: normalizeOptionalString(latestPendingTurn.turnRef),
+      conversationRef: readExactNonEmptyString(latestPendingTurn.conversationRef),
+      turnRef: readExactNonEmptyString(latestPendingTurn.turnRef),
       canStop: true,
     };
   }
-  const conversationRef = normalizeOptionalString(currentConversationRef);
-  return {
-    source: 'idle',
-    conversationRef,
-    turnRef: null,
-    canStop: false,
-  };
+  return null;
 }
 
 async function triggerMainStopTarget({
@@ -101,7 +110,6 @@ async function triggerMainStopTarget({
 function createMainStopTargetRuntime({
   getLatestConversationView,
   getLatestPendingTurn,
-  getCurrentConversationRef,
   stopQueryThroughAgentSdkRuntime,
   setResponseOverlayPhase,
 } = {}) {
@@ -112,9 +120,6 @@ function createMainStopTargetRuntime({
         : null,
       latestPendingTurn: typeof getLatestPendingTurn === 'function'
         ? getLatestPendingTurn()
-        : null,
-      currentConversationRef: typeof getCurrentConversationRef === 'function'
-        ? getCurrentConversationRef()
         : null,
     });
   }

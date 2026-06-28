@@ -30,6 +30,26 @@ function resolveSdkCommandConversationRef(input = {}) {
   return normalizeOptionalString(input.conversationRef);
 }
 
+function readExactReplayCommandString(value, label) {
+  if (typeof value === 'string' && value.length > 0 && value === value.trim()) {
+    return value;
+  }
+  throw new Error(`Agent SDK replay commands require exact ${label}.`);
+}
+
+function resolveExactReplayConversationRef(input = {}) {
+  if (!isPlainObject(input)) {
+    return null;
+  }
+  if (Object.prototype.hasOwnProperty.call(input, 'conversation_ref')) {
+    throw new Error('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+  }
+  if (!Object.prototype.hasOwnProperty.call(input, 'conversationRef')) {
+    return null;
+  }
+  return readExactReplayCommandString(input.conversationRef, 'conversation reference');
+}
+
 function resolveSdkCommandTurnRef(input = {}) {
   if (!isPlainObject(input)) {
     return null;
@@ -410,26 +430,23 @@ function createDirectWakeUpAgentAdapter({
       return checkpoint;
     },
     editAndResend: async (options = {}) => {
-      const displayConversationRef = resolveSdkCommandConversationRef(options);
+      const displayConversationRef = resolveExactReplayConversationRef(options);
+      const input = {
+        messageId: readExactReplayCommandString(options.messageId, 'message id'),
+        text: options.text,
+      };
       const handle = getConversationRuntimeHandle(displayConversationRef);
-      const input = { ...options };
-      delete input.conversationRef;
-      delete input.revisionId;
-      delete input.revision_id;
-      delete input.store;
       const result = await handle.runtime.editAndResend(input);
       markInferenceContextStale(handle.conversationRef);
       await reloadRuntimeSnapshot(handle);
       return result;
     },
     retryTurn: async (options = {}) => {
-      const displayConversationRef = resolveSdkCommandConversationRef(options);
+      const displayConversationRef = resolveExactReplayConversationRef(options);
+      const input = {
+        messageId: readExactReplayCommandString(options.messageId, 'message id'),
+      };
       const handle = getConversationRuntimeHandle(displayConversationRef);
-      const input = { ...options };
-      delete input.conversationRef;
-      delete input.revisionId;
-      delete input.revision_id;
-      delete input.store;
       const result = await handle.runtime.retryTurn(input);
       markInferenceContextStale(handle.conversationRef);
       await reloadRuntimeSnapshot(handle);

@@ -50,8 +50,9 @@ Ownership model:
   deriving counts or last-message identity, so trace code does not reopen the
   raw workspace as a competing chat read model
 - when a workspace has `ConversationView`, live-surface trace snapshots use the
-  view live-turn/display-row identity before falling back to raw stream
-  tracking and workspace messages
+  view live-turn/display-row identity only; stale raw stream tracking and raw
+  workspace messages are no-view fallback evidence and do not contribute beside
+  an SDK view, even when that view currently has no display rows
 
 ## Surface Flag Semantics
 
@@ -76,6 +77,9 @@ execution is not a renderer provider concern.
 
 - direct `ChatProvider` coverage exists in `tests/frontend/ChatProvider.test.jsx` for flag wiring and transcript-session conversation sync
 - boundary coverage rejects `ChatContext.jsx`, `EMPTY_CHAT_CONTEXT`, and raw lifecycle fields in provider trace snapshots
+- provider trace snapshots accept SDK `ConversationView` summaries only through
+  the shared workspace view gate, so partial renderer objects do not become
+  debug read-model authority
 
 ## Drift Hotspots
 

@@ -263,6 +263,11 @@ jest.mock('../../src/renderer/features/chat/stores/chatStoreAdapters', () => ({
     }
     return undefined;
   }),
+  applyConversationViewToChatStore: ({ view, targetConversationRef }) => {
+    mockChatState.conversationView = view ?? null;
+    mockSetConversationView(view, targetConversationRef ?? view?.conversationRef ?? null);
+    return targetConversationRef ?? view?.conversationRef ?? null;
+  },
   clearMessagesInChatStore: (...args) => {
     mockChatState.messages = [];
     mockChatState.sdkLiveTurn = null;
@@ -271,10 +276,6 @@ jest.mock('../../src/renderer/features/chat/stores/chatStoreAdapters', () => ({
     mockClearMessages(...args);
   },
   updateMessageInChatStore: (...args) => mockChatState.updateMessage(...args),
-  setConversationViewInChatStore: (...args) => {
-    mockChatState.conversationView = args[0] ?? null;
-    mockSetConversationView(...args);
-  },
   setThinkingStatusInChatStore: (...args) => {
     mockChatState.thinkingStatus = args[0] ?? null;
     mockSetThinkingStatus(...args);
@@ -844,7 +845,6 @@ describe('ChatInterface wiring', () => {
       userMessageId: 'user-2',
       text: 'Summarize it now',
       timestamp: '2026-06-21T00:00:00.000Z',
-      attachmentFilenames: null,
     };
 
     render(<ChatInterface />);
@@ -1927,7 +1927,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
-    expect(lastInputProps.isLoopActive).toBe(true);
+    expect(lastInputProps.isLoopActive).toBe(false);
     expect(lastInputProps.canStopResponse).toBe(false);
     lastInputProps.onStopResponse();
     expect(mockStopQuery).not.toHaveBeenCalled();
@@ -1974,7 +1974,6 @@ describe('ChatInterface wiring', () => {
       userMessageId: 'user_pending',
       text: 'pending',
       timestamp: '2026-06-16T00:00:00.000Z',
-      attachmentFilenames: null,
     };
 
     render(<ChatInterface />);
@@ -2036,9 +2035,10 @@ describe('ChatInterface wiring', () => {
         id: 'tool-call-1',
         kind: 'tool_call',
         toolName: 'run_shell_command',
+        requestId: 'request-tool-1',
         payload: {
           toolName: 'run_shell_command',
-          requestId: 'request-tool-1',
+          requestId: 'backend-payload-request-id',
           args: {
             command: 'pwd',
           },
@@ -2193,7 +2193,6 @@ describe('ChatInterface wiring', () => {
       userMessageId: 'user-1',
       text: 'hello',
       timestamp: '2026-06-21T00:00:00.000Z',
-      attachmentFilenames: null,
     };
 
     render(<ChatInterface />);
@@ -2232,7 +2231,6 @@ describe('ChatInterface wiring', () => {
       userMessageId: 'user-2',
       text: 'second task',
       timestamp: '2026-06-21T00:00:00.000Z',
-      attachmentFilenames: null,
     };
 
     render(<ChatInterface />);
@@ -2255,7 +2253,6 @@ describe('ChatInterface wiring', () => {
       userMessageId: 'user-2',
       text: 'second task',
       timestamp: '2026-06-21T00:00:00.000Z',
-      attachmentFilenames: null,
     };
 
     render(<ChatInterface />);

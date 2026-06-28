@@ -44,6 +44,20 @@ describe('desktopRuntimeTransport', () => {
     }));
   });
 
+  test('rejects sendQuery with generic failure for padded main error text', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: false,
+      error: ' Main-specific failure ',
+    });
+
+    const transport = createDesktopRuntimeTransport('/repo');
+
+    await expect(transport.sendQuery({
+      text: 'retry this',
+      conversation_ref: 'conv-1',
+    })).rejects.toThrow('Failed to send query through agent runtime');
+  });
+
   test('resolves sendQuery when main accepts the query dispatch', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({
       ok: true,
@@ -64,6 +78,104 @@ describe('desktopRuntimeTransport', () => {
       query_message_id: 'turn-1',
     }));
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('turn_ref');
+  });
+
+  test('rejects padded query message ids instead of trimming them into send commands', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: true,
+      messageId: 'msg-1',
+    });
+
+    const transport = createDesktopRuntimeTransport(null);
+
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+    }, {
+      messageId: ' turn-1 ',
+    })).rejects.toThrow('conversation.send requires an exact query_message_id when a caller provides one');
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
+  });
+
+  test('ignores padded accepted message ids instead of trimming them into send results', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: true,
+      messageId: ' msg-accepted ',
+    });
+
+    const transport = createDesktopRuntimeTransport(null);
+
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+    }, {
+      messageId: 'turn-1',
+    })).resolves.toBe('turn-1');
+  });
+
+  test('forwards only exact SDK send resource metadata fields', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: true,
+      messageId: 'msg-resource',
+    });
+
+    const transport = createDesktopRuntimeTransport(null);
+
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      screenshot_ref: ' artifact-padded ',
+      screenshot_url: ' https://cdn.example/padded.png ',
+      screenshot_refs: ['artifact-one', ' artifact-two ', '', 42],
+      attachment_filenames: ['one.png', ' two.png ', '', null],
+      capture_meta: { source_w: 100, source_h: 80 },
+    })).resolves.toBe('msg-resource');
+
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
+      screenshot_ref: null,
+      screenshot_url: null,
+      screenshot_refs: ['artifact-one'],
+      attachment_filenames: ['one.png'],
+      capture_meta: { source_w: 100, source_h: 80 },
+    }));
+  });
+
+  test('preserves SDK attachment context text without trimming it as identity metadata', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: true,
+      messageId: 'msg-resource',
+    });
+
+    const transport = createDesktopRuntimeTransport(null);
+
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      attachment_context: '  indented file context\n  ',
+    })).resolves.toBe('msg-resource');
+
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
+      attachment_context: '  indented file context\n  ',
+    }));
+  });
+
+  test('drops malformed SDK send capture metadata instead of forwarding lifecycle blobs', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: true,
+      messageId: 'msg-resource',
+    });
+
+    const transport = createDesktopRuntimeTransport(null);
+
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      capture_meta: ['display-lifecycle'],
+    })).resolves.toBe('msg-resource');
+
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
+      capture_meta: null,
+    }));
   });
 
   test('rejects removed camelCase query payload aliases', async () => {
@@ -123,6 +235,30 @@ describe('desktopRuntimeTransport', () => {
     expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
   });
 
+  test('rejects display attachment lifecycle fields in send payloads', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({
+      ok: true,
+      messageId: 'msg-1',
+    });
+
+    const transport = createDesktopRuntimeTransport(null);
+
+    await expect(transport.sendQuery({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      attachments: [{
+        id: 'renderer-owned-attachment',
+        status: 'ready',
+      }],
+      display_attachments: [],
+      previewSrc: 'data:image/png;base64,preview',
+      displayAttachmentId: 'renderer-display-id',
+    })).rejects.toThrow(
+      'conversation.send received SDK display attachment field(s): attachments, display_attachments, displayAttachmentId, previewSrc. Send typed resources and let SDK projection own attachment lifecycle.',
+    );
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
+  });
+
   test('rejects removed camelCase stop payload aliases', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({});
 
@@ -134,6 +270,23 @@ describe('desktopRuntimeTransport', () => {
     })).rejects.toThrow(
       'conversation.stop received removed camelCase field(s): conversationRef, turnRef. Use canonical snake_case fields.',
     );
+    expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
+  });
+
+  test('ignores padded stop refs instead of trimming them into commands', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({});
+
+    const transport = createDesktopRuntimeTransport(null);
+
+    await transport.stop({
+      conversation_ref: ' conv-stop ',
+      turn_ref: 'turn-stop',
+    });
+    await transport.stop({
+      conversation_ref: 'conv-stop',
+      turn_ref: ' turn-stop ',
+    });
+
     expect(mockInvokeAgentSdkCommand).not.toHaveBeenCalled();
   });
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Covers conversation replay database integration. behavior in the frontend test suite.
  */
 
@@ -22,6 +22,9 @@ import {
   clearMessagesInChatStore,
   setMessagesInChatStore,
 } from '../../src/renderer/features/chat/stores/chatStoreAdapters';
+import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+} from './chatStoreTestUtils';
 import {
   createConversationEvent,
   LocalRuntimeConversationStore,
@@ -459,16 +462,15 @@ function renderReplayHook(messages: Array<Record<string, unknown>>) {
   return renderHook(() => useConversationReplayActions());
 }
 
-function expectReplaySendErrorMessage(prefixMessages: Array<Record<string, unknown>> = []): void {
-  expect(useChatStore.getState().getWorkspaceState('conv-replay-db').messages).toEqual([
-    ...prefixMessages,
+function expectNoReplaySendErrorMessage(messages: Array<Record<string, unknown>> = []): void {
+  const workspaceMessages = getWorkspaceStateFromChatStore('conv-replay-db').messages;
+  expect(workspaceMessages).toEqual(messages);
+  expect(workspaceMessages).toEqual(expect.not.arrayContaining([
     expect.objectContaining({
-      sender: 'assistant',
       type: 'error',
       sourceEventType: 'renderer-replay',
-      text: expect.stringContaining("Your message wasn't sent"),
     }),
-  ]);
+  ]));
 }
 
 describe('conversation replay database integration', () => {
@@ -582,24 +584,10 @@ describe('conversation replay database integration', () => {
           return runtime.editAndResend({
             messageId: String(payload.messageId),
             text: String(payload.text),
-            turnRef: typeof payload.turnRef === 'string' ? payload.turnRef : undefined,
-            payload: (payload.payload && typeof payload.payload === 'object'
-              ? payload.payload
-              : {}) as JsonRecord,
-            model: (payload.model && typeof payload.model === 'object'
-              ? payload.model
-              : undefined) as never,
           });
         }
         return runtime.retryTurn({
-          messageId: typeof payload.messageId === 'string' ? payload.messageId : undefined,
-          turnRef: typeof payload.turnRef === 'string' ? payload.turnRef : undefined,
-          payload: (payload.payload && typeof payload.payload === 'object'
-            ? payload.payload
-            : {}) as JsonRecord,
-          model: (payload.model && typeof payload.model === 'object'
-            ? payload.model
-            : undefined) as never,
+          messageId: String(payload.messageId),
         });
       }
 
@@ -635,7 +623,6 @@ describe('conversation replay database integration', () => {
       userId: 'user-replay-db',
       messageId: 'stored-user-2',
       text: 'edited second question',
-      payload: {},
     }));
     expect(backendRehydrates).toEqual([]);
 
@@ -663,10 +650,10 @@ describe('conversation replay database integration', () => {
       'assistant_message',
     ]);
     expect(conversationRows.map(row => row.event_type)).toEqual(expect.arrayContaining([
-      'settings_updated',
       'turn_started',
       'user_message',
     ]));
+    expect(conversationRows.map(row => row.event_type)).not.toContain('settings_updated');
     expect(conversationRows).toEqual(expect.arrayContaining([
       expect.objectContaining({
         event_type: 'user_message',
@@ -759,15 +746,7 @@ describe('conversation replay database integration', () => {
       'stored-user-2',
       'stored-assistant-2',
     ]);
-    expect(useChatStore.getState().getWorkspaceState('conv-replay-db').messages).toEqual([
-      ...messages,
-      expect.objectContaining({
-        sender: 'assistant',
-        type: 'error',
-        sourceEventType: 'renderer-replay',
-        text: expect.stringContaining("Your message wasn't sent"),
-      }),
-    ]);
+    expectNoReplaySendErrorMessage(messages);
   });
 
   test.each([
@@ -804,7 +783,7 @@ describe('conversation replay database integration', () => {
       'stored-user-2',
       'stored-assistant-2',
     ]);
-    expectReplaySendErrorMessage(BASE_MESSAGES);
+    expectNoReplaySendErrorMessage(BASE_MESSAGES);
   });
 
   test('reports send failure when the SDK revision command display replacement fails', async () => {
@@ -830,7 +809,7 @@ describe('conversation replay database integration', () => {
       'stored-user-2',
       'stored-assistant-2',
     ]);
-    expectReplaySendErrorMessage(BASE_MESSAGES);
+    expectNoReplaySendErrorMessage(BASE_MESSAGES);
   });
 
   test('backend rehydrate failure is not part of SDK revision resend', async () => {
