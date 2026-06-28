@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/attachments: collapse SDK display attachment validation onto the
+  sanitizer path so renderer projection no longer keeps a separate
+  displayability preflight for typed descriptors. No migration required.
 - frontend/replay: keep rejected padded or empty replay target ids out of
   renderer replay trace state, reporting them as missing targets instead of
   diagnostic row identity. No migration required.

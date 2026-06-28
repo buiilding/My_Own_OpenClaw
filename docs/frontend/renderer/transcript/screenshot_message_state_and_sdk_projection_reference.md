@@ -126,6 +126,9 @@ and arbitrary extra fields are dropped at this gate. It does not publish
 image-count, ready-image, or lifecycle summary helpers. Token estimates read
 only the projected SDK `attachments[]` list; legacy screenshot arrays remain
 SDK/replay compatibility input, not a renderer token-count source.
+The projection keeps one sanitizer as the lifecycle gate instead of a separate
+renderer preflight displayability pass, so there is only one renderer-side place
+where malformed typed descriptors are dropped before rendering.
 Renderer message content-kind and row-class helpers also route attachment
 presence through this projection helper instead of inspecting raw attachment
 arrays, so padded or malformed descriptors cannot become attachment UI state.

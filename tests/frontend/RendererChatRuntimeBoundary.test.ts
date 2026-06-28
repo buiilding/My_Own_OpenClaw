@@ -4490,8 +4490,8 @@ describe('renderer chat runtime boundary', () => {
     expect(displayAttachmentProjectionSource).toContain('function sanitizeImageAttachment');
     expect(displayAttachmentProjectionSource).toContain('function sanitizeScreenshotRequestAttachment');
     expect(displayAttachmentProjectionSource).toContain('value.flatMap((attachment) => sanitizeSdkDisplayAttachment(attachment) ?? [])');
-    expect(displayAttachmentProjectionSource).toContain('function isDisplayableImageAttachment');
-    expect(displayAttachmentProjectionSource).toContain('function isDisplayableScreenshotRequestAttachment');
+    expect(displayAttachmentProjectionSource).not.toContain('function isDisplayableImageAttachment');
+    expect(displayAttachmentProjectionSource).not.toContain('function isDisplayableScreenshotRequestAttachment');
     expect(displayAttachmentProjectionSource).toContain('function isReadyDisplayImageAttachment');
     expect(displayAttachmentProjectionSource).toContain('SDK_DISPLAY_ATTACHMENT_KINDS');
     expect(displayAttachmentProjectionSource).toContain('SDK_DISPLAY_ATTACHMENT_SOURCES');

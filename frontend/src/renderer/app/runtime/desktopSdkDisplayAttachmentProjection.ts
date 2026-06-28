@@ -86,37 +86,6 @@ function readExactAttachmentStatus(value: unknown): SdkDisplayAttachmentStatus |
     : null;
 }
 
-function isDisplayableImageAttachment(record: Record<string, unknown>): boolean {
-  const source = readExactAttachmentSource(record.source);
-  const status = readExactAttachmentStatus(record.status);
-  if (status === 'materializing') {
-    return (
-      source === 'user_included'
-      && optionalExactString(record.previewSrc) !== null
-    );
-  }
-  if (status === 'ready') {
-    return (
-      optionalExactString(record.screenshotRef) !== null
-      || optionalReadyImageUrl(record.screenshotUrl) !== null
-    );
-  }
-  return status === 'failed';
-}
-
-function isDisplayableScreenshotRequestAttachment(record: Record<string, unknown>): boolean {
-  const source = readExactAttachmentSource(record.source);
-  const status = readExactAttachmentStatus(record.status);
-  return (
-    source === 'camera_button'
-    && (
-      status === 'pending_capture'
-      || status === 'materializing'
-      || status === 'failed'
-    )
-  );
-}
-
 function baseAttachmentFields(record: Record<string, unknown>): Pick<
   SdkDisplayAttachment,
   'id' | 'kind' | 'source' | 'status'
@@ -207,17 +176,6 @@ function sanitizeScreenshotRequestAttachment(
 function sanitizeSdkDisplayAttachment(value: unknown): SdkDisplayAttachment | null {
   const record = recordFromUnknown(value);
   if (!record) {
-    return null;
-  }
-  const kind = readExactAttachmentKind(record.kind);
-  if (!kind) {
-    return null;
-  }
-  if (
-    kind === 'image'
-      ? !isDisplayableImageAttachment(record)
-      : !isDisplayableScreenshotRequestAttachment(record)
-  ) {
     return null;
   }
   const base = baseAttachmentFields(record);
