@@ -40,6 +40,17 @@ describe('frontend package scripts', () => {
     expect(packageJson.scripts).not.toHaveProperty('package:linux:bundled-python');
   });
 
+  test('sidecar runtime build resolves artifact paths from frontend root', () => {
+    const buildScript = fs.readFileSync(
+      path.join(repoRoot, 'scripts/build-sidecar-runtime.sh'),
+      'utf8',
+    );
+
+    expect(buildScript).toContain('FRONTEND_DIR="${ROOT_DIR}"');
+    expect(buildScript).not.toContain('FRONTEND_DIR=""');
+    expect(buildScript).toContain('RUNTIME_REQS="${FRONTEND_DIR}/src/main/python/requirements.runtime.txt"');
+  });
+
   test('desktop release workflow uses public root package commands', () => {
     const workflow = fs.readFileSync(
       path.join(repoRoot, '.github/workflows/desktop-release.yml'),

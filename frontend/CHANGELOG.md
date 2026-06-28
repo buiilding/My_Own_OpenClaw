@@ -21,6 +21,10 @@ All notable changes to WindieOS will be documented in this file.
   doc-contract line endings, and install SQLite for Windows release checks, so
   all-platform packaging reaches Electron Builder consistently. No migration
   required.
+- frontend/package: resolve sidecar runtime artifact paths from the frontend
+  root during packaging, so CI builds on Git Bash and POSIX runners can find
+  `src/main/python/requirements.runtime.txt` before Electron Builder. No
+  migration required.
 - docs/agents: replace the copied private-root agent instructions with a
   public frontend agent policy that keeps commands, tests, commit search, and
   backend boundaries scoped to the public repo root. No migration required.

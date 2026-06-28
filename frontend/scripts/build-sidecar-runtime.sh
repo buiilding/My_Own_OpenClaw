@@ -4,7 +4,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-FRONTEND_DIR=""
+FRONTEND_DIR="${ROOT_DIR}"
 RUNTIME_DIR="${FRONTEND_DIR}/python-runtime"
 RUNTIME_ARCHIVE="${FRONTEND_DIR}/python-runtime.tar.gz"
 RUNTIME_REQS="${FRONTEND_DIR}/src/main/python/requirements.runtime.txt"
