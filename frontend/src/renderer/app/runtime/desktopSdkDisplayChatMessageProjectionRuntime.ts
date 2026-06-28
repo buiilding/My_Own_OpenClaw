@@ -31,16 +31,13 @@ function rowTimestampProp(row: SdkDisplayRow): Pick<ChatMessage, 'timestamp'> | 
   return timestamp ? { timestamp } : {};
 }
 
-function rowSourceEventType(row: SdkDisplayRow): string {
-  const sourceEventType = row.metadata?.sourceEventType;
-  if (
-    typeof sourceEventType === 'string'
-    && sourceEventType.length > 0
-    && sourceEventType === sourceEventType.trim()
-  ) {
-    return sourceEventType;
-  }
-  return row.type;
+function rowSourceEventType(row: SdkDisplayRow): string | null {
+  return exactNonEmptyString(row.metadata?.sourceEventType);
+}
+
+function rowSourceEventTypeProp(row: SdkDisplayRow): Pick<ChatMessage, 'sourceEventType'> | Record<string, never> {
+  const sourceEventType = rowSourceEventType(row);
+  return sourceEventType ? { sourceEventType } : {};
 }
 
 function exactNonEmptyString(value: unknown): string | null {
@@ -130,9 +127,9 @@ function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
     id: row.id,
     text: displayTextFromStringRowContent(row.content),
     sender: 'user',
-    sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
     isComplete: true,
+    ...rowSourceEventTypeProp(row),
     ...rowTurnRefProp(row),
     ...rowTimestampProp(row),
     ...(attachments.length > 0 ? { attachments } : {}),
@@ -141,15 +138,14 @@ function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
 
 function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
   const thinkingText = rowReasoningText(row);
-  const sourceEventType = rowSourceEventType(row);
   const turnRef = rowTurnRef(row);
   return withRowActions({
     id: row.id,
     text: displayTextFromStringRowContent(row.content),
     sender: 'assistant',
     type: 'llm-text',
-    sourceEventType,
     sourceChannel: sdkDisplayRowsSourceChannel,
+    ...rowSourceEventTypeProp(row),
     ...(turnRef ? { turnRef } : {}),
     isComplete: !isSdkDisplayRowStreaming(row),
     ...(thinkingText ? {
@@ -170,9 +166,9 @@ function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
     text,
     sender: 'assistant',
     type: 'tool-call',
-    sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
     isComplete: true,
+    ...rowSourceEventTypeProp(row),
     ...(text ? { toolCallDisplayText: text } : {}),
     ...(toolCallDetails ? { toolCallDetails } : {}),
     ...(correlationId ? { correlationId } : {}),
@@ -192,9 +188,9 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
     text,
     sender: 'assistant',
     type: 'tool-output',
-    sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
     isComplete: true,
+    ...rowSourceEventTypeProp(row),
     ...(toolOutputDetails ? { toolOutputDetails } : {}),
     ...(attachments.length > 0 ? { attachments } : {}),
     ...(correlationId ? { correlationId } : {}),
@@ -210,8 +206,8 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
     text: displayTextFromStringRowContent(row.content),
     sender: 'assistant',
     type: 'tool-progress',
-    sourceEventType: rowSourceEventType(row),
     sourceChannel: sdkDisplayRowsSourceChannel,
+    ...rowSourceEventTypeProp(row),
     ...rowTurnRefProp(row),
     ...rowCorrelationIdProp(row),
     ...rowTimestampProp(row),

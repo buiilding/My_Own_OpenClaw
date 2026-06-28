@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display-rows: omit renderer `sourceEventType` props when SDK display
+  rows do not provide exact source-event metadata, so the adapter no longer
+  backfills event labels from display row type. No migration required.
 - frontend/live-turn: require legacy no-view SDK tool events to carry exact
   known `kind` values before projecting fallback tool rows, so malformed or
   unknown tool kinds no longer fall through as renderer-local tool calls. No

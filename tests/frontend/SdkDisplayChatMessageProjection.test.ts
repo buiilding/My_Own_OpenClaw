@@ -21,6 +21,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         metadata: {
           revisionId: 'rev-1',
           timestamp: '2026-05-15T12:00:00.000Z',
+          sourceEventType: 'user_message',
         },
       },
       {
@@ -292,7 +293,7 @@ describe('sdkDisplayChatMessageProjection', () => {
     }));
   });
 
-  test('does not repair padded SDK source event types', () => {
+  test('omits missing or malformed SDK source event types', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {
         id: 'msg-user-padded-source',
@@ -319,12 +320,32 @@ describe('sdkDisplayChatMessageProjection', () => {
     ])).toEqual([
       expect.objectContaining({
         id: 'msg-user-padded-source',
-        sourceEventType: 'user_message',
       }),
       expect.objectContaining({
         id: 'msg-assistant-source',
         sourceEventType: 'assistant_delta',
       }),
+    ]);
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-user-without-source',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'hello',
+      },
+      {
+        id: 'msg-tool-progress-without-source',
+        conversationRef: 'conv-sdk',
+        index: 1,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Working',
+      },
+    ])).toEqual([
+      expect.not.objectContaining({ sourceEventType: expect.anything() }),
+      expect.not.objectContaining({ sourceEventType: expect.anything() }),
     ]);
   });
 
@@ -543,6 +564,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         metadata: {
           revisionId: 'rev-child',
           timestamp: '2026-05-15T12:00:00.000Z',
+          sourceEventType: 'user_message',
         },
       },
     ])).toEqual([
@@ -1188,6 +1210,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         isStreaming: true,
         metadata: {
           reasoningText: 'Thinking through it.',
+          sourceEventType: 'assistant_message',
         },
       },
     ])).toEqual([
@@ -1227,10 +1250,10 @@ describe('sdkDisplayChatMessageProjection', () => {
       type: 'llm-text',
       text: 'Partial answer',
       isComplete: false,
-      sourceEventType: 'assistant_message',
     }));
     expect(message).not.toHaveProperty('thinkingText');
     expect(message).not.toHaveProperty('thinkingSourceEventType');
+    expect(message).not.toHaveProperty('sourceEventType');
     expect(message).not.toEqual(expect.objectContaining({ thinkingText: ' Thinking through it. ' }));
     expect(message).not.toEqual(expect.objectContaining({ thinkingText: 'Thinking through it.' }));
   });
@@ -1258,10 +1281,10 @@ describe('sdkDisplayChatMessageProjection', () => {
       type: 'llm-text',
       text: 'Partial answer',
       isComplete: false,
-      sourceEventType: 'assistant_message',
     }));
     expect(message).not.toHaveProperty('thinkingText');
     expect(message).not.toHaveProperty('thinkingSourceEventType');
+    expect(message).not.toHaveProperty('sourceEventType');
   });
 
   test('projects SDK tool progress rows into retained tool-progress messages', () => {
@@ -1335,10 +1358,23 @@ describe('sdkDisplayChatMessageProjection', () => {
         sender: 'assistant',
         type: 'tool-progress',
         text: 'Preparing tool result',
-        sourceEventType: 'tool_progress',
         correlationId: 'req-tool-1',
       }),
     ]);
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'progress-generic',
+        conversationRef: 'conv-tool',
+        turnRef: 'turn-tool',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_progress',
+        content: 'Preparing tool result',
+        metadata: {
+          sourceEventType: ' tool_progress ',
+        },
+      },
+    ])[0]).not.toHaveProperty('sourceEventType');
   });
 
   test('does not recover tool progress details from SDK output-detail metadata', () => {

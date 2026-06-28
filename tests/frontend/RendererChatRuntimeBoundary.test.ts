@@ -4319,6 +4319,12 @@ describe('renderer chat runtime boundary', () => {
     const sourceChannelPath = path.join(chatRoot, 'utils/message/sourceChannels.js');
 
     expect(projectionRuntimeSource).toContain('sourceEventType');
+    expect(projectionRuntimeSource).toContain('function rowSourceEventType(row: SdkDisplayRow): string | null');
+    expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.sourceEventType);');
+    expect(projectionRuntimeSource).toContain('function rowSourceEventTypeProp(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('return sourceEventType ? { sourceEventType } : {};');
+    expect(projectionRuntimeSource).not.toContain('return row.type;');
+    expect(projectionRuntimeSource).not.toContain('sourceEventType: rowSourceEventType(row)');
     expect(projectionRuntimeSource).toContain('withRowActions');
     expect(projectionRuntimeSource).toContain('function rowReplayActions(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain('const actions = rowReplayActions(row);');

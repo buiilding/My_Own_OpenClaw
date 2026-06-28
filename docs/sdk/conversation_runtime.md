@@ -1230,9 +1230,10 @@ source labels such as `tool-call`, `tool-output`, and `web-search-progress`,
 but active tool rows and phase tracking should come from the SDK current-turn
 presentation instead of a separate normalized-event live-state path. Raw
 `snapshot.currentTurn.toolEvents` is legacy no-presentation fallback context
-only. Display-row adapters preserve SDK-authored `sourceEventType` values for
-tool progress rows and otherwise use the generic `tool_progress` row type; the
-renderer does not infer `web-search-progress` for unlabeled progress rows.
+only. Display-row adapters preserve exact SDK-authored `sourceEventType` values
+and omit that renderer message prop when display-row metadata is missing or
+malformed; the renderer does not synthesize source event labels from row type or
+infer `web-search-progress` for unlabeled progress rows.
 SDK-authored progress rows remain `tool-progress` renderer messages; legacy
 `search-source` remains a readable presentation type for old rows only.
 When provider-native web search progress has to be rehydrated as a synthetic
