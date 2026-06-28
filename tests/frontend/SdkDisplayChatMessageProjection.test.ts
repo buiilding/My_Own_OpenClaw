@@ -741,7 +741,7 @@ describe('sdkDisplayChatMessageProjection', () => {
     }));
   });
 
-  test('passes exact SDK row replay actions only for SDK-owned row kinds', () => {
+  test('passes exact SDK row replay action fields without deriving availability from row kind', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {
         id: 'visible-user-row',
@@ -809,11 +809,15 @@ describe('sdkDisplayChatMessageProjection', () => {
         actions: {
           canEdit: true,
           editTargetRowId: 'original-user-row',
+          canRetry: true,
+          retryTargetRowId: 'original-assistant-row',
         },
       }),
       expect.objectContaining({
         id: 'visible-assistant-row',
         actions: {
+          canEdit: true,
+          editTargetRowId: 'original-user-row',
           canRetry: true,
           retryTargetRowId: 'original-assistant-row',
         },
@@ -821,9 +825,14 @@ describe('sdkDisplayChatMessageProjection', () => {
       expect.not.objectContaining({
         actions: expect.anything(),
       }),
-      expect.not.objectContaining({
+      expect.objectContaining({
         id: 'tool-progress-action-row',
-        actions: expect.anything(),
+        actions: {
+          canEdit: true,
+          editTargetRowId: 'original-user-row',
+          canRetry: true,
+          retryTargetRowId: 'original-assistant-row',
+        },
       }),
     ]);
   });

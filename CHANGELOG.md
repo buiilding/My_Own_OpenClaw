@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display-rows: stop using renderer row-kind checks to decide SDK
+  edit/retry action availability during display-row projection; the adapter now
+  only exact-gates SDK row action fields before UI controls render them. No
+  migration required.
 - frontend/chat-stream: name stream and current-turn projection runtime
   workspace dependencies after their projected read models, so hook wiring no
   longer exposes raw `getWorkspaceState` terminology across the SDK stream

@@ -517,11 +517,11 @@ metadata gates whether the edit/resend or Try again controls are shown.
 Renderer display-row adapters do not re-derive action eligibility from row
 role/type. They allowlist exact SDK `row.actions` fields
 (`canEdit`, `editTargetRowId`, `canRetry`, and `retryTargetRowId`) into
-chat-message props only for the row kinds that own those actions: edit actions
-from SDK user display rows and retry actions from SDK assistant display rows.
-Tool/progress rows drop misplaced replay action metadata instead of preserving
-it for component-level filtering. They do not trim, repair, or reconstruct
-action target ids. Renderer action-control helpers also reject
+chat-message props without using renderer row-kind checks as an action
+authority. Component surfaces still decide which controls can render for a
+message shape, but malformed or misplaced SDK actions are not repaired into a
+different target. They do not trim, repair, or reconstruct action target ids.
+Renderer action-control helpers also reject
 padded or empty target
 ids instead of normalizing them; missing or invalid row action booleans or
 target row ids on SDK display rows mean the command is unavailable rather than

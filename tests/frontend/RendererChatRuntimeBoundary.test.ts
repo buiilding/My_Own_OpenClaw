@@ -4407,10 +4407,15 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).toContain('const type = readExactDisplayRowType(row.type);');
     expect(projectionRuntimeSource).toContain("if (role === 'assistant' && (type === 'tool_call' || type === 'tool_bundle_call'))");
     expect(projectionRuntimeSource).toContain("if (role === 'tool' && (type === 'tool_output' || type === 'tool_bundle_output'))");
-    expect(projectionRuntimeSource).toContain('actionRecord.canEdit === true && editTargetRowId');
-    expect(projectionRuntimeSource).toContain('actionRecord.canRetry === true && retryTargetRowId');
-    expect(projectionRuntimeSource).toContain("rowKind === 'user' && actionRecord.canEdit");
-    expect(projectionRuntimeSource).toContain("rowKind === 'assistant' && actionRecord.canRetry");
+    const actionProjectionSource = projectionRuntimeSource.slice(
+      projectionRuntimeSource.indexOf('function rowReplayActions'),
+      projectionRuntimeSource.indexOf('function withRowActions'),
+    );
+    expect(actionProjectionSource).toContain('actionRecord.canEdit === true && editTargetRowId');
+    expect(actionProjectionSource).toContain('actionRecord.canRetry === true && retryTargetRowId');
+    expect(actionProjectionSource).not.toContain("rowKind === 'user' && actionRecord.canEdit");
+    expect(actionProjectionSource).not.toContain("rowKind === 'assistant' && actionRecord.canRetry");
+    expect(actionProjectionSource).not.toContain('resolveDisplayRowKind(row)');
     expect(projectionRuntimeSource).not.toContain('function isUserDisplayRow(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).not.toContain("return row.type === 'user_message' && row.role === 'user';");
     expect(projectionRuntimeSource).not.toContain('function isAssistantDisplayRow(row: SdkDisplayRow)');
