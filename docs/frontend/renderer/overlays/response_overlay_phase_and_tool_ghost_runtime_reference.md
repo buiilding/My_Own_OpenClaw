@@ -59,7 +59,10 @@ Current-turn entry construction:
   (`correlationId`, `toolCallDetails`, or `toolOutputDetails`) rather than by
   broad row type, so one materialized tool call does not hide another same-type
   live-only tool call. Those identity fields are exact SDK values; padded
-  identities are ignored instead of trimmed into materialized-row matches. The
+  identities are ignored instead of trimmed into materialized-row matches.
+  Non-tool materialization labels such as `sourceEventType` and adapted message
+  `type` are exact-only as well; the overlay runtime does not trim malformed SDK
+  labels into display/live reconciliation. The
   overlay must not depend only on `liveTurn.entries`,
   because materialized tool rows are intentionally removed from live entries to
   avoid duplicate dashboard cards. The overlay runtime treats `ConversationView`

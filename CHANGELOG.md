@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/response-overlay: require exact display/live row labels when matching
+  `ConversationView` display rows against live overlay entries, so padded
+  `sourceEventType` or message type values no longer participate in renderer
+  materialization checks. No migration required.
 - frontend/chat-surface: scope local pending lifecycle under `ConversationView`
   to the exact same view conversation, so stale pending bridges from other
   conversations cannot drive typing, busy, or Stop surface authority. No

@@ -976,6 +976,12 @@ describe('renderer app runtime boundary', () => {
     expect(responseViewRuntimeSource).toContain('resolveResponseOverlayPresentationState');
     expect(responseViewRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
     expect(responseViewRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(responseViewRuntimeSource).toContain('exactIdentityString(message.sourceEventType)');
+    expect(responseViewRuntimeSource).toContain('exactIdentityString(message.type)');
+    expect(responseViewRuntimeSource).toContain('exactIdentityString(liveMessage.sourceEventType)');
+    expect(responseViewRuntimeSource).toContain('exactIdentityString(liveMessage.type)');
+    expect(responseViewRuntimeSource).not.toContain('normalizeString(message.sourceEventType)');
+    expect(responseViewRuntimeSource).not.toContain('normalizeString(liveMessage.sourceEventType)');
     expect(responseViewRuntimeSource).not.toContain('desktopConversationRuntimeContracts');
     expect(responseViewRuntimeSource).not.toContain('as ConversationView');
     expect(responseViewRuntimeSource).toContain('function mergeConversationViewOverlayMessages(conversationView: unknown)');

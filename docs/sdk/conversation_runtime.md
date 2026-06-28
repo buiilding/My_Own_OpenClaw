@@ -372,7 +372,11 @@ user rows. When `ConversationView` is present, that bridge is same-view only:
 the pending `conversationRef` must exactly match the SDK view `conversationRef`
 before projection may append the temporary user row. Cross-conversation,
 missing, or padded pending refs stay out of the authoritative view path instead
-of being repaired into visible chat state. Pending-turn user rows also omit the
+of being repaired into visible chat state. Response-overlay reconciliation
+between `ConversationView.displayRows` and `ConversationView.liveTurn.entries`
+also treats adapted `sourceEventType` and message `type` labels as exact SDK
+output; padded labels are ignored instead of being trimmed into materialized-row
+checks. Pending-turn user rows also omit the
 `attachments` prop entirely instead of publishing a null display-attachment
 placeholder. Pending-turn clear broadcasts follow the same positive bridge
 contract: only the clear type plus exact conversation and turn refs may cross,

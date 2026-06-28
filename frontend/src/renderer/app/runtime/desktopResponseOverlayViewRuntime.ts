@@ -238,11 +238,11 @@ function responseOverlayMaterializedSourceTypes(
     if (isToolOverlayMessage(message)) {
       return;
     }
-    const sourceEventType = normalizeString(message.sourceEventType);
+    const sourceEventType = exactIdentityString(message.sourceEventType);
     if (sourceEventType) {
       materializedTypes.add(sourceEventType);
     }
-    const type = normalizeString(message.type);
+    const type = exactIdentityString(message.type);
     if (type) {
       materializedTypes.add(type);
     }
@@ -259,7 +259,7 @@ const TOOL_OVERLAY_MESSAGE_TYPES = new Set([
 ]);
 
 function isToolOverlayMessage(message: ResponseOverlayEntryLike): boolean {
-  return Boolean(TOOL_OVERLAY_MESSAGE_TYPES.has(normalizeString(message.type) || ''));
+  return Boolean(TOOL_OVERLAY_MESSAGE_TYPES.has(exactIdentityString(message.type) || ''));
 }
 
 function identityFromToolRecord(record: Record<string, unknown> | null): string | null {
@@ -300,7 +300,7 @@ function toolOverlayTypesMatch(
   displayMessage: ResponseOverlayEntryLike,
   liveMessage: ResponseOverlayEntryLike,
 ): boolean {
-  return normalizeString(displayMessage.type) === normalizeString(liveMessage.type);
+  return exactIdentityString(displayMessage.type) === exactIdentityString(liveMessage.type);
 }
 
 function toolLiveEntryMaterializedByDisplayRows(
@@ -326,11 +326,11 @@ function liveEntryMaterializedByDisplayRows(
   if (isToolOverlayMessage(liveMessage)) {
     return toolLiveEntryMaterializedByDisplayRows(liveMessage, displayMessages);
   }
-  const sourceEventType = normalizeString(liveMessage.sourceEventType);
+  const sourceEventType = exactIdentityString(liveMessage.sourceEventType);
   if (sourceEventType && materializedTypes.has(sourceEventType)) {
     return true;
   }
-  const type = normalizeString(liveMessage.type);
+  const type = exactIdentityString(liveMessage.type);
   return Boolean(type && materializedTypes.has(type));
 }
 
