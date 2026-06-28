@@ -111,6 +111,11 @@ describe('DesktopConversationRuntimeEventClient', () => {
       conversationRef: 'missing-current-turn ',
       currentTurn: null,
     });
+    const paddedCurrentTurn = {
+      ...currentTurn,
+      conversationRef: ' conv-padded-current-turn ',
+    };
+    mockChannelListeners.get('windie:current-turn')?.(paddedCurrentTurn);
     mockChannelListeners.get('windie:current-turn')?.({
       currentTurn: presentationOnlyCurrentTurn,
     });
@@ -149,6 +154,11 @@ describe('DesktopConversationRuntimeEventClient', () => {
       },
       {
         currentTurn: null,
+        conversationRef: null,
+        view: null,
+      },
+      {
+        currentTurn: paddedCurrentTurn,
         conversationRef: null,
         view: null,
       },

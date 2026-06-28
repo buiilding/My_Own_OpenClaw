@@ -2580,8 +2580,10 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).toContain('DesktopPendingTurnRuntimeClient.resolveBroadcastAction(payload)');
     expect(eventClientSource).toContain('function exactOptionalString(value: unknown): string | null');
     expect(eventClientSource).toContain('value.length > 0 && value === value.trim()');
+    expect(eventClientSource).toContain('const currentTurnConversationRef = exactOptionalString(currentTurn.conversationRef);');
     expect(eventClientSource).not.toContain('value.trim()\n    ? value.trim()');
     expect(eventClientSource).not.toContain('source.conversationRef.trim()');
+    expect(eventClientSource).not.toContain('?? currentTurn.conversationRef');
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBroadcastAction');
     expect(chatStoreAdaptersSource).toContain('DesktopPendingTurnBroadcastAction');
     expect(chatStoreSource).not.toContain('resolvePendingTurnForCurrentProjection');

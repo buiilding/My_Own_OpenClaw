@@ -453,8 +453,9 @@ a raw current-turn-only sync. Renderer current-turn IPC normalization applies
 the same complete-view gate before accepting that envelope's `view`; partial
 view-shaped payloads remain no-view current-turn events instead of claiming SDK
 view authority. Envelope `conversationRef` values follow the same exact-identity
-rule as view and live-turn refs: padded envelope refs are ignored instead of
-being trimmed into view storage or no-view projection scope.
+rule as view and live-turn refs: padded envelope or nested current-turn refs
+are ignored instead of being trimmed into view storage or no-view projection
+scope.
 Renderer current-turn IPC adapters should treat a valid `presentation.entries`
 array as the normal current-turn shape and must not require raw `assistantText`
 or `toolEvents` when presentation exists. The raw field requirement remains

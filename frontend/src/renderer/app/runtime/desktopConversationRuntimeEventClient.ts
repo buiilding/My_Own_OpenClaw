@@ -93,9 +93,10 @@ function normalizeCurrentTurnProjectionEvent(
       view,
     };
   }
+  const currentTurnConversationRef = exactOptionalString(currentTurn.conversationRef);
   return {
     currentTurn,
-    conversationRef: envelopeConversationRef ?? currentTurn.conversationRef,
+    conversationRef: envelopeConversationRef ?? currentTurnConversationRef,
     view,
   };
 }
