@@ -19,6 +19,12 @@ type ConversationViewWorkspaceMutation<TWorkspace extends ConversationViewWorksp
   workspace: TWorkspace;
 };
 
+type ResolveConversationViewStoreRefInput = {
+  activeConversationRef?: string | null;
+  targetConversationRef?: string | null;
+  view?: unknown;
+};
+
 type RendererAnnotationRecord = {
   feedback?: unknown;
   id: string;
@@ -80,6 +86,38 @@ function readConversationViewLiveTurnRef(conversationView: unknown): string | nu
   return isConversationView(conversationView)
     ? exactNonEmptyString(conversationView.liveTurn.turnRef)
     : null;
+}
+
+function resolveConversationViewStoreRef({
+  activeConversationRef = null,
+  targetConversationRef = null,
+  view = null,
+}: ResolveConversationViewStoreRefInput = {}): string | null {
+  if (!isConversationView(view)) {
+    return null;
+  }
+  const viewConversationRef = exactNonEmptyString(view.conversationRef);
+  if (!viewConversationRef) {
+    return null;
+  }
+  const targetRef = exactNonEmptyString(targetConversationRef);
+  if (
+    targetConversationRef !== null
+    && targetConversationRef !== undefined
+    && targetRef !== viewConversationRef
+  ) {
+    return null;
+  }
+  const activeRef = exactNonEmptyString(activeConversationRef);
+  if (
+    !targetRef
+    && activeConversationRef !== null
+    && activeConversationRef !== undefined
+    && activeRef !== viewConversationRef
+  ) {
+    return null;
+  }
+  return viewConversationRef;
 }
 
 function hasRendererFeedbackAnnotation(value: unknown): boolean {
@@ -287,5 +325,6 @@ export const DesktopConversationViewWorkspaceRuntime = Object.freeze({
   buildSetConversationViewStateUpdate,
   hasWorkspaceConversationView,
   readConversationViewLiveTurnRef,
+  resolveConversationViewStoreRef,
   shouldClearPendingTurnForConversationView,
 });

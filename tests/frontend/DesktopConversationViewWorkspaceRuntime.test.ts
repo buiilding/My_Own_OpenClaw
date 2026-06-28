@@ -5,6 +5,7 @@ const {
   buildConversationViewWorkspaceMutation,
   buildSetConversationViewStateUpdate,
   hasWorkspaceConversationView,
+  resolveConversationViewStoreRef,
 } = DesktopConversationViewWorkspaceRuntime;
 
 function buildConversationView(conversationRef: string): ConversationView {
@@ -101,6 +102,49 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
       },
     })).toBe(false);
     expect(hasWorkspaceConversationView(null)).toBe(false);
+  });
+
+  test('resolves a conversation view store ref from exact SDK view identity', () => {
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: 'conv-1',
+      view: buildConversationView('conv-1'),
+    })).toBe('conv-1');
+
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: 'conv-active',
+      targetConversationRef: 'conv-view',
+      view: buildConversationView('conv-view'),
+    })).toBe('conv-view');
+  });
+
+  test('rejects repaired conversation view store refs', () => {
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: 'conv-view',
+      targetConversationRef: 'conv-view',
+      view: buildConversationView(' conv-view '),
+    })).toBeNull();
+
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: 'conv-view',
+      targetConversationRef: 'conv-target',
+      view: buildConversationView('conv-view'),
+    })).toBeNull();
+
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: 'conv-active',
+      view: buildConversationView('conv-view'),
+    })).toBeNull();
+  });
+
+  test('returns null when a view has no resolvable conversation ref', () => {
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: null,
+      targetConversationRef: null,
+      view: {
+        ...buildConversationView('conv-1'),
+        conversationRef: undefined,
+      },
+    })).toBeNull();
   });
 
   test('returns null when workspace view is already current', () => {

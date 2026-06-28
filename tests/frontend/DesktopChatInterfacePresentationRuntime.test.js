@@ -4,7 +4,6 @@ import {
 
 const {
   buildChatInterfacePresentationState,
-  resolveConversationViewStoreRef,
 } = DesktopChatInterfacePresentationRuntime;
 
 function sdkConversationView(overrides = {}) {
@@ -883,63 +882,4 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     ]);
   });
 
-  test('resolves a conversation view store ref from exact SDK view identity', () => {
-    expect(resolveConversationViewStoreRef({
-      activeConversationRef: 'conv-1',
-      view: sdkConversationView({
-        displayRows: [{
-          id: 'user-row',
-          conversationRef: 'conv-1',
-          turnRef: 'turn-1',
-          index: 0,
-          role: 'user',
-          type: 'user_message',
-          content: 'new text',
-        }],
-      }),
-    })).toBe('conv-1');
-
-    expect(resolveConversationViewStoreRef({
-      activeConversationRef: 'conv-active',
-      targetConversationRef: 'conv-view',
-      view: sdkConversationView({
-        conversationRef: 'conv-view',
-      }),
-    })).toBe('conv-view');
-  });
-
-  test('rejects repaired conversation view store refs', () => {
-    expect(resolveConversationViewStoreRef({
-      activeConversationRef: 'conv-view',
-      targetConversationRef: 'conv-view',
-      view: sdkConversationView({
-        conversationRef: ' conv-view ',
-      }),
-    })).toBeNull();
-
-    expect(resolveConversationViewStoreRef({
-      activeConversationRef: 'conv-view',
-      targetConversationRef: 'conv-target',
-      view: sdkConversationView({
-        conversationRef: 'conv-view',
-      }),
-    })).toBeNull();
-
-    expect(resolveConversationViewStoreRef({
-      activeConversationRef: 'conv-active',
-      view: sdkConversationView({
-        conversationRef: 'conv-view',
-      }),
-    })).toBeNull();
-  });
-
-  test('returns null when a view has no resolvable conversation ref', () => {
-    expect(resolveConversationViewStoreRef({
-      activeConversationRef: null,
-      targetConversationRef: null,
-      view: sdkConversationView({
-        conversationRef: undefined,
-      }),
-    })).toBeNull();
-  });
 });

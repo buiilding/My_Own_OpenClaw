@@ -485,7 +485,7 @@ load helpers remain outside normal React dashboard resume ownership.
 Loaded dashboard views must carry an exact `snapshot.view.conversationRef`
 matching the requested conversation. The renderer facade rejects missing,
 padded, or mismatched view identity instead of patching the SDK view with the
-requested conversation ref. ChatInterface applies the same rule before writing a
+requested conversation ref. The chat-store adapter applies the same rule before writing a
 view into the chat store: `view.conversationRef` is the store identity, an
 explicit target conversation ref must match it exactly, and the active
 conversation ref is only a fallback guard when no explicit target was supplied.

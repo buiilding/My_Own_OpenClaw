@@ -173,39 +173,6 @@ function buildChatInterfacePresentationState({
   return state;
 }
 
-function resolveConversationViewStoreRef({
-  activeConversationRef = null,
-  targetConversationRef = null,
-  view = null,
-} = {}) {
-  if (!hasWorkspaceConversationView({ conversationView: view })) {
-    return null;
-  }
-  const viewConversationRef = readExactIdentityString(view.conversationRef);
-  if (!viewConversationRef) {
-    return null;
-  }
-  const targetRef = readExactIdentityString(targetConversationRef);
-  if (
-    targetConversationRef !== null
-    && targetConversationRef !== undefined
-    && targetRef !== viewConversationRef
-  ) {
-    return null;
-  }
-  const activeRef = readExactIdentityString(activeConversationRef);
-  if (
-    !targetRef
-    && activeConversationRef !== null
-    && activeConversationRef !== undefined
-    && activeRef !== viewConversationRef
-  ) {
-    return null;
-  }
-  return viewConversationRef;
-}
-
 export const DesktopChatInterfacePresentationRuntime = Object.freeze({
   buildChatInterfacePresentationState,
-  resolveConversationViewStoreRef,
 });

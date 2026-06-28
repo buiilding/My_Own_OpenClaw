@@ -243,6 +243,11 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/stores/chatStoreAdapters', () => ({
+  applyConversationViewToChatStore: ({ view, targetConversationRef }) => {
+    mockChatState.conversationView = view ?? null;
+    mockSetConversationView(view, targetConversationRef ?? view?.conversationRef ?? null);
+    return targetConversationRef ?? view?.conversationRef ?? null;
+  },
   clearMessagesInChatStore: (...args) => {
     mockChatState.messages = [];
     mockChatState.sdkLiveTurn = null;
@@ -251,10 +256,6 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStoreAdapters', 
     mockClearMessages(...args);
   },
   updateMessageInChatStore: (...args) => mockChatState.updateMessage(...args),
-  setConversationViewInChatStore: (...args) => {
-    mockChatState.conversationView = args[0] ?? null;
-    mockSetConversationView(...args);
-  },
   setThinkingStatusInChatStore: (...args) => {
     mockChatState.thinkingStatus = args[0] ?? null;
     mockSetThinkingStatus(...args);

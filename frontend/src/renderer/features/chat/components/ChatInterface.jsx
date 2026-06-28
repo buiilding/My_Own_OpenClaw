@@ -13,8 +13,8 @@ import {
   useChatStore,
 } from '../stores/chatStore';
 import {
+  applyConversationViewToChatStore,
   clearMessagesInChatStore,
-  setConversationViewInChatStore,
   setThinkingSourceEventTypeInChatStore,
   setThinkingStatusInChatStore,
   setTokenCountsInChatStore,
@@ -46,9 +46,6 @@ import { DesktopChatInterfaceBindingsRuntime } from '../../../app/runtime/deskto
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import { DesktopThreadFindRuntime } from '../../../app/runtime/desktopThreadFindRuntime';
 import {
-  DesktopChatInterfacePresentationRuntime,
-} from '../../../app/runtime/desktopChatInterfacePresentationRuntime';
-import {
   DesktopChatRevisionActionRuntime,
 } from '../../../app/runtime/desktopChatRevisionActionRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
@@ -68,9 +65,6 @@ const {
 const { buildThreadFindState } = DesktopThreadFindRuntime;
 const { isDevUiEnabled } = DesktopDevUiRuntime;
 const { startNewChatSession } = DesktopNewChatSessionRuntime;
-const {
-  resolveConversationViewStoreRef,
-} = DesktopChatInterfacePresentationRuntime;
 const {
   buildRevisionMenuItems,
   executeRevisionCheckoutCommand,
@@ -421,18 +415,11 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   }, [chatSurface]);
 
   const applyConversationView = useCallback((view, targetConversationRef = null) => {
-    if (!view || typeof view !== 'object') {
-      return;
-    }
-    const conversationRef = resolveConversationViewStoreRef({
+    applyConversationViewToChatStore({
       activeConversationRef,
       targetConversationRef,
       view,
     });
-    if (!conversationRef) {
-      return;
-    }
-    setConversationViewInChatStore(view, conversationRef);
   }, [
     activeConversationRef,
   ]);

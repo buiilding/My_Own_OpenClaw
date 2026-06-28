@@ -137,6 +137,7 @@ const {
   buildSetConversationViewStateUpdate,
   hasWorkspaceConversationView,
   readConversationViewLiveTurnRef,
+  resolveConversationViewStoreRef,
 } = DesktopConversationViewWorkspaceRuntime;
 
 const pendingTurnStateRuntimeDependencies = {
@@ -466,6 +467,27 @@ export function setConversationViewInChatStore(
       state,
     }) ?? state
   ));
+}
+
+export function applyConversationViewToChatStore({
+  activeConversationRef = null,
+  targetConversationRef = null,
+  view = null,
+}: {
+  activeConversationRef?: string | null;
+  targetConversationRef?: string | null;
+  view?: unknown;
+}): string | null {
+  const conversationRef = resolveConversationViewStoreRef({
+    activeConversationRef,
+    targetConversationRef,
+    view,
+  });
+  if (!conversationRef) {
+    return null;
+  }
+  setConversationViewInChatStore(view as ConversationView, conversationRef);
+  return conversationRef;
 }
 
 export function updateStreamTrackingInChatStore(

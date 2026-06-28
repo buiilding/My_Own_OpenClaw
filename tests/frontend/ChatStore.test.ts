@@ -9,6 +9,7 @@ import {
   acceptPendingTurnInChatStore,
   acceptStoppedTurnInChatStore,
   addMessageToChatStore,
+  applyConversationViewToChatStore,
   applyPendingTurnBroadcastToChatStore,
   clearMessagesInChatStore,
   clearPendingTurnInChatStore,
@@ -263,6 +264,45 @@ describe('chatStore', () => {
         sourceEventType: null,
       },
     });
+  });
+
+  test('applies SDK ConversationView results through exact store-ref adapter', () => {
+    const view = {
+      conversationRef: 'conv-applied-view',
+      revisionId: null,
+      displayRows: [],
+      liveTurn: {
+        turnRef: 'turn-view',
+      },
+      surfaces: {
+        dashboard: { mode: 'normal', visible: true },
+        pill: { mode: 'normal', visible: true },
+        responseOverlay: { mode: 'hidden', visible: false },
+      },
+      actions: {
+        canEdit: false,
+        canRetry: false,
+        canFork: false,
+      },
+    };
+
+    expect(applyConversationViewToChatStore({
+      activeConversationRef: 'conv-active',
+      targetConversationRef: 'conv-applied-view',
+      view,
+    })).toBe('conv-applied-view');
+    expect(getWorkspaceStateFromChatStore('conv-applied-view').conversationView).toBe(view);
+
+    const rejectedView = {
+      ...view,
+      conversationRef: ' conv-repaired ',
+    };
+    expect(applyConversationViewToChatStore({
+      activeConversationRef: 'conv-active',
+      targetConversationRef: 'conv-repaired',
+      view: rejectedView,
+    })).toBeNull();
+    expect(getWorkspaceStateFromChatStore('conv-repaired').conversationView).toBeNull();
   });
 
   test('provider trace read model omits fallback rows when ConversationView exists', () => {

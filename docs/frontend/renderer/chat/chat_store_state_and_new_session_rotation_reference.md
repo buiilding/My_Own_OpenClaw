@@ -509,9 +509,11 @@ Dashboard-loaded `ConversationView` snapshots must include an exact
 `view.conversationRef` matching the requested conversation before they enter
 the chat store; the renderer library facade rejects missing, padded, or
 mismatched view identity instead of repairing it from dashboard selection state.
-ChatInterface applies the same exact guard before delegating to
-`setConversationViewInChatStore(...)`, so active chat session state cannot store
-a malformed or mismatched SDK view under a renderer-selected conversation ref.
+Feature components call `applyConversationViewToChatStore(...)`; the
+chat-store adapter applies the same exact guard through
+`DesktopConversationViewWorkspaceRuntime.resolveConversationViewStoreRef(...)`
+before writing the accepted SDK view. Active chat session state cannot store a
+malformed or mismatched SDK view under a renderer-selected conversation ref.
 Revision fork results may target the newly forked conversation explicitly, but
 that target still has to match the returned SDK `view.conversationRef` exactly.
 
