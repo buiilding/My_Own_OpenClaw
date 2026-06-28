@@ -176,12 +176,14 @@ describe('backend_endpoints hosted defaults', () => {
 
   test('active endpoint docs do not list removed packaged default env names', () => {
     const docs = [
-      'docs/help/doctor_checklist.md',
-      'docs/operations/runtime_configuration_matrix.md',
-      'docs/operations/configuration.md',
-      'docs/operations/sidecar_runtime_packaging.md',
       'docs/getting-started/installation.md',
-      'docs/install/local_backend_and_endpoint_setup.md',
+      'docs/getting-started/quick_start.md',
+      'docs/help/faq.md',
+      'docs/install/install_decision_matrix.md',
+      'docs/install/install_troubleshooting.md',
+      'docs/install/local_development.md',
+      'docs/operations/packaging_and_reinstall_runbooks.md',
+      'docs/operations/sidecar_runtime_packaging.md',
     ];
 
     for (const docPath of docs) {

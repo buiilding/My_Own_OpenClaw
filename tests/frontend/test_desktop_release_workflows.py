@@ -16,6 +16,7 @@ def test_private_desktop_release_workflow_runs_from_frontend_subtree() -> None:
     assert 'frontend/release/windieos_*_x86_64.AppImage' in workflow
     assert 'frontend/release/*.exe' in workflow
     assert 'frontend/release/*.dmg' in workflow
+    assert 'choco install sqlite -y' in workflow
     assert "macOS published releases must be signed and notarized" in workflow
     assert "WINDIE_VALIDATE_DOWNLOADED_APP" in workflow
     assert ":bundled-python" not in workflow
@@ -28,5 +29,6 @@ def test_public_desktop_release_workflow_stays_split_repo_rooted() -> None:
     assert 'release/windieos_*_x86_64.AppImage' in workflow
     assert 'release/*.exe' in workflow
     assert 'release/*.dmg' in workflow
+    assert 'choco install sqlite -y' in workflow
     assert 'frontend/release' not in workflow
     assert 'frontend/package-lock.json' not in workflow

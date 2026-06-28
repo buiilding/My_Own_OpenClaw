@@ -200,6 +200,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y rpm xvfb
 
+      - name: Install Windows release-check dependencies
+        if: ${{ matrix.label == 'windows' }}
+        shell: pwsh
+        working-directory: .
+        run: choco install sqlite -y
+
       - name: Install frontend dependencies
         run: npm ci
 

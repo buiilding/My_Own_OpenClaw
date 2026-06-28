@@ -4,6 +4,7 @@ const {
   initIpc,
   registerBridgeSuiteLifecycleHooks,
 } = require('./__mocks__/ipcMainBridgeHarness.cjs');
+const path = require('path');
 
 const ALL_LOCAL_TOOL_NAMES = Object.freeze([
   'mouse_control',
@@ -279,7 +280,7 @@ describe('ipc.cjs replay command handling', () => {
   test('edit/resend and retry attach current agent definition context through the shared main helper', async () => {
     const sdk = installMockAgentClient();
     const bridge = initIpc();
-    const configPath = '/tmp/appdata/frontend-config.json';
+    const configPath = path.join('/tmp/appdata', 'frontend-config.json');
     const persistedAgentConfig = {
       model_provider: 'scripted',
       selected_model_id: 'scripted-runtime',

@@ -37,15 +37,6 @@ async function chmodIfSupported(targetPath, mode) {
   await fs.promises.chmod(targetPath, mode);
 }
 
-async function ensureInstallAuthStateDirectory(filePath) {
-  const directoryPath = path.dirname(filePath);
-  await fs.promises.mkdir(directoryPath, {
-    recursive: true,
-    mode: INSTALL_AUTH_DIR_MODE,
-  });
-  await chmodIfSupported(directoryPath, INSTALL_AUTH_DIR_MODE);
-}
-
 async function hardenInstallAuthStatePath(filePath) {
   await chmodIfSupported(path.dirname(filePath), INSTALL_AUTH_DIR_MODE);
   await chmodIfSupported(filePath, INSTALL_AUTH_FILE_MODE);
@@ -95,7 +86,6 @@ async function saveInstallAuthStateToDisk(state, log) {
       return { success: false, error: 'Invalid install auth state payload' };
     }
     const filePath = getInstallAuthStatePath();
-    await ensureInstallAuthStateDirectory(filePath);
     await enqueueAtomicWrite(filePath, JSON.stringify(normalized, null, 2), {
       encoding: 'utf-8',
       mode: INSTALL_AUTH_FILE_MODE,

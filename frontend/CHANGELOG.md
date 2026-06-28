@@ -17,6 +17,10 @@ All notable changes to WindieOS will be documented in this file.
   from `frontend/` while reading private WindieOS signing and Apple
   notarization secrets, so notarized macOS release artifacts can be produced
   without copying secrets into the public split repo. No migration required.
+- frontend/tests: refresh release-check doc path coverage, normalize
+  doc-contract line endings, and install SQLite for Windows release checks, so
+  all-platform packaging reaches Electron Builder consistently. No migration
+  required.
 - docs/agents: replace the copied private-root agent instructions with a
   public frontend agent policy that keeps commands, tests, commit search, and
   backend boundaries scoped to the public repo root. No migration required.

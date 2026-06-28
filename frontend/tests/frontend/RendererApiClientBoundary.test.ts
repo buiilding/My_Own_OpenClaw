@@ -126,7 +126,7 @@ describe('renderer api client boundary', () => {
       fs.readFile(path.resolve(__dirname, '../../docs/web/web_client_integration.md'), 'utf8'),
       fs.readFile(path.join(rendererRoot, 'folder_structure.md'), 'utf8'),
     ]);
-    const docText = docs.join('\n');
+    const docText = docs.join('\n').replace(/\r\n/g, '\n');
 
     expect(docText).toContain('`infrastructure/api/client.ts` bridge and the later');
     expect(docText).toContain('app-runtime conversation contracts facade');

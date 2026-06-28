@@ -50,7 +50,9 @@ describe('local_runtime_window_visibility', () => {
   });
 
   test('screenshot visibility docs use local-runtime execution wording', () => {
-    const source = fs.readFileSync(screenshotVisibilityReferencePath, 'utf8');
+    const source = fs
+      .readFileSync(screenshotVisibilityReferencePath, 'utf8')
+      .replace(/\r\n/g, '\n');
 
     expect(source).toContain('before invoking\n  the local runtime');
     expect(source).not.toContain('before invoking the\n  sidecar');
