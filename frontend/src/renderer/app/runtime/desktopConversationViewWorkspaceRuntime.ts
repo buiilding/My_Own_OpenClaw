@@ -92,7 +92,6 @@ function normalizeConversationViewLiveTurn(conversationView: ConversationView | 
       && typeof row === 'object'
       && (
         row.role === 'user'
-        || row.type === 'user_message'
       )
       && normalizeString(row.turnRef) === turnRef
   ));

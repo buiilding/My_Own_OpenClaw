@@ -10,6 +10,9 @@ All notable changes to WindieOS will be documented in this file.
   the frontend split by using root package scripts and release artifact paths,
   so all-platform CI packaging can publish macOS notarized DMG/ZIP, Windows
   NSIS, and Linux AppImage/DEB/RPM artifacts again. No migration required.
+- frontend/types: remove stale response-overlay and conversation-view
+  TypeScript assumptions so release package validation reaches the actual
+  Electron packaging path. No migration required.
 - docs/agents: replace the copied private-root agent instructions with a
   public frontend agent policy that keeps commands, tests, commit search, and
   backend boundaries scoped to the public repo root. No migration required.
