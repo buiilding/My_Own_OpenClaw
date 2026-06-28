@@ -40,6 +40,35 @@ describe('frontend package scripts', () => {
     expect(packageJson.scripts).not.toHaveProperty('package:linux:bundled-python');
   });
 
+  test('desktop release workflow uses public root package commands', () => {
+    const workflow = fs.readFileSync(
+      path.join(repoRoot, '.github/workflows/desktop-release.yml'),
+      'utf8',
+    );
+
+    expect(workflow).toContain('cache-dependency-path: package-lock.json');
+    expect(workflow).toContain('package_script: package:linux');
+    expect(workflow).toContain('package_script: package:win');
+    expect(workflow).toContain('package_script: package:mac');
+    expect(workflow).toContain('release/windieos_*_x86_64.AppImage');
+    expect(workflow).toContain('release/*.exe');
+    expect(workflow).toContain('release/*.dmg');
+    expect(workflow).not.toContain('working-directory: frontend');
+    expect(workflow).not.toContain(':bundled-python');
+    expect(workflow).not.toContain('frontend/release');
+    expect(workflow).not.toContain('frontend/package-lock.json');
+  });
+
+  test('windows package smoke uses public root release directory', () => {
+    const windowsSmokeScript = fs.readFileSync(
+      path.join(repoRoot, 'scripts/ci/smoke-windows-packages.ps1'),
+      'utf8',
+    );
+
+    expect(windowsSmokeScript).toContain('Join-Path $root "release"');
+    expect(windowsSmokeScript).not.toContain('frontend\\release');
+  });
+
   test('reinstall helpers only purge current WindieOS install names', () => {
     const linuxReinstallScript = fs.readFileSync(
       path.join(repoRoot, 'scripts/reinstall-windieos-linux.sh'),

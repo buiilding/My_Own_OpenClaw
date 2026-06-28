@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- ci/release: run the desktop release workflow from the public repo root after
+  the frontend split by using root package scripts and release artifact paths,
+  so all-platform CI packaging can publish macOS notarized DMG/ZIP, Windows
+  NSIS, and Linux AppImage/DEB/RPM artifacts again. No migration required.
 - docs/agents: replace the copied private-root agent instructions with a
   public frontend agent policy that keeps commands, tests, commit search, and
   backend boundaries scoped to the public repo root. No migration required.

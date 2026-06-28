@@ -3,7 +3,7 @@
 $ErrorActionPreference = "Stop"
 
 $root = Resolve-Path (Join-Path $PSScriptRoot "..\..")
-$releaseDir = Join-Path $root "frontend\release"
+$releaseDir = Join-Path $root "release"
 
 $installer = Get-ChildItem -Path $releaseDir -Filter "*.exe" |
   Where-Object { $_.Name -match "setup|windieos" } |

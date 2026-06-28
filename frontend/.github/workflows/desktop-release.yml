@@ -81,24 +81,24 @@ jobs:
         include:
           - os: ubuntu-22.04
             label: linux
-            package_script: package:linux:bundled-python
+            package_script: package:linux
             artifacts: |
-              frontend/release/windieos_*_x86_64.AppImage
-              frontend/release/windieos_*_amd64.deb
-              frontend/release/windieos_*_x86_64.rpm
+              release/windieos_*_x86_64.AppImage
+              release/windieos_*_amd64.deb
+              release/windieos_*_x86_64.rpm
             smoke_script: scripts/ci/smoke-linux-packages.sh
           - os: windows-latest
             label: windows
-            package_script: package:win:bundled-python
+            package_script: package:win
             artifacts: |
-              frontend/release/*.exe
+              release/*.exe
             smoke_script: scripts/ci/smoke-windows-packages.ps1
           - os: macos-14
             label: macos
-            package_script: package:mac:bundled-python
+            package_script: package:mac
             artifacts: |
-              frontend/release/*.dmg
-              frontend/release/*.zip
+              release/*.dmg
+              release/*.zip
             smoke_script: scripts/ci/smoke-macos-packages.sh
 
     steps:
@@ -110,7 +110,7 @@ jobs:
         with:
           node-version: "22.12.0"
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -195,11 +195,9 @@ jobs:
           sudo apt-get install -y rpm xvfb
 
       - name: Install frontend dependencies
-        working-directory: frontend
         run: npm ci
 
       - name: Package desktop artifact
-        working-directory: frontend
         shell: bash
         env:
           RUN_SIGNING: ${{ steps.signing.outputs.effective }}
