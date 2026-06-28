@@ -148,12 +148,12 @@ attachment lifecycle descriptors; those stay on SDK display fields such as
 `attachments[]` or compatibility-only SDK/backend paths. Tool-output components
 do not rebuild missing details from `toolMetadata`, `toolName`,
 `executionTime`, or `success`; SDK `toolOutputDetails` is the only details
-payload authority. The transcript tool-output state helper also omits
-`modelFacingToolOutput`, `toolMetadata`, `toolName`, `executionTime`, and
-`success`, so adapters must pass explicit `toolOutputDetails` instead of
-publishing parallel detail channels. SDK `tool_progress` display rows do not borrow
-`toolOutputDetails` as progress metadata; if the SDK wants a progress detail
-payload, it must author that on `toolCallDetails`.
+payload authority. The old transcript tool-output state helper has been
+removed; SDK display-row and live-turn adapters build renderer tool-output rows
+directly from SDK-authored text, attachments, and `toolOutputDetails` instead
+of publishing parallel detail channels. SDK `tool_progress` display rows do not
+borrow `toolOutputDetails` as progress metadata; if the SDK wants a progress
+detail payload, it must author that on `toolCallDetails`.
 
 Visible tool-output screenshots render through the same typed attachment path as
 user visuals:

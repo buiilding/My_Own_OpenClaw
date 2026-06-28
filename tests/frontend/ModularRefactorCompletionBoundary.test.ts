@@ -1507,7 +1507,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK tool coordinator uses request ids');
     expect(docText).toContain('renderer stream tracking uses `turn_ref` + stream phase');
     expect(docText).toContain(
-      'AgentSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState ToolCallMessageState',
+      'AgentSdkConversationRuntime LocalRuntimeExecuteToolRuntime DesktopCurrentTurnMessageRuntime SdkDisplayChatMessageProjection ToolCallMessageState',
     );
     expect(docText).toContain('SDK stream projection consumption, tool display');
     expect(docText).toContain('SDK projection event type, tool display state');

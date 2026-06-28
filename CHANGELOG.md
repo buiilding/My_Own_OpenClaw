@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: delete the unused transcript tool-output state helper and
+  remove it from the chat message runtime client; SDK display-row and live-turn
+  adapters now build tool-output rows directly. No migration required.
 - frontend/projection: stop the shared transcript tool-output state helper from
   publishing the legacy `modelFacingToolOutput` duplicate; newly built renderer
   tool-output rows use `text` plus explicit SDK `toolOutputDetails`. No

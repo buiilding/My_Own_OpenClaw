@@ -48,7 +48,7 @@ Inspect:
 - `backend/src/api/services/rehydrate_tool_call_normalization.py`
 - `backend/src/api/services/rehydrate_tool_linkage.py`
 - `frontend/src/renderer/infrastructure/transcript/toolCallMessageState.js`
-- `frontend/src/renderer/infrastructure/transcript/toolOutputChatMessageState.ts`
+- `frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts`
 
 Validate:
 

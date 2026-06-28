@@ -1736,7 +1736,8 @@ describe('renderer chat runtime boundary', () => {
     }
     expect(chatMessageClientSource).toContain('infrastructure/transcript/toolCallMessageState');
     expect(chatMessageClientSource).toContain('infrastructure/transcript/toolCallChatMessageState');
-    expect(chatMessageClientSource).toContain('infrastructure/transcript/toolOutputChatMessageState');
+    expect(chatMessageClientSource).not.toContain('infrastructure/transcript/toolOutputChatMessageState');
+    expect(chatMessageClientSource).not.toContain('buildToolOutputChatMessageState');
     expect(chatMessageClientSource).toContain('infrastructure/transcript/toolSchemaShape');
     expect(chatMessageClientSource).toContain('infrastructure/text/incomingTextNormalization');
     expect(chatMessageClientSource).toContain('export const DesktopChatMessageRuntimeClient = Object.freeze');
@@ -2987,10 +2988,6 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/message/content/ToolOutputMessage.jsx'),
       'utf8',
     );
-    const toolOutputStateSource = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/renderer/infrastructure/transcript/toolOutputChatMessageState.ts'),
-      'utf8',
-    );
     const attachmentRegistrySource = await fs.readFile(
       path.join(chatRoot, 'components/message/content/AttachmentRendererRegistry.jsx'),
       'utf8',
@@ -3057,15 +3054,9 @@ describe('renderer chat runtime boundary', () => {
     expect(attachmentListSource).toContain('headerText');
     expect(attachmentListSource).toContain('visibleAttachments.length === 0');
     expect(toolOutputSource).not.toContain('useResolvedMessageScreenshotSrc');
-    expect(toolOutputStateSource).not.toContain('screenshotMessageState');
-    expect(toolOutputStateSource).not.toContain('modelFacingToolOutput');
-    expect(toolOutputStateSource).not.toContain('screenshotRef');
-    expect(toolOutputStateSource).not.toContain('screenshotUrl');
-    expect(toolOutputStateSource).not.toContain('toolMetadata');
-    expect(toolOutputStateSource).not.toContain('preserveNullToolMetadata');
-    expect(toolOutputStateSource).not.toContain('toolName?:');
-    expect(toolOutputStateSource).not.toContain('executionTime');
-    expect(toolOutputStateSource).not.toContain('success?:');
+    await expect(fs.stat(
+      path.resolve(__dirname, '../../frontend/src/renderer/infrastructure/transcript/toolOutputChatMessageState.ts'),
+    )).rejects.toThrow();
     expect(clientSource).toContain('INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE');
     expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_IMAGE_CONTEXT_MENU');
   });

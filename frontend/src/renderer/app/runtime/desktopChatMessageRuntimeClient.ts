@@ -13,9 +13,6 @@ import {
   buildToolCallChatMessageState,
 } from '../../infrastructure/transcript/toolCallChatMessageState';
 import {
-  buildToolOutputChatMessageState,
-} from '../../infrastructure/transcript/toolOutputChatMessageState';
-import {
   normalizeToolSchemaList,
 } from '../../infrastructure/transcript/toolSchemaShape';
 
@@ -24,6 +21,5 @@ export const DesktopChatMessageRuntimeClient = Object.freeze({
   buildToolBundleMessageState,
   buildToolCallMessageState,
   buildToolCallChatMessageState,
-  buildToolOutputChatMessageState,
   normalizeToolSchemaList,
 });
