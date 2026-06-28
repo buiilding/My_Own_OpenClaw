@@ -918,7 +918,9 @@ Desktop may render a temporary, textless thinking disclosure from
 disclosure is not a transcript assistant row and must disappear once the SDK
 display row contains assistant-visible text for the same turn. Raw
 `snapshot.currentTurn.reasoningText` is legacy no-presentation fallback context
-only.
+only. When the legacy no-presentation fallback projects assistant text, it
+copies reasoning text only when present and omits `thinkingText` otherwise
+instead of publishing a renderer-owned `null` placeholder.
 
 Terminal `turn_error` and `runtime_error` events are authoritative for their
 turn. If assistant text or deltas were already projected for the same

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/live-turn: omit legacy no-presentation assistant `thinkingText`
+  metadata when raw reasoning is absent, instead of publishing
+  renderer-owned `null` placeholders. No migration required.
 - frontend/display-rows: omit synthetic `thinkingSourceEventType` labels for
   SDK display rows that provide reasoning text, preserving the text without
   inventing a renderer-owned `reasoning_delta` source. No migration required.

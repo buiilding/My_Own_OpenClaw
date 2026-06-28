@@ -170,6 +170,9 @@ containing SDK live turn's `turnRef` and ignores entry-level payload refs.
 No-view SDK current-turn `conversationRef` and `turnRef` values are exact;
 padded or missing refs leave the legacy no-presentation fallback inert instead
 of being exposed through fallback live row ids or row `turnRef` props.
+Legacy no-presentation assistant rows omit `thinkingText` when raw reasoning is
+absent instead of publishing `thinkingText: null`; raw reasoning remains a
+fallback-only display hint, not a durable renderer-owned field.
 `ConversationView.liveTurn.turnRef` uses the same exact gate before the
 renderer copies it into live row props, so padded view-level live-turn refs stay
 out of component identity. The live-surface adapter also requires the shared

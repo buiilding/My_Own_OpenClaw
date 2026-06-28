@@ -4094,6 +4094,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('sourceEventType: entry.sourceEventType || null');
     expect(source).not.toContain("thinkingSourceEventType: entry.sourceEventType || 'reasoning_delta'");
     expect(source).not.toContain("sourceEventType: entry.sourceEventType || 'tool_output'");
+    expect(source).not.toContain('thinkingText: hasReasoning ? reasoningText : null');
+    expect(source).toContain('...(hasReasoning ? { thinkingText: reasoningText } : {})');
     expect(source).not.toContain("|| 'reasoning_delta'");
     expect(source).not.toContain("|| 'tool_output'");
     expect(source).not.toContain('sourceEventType: readExactSdkString(entry.sourceEventType)');

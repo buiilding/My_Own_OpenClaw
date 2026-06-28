@@ -246,7 +246,7 @@ function buildLegacyNoPresentationCurrentTurnMessages(sdkLiveTurn) {
       text: assistantText,
       sender: 'assistant',
       type: 'llm-text',
-      thinkingText: hasReasoning ? reasoningText : null,
+      ...(hasReasoning ? { thinkingText: reasoningText } : {}),
       sourceEventType: 'assistant_delta',
       sourceChannel: sdkCurrentTurnSourceChannel,
       turnRef: liveTurnRef || undefined,

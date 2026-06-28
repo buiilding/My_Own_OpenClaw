@@ -493,6 +493,25 @@ describe('DesktopCurrentTurnMessageRuntime', () => {
     ]));
   });
 
+  test('omits legacy no-presentation assistant thinking metadata when reasoning is absent', () => {
+    const messages = buildNoViewSdkLiveTurnMessages({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      assistantText: 'streamed answer',
+      reasoningText: null,
+      lastError: null,
+      toolEvents: [],
+    });
+
+    const assistantMessage = messages.find(message => message.type === 'llm-text' && message.text === 'streamed answer');
+    expect(assistantMessage).toEqual(expect.objectContaining({
+      id: 'conv-1:turn-1:assistant',
+      sourceEventType: 'assistant_delta',
+    }));
+    expect(assistantMessage).not.toHaveProperty('thinkingText');
+  });
+
   test('keeps legacy no-presentation tool-event detail payloads out of live rows', () => {
     const messages = buildNoViewSdkLiveTurnMessages({
       conversationRef: 'conv-1',
