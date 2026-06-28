@@ -173,10 +173,10 @@ function withRowActions(message: ChatMessage, row: SdkDisplayRow): ChatMessage {
   return actions ? { ...message, actions } : message;
 }
 
-function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
+function buildUserChatMessage(row: SdkDisplayRow, id: string): ChatMessage {
   const attachments = readSdkDisplayAttachments(row.metadata?.attachments);
   return withRowActions({
-    id: row.id,
+    id,
     text: displayTextFromStringRowContent(row.content),
     sender: 'user',
     sourceChannel: sdkDisplayRowsSourceChannel,
@@ -188,11 +188,11 @@ function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
   }, row);
 }
 
-function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
+function buildAssistantChatMessage(row: SdkDisplayRow, id: string): ChatMessage {
   const thinkingText = rowReasoningText(row);
   const turnRef = rowTurnRef(row);
   return withRowActions({
-    id: row.id,
+    id,
     text: displayTextFromStringRowContent(row.content),
     sender: 'assistant',
     type: 'llm-text',
@@ -207,13 +207,13 @@ function buildAssistantChatMessage(row: SdkDisplayRow): ChatMessage {
   }, row);
 }
 
-function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
+function buildToolCallMessage(row: SdkDisplayRow, id: string): ChatMessage {
   const text = displayTextFromStringRowContent(row.content);
   const toolCallDetails = sanitizeSdkToolDetailRecord(row.metadata?.toolCallDetails);
   const correlationId = rowCorrelationId(row);
   const turnRef = rowTurnRef(row);
   return withRowActions({
-    id: row.id,
+    id,
     text,
     sender: 'assistant',
     type: 'tool-call',
@@ -228,14 +228,14 @@ function buildToolCallMessage(row: SdkDisplayRow): ChatMessage {
   }, row);
 }
 
-function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
+function buildToolOutputMessage(row: SdkDisplayRow, id: string): ChatMessage {
   const attachments = readSdkDisplayAttachments(row.metadata?.attachments);
   const toolOutputDetails = sanitizeSdkToolDetailRecord(row.metadata?.toolOutputDetails);
   const text = displayTextFromStringRowContent(row.content);
   const correlationId = rowCorrelationId(row);
   const turnRef = rowTurnRef(row);
   return withRowActions({
-    id: row.id,
+    id,
     text,
     sender: 'assistant',
     type: 'tool-output',
@@ -250,10 +250,10 @@ function buildToolOutputMessage(row: SdkDisplayRow): ChatMessage {
   }, row);
 }
 
-function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
+function buildToolProgressMessage(row: SdkDisplayRow, id: string): ChatMessage {
   const toolCallDetails = sanitizeSdkToolDetailRecord(row.metadata?.toolCallDetails);
   return withRowActions({
-    id: row.id,
+    id,
     text: displayTextFromStringRowContent(row.content),
     sender: 'assistant',
     type: 'tool-progress',
@@ -267,7 +267,8 @@ function buildToolProgressMessage(row: SdkDisplayRow): ChatMessage {
 }
 
 function buildChatMessagesFromSdkDisplayRow(row: SdkDisplayRow): ChatMessage[] {
-  if (!rowId(row)) {
+  const id = rowId(row);
+  if (!id) {
     return [];
   }
   const rowKind = resolveDisplayRowKind(row);
@@ -275,19 +276,19 @@ function buildChatMessagesFromSdkDisplayRow(row: SdkDisplayRow): ChatMessage[] {
     return [];
   }
   if (rowKind === 'user') {
-    return [buildUserChatMessage(row)];
+    return [buildUserChatMessage(row, id)];
   }
   if (rowKind === 'tool-call') {
-    return [buildToolCallMessage(row)];
+    return [buildToolCallMessage(row, id)];
   }
   if (rowKind === 'tool-output') {
-    return [buildToolOutputMessage(row)];
+    return [buildToolOutputMessage(row, id)];
   }
   if (rowKind === 'tool-progress') {
-    return [buildToolProgressMessage(row)];
+    return [buildToolProgressMessage(row, id)];
   }
   if (rowKind === 'assistant') {
-    return [buildAssistantChatMessage(row)];
+    return [buildAssistantChatMessage(row, id)];
   }
   return [];
 }

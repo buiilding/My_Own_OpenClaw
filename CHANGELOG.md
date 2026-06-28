@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/display-rows: pass accepted SDK display-row ids through renderer
+  projection builders instead of re-reading raw `row.id` after the exact id
+  gate. No migration required.
 - frontend/current-turn: require exact current-turn IPC envelope and nested
   projection `conversationRef` values instead of trimming padded refs before
   storing SDK `ConversationView` or live-turn projection state. No migration

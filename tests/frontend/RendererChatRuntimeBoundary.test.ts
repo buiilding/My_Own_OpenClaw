@@ -4461,7 +4461,9 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).toContain('function exactNonEmptyString(value: unknown)');
     expect(projectionRuntimeSource).toContain('function rowId(row: SdkDisplayRow)');
     expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.id);');
-    expect(projectionRuntimeSource).toContain('if (!rowId(row))');
+    expect(projectionRuntimeSource).toContain('const id = rowId(row);');
+    expect(projectionRuntimeSource).toContain('if (!id)');
+    expect(projectionRuntimeSource).not.toContain('id: row.id');
     expect(projectionRuntimeSource).not.toContain("if (row.type === 'user_message')");
     expect(projectionRuntimeSource).not.toContain("if (row.type === 'assistant_message')");
     expect(projectionRuntimeSource).not.toContain("if (row.type === 'tool_output' || row.type === 'tool_bundle_output')");

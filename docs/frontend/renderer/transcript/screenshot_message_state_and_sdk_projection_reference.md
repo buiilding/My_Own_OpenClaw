@@ -98,7 +98,9 @@ assistant-authored rows, and tool-output rows must be `role: "tool"`. Mismatched
 pairs stay inert instead of the renderer assigning sender or tool semantics from
 `type` alone. Renderer projection reads those SDK `role` and `type` labels only
 when they are exact known values; padded or unknown labels do not get trimmed,
-relabelled, or mapped into chat-message props.
+relabelled, or mapped into chat-message props. The projection accepts exact SDK
+row ids once, then passes that accepted id through each row builder instead of
+letting builders re-read raw `row.id`.
 Streaming assistant rows read SDK `reasoningText` only; the renderer adapter
 does not recover old snake-case reasoning aliases. The adapter also does not
 relabel streaming SDK assistant display rows as `assistant_delta`: it preserves

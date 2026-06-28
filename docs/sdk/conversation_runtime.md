@@ -253,7 +253,9 @@ structured payloads, attachment aliases, or provider/model fields out of
 generic row metadata. Renderer display-row adapters also classify rows only
 from exact known SDK `role`/`type` pairs; padded, unknown, or mismatched labels
 remain inert instead of being repaired into user, assistant, tool-call,
-tool-output, or progress chat rows.
+tool-output, or progress chat rows. Accepted display-row ids are threaded
+through the renderer projection builders as the chat-message identity; builders
+must not re-read raw `row.id` after the exact SDK id gate has passed.
 
 ```text
 ConversationView = displayRows + liveTurn + surfaces + actions
