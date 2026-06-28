@@ -105,7 +105,9 @@ describe('scripts/python-in-env.sh', () => {
     }
   });
 
-  test('uses generated frontend runtime for python fallback when conda is unavailable', () => {
+  const testUnixOnly = process.platform === 'win32' ? test.skip : test;
+
+  testUnixOnly('uses generated frontend runtime for python fallback when conda is unavailable', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-python-runtime-fallback-'));
     const runtimeDir = path.join(repoRoot, 'python-runtime');
     const runtimeBinDir = path.join(runtimeDir, 'bin');

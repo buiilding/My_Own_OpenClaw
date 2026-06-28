@@ -29,6 +29,10 @@ All notable changes to WindieOS will be documented in this file.
   `python-runtime` when conda is unavailable, so release package builds run the
   builtin tool manifest generator with the dependencies they just bundled. No
   migration required.
+- frontend/tests: scope the generated-runtime Python wrapper fallback fixture
+  to Unix runners, so Windows release checks do not hang on a shell-specific
+  test executable while still covering the packaging path on Linux and macOS.
+  No migration required.
 - docs/agents: replace the copied private-root agent instructions with a
   public frontend agent policy that keeps commands, tests, commit search, and
   backend boundaries scoped to the public repo root. No migration required.
