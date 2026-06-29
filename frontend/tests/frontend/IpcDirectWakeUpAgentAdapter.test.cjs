@@ -590,7 +590,7 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     expect(runtime.retryTurn).toHaveBeenCalledWith({
       messageId: 'row-assistant',
     });
-    expect(runtime.load).toHaveBeenCalledTimes(2);
+    expect(runtime.load).toHaveBeenCalledTimes(4);
   });
 
   test('rejects padded direct replay identities before selecting a runtime handle', async () => {

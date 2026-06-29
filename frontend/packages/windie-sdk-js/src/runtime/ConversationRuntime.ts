@@ -307,7 +307,11 @@ function eventText(event: ConversationEvent): string {
 }
 
 function displayRowMatchesId(row: DisplayTimelineRow, messageId: string): boolean {
+  const stableAssistantRowId = row.role === 'assistant' && row.turnRef
+    ? `${row.conversationRef}:${row.turnRef}:assistant`
+    : null;
   return row.id === messageId
+    || stableAssistantRowId === messageId
     || row.metadata?.eventId === messageId
     || row.metadata?.replacedDisplayRowId === messageId
     || row.metadata?.raw?.id === messageId
@@ -1069,7 +1073,13 @@ export class SdkConversationRuntime {
         rows: this.displayRowsForTimeline(checkpoint, events),
       };
     }
-    const rows = await this.options.store.loadDisplayRows(this.options.conversationRef);
+    let rows = await this.options.store.loadDisplayRows(this.options.conversationRef);
+    if (rows.length === 0) {
+      const events = await this.options.store.loadEvents(this.options.conversationRef);
+      rows = buildDisplayRows(events, {
+        liveAttachments: this.liveDisplayAttachmentsRecord(),
+      });
+    }
     const fallbackRevisionId = requestedRevisionId ?? this.state.revisionId;
     return {
       conversationRef: this.options.conversationRef,

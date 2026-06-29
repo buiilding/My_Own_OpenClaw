@@ -436,6 +436,7 @@ function createDirectWakeUpAgentAdapter({
         text: options.text,
       };
       const handle = getConversationRuntimeHandle(displayConversationRef);
+      await reloadRuntimeSnapshot(handle);
       const result = await handle.runtime.editAndResend(input);
       markInferenceContextStale(handle.conversationRef);
       await reloadRuntimeSnapshot(handle);
@@ -447,6 +448,7 @@ function createDirectWakeUpAgentAdapter({
         messageId: readExactReplayCommandString(options.messageId, 'message id'),
       };
       const handle = getConversationRuntimeHandle(displayConversationRef);
+      await reloadRuntimeSnapshot(handle);
       const result = await handle.runtime.retryTurn(input);
       markInferenceContextStale(handle.conversationRef);
       await reloadRuntimeSnapshot(handle);

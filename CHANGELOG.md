@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/replay: resolve edit/resend and retry targets from raw event-projected
+  display rows when a conversation has no display timeline checkpoint yet, and
+  reload Electron replay handles before dispatch so resend works after
+  dashboard resume or dev restart. No migration required.
 - frontend/replay: carry the exact SDK display row `conversationRef` through
   edit/resend and retry action metadata so replay can dispatch from the row's
   SDK-authored conversation scope when transcript session scope is unavailable,
