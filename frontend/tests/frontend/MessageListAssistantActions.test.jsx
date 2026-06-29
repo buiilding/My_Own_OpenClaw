@@ -261,6 +261,7 @@ describe('MessageList assistant actions', () => {
             type: 'llm-text',
             isComplete: true,
             actions: {
+              conversationRef: 'conv-sdk',
               canRetry: true,
               retryTargetRowId: 'assistant-original',
             },
@@ -277,7 +278,7 @@ describe('MessageList assistant actions', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
-    expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-original');
+    expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-original', 'conv-sdk');
   });
 
   test('direct assistant actions fail closed without an exact SDK retry target id', () => {
@@ -360,7 +361,7 @@ describe('MessageList assistant actions', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
-    expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-original');
+    expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-original', null);
 
     rerender(
       <MessageList
@@ -435,6 +436,7 @@ describe('MessageList assistant actions', () => {
             sender: 'user',
             type: 'user',
             actions: {
+              conversationRef: 'conv-sdk',
               canEdit: true,
               editTargetRowId: 'user-1',
             },
@@ -454,7 +456,7 @@ describe('MessageList assistant actions', () => {
 
     fireEvent.click(within(editor).getByRole('button', { name: 'Send' }));
 
-    expect(onUserEdit).toHaveBeenCalledWith('user-1', 'new text');
+    expect(onUserEdit).toHaveBeenCalledWith('user-1', 'new text', 'conv-sdk');
     expect(within(editor).getByRole('textbox')).toBeDisabled();
     expect(within(editor).getByRole('button', { name: 'Send' })).toBeDisabled();
 
@@ -496,7 +498,7 @@ describe('MessageList assistant actions', () => {
     });
     fireEvent.click(within(editor).getByRole('button', { name: 'Send' }));
 
-    expect(onUserEdit).toHaveBeenCalledWith('user-original', 'new text');
+    expect(onUserEdit).toHaveBeenCalledWith('user-original', 'new text', null);
 
     await waitFor(() => {
       expect(screen.queryByRole('group', { name: 'Edit user message' })).not.toBeInTheDocument();
@@ -555,7 +557,7 @@ describe('MessageList assistant actions', () => {
     });
     fireEvent.click(within(editor).getByRole('button', { name: 'Send' }));
 
-    expect(onUserEdit).toHaveBeenCalledWith('user-raw-target', '   ');
+    expect(onUserEdit).toHaveBeenCalledWith('user-raw-target', '   ', null);
     await waitFor(() => {
       expect(screen.getByRole('group', { name: 'Edit user message' })).toBeInTheDocument();
     });
@@ -718,7 +720,7 @@ describe('MessageList assistant actions', () => {
     fireEvent.change(textarea, { target: { value: 'new edited text' } });
     fireEvent.click(within(editor).getByRole('button', { name: 'Send' }));
 
-    expect(onUserEdit).toHaveBeenCalledWith('user-1', 'new edited text');
+    expect(onUserEdit).toHaveBeenCalledWith('user-1', 'new edited text', null);
     await waitFor(() => {
       expect(screen.queryByRole('group', { name: 'Edit user message' })).not.toBeInTheDocument();
     });

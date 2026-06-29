@@ -807,6 +807,7 @@ describe('sdkDisplayChatMessageProjection', () => {
       expect.objectContaining({
         id: 'visible-user-row',
         actions: {
+          conversationRef: 'conv-sdk',
           canEdit: true,
           editTargetRowId: 'original-user-row',
           canRetry: true,
@@ -816,6 +817,7 @@ describe('sdkDisplayChatMessageProjection', () => {
       expect.objectContaining({
         id: 'visible-assistant-row',
         actions: {
+          conversationRef: 'conv-sdk',
           canEdit: true,
           editTargetRowId: 'original-user-row',
           canRetry: true,
@@ -828,6 +830,7 @@ describe('sdkDisplayChatMessageProjection', () => {
       expect.objectContaining({
         id: 'tool-progress-action-row',
         actions: {
+          conversationRef: 'conv-sdk',
           canEdit: true,
           editTargetRowId: 'original-user-row',
           canRetry: true,

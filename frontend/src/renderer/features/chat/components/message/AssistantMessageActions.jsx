@@ -18,6 +18,7 @@ function AssistantMessageActions({
   visible = true,
   canTryAgain = false,
   retryTargetRowId = null,
+  replayConversationRef = null,
   onFeedbackChange,
   onTryAgain,
 }) {
@@ -28,6 +29,7 @@ function AssistantMessageActions({
   const revealTimerRef = useRef(null);
   const [isRevealed, setIsRevealed] = useState(false);
   const resolvedRetryTargetRowId = DesktopMessageActionRuntime.resolveReplayTargetRowId(retryTargetRowId);
+  const resolvedReplayConversationRef = DesktopMessageActionRuntime.resolveReplayConversationRef(replayConversationRef);
   const canRenderTryAgain = canTryAgain && Boolean(resolvedRetryTargetRowId);
 
   useEffect(() => {
@@ -67,7 +69,7 @@ function AssistantMessageActions({
     if (disabled || !canRenderTryAgain || typeof onTryAgain !== 'function') {
       return;
     }
-    onTryAgain(resolvedRetryTargetRowId);
+    onTryAgain(resolvedRetryTargetRowId, resolvedReplayConversationRef);
   };
 
   return (
@@ -133,6 +135,7 @@ AssistantMessageActions.propTypes = {
   visible: PropTypes.bool,
   canTryAgain: PropTypes.bool,
   retryTargetRowId: PropTypes.string,
+  replayConversationRef: PropTypes.string,
   onFeedbackChange: PropTypes.func,
   onTryAgain: PropTypes.func,
 };

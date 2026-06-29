@@ -6,6 +6,16 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: carry the exact SDK display row `conversationRef` through
+  edit/resend and retry action metadata so replay can dispatch from the row's
+  SDK-authored conversation scope when transcript session scope is unavailable,
+  without restoring chat-store active-conversation fallback. No migration
+  required.
+- frontend/pending-turn: treat legacy no-view current-turn text, tool events,
+  and errors as visible replacement content while preserving pending rows
+  through empty presentation-backed awaiting projections, so resend/dashboard
+  handoff does not clear the user row before SDK-visible content exists. No
+  migration required.
 - sdk/local-runtime: route camera screenshot resources, `open_app` screenshot
   verification, and automatic desktop-control post-action captures through the
   shared local `screenshot` tool execution path before artifact materialization.
@@ -61,10 +71,10 @@ All notable changes to WindieOS will be documented in this file.
   non-`default_user` dashboard identity as the sidebar conversation list and
   force-refresh recent chats after a successful clear, so stale or wrong-user
   chat rows no longer remain visible. No migration required.
-- frontend/replay: sync the selected model through
-  `DesktopSettingsRuntimeClient.setModel(...)` before SDK retry/edit resend
-  dispatch, while still passing the model into the SDK replay command, so
-  resend follows the same model-selection gate as normal sends. No migration
+- frontend/replay: keep retry/edit resend model application in the SDK replay
+  command path instead of mutating renderer settings before dispatch, so replay
+  uses the same SDK-owned replacement send state as normal SDK callers. No
+  migration required.
 - frontend/response-overlay: require exact display/live row labels when matching
   `ConversationView` display rows against live overlay entries, so padded
   `sourceEventType` or message type values no longer participate in renderer

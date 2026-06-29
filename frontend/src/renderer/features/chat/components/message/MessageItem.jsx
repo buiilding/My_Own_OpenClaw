@@ -27,6 +27,7 @@ const MessageItem = memo(function MessageItem({
   canRetryMessage = false,
   canEditMessage = false,
   assistantRetryTargetRowId = null,
+  replayConversationRef = null,
   onAssistantFeedbackChange,
   onAssistantTryAgain,
   isUserEditing,
@@ -80,6 +81,7 @@ const MessageItem = memo(function MessageItem({
           visible={!disableAssistantActions}
           canTryAgain={canRetryMessage}
           retryTargetRowId={assistantRetryTargetRowId}
+          replayConversationRef={replayConversationRef}
           onFeedbackChange={onAssistantFeedbackChange}
           onTryAgain={onAssistantTryAgain}
         />
@@ -90,6 +92,7 @@ const MessageItem = memo(function MessageItem({
           messageText={message.text}
           canEdit={canEditMessage}
           editTargetRowId={userEditTargetRowId}
+          replayConversationRef={replayConversationRef}
           onEdit={onStartUserEdit}
         />
       ) : null}
@@ -113,6 +116,7 @@ MessageItem.propTypes = {
   canRetryMessage: PropTypes.bool,
   canEditMessage: PropTypes.bool,
   assistantRetryTargetRowId: PropTypes.string,
+  replayConversationRef: PropTypes.string,
   onAssistantFeedbackChange: PropTypes.func,
   onAssistantTryAgain: PropTypes.func,
   isUserEditing: PropTypes.bool,

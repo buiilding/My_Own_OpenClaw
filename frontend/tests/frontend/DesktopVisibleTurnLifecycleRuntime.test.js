@@ -235,6 +235,30 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       isBusy: true,
       showTyping: true,
     });
+
+    const legacyTextProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      assistantText: 'legacy visible response',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    };
+    expect(resolvePendingTurnForSdkLiveTurn({
+      pendingTurn: pending,
+      sdkLiveTurn: legacyTextProjection,
+    })).toBeNull();
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      sdkLiveTurn: legacyTextProjection,
+      messages,
+    })).toMatchObject({
+      status: 'active',
+      source: 'sdk',
+      showTyping: false,
+    });
   });
 
   test('classifies visible progress, text, and terminal projections as authoritative same-turn lifecycle', () => {

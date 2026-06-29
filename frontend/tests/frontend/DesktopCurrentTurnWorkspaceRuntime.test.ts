@@ -134,6 +134,32 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
     });
   });
 
+  test('clears matching pending turn when legacy no-view live turn has visible text', () => {
+    const currentPendingTurn = pendingTurn();
+    const sdkLiveTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      assistantText: 'visible legacy response',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    };
+
+    expect(buildNoViewSdkLiveTurnWorkspaceMutation({
+      currentWorkspace: {
+        sdkLiveTurn: null,
+        pendingTurn: currentPendingTurn,
+        messages: [],
+      },
+      sdkLiveTurn,
+    })).toEqual({
+      sdkLiveTurn: sdkLiveTurn,
+      pendingTurn: null,
+      messages: [],
+    });
+  });
+
   test('does not store raw SDK live turn when conversation view exists', () => {
     const staleProjection = {
       conversationRef: 'conv-1',
@@ -206,7 +232,7 @@ describe('DesktopCurrentTurnWorkspaceRuntime', () => {
         displayRows: [],
       },
       sdkLiveTurn,
-      pendingTurn: currentPendingTurn,
+      pendingTurn: null,
       messages: [],
     });
   });

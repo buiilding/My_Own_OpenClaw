@@ -155,13 +155,16 @@ function rowReplayActions(row: SdkDisplayRow): ChatMessage['actions'] | null {
   }
   const actionRecord = source as Record<string, unknown>;
   const actions: NonNullable<ChatMessage['actions']> = {};
+  const conversationRef = exactNonEmptyString(row.conversationRef);
   const editTargetRowId = exactNonEmptyString(actionRecord.editTargetRowId);
   const retryTargetRowId = exactNonEmptyString(actionRecord.retryTargetRowId);
   if (actionRecord.canEdit === true && editTargetRowId) {
+    actions.conversationRef = conversationRef;
     actions.canEdit = true;
     actions.editTargetRowId = editTargetRowId;
   }
   if (actionRecord.canRetry === true && retryTargetRowId) {
+    actions.conversationRef = conversationRef;
     actions.canRetry = true;
     actions.retryTargetRowId = retryTargetRowId;
   }

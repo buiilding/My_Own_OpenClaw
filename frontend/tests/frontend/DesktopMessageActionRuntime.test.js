@@ -91,6 +91,7 @@ describe('desktopMessageActionRuntime', () => {
     expect(DesktopMessageActionRuntime.resolveMessageReplayActions({
       id: 'assistant-visible',
       actions: {
+        conversationRef: 'conv-sdk',
         canRetry: true,
         retryTargetRowId: 'assistant-original',
         canEdit: false,
@@ -101,6 +102,7 @@ describe('desktopMessageActionRuntime', () => {
       canEditMessage: false,
       retryTargetRowId: 'assistant-original',
       editTargetRowId: 'user-original',
+      replayConversationRef: 'conv-sdk',
     });
 
     expect(DesktopMessageActionRuntime.resolveMessageReplayActions({
@@ -114,11 +116,13 @@ describe('desktopMessageActionRuntime', () => {
       canEditMessage: false,
       retryTargetRowId: null,
       editTargetRowId: null,
+      replayConversationRef: null,
     });
 
     expect(DesktopMessageActionRuntime.resolveMessageReplayActions({
       id: 'assistant-visible',
       actions: {
+        conversationRef: ' conv-sdk ',
         canRetry: true,
         canEdit: true,
         retryTargetRowId: ' assistant-original ',
@@ -129,6 +133,7 @@ describe('desktopMessageActionRuntime', () => {
       canEditMessage: false,
       retryTargetRowId: null,
       editTargetRowId: null,
+      replayConversationRef: null,
     });
   });
 });

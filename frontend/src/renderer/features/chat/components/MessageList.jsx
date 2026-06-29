@@ -44,6 +44,7 @@ function MessageList({
   const showDevCompactionDebug = isDevUiEnabled();
   const [editingUserMessageId, setEditingUserMessageId] = useState(null);
   const [editingUserReplayTargetRowId, setEditingUserReplayTargetRowId] = useState(null);
+  const [editingUserReplayConversationRef, setEditingUserReplayConversationRef] = useState(null);
   const [editingUserDraft, setEditingUserDraft] = useState('');
   const [submittingUserEdit, setSubmittingUserEdit] = useState(false);
   const messagesEndRef = useRef(null);
@@ -57,12 +58,13 @@ function MessageList({
     enableAgentLoopAutoScroll,
   });
 
-  const handleStartUserEdit = useCallback((messageId, messageText, editTargetRowId = null) => {
+  const handleStartUserEdit = useCallback((messageId, messageText, editTargetRowId = null, replayConversationRef = null) => {
     if (submittingUserEdit) {
       return;
     }
     setEditingUserMessageId(messageId);
     setEditingUserReplayTargetRowId(editTargetRowId);
+    setEditingUserReplayConversationRef(replayConversationRef);
     setEditingUserDraft(messageText || '');
   }, [submittingUserEdit]);
 
@@ -72,6 +74,7 @@ function MessageList({
     }
     setEditingUserMessageId(null);
     setEditingUserReplayTargetRowId(null);
+    setEditingUserReplayConversationRef(null);
     setEditingUserDraft('');
   }, [submittingUserEdit]);
 
@@ -89,16 +92,18 @@ function MessageList({
       const result = await onUserEdit(
         editingUserReplayTargetRowId,
         editingUserDraft,
+        editingUserReplayConversationRef,
       );
       if (result !== false) {
         setEditingUserMessageId(null);
         setEditingUserReplayTargetRowId(null);
+        setEditingUserReplayConversationRef(null);
         setEditingUserDraft('');
       }
     } finally {
       setSubmittingUserEdit(false);
     }
-  }, [editingUserDraft, editingUserMessageId, editingUserReplayTargetRowId, onUserEdit, submittingUserEdit]);
+  }, [editingUserDraft, editingUserMessageId, editingUserReplayConversationRef, editingUserReplayTargetRowId, onUserEdit, submittingUserEdit]);
 
   useEffect(() => {
     if (!editingUserMessageId) {
@@ -108,6 +113,7 @@ function MessageList({
     if (!stillExists) {
       setEditingUserMessageId(null);
       setEditingUserReplayTargetRowId(null);
+      setEditingUserReplayConversationRef(null);
       setEditingUserDraft('');
       setSubmittingUserEdit(false);
     }
@@ -134,6 +140,7 @@ function MessageList({
       const {
         canRetryMessage,
         canEditMessage,
+        replayConversationRef,
         retryTargetRowId,
         editTargetRowId,
       } = resolveMessageReplayActions(msg);
@@ -152,6 +159,7 @@ function MessageList({
             canRetryMessage={canRetryMessage}
             canEditMessage={canEditMessage}
             assistantRetryTargetRowId={retryTargetRowId}
+            replayConversationRef={replayConversationRef}
             onAssistantFeedbackChange={onAssistantFeedbackChange}
             onAssistantTryAgain={onAssistantTryAgain}
             isUserEditing={editingUserMessageId === msg.id}

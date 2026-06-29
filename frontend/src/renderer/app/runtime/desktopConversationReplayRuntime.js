@@ -30,6 +30,7 @@ function readExactReplayTargetRowId(value) {
 
 const REPLAY_ACTION_INTENT_FIELDS = new Set([
   'action',
+  'conversationRef',
   'editedText',
   'targetRowId',
 ]);
@@ -52,6 +53,7 @@ function readReplayActionIntent(input) {
   return {
     intent: {
       action: input.action,
+      conversationRef: input.conversationRef ?? null,
       editedText: input.editedText ?? null,
       targetRowId: input.targetRowId ?? null,
     },
@@ -59,8 +61,9 @@ function readReplayActionIntent(input) {
   };
 }
 
-function resolveExistingConversationRef(sessionConversationRef) {
-  return readExactReplayConversationRef(DesktopTranscriptSessionRuntimeClient.getActiveConversationRef())
+function resolveExistingConversationRef(sessionConversationRef, actionConversationRef) {
+  return readExactReplayConversationRef(actionConversationRef)
+    || readExactReplayConversationRef(DesktopTranscriptSessionRuntimeClient.getActiveConversationRef())
     || readExactReplayConversationRef(sessionConversationRef)
     || null;
 }
@@ -92,12 +95,13 @@ function logReplayTimeline(action, {
 
 async function executeReplayIntent({
   action,
+  actionConversationRef,
   errorPrefix,
   queryText,
   targetRowId,
 }) {
   const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
-  const conversationRef = resolveExistingConversationRef(sessionInfo.conversationRef);
+  const conversationRef = resolveExistingConversationRef(sessionInfo.conversationRef, actionConversationRef);
   if (!conversationRef) {
     console.error(`[ChatInterface] ${errorPrefix}: missing active conversation`);
     logRendererReplayTrace({
@@ -182,6 +186,7 @@ async function executeReplayAction(input) {
   }
   const {
     action,
+    conversationRef: actionConversationRef,
     editedText,
     targetRowId,
   } = intent;
@@ -205,6 +210,7 @@ async function executeReplayAction(input) {
   }
   return executeReplayIntent({
     action,
+    actionConversationRef,
     errorPrefix: action === 'edit_resend'
       ? 'Failed to edit user message'
       : 'Failed to retry assistant message',

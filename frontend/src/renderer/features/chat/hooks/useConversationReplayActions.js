@@ -12,18 +12,20 @@ const {
 } = DesktopConversationReplayRuntime;
 
 export function useConversationReplayActions() {
-  const handleEditFromUser = useCallback(async (targetRowId, editedText) => {
+  const handleEditFromUser = useCallback(async (targetRowId, editedText, conversationRef = null) => {
     return executeReplayAction({
       action: 'edit_resend',
       targetRowId,
       editedText,
+      conversationRef,
     });
   }, []);
 
-  const handleTryAgainFromAssistant = useCallback(async (targetRowId) => {
+  const handleTryAgainFromAssistant = useCallback(async (targetRowId, conversationRef = null) => {
     return executeReplayAction({
       action: 'retry',
       targetRowId,
+      conversationRef,
     });
   }, []);
 
