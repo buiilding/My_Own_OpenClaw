@@ -19,6 +19,7 @@ import {
   type ConversationEvent,
   type AgentRuntimeEvent,
   type AgentStreamEvent,
+  type DisplayTimelineCheckpoint,
   type SdkDisplayRow,
 } from '../../packages/windie-sdk-js/src';
 import {
@@ -9707,6 +9708,62 @@ describe('Agent SDK conversation runtime core', () => {
       }
     }
     const store = new EmptyDisplayRowsStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        turnRef: 'turn-edit',
+        eventId: 'turn-edit-sdk-evt-000002-user_message',
+        payload: { text: 'old text' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        turnRef: 'turn-edit',
+        eventId: 'turn-edit-backend-assistant',
+        payload: { text: 'old answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockAgentRuntimeTransport({
+        sendQuery: jest.fn(async payload => {
+          sentQueries.push(payload);
+          return 'query-edit';
+        }),
+      }),
+    });
+
+    await runtime.load();
+    await runtime.editAndResend({
+      messageId: 'turn-edit-sdk-evt-000002-user_message',
+      text: 'new text',
+    });
+
+    expect(sentQueries[0]).toMatchObject({
+      text: 'new text',
+      conversation_ref: 'conv-sdk-runtime',
+    });
+  });
+
+  test('editAndResend falls back from a zero-row active revision timeline', async () => {
+    const sentQueries: Record<string, unknown>[] = [];
+    class EmptyActiveTimelineStore extends InMemoryConversationStore {
+      override async loadDisplayTimeline(): Promise<DisplayTimelineCheckpoint | null> {
+        return {
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-old',
+          createdAt: '2026-06-29T22:29:33.256Z',
+          rows: [],
+          reason: 'send',
+          baseRevisionId: null,
+        };
+      }
+    }
+    const store = new EmptyActiveTimelineStore();
     await store.appendEvents([
       createConversationEvent({
         type: 'user_message',

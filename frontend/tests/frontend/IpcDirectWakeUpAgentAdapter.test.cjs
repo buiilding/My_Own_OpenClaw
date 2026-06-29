@@ -99,6 +99,11 @@ function createAgent(runtimeFactory = () => createRuntime()) {
     deleteMemory: jest.fn(async () => ({ deleted: true })),
     clearMemories: jest.fn(async () => ({ cleared: true })),
     listConversations: jest.fn(async () => []),
+    loadDisplayTimeline: jest.fn(async ({ conversationRef }) => {
+      const runtime = runtimes.get(conversationRef) || runtimeFactory(conversationRef);
+      runtimes.set(conversationRef, runtime);
+      return runtime.loadDisplayTimeline();
+    }),
     searchConversations: jest.fn(async () => []),
     deleteConversation: jest.fn(async () => ({ deleted: true })),
     clearConversations: jest.fn(async () => ({ cleared: true })),
@@ -591,6 +596,132 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       messageId: 'row-assistant',
     });
     expect(runtime.load).toHaveBeenCalledTimes(4);
+  });
+
+  test('preserves live replay target snapshot instead of reloading an empty view before resend', async () => {
+    const runtime = createRuntime({
+      load: jest.fn(async () => ({
+        currentTurn: null,
+        view: {
+          conversationRef: 'conv-replay',
+          revisionId: 'rev-empty',
+          displayRows: [],
+        },
+      })),
+    });
+    const agent = createAgent(() => runtime);
+    const adapter = createDirectWakeUpAgentAdapter({
+      agent,
+      deps: createDeps(),
+    });
+    await adapter.loadConversation({ conversationRef: 'conv-replay' });
+    runtime.load.mockClear();
+    runtime.eventHandler(
+      { type: 'turn_completed' },
+      {
+        currentTurn: null,
+        view: {
+          conversationRef: 'conv-replay',
+          revisionId: 'rev-live',
+          displayRows: [
+            {
+              id: 'row-user-live',
+              role: 'user',
+              type: 'user_message',
+              conversationRef: 'conv-replay',
+              turnRef: 'turn-live',
+              content: 'old text',
+            },
+          ],
+        },
+      },
+    );
+
+    await expect(adapter.editAndResend({
+      conversationRef: 'conv-replay',
+      messageId: 'row-user-live',
+      text: 'edited text',
+    })).resolves.toEqual({
+      turnRef: undefined,
+      queryMessageId: 'msg-edit',
+    });
+
+    expect(runtime.editAndResend).toHaveBeenCalledWith({
+      messageId: 'row-user-live',
+      text: 'edited text',
+    });
+    expect(runtime.load).toHaveBeenCalledTimes(1);
+  });
+
+  test('reroutes replay commands from trace-only agent scope to target display conversation', async () => {
+    const traceOnlyRuntime = createRuntime({
+      load: jest.fn(async () => ({
+        currentTurn: null,
+        view: {
+          conversationRef: 'conv-agent-trace-only',
+          revisionId: 'rev-agent',
+          displayRows: [],
+        },
+      })),
+      loadDisplayTimeline: jest.fn(async () => ({ rows: [] })),
+    });
+    const displayRuntime = createRuntime({
+      load: jest.fn(async () => ({
+        currentTurn: null,
+        view: {
+          conversationRef: 'conv-display',
+          revisionId: 'rev-display',
+          displayRows: [
+            {
+              id: 'turn-1-sdk-evt-000002-user_message',
+              role: 'user',
+              type: 'user_message',
+              conversationRef: 'conv-display',
+            },
+          ],
+        },
+      })),
+      loadDisplayTimeline: jest.fn(async () => ({
+        conversationRef: 'conv-display',
+        rows: [
+          {
+            id: 'turn-1-sdk-evt-000002-user_message',
+            role: 'user',
+            type: 'user_message',
+            conversationRef: 'conv-display',
+          },
+        ],
+      })),
+    });
+    const runtimeByConversationRef = new Map([
+      ['conv-agent-trace-only', traceOnlyRuntime],
+      ['conv-display', displayRuntime],
+    ]);
+    const agent = createAgent(conversationRef => runtimeByConversationRef.get(conversationRef) || createRuntime());
+    agent.listConversations.mockResolvedValue([
+      { conversationRef: 'conv-agent-trace-only' },
+      { conversationRef: 'conv-display' },
+    ]);
+    const adapter = createDirectWakeUpAgentAdapter({
+      agent,
+      deps: createDeps(),
+    });
+
+    await expect(adapter.editAndResend({
+      conversationRef: 'conv-agent-trace-only',
+      messageId: 'turn-1-sdk-evt-000002-user_message',
+      text: 'edited text',
+    })).resolves.toEqual({
+      turnRef: undefined,
+      queryMessageId: 'msg-edit',
+    });
+
+    expect(traceOnlyRuntime.editAndResend).not.toHaveBeenCalled();
+    expect(displayRuntime.editAndResend).toHaveBeenCalledWith({
+      messageId: 'turn-1-sdk-evt-000002-user_message',
+      text: 'edited text',
+    });
+    expect(agent.listConversations).toHaveBeenCalledWith({ limit: 50 });
   });
 
   test('rejects padded direct replay identities before selecting a runtime handle', async () => {

@@ -199,6 +199,27 @@ describe('useConversationReplayActions', () => {
     }));
   });
 
+  test('uses exact SDK row conversation scope when transcript session points at agent trace conversation', async () => {
+    mockConversationRef = 'conv-agent-trace-only';
+    const { result } = renderHook(() => useConversationReplayActions());
+
+    await act(async () => {
+      await result.current.handleEditFromUser(
+        'turn-1-sdk-evt-000002-user_message',
+        'edited question',
+        'conv-display-rows',
+      );
+    });
+
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-display-rows', 'user-1');
+    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-display-rows',
+      userId: 'user-1',
+      messageId: 'turn-1-sdk-evt-000002-user_message',
+      text: 'edited question',
+    }));
+  });
+
   test('passes blank edit text through to SDK replay command', async () => {
     const { result } = renderHook(() => useConversationReplayActions());
 

@@ -1068,9 +1068,18 @@ export class SdkConversationRuntime {
     const checkpoint = await this.loadStoredDisplayTimeline(requestedRevisionId);
     if (checkpoint) {
       const events = await this.options.store.loadEvents(this.options.conversationRef);
+      const rows = this.displayRowsForTimeline(checkpoint, events);
+      if (rows.length === 0 && checkpoint.rows.length === 0 && events.length > 0) {
+        return {
+          ...checkpoint,
+          rows: buildDisplayRows(events, {
+            liveAttachments: this.liveDisplayAttachmentsRecord(),
+          }),
+        };
+      }
       return {
         ...checkpoint,
-        rows: this.displayRowsForTimeline(checkpoint, events),
+        rows,
       };
     }
     let rows = await this.options.store.loadDisplayRows(this.options.conversationRef);

@@ -7,14 +7,18 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - sdk/replay: resolve edit/resend and retry targets from raw event-projected
-  display rows when a conversation has no display timeline checkpoint yet, and
-  reload Electron replay handles before dispatch so resend works after
-  dashboard resume or dev restart. No migration required.
+  display rows when a conversation has no materialized display timeline rows
+  yet, including active revisions synthesized as empty timelines, and reload
+  Electron replay handles before dispatch so resend works after dashboard
+  resume or dev restart. No migration required.
+- frontend/replay: keep Electron replay dispatch from preloading over a live
+  SDK snapshot that already contains the retry/edit target row, so repeated
+  inline edit Send clicks do not erase the row before SDK replay executes. No
+  migration required.
 - frontend/replay: carry the exact SDK display row `conversationRef` through
-  edit/resend and retry action metadata so replay can dispatch from the row's
-  SDK-authored conversation scope when transcript session scope is unavailable,
-  without restoring chat-store active-conversation fallback. No migration
-  required.
+  edit/resend and retry action metadata, and have Electron replay resolve the
+  exact target row before dispatch, so stale trace-only `conv-agent-*` scopes
+  reroute to the visible display conversation. No migration required.
 - frontend/pending-turn: treat legacy no-view current-turn text, tool events,
   and errors as visible replacement content while preserving pending rows
   through empty presentation-backed awaiting projections, so resend/dashboard

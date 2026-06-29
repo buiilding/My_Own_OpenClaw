@@ -137,6 +137,29 @@ describe('desktopConversationReplayRuntime', () => {
     expect(DesktopTranscriptSessionRuntimeClient.updateTranscriptSession).toHaveBeenCalledWith('conv-row-scope', 'user-1');
   });
 
+  test('prefers exact SDK row conversation scope over a stale transcript session', async () => {
+    DesktopTranscriptSessionRuntimeClient.getActiveConversationRef.mockReturnValue('conv-agent-trace-only');
+    DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo.mockReturnValue({
+      conversationRef: 'conv-agent-trace-only',
+      userId: 'user-1',
+    });
+
+    await expect(executeReplayAction(replayArgs({
+      action: 'edit_resend',
+      conversationRef: 'conv-display-rows',
+      targetRowId: 'turn-1-sdk-evt-000002-user_message',
+      editedText: 'edited question',
+    }))).resolves.toBe(true);
+
+    expect(DesktopConversationContinuityService.editAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-display-rows',
+      messageId: 'turn-1-sdk-evt-000002-user_message',
+      text: 'edited question',
+      userId: 'user-1',
+    }));
+    expect(DesktopTranscriptSessionRuntimeClient.updateTranscriptSession).toHaveBeenCalledWith('conv-display-rows', 'user-1');
+  });
+
   test('rejects padded SDK row conversation scope before SDK dispatch', async () => {
     DesktopTranscriptSessionRuntimeClient.getActiveConversationRef.mockReturnValue(null);
     DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo.mockReturnValue({

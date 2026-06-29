@@ -188,10 +188,12 @@ flowchart LR
      exact non-empty strings; padded names fall back to the generic error kind
      instead of being trimmed into a repaired diagnostic label.
    - Replay target ids are exact SDK display-row ids from action metadata.
-     When a conversation has no display timeline checkpoint yet, SDK replay
-     resolves targets against event-projected fallback rows and then writes the
-     first child display revision; this includes the stable assistant fallback
-     id shaped as `<conversationRef>:<turnRef>:assistant`.
+     When a conversation has no materialized display timeline rows yet,
+     including a local-runtime active revision synthesized as an empty
+     timeline, SDK replay resolves targets against event-projected fallback
+     rows and then writes the first child display revision; this includes the
+     stable assistant fallback id shaped as
+     `<conversationRef>:<turnRef>:assistant`.
      Renderer replay facades reject padded or empty ids instead of trimming
      them into targets. Edit text is forwarded as UI intent from the inline
      edit composer through the replay facade without renderer trimming or
