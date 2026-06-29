@@ -4350,6 +4350,66 @@ describe('Agent SDK conversation runtime core', () => {
     }));
   });
 
+  test('tool coordinator captures post-action screenshots for desktop-control tools and aliases', async () => {
+    const desktopTools = [
+      'mouse_control',
+      'keyboard_control',
+      'scroll_control',
+      'wait',
+      'switch_window',
+      'click',
+      'type',
+      'scroll',
+    ];
+
+    for (const toolName of desktopTools) {
+      const sendToolResult = jest.fn(async () => undefined);
+      const executeTool = jest
+        .fn()
+        .mockResolvedValueOnce({
+          success: true,
+          data: { output: `${toolName} done` },
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          data: {
+            screenshot_ref: `${toolName}-after.jpg`,
+            screenshot_content_type: 'image/jpeg',
+          },
+        });
+      const coordinator = new ToolExecutionCoordinator({
+        localRuntime: { executeTool },
+        sendToolResult,
+        sendToolBundleResult: jest.fn(async () => undefined),
+      });
+
+      await coordinator.execute(event('tool_call', {
+        toolName,
+        requestId: `req-${toolName}`,
+        args: { wait: 0 },
+      }));
+
+      expect(executeTool).toHaveBeenCalledTimes(2);
+      expect(executeTool).toHaveBeenNthCalledWith(2, expect.objectContaining({
+        toolName: 'screenshot',
+        args: {
+          explanation: `Capturing the screen after ${toolName} execution.`,
+          wait: 0,
+        },
+      }));
+      expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
+        request_id: `req-${toolName}`,
+        success: true,
+        data: expect.objectContaining({
+          output: `${toolName} done`,
+          screenshot_ref: `${toolName}-after.jpg`,
+          post_action_screenshot: true,
+          post_action_screenshot_tool: toolName,
+        }),
+      }));
+    }
+  });
+
   test('tool coordinator preserves provider-safe ids on local tool outputs', async () => {
     const store = new InMemoryConversationStore();
     const executeTool = jest.fn(async () => ({
