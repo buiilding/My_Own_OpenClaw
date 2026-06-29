@@ -53,6 +53,7 @@ export interface ChatMessage {
   thinkingSourceEventType?: string | null;
   tokenCounts?: TokenCounts | null;
   actions?: {
+    conversationRef?: string | null;
     canEdit?: boolean;
     editTargetRowId?: string | null;
     canRetry?: boolean;

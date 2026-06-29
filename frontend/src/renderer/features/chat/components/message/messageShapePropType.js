@@ -18,6 +18,7 @@ const messageShapePropType = PropTypes.shape({
   thinkingText: PropTypes.string,
   thinkingSourceEventType: PropTypes.string,
   actions: PropTypes.shape({
+    conversationRef: PropTypes.string,
     canEdit: PropTypes.bool,
     editTargetRowId: PropTypes.string,
     canRetry: PropTypes.bool,

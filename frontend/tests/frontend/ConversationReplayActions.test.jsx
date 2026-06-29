@@ -176,6 +176,29 @@ describe('useConversationReplayActions', () => {
     errorSpy.mockRestore();
   });
 
+  test('uses exact SDK row conversation scope when transcript session is empty', async () => {
+    mockConversationRef = null;
+    const { result } = renderHook(() => useConversationReplayActions());
+
+    await act(async () => {
+      await result.current.handleTryAgainFromAssistant('assistant-row', 'conv-row-scope');
+      await result.current.handleEditFromUser('user-row', 'edited question', 'conv-row-scope');
+    });
+
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-row-scope', 'user-1');
+    expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-row-scope',
+      userId: 'user-1',
+      messageId: 'assistant-row',
+    }));
+    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-row-scope',
+      userId: 'user-1',
+      messageId: 'user-row',
+      text: 'edited question',
+    }));
+  });
+
   test('passes blank edit text through to SDK replay command', async () => {
     const { result } = renderHook(() => useConversationReplayActions());
 

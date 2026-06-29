@@ -12,6 +12,7 @@ function UserMessageActions({
   messageText = '',
   canEdit = false,
   editTargetRowId = null,
+  replayConversationRef = null,
   onEdit = null,
 }) {
   const { copySuccess, handleCopy } = useCopyMessageAction({
@@ -19,13 +20,14 @@ function UserMessageActions({
     warningPrefix: 'UserMessageActions',
   });
   const resolvedEditTargetRowId = DesktopMessageActionRuntime.resolveReplayTargetRowId(editTargetRowId);
+  const resolvedReplayConversationRef = DesktopMessageActionRuntime.resolveReplayConversationRef(replayConversationRef);
   const canRenderEdit = canEdit && Boolean(resolvedEditTargetRowId);
 
   const handleEdit = () => {
     if (!canRenderEdit || typeof onEdit !== 'function') {
       return;
     }
-    onEdit(messageId, messageText, resolvedEditTargetRowId);
+    onEdit(messageId, messageText, resolvedEditTargetRowId, resolvedReplayConversationRef);
   };
 
   return (
@@ -59,6 +61,7 @@ UserMessageActions.propTypes = {
   messageText: PropTypes.string,
   canEdit: PropTypes.bool,
   editTargetRowId: PropTypes.string,
+  replayConversationRef: PropTypes.string,
   onEdit: PropTypes.func,
 };
 

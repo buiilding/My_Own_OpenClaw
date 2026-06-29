@@ -64,19 +64,26 @@ function resolveReplayTargetRowId(value) {
   return typeof value === 'string' && value.length > 0 && value === value.trim() ? value : null;
 }
 
+function resolveReplayConversationRef(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim() ? value : null;
+}
+
 function resolveMessageReplayActions(message) {
   const retryTargetRowId = messageActionTargetId(message, 'retryTargetRowId');
   const editTargetRowId = messageActionTargetId(message, 'editTargetRowId');
+  const replayConversationRef = resolveReplayConversationRef(message?.actions?.conversationRef);
   return {
     canRetryMessage: messageActionFlag(message, 'canRetry') && Boolean(retryTargetRowId),
     canEditMessage: messageActionFlag(message, 'canEdit') && Boolean(editTargetRowId),
     retryTargetRowId,
     editTargetRowId,
+    replayConversationRef,
   };
 }
 
 export const DesktopMessageActionRuntime = Object.freeze({
   clearMessageActionTimer,
+  resolveReplayConversationRef,
   resolveReplayTargetRowId,
   resolveMessageReplayActions,
   scheduleMessageActionTimer,

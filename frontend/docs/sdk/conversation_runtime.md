@@ -1469,12 +1469,16 @@ the child display/model revision, emit supersession for old live work, and
 dispatch the replacement through the normal `send()` path without accepting
 caller-supplied replay payload, model, or replacement turn-ref overrides.
 Renderer replay facades pass the SDK row id from row action metadata as replay
-intent without trimming or repairing it. Electron main applies an exact-only
-rule to replay SDK command `conversationRef` and `messageId` payload fields
-before calling SDK `editAndResend` or `retryTurn`; the renderer continuity
-facade applies that same exact-only rule before invoking the command bridge so
-direct renderer callers cannot dispatch repaired replay identities. Empty or
-padded command identities fail instead of dispatching against trimmed rows.
+intent without trimming or repairing it. SDK-projected row action metadata also
+carries the row's exact `conversationRef`; renderer replay may use that
+SDK-authored row scope when transcript/session scope is absent, but it must not
+fall back to chat-store active-conversation state or caller-supplied UI context.
+Electron main applies an exact-only rule to replay SDK command
+`conversationRef` and `messageId` payload fields before calling SDK
+`editAndResend` or `retryTurn`; the renderer continuity facade applies that
+same exact-only rule before invoking the command bridge so direct renderer
+callers cannot dispatch repaired replay identities. Empty or padded command
+identities fail instead of dispatching against trimmed rows.
 Edit text remains raw command data from the renderer inline edit composer
 through replay runtime and main IPC adapters, so SDK replay commands own text
 normalization and non-empty validation.

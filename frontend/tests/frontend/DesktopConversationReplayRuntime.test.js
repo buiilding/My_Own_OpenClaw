@@ -53,6 +53,7 @@ const {
 function replayArgs(overrides = {}) {
   const args = {
     action: overrides.action,
+    conversationRef: overrides.conversationRef ?? null,
     targetRowId: overrides.targetRowId ?? null,
   };
   if (Object.prototype.hasOwnProperty.call(overrides, 'editedText')) {
@@ -112,6 +113,47 @@ describe('desktopConversationReplayRuntime', () => {
 
     expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
     expect(DesktopConversationContinuityService.editAndResend).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+
+  test('uses exact SDK row conversation scope when transcript session is empty', async () => {
+    DesktopTranscriptSessionRuntimeClient.getActiveConversationRef.mockReturnValue(null);
+    DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo.mockReturnValue({
+      conversationRef: null,
+      userId: 'user-1',
+    });
+
+    await expect(executeReplayAction(replayArgs({
+      action: 'retry',
+      conversationRef: 'conv-row-scope',
+      targetRowId: 'assistant-1',
+    }))).resolves.toBe(true);
+
+    expect(DesktopConversationContinuityService.retryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-row-scope',
+      messageId: 'assistant-1',
+      userId: 'user-1',
+    }));
+    expect(DesktopTranscriptSessionRuntimeClient.updateTranscriptSession).toHaveBeenCalledWith('conv-row-scope', 'user-1');
+  });
+
+  test('rejects padded SDK row conversation scope before SDK dispatch', async () => {
+    DesktopTranscriptSessionRuntimeClient.getActiveConversationRef.mockReturnValue(null);
+    DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo.mockReturnValue({
+      conversationRef: null,
+      userId: 'user-1',
+    });
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await expect(executeReplayAction(replayArgs({
+      action: 'retry',
+      conversationRef: ' conv-row-scope ',
+      targetRowId: 'assistant-1',
+    }))).resolves.toBe(false);
+
+    expect(DesktopConversationContinuityService.retryTurn).not.toHaveBeenCalled();
+    expect(DesktopConversationContinuityService.editAndResend).not.toHaveBeenCalled();
+    expect(DesktopTranscriptSessionRuntimeClient.updateTranscriptSession).not.toHaveBeenCalled();
     errorSpy.mockRestore();
   });
 
