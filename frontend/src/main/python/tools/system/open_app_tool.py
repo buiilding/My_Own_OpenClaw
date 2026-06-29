@@ -9,7 +9,8 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from tools.computer.screenshot_tool import capture_screenshot
+from tools.computer.screenshot_tool import execute_screenshot_tool
+from tools.result import ToolResult
 from tools.system.window_tool import get_open_windows
 
 logger = logging.getLogger(__name__)
@@ -23,34 +24,38 @@ _WINDOW_VERIFY_POLL_SECONDS = 0.25
 _SCREENSHOT_VERIFY_DELAY_SECONDS = 0.75
 
 
-async def open_app(args: Dict[str, Any]) -> Dict[str, Any]:
+async def open_app(args: Dict[str, Any]) -> ToolResult:
     """Launch an app as a detached desktop process with optional verification."""
     command = args.get("command")
     if not isinstance(command, str) or not command.strip():
-        return {"success": False, "error": "command is required"}
+        return ToolResult.error_result("command is required")
     command = command.strip()
 
     command_args, command_args_error = _coerce_command_args(args.get("args"))
     if command_args_error:
-        return {"success": False, "error": command_args_error}
+        return ToolResult.error_result(command_args_error)
 
-    working_directory, directory_error = _resolve_working_directory(args.get("directory"))
+    working_directory, directory_error = _resolve_working_directory(
+        args.get("directory")
+    )
     if directory_error:
-        return {"success": False, "error": directory_error}
+        return ToolResult.error_result(directory_error)
 
     verify_mode, verify_mode_error = _resolve_verify_mode(args.get("verify"))
     if verify_mode_error:
-        return {"success": False, "error": verify_mode_error}
+        return ToolResult.error_result(verify_mode_error)
 
     verify_timeout_seconds, timeout_error = _resolve_verify_timeout_seconds(
         args.get("verify_timeout_seconds")
     )
     if timeout_error:
-        return {"success": False, "error": timeout_error}
+        return ToolResult.error_result(timeout_error)
 
-    requested_window_title, window_title_error = _resolve_window_title(args.get("verify_window_title"))
+    requested_window_title, window_title_error = _resolve_window_title(
+        args.get("verify_window_title")
+    )
     if window_title_error:
-        return {"success": False, "error": window_title_error}
+        return ToolResult.error_result(window_title_error)
 
     inferred_window_title = _infer_window_title(command, command_args)
     verify_window_title = requested_window_title or inferred_window_title
@@ -63,7 +68,7 @@ async def open_app(args: Dict[str, Any]) -> Dict[str, Any]:
             working_directory,
         )
     except RuntimeError as error:
-        return {"success": False, "error": str(error)}
+        return ToolResult.error_result(str(error))
 
     elapsed_ms = max(int((time.time() - launch_result["started_at"]) * 1000), 0)
 
@@ -95,9 +100,11 @@ async def open_app(args: Dict[str, Any]) -> Dict[str, Any]:
         )
 
     if verify_mode == "screenshot":
-        response_data.update(await _capture_verification_screenshot(verify_timeout_seconds))
+        response_data.update(
+            await _capture_verification_screenshot(verify_timeout_seconds)
+        )
         if response_data.get("verify_status") != "verified":
-            if "screenshot_path" in response_data:
+            if _has_screenshot_payload(response_data):
                 response_data["verify_status"] = "screenshot_captured"
             else:
                 response_data["verify_status"] = "screenshot_failed"
@@ -105,10 +112,7 @@ async def open_app(args: Dict[str, Any]) -> Dict[str, Any]:
     output = _build_output(response_data)
     response_data["output"] = output
 
-    return {
-        "success": True,
-        "data": response_data,
-    }
+    return ToolResult.success_result(response_data)
 
 
 def _coerce_command_args(raw_args: object) -> tuple[list[str], Optional[str]]:
@@ -186,7 +190,14 @@ def _infer_window_title(command: str, command_args: list[str]) -> Optional[str]:
         return None
 
     normalized_primary = Path(primary_token).name.lower()
-    if normalized_primary in {"open", "xdg-open", "start", "cmd", "powershell.exe", "pwsh"}:
+    if normalized_primary in {
+        "open",
+        "xdg-open",
+        "start",
+        "cmd",
+        "powershell.exe",
+        "pwsh",
+    }:
         if normalized_primary == "open" and command_args:
             for index, arg in enumerate(command_args):
                 if arg == "-a" and index + 1 < len(command_args):
@@ -257,7 +268,9 @@ def _launch_detached_process(
     started_at = time.time()
 
     try:
-        process = subprocess.Popen(argv, **_build_detached_popen_kwargs(working_directory))
+        process = subprocess.Popen(
+            argv, **_build_detached_popen_kwargs(working_directory)
+        )
     except FileNotFoundError as error:
         raise RuntimeError(f"Executable not found: {argv[0]}") from error
     except PermissionError as error:
@@ -272,7 +285,9 @@ def _launch_detached_process(
     }
 
 
-async def _verify_window_open(window_title: Optional[str], timeout_seconds: float) -> Dict[str, Any]:
+async def _verify_window_open(
+    window_title: Optional[str], timeout_seconds: float
+) -> Dict[str, Any]:
     if not window_title:
         return {
             "verify_status": "skipped",
@@ -330,9 +345,14 @@ async def _capture_verification_screenshot(timeout_seconds: float) -> Dict[str, 
     if timeout_seconds > 0:
         await asyncio.sleep(min(_SCREENSHOT_VERIFY_DELAY_SECONDS, timeout_seconds))
 
-    screenshot_result = await capture_screenshot({})
-    if screenshot_result.get("success") is not True:
-        error_message = screenshot_result.get("error")
+    screenshot_result = await execute_screenshot_tool(
+        {
+            "explanation": "Post-launch screenshot verification",
+            "expectation": "Launched app visual state",
+        }
+    )
+    if screenshot_result.success is not True:
+        error_message = screenshot_result.error
         return {
             "screenshot_error": (
                 error_message.strip()
@@ -341,7 +361,7 @@ async def _capture_verification_screenshot(timeout_seconds: float) -> Dict[str, 
             )
         }
 
-    data = screenshot_result.get("data")
+    data = screenshot_result.data
     if not isinstance(data, dict):
         return {"screenshot_error": "Screenshot capture returned invalid payload"}
 
@@ -349,16 +369,35 @@ async def _capture_verification_screenshot(timeout_seconds: float) -> Dict[str, 
         key: value
         for key, value in data.items()
         if key in {
+            "screenshot",
             "screenshot_path",
+            "screenshot_ref",
+            "screenshot_refs",
+            "screenshot_url",
             "screenshot_content_type",
             "compression",
             "size",
             "capture_meta",
+            "path_trace",
         }
     }
-    if "screenshot_path" not in screenshot_payload:
-        screenshot_payload["screenshot_error"] = "Screenshot payload missing screenshot_path"
+    if not _has_screenshot_payload(screenshot_payload):
+        screenshot_payload["screenshot_error"] = (
+            "Screenshot payload missing screenshot data"
+        )
     return screenshot_payload
+
+
+def _has_screenshot_payload(data: Dict[str, Any]) -> bool:
+    return any(
+        isinstance(data.get(key), str) and data[key].strip()
+        for key in (
+            "screenshot",
+            "screenshot_path",
+            "screenshot_ref",
+            "screenshot_url",
+        )
+    )
 
 
 def _build_output(data: Dict[str, Any]) -> str:

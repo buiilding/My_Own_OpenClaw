@@ -633,7 +633,7 @@ def _capture_with_system_cursor(
     return None
 
 
-async def capture_screenshot(args: Dict[str, Any]) -> ToolResult:
+async def execute_screenshot_tool(args: Dict[str, Any]) -> ToolResult:
     """
     Capture screenshot with optimized JPEG compression for faster encoding.
 
@@ -767,3 +767,6 @@ async def capture_screenshot(args: Dict[str, Any]) -> ToolResult:
     except Exception as e:
         logger.error(f"Screenshot failed: {e}", exc_info=True)
         return ToolResult.error_result(f"Screenshot failed: {str(e)}")
+
+
+capture_screenshot = execute_screenshot_tool

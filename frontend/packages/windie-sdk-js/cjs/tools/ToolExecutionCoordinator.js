@@ -177,11 +177,14 @@ class ToolExecutionCoordinator {
     constructor(options) {
         this.options = options;
     }
-    async executeLocalTool(call) {
+    async executeLocalTool(call, options = {}) {
         if (!this.options.localRuntime?.executeTool) {
             throw new Error('local runtime executeTool is unavailable');
         }
-        const activeToolNames = activeClientToolNames(this.options.agentDefinition ?? null);
+        const enforceActiveManifest = options.enforceActiveManifest !== false;
+        const activeToolNames = enforceActiveManifest
+            ? activeClientToolNames(this.options.agentDefinition ?? null)
+            : null;
         if (activeToolNames && !activeToolNames.has(call.toolName)) {
             throw new Error(`Local tool route unavailable for ${call.toolName}. The active capability manifest no longer exposes this tool.`);
         }
@@ -194,6 +197,14 @@ class ToolExecutionCoordinator {
                 await release();
             }
         }
+    }
+    async executeScreenshotTool(call) {
+        return this.executeLocalTool({
+            ...call,
+            toolName: 'screenshot',
+        }, {
+            enforceActiveManifest: false,
+        });
     }
     async materializeScreenshotArtifact(data) {
         if ('screenshotRef' in data || 'screenshotUrl' in data || 'screenshotPath' in data) {
@@ -274,8 +285,7 @@ class ToolExecutionCoordinator {
         }
         await delaySeconds(waitSeconds);
         try {
-            const result = await this.executeLocalTool({
-                toolName: 'screenshot',
+            const result = await this.executeScreenshotTool({
                 args: {
                     explanation,
                     wait: 0,

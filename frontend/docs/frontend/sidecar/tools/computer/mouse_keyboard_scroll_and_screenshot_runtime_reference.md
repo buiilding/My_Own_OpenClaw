@@ -25,7 +25,7 @@ This page documents local-runtime Python computer tools as implemented in:
    - `mouse_control` -> `execute_mouse_control`
    - `keyboard_control` -> `execute_keyboard_control`
    - `scroll_control` -> `execute_scroll_control`
-   - `screenshot` -> `capture_screenshot`
+   - `screenshot` -> `execute_screenshot_tool`
 3. Tool returns are native `ToolResult`; the registry passes them through.
 
 ## Mouse Tool (`mouse_control`)
@@ -208,6 +208,12 @@ Cross-layer note:
   processing attaches the screenshot to the canonical tool history row for the
   next model call. Backend does not echo local results as backend `tool-output`
   UI events; UI display remains SDK-owned.
+- Direct screenshot requests, camera/auto-screenshot resources, `open_app`
+  screenshot verification, and automatic post-action screenshots all run the
+  same local-runtime `screenshot` tool executor before any SDK/Electron
+  materialization. Post-action captures may be internal context even when the
+  active model-facing manifest does not expose `screenshot`, but they still
+  execute `toolName: "screenshot"` against the local runtime.
 
 ## Schema Notes vs Runtime Enforcement
 

@@ -26,7 +26,12 @@ Computer tools are local-execution tools. The backend owns the model-facing inte
 
 This is the canonical computer use screenshot guide.
 
-- Renderer query screenshots and local-runtime tool screenshots are different paths.
+- Direct screenshot tool calls, camera/auto-screenshot query resources,
+  `open_app` screenshot verification, and automatic post-action desktop-control
+  screenshots all execute the local-runtime `screenshot` tool for desktop
+  capture. Materialization into artifact-backed resources may happen in
+  Electron main or the SDK after capture, but capture itself must not bypass the
+  `screenshot` tool executor.
 - Backend OCR/vision services can prepare coordinates before local execution.
 - Linux is the only platform that should hide desktop overlay surfaces for screenshot capture and restore them after capture.
 - Windows and macOS should not add capture-time hide/show for the minimal chat pill or response overlay.

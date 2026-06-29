@@ -4264,6 +4264,15 @@ describe('Agent SDK conversation runtime core', () => {
     }));
 
     expect(executeTool).toHaveBeenCalledTimes(2);
+    expect(executeTool).toHaveBeenNthCalledWith(2, {
+      toolName: 'screenshot',
+      args: {
+        explanation: 'Capturing the screen after mouse_control execution.',
+        wait: 0,
+      },
+      turnRef: 'turn-1',
+      conversationRef: 'conv-sdk-runtime',
+    });
     expect(lifecycleCalls).toEqual([
       'before:mouse_control',
       'release:mouse_control',
@@ -4283,6 +4292,62 @@ describe('Agent SDK conversation runtime core', () => {
       }),
     }));
     expect(sendToolResult.mock.calls[0][0].data).not.toHaveProperty('screenshot');
+  });
+
+  test('tool coordinator uses internal screenshot execution even when screenshot is not model-exposed', async () => {
+    const sendToolResult = jest.fn(async () => undefined);
+    const executeTool = jest
+      .fn()
+      .mockResolvedValueOnce({
+        success: true,
+        data: { output: 'Clicked at (10, 20)' },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: {
+          screenshot_ref: 'after-click.jpg',
+          screenshot_content_type: 'image/jpeg',
+        },
+      });
+    const coordinator = new ToolExecutionCoordinator({
+      agentDefinition: {
+        tools: {
+          client_manifest: {
+            tools: [
+              { name: 'mouse_control', schema: { type: 'object' } },
+            ],
+          },
+        },
+      },
+      localRuntime: { executeTool },
+      sendToolResult,
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    await coordinator.execute(event('tool_call', {
+      toolName: 'mouse_control',
+      requestId: 'req-click-internal-shot',
+      args: { action: 'click', x: 10, y: 20, wait: 0 },
+    }));
+
+    expect(executeTool).toHaveBeenCalledTimes(2);
+    expect(executeTool).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      toolName: 'screenshot',
+      args: {
+        explanation: 'Capturing the screen after mouse_control execution.',
+        wait: 0,
+      },
+    }));
+    expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
+      request_id: 'req-click-internal-shot',
+      success: true,
+      data: expect.objectContaining({
+        output: 'Clicked at (10, 20)',
+        screenshot_ref: 'after-click.jpg',
+        post_action_screenshot: true,
+        post_action_screenshot_tool: 'mouse_control',
+      }),
+    }));
   });
 
   test('tool coordinator preserves provider-safe ids on local tool outputs', async () => {

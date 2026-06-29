@@ -71,6 +71,10 @@ type ExecutedBundleStep = {
   result: ToolBundleStepResult;
 };
 
+type ExecuteLocalToolOptions = {
+  enforceActiveManifest?: boolean;
+};
+
 const COMPUTER_USE_CAPTURE_TOOL_NAMES = new Set([
   'mouse_control',
   'keyboard_control',
@@ -304,11 +308,17 @@ function resolveLocalToolRelease(release: LocalToolExecutionRelease): (() => voi
 export class ToolExecutionCoordinator {
   constructor(private readonly options: ToolExecutionCoordinatorOptions) {}
 
-  private async executeLocalTool(call: LocalToolCall): Promise<LocalToolResult> {
+  private async executeLocalTool(
+    call: LocalToolCall,
+    options: ExecuteLocalToolOptions = {},
+  ): Promise<LocalToolResult> {
     if (!this.options.localRuntime?.executeTool) {
       throw new Error('local runtime executeTool is unavailable');
     }
-    const activeToolNames = activeClientToolNames(this.options.agentDefinition ?? null);
+    const enforceActiveManifest = options.enforceActiveManifest !== false;
+    const activeToolNames = enforceActiveManifest
+      ? activeClientToolNames(this.options.agentDefinition ?? null)
+      : null;
     if (activeToolNames && !activeToolNames.has(call.toolName)) {
       throw new Error(
         `Local tool route unavailable for ${call.toolName}. The active capability manifest no longer exposes this tool.`,
@@ -322,6 +332,15 @@ export class ToolExecutionCoordinator {
         await release();
       }
     }
+  }
+
+  private async executeScreenshotTool(call: Omit<LocalToolCall, 'toolName'>): Promise<LocalToolResult> {
+    return this.executeLocalTool({
+      ...call,
+      toolName: 'screenshot',
+    }, {
+      enforceActiveManifest: false,
+    });
   }
 
   private async materializeScreenshotArtifact(data: JsonRecord): Promise<JsonRecord> {
@@ -417,8 +436,7 @@ export class ToolExecutionCoordinator {
     }
     await delaySeconds(waitSeconds);
     try {
-      const result = await this.executeLocalTool({
-        toolName: 'screenshot',
+      const result = await this.executeScreenshotTool({
         args: {
           explanation,
           wait: 0,

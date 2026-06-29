@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/local-runtime: route camera screenshot resources, `open_app` screenshot
+  verification, and automatic desktop-control post-action captures through the
+  shared local `screenshot` tool execution path before artifact materialization.
+  No migration required.
 - sdk/conversation-view: filter live assistant text entries once same-turn
   `displayRows` materialize that text, so active chat surfaces do not render
   duplicate assistant bubbles while streaming. No migration required.
