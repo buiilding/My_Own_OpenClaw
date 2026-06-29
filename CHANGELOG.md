@@ -10,6 +10,9 @@ All notable changes to WindieOS will be documented in this file.
   verification, and automatic desktop-control post-action captures through the
   shared local `screenshot` tool execution path before artifact materialization.
   No migration required.
+- tests/local-runtime: cover the canonical screenshot capture entrypoint for
+  desktop-control post-action captures and remove the retired Python screenshot
+  alias from focused sidecar expectations. No migration required.
 - sdk/conversation-view: filter live assistant text entries once same-turn
   `displayRows` materialize that text, so active chat surfaces do not render
   duplicate assistant bubbles while streaming. No migration required.
