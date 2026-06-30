@@ -169,7 +169,7 @@ inherit dark light-mode page text on dark panels.
 
 - system prompt config patches
 - extension runtime diagnostics
-- local/remote tool enablement controls
+- grouped local/remote tool access dropdowns
 - accepted/rejected local tool schema display
 - remote tool catalog availability display
 
@@ -187,6 +187,15 @@ Runtime inputs:
 - `DesktopExtensionRuntimeClient.isRemoteToolEnabled(...)`
 - `DesktopExtensionRuntimeClient.getLocalToolToggleConfigPatch(...)`
 - `DesktopExtensionRuntimeClient.getRemoteToolToggleConfigPatch(...)`
+- `DesktopExtensionRuntimeClient.getLocalToolGroupAccessState(...)`
+- `DesktopExtensionRuntimeClient.getLocalToolGroupAccessConfigPatch(...)`
+
+Local built-in tools are presented as `Allowed` / `Disabled` groups such as
+Screen, Files, Browser, Shell, Mouse & Keyboard, and System. The grouped control
+still writes the existing `agent_disabled_local_tools` config field: choosing
+`Disabled` adds every mapped tool in that group to the disabled list, and
+choosing `Allowed` removes every mapped tool in that group. The UI intentionally
+does not expose `Ask before` until a runtime approval gate exists.
 
 The tab should not import desktop IPC channels directly or branch on raw agent
 capability event type strings. It consumes extension metadata plus direct

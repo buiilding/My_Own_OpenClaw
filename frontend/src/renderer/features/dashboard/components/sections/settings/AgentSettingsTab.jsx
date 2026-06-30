@@ -10,7 +10,7 @@ import {
 import {
   DesktopExtensionRuntimeClient,
 } from '../../../../../app/runtime/desktopExtensionRuntimeClient';
-import { SettingsToggle } from './settingsControls';
+import { SelectDropdown } from './settingsControls';
 
 const agentSettingsSkin = DesktopRuntimeSkin.desktopRuntimeSkin.settings.agent;
 const {
@@ -137,28 +137,36 @@ function AgentSettingsTab({ config, onConfigChange }) {
           ) : null}
         </div>
         <div className="settings-surface-tool-grid">
-          {agentSettingsSkin.localTools.ids.map((toolName) => (
-            <div key={toolName} className="settings-surface-tool-card">
+          {agentSettingsSkin.localTools.groups.map((group) => (
+            <div key={group.id} className="settings-surface-tool-card">
               <div className="settings-surface-tool-toggle">
-                <span>{toolName}</span>
-                <SettingsToggle
-                  checked={DesktopExtensionRuntimeClient.isLocalToolEnabled(config, toolName)}
-                  onChange={(enabled) => onConfigChange(
-                    DesktopExtensionRuntimeClient.getLocalToolToggleConfigPatch(
+                <span>
+                  {group.label}
+                  <small>{group.tools.join(', ')}</small>
+                </span>
+                <SelectDropdown
+                  value={DesktopExtensionRuntimeClient.getLocalToolGroupAccessState(config, group.tools)}
+                  options={agentSettingsSkin.localTools.stateOptions}
+                  onChange={(state) => onConfigChange(
+                    DesktopExtensionRuntimeClient.getLocalToolGroupAccessConfigPatch(
                       config,
-                      toolName,
-                      enabled,
+                      group.tools,
+                      state,
                     ),
                   )}
-                  ariaLabel={`Enable ${toolName}`}
+                  ariaLabel={`Set ${group.label} tools access`}
+                  className="settings-surface-tool-access-select"
                 />
               </div>
-              <ToolAcceptanceStatus
-                presentation={DesktopExtensionRuntimeClient.getLocalToolManifestPresentation(
-                  manifestStatus,
-                  toolName,
-                )}
-              />
+              {group.tools.map((toolName) => (
+                <ToolAcceptanceStatus
+                  key={toolName}
+                  presentation={DesktopExtensionRuntimeClient.getLocalToolManifestPresentation(
+                    manifestStatus,
+                    toolName,
+                  )}
+                />
+              ))}
             </div>
           ))}
         </div>
@@ -188,16 +196,18 @@ function AgentSettingsTab({ config, onConfigChange }) {
                     </small>
                   ) : null}
                 </span>
-                <SettingsToggle
-                  checked={DesktopExtensionRuntimeClient.isRemoteToolEnabled(config, toolName)}
-                  onChange={(enabled) => onConfigChange(
+                <SelectDropdown
+                  value={DesktopExtensionRuntimeClient.isRemoteToolEnabled(config, toolName) ? 'allowed' : 'disabled'}
+                  options={agentSettingsSkin.localTools.stateOptions}
+                  onChange={(state) => onConfigChange(
                     DesktopExtensionRuntimeClient.getRemoteToolToggleConfigPatch(
                       config,
                       toolName,
-                      enabled,
+                      state !== 'disabled',
                     ),
                   )}
-                  ariaLabel={`Enable ${toolName}`}
+                  ariaLabel={`Set ${toolName} access`}
+                  className="settings-surface-tool-access-select"
                 />
               </div>
             );

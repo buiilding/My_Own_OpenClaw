@@ -193,6 +193,30 @@
   color: var(--ui-text-muted);
 }
 
+.settings-surface-tool-access-select {
+  position: relative;
+  min-width: 112px;
+  justify-content: flex-start;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--ui-border-soft);
+  background: color-mix(in srgb, var(--ui-panel-bg) 78%, white 22%);
+  cursor: pointer;
+}
+
+.settings-surface-tool-access-select .settings-surface-select {
+  width: 100%;
+  padding-right: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.settings-surface-tool-access-select svg {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+}
+
 .settings-surface-tool-status {
   margin: 0;
   padding: 0 12px 10px;

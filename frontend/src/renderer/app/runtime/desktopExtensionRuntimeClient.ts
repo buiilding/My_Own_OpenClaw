@@ -65,6 +65,8 @@ export type AgentToolToggleConfigPatch = {
   agent_disabled_remote_tools?: unknown[];
 };
 
+export type AgentToolAccessState = 'allowed' | 'disabled';
+
 export type AgentCapabilityEvent = {
   type?: string;
   payload?: Record<string, unknown> | AgentToolManifestStatus | AgentRemoteToolCatalog;
@@ -127,6 +129,27 @@ function toggleDisabledToolValue(
     return source.includes(name) ? source : [...source, name];
   }
   return source.filter((item) => item !== name);
+}
+
+function toggleDisabledToolValues(
+  values: unknown,
+  toolNames: unknown,
+  shouldDisable: boolean,
+): unknown[] {
+  const source = arrayOrEmpty(values);
+  const names = arrayOrEmpty(toolNames)
+    .map(stringOrEmpty)
+    .filter(Boolean);
+  if (names.length === 0) {
+    return source;
+  }
+  if (shouldDisable) {
+    const disabled = new Set(source);
+    names.forEach((name) => disabled.add(name));
+    return [...disabled];
+  }
+  const enabledNames = new Set(names);
+  return source.filter((item) => !enabledNames.has(stringOrEmpty(item)));
 }
 
 function normalizeAgentExtensionRuntime(payload: unknown): AgentExtensionRuntimeSnapshot {
@@ -340,6 +363,20 @@ function isAgentLocalToolEnabled(config: unknown, toolName: unknown): boolean {
     .includes(stringOrEmpty(toolName));
 }
 
+function getAgentLocalToolGroupAccessState(
+  config: unknown,
+  toolNames: unknown,
+): AgentToolAccessState {
+  const names = arrayOrEmpty(toolNames)
+    .map(stringOrEmpty)
+    .filter(Boolean);
+  if (names.length === 0) {
+    return 'allowed';
+  }
+  const disabledTools = new Set(arrayOrEmpty(recordOrEmpty(config).agent_disabled_local_tools));
+  return names.every((name) => disabledTools.has(name)) ? 'disabled' : 'allowed';
+}
+
 function isAgentRemoteToolEnabled(config: unknown, toolName: unknown): boolean {
   return !arrayOrEmpty(recordOrEmpty(config).agent_disabled_remote_tools)
     .includes(stringOrEmpty(toolName));
@@ -355,6 +392,20 @@ function getAgentLocalToolToggleConfigPatch(
       recordOrEmpty(config).agent_disabled_local_tools,
       toolName,
       !enabled,
+    ),
+  };
+}
+
+function getAgentLocalToolGroupAccessConfigPatch(
+  config: unknown,
+  toolNames: unknown,
+  state: unknown,
+): AgentToolToggleConfigPatch {
+  return {
+    agent_disabled_local_tools: toggleDisabledToolValues(
+      recordOrEmpty(config).agent_disabled_local_tools,
+      toolNames,
+      state === 'disabled',
     ),
   };
 }
@@ -451,6 +502,10 @@ export const DesktopExtensionRuntimeClient = {
     return isAgentLocalToolEnabled(config, toolName);
   },
 
+  getLocalToolGroupAccessState(config: unknown, toolNames: unknown): AgentToolAccessState {
+    return getAgentLocalToolGroupAccessState(config, toolNames);
+  },
+
   isRemoteToolEnabled(config: unknown, toolName: unknown): boolean {
     return isAgentRemoteToolEnabled(config, toolName);
   },
@@ -461,6 +516,14 @@ export const DesktopExtensionRuntimeClient = {
     enabled: boolean,
   ): AgentToolToggleConfigPatch {
     return getAgentLocalToolToggleConfigPatch(config, toolName, enabled);
+  },
+
+  getLocalToolGroupAccessConfigPatch(
+    config: unknown,
+    toolNames: unknown,
+    state: unknown,
+  ): AgentToolToggleConfigPatch {
+    return getAgentLocalToolGroupAccessConfigPatch(config, toolNames, state);
   },
 
   getRemoteToolToggleConfigPatch(

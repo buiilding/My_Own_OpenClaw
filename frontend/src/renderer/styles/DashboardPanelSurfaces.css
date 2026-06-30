@@ -90,6 +90,44 @@
   color: var(--ui-text-primary);
 }
 
+.memory-surface-retrieval-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+  min-width: 112px;
+  justify-content: flex-start;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--ui-border-soft);
+  background: color-mix(in srgb, var(--ui-panel-bg) 78%, white 22%);
+  cursor: pointer;
+}
+
+.memory-surface-retrieval-select .settings-surface-select {
+  border: 0;
+  background: transparent;
+  color: var(--ui-text-primary);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  width: 100%;
+  padding-right: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.memory-surface-retrieval-select .settings-surface-select option {
+  color: var(--ui-text-primary);
+  background: var(--ui-panel-bg);
+}
+
+.memory-surface-retrieval-select svg {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+}
+
 .memory-surface-retrieval-subtitle {
   margin: 2px 0 0;
   font-size: 11px;

@@ -318,6 +318,44 @@ describe('DesktopExtensionRuntimeClient', () => {
     });
   });
 
+  test('builds grouped local tool access state and config patches', () => {
+    const config = {
+      agent_disabled_local_tools: ['mouse_control', 'keyboard_control', 'browser'],
+    };
+
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('getAgentLocalToolGroupAccessState');
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('getAgentLocalToolGroupAccessConfigPatch');
+    expect(DesktopExtensionRuntimeClient.getLocalToolGroupAccessState(
+      config,
+      ['mouse_control', 'keyboard_control'],
+    )).toBe('disabled');
+    expect(DesktopExtensionRuntimeClient.getLocalToolGroupAccessState(
+      config,
+      ['mouse_control', 'scroll_control'],
+    )).toBe('allowed');
+
+    expect(DesktopExtensionRuntimeClient.getLocalToolGroupAccessConfigPatch(
+      config,
+      ['mouse_control', 'keyboard_control'],
+      'allowed',
+    )).toEqual({
+      agent_disabled_local_tools: ['browser'],
+    });
+    expect(DesktopExtensionRuntimeClient.getLocalToolGroupAccessConfigPatch(
+      config,
+      ['scroll_control', 'switch_window'],
+      'disabled',
+    )).toEqual({
+      agent_disabled_local_tools: [
+        'mouse_control',
+        'keyboard_control',
+        'browser',
+        'scroll_control',
+        'switch_window',
+      ],
+    });
+  });
+
   test('builds plugin runtime presentation from raw plugin metadata', () => {
     expect(DesktopExtensionRuntimeModule).not.toHaveProperty('getAgentPluginRuntimePresentation');
     expect(DesktopExtensionRuntimeClient.getPluginRuntimePresentation({

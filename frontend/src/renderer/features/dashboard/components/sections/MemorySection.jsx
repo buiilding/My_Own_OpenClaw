@@ -18,6 +18,7 @@ import { DesktopMemoryRetrievalPreferenceRuntime } from '../../../../app/runtime
 import {
   DesktopMemoryPresentationRuntime,
 } from '../../../../app/runtime/desktopMemoryPresentationRuntime';
+import { SelectDropdown } from './settings/settingsControls';
 import MemoryItem from './MemoryItem';
 
 const memoryPanelSkin = DesktopRuntimeSkin.desktopRuntimeSkin.memoryPanel;
@@ -125,8 +126,8 @@ function MemorySection({ onClose = () => {} }) {
     }
   }, [activeType, expandedItemId]);
 
-  const handleMemoryRetrievalToggle = useCallback((event) => {
-    const nextEnabled = setMemoryRetrievalInjectionEnabled(event.target.checked === true);
+  const handleMemoryRetrievalChange = useCallback((state) => {
+    const nextEnabled = setMemoryRetrievalInjectionEnabled(state !== 'disabled');
     setMemoryRetrievalEnabledState(nextEnabled);
   }, []);
 
@@ -180,17 +181,13 @@ function MemorySection({ onClose = () => {} }) {
                 : memoryPanelSkin.retrievalStateLabel.disabled}
             </p>
           </div>
-          <label
-            className={`memory-surface-retrieval-toggle${memoryRetrievalEnabled ? ' checked' : ''}`.trim()}
-          >
-            <input
-              type="checkbox"
-              aria-label={memoryPanelSkin.retrievalToggleLabel}
-              checked={memoryRetrievalEnabled}
-              onChange={handleMemoryRetrievalToggle}
-            />
-            <span className="memory-surface-retrieval-toggle-thumb" />
-          </label>
+          <SelectDropdown
+            value={memoryRetrievalEnabled ? 'allowed' : 'disabled'}
+            options={memoryPanelSkin.retrievalStateOptions}
+            onChange={handleMemoryRetrievalChange}
+            ariaLabel={memoryPanelSkin.retrievalToggleLabel}
+            className="memory-surface-retrieval-select"
+          />
         </div>
 
         <div className="memory-surface-toolbar">

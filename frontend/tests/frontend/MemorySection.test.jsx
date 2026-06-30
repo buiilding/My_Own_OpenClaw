@@ -240,7 +240,7 @@ describe('MemorySection', () => {
     expect(semanticRow).not.toHaveProperty('backendType');
   });
 
-  test('persists memory retrieval injection toggle state in localStorage', async () => {
+  test('persists memory retrieval injection dropdown state in localStorage', async () => {
     const { default: MemorySection } = await import(
       '../../src/renderer/features/dashboard/components/sections/MemorySection'
     );
@@ -249,11 +249,11 @@ describe('MemorySection', () => {
     render(<MemorySection />);
     await screen.findByText('No memories found');
 
-    const toggle = screen.getByRole('checkbox', { name: 'Memory on or off' });
-    expect(toggle).not.toBeChecked();
+    const dropdown = screen.getByRole('combobox', { name: 'Memory configuration' });
+    expect(dropdown).toHaveValue('disabled');
 
-    fireEvent.click(toggle);
-    expect(toggle).toBeChecked();
+    fireEvent.change(dropdown, { target: { value: 'allowed' } });
+    expect(dropdown).toHaveValue('allowed');
     expect(window.localStorage.getItem(MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY)).toBe('true');
   });
 

@@ -11,11 +11,17 @@ export function SelectDropdown({
   onChange,
   showSwatch = false,
   className = '',
+  ariaLabel = '',
 }) {
   return (
     <div className={['settings-surface-select-wrap', className].filter(Boolean).join(' ')}>
       {showSwatch ? <span className="settings-surface-swatch" aria-hidden="true" /> : null}
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="settings-surface-select">
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="settings-surface-select"
+        aria-label={ariaLabel || undefined}
+      >
         {options.map((option) => (
           <option key={option.value || option} value={option.value || option}>
             {option.label || option}
@@ -39,6 +45,7 @@ SelectDropdown.propTypes = {
   onChange: PropTypes.func.isRequired,
   showSwatch: PropTypes.bool,
   className: PropTypes.string,
+  ariaLabel: PropTypes.string,
 };
 
 export function SettingsToggle({

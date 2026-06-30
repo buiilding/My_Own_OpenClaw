@@ -54,7 +54,7 @@ describe('AgentSettingsTab', () => {
     capabilityEventHandler = null;
   });
 
-  test('updates tool toggles and displays accepted schemas plus extensions', async () => {
+  test('updates tool dropdowns and displays accepted schemas plus extensions', async () => {
     const onConfigChange = jest.fn();
     render(
       <AgentSettingsTab
@@ -70,11 +70,15 @@ describe('AgentSettingsTab', () => {
     expect(screen.getByText('System prompt')).toBeInTheDocument();
     expect(document.querySelectorAll('.settings-surface-tool-status').length).toBe(1);
 
-    fireEvent.click(screen.getByLabelText('Enable browser'));
+    fireEvent.change(screen.getByLabelText('Set Browser tools access'), {
+      target: { value: 'disabled' },
+    });
     expect(onConfigChange).toHaveBeenCalledWith({
       agent_disabled_local_tools: ['browser'],
     });
-    fireEvent.click(screen.getByLabelText('Enable web_search'));
+    fireEvent.change(screen.getByLabelText('Set web_search access'), {
+      target: { value: 'disabled' },
+    });
     expect(onConfigChange).toHaveBeenCalledWith({
       agent_disabled_remote_tools: ['web_search'],
     });

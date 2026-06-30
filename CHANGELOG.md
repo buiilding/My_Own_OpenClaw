@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/settings: replace Agent tool switches and the dashboard memory
+  retrieval switch with `Allowed` / `Disabled` dropdowns, grouping local tools
+  by capability while keeping the existing disabled-tool config path. No
+  migration required.
 - docs/public: move remaining backend/private planning, tool-system, run-control,
   endpoint, process-health, and doctor docs out of `frontend/docs`, and scrub
   public docs of backend source paths, private commands, VM-runs endpoints, and
