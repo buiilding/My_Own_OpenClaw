@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/cli: remove the stale plural `doc-lists.js` wrappers and keep
+  `docs-list.js` `main` private now that platform shims and Windie CLI routes
+  invoke the canonical singular script directly. No migration required; use
+  `bin/docs-list.sh`, `bin/docs-list.cmd`, or `<windie> docs list`.
 - frontend/cli: remove the unused `FRONTEND_DIR` export from
   `scripts/windie/paths.cjs` so CLI path helpers expose only the canonical repo
   root and `repoPath` helper. No migration required for production code.

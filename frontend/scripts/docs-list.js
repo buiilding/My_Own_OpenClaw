@@ -247,7 +247,6 @@ if (require.main === module) {
 }
 
 module.exports = {
-  main,
   normalizeNavPagePath,
   normalizeRelativeMarkdownPath,
 };
