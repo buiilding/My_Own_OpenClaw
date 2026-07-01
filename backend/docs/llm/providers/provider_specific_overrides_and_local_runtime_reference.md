@@ -82,6 +82,14 @@ Default `list_models()` returns empty list; online model catalogs are static in 
 - budget resolution:
   - default is `16384`
   - low/high Anthropic reasoning variants (for example `... Low`, `... High`) map to lower/higher budgets via model preset metadata
+- request params add LiteLLM/Anthropic prompt-cache markers with
+  `cache_control = {"type": "ephemeral"}` on cacheable stable prefixes:
+  - the final normalized tool definition, so Anthropic can cache the tool schema
+    prefix before system/messages.
+  - the final static prompt-context message (`system`, repo `AGENTS.md`
+    instruction, or client prompt layer), leaving per-turn user messages
+    unmarked so changing query/window context does not create write-only cache
+    entries.
 - stream path reuses shared `StreamingToolCallAggregationMixin`, which emits
   normal/thinking deltas live while buffering Anthropic `tool_use` blocks and
   OpenAI-style `delta.tool_calls` until stream completion.

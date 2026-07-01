@@ -176,6 +176,123 @@ def test_anthropic_provider_uses_low_budget_for_low_reasoning_variant():
     assert updated.get("thinking") == {"type": "enabled", "budget_tokens": 4096}
 
 
+def test_anthropic_request_params_mark_static_prompt_and_tools_for_caching():
+    provider = AnthropicProvider(api_key="test-key")
+    messages = [
+        {"role": "system", "content": "stable system prompt"},
+        {
+            "role": "user",
+            "content": "# AGENTS.md instructions for /repo\n\n<INSTRUCTIONS>stable",
+        },
+        {"role": "user", "content": "<user_query>what changed?</user_query>"},
+    ]
+    tools = [_anthropic_tool_schema("screenshot"), _anthropic_tool_schema("read_file")]
+
+    params = provider._build_request_params(
+        "claude-sonnet-4-5-20250929",
+        messages,
+        tools=tools,
+    )
+
+    assert params["messages"][0] == {
+        "role": "system",
+        "content": "stable system prompt",
+    }
+    assert params["messages"][1]["cache_control"] == {"type": "ephemeral"}
+    assert "cache_control" not in params["messages"][2]
+    assert params["tools"][0] == {
+        "type": "function",
+        "function": {
+            "name": "screenshot",
+            "parameters": {"type": "object"},
+        },
+    }
+    assert params["tools"][1]["function"]["cache_control"] == {"type": "ephemeral"}
+    assert "cache_control" not in messages[1]
+    assert "cache_control" not in tools[1]
+
+
+def test_anthropic_request_params_mark_system_when_no_static_user_context():
+    provider = AnthropicProvider(api_key="test-key")
+
+    params = provider._build_request_params(
+        "claude-sonnet-4-5-20250929",
+        [
+            {"role": "system", "content": "stable system prompt"},
+            {"role": "user", "content": "<user_query>what changed?</user_query>"},
+        ],
+    )
+
+    assert params["messages"][0]["cache_control"] == {"type": "ephemeral"}
+    assert "cache_control" not in params["messages"][1]
+
+
+def test_anthropic_request_params_preserve_existing_cache_controls():
+    provider = AnthropicProvider(api_key="test-key")
+    params = {
+        "model": "anthropic/claude-sonnet-4-5-20250929",
+        "messages": [
+            {
+                "role": "system",
+                "content": [
+                    {"type": "text", "text": "stable"},
+                    {
+                        "type": "text",
+                        "text": "already marked",
+                        "cache_control": {"type": "ephemeral"},
+                    },
+                ],
+            },
+            {"role": "user", "content": "<user_query>hi</user_query>"},
+        ],
+        "tools": [
+            {
+                "type": "function",
+                "function": {
+                    "name": "read_file",
+                    "parameters": {"type": "object"},
+                    "cache_control": {"type": "ephemeral"},
+                },
+            }
+        ],
+    }
+
+    updated = provider._apply_provider_request_params(
+        params,
+        model="claude-sonnet-4-5-20250929",
+    )
+
+    assert updated["messages"][0]["content"] == params["messages"][0]["content"]
+    assert updated["tools"][0]["function"]["cache_control"] == {"type": "ephemeral"}
+
+
+def test_anthropic_request_params_mark_structured_system_content_for_caching():
+    provider = AnthropicProvider(api_key="test-key")
+
+    params = provider._build_request_params(
+        "claude-sonnet-4-5-20250929",
+        [
+            {
+                "role": "system",
+                "content": [
+                    {"type": "text", "text": "stable"},
+                    {"type": "text", "text": "cache this block"},
+                ],
+            },
+            {"role": "user", "content": "<user_query>hi</user_query>"},
+        ],
+    )
+
+    assert params["messages"][0]["content"] == [
+        {"type": "text", "text": "stable"},
+        {
+            "type": "text",
+            "text": "cache this block",
+            "cache_control": {"type": "ephemeral"},
+        },
+    ]
+
+
 @pytest.mark.asyncio
 async def test_anthropic_streams_text_and_thinking_while_buffering_tool_calls(
     monkeypatch,

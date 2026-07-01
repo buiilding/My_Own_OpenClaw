@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/anthropic: add LiteLLM prompt-cache markers to Anthropic tool
+  definitions and stable prompt-context prefixes while leaving changing user
+  turn content unmarked, so Claude can reuse cached input across repeated
+  agent turns. No migration required.
 - sdk/tools: block stale or hallucinated local-runtime tool calls for disabled
   built-in tools at SDK execution ingress and return a failed tool output
   instead of invoking the local runtime. No migration required.
