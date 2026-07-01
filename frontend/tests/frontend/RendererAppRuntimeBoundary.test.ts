@@ -125,6 +125,12 @@ describe('renderer app runtime boundary', () => {
     expect(contractsSource).toContain('Object.freeze');
     expect(contractsSource).not.toContain("export * from '../../../../../packages/windie-sdk-js/src';");
     expect(contractsSource).not.toContain('export {\n  SDK_RUNTIME_COMMANDS');
+    expect(contractsSource).not.toContain('ConversationViewBuildDiagnostics');
+    expect(contractsSource).not.toContain('CurrentTurnToolEvent');
+    expect(contractsSource).not.toContain('DisplayTimelineCheckpoint');
+    expect(contractsSource).not.toContain('DisplayTimelineRow');
+    expect(contractsSource).not.toContain('EditAndResendInput');
+    expect(contractsSource).not.toContain('RetryTurnInput');
     expect(contractsSource).not.toContain('infrastructure/api/agentSdkClient');
   });
 

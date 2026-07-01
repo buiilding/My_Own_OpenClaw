@@ -15,6 +15,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/runtime: make unused startup, settings-error, interaction, and
   live-surface trace helper types private so their app-runtime facades remain
   the public contracts. No migration required for production code.
+- renderer/contracts: remove unused SDK display/revision type re-exports from
+  `desktopConversationRuntimeContracts.ts` so the facade only exposes active
+  renderer contracts. No migration required for production code.
 - renderer/skin: make the active desktop runtime skin object private to
   `desktopRuntimeSkin.js` and keep `DesktopRuntimeSkin` as the sole facade
   export. No migration required for production code.

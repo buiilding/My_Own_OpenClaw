@@ -25,16 +25,9 @@ export type {
   ConversationMetadata,
   ConversationRevision,
   ConversationView,
-  ConversationViewBuildDiagnostics,
   CurrentTurnProjection,
-  CurrentTurnToolEvent,
-  DisplayConversation,
-  DisplayTimelineCheckpoint,
-  DisplayTimelineReplaceReason,
-  DisplayTimelineRow,
   JsonRecord,
   ListConversationOptions,
-  SdkDisplayRow,
   TraceTimelineEntry,
   TurnInputResource,
 } from '../../../../packages/windie-sdk-js/src/conversation/types.js';
@@ -44,10 +37,8 @@ export type {
 export type {
   CheckoutRevisionInput,
   CheckoutRevisionResult,
-  EditAndResendInput,
   ForkConversationInput,
   ForkConversationResult,
-  RetryTurnInput,
   TurnResult,
 } from '../../../../packages/windie-sdk-js/src/runtime/ConversationRuntime.js';
 export type {
