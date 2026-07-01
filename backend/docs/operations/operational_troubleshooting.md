@@ -173,7 +173,7 @@ Check:
 
 - package contains `resources/python-runtime`
 - local-runtime launch path from Electron logs
-- `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` for a focused local run
+- `WINDIE_LOCAL_RUNTIME_LOG_LEVEL=DEBUG` for a focused local run
 - platform package dependencies such as Linux `xdotool`
 
 Read:

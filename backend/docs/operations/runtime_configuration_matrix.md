@@ -80,7 +80,7 @@ Do not add backend-owned provider internals such as `speech_provider`, `stt_prov
 | Variable | Owner | Effect | Primary files |
 | --- | --- | --- | --- |
 | `WINDIE_PYTHON_PATH` | Electron main env | Forces Python executable used in desktop local-runtime launch options | `frontend/src/main/app/runtime_paths.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs` |
-| `AGENT_LOCAL_RUNTIME_LOG_LEVEL` (`WINDIE_SIDECAR_LOG_LEVEL` in WindieOS launches) | Electron main or reinstall helper env | Sets local-runtime Python logging level. `AGENT_SIDECAR_LOG_LEVEL` remains a compatibility alias. | `frontend/src/main/python/local_backend.py`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs` |
+| `AGENT_LOCAL_RUNTIME_LOG_LEVEL` (`WINDIE_LOCAL_RUNTIME_LOG_LEVEL` in WindieOS launches) | Electron main or reinstall helper env | Sets local-runtime Python logging level. | `frontend/src/main/python/local_backend.py`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs` |
 | `AGENT_VERBOSE_LOCAL_RUNTIME_STDERR` (`WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR` in WindieOS launches) | Electron main env through host skin | Forwards all local-runtime daemon stderr when `1`; default is severity-filtered. | `frontend/src/main/app/main_host_skin.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs` |
 | `AGENT_INTERACTIVE_WORKERS` (`WINDIE_INTERACTIVE_WORKERS` in WindieOS launches) | Local-runtime env | Interactive executor max workers. | `frontend/src/main/python/core/executors.py` |
 | `AGENT_BACKGROUND_WORKERS` (`WINDIE_BACKGROUND_WORKERS` in WindieOS launches) | Local-runtime env | Background executor max workers. | `frontend/src/main/python/core/executors.py` |

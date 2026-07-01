@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- local-runtime/config: canonicalize WindieOS local-runtime logging on
+  `WINDIE_LOCAL_RUNTIME_LOG_LEVEL` and
+  `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR`, removing the old sidecar-named
+  log-level/stderr env aliases from launch helpers, Python resolution, and
+  active docs. Migration: set `WINDIE_LOCAL_RUNTIME_LOG_LEVEL` instead of
+  `WINDIE_SIDECAR_LOG_LEVEL` in custom desktop/reinstall launches.
 - cli/local-runtime: remove the old `test sidecar`, `build sidecar-runtime`,
   and `scripts/python-in-env.sh sidecar` aliases so local-runtime validation and
   build entrypoints use the canonical `local-runtime` target. Existing

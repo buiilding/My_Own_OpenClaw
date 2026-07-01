@@ -13,7 +13,7 @@ $FrontendDir = Join-Path $RootDir "frontend"
 $ReleaseDir = Join-Path $FrontendDir "release"
 $WinUnpackedDir = Join-Path $ReleaseDir "win-unpacked"
 $AppName = if ($env:WINDIE_APP_NAME) { $env:WINDIE_APP_NAME } else { "WindieOS" }
-$SidecarLogLevel = if ($env:WINDIE_SIDECAR_LOG_LEVEL) { $env:WINDIE_SIDECAR_LOG_LEVEL } else { "ERROR" }
+$LocalRuntimeLogLevel = if ($env:WINDIE_LOCAL_RUNTIME_LOG_LEVEL) { $env:WINDIE_LOCAL_RUNTIME_LOG_LEVEL } else { "ERROR" }
 $FrontendEnvName = if ($env:WINDIE_FRONTEND_ENV) { $env:WINDIE_FRONTEND_ENV } else { "frontend_jarvis" }
 $UserDataCacheExclusions = @(
   "DawnGraphiteCache",
@@ -343,12 +343,12 @@ function Invoke-BuildPackage {
 
   Write-Log "building fresh Windows package"
   $previousPythonBuild = [Environment]::GetEnvironmentVariable("WINDIE_PYTHON_BUILD", "Process")
-  $previousSidecarLogLevel = [Environment]::GetEnvironmentVariable("WINDIE_SIDECAR_LOG_LEVEL", "Process")
-  $previousVerboseSidecar = [Environment]::GetEnvironmentVariable("WINDIE_VERBOSE_SIDECAR_STDERR", "Process")
+  $previousLocalRuntimeLogLevel = [Environment]::GetEnvironmentVariable("WINDIE_LOCAL_RUNTIME_LOG_LEVEL", "Process")
+  $previousVerboseLocalRuntime = [Environment]::GetEnvironmentVariable("WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR", "Process")
 
   [Environment]::SetEnvironmentVariable("WINDIE_PYTHON_BUILD", $PythonBuildPath, "Process")
-  [Environment]::SetEnvironmentVariable("WINDIE_SIDECAR_LOG_LEVEL", $SidecarLogLevel, "Process")
-  [Environment]::SetEnvironmentVariable("WINDIE_VERBOSE_SIDECAR_STDERR", "0", "Process")
+  [Environment]::SetEnvironmentVariable("WINDIE_LOCAL_RUNTIME_LOG_LEVEL", $LocalRuntimeLogLevel, "Process")
+  [Environment]::SetEnvironmentVariable("WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR", "0", "Process")
 
   try {
     & npm --prefix $FrontendDir run package:win
@@ -357,8 +357,8 @@ function Invoke-BuildPackage {
     }
   } finally {
     [Environment]::SetEnvironmentVariable("WINDIE_PYTHON_BUILD", $previousPythonBuild, "Process")
-    [Environment]::SetEnvironmentVariable("WINDIE_SIDECAR_LOG_LEVEL", $previousSidecarLogLevel, "Process")
-    [Environment]::SetEnvironmentVariable("WINDIE_VERBOSE_SIDECAR_STDERR", $previousVerboseSidecar, "Process")
+    [Environment]::SetEnvironmentVariable("WINDIE_LOCAL_RUNTIME_LOG_LEVEL", $previousLocalRuntimeLogLevel, "Process")
+    [Environment]::SetEnvironmentVariable("WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR", $previousVerboseLocalRuntime, "Process")
   }
 }
 
@@ -380,7 +380,7 @@ Write-Log "repo=$RootDir"
 Write-Log "frontend=$FrontendDir"
 Write-Log "python_build=$PythonBuild"
 Write-Log "bash=$bashPath"
-Write-Log "sidecar_log_level=$SidecarLogLevel"
+Write-Log "local_runtime_log_level=$LocalRuntimeLogLevel"
 Write-Log "skip_data_reset=$($SkipDataReset.IsPresent)"
 Write-Log "skip_launch=$($SkipLaunch.IsPresent)"
 
@@ -467,15 +467,15 @@ if ($SkipLaunch) {
   Write-Log "skipping packaged app launch"
 } else {
   Write-Log "launching installed packaged app $installedAppPath"
-  $previousSidecarLogLevel = [Environment]::GetEnvironmentVariable("WINDIE_SIDECAR_LOG_LEVEL", "Process")
-  $previousVerboseSidecar = [Environment]::GetEnvironmentVariable("WINDIE_VERBOSE_SIDECAR_STDERR", "Process")
-  [Environment]::SetEnvironmentVariable("WINDIE_SIDECAR_LOG_LEVEL", $SidecarLogLevel, "Process")
-  [Environment]::SetEnvironmentVariable("WINDIE_VERBOSE_SIDECAR_STDERR", "0", "Process")
+  $previousLocalRuntimeLogLevel = [Environment]::GetEnvironmentVariable("WINDIE_LOCAL_RUNTIME_LOG_LEVEL", "Process")
+  $previousVerboseLocalRuntime = [Environment]::GetEnvironmentVariable("WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR", "Process")
+  [Environment]::SetEnvironmentVariable("WINDIE_LOCAL_RUNTIME_LOG_LEVEL", $LocalRuntimeLogLevel, "Process")
+  [Environment]::SetEnvironmentVariable("WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR", "0", "Process")
   try {
     Start-Process -FilePath $installedAppPath | Out-Null
   } finally {
-    [Environment]::SetEnvironmentVariable("WINDIE_SIDECAR_LOG_LEVEL", $previousSidecarLogLevel, "Process")
-    [Environment]::SetEnvironmentVariable("WINDIE_VERBOSE_SIDECAR_STDERR", $previousVerboseSidecar, "Process")
+    [Environment]::SetEnvironmentVariable("WINDIE_LOCAL_RUNTIME_LOG_LEVEL", $previousLocalRuntimeLogLevel, "Process")
+    [Environment]::SetEnvironmentVariable("WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR", $previousVerboseLocalRuntime, "Process")
   }
 }
 

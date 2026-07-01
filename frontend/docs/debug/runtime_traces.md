@@ -590,7 +590,7 @@ Enable local-runtime Python debug:
 
 ```bash
 cd frontend
-WINDIE_SIDECAR_LOG_LEVEL=DEBUG <windie> start desktop
+WINDIE_LOCAL_RUNTIME_LOG_LEVEL=DEBUG <windie> start desktop
 ```
 
 If a local-runtime result is missing, check for all of these before editing:

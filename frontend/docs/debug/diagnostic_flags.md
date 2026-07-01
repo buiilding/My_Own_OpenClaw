@@ -61,7 +61,7 @@ WINDIE_DEBUG_TOOL_SCREENSHOT=1 <windie> start desktop
 
 | Flag | Effect |
 | --- | --- |
-| `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` | Raises Python local-runtime logs. Generic hosts should use `AGENT_LOCAL_RUNTIME_LOG_LEVEL`; `AGENT_SIDECAR_LOG_LEVEL` remains a compatibility alias. |
+| `WINDIE_LOCAL_RUNTIME_LOG_LEVEL=DEBUG` | Raises Python local-runtime logs. Generic hosts should use `AGENT_LOCAL_RUNTIME_LOG_LEVEL`. |
 | `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR=1` | Forwards verbose local-runtime stderr through Electron main via the WindieOS host-skin env mapping. |
 | `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR=0` | Reduces local-runtime stderr noise; used by packaged reinstall helpers. Generic Electron hosts can use `AGENT_VERBOSE_LOCAL_RUNTIME_STDERR` unless they provide their own skin env key. |
 | `AGENT_ENABLE_SEMANTIC_SUMMARIZER=0` (`WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` in WindieOS launches) | Disables semantic summarizer for focused local-runtime debugging; Electron main mirrors the WindieOS skin key into the generic Agent SDK key. |
@@ -82,7 +82,7 @@ Local-runtime Python stdout is protocol traffic. Never log debug text to stdout.
 | Flag | Effect |
 | --- | --- |
 | `WINDIE_LOG_FILE=<path>` | Packaged run log path for local reinstall helpers. |
-| `WINDIE_SIDECAR_LOG_LEVEL=<level>` | Local-runtime log level used by reinstall helpers; generic hosts should use `AGENT_LOCAL_RUNTIME_LOG_LEVEL`; `AGENT_SIDECAR_LOG_LEVEL` remains a compatibility alias. |
+| `WINDIE_LOCAL_RUNTIME_LOG_LEVEL=<level>` | Local-runtime log level used by reinstall helpers; generic hosts should use `AGENT_LOCAL_RUNTIME_LOG_LEVEL`. |
 | `WINDIE_BUNDLE_ID=<id>` | Override bundle id in local reinstall flows. |
 | `WINDIE_APP_NAME=<name>` | Override app name in local reinstall flows. |
 

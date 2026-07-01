@@ -52,7 +52,7 @@ WEBKIT_BUNDLE_DIR="${HOME}/Library/WebKit/${BUNDLE_ID}"
 HTTP_STORAGE_DIR="${HOME}/Library/HTTPStorages/${BUNDLE_ID}"
 SAVED_STATE_DIR="${HOME}/Library/Saved Application State/${BUNDLE_ID}.savedState"
 LOG_FILE="${WINDIE_LOG_FILE:-${HOME}/windieos-packaged-run.log}"
-SIDECAR_LOG_LEVEL="${WINDIE_SIDECAR_LOG_LEVEL:-ERROR}"
+LOCAL_RUNTIME_LOG_LEVEL="${WINDIE_LOCAL_RUNTIME_LOG_LEVEL:-ERROR}"
 PYTHON_BUILD="${WINDIE_PYTHON_BUILD:-}"
 TAIL_PID=""
 
@@ -182,7 +182,7 @@ echo "[reinstall-windieos-macos] bundle_id=${BUNDLE_ID}"
 echo "[reinstall-windieos-macos] app_install_path=${APP_INSTALL_PATH}"
 echo "[reinstall-windieos-macos] user_data_dir=${USER_DATA_DIR}"
 echo "[reinstall-windieos-macos] log_file=${LOG_FILE}"
-echo "[reinstall-windieos-macos] sidecar_log_level=${SIDECAR_LOG_LEVEL}"
+echo "[reinstall-windieos-macos] local_runtime_log_level=${LOCAL_RUNTIME_LOG_LEVEL}"
 echo "[reinstall-windieos-macos] local reinstall skips Apple notarization and Developer ID signing"
 echo "[reinstall-windieos-macos] ignored notarization env vars: ${NOTARIZATION_ENV_VARS[*]}"
 echo "[reinstall-windieos-macos] ignored local signing env vars: ${LOCAL_SIGNING_ENV_VARS[*]}"
@@ -296,6 +296,6 @@ open -n -W -F \
   --stdin /dev/null \
   --stdout "${LOG_FILE}" \
   --stderr "${LOG_FILE}" \
-  --env "WINDIE_SIDECAR_LOG_LEVEL=${SIDECAR_LOG_LEVEL}" \
-  --env "WINDIE_VERBOSE_SIDECAR_STDERR=0" \
+  --env "WINDIE_LOCAL_RUNTIME_LOG_LEVEL=${LOCAL_RUNTIME_LOG_LEVEL}" \
+  --env "WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR=0" \
   "${APP_INSTALL_PATH}"

@@ -28,7 +28,7 @@ Useful overrides:
 
 ```bash
 WINDIE_LOG_FILE=~/windieos-packaged-run.log \
-WINDIE_SIDECAR_LOG_LEVEL=DEBUG \
+WINDIE_LOCAL_RUNTIME_LOG_LEVEL=DEBUG \
 <windie> reinstall mac
 ```
 

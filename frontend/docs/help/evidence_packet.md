@@ -47,7 +47,7 @@ Pick only flags that match the boundary:
 - stream/event issues: `WINDIE_DEBUG_STREAM_EVENTS=1`
 - chat pill/overlay issues: `WINDIE_DEBUG_CHAT_PILL=1`
 - screenshot/tool capture issues: `WINDIE_DEBUG_TOOL_SCREENSHOT=1`
-- sidecar issues: `WINDIE_SIDECAR_LOG_LEVEL=DEBUG`
+- local-runtime issues: `WINDIE_LOCAL_RUNTIME_LOG_LEVEL=DEBUG`
 - packaged app issues: `WINDIE_LOG_FILE=<path>`
 
 ## Reproduction Quality

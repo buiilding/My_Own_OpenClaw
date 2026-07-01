@@ -146,6 +146,7 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('localRuntime');
     expect(skinSource).toContain("backendHttpUrl: 'WINDIE_BACKEND_HTTP_URL'");
     expect(skinSource).toContain("permissionStatePath: 'WINDIE_PERMISSION_STATE_PATH'");
+    expect(skinSource).toContain("logLevel: 'WINDIE_LOCAL_RUNTIME_LOG_LEVEL'");
     expect(skinSource).toContain("verboseStderr: 'WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR'");
     expect(skinSource).toContain('browserWarmupExplanation');
     expect(skinSource).toContain('wakeword');

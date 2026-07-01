@@ -69,7 +69,7 @@ Healthy signs:
 
 First checks:
 
-- `WINDIE_SIDECAR_LOG_LEVEL=DEBUG`,
+- `WINDIE_LOCAL_RUNTIME_LOG_LEVEL=DEBUG`,
 - local-runtime stderr forwarding,
 - bundled runtime path in packaged app,
 - `frontend/src/main/python/local_backend.py`,

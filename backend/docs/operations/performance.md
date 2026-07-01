@@ -44,10 +44,10 @@ read_when:
 ## Sidecar
 
 - **Single capture after tool execution**: screenshots are captured once per tool/bundle to avoid redundant work.
-- **Bounded executor routing**: sidecar now uses split interactive/background executors, with interactive bound as loop default to prevent unbounded default-thread growth on macOS-heavy capture/state paths.
+- **Bounded executor routing**: local runtime now uses split interactive/background executors, with interactive bound as loop default to prevent unbounded default-thread growth on macOS-heavy capture/state paths.
 - **Lower-noise stderr forwarding**: Electron main now forwards local-runtime stderr lines by severity (`WARNING+` by default) with opt-in verbose pass-through via `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR=1`. Generic Electron hosts use the `AGENT_VERBOSE_LOCAL_RUNTIME_STDERR` helper default unless their host skin config maps another env key.
-- **Quieter default local-runtime logging**: Python local runtime now defaults to `WARNING` logs and supports explicit override via `AGENT_LOCAL_RUNTIME_LOG_LEVEL`; `AGENT_SIDECAR_LOG_LEVEL` and WindieOS `WINDIE_SIDECAR_LOG_LEVEL` remain compatibility aliases.
-- **Lazier browser startup path**: browser tool runtime imports are now deferred until first browser tool execution instead of sidecar boot.
+- **Quieter default local-runtime logging**: Python local runtime now defaults to `WARNING` logs and supports explicit override via `AGENT_LOCAL_RUNTIME_LOG_LEVEL`; WindieOS launches use `WINDIE_LOCAL_RUNTIME_LOG_LEVEL`.
+- **Lazier browser startup path**: browser tool runtime imports are now deferred until first browser tool execution instead of local-runtime boot.
 - **No duplicate FAISS read at startup**: `LocalMemoryStore` no longer performs redundant sync+async FAISS index reads during initialization.
 - **Safer/lighter startup vector sync**: `LocalMemoryStore` now ensures FAISS indices exist before embedding backfill and skips FAISS disk writes when startup sync made no vector changes.
 - **Lean screenshot transport over local-runtime JSON-RPC**: the local-runtime Python screenshot implementation now returns temp file refs, and Electron main uploads those files to backend artifacts (`screenshot_ref`) before renderer tool handling, removing huge inline base64 JSON lines from the Python stdout hot path.

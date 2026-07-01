@@ -72,7 +72,7 @@ Use debug logging only while collecting evidence:
 
 ```bash
 cd frontend
-WINDIE_SIDECAR_LOG_LEVEL=DEBUG <windie> start desktop
+WINDIE_LOCAL_RUNTIME_LOG_LEVEL=DEBUG <windie> start desktop
 ```
 
 Confirm:
