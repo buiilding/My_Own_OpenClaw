@@ -274,21 +274,66 @@ function shouldSkipLocalToolExecution(event: ConversationEvent): boolean {
   return metadata?.skip_local_execution === true;
 }
 
-function activeClientToolNames(agentDefinition: JsonRecord | null | undefined): Set<string> | null {
-  if (!agentDefinition || !isJsonRecord(agentDefinition.tools)) {
-    return null;
+type LocalToolExecutionPolicy = {
+  allowlistedToolNames: Set<string> | null;
+  disabledToolNames: Set<string>;
+};
+
+function normalizeToolNameSet(values: unknown): Set<string> {
+  const names = new Set<string>();
+  if (!Array.isArray(values)) {
+    return names;
   }
+  for (const value of values) {
+    const name = normalizeToolName(value);
+    if (name) {
+      names.add(name);
+    }
+  }
+  return names;
+}
+
+function activeLocalToolExecutionPolicy(agentDefinition: JsonRecord | null | undefined): LocalToolExecutionPolicy {
+  if (!agentDefinition || !isJsonRecord(agentDefinition.tools)) {
+    return {
+      allowlistedToolNames: null,
+      disabledToolNames: new Set(),
+    };
+  }
+  const disabledToolNames = normalizeToolNameSet(agentDefinition.tools.disabled_tools);
   const clientManifest = isJsonRecord(agentDefinition.tools.client_manifest)
     ? agentDefinition.tools.client_manifest
     : null;
-  const tools = Array.isArray(clientManifest?.tools) ? clientManifest.tools : [];
-  if (tools.length === 0) {
+  if (!clientManifest || !Array.isArray(clientManifest.tools)) {
+    return {
+      allowlistedToolNames: null,
+      disabledToolNames,
+    };
+  }
+  const allowlistedToolNames = normalizeToolNameSet(
+    clientManifest.tools.map(tool => (isJsonRecord(tool) ? tool.name : null)),
+  );
+  return {
+    allowlistedToolNames,
+    disabledToolNames,
+  };
+}
+
+function resolveBlockedLocalToolMessage(
+  call: LocalToolCall,
+  policy: LocalToolExecutionPolicy,
+): string | null {
+  const toolName = normalizeToolName(call.toolName);
+  if (!toolName) {
     return null;
   }
-  const names = tools
-    .map(tool => (isJsonRecord(tool) && typeof tool.name === 'string' ? tool.name.trim() : ''))
-    .filter(Boolean);
-  return names.length > 0 ? new Set(names) : null;
+  if (policy.disabledToolNames.has(toolName)) {
+    return `Tool execution blocked: ${call.toolName} is disabled in the active agent configuration.`;
+  }
+  if (policy.allowlistedToolNames && !policy.allowlistedToolNames.has(toolName)) {
+    return `Tool execution blocked: ${call.toolName} is not exposed by the active agent capability manifest.`;
+  }
+  return null;
 }
 
 function resolveLocalToolRelease(release: LocalToolExecutionRelease): (() => void | Promise<void>) | null {
@@ -308,11 +353,10 @@ export class ToolExecutionCoordinator {
     if (!this.options.localRuntime?.executeTool) {
       throw new Error('local runtime executeTool is unavailable');
     }
-    const activeToolNames = activeClientToolNames(this.options.agentDefinition ?? null);
-    if (activeToolNames && !activeToolNames.has(call.toolName)) {
-      throw new Error(
-        `Local tool route unavailable for ${call.toolName}. The active capability manifest no longer exposes this tool.`,
-      );
+    const policy = activeLocalToolExecutionPolicy(this.options.agentDefinition ?? null);
+    const blockedMessage = resolveBlockedLocalToolMessage(call, policy);
+    if (blockedMessage) {
+      throw new Error(blockedMessage);
     }
     const release = resolveLocalToolRelease(await this.options.localToolLifecycle?.beforeExecute?.(call));
     try {

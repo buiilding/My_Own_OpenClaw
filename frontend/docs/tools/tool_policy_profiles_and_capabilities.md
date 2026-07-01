@@ -51,6 +51,12 @@ Provider-health gates accept readiness as either boolean attributes or zero-arg
 methods such as `is_ready()` and `is_initialized()`; readiness exceptions are
 treated as unavailable.
 
+For local-runtime tools, visibility policy is also enforced at SDK execution
+ingress. If a stale or hallucinated tool call arrives after a built-in has been
+removed from the effective turn's client manifest or listed in
+`disabled_tools`, the SDK does not invoke the local runtime. It returns a failed
+tool result whose output says the active agent configuration blocked the tool.
+
 ## Capability Gates
 
 ### Browser
@@ -126,6 +132,10 @@ Use this order:
 7. Check provider projection if the provider adds native declarations.
 8. If local execution is expected, confirm the local-runtime built-in tool set
    (`LOCAL_RUNTIME_BUILTIN_TOOL_NAMES`) and executable registry registration.
+9. If a hidden local tool still appears as a backend `tool-call`, confirm the
+   SDK `ToolExecutionCoordinator` sees the effective turn's current
+   `agent_definition`; it should return a blocked failed result before local
+   execution.
 
 ## Debugging Unexpectedly Visible Tools
 

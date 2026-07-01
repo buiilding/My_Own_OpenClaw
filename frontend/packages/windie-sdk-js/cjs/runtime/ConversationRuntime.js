@@ -726,6 +726,7 @@ class SdkConversationRuntime {
         this.backendTurnSequences = new Map();
         this.pendingTurns = new Map();
         this.liveDisplayAttachmentsByTurn = new Map();
+        this.agentDefinitionsByTurn = new Map();
         this.activeDisplayTimeline = null;
         this.backendEventQueue = Promise.resolve();
         this.state = (0, conversationReducer_js_1.createInitialConversationRuntimeState)(options.conversationRef, options.revisionId);
@@ -1221,6 +1222,7 @@ class SdkConversationRuntime {
             const agentDefinition = isJsonRecord(transportPayload.agent_definition)
                 ? transportPayload.agent_definition
                 : null;
+            this.agentDefinitionsByTurn.set(turnRef, agentDefinition);
             const mcpManifestStats = getMcpManifestToolStats(agentDefinition);
             const sdkMcpManifestStats = getMcpManifestToolStats(sdkAgentDefinition);
             const queryMcpManifestStats = getMcpManifestToolStats(queryAgentDefinition);
@@ -2877,8 +2879,8 @@ class SdkConversationRuntime {
             localRuntime: this.options.localRuntime,
             localToolLifecycle: this.options.localToolLifecycle,
             agentDefinition: isJsonRecord(this.options.agentDefinition)
-                ? this.options.agentDefinition
-                : null,
+                ? (this.agentDefinitionsByTurn.get(event.turnRef) ?? this.options.agentDefinition)
+                : (this.agentDefinitionsByTurn.get(event.turnRef) ?? null),
             store: {
                 appendEvent: async (outputEvent) => {
                     await this.applyEvent(outputEvent);

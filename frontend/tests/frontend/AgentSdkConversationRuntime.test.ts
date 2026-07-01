@@ -3793,8 +3793,144 @@ describe('Agent SDK conversation runtime core', () => {
       request_id: 'req-stale-cua',
       success: false,
       data: {
-        output: expect.stringContaining('active capability manifest no longer exposes this tool'),
+        output: expect.stringContaining('not exposed by the active agent capability manifest'),
       },
+    }));
+  });
+
+  test('tool coordinator blocks local execution when active manifest is explicitly empty', async () => {
+    const store = new InMemoryConversationStore();
+    const executeTool = jest.fn(async () => ({ success: true, data: { output: 'ran' } }));
+    const sendToolResult = jest.fn(async () => undefined);
+    const coordinator = new ToolExecutionCoordinator({
+      store,
+      agentDefinition: {
+        tools: {
+          client_manifest: {
+            version: 1,
+            tools: [],
+          },
+          disabled_tools: ['read_file'],
+        },
+      },
+      localRuntime: { executeTool },
+      sendToolResult,
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    const claim = await coordinator.execute(event('tool_call', {
+      toolName: 'read_file',
+      requestId: 'req-blocked-read',
+      args: { path: 'README.md' },
+    }));
+
+    expect(claim.claimed).toBe(true);
+    expect(executeTool).not.toHaveBeenCalled();
+    expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
+      request_id: 'req-blocked-read',
+      success: false,
+      data: {
+        output: 'Tool execution blocked: read_file is disabled in the active agent configuration.',
+      },
+    }));
+    expect(await store.loadEvents('conv-sdk-runtime')).toEqual([
+      expect.objectContaining({
+        type: 'tool_output',
+        payload: expect.objectContaining({
+          requestId: 'req-blocked-read',
+          toolName: 'read_file',
+          success: false,
+          error: 'Tool execution blocked: read_file is disabled in the active agent configuration.',
+        }),
+      }),
+    ]);
+  });
+
+  test('tool coordinator lets disabled tools override manifest exposure', async () => {
+    const executeTool = jest.fn(async () => ({ success: true, data: { output: 'ran' } }));
+    const sendToolResult = jest.fn(async () => undefined);
+    const coordinator = new ToolExecutionCoordinator({
+      agentDefinition: {
+        tools: {
+          client_manifest: {
+            version: 1,
+            tools: [{ name: 'read_file', schema: { type: 'object' } }],
+          },
+          disabled_tools: ['read_file'],
+        },
+      },
+      localRuntime: { executeTool },
+      sendToolResult,
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    await coordinator.execute(event('tool_call', {
+      toolName: 'read_file',
+      requestId: 'req-disabled-read',
+      args: { path: 'README.md' },
+    }));
+
+    expect(executeTool).not.toHaveBeenCalled();
+    expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
+      request_id: 'req-disabled-read',
+      success: false,
+      data: {
+        output: 'Tool execution blocked: read_file is disabled in the active agent configuration.',
+      },
+    }));
+  });
+
+  test('tool coordinator marks blocked bundle steps as failed without local execution', async () => {
+    const executeTool = jest.fn(async (call) => ({
+      success: true,
+      data: { output: `ran ${call.toolName}` },
+    }));
+    const sendToolBundleResult = jest.fn(async () => undefined);
+    const coordinator = new ToolExecutionCoordinator({
+      agentDefinition: {
+        tools: {
+          client_manifest: {
+            version: 1,
+            tools: [{ name: 'read_file', schema: { type: 'object' } }],
+          },
+          disabled_tools: ['run_shell_command'],
+        },
+      },
+      localRuntime: { executeTool },
+      sendToolResult: jest.fn(async () => undefined),
+      sendToolBundleResult,
+    });
+
+    const claim = await coordinator.execute(event('tool_bundle_call', {
+      bundleId: 'bundle-blocked',
+      tools: [
+        { name: 'read_file', args: { path: 'README.md' } },
+        { name: 'run_shell_command', args: { command: 'date' } },
+      ],
+    }));
+
+    expect(claim.claimed).toBe(true);
+    expect(executeTool).toHaveBeenCalledTimes(1);
+    expect(executeTool).toHaveBeenCalledWith(expect.objectContaining({
+      toolName: 'read_file',
+    }));
+    expect(sendToolBundleResult).toHaveBeenCalledWith(expect.objectContaining({
+      bundle_id: 'bundle-blocked',
+      status: 'partial_failure',
+      step_results: [
+        expect.objectContaining({
+          tool: 'read_file',
+          status: 'ok',
+          output: { output: 'ran read_file' },
+        }),
+        expect.objectContaining({
+          tool: 'run_shell_command',
+          status: 'error',
+          output: {
+            output: 'Tool execution blocked: run_shell_command is disabled in the active agent configuration.',
+          },
+        }),
+      ],
     }));
   });
 
@@ -6657,6 +6793,83 @@ describe('Agent SDK conversation runtime core', () => {
         }),
       }),
     ]);
+  });
+
+  test('conversation runtime blocks stale tool calls using the effective query agent definition', async () => {
+    const sendToolResult = jest.fn(async () => undefined);
+    const transport = createControllableAgentRuntimeTransport({
+      sendQuery: jest.fn(async () => 'query-disabled-tool'),
+      sendToolResult,
+    });
+    const store = new InMemoryConversationStore();
+    const executeTool = jest.fn(async () => ({ success: true, data: { output: 'ran' } }));
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      localRuntime: { executeTool },
+      agentDefinition: {
+        id: 'sdk-agent',
+        tools: {
+          mode: 'client_only',
+          client_manifest: {
+            version: 1,
+            tools: [{ name: 'read_file', schema: { type: 'object' } }],
+          },
+        },
+      },
+    });
+    runtime.attachTransport();
+
+    await runtime.send({
+      text: 'read nothing',
+      turnRef: 'turn-disabled-tool',
+      payload: {
+        agent_definition: {
+          id: 'electron-context',
+          tools: {
+            mode: 'default_plus_client',
+            client_manifest: {
+              version: 1,
+              tools: [],
+            },
+            disabled_tools: ['read_file'],
+          },
+        },
+      },
+    });
+    transport.emit(backendEvent('tool-call', {
+      tool_name: 'read_file',
+      parameters: { path: 'README.md' },
+      request_id: 'req-disabled-turn-read',
+    }, {
+      eventId: 'turn-disabled-tool-evt-000001-tool-call',
+      turnRef: 'turn-disabled-tool',
+      sequence: 1,
+    }));
+
+    await waitForExpect(() => {
+      expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
+        request_id: 'req-disabled-turn-read',
+        success: false,
+        data: {
+          output: 'Tool execution blocked: read_file is disabled in the active agent configuration.',
+        },
+      }));
+    });
+    expect(executeTool).not.toHaveBeenCalled();
+    expect(await store.loadEvents('conv-sdk-runtime')).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'tool_output',
+        turnRef: 'turn-disabled-tool',
+        payload: expect.objectContaining({
+          requestId: 'req-disabled-turn-read',
+          toolName: 'read_file',
+          success: false,
+          error: 'Tool execution blocked: read_file is disabled in the active agent configuration.',
+        }),
+      }),
+    ]));
   });
 
   test('conversation runtime terminalizes active turn for unsequenced backend error envelope', async () => {

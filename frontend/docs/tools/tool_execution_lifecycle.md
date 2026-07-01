@@ -29,7 +29,9 @@ event router.
 5. Backend parser/tool bridge normalizes provider-native calls into canonical tool-call shapes.
 6. Backend preparation resolves any high-level or grounded fields into executable payloads.
 7. Backend sends `tool-call` or `tool-bundle` websocket events to the SDK client.
-8. SDK runtime normalizes the tool event and routes the call through its local runtime client to the configured local executor.
+8. SDK runtime normalizes the tool event, checks the effective turn's client
+   manifest and disabled-tool policy, and routes allowed calls through its
+   local runtime client to the configured local executor.
 9. The local runtime invokes the local-runtime Python executor or JSON-RPC tool registry behind that local-executor boundary.
 10. The local-runtime Python executor runs the local action and returns a normalized `ToolResult`.
 11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend, appends a normalized `tool_output` or `tool_bundle_output` event with display content, and projects a display-only renderer `tool-output` event for both single calls and bundles. If backend delivery fails after local execution, the SDK stores that output as `success: false` with `deliveryFailed: true` and marks the turn failed.
@@ -73,6 +75,11 @@ Single-tool path:
   or `bundle_id`.
 - failed SDK tool results keep `success: false`, include `error`, and carry raw
   failure text in `data.output` when available.
+- disabled or no-longer-exposed local-runtime tools are blocked at SDK
+  execution ingress before local-runtime dispatch. The SDK still returns a
+  failed `tool-result` with `data.output` explaining that the active agent
+  configuration blocked the tool, so backend waiting/history can continue
+  without executing stale or hallucinated local actions.
 - backend does not emit accepted local SDK results back as `tool-output`.
   The SDK local execution path owns the UI row for local results; backend
   result ingress consumes `data.output` plus screenshot fields for
@@ -141,6 +148,7 @@ without reviving the old Electron-only screenshot materializer.
 | Tool never appears in prompt | backend policy/profile/provider health | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) |
 | Model emits invalid args | backend schema, provider projection, parser recovery | [Tool Contracts](tool_contracts.md), Backend Tools Docs Hub (private backend docs) |
 | Backend emits `tool-call`, local execution does nothing | SDK runtime event normalization, tool coordinator, or SDK local-runtime client | [Windie Client Runtime](../sdk/windie_client_runtime.md) |
+| Disabled local tool still executes after being hidden from the prompt | SDK `ToolExecutionCoordinator` effective-turn policy gate | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) |
 | Backend tool event is missing request or bundle ids | SDK runtime malformed-event handling | SDK should store `runtime_error` with `reason: "malformed_tool_event"` and avoid invoking the local executor without a result id |
 | SDK runtime invokes tool but local runtime says missing tool | Local-runtime registry/exposed-name parity backed by local-runtime Python implementation | [Tool Catalog Matrix](tool_catalog_matrix.md), [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
 | Local execution succeeds but model never sees result | result envelope/request id/waiting storage | Backend Tool Result Ingress (private backend docs) |

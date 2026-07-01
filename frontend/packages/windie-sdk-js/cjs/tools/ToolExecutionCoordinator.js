@@ -113,6 +113,44 @@ function extractScreenshotDataFromData(data) {
         throw new Error('Local tool results must use screenshot_ref and screenshot_url; camelCase screenshot fields are not supported.');
     }
 }
+function toolResultDisplayAttachments(screenshotData, requestId) {
+    if (!screenshotData) {
+        return null;
+    }
+    const screenshotRef = stringPayloadField(screenshotData, 'screenshot_ref');
+    const screenshotUrl = stringPayloadField(screenshotData, 'screenshot_url');
+    if (!screenshotRef && !screenshotUrl) {
+        return null;
+    }
+    const idPrefix = requestId && requestId.trim() ? requestId.trim() : 'tool-result';
+    return [{
+            id: `${idPrefix}:attachment:000`,
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            ...(stringPayloadField(screenshotData, 'screenshot_content_type') ? {
+                contentType: stringPayloadField(screenshotData, 'screenshot_content_type'),
+            } : {}),
+            ...(screenshotRef ? { screenshotRef } : {}),
+            ...(screenshotUrl ? { screenshotUrl } : {}),
+        }];
+}
+function backendDisplayAttachments(attachments) {
+    if (!attachments || attachments.length === 0) {
+        return null;
+    }
+    return attachments.map(attachment => ({
+        id: attachment.id,
+        kind: attachment.kind,
+        source: attachment.source,
+        status: attachment.status,
+        ...(attachment.filename ? { filename: attachment.filename } : {}),
+        ...(attachment.contentType ? { content_type: attachment.contentType } : {}),
+        ...(attachment.screenshotRef ? { screenshot_ref: attachment.screenshotRef } : {}),
+        ...(attachment.screenshotUrl ? { screenshot_url: attachment.screenshotUrl } : {}),
+        ...(attachment.errorCode ? { error_code: attachment.errorCode } : {}),
+    }));
+}
 function mergePostActionScreenshot(data, screenshotData, sourceToolName) {
     if (!screenshotData) {
         return data;
@@ -148,21 +186,54 @@ function shouldSkipLocalToolExecution(event) {
     const metadata = isJsonRecord(event.payload.metadata) ? event.payload.metadata : null;
     return metadata?.skip_local_execution === true;
 }
-function activeClientToolNames(agentDefinition) {
-    if (!agentDefinition || !isJsonRecord(agentDefinition.tools)) {
-        return null;
+function normalizeToolNameSet(values) {
+    const names = new Set();
+    if (!Array.isArray(values)) {
+        return names;
     }
+    for (const value of values) {
+        const name = normalizeToolName(value);
+        if (name) {
+            names.add(name);
+        }
+    }
+    return names;
+}
+function activeLocalToolExecutionPolicy(agentDefinition) {
+    if (!agentDefinition || !isJsonRecord(agentDefinition.tools)) {
+        return {
+            allowlistedToolNames: null,
+            disabledToolNames: new Set(),
+        };
+    }
+    const disabledToolNames = normalizeToolNameSet(agentDefinition.tools.disabled_tools);
     const clientManifest = isJsonRecord(agentDefinition.tools.client_manifest)
         ? agentDefinition.tools.client_manifest
         : null;
-    const tools = Array.isArray(clientManifest?.tools) ? clientManifest.tools : [];
-    if (tools.length === 0) {
+    if (!clientManifest || !Array.isArray(clientManifest.tools)) {
+        return {
+            allowlistedToolNames: null,
+            disabledToolNames,
+        };
+    }
+    const allowlistedToolNames = normalizeToolNameSet(clientManifest.tools.map(tool => (isJsonRecord(tool) ? tool.name : null)));
+    return {
+        allowlistedToolNames,
+        disabledToolNames,
+    };
+}
+function resolveBlockedLocalToolMessage(call, policy) {
+    const toolName = normalizeToolName(call.toolName);
+    if (!toolName) {
         return null;
     }
-    const names = tools
-        .map(tool => (isJsonRecord(tool) && typeof tool.name === 'string' ? tool.name.trim() : ''))
-        .filter(Boolean);
-    return names.length > 0 ? new Set(names) : null;
+    if (policy.disabledToolNames.has(toolName)) {
+        return `Tool execution blocked: ${call.toolName} is disabled in the active agent configuration.`;
+    }
+    if (policy.allowlistedToolNames && !policy.allowlistedToolNames.has(toolName)) {
+        return `Tool execution blocked: ${call.toolName} is not exposed by the active agent capability manifest.`;
+    }
+    return null;
 }
 function resolveLocalToolRelease(release) {
     if (typeof release === 'function') {
@@ -181,9 +252,10 @@ class ToolExecutionCoordinator {
         if (!this.options.localRuntime?.executeTool) {
             throw new Error('local runtime executeTool is unavailable');
         }
-        const activeToolNames = activeClientToolNames(this.options.agentDefinition ?? null);
-        if (activeToolNames && !activeToolNames.has(call.toolName)) {
-            throw new Error(`Local tool route unavailable for ${call.toolName}. The active capability manifest no longer exposes this tool.`);
+        const policy = activeLocalToolExecutionPolicy(this.options.agentDefinition ?? null);
+        const blockedMessage = resolveBlockedLocalToolMessage(call, policy);
+        if (blockedMessage) {
+            throw new Error(blockedMessage);
         }
         const release = resolveLocalToolRelease(await this.options.localToolLifecycle?.beforeExecute?.(call));
         try {
@@ -451,10 +523,17 @@ class ToolExecutionCoordinator {
                 ? await this.attachSinglePostActionScreenshot(call, result)
                 : (0, toolOutputContent_js_1.normalizeLocalToolResultData)(result.data, result.error || 'Tool execution failed');
             const materializedData = await this.materializeScreenshotArtifact(data);
+            const displayAttachments = toolResultDisplayAttachments(extractScreenshotDataFromData(materializedData), call.requestId);
+            const backendAttachments = backendDisplayAttachments(displayAttachments);
             payload = {
                 request_id: call.requestId,
                 success,
-                data: materializedData,
+                data: backendAttachments
+                    ? {
+                        ...materializedData,
+                        display_attachments: backendAttachments,
+                    }
+                    : materializedData,
             };
             screenshotData = extractScreenshotDataFromData(payload.data);
             await this.options.sendToolResult(payload);
@@ -467,6 +546,7 @@ class ToolExecutionCoordinator {
                 ? `Tool result delivery failed: ${errorMessage(deliveryError)}`
                 : null;
             const eventResult = payload?.data ?? { output: deliveryErrorMessage ?? 'Tool result delivery failed' };
+            const attachments = toolResultDisplayAttachments(screenshotData, call.requestId);
             await this.options.store?.appendEvent((0, events_js_1.createConversationEvent)({
                 eventId: `${event.turnRef ?? event.conversationRef}-local-tool-output-${call.requestId}`,
                 type: 'tool_output',
@@ -482,6 +562,7 @@ class ToolExecutionCoordinator {
                     success: deliveryError ? false : success,
                     result: eventResult,
                     ...(screenshotData ?? {}),
+                    ...(attachments ? { attachments } : {}),
                     error: deliveryErrorMessage ?? (success ? null : result.error || 'Tool execution failed'),
                     deliveryFailed: Boolean(deliveryError),
                     elapsedMs: Date.now() - startedAt,
