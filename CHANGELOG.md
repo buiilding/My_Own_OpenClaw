@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/artifacts: make `desktopArtifactRuntimeClient.ts` request/result
+  helper types private so `DesktopArtifactRuntimeClient` remains the only
+  public artifact facade export. No migration required for production code.
 - renderer/skin: make the active desktop runtime skin object private to
   `desktopRuntimeSkin.js` and keep `DesktopRuntimeSkin` as the sole facade
   export. No migration required for production code.

@@ -3027,7 +3027,8 @@ describe('renderer chat runtime boundary', () => {
     expect(stateRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
     expect(stateRuntimeSource).toContain('const workspace = { conversationView }');
     expect(stateRuntimeSource).toContain('hasWorkspaceConversationView(workspace)');
-    expect(stateRuntimeSource).toContain('hasConversationViewUserDisplayRows(workspace.conversationView)');
+    expect(stateRuntimeSource).toContain('normalizeConversationView');
+    expect(stateRuntimeSource).toContain('hasConversationViewUserDisplayRows(normalizeConversationView(workspace.conversationView))');
     expect(stateRuntimeSource).not.toContain('function isConversationView');
     expect(stateRuntimeSource).not.toContain('row.role ===');
     expect(stateRuntimeSource).not.toContain('displayRows.some');
@@ -3145,6 +3146,9 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
     expect(clientSource).toContain('INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE');
     expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_IMAGE_CONTEXT_MENU');
+    expect(clientSource).not.toContain('export type FetchArtifactImageRequest');
+    expect(clientSource).not.toContain('export type FetchArtifactImageResult');
+    expect(clientSource).not.toContain('export type ShowImageContextMenuRequest');
   });
 
   test('chat session and transport hooks route main session IPC through app runtime client', async () => {

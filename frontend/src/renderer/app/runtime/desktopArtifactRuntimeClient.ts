@@ -11,17 +11,17 @@ import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { INVOKE_CHANNELS } from '../../infrastructure/ipc/channels';
 import { DesktopRuntimeEndpointClient } from './desktopRuntimeEndpointClient';
 
-export type FetchArtifactImageRequest = {
+type FetchArtifactImageRequest = {
   artifactId?: string | null;
   url?: string | null;
 };
 
-export type FetchArtifactImageResult = {
+type FetchArtifactImageResult = {
   success?: boolean;
   dataUrl?: string | null;
 };
 
-export type ShowImageContextMenuRequest = {
+type ShowImageContextMenuRequest = {
   src: string;
 };
 
