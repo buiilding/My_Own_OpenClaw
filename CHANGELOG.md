@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/runtime: keep `resolveRuntimePathConfig` private to
+  `runtime_paths.cjs` so Electron main callers use the canonical local-runtime
+  launch resolver or env-key helper instead of the intermediate config normalizer.
+  No migration required for production code.
 - docs/cli: remove the stale plural `doc-lists.js` wrappers and keep
   `docs-list.js` `main` private now that platform shims and Windie CLI routes
   invoke the canonical singular script directly. No migration required; use

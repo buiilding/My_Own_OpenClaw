@@ -83,6 +83,7 @@ describe('runtime_paths local runtime launch target resolution', () => {
   test('does not export the retired sidecar-named launch resolver', () => {
     withIsolatedRuntimePaths(({ runtimePaths }) => {
       expect(runtimePaths.resolveSidecarLaunchTarget).toBeUndefined();
+      expect(runtimePaths.resolveRuntimePathConfig).toBeUndefined();
       expect(typeof runtimePaths.resolveLocalRuntimeLaunchTarget).toBe('function');
     });
   });

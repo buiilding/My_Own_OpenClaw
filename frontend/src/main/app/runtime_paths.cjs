@@ -235,6 +235,5 @@ function resolveLocalRuntimeLaunchTarget(scriptName, options = {}) {
 
 module.exports = {
   resolveLocalRuntimeLaunchTarget,
-  resolveRuntimePathConfig,
   resolveRuntimePathEnvConfig,
 };
