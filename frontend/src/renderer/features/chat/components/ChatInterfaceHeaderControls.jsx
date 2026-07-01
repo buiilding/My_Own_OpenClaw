@@ -2,7 +2,16 @@
  * Provides the chat interface header controls module for the renderer UI.
  */
 
-import { Brain, ChevronDown, GitBranch, GitFork, Search, Volume2, Workflow } from 'lucide-react';
+import {
+  Activity,
+  Brain,
+  ChevronDown,
+  GitBranch,
+  GitFork,
+  Search,
+  Volume2,
+  Workflow,
+} from 'lucide-react';
 import MainWindowControls from '../../../components/MainWindowControls';
 import ChatBrowserSessionControl from './ChatBrowserSessionControl';
 import { DesktopChatModelOptionsRuntime } from '../../../app/runtime/desktopChatModelOptionsRuntime';
@@ -45,6 +54,7 @@ function ChatInterfaceHeaderControls({
   activeConversationRef = null,
   setRevisionMenuOpen = () => {},
   speechModeEnabled,
+  trailContextOpen = false,
   findBarOpen,
   activeWorkspaceName,
   activeWorkspacePath,
@@ -57,6 +67,7 @@ function ChatInterfaceHeaderControls({
   handleModelSelect,
   handleReasoningModeSelect,
   handleToggleSpeechMode,
+  handleToggleTrailContext = () => {},
   handleRunAutoCompaction,
   handleWindowMinimize,
   handleWindowToggleMaximize,
@@ -282,6 +293,16 @@ function ChatInterfaceHeaderControls({
             onClick={handleToggleFind}
           >
             <Search size={18} />
+          </button>
+          <button
+            type="button"
+            className={`chat-top-icon-btn${trailContextOpen ? ' is-enabled' : ''}`}
+            aria-label={trailContextOpen ? 'Close trail context' : 'Open trail context'}
+            title={trailContextOpen ? 'Close trail context' : 'Open trail context'}
+            aria-pressed={trailContextOpen}
+            onClick={handleToggleTrailContext}
+          >
+            <Activity size={18} />
           </button>
           <button
             type="button"

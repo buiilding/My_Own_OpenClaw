@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: make Trail context manually toggled, resizable from its left
+  edge, and focused on clipped timestamped tool-call lines instead of
+  category cards. No migration required.
 - frontend/settings: replace Agent tool switches and the dashboard memory
   retrieval switch with `Allowed` / `Disabled` dropdowns, grouping local tools
   by capability while keeping the existing disabled-tool config path. No

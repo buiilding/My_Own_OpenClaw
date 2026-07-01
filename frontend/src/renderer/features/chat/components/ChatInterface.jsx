@@ -8,6 +8,7 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import ChatInterfaceHeaderControls from './ChatInterfaceHeaderControls';
 import ChatFindBar from './ChatFindBar';
+import TrailContextPanel from './TrailContextPanel';
 import {
   selectChatInterfaceState,
   useChatStore,
@@ -272,6 +273,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
   const [reasoningModeMenuOpen, setReasoningModeMenuOpen] = useState(false);
   const [findBarOpen, setFindBarOpen] = useState(false);
+  const [trailContextOpen, setTrailContextOpen] = useState(false);
   const [findQuery, setFindQuery] = useState('');
   const [activeFindMatchIndex, setActiveFindMatchIndex] = useState(0);
   const [findFocusToken, setFindFocusToken] = useState(0);
@@ -340,6 +342,10 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     }
     handleOpenFind();
   }, [findBarOpen, handleCloseFind, handleOpenFind]);
+
+  const handleToggleTrailContext = useCallback(() => {
+    setTrailContextOpen((current) => !current);
+  }, []);
 
   const handleNextFindMatch = useCallback(() => {
     if (totalFindMatches <= 0) {
@@ -646,10 +652,12 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
         activeConversationRef={activeConversationRef}
         setRevisionMenuOpen={setRevisionMenuOpen}
         speechModeEnabled={speechModeEnabled}
+        trailContextOpen={trailContextOpen}
         findBarOpen={findBarOpen}
         activeWorkspaceName={activeWorkspace.activeWorkspaceName}
         activeWorkspacePath={activeWorkspace.activeWorkspacePath}
         handleToggleFind={handleToggleFind}
+        handleToggleTrailContext={handleToggleTrailContext}
         handleChangeWorkspace={handleChangeWorkspace}
         handleRevisionCheckout={handleRevisionCheckout}
         handleRevisionFork={handleRevisionFork}
@@ -675,52 +683,62 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
           onClose={handleCloseFind}
         />
       ) : null}
-      {isLoadingSelectedConversation ? (
-        <div className="chat-history-loading-state" data-testid="chat-history-loading-state">
-          <div className="chat-history-loading-spinner" aria-hidden="true" />
-          <div className="chat-history-loading-title">Loading chat</div>
-        </div>
-      ) : renderedMessages.length === 0 ? (
-        <div className="chat-empty-state" data-testid="chat-empty-state">
-          <h1 className="chat-empty-title">{chatSkin.emptyTitle}</h1>
-          <MessageInput
-            onSendMessage={sendMessage}
-            isLoopActive={composerBusy}
-            canStopResponse={canStop}
-            onStopResponse={handleStopTurn}
-            isCentered
-            focusRequestToken={focusComposerToken}
-          />
-        </div>
-      ) : (
-        <>
-          <MessageList
+      <div className="chat-workspace">
+        <section className="chat-conversation-region" aria-label="Conversation">
+          {isLoadingSelectedConversation ? (
+            <div className="chat-history-loading-state" data-testid="chat-history-loading-state">
+              <div className="chat-history-loading-spinner" aria-hidden="true" />
+              <div className="chat-history-loading-title">Loading chat</div>
+            </div>
+          ) : renderedMessages.length === 0 ? (
+            <div className="chat-empty-state" data-testid="chat-empty-state">
+              <h1 className="chat-empty-title">{chatSkin.emptyTitle}</h1>
+              <MessageInput
+                onSendMessage={sendMessage}
+                isLoopActive={composerBusy}
+                canStopResponse={canStop}
+                onStopResponse={handleStopTurn}
+                isCentered
+                focusRequestToken={focusComposerToken}
+              />
+            </div>
+          ) : (
+            <>
+              <MessageList
+                messages={renderedMessages}
+                conversationRef={sessionInfo.conversationRef || null}
+                thinkingStatus={thinkingStatus}
+                thinkingSourceEventType={thinkingSourceEventType}
+                compactionDebugInfo={compactionDebugInfo}
+                awaitingDotTargetMessageId={awaitingDotTargetMessageId}
+                findQuery={normalizedFindQuery}
+                messageFindMatchIndexesById={threadFindState.messageMatchIndexesById}
+                activeFindMatchIndex={resolvedActiveFindMatchIndex}
+                enableAgentLoopAutoScroll={composerBusy}
+                enableAssistantActions
+                enableUserActions
+                disableAssistantActions={composerBusy || canStop}
+                onAssistantFeedbackChange={handleAssistantFeedbackChange}
+                onAssistantTryAgain={handleTryAgainFromAssistant}
+                onUserEdit={handleEditFromUser}
+              />
+              <MessageInput
+                onSendMessage={sendMessage}
+                isLoopActive={composerBusy}
+                canStopResponse={canStop}
+                onStopResponse={handleStopTurn}
+                focusRequestToken={focusComposerToken}
+              />
+            </>
+          )}
+        </section>
+        {trailContextOpen ? (
+          <TrailContextPanel
             messages={renderedMessages}
-            conversationRef={sessionInfo.conversationRef || null}
-            thinkingStatus={thinkingStatus}
-            thinkingSourceEventType={thinkingSourceEventType}
-            compactionDebugInfo={compactionDebugInfo}
-            awaitingDotTargetMessageId={awaitingDotTargetMessageId}
-            findQuery={normalizedFindQuery}
-            messageFindMatchIndexesById={threadFindState.messageMatchIndexesById}
-            activeFindMatchIndex={resolvedActiveFindMatchIndex}
-            enableAgentLoopAutoScroll={composerBusy}
-            enableAssistantActions
-            enableUserActions
-            disableAssistantActions={composerBusy || canStop}
-            onAssistantFeedbackChange={handleAssistantFeedbackChange}
-            onAssistantTryAgain={handleTryAgainFromAssistant}
-            onUserEdit={handleEditFromUser}
+            onClose={() => setTrailContextOpen(false)}
           />
-          <MessageInput
-            onSendMessage={sendMessage}
-            isLoopActive={composerBusy}
-            canStopResponse={canStop}
-            onStopResponse={handleStopTurn}
-            focusRequestToken={focusComposerToken}
-          />
-        </>
-      )}
+        ) : null}
+      </div>
     </div>
   );
 }
