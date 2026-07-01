@@ -2799,6 +2799,10 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('features/chat');
     expect(source).toContain('configureRendererTraceWorkspaceSnapshotResolver');
     expect(source).toContain('export const DesktopRendererTraceRuntime = Object.freeze');
+    expect(source).toContain('export type RendererReplayTraceValues');
+    expect(source).not.toContain('export type RendererTraceWorkspaceSnapshot');
+    expect(source).not.toContain('export type RendererResponseSurfaceSizeTraceValues');
+    expect(source).not.toContain('export type RendererChatPillStateTraceValues');
     expect(source).not.toContain('export function configureRendererTraceWorkspaceSnapshotResolver');
     expect(chatProviderSource).toContain('configureRendererTraceWorkspaceSnapshotResolver');
     expect(chatProviderSource).toContain('DesktopRendererTraceRuntime');

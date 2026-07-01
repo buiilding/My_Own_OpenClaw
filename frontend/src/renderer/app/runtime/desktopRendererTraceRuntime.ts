@@ -5,7 +5,7 @@
 import { DesktopLiveSurfaceTraceRuntimeClient } from './desktopLiveSurfaceTraceRuntimeClient';
 import { DesktopResponseOverlayLayoutRuntime } from './desktopResponseOverlayLayoutRuntime';
 
-export type RendererTraceWorkspaceSnapshot = {
+type RendererTraceWorkspaceSnapshot = {
   activeConversationRef?: string | null;
   workspaceMessageCount?: number;
   activeTurnRef?: string | null;
@@ -22,7 +22,7 @@ type RendererTraceWorkspaceSnapshotResolver = (
   conversationRef: string | null,
 ) => RendererTraceWorkspaceSnapshot;
 
-export type RendererResponseSurfaceSizeTraceValues = {
+type RendererResponseSurfaceSizeTraceValues = {
   source?: string;
   action: string;
   conversationRef?: unknown;
@@ -38,7 +38,7 @@ export type RendererResponseSurfaceSizeTraceValues = {
   height: unknown;
 };
 
-export type RendererResponseOverlayLifecycleTraceValues = {
+type RendererResponseOverlayLifecycleTraceValues = {
   source?: string;
   action: 'mount' | 'unmount';
   conversationRef?: unknown;
@@ -46,7 +46,7 @@ export type RendererResponseOverlayLifecycleTraceValues = {
   staleGuardRef?: unknown;
 };
 
-export type RendererResponseOverlayHitTestTraceValues = {
+type RendererResponseOverlayHitTestTraceValues = {
   source?: string;
   conversationRef?: unknown;
   overlayIntent?: {
@@ -55,7 +55,7 @@ export type RendererResponseOverlayHitTestTraceValues = {
   active?: boolean;
 };
 
-export type RendererResponseOverlayTypingRenderedTraceValues = {
+type RendererResponseOverlayTypingRenderedTraceValues = {
   source?: string;
   typingRendered?: boolean;
   conversationRef?: unknown;
@@ -75,7 +75,7 @@ export type RendererResponseOverlayTypingRenderedTraceValues = {
   responseOverlayEntryCount?: unknown;
 };
 
-export type RendererChatPillStateTraceValues = {
+type RendererChatPillStateTraceValues = {
   source?: string;
   action?: string;
   conversationRef?: unknown;
@@ -88,7 +88,7 @@ export type RendererChatPillStateTraceValues = {
   messageCount?: unknown;
 };
 
-export type RendererChatSendLifecycleTraceValues = {
+type RendererChatSendLifecycleTraceValues = {
   source?: string;
   action: 'send-start' | 'screenshot-decision' | 'query-dispatched';
   conversationRef?: unknown;
@@ -126,7 +126,7 @@ export type RendererReplayTraceValues = {
   errorKind?: unknown;
 };
 
-export type RendererChatPillResetTraceValues = {
+type RendererChatPillResetTraceValues = {
   source?: string;
   conversationRef?: unknown;
   previousTurnRef?: unknown;
@@ -135,7 +135,7 @@ export type RendererChatPillResetTraceValues = {
   includeQueryScreenshot?: boolean;
 };
 
-export type RendererChatPillLifecycleTraceValues = {
+type RendererChatPillLifecycleTraceValues = {
   source?: string;
   action: 'mount' | 'unmount';
   conversationRef?: unknown;
@@ -143,13 +143,13 @@ export type RendererChatPillLifecycleTraceValues = {
   phase?: unknown;
 };
 
-export type RendererChatPillHitTestTraceValues = {
+type RendererChatPillHitTestTraceValues = {
   source?: string;
   conversationRef?: unknown;
   active?: boolean;
 };
 
-export type RendererCurrentTurnAppliedTraceValues = {
+type RendererCurrentTurnAppliedTraceValues = {
   source?: string;
   conversationRef?: unknown;
   currentTurn?: {
@@ -168,7 +168,7 @@ export type RendererCurrentTurnAppliedTraceValues = {
   skipDerivedSideEffects?: boolean;
 };
 
-export type RendererResponseOverlayStateTraceValues = {
+type RendererResponseOverlayStateTraceValues = {
   source?: string;
   action?: string;
   turnRef?: unknown;
@@ -185,7 +185,7 @@ export type RendererResponseOverlayStateTraceValues = {
   messageCount?: unknown;
 };
 
-export type RendererResponseSurfaceRenderTraceValues = {
+type RendererResponseSurfaceRenderTraceValues = {
   source?: string;
   action?: string;
   turnRef?: unknown;
@@ -195,7 +195,7 @@ export type RendererResponseSurfaceRenderTraceValues = {
   awaitingVisible?: boolean;
 };
 
-export type RendererResponseSurfaceSnapshotTraceValues = {
+type RendererResponseSurfaceSnapshotTraceValues = {
   source?: string;
   phase?: unknown;
   messageCount?: unknown;
@@ -209,7 +209,7 @@ export type RendererResponseSurfaceSnapshotTraceValues = {
   thinkingTextLength?: unknown;
 };
 
-export type RendererOverlayViewModelTraceValues = {
+type RendererOverlayViewModelTraceValues = {
   pendingTurn?: {
     turnRef?: unknown;
     conversationRef?: unknown;
