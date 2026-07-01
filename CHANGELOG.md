@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/local-runtime: rename the local-runtime RPC handler registry reference
+  from
+  `frontend/docs/frontend/main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md`
+  to
+  `frontend/docs/frontend/main/local_backend/local_runtime_rpc_handler_registry_reference.md`
+  and update active references. Migration: use the new docs path.
 - docs/local-runtime: rename the SDK-owned local-runtime readiness/helper RPC
   reference from
   `frontend/docs/frontend/main/local_backend/process_lifecycle_readiness_and_request_correlation_reference.md`

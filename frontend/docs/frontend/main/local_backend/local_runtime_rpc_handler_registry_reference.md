@@ -6,7 +6,7 @@ read_when:
 title: "Local-Runtime RPC Handler Registry Reference"
 ---
 
-# Local-Runtime RPC Handler Registry and Payload-Mapper Reference
+# Local-Runtime RPC Handler Registry Reference
 
 ## Canonical Modules
 

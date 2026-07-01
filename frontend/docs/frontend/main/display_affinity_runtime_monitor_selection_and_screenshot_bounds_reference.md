@@ -148,5 +148,5 @@ When no target affinity is provided:
 ## Related Pages
 
 - [Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Reference](main_process_lifecycle_overlay_ipc_and_window_visibility_runtime_reference.md)
-- [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
+- [Local-Runtime RPC Handler Registry Reference](local_backend/local_runtime_rpc_handler_registry_reference.md)
 - [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](local_backend/screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)

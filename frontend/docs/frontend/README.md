@@ -64,7 +64,7 @@ main process, React renderer, and the local-runtime Python implementation.
 - [Main Testing Data-Seed Docs Hub](main/testing/data_seed/README.md)
 - [Local Runtime Bridge Overview and Window Guard Index](main/local_runtime_bridge_handler_and_window_guard_reference.md)
 - [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](main/local_backend/local_runtime_readiness_and_helper_rpc_reference.md)
-- [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
+- [Local-Runtime RPC Handler Registry Reference](main/local_backend/local_runtime_rpc_handler_registry_reference.md)
 - [Mock Memory Seed Script and NPM Entrypoints Reference](main/testing/data_seed/mock_memory_seed_script_and_npm_entrypoints_reference.md)
 - [Overlay Query-Capture Blur and Settle Reference](main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
 - [Linux Screenshot Window Visibility Reference](main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)

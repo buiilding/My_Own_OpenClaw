@@ -203,7 +203,7 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 When a method changes, update the closest docs in the same commit:
 
 - [Local Runtime JSON-RPC Reference](local_runtime_jsonrpc_reference.md)
-- [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](../main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
+- [Local-Runtime RPC Handler Registry Reference](../main/local_backend/local_runtime_rpc_handler_registry_reference.md)
 - [Local-Runtime Python Implementation Change Workflow](local_runtime_python_change_workflow.md)
 - [IPC Change Workflow](../ipc_change_workflow.md) when renderer channels change
 - [Local Tool Channels](../../channels/local_tool_channels.md) when tool or memory channel behavior changes
@@ -215,6 +215,6 @@ When a method changes, update the closest docs in the same commit:
 - [Local Runtime JSON-RPC Reference](local_runtime_jsonrpc_reference.md)
 - [Local-Runtime Python Implementation Change Workflow](local_runtime_python_change_workflow.md)
 - [IPC Change Workflow](../ipc_change_workflow.md)
-- [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](../main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
+- [Local-Runtime RPC Handler Registry Reference](../main/local_backend/local_runtime_rpc_handler_registry_reference.md)
 - [JSON-RPC Protocol and Stdout Framing Reference](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
 - [SDK-Owned Local-Runtime Lifecycle Reference](local_runtime_lifecycle_reference.md)

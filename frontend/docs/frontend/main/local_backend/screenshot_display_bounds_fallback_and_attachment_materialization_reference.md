@@ -155,5 +155,5 @@ This guarantee applies to success and failure paths to prevent temp-file leaks.
 
 ## Related Pages
 
-- [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](rpc_handler_registry_and_payload_mapper_reference.md)
+- [Local-Runtime RPC Handler Registry Reference](local_runtime_rpc_handler_registry_reference.md)
 - [Display-Affinity Monitor Selection and Screenshot Bounds Reference](../display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md)
