@@ -120,7 +120,7 @@ function collectStatus({ all = false } = {}) {
     },
     {
       name: 'test scripts',
-      ok: exists('scripts/test-backend.sh') && exists('scripts/test-sidecar.sh') && !!frontendScripts.test,
+      ok: exists('scripts/test-backend.sh') && exists('scripts/test-local-runtime.sh') && !!frontendScripts.test,
       detail: 'backend, local-runtime, frontend test wrappers',
     },
   ];

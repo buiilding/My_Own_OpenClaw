@@ -45,7 +45,7 @@ def test_local_runtime_service_copy_uses_local_runtime_terms():
         ]
     )
 
-    retired_runtime_label = "Python " + "sidecar runtime"
+    retired_runtime_label = "Python " + "sidecar " + "runtime"
     retired_daemon_phrase = "sidecar " + "daemon"
     retired_dependency_phrase = "Python " + "sidecar dependencies"
     retired_product_backend_service = "Local backend service for " + ("Windie" "OS")

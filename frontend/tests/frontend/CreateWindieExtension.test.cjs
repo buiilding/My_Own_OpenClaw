@@ -54,8 +54,8 @@ describe('create-windie-extension scaffold', () => {
     for (const retiredCopy of [
       retiredStarterProductPlugin,
       retiredProductSidecarPlugin,
-      'sidecar plugin',
-      'local sidecar entrypoint',
+      'sidecar ' + 'plugin',
+      'local ' + 'sidecar entrypoint',
     ]) {
       expect(scaffoldText).not.toContain(retiredCopy);
     }

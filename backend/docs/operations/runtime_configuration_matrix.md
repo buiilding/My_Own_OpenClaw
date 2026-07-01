@@ -19,7 +19,7 @@ WindieOS configuration is intentionally split by runtime boundary. Do not add a 
 | Electron main | Backend endpoint selection, local-runtime launch options, local config file, windows/overlays/runtime mode | App startup and selected IPC handlers | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/ipc.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/index.cjs` |
 | Renderer | User-facing settings subset and local UI state | Renderer load and settings changes | `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`, `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`, `frontend/src/renderer/features/settings/**` |
 | Local-runtime implementation | Local tool runtime flags, backend URL used by local-runtime memory/API clients, worker counts, browser runtime knobs | Local-runtime Python process startup; tool calls read some env values lazily | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/windie/_backend_config.py`, `frontend/src/main/python/core/executors.py`, `frontend/src/main/python/tools/**` |
-| Release/CI | Signing, notarization, package target behavior | GitHub Actions or local packaging command | `.github/workflows/desktop-release.yml`, `frontend/electron-builder.bundled-python.yml`, `scripts/build-sidecar-runtime` |
+| Release/CI | Signing, notarization, package target behavior | GitHub Actions or local packaging command | `.github/workflows/desktop-release.yml`, `frontend/electron-builder.bundled-python.yml`, `scripts/build-local-runtime` |
 
 ## Endpoint Selection
 

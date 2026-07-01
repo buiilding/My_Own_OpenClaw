@@ -701,7 +701,7 @@ def test_python_sdk_local_runtime_errors_use_generic_boundary_wording():
     ).read_text(encoding="utf-8")
 
     assert "Timed out waiting for local runtime discovery" in source
-    assert "Timed out waiting for local sidecar daemon discovery" not in source
+    assert "Timed out waiting for local " + "sidecar daemon discovery" not in source
     assert "local_runtime: Any = None" in source
     assert "local_runtime_discovery_file: Optional[str] = None" in source
     assert "local_runtime_daemon_script: Optional[str] = None" in source

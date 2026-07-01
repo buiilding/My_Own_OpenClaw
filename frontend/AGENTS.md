@@ -101,7 +101,6 @@ Useful validation commands:
 - Frontend tests: `<windie> test frontend`
 - Focused frontend tests: `<windie> test frontend -- <pattern-or-file>`
 - Local-runtime Python tests: `<windie> test local-runtime`
-- Local-runtime compatibility alias: `<windie> test sidecar`
 - Frontend lint: `npm run lint`
 - Frontend build: `<windie> build frontend`
 - Local-runtime build: `<windie> build local-runtime`

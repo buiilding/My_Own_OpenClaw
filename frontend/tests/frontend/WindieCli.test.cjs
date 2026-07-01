@@ -74,7 +74,7 @@ describe('windie CLI', () => {
     expect(fs.existsSync(path.join(repoRoot, 'bin/docs-list.cmd'))).toBe(true);
     expect(fs.existsSync(path.join(repoRoot, 'bin/docs-list.sh'))).toBe(true);
     for (const scriptName of [
-      'build-sidecar-runtime',
+      'build-local-runtime',
       'committer',
       'create-windie-extension',
       'generate-builtin-tool-manifest',
@@ -85,7 +85,7 @@ describe('windie CLI', () => {
       'run-frontend-electron',
       'test',
       'test-backend',
-      'test-sidecar',
+      'test-local-runtime',
     ]) {
       expect(fs.existsSync(path.join(repoRoot, 'scripts', scriptName))).toBe(false);
     }
@@ -123,7 +123,7 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('<windie> test local-runtime');
     expect(result.stdout).toContain('<windie> test core-loop [jest args...]');
     expect(result.stdout).toContain('<windie> test user-facing');
-    expect(result.stdout).not.toContain('<windie> test sidecar');
+    expect(result.stdout).not.toContain('<windie> test ' + 'sidecar');
     expect(result.stdout).toContain('<windie> logs frontend');
     expect(result.stdout).toContain('<windie> logs vite');
     expect(result.stdout).toContain('<windie> logs main');
@@ -131,7 +131,7 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('<windie> logs local-runtime');
     expect(result.stdout).not.toContain('<windie> logs sidecar');
     expect(result.stdout).toContain('<windie> build local-runtime');
-    expect(result.stdout).not.toContain('<windie> build sidecar-runtime');
+    expect(result.stdout).not.toContain('<windie> build ' + 'sidecar-' + 'runtime');
     expect(result.stdout).not.toContain('<windie> logs desktop');
     expect(result.stdout).toContain('<windie> commits search <query> [--limit <n>] [--json]');
   });
@@ -335,7 +335,7 @@ describe('windie CLI', () => {
       });
     expect(getSpawnPlan(['test', 'local-runtime', '--', 'frontend/tests/sidecar/test_tool_registry.py', '-q']))
       .toMatchObject({
-        command: path.join(repoRoot, 'scripts/test-sidecar.sh'),
+        command: path.join(repoRoot, 'scripts/test-local-runtime.sh'),
         args: ['frontend/tests/sidecar/test_tool_registry.py', '-q'],
         cwd: repoRoot,
       });
@@ -466,10 +466,10 @@ describe('windie CLI', () => {
     });
     expect(getSpawnPlan(['build', 'local-runtime'])).toMatchObject({
       command: 'npm',
-      args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'build:sidecar-runtime'],
+      args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'build:local-runtime'],
       cwd: repoRoot,
     });
-    expect(getSpawnPlan(['build', 'sidecar-runtime'])).toBeNull();
+    expect(getSpawnPlan(['build', 'sidecar-' + 'runtime'])).toBeNull();
   });
 
   test('searches recent commits with a limit', () => {

@@ -132,7 +132,7 @@ def test_local_runtime_tool_helper_copy_uses_local_runtime_terms():
         path.read_text(encoding="utf-8") for path in LOCAL_RUNTIME_TOOL_HELPER_PATHS
     )
 
-    retired_runtime_label = "Python " + "sidecar runtime"
+    retired_runtime_label = "Python " + "sidecar " + "runtime"
 
     assert "Python local-runtime tool" in sources
     assert "shared by backend and local runtime" in sources

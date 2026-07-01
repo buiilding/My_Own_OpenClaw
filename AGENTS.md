@@ -24,7 +24,7 @@ Core WindieOS feature areas:
 - Agent runtime: SDK `WindieClient`/`WindieAgent`, conversation runtime, live
   turn projection, replay, compaction, title generation, and local/hosted query
   routing.
-- Local authority: Python sidecar, executable tool catalog, computer-use,
+- Local authority: local-runtime Python implementation, executable tool catalog, computer-use,
   browser-use, filesystem, shell, screenshots, OCR/vision, wakeword, voice, and
   local memory.
 - Hosted/backend authority: FastAPI routes, websocket query stream, provider

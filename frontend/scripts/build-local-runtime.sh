@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs the build sidecar runtime workflow for the developer CLI and automation tooling.
+# Runs the local-runtime Python build workflow for the developer CLI and automation tooling.
 
 set -euo pipefail
 
@@ -11,7 +11,7 @@ RUNTIME_REQS="${FRONTEND_DIR}/src/main/python/requirements.runtime.txt"
 REQUIRE_WAKEWORD_PREFETCH="${WINDIE_REQUIRE_WAKEWORD_PREFETCH:-1}"
 
 if [[ ! -f "${RUNTIME_REQS}" ]]; then
-  echo "[build-sidecar-runtime] Missing runtime requirements file: ${RUNTIME_REQS}" >&2
+  echo "[build-local-runtime] Missing runtime requirements file: ${RUNTIME_REQS}" >&2
   exit 1
 fi
 
@@ -22,7 +22,7 @@ elif command -v python3 >/dev/null 2>&1; then
 elif command -v python >/dev/null 2>&1; then
   BASE_PYTHON="python"
 else
-  echo "[build-sidecar-runtime] Could not find python3/python on PATH." >&2
+  echo "[build-local-runtime] Could not find python3/python on PATH." >&2
   exit 1
 fi
 
@@ -30,7 +30,7 @@ prune_runtime_payload() {
   local runtime_root="$1"
   local runtime_python="$2"
 
-  echo "[build-sidecar-runtime] pruning packaged runtime payload"
+  echo "[build-local-runtime] pruning packaged runtime payload"
   "${runtime_python}" - "${runtime_root}" <<'PY'
 from __future__ import annotations
 
@@ -99,7 +99,7 @@ for pattern in (
 for path in stdlib_dir.glob("test"):
     remove_path(path)
 
-print(f"[build-sidecar-runtime] pruned runtime paths={removed_count}")
+print(f"[build-local-runtime] pruned runtime paths={removed_count}")
 PY
 }
 
@@ -115,7 +115,7 @@ thin_macos_universal_binaries() {
     return
   fi
 
-  echo "[build-sidecar-runtime] thinning universal macOS binaries to ${target_arch}"
+  echo "[build-local-runtime] thinning universal macOS binaries to ${target_arch}"
   "${BASE_PYTHON}" - "${runtime_root}" "${target_arch}" <<'PY'
 from __future__ import annotations
 
@@ -183,13 +183,13 @@ for path in runtime_root.rglob("*"):
     path.chmod(mode)
     thinned += 1
 
-print(f"[build-sidecar-runtime] thinned_macho_files={thinned}")
+print(f"[build-local-runtime] thinned_macho_files={thinned}")
 PY
 }
 
-echo "[build-sidecar-runtime] profile=runtime"
-echo "[build-sidecar-runtime] python=${BASE_PYTHON}"
-echo "[build-sidecar-runtime] runtime=${RUNTIME_DIR}"
+echo "[build-local-runtime] profile=runtime"
+echo "[build-local-runtime] python=${BASE_PYTHON}"
+echo "[build-local-runtime] runtime=${RUNTIME_DIR}"
 
 PYTHON_PLATFORM="$("${BASE_PYTHON}" - <<'PY'
 import sys
@@ -200,7 +200,7 @@ PY
 rm -rf "${RUNTIME_DIR}"
 
 if [[ "${PYTHON_PLATFORM}" == "win32" ]]; then
-  echo "[build-sidecar-runtime] creating relocatable Windows runtime (full CPython copy)"
+  echo "[build-local-runtime] creating relocatable Windows runtime (full CPython copy)"
   "${BASE_PYTHON}" - "${RUNTIME_DIR}" <<'PY'
 from __future__ import annotations
 
@@ -251,10 +251,10 @@ pyvenv_cfg = dest / "pyvenv.cfg"
 if pyvenv_cfg.exists():
     pyvenv_cfg.unlink()
 
-print(f"[build-sidecar-runtime] copied CPython runtime from {base} to {dest}")
+print(f"[build-local-runtime] copied CPython runtime from {base} to {dest}")
 PY
 else
-  echo "[build-sidecar-runtime] creating relocatable POSIX runtime (copied interpreter prefix)"
+  echo "[build-local-runtime] creating relocatable POSIX runtime (copied interpreter prefix)"
   "${BASE_PYTHON}" - "${RUNTIME_DIR}" <<'PY'
 from __future__ import annotations
 
@@ -325,7 +325,7 @@ pyvenv_cfg = dest / "pyvenv.cfg"
 if pyvenv_cfg.exists():
     pyvenv_cfg.unlink()
 
-print(f"[build-sidecar-runtime] copied POSIX runtime from {base} to {dest}")
+print(f"[build-local-runtime] copied POSIX runtime from {base} to {dest}")
 PY
 fi
 
@@ -336,12 +336,12 @@ elif [[ -x "${RUNTIME_DIR}/bin/python" ]]; then
 elif [[ -x "${RUNTIME_DIR}/Scripts/python.exe" ]]; then
   RUNTIME_PYTHON="${RUNTIME_DIR}/Scripts/python.exe"
 else
-  echo "[build-sidecar-runtime] Could not resolve runtime python executable." >&2
+  echo "[build-local-runtime] Could not resolve runtime python executable." >&2
   exit 1
 fi
 
 if ! "${RUNTIME_PYTHON}" -m pip --version >/dev/null 2>&1; then
-  echo "[build-sidecar-runtime] bootstrapping pip via ensurepip"
+  echo "[build-local-runtime] bootstrapping pip via ensurepip"
   "${RUNTIME_PYTHON}" -m ensurepip --upgrade
 fi
 
@@ -356,7 +356,7 @@ print(platform.machine())
 PY
 )"
 
-echo "[build-sidecar-runtime] validating relocated runtime imports"
+echo "[build-local-runtime] validating relocated runtime imports"
 if [[ "${PYTHON_PLATFORM}" == "win32" ]]; then
   "${RUNTIME_PYTHON}" - "${RUNTIME_DIR}" <<'PY'
 from __future__ import annotations
@@ -408,7 +408,7 @@ if offenders:
         + ", ".join(offenders)
     )
 
-print(f"[build-sidecar-runtime] runtime validation passed for {runtime_root}", file=sys.stderr)
+print(f"[build-local-runtime] runtime validation passed for {runtime_root}", file=sys.stderr)
 PY
 else
   env -u PYTHONPATH PYTHONHOME="${RUNTIME_DIR}" PYTHONNOUSERSITE=1 "${RUNTIME_PYTHON}" - "${RUNTIME_DIR}" <<'PY'
@@ -461,11 +461,11 @@ if offenders:
         + ", ".join(offenders)
     )
 
-print(f"[build-sidecar-runtime] runtime validation passed for {runtime_root}", file=sys.stderr)
+print(f"[build-local-runtime] runtime validation passed for {runtime_root}", file=sys.stderr)
 PY
 fi
 
-echo "[build-sidecar-runtime] prefetching wakeword model assets"
+echo "[build-local-runtime] prefetching wakeword model assets"
 if "${RUNTIME_PYTHON}" - <<'PY'
 import importlib
 import inspect
@@ -507,7 +507,7 @@ if missing_markers:
     missing_markers = find_missing_markers()
 else:
     print(
-        "[build-sidecar-runtime] wakeword models already present; skipping download",
+        "[build-local-runtime] wakeword models already present; skipping download",
         file=sys.stderr,
     )
 
@@ -517,34 +517,34 @@ if missing_markers:
         + ", ".join(missing_markers)
     )
 
-print(f"[build-sidecar-runtime] wakeword models prefetched to {target_dir}", file=sys.stderr)
+print(f"[build-local-runtime] wakeword models prefetched to {target_dir}", file=sys.stderr)
 PY
 then
-  echo "[build-sidecar-runtime] wakeword prefetch completed"
+  echo "[build-local-runtime] wakeword prefetch completed"
 else
   if [[ "${REQUIRE_WAKEWORD_PREFETCH}" == "1" ]]; then
-    echo "[build-sidecar-runtime] ERROR: wakeword prefetch failed; refusing to build runtime without bundled wakeword models" >&2
+    echo "[build-local-runtime] ERROR: wakeword prefetch failed; refusing to build runtime without bundled wakeword models" >&2
     exit 1
   fi
-  echo "[build-sidecar-runtime] WARNING: wakeword prefetch failed; continuing because WINDIE_REQUIRE_WAKEWORD_PREFETCH=${REQUIRE_WAKEWORD_PREFETCH}"
+  echo "[build-local-runtime] WARNING: wakeword prefetch failed; continuing because WINDIE_REQUIRE_WAKEWORD_PREFETCH=${REQUIRE_WAKEWORD_PREFETCH}"
 fi
 
-# Copy WindieOS sidecar source into runtime, compile to sourceless bytecode,
+# Copy WindieOS local-runtime Python source into runtime, compile to sourceless bytecode,
 # and delete plaintext .py files before packaging.
-SIDECAR_SRC_DIR="${FRONTEND_DIR}/src/main/python"
-SIDECAR_DST_DIR="${RUNTIME_DIR}/sidecar"
-mkdir -p "${SIDECAR_DST_DIR}"
-cp -R "${SIDECAR_SRC_DIR}/." "${SIDECAR_DST_DIR}/"
+LOCAL_RUNTIME_SRC_DIR="${FRONTEND_DIR}/src/main/python"
+LOCAL_RUNTIME_DST_DIR="${RUNTIME_DIR}/sidecar"
+mkdir -p "${LOCAL_RUNTIME_DST_DIR}"
+cp -R "${LOCAL_RUNTIME_SRC_DIR}/." "${LOCAL_RUNTIME_DST_DIR}/"
 
-echo "[build-sidecar-runtime] compiling sidecar to sourceless bytecode"
-"${RUNTIME_PYTHON}" -m compileall -q -b "${SIDECAR_DST_DIR}"
-find "${SIDECAR_DST_DIR}" -type f -name "*.py" -delete
+echo "[build-local-runtime] compiling local-runtime Python to sourceless bytecode"
+"${RUNTIME_PYTHON}" -m compileall -q -b "${LOCAL_RUNTIME_DST_DIR}"
+find "${LOCAL_RUNTIME_DST_DIR}" -type f -name "*.py" -delete
 
 # Shrink package output by removing transient bytecode caches.
 find "${RUNTIME_DIR}" -type d -name "__pycache__" -prune -exec rm -rf {} +
-find "${RUNTIME_DIR}" -type f -name "*.pyc" ! -path "${SIDECAR_DST_DIR}/*" -delete
+find "${RUNTIME_DIR}" -type f -name "*.pyc" ! -path "${LOCAL_RUNTIME_DST_DIR}/*" -delete
 
 rm -f "${RUNTIME_ARCHIVE}"
 tar -C "${FRONTEND_DIR}" -czf "${RUNTIME_ARCHIVE}" "python-runtime"
 
-echo "[build-sidecar-runtime] wrote ${RUNTIME_ARCHIVE}"
+echo "[build-local-runtime] wrote ${RUNTIME_ARCHIVE}"

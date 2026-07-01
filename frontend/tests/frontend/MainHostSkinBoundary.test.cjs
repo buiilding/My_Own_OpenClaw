@@ -703,7 +703,7 @@ describe('main host skin/config boundary', () => {
       const header = fs.readFileSync(modulePath, 'utf8').split('\n').slice(0, 3).join('\n');
 
       expect(header).toMatch(/local-runtime|local runtime/i);
-      expect(header).not.toContain('local sidecar');
+      expect(header).not.toContain('local ' + 'sidecar');
       expect(header).not.toContain('local backend');
     }
   });

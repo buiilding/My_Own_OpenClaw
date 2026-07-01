@@ -221,7 +221,7 @@ function testCommand(args) {
     return runForeground('npm', ['run', 'test:ci', '--', ...rest]);
   }
   if (target === 'local-runtime') {
-    return runForeground(script('scripts/test-sidecar.sh'), rest);
+    return runForeground(script('scripts/test-local-runtime.sh'), rest);
   }
   throw new Error('Usage: <windie> test frontend|local-runtime');
 }
@@ -232,7 +232,7 @@ function buildCommand(args) {
     return runForeground('npm', ['run', 'build']);
   }
   if (target === 'local-runtime') {
-    return runForeground('npm', ['run', 'build:sidecar-runtime']);
+    return runForeground('npm', ['run', 'build:local-runtime']);
   }
   throw new Error('Usage: <windie> build frontend|local-runtime');
 }

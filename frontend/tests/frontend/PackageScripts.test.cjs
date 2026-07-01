@@ -38,11 +38,13 @@ describe('frontend package scripts', () => {
     expect(packageJson.scripts).not.toHaveProperty('package:win:bundled-python');
     expect(packageJson.scripts).not.toHaveProperty('package:mac:bundled-python');
     expect(packageJson.scripts).not.toHaveProperty('package:linux:bundled-python');
+    expect(packageJson.scripts).not.toHaveProperty('build:' + 'sidecar-' + 'runtime');
+    expect(packageJson.scripts).toHaveProperty('build:local-runtime');
   });
 
-  test('sidecar runtime build resolves artifact paths from frontend root', () => {
+  test('local-runtime build resolves artifact paths from frontend root', () => {
     const buildScript = fs.readFileSync(
-      path.join(repoRoot, 'scripts/build-sidecar-runtime.sh'),
+      path.join(repoRoot, 'scripts/build-local-runtime.sh'),
       'utf8',
     );
 

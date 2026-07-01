@@ -105,7 +105,7 @@ def test_tool_registry_copy_qualifies_python_local_runtime_owner():
     ]
     sources = "\n".join(path.read_text(encoding="utf-8") for path in source_paths)
 
-    retired_runtime_label = "Python " + "sidecar runtime"
+    retired_runtime_label = "Python " + "sidecar " + "runtime"
     retired_tool_label = "Python " + "sidecar tool"
     retired_sidecar_runtime_fragment = "sidecar " + "runtime"
     retired_builtin_tool_label = "built-in " + "sidecar tool"

@@ -50,7 +50,7 @@ Repo-root scripts:
 - private backend start command
 - `<windie> start frontend`
 - `<windie> start desktop`
-- `./scripts/build-sidecar-runtime.sh`
+- `./scripts/build-local-runtime.sh`
 - `./scripts/committer "<subject>" --body "<body>" -- <files...>`
 
 Frontend scripts:

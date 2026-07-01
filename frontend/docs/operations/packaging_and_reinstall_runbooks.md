@@ -21,13 +21,13 @@ Run from the repository root:
 | `<windie> package mac` | macOS DMG and ZIP | Must run on macOS |
 | `<windie> package win` | Windows NSIS installer | Must run on Windows |
 | `<windie> package linux` | Linux AppImage, DEB, RPM | Must run on Linux |
-| `<windie> build local-runtime` | `frontend/python-runtime` and archive | Calls `../scripts/build-sidecar-runtime.sh` |
+| `<windie> build local-runtime` | `frontend/python-runtime` and archive | Calls `../scripts/build-local-runtime.sh` |
 
 ## Runtime Build Ownership
 
 Primary files:
 
-- `scripts/build-sidecar-runtime.sh`
+- `scripts/build-local-runtime.sh`
 - `frontend/src/main/python/requirements.runtime.txt`
 - `frontend/electron-builder.bundled-python.yml`
 - `frontend/src/main/app/runtime_paths.cjs`

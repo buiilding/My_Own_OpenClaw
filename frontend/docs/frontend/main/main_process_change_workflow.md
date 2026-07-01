@@ -24,7 +24,7 @@ Main process code is a trust boundary. It receives renderer requests through pre
 | Permission probe/request or onboarding permission status changes | Permission service and permission IPC runtime | `frontend/src/main/permissions/permission_service*.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`, `frontend/src/shared/permissions/permission_manifest.json` | `tests/frontend/PermissionService.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/permissionGrantEffects.test.js` | [Permission Manifest and IPC Contract](permission_manifest_probe_and_request_ipc_reference.md), [Permissions and Local Authority Workflow](../../security/permissions_and_local_authority_workflow.md) |
 | Screenshot capture hides the wrong surfaces or platform capture differs | Screenshot/window visibility seam | `frontend/src/main/sidecar/local_runtime_window_visibility.cjs`, SDK/main screenshot resource handling | `tests/frontend/LocalRuntimeWindowVisibility.test.cjs`, `tests/frontend/OverlayVisibilityHandler.test.cjs`, platform tests | [Linux Screenshot Hide/Restore Guard](overlays/linux_screenshot_window_hide_and_restore_guard_reference.md), [Screenshot and Overlay Policy](../../platforms/screenshot_overlay_policy.md) |
 | Wakeword startup, status, or bridge lifecycle changes | Wakeword bridge and supervisor | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`, `frontend/src/main/wakeword/wakeword_supervisor.cjs`, `frontend/src/main/python/wakeword_service.py` | `tests/frontend/WakewordBridge*.test.cjs`, `tests/frontend/WakewordSupervisor.test.cjs`, sidecar wakeword tests | [Wakeword Bridge Runtime Helper](wakeword_bridge_runtime_helper_reference.md), [Voice Audio Change Workflow](../../channels/voice_audio_change_workflow.md) |
-| Packaged app resolves Python/script/resource path incorrectly | Runtime path resolver | `frontend/src/main/app/runtime_paths.cjs`, `frontend/electron-builder.bundled-python.yml`, `scripts/build-sidecar-runtime` | `tests/frontend/RuntimePaths.test.cjs`, package smoke checks | [Runtime Paths and Endpoints](runtime_paths_and_endpoints.md), [Release and Packaging Workflow](../../operations/release_packaging_change_workflow.md) |
+| Packaged app resolves Python/script/resource path incorrectly | Runtime path resolver | `frontend/src/main/app/runtime_paths.cjs`, `frontend/electron-builder.bundled-python.yml`, `scripts/build-local-runtime` | `tests/frontend/RuntimePaths.test.cjs`, package smoke checks | [Runtime Paths and Endpoints](runtime_paths_and_endpoints.md), [Release and Packaging Workflow](../../operations/release_packaging_change_workflow.md) |
 
 ## Boundary Rules
 
@@ -84,7 +84,7 @@ When changing endpoints or packaged paths:
 - Preserve precedence between explicit env vars, packaged defaults, hosted defaults, and local dev defaults.
 - Keep backend URL forwarding to the local runtime explicit through config/env boundaries.
 - In packaged mode, resolve Python and sidecar bytecode from app resources before any dev fallback.
-- Validate both source mode and packaged mode when the change touches `runtime_paths.cjs`, Electron Builder resources, or `scripts/build-sidecar-runtime`.
+- Validate both source mode and packaged mode when the change touches `runtime_paths.cjs`, Electron Builder resources, or `scripts/build-local-runtime`.
 
 ## Validation Matrix
 

@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/packaging: rename the local-runtime implementation wrappers from
+  `scripts/test-sidecar.sh` and `scripts/build-sidecar-runtime.sh` to
+  `scripts/test-local-runtime.sh` and `scripts/build-local-runtime.sh`, and
+  rename the package script from `build:sidecar-runtime` to
+  `build:local-runtime`. Migration: use `<windie> test local-runtime`,
+  `<windie> build local-runtime`, or the new script names.
 - local-runtime/config: canonicalize WindieOS local-runtime logging on
   `WINDIE_LOCAL_RUNTIME_LOG_LEVEL` and
   `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR`, removing the old sidecar-named

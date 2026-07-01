@@ -3133,8 +3133,9 @@ describe('Agent SDK client behavior', () => {
     expect(runtimeCjsSource).toContain('loadNodeLocalRuntimeModules');
     expect(runtimeSource).toContain('Node local runtime provider');
     expect(runtimeCjsSource).toContain('Node local runtime provider');
-    expect(runtimeSource).not.toContain('Node sidecar runtime provider');
-    expect(runtimeCjsSource).not.toContain('Node sidecar runtime provider');
+    const retiredRuntimeProvider = 'Node ' + 'sidecar ' + 'runtime provider';
+    expect(runtimeSource).not.toContain(retiredRuntimeProvider);
+    expect(runtimeCjsSource).not.toContain(retiredRuntimeProvider);
   });
 
   test('SDK runtime env compatibility aliases live in the runtime env contract', async () => {

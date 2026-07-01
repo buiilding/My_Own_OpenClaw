@@ -8,7 +8,7 @@ FRONTEND_DIR=""
 RUNTIME_DIR="${FRONTEND_DIR}/python-runtime"
 RUNTIME_ARCHIVE="${FRONTEND_DIR}/python-runtime.tar.gz"
 RUNTIME_REQS="${FRONTEND_DIR}/src/main/python/requirements.runtime.txt"
-RUNTIME_BUILD_SCRIPT="${ROOT_DIR}/scripts/build-sidecar-runtime.sh"
+RUNTIME_BUILD_SCRIPT="${ROOT_DIR}/scripts/build-local-runtime.sh"
 RUNTIME_BUILD_STAMP="${FRONTEND_DIR}/.windie-python-runtime-build-stamp"
 BUNDLE_ID="${WINDIE_BUNDLE_ID:-com.windieos.desktop}"
 DEFAULT_BUNDLE_IDS=(
@@ -259,12 +259,12 @@ rm -rf \
 
 echo "[reinstall-windieos-macos] building fresh local macOS app bundle (no Apple notarization)"
 if [[ -n "${RUNTIME_REBUILD_REASON}" ]]; then
-  echo "[reinstall-windieos-macos] rebuilding sidecar runtime because ${RUNTIME_REBUILD_REASON}"
+  echo "[reinstall-windieos-macos] rebuilding local runtime because ${RUNTIME_REBUILD_REASON}"
   rm -rf "${RUNTIME_DIR}" "${RUNTIME_ARCHIVE}"
-  run_frontend_local_build_cmd npm --prefix "${FRONTEND_DIR}" run build:sidecar-runtime
+  run_frontend_local_build_cmd npm --prefix "${FRONTEND_DIR}" run build:local-runtime
   printf '%s\n' "${RUNTIME_BUILD_KEY}" > "${RUNTIME_BUILD_STAMP}"
 else
-  echo "[reinstall-windieos-macos] reusing existing sidecar runtime; runtime build inputs are unchanged"
+  echo "[reinstall-windieos-macos] reusing existing local runtime; runtime build inputs are unchanged"
 fi
 run_frontend_local_build_cmd npm --prefix "${FRONTEND_DIR}" run build
 run_frontend_local_build_cmd \

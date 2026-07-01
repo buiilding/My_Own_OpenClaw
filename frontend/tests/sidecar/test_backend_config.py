@@ -114,7 +114,7 @@ def test_python_sdk_backend_config_source_uses_sdk_local_runtime_wording():
     assert "Python SDK local-runtime clients" in source
     assert "Python SDK hosted clients" in source
     assert "sidecar memory clients" not in source
-    assert "Python sidecar" not in source
+    assert "Python " + "sidecar" not in source
 
 
 def test_local_runtime_backend_config_docs_describe_required_injected_backend_url():

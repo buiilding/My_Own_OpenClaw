@@ -29,7 +29,7 @@ only then do package commands run `<windie> build local-runtime`,
 
 - Bundled Python runtime lives under `resources/python-runtime`.
 - Runtime dependencies come from `frontend/src/main/python/requirements.runtime.txt`.
-- Runtime build owner is `scripts/build-sidecar-runtime`.
+- Runtime build owner is `scripts/build-local-runtime`.
 - Packaged sidecar should not depend on conda, system Python, or build-machine virtualenv paths.
 - Build each bundled runtime on its target OS.
 - Browser automation does not prebundle Playwright Chromium; it prefers installed Chrome/Chromium-family browsers.

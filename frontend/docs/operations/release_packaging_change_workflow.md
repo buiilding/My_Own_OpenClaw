@@ -20,7 +20,7 @@ The release path has two different jobs:
 | Symptom or request | Primary owner | First source roots | First docs |
 | --- | --- | --- | --- |
 | Package command, target type, output name, or artifact inclusion changes | Electron Builder config and package scripts | `frontend/package.json`, `frontend/electron-builder.yml`, `frontend/electron-builder.bundled-python.yml` | [Packaging and Release Commands](../cli/packaging_and_release_commands.md), [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md) |
-| Bundled Python runtime is missing, host-bound, too large, unsigned, or missing dependencies | Bundled local-runtime Python build | `scripts/build-sidecar-runtime`, `frontend/src/main/python/requirements.runtime.txt`, `frontend/src/main/app/runtime_paths.cjs` | [Bundled Local-Runtime Python Packaging](sidecar_runtime_packaging.md), [Packaged Desktop Builds](../install/packaged_desktop.md) |
+| Bundled Python runtime is missing, host-bound, too large, unsigned, or missing dependencies | Bundled local-runtime Python build | `scripts/build-local-runtime`, `frontend/src/main/python/requirements.runtime.txt`, `frontend/src/main/app/runtime_paths.cjs` | [Bundled Local-Runtime Python Packaging](sidecar_runtime_packaging.md), [Packaged Desktop Builds](../install/packaged_desktop.md) |
 | Installed app cannot start local runtime, wakeword, memory service, or local tools | Electron main launch path plus bundled local-runtime Python | `frontend/src/main/app/runtime_paths.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/python/core/bootstrap_paths.py` | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Desktop and Local Runtime Node](../nodes/desktop_and_sidecar_node.md) |
 | Packaged app connects to local or stale backend instead of hosted/staging backend | Endpoint resolution and local-runtime backend config | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/windie/_backend_config.py` | Runtime Configuration Matrix (private backend docs), Backend Endpoint Setup (private backend docs) |
 | Local reinstall keeps old state, permissions, logs, or app binaries | OS reinstall helper | `<windie> reinstall mac`, `<windie> reinstall linux`, `<windie> reinstall win` | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Uninstall, Reinstall, and Reset](../install/uninstall_reinstall_reset.md) |
@@ -54,7 +54,7 @@ The release path has two different jobs:
 
 ## Runtime Build Checklist
 
-When touching `scripts/build-sidecar-runtime`, `requirements.runtime.txt`, or runtime path resolution:
+When touching `scripts/build-local-runtime`, `requirements.runtime.txt`, or runtime path resolution:
 
 - Confirm `<windie> build local-runtime` still creates `frontend/python-runtime`.
 - Confirm runtime dependencies come from `frontend/src/main/python/requirements.runtime.txt`, not the dev requirements set.

@@ -87,7 +87,7 @@ function Ensure-BashAvailable {
     return $candidate
   }
 
-  throw "bash is required because frontend packaging uses scripts/build-sidecar-runtime.sh."
+  throw "bash is required because frontend packaging uses scripts/build-local-runtime.sh."
 }
 
 function Test-DeveloperModeEnabled {

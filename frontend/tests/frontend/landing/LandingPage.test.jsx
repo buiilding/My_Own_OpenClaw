@@ -70,7 +70,7 @@ describe('WhySection', () => {
     expect(screen.getByText('Vision-First Interaction')).toBeInTheDocument();
     expect(screen.getByText('Local Tool Execution')).toBeInTheDocument();
     expect(screen.getByText(/The local runtime executes tools and commands/)).toBeInTheDocument();
-    expect(screen.queryByText(/Python sidecar runs locally/)).not.toBeInTheDocument();
+    expect(screen.queryByText(new RegExp('Python ' + 'sidecar runs locally'))).not.toBeInTheDocument();
     expect(screen.getByText('Persistent Memory')).toBeInTheDocument();
     expect(screen.getByText('Browser Automation')).toBeInTheDocument();
     expect(screen.getByText('Multi-Provider Support')).toBeInTheDocument();
@@ -92,7 +92,7 @@ describe('HowItWorksSection', () => {
     expect(screen.getByText('Act with Permission')).toBeInTheDocument();
     expect(screen.getByText('Learn & Remember')).toBeInTheDocument();
     expect(screen.getByText(/The local runtime executes tools/)).toBeInTheDocument();
-    expect(screen.queryByText(/local sidecar executes tools/)).not.toBeInTheDocument();
+    expect(screen.queryByText(new RegExp('local ' + 'sidecar executes tools'))).not.toBeInTheDocument();
   });
 });
 

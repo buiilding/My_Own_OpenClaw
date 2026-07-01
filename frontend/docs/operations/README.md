@@ -19,7 +19,7 @@ incident, runtime-config, and VM-runs operations live in private backend docs.
 | Area | Start docs | Main files |
 | --- | --- | --- |
 | Packaged desktop builds | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Packaged Desktop Builds](../install/packaged_desktop.md) | `frontend/package.json`, Electron Builder config, package scripts |
-| Bundled local runtime | [Bundled Python Runtime Packaging](sidecar_runtime_packaging.md) | `scripts/build-sidecar-runtime`, local-runtime Python files |
+| Bundled local runtime | [Bundled Python Runtime Packaging](sidecar_runtime_packaging.md) | `scripts/build-local-runtime`, local-runtime Python files |
 | Release packaging | [Release and Packaging Change Workflow](release_packaging_change_workflow.md), [Release Guide](release.md) | release workflows, package config, smoke scripts |
 | Local reinstall loops | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md) | `<windie> reinstall mac`, `<windie> reinstall linux`, `<windie> reinstall win` |
 | Platform validation | [Platform Docs](../platforms/README.md), [Platform Validation Matrix](../platforms/platform_validation_matrix.md) | platform permission, window, screenshot, and packaging checks |
