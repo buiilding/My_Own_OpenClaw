@@ -292,7 +292,7 @@ Validate:
 Read:
 
 - [Local-Runtime Python Implementation Change Workflow](../frontend/sidecar/local_runtime_python_change_workflow.md)
-- [Local Tool Channels](../channels/sidecar_and_tool_channels.md)
+- [Local Tool Channels](../../../frontend/docs/channels/local_tool_channels.md)
 - [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md)
 
 Edit:

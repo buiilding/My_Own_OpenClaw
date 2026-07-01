@@ -31,7 +31,7 @@ calls through SDK/main local-runtime dispatch. Do not add Electron-main
 | Prompt skills | `skills/<id>/SKILL.md` | [Extension Convention](../development/extensions.md#skills) |
 | MCP integrations | `mcps/<id>/mcp.json` | [MCP Runtime](../development/mcp.md) |
 | Backend model-facing tools | private backend implementation | [Extension Surface Matrix](extension_surface_matrix.md), [Tool Authoring](../sdk/tool_authoring.md) |
-| Local-runtime built-in tools | `frontend/src/main/python/tools` | [Local Tool Channels](../channels/sidecar_and_tool_channels.md), Backend Tool Development (private backend docs) |
+| Local-runtime built-in tools | `frontend/src/main/python/tools` | [Local Tool Channels](../channels/local_tool_channels.md), Backend Tool Development (private backend docs) |
 | Renderer feature modules | `frontend/src/renderer/features` | [Frontend Renderer Docs Hub](../frontend/renderer/README.md) |
 
 ## Rules

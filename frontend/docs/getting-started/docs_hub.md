@@ -575,7 +575,7 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Channel Routing Matrix](../channels/channel_routing_matrix.md)
 - [Voice Audio Change Workflow](../channels/voice_audio_change_workflow.md)
 - [Voice and Audio Channels](../channels/voice_and_audio_channels.md)
-- [Local Tool Channels](../channels/sidecar_and_tool_channels.md)
+- [Local Tool Channels](../channels/local_tool_channels.md)
 
 ### Runtime Nodes
 

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/channels: rename the local tool channel guide from
+  `frontend/docs/channels/sidecar_and_tool_channels.md` to
+  `frontend/docs/channels/local_tool_channels.md` and update active
+  references. Migration: use the new docs path.
 - docs/packaging: rename the bundled local-runtime packaging guide from
   `frontend/docs/operations/sidecar_runtime_packaging.md` to
   `frontend/docs/operations/local_runtime_packaging.md` and update active

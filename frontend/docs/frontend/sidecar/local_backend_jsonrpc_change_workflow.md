@@ -206,7 +206,7 @@ When a method changes, update the closest docs in the same commit:
 - [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](../main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [Local-Runtime Python Implementation Change Workflow](local_runtime_python_change_workflow.md)
 - [IPC Change Workflow](../ipc_change_workflow.md) when renderer channels change
-- [Local Tool Channels](../../channels/sidecar_and_tool_channels.md) when tool or memory channel behavior changes
+- [Local Tool Channels](../../channels/local_tool_channels.md) when tool or memory channel behavior changes
 - [Memory IPC and RPC Mapping Reference](../contracts/memory_ipc_and_rpc_mapping_reference.md) for memory-specific payloads
 - domain docs for browser, memory, tools, permissions, or system state
 

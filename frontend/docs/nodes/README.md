@@ -62,7 +62,7 @@ downstream UI just to hide contract drift.
 Read:
 
 - [Desktop and Local Runtime Node](desktop_and_sidecar_node.md)
-- [Local Tool Channels](../channels/sidecar_and_tool_channels.md)
+- [Local Tool Channels](../channels/local_tool_channels.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 
 Likely code:

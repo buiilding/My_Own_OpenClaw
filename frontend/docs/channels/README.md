@@ -23,7 +23,7 @@ patching the wrong consumer.
 | Voice dictation | Voice-mode microphone capture | renderer audio -> backend `/ws/transcription` | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
 | Wakeword | Background hotword listener | renderer audio -> Electron wakeword bridge -> local-runtime wakeword helper backed by the Python subprocess | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
 | TTS playback | Backend audio response | backend `/ws` `audio-chunk` events -> renderer playback queue | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Audio Channels](voice_and_audio_channels.md), Backend TTS Manager (private backend docs) |
-| Local tools | Computer, browser, filesystem, shell, memory | SDK/main local runtime -> local-runtime Python executor | [Local Tool Channels](sidecar_and_tool_channels.md), [Tools Hub](../tools/README.md) |
+| Local tools | Computer, browser, filesystem, shell, memory | SDK/main local runtime -> local-runtime Python executor | [Local Tool Channels](local_tool_channels.md), [Tools Hub](../tools/README.md) |
 | SDK clients | External programmatic clients | direct hosted HTTP + WebSocket | [Channel Routing Matrix](channel_routing_matrix.md), [SDK Hub](../sdk/README.md) |
 
 ## Rules
@@ -109,7 +109,7 @@ Validate voice hook, wakeword bridge, STT gateway, and TTS stream tests.
 
 Read:
 
-- [Local Tool Channels](sidecar_and_tool_channels.md)
+- [Local Tool Channels](local_tool_channels.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 - [Local-Runtime Tools Docs Hub](../frontend/sidecar/tools/README.md)
 
@@ -131,7 +131,7 @@ Validate backend schema tests, SDK runtime/router tests, local-runtime Python to
 - [WebSocket Event Contract Change Workflow](websocket_event_contract_change_workflow.md)
 - [Voice Audio Change Workflow](voice_audio_change_workflow.md)
 - [Voice and Audio Channels](voice_and_audio_channels.md)
-- [Local Tool Channels](sidecar_and_tool_channels.md)
+- [Local Tool Channels](local_tool_channels.md)
 - [Communication Flow](../architecture/communication_flow.md)
 - [IPC Channel and Handler Reference](../frontend/contracts/ipc_channel_and_handler_reference.md)
 - HTTP and WebSocket Endpoint Reference (private backend docs)

@@ -16,7 +16,7 @@ Use this architecture-level matrix before searching broadly. It is intentionally
 | backend route/gateway | FastAPI app assembly, router registration, CORS, install auth, websocket handshake | private backend implementation | Gateway Protocol Map (private backend docs) |
 | preload | context-bridge IPC surface and allowlist | `frontend/src/preload.js`, `frontend/src/shared/ipcChannels.json` | [Frontend Preload Docs Hub](../frontend/preload/README.md) |
 | React renderer | dashboard, chat UI, response overlay UI, settings, permissions UI, voice controls, transcript projection, display-only tool state | `frontend/src/renderer` | [Frontend Architecture](frontend_architecture.md), [Frontend Renderer Docs Hub](../frontend/renderer/README.md) |
-| local-runtime implementation | local tools, browser runtime, filesystem/shell/computer actions, local memory DB/FAISS, system state, hosted SDK helper clients | `frontend/src/main/python` | [Local-Runtime Python Implementation](python_sidecar.md), [Local Tool Channels](../channels/sidecar_and_tool_channels.md) |
+| local-runtime implementation | local tools, browser runtime, filesystem/shell/computer actions, local memory DB/FAISS, system state, hosted SDK helper clients | `frontend/src/main/python` | [Local-Runtime Python Implementation](python_sidecar.md), [Local Tool Channels](../channels/local_tool_channels.md) |
 | wakeword subprocess | wakeword model/runtime, audio frame handling, detection events | `frontend/src/main/wakeword/wakeword_bridge*.cjs`, `frontend/src/main/python/wakeword_service.py` | [Voice and Audio Channels](../channels/voice_and_audio_channels.md) |
 
 ## Boundary Tests

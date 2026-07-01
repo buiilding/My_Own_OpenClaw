@@ -114,6 +114,6 @@ bundle correlation, or display-only renderer projection path.
 
 ## Related Docs
 
-- [Local Tool Channels](../../channels/sidecar_and_tool_channels.md)
+- [Local Tool Channels](../../channels/local_tool_channels.md)
 - [Tool Execution Lifecycle](../../tools/tool_execution_lifecycle.md)
 - [Windie Client Runtime](../../sdk/windie_client_runtime.md)

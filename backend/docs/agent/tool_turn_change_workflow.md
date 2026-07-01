@@ -214,7 +214,7 @@ Local-runtime implementation owners:
 Start docs:
 
 - [Local-Runtime Tool Change Workflow](../../frontend/local_runtime_tool_change_workflow.md)
-- [Local Tool Channels](../../channels/sidecar_and_tool_channels.md)
+- [Local Tool Channels](../../../frontend/docs/channels/local_tool_channels.md)
 - [Tool Execution Lifecycle](../../tools/tool_execution_lifecycle.md)
 
 ## Review Checklist

@@ -26,7 +26,7 @@ backend docs.
 
 | Protocol | Producer | Consumer | Docs |
 | --- | --- | --- | --- |
-| local-runtime JSON-RPC | SDK `LocalRuntime` with Electron host context | local-runtime Python executor | [Local Tool Channels](../channels/sidecar_and_tool_channels.md), [Local-Runtime JSON-RPC Protocol Reference](../frontend/sidecar/core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md) |
+| local-runtime JSON-RPC | SDK `LocalRuntime` with Electron host context | local-runtime Python executor | [Local Tool Channels](../channels/local_tool_channels.md), [Local-Runtime JSON-RPC Protocol Reference](../frontend/sidecar/core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md) |
 | preload IPC | renderer facade | Electron main IPC handlers | [Frontend Preload Channel Allowlist](../frontend/preload/preload_channel_allowlist_and_renderer_bridge_reference.md), [Frontend IPC Channel Reference](../frontend/contracts/ipc_channel_and_handler_reference.md) |
 | wakeword subprocess frames | renderer/main wakeword bridge | local-runtime wakeword helper backed by the Python service | [Voice and Audio Channels](../channels/voice_and_audio_channels.md), [Electron Wakeword Bridge and Audio Framing Reference](../frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md) |
 
