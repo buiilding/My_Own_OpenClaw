@@ -107,4 +107,4 @@ Validation:
 
 - [Frontend Inventory Domains Hub](README.md)
 - [Frontend Domain Ownership Matrix Reference](frontend_domain_ownership_matrix_reference.md)
-- [Frontend IPC and Local-Runtime Contract Touchpoints Reference](../frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
+- [Frontend IPC and Local-Runtime Contract Touchpoints Reference](../frontend_ipc_and_local_runtime_contract_touchpoints_reference.md)

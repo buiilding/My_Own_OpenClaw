@@ -15,7 +15,7 @@ title: "Frontend Protocol Lifecycle Hub"
 ## Related Pages
 
 - [Frontend Inventory Protocols Hub](../README.md)
-- [Frontend IPC and Local Runtime Protocol Surface Matrix Reference](../frontend_ipc_and_local_backend_protocol_surface_matrix_reference.md)
+- [Frontend IPC and Local Runtime Protocol Surface Matrix Reference](../frontend_ipc_and_local_runtime_protocol_surface_matrix_reference.md)
 - [Frontend Protocol State Hub](../state/README.md)
 - [Frontend Protocol Errors Hub](../errors/README.md)
 - [Frontend Protocol Validation Hub](../validation/README.md)

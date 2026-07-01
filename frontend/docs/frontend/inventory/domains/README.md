@@ -18,4 +18,4 @@ title: "Frontend Inventory Domains Hub"
 - [Frontend Inventory Docs Hub](../README.md)
 - [Frontend Runtime Surface Matrix Reference](../frontend_runtime_surface_matrix_reference.md)
 - [Frontend Module File Index Reference](../frontend_module_file_index_reference.md)
-- [Frontend IPC and Local-Runtime Contract Touchpoints Reference](../frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
+- [Frontend IPC and Local-Runtime Contract Touchpoints Reference](../frontend_ipc_and_local_runtime_contract_touchpoints_reference.md)

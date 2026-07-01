@@ -10,7 +10,7 @@ title: "Frontend Protocol Testing Hub"
 
 ## Deep Pages
 
-- [Frontend IPC and Local Runtime Protocol Test Coverage and Runtime Contract Reference](frontend_ipc_and_local_backend_protocol_test_coverage_and_runtime_contract_reference.md)
+- [Frontend IPC and Local Runtime Protocol Test Coverage and Runtime Contract Reference](frontend_ipc_and_local_runtime_protocol_test_coverage_and_runtime_contract_reference.md)
 
 ## Related Pages
 

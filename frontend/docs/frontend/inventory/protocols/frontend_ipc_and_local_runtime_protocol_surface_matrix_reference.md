@@ -13,7 +13,7 @@ title: "Frontend IPC and Local Runtime Protocol Surface Matrix Reference"
 - Renderer `send` channels: `8`
 - Renderer `invoke` channels: `41`
 - Renderer `on/once` channels: `23`
-- Compiled JSON-RPC mapper definitions: `0` (direct chat/memory IPC mapper removed)
+- Compiled JSON-RPC mapper count: `0` (direct chat/memory IPC mapper removed)
 
 ## Scope and Sources
 

@@ -10,7 +10,7 @@ title: "Frontend Protocol Errors Hub"
 
 ## Deep Pages
 
-- [Frontend IPC, WS Bridge, and Local Runtime Error-Recovery Contract Reference](frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md)
+- [Frontend IPC, WS Bridge, and Local Runtime Error-Recovery Contract Reference](frontend_ipc_ws_bridge_and_local_runtime_error_recovery_contract_reference.md)
 
 ## Related Pages
 
@@ -18,4 +18,4 @@ title: "Frontend Protocol Errors Hub"
 - [Frontend Protocol Lifecycle Hub](../lifecycle/README.md)
 - [Frontend Protocol State Hub](../state/README.md)
 - [Frontend Protocol Validation Hub](../validation/README.md)
-- [Frontend IPC and Local Runtime Protocol Surface Matrix Reference](../frontend_ipc_and_local_backend_protocol_surface_matrix_reference.md)
+- [Frontend IPC and Local Runtime Protocol Surface Matrix Reference](../frontend_ipc_and_local_runtime_protocol_surface_matrix_reference.md)

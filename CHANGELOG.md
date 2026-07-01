@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: rename frontend inventory IPC/local-runtime protocol references
+  away from `sidecar` and `local_backend` filenames so the docs paths match
+  their Local Runtime titles. Migration: use the new
+  `frontend_ipc_and_local_runtime_*` docs paths.
 - renderer/chat: rename the ChatInterface live-turn presentation cache fallback
   from `sdkLiveTurnLegacyNoPresentation` to `sdkLiveTurnRawNoPresentation` so
   the app-runtime cache describes the current SDK live-turn state instead of a

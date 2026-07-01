@@ -19,7 +19,7 @@ main process, React renderer, and the local-runtime Python implementation.
 - [Frontend Capability to File Matrix Reference](inventory/frontend_capability_to_file_matrix_reference.md)
 - [Frontend Runtime Surface Matrix Reference](inventory/frontend_runtime_surface_matrix_reference.md)
 - [Frontend Module File Index Reference](inventory/frontend_module_file_index_reference.md)
-- [Frontend IPC and Local-Runtime Contract Touchpoints Reference](inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
+- [Frontend IPC and Local-Runtime Contract Touchpoints Reference](inventory/frontend_ipc_and_local_runtime_contract_touchpoints_reference.md)
 - [Frontend Inventory Domains Hub](inventory/domains/README.md)
 - [Frontend Inventory Protocols Hub](inventory/protocols/README.md)
 

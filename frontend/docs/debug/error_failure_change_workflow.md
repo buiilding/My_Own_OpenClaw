@@ -21,7 +21,7 @@ Core rule: preserve the failure boundary. Backend errors should stay sanitized b
 | HTTP route errors | Owning backend route/service | private backend implementation, service helpers | route-specific backend tests | API Route Change Workflow (private backend docs) |
 | Model/tool parse recovery | Backend agent runtime | private backend implementation | parser validation, recovery, interaction-loop tests | Tool-Call Error Recovery Reference (private backend docs) |
 | Tool result failure ingestion | Backend tool waiting/processing | private backend implementation | private backend tests, `test_incoming_tool_result_schemas.py` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
-| Electron websocket send/reconnect failure | Electron main IPC bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs` | `tests/frontend/IpcMainBridge*.test.cjs` | [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md) |
+| Electron websocket send/reconnect failure | Electron main IPC bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs` | `tests/frontend/IpcMainBridge*.test.cjs` | [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_runtime_error_recovery_contract_reference.md) |
 | Preload IPC validation errors | Preload bridge and renderer IPC wrapper | `frontend/src/preload.js`, `frontend/src/renderer/infrastructure/ipc/**` | `tests/frontend/IpcBridgeValidation.test.ts` | [IPC Change Workflow](../frontend/ipc_change_workflow.md) |
 | Local runtime JSON-RPC/process failure | Electron local runtime bridge | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs`, local-runtime Python process launch helpers | `tests/frontend/LocalRuntimeBridge*.test.cjs` | [Local Runtime Process Lifecycle Change Workflow](../frontend/main/local_runtime/process_lifecycle_change_workflow.md) |
 | Local-runtime tool result failures | local-runtime executable registry/tool implementation backed by local-runtime Python modules | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/result.py`, concrete tool module | `frontend/tests/sidecar/test_tool_result.py`, tool-specific local-runtime Python tests | [Local-Runtime Registry and Result Contract](../frontend/local_runtime_python/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
@@ -95,7 +95,7 @@ Read:
 
 - Handler Registry and Error Envelope Reference (private backend docs)
 - [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md)
-- [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md)
+- [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_runtime_error_recovery_contract_reference.md)
 
 Edit:
 
@@ -153,7 +153,7 @@ Validate:
 
 Read:
 
-- [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md)
+- [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_runtime_error_recovery_contract_reference.md)
 - [Main Process Change Workflow](../frontend/main/main_process_change_workflow.md)
 - Process Health Checklist (private backend docs)
 
@@ -252,7 +252,7 @@ Before committing an error/failure change:
 
 - [Failure Domain Map](../architecture/failure_domain_map.md)
 - Handler Registry and Error Envelope Reference (private backend docs)
-- [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md)
+- [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_runtime_error_recovery_contract_reference.md)
 - [Local-Runtime Registry and Result Contract](../frontend/local_runtime_python/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Observability Change Workflow](observability_change_workflow.md)
 - [Test Selection](test_selection.md)

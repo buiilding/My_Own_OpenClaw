@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for main-process IPC handler ownership across `ipc.cjs` + IPC helper modules, `index.cjs`, permission/wakeword handlers, and scoped local-runtime bridge channels."
+summary: "Deep reference for main-process IPC handler ownership across `ipc.cjs` + IPC helper modules, `index.cjs`, permission/wakeword handlers, renderer invoke channels, scoped local-runtime bridge channels, and removed compiled RPC mapper definitions."
 read_when:
   - When adding/removing `ipcMain.on/handle` registrations, including permission onboarding channels.
   - When debugging renderer invoke/send calls that do not reach expected SDK/main local-runtime behavior.

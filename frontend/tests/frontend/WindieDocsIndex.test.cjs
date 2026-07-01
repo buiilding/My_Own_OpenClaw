@@ -229,7 +229,7 @@ describe('windie docs index', () => {
       'frontend',
       'inventory',
       'protocols',
-      'frontend_ipc_and_local_backend_protocol_surface_matrix_reference.md',
+      'frontend_ipc_and_local_runtime_protocol_surface_matrix_reference.md',
     );
     const mapperPath = path.join(
       'docs',
