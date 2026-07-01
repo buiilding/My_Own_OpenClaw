@@ -725,6 +725,73 @@ function mergeUserMessageMetadata(
   };
 }
 
+function toolSchemasFromPayload(payload: JsonRecord): JsonRecord[] | null {
+  const schemas = Array.isArray(payload.toolSchemas)
+    ? payload.toolSchemas
+    : (Array.isArray(payload.tool_schemas) ? payload.tool_schemas : null);
+  if (!schemas) {
+    return null;
+  }
+  const records = schemas
+    .map(entry => recordFromUnknown(entry))
+    .filter((entry): entry is JsonRecord => Boolean(entry));
+  return records.length > 0 ? records : null;
+}
+
+function mergeUserPromptTransparencyMetadata(
+  row: Extract<SdkDisplayRow, { type: 'user_message' }>,
+  event: ConversationEvent,
+): Extract<SdkDisplayRow, { type: 'user_message' }> {
+  const raw = {
+    ...(recordFromUnknown(row.metadata?.raw) ?? {}),
+    ...event.payload,
+  };
+  if (event.type === 'system_prompt') {
+    return {
+      ...row,
+      metadata: {
+        ...row.metadata,
+        eventId: event.eventId,
+        timestamp: event.timestamp,
+        systemPrompt: {
+          content: textFromPayload(event.payload),
+          toolSchemas: toolSchemasFromPayload(event.payload),
+        },
+        raw,
+      },
+    };
+  }
+  if (event.type === 'tool_schemas_metadata') {
+    return {
+      ...row,
+      metadata: {
+        ...row.metadata,
+        eventId: event.eventId,
+        timestamp: event.timestamp,
+        toolSchemas: toolSchemasFromPayload(event.payload),
+        raw,
+      },
+    };
+  }
+  const content = typeof event.payload.content === 'string' ? event.payload.content : null;
+  const metadata = recordFromUnknown(event.payload.metadata);
+  return {
+    ...row,
+    metadata: {
+      ...row.metadata,
+      eventId: event.eventId,
+      timestamp: event.timestamp,
+      ...(content !== null ? {
+        fullUserMessage: {
+          content,
+          ...(metadata ? { metadata } : {}),
+        },
+      } : {}),
+      raw,
+    },
+  };
+}
+
 type StreamingAssistantDisplayRow = Extract<SdkDisplayRow, { type: 'assistant_message' }>;
 
 type StreamingAssistantState = {
@@ -851,15 +918,19 @@ export function buildDisplayRows(
     if (eventTurnRef && supersededTurnRefs.has(eventTurnRef)) {
       continue;
     }
-    if (event.type === 'user_message_metadata') {
+    if (
+      event.type === 'system_prompt'
+      || event.type === 'user_message_metadata'
+      || event.type === 'tool_schemas_metadata'
+    ) {
       const key = userMetadataKey(event);
       const rowIndex = key ? userRowsByTurn.get(key) : undefined;
       const row = typeof rowIndex === 'number' ? rows[rowIndex] : null;
       if (row?.type === 'user_message') {
-        rows[rowIndex] = applyLiveAttachmentsToUserRow(
-          mergeUserMessageMetadata(row, event),
-          options,
-        );
+        const merged = event.type === 'user_message_metadata'
+          ? mergeUserPromptTransparencyMetadata(mergeUserMessageMetadata(row, event), event)
+          : mergeUserPromptTransparencyMetadata(row, event);
+        rows[rowIndex] = applyLiveAttachmentsToUserRow(merged, options);
       }
       continue;
     }

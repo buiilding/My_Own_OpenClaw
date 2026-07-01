@@ -243,6 +243,60 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
+  test('projects SDK user-row prompt transparency fields for dev UI buttons', () => {
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-user-transparency',
+        conversationRef: 'conv-sdk',
+        turnRef: 'turn-transparency',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'hello',
+        metadata: {
+          revisionId: 'rev-1',
+          timestamp: '2026-05-15T12:00:00.000Z',
+          systemPrompt: {
+            content: 'system prompt',
+            toolSchemas: null,
+          },
+          toolSchemas: [{
+            type: 'function',
+            function: {
+              name: 'read_file',
+              parameters: { type: 'object', properties: {} },
+            },
+          }],
+          fullUserMessage: {
+            content: '<user_query>hello</user_query>',
+            metadata: { context_type: 'initial' },
+          },
+        },
+      },
+    ])).toEqual([
+      expect.objectContaining({
+        id: 'msg-user-transparency',
+        sender: 'user',
+        sourceChannel: 'sdk:display-rows',
+        systemPrompt: {
+          content: 'system prompt',
+        },
+        toolSchemas: [
+          expect.objectContaining({
+            type: 'function',
+            function: expect.objectContaining({
+              name: 'read_file',
+            }),
+          }),
+        ],
+        fullUserMessage: {
+          content: '<user_query>hello</user_query>',
+          metadata: { context_type: 'initial' },
+        },
+      }),
+    ]);
+  });
+
   test('projects SDK row action metadata and replay target ids', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {

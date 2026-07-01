@@ -73,6 +73,32 @@ function rowActions(row: SdkDisplayRow): ChatMessage['actions'] | undefined {
   return Object.keys(projectedActions).length > 0 ? projectedActions : undefined;
 }
 
+function rowUserTransparencyFields(row: SdkDisplayRow): Partial<ChatMessage> {
+  const fields: Partial<ChatMessage> = {};
+  const systemPrompt = recordFromUnknown(row.metadata?.systemPrompt);
+  if (systemPrompt && typeof systemPrompt.content === 'string') {
+    fields.systemPrompt = {
+      content: systemPrompt.content,
+      ...(Array.isArray(systemPrompt.toolSchemas)
+        ? { toolSchemas: systemPrompt.toolSchemas as ChatMessage['toolSchemas'] }
+        : {}),
+    };
+  }
+  if (Array.isArray(row.metadata?.toolSchemas)) {
+    fields.toolSchemas = row.metadata.toolSchemas as ChatMessage['toolSchemas'];
+  }
+  const fullUserMessage = recordFromUnknown(row.metadata?.fullUserMessage);
+  if (fullUserMessage && typeof fullUserMessage.content === 'string') {
+    fields.fullUserMessage = {
+      content: fullUserMessage.content,
+      ...(recordFromUnknown(fullUserMessage.metadata)
+        ? { metadata: fullUserMessage.metadata as Record<string, unknown> }
+        : {}),
+    };
+  }
+  return fields;
+}
+
 function withRowActions(message: ChatMessage, row: SdkDisplayRow): ChatMessage {
   const actions = rowActions(row);
   return actions ? { ...message, actions } : message;
@@ -89,6 +115,7 @@ function buildUserChatMessage(row: SdkDisplayRow): ChatMessage {
     sourceChannel: sdkDisplayRowsSourceChannel,
     timestamp: rowTimestamp(row),
     isComplete: true,
+    ...rowUserTransparencyFields(row),
     ...(attachments.length > 0 ? { attachments } : {}),
   }, row);
 }

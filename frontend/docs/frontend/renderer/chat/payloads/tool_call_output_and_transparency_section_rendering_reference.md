@@ -246,6 +246,15 @@ Conversation-level behavior:
 - later user rows can render that conversation-level tool-schema transparency even when the schema event was attached to an earlier turn
 - assistant rows do not inherit conversation-level tool-schema sections
 
+SDK `ConversationView.displayRows` remain the source of truth when present.
+The SDK display-row projection attaches backend `system_prompt`,
+`user_message_metadata`, and `tool_schemas_metadata` events to the matching
+same-turn user row as `metadata.systemPrompt`, `metadata.fullUserMessage`, and
+`metadata.toolSchemas`. The renderer `sdk:display-rows` adapter must preserve
+those fields on the projected user `ChatMessage`; otherwise `windie start dev`
+loses the dev-only transparency buttons under the user pill even though the
+source badge still renders.
+
 Tool schema list normalization is centralized in
 `frontend/src/renderer/infrastructure/transcript/toolSchemaShape.ts` and is
 exposed to renderer presentation through

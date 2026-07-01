@@ -353,6 +353,15 @@ export type SdkDisplayRowMetadata = {
   success?: boolean | null;
   modelId?: string | null;
   modelProvider?: string | null;
+  systemPrompt?: {
+    content: string;
+    toolSchemas?: JsonRecord[] | null;
+  } | null;
+  toolSchemas?: JsonRecord[] | null;
+  fullUserMessage?: {
+    content: string;
+    metadata?: JsonRecord | null;
+  } | null;
   raw?: JsonRecord | null;
 };
 

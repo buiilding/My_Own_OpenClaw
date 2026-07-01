@@ -750,6 +750,90 @@ describe('Agent SDK conversation runtime core', () => {
     });
   });
 
+  test('SDK display rows attach prompt transparency metadata to the matching user row', () => {
+    const user = createConversationEvent({
+      eventId: 'evt-user',
+      type: 'user_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'ui',
+      payload: { text: 'hello' },
+    });
+    const systemPrompt = createConversationEvent({
+      eventId: 'evt-system-prompt',
+      type: 'system_prompt',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'backend',
+      payload: { content: 'system prompt' },
+    });
+    const userMetadata = createConversationEvent({
+      eventId: 'evt-user-message-full',
+      type: 'user_message_metadata',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'backend',
+      payload: {
+        content: '<user_query>hello</user_query>',
+        metadata: { context_type: 'initial' },
+      },
+    });
+    const toolSchemas = createConversationEvent({
+      eventId: 'evt-tool-schemas',
+      type: 'tool_schemas_metadata',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'backend',
+      payload: {
+        toolSchemas: [{
+          type: 'function',
+          function: {
+            name: 'read_file',
+            parameters: { type: 'object', properties: {} },
+          },
+        }],
+      },
+    });
+
+    const rows = buildDisplayRows([user, systemPrompt, userMetadata, toolSchemas]);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      id: 'evt-user',
+      type: 'user_message',
+      metadata: expect.objectContaining({
+        systemPrompt: {
+          content: 'system prompt',
+          toolSchemas: null,
+        },
+        fullUserMessage: {
+          content: '<user_query>hello</user_query>',
+          metadata: { context_type: 'initial' },
+        },
+        toolSchemas: [
+          expect.objectContaining({
+            type: 'function',
+            function: expect.objectContaining({
+              name: 'read_file',
+            }),
+          }),
+        ],
+        raw: expect.objectContaining({
+          content: '<user_query>hello</user_query>',
+          toolSchemas: [
+            expect.objectContaining({
+              type: 'function',
+            }),
+          ],
+        }),
+      }),
+    });
+  });
+
   test('SDK display rows project ordered live visual attachments by stable id', () => {
     const user = createConversationEvent({
       eventId: 'evt-user',
