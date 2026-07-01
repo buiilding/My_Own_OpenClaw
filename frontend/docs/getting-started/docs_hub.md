@@ -762,7 +762,7 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Failure Domain Map](../architecture/failure_domain_map.md)
 - Backend Architecture (private backend docs)
 - [Frontend Architecture](../architecture/frontend_architecture.md)
-- [Local-Runtime Python Implementation](../architecture/python_sidecar.md)
+- [Local-Runtime Python Implementation](../architecture/local_runtime_python.md)
 - [Agent System](../architecture/agent_system.md)
 - Backend Tool System (private backend docs)
 - [Memory System](../architecture/memory_system.md)

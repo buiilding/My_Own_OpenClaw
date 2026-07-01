@@ -292,5 +292,5 @@ If you add backend-only tools, document the wiring point in the same PR.
 
 See also:
 - [Tool System](../architecture/tool_system.md)
-- [Local-Runtime Python Implementation](../architecture/python_sidecar.md)
+- [Local-Runtime Python Implementation](../../../frontend/docs/architecture/local_runtime_python.md)
 - [API Reference](../reference/api_reference.md)

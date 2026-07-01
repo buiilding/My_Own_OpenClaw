@@ -121,7 +121,7 @@ def test_local_runtime_backend_config_docs_describe_required_injected_backend_ur
     docs = "\n".join(
         (REPO_ROOT / relative_path).read_text(encoding="utf-8")
         for relative_path in [
-            "frontend/docs/architecture/python_sidecar.md",
+            "frontend/docs/architecture/local_runtime_python.md",
             (
                 "frontend/docs/frontend/sidecar/core/"
                 "backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md"

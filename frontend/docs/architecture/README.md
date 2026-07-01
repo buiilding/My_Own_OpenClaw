@@ -23,7 +23,7 @@ title: "Architecture Hub"
 - [Communication Flow](communication_flow.md)
 - Backend Architecture (private backend docs)
 - [Frontend Architecture](frontend_architecture.md)
-- [Local-Runtime Python Implementation](python_sidecar.md)
+- [Local-Runtime Python Implementation](local_runtime_python.md)
 - [Agent System](agent_system.md)
 - Backend Tool System (private backend docs)
 - [LLM Integration](llm_integration.md)

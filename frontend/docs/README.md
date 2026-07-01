@@ -433,7 +433,7 @@ contracts.
 - [**Wakeword Bridge + Audio Framing**](frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md) - Wakeword subprocess lifecycle, length-prefixed audio transport, enable/disable buffering policy, and detection event propagation
 - [**Browser Control Runbook**](browser/browser_control_run.md) - Practical setup/testing flow for browser control
 - [**Memory System**](architecture/memory_system.md) - Memory management and retrieval
-- [**Local-Runtime Python Implementation**](architecture/python_sidecar.md) - Local tool execution and memory service behind the SDK local-runtime boundary
+- [**Local-Runtime Python Implementation**](architecture/local_runtime_python.md) - Local tool execution and memory service behind the SDK local-runtime boundary
 - [**LLM Integration**](architecture/llm_integration.md) - LLM providers and configuration
 
 ### Development Guides

@@ -17,7 +17,7 @@ Use this before touching code when ownership is ambiguous.
    - Read [Agent System](agent_system.md), Backend Tool System (private backend docs), and [LLM Integration](llm_integration.md).
 2. Does it require local machine authority such as screenshot, mouse, keyboard, file, shell, browser, window state, or local memory?
    - Yes: local-runtime Python/Electron main ownership.
-   - Read [Local-Runtime Python Implementation](python_sidecar.md), [Tools Hub](../tools/README.md), and [Platform Permission Matrix](../platforms/permission_matrix.md).
+   - Read [Local-Runtime Python Implementation](local_runtime_python.md), [Tools Hub](../tools/README.md), and [Platform Permission Matrix](../platforms/permission_matrix.md).
 3. Does it change windowing, overlays, endpoint selection, IPC, permissions, or process supervision?
    - Yes: Electron main ownership.
    - Read [Frontend Architecture](frontend_architecture.md) and [Frontend Main Docs Hub](../frontend/main/README.md).
