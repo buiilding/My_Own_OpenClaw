@@ -202,7 +202,7 @@ main process, React renderer, and the local-runtime Python implementation.
 - [Backend Config Env-Precedence Reference](sidecar/core/backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md)
 - [Remote Semantic Client Reference](sidecar/core/remote_semantic_client_summarize_payload_timeout_and_error_surface_contract_reference.md)
 - [Wakeword Service Model Bootstrap and Binary Framing Reference](sidecar/services/wakeword_service_model_bootstrap_and_binary_framing_reference.md)
-- [Local-Runtime Python Folder Topology and Package `__init__` Export Surface Reference](sidecar/source_maps/python_sidecar_folder_topology_and_package_init_export_surface_reference.md)
+- [Local-Runtime Python Folder Topology and Package `__init__` Export Surface Reference](sidecar/source_maps/local_runtime_python_folder_topology_and_package_init_export_surface_reference.md)
 
 ### Contracts
 

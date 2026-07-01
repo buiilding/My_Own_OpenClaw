@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/source-maps: rename the local-runtime Python topology source-map guide
+  from
+  `frontend/docs/frontend/sidecar/source_maps/python_sidecar_folder_topology_and_package_init_export_surface_reference.md`
+  to
+  `frontend/docs/frontend/sidecar/source_maps/local_runtime_python_folder_topology_and_package_init_export_surface_reference.md`
+  and update active references. Migration: use the new docs path.
 - docs/memory: rename the local-runtime memory guide from
   `frontend/docs/memory/sidecar_local_memory.md` to
   `frontend/docs/memory/local_runtime_memory.md` and update active

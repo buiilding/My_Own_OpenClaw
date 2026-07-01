@@ -42,7 +42,7 @@ title: "Local Runtime Python Implementation Docs Hub"
 - [Browser Action Runtime Reference](browser_action_runtime_reference.md)
 - [Schema Registry and Action Validation Boundary Reference](browser/contracts/schema_registry_and_action_validation_boundary_reference.md)
 - [Chrome Detection, Launcher, and CDP Session Reference](browser/chrome/chrome_detection_launcher_and_cdp_session_reference.md)
-- [Local-Runtime Python Folder Topology and Package `__init__` Export Surface Reference](source_maps/python_sidecar_folder_topology_and_package_init_export_surface_reference.md)
+- [Local-Runtime Python Folder Topology and Package `__init__` Export Surface Reference](source_maps/local_runtime_python_folder_topology_and_package_init_export_surface_reference.md)
 - [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md)
 - [Local Runtime JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)
 - [Local-Runtime Process Lifecycle Change Workflow](../main/local_backend/process_lifecycle_change_workflow.md)

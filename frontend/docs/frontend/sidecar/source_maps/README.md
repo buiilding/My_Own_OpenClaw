@@ -10,7 +10,7 @@ title: "Local-Runtime Source Maps Docs Hub"
 
 ## Deep Pages
 
-- [Local-Runtime Python Folder Topology and Package `__init__` Export Surface Reference](python_sidecar_folder_topology_and_package_init_export_surface_reference.md)
+- [Local-Runtime Python Folder Topology and Package `__init__` Export Surface Reference](local_runtime_python_folder_topology_and_package_init_export_surface_reference.md)
 
 ## Related Pages
 
