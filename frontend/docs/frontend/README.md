@@ -175,7 +175,7 @@ main process, React renderer, and the local-runtime Python implementation.
 - [Local-Runtime System Tools Docs Hub](sidecar/tools/system/README.md)
 - [Local Runtime Memory Docs Hub](sidecar/memory/README.md)
 - [Local Runtime Memory Storage Docs Hub](sidecar/memory/storage/README.md)
-- [Local-Runtime Python and Memory](sidecar/python_sidecar_and_memory.md)
+- [Local-Runtime Python and Memory](sidecar/local_runtime_python_and_memory.md)
 - [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
 - [Local-Runtime System-State Collection and Platform Adapter Reference](sidecar/system_state/system_state_collection_and_platform_adapter_reference.md)
 - [Local-Runtime Tool Catalog and Execution Model](sidecar/tool_catalog_and_execution_model.md)

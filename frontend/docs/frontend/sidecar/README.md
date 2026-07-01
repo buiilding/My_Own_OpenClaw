@@ -10,7 +10,7 @@ title: "Local Runtime Python Implementation Docs Hub"
 
 ## Deep Pages
 
-- [Local-Runtime Python and Memory](python_sidecar_and_memory.md)
+- [Local-Runtime Python and Memory](local_runtime_python_and_memory.md)
 - [Local-Runtime Python Implementation Change Workflow](local_runtime_python_change_workflow.md)
 - [Local-Runtime Process Lifecycle Change Workflow](../main/local_backend/process_lifecycle_change_workflow.md)
 - [Local Runtime JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)

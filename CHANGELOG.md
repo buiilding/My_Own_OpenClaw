@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/local-runtime: rename the local-runtime Python and memory guide from
+  `frontend/docs/frontend/sidecar/python_sidecar_and_memory.md` to
+  `frontend/docs/frontend/sidecar/local_runtime_python_and_memory.md` and
+  update active references. Migration: use the new docs path.
 - docs/architecture: rename the local-runtime Python architecture guide from
   `frontend/docs/architecture/python_sidecar.md` to
   `frontend/docs/architecture/local_runtime_python.md` and update active
