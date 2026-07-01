@@ -88,8 +88,8 @@
               "frontend/renderer/renderer_state_change_workflow",
               "frontend/contracts/README",
               "frontend/contracts/ipc/README",
-              "frontend/sidecar/README",
-              "frontend/sidecar/local_runtime_python_change_workflow"
+              "frontend/local_runtime_python/README",
+              "frontend/local_runtime_python/local_runtime_python_change_workflow"
             ]
           }
         ]

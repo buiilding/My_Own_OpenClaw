@@ -22,7 +22,7 @@ title: "Frontend Main Local-Runtime Docs Hub"
 | Task | Start doc |
 | --- | --- |
 | Change local-runtime daemon startup, readiness, shutdown, status, request timeout, stdout/stderr, or packaged launch behavior | [Local-Runtime Process Lifecycle Change Workflow](process_lifecycle_change_workflow.md) |
-| Add or change a Python JSON-RPC method or SDK local-runtime caller | [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_runtime_jsonrpc_change_workflow.md) |
+| Add or change a Python JSON-RPC method or SDK local-runtime caller | [Local Runtime JSON-RPC Change Workflow](../../local_runtime_python/local_runtime_jsonrpc_change_workflow.md) |
 | Debug local-runtime lifecycle races or pending request correlation | [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](local_runtime_readiness_and_helper_rpc_reference.md) |
 | Debug scoped host payload keys or Python JSON-RPC method names | [Local-Runtime RPC Handler Registry Reference](local_runtime_rpc_handler_registry_reference.md) |
 

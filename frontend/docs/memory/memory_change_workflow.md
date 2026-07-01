@@ -99,7 +99,7 @@ Validation:
 Read:
 
 - [Local Runtime Memory](local_runtime_memory.md)
-- [Local Runtime Memory Docs Hub](../frontend/sidecar/memory/README.md)
+- [Local Runtime Memory Docs Hub](../frontend/local_runtime_python/memory/README.md)
 - [Memory Troubleshooting](memory_troubleshooting.md)
 
 Likely code:

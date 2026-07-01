@@ -253,5 +253,5 @@ Missing-device guardrails:
 - Wakeword capture guard utility internals: `docs/frontend/renderer/voice/utils/wakeword_capture_guard_global_lockout_and_device_probe_reference.md`
 - Audio encoding/chunk/cleanup utility internals: `docs/frontend/renderer/voice/utils/audio_encoding_chunk_normalization_and_capture_cleanup_reference.md`
 - Transcription-region state-machine internals: `docs/frontend/renderer/voice/utils/transcription_region_state_machine_and_input_edit_reconciliation_reference.md`
-- Wakeword bridge internals: `docs/frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md`
+- Wakeword bridge internals: `docs/frontend/local_runtime_python/wakeword_bridge_and_audio_framing_reference.md`
 - Main-process query relay impacts after wakeword activation: `docs/frontend/main/query_payload_and_relay_reference.md`

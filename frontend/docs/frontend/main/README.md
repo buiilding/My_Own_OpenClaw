@@ -33,7 +33,7 @@ title: "Frontend Main Docs Hub"
 - [Local-Runtime Process Lifecycle Change Workflow](local_runtime/process_lifecycle_change_workflow.md)
 - [Main Testing Docs Hub](testing/README.md)
 - [Main Testing Data-Seed Docs Hub](testing/data_seed/README.md)
-- [Local Runtime JSON-RPC Change Workflow](../sidecar/local_runtime_jsonrpc_change_workflow.md)
+- [Local Runtime JSON-RPC Change Workflow](../local_runtime_python/local_runtime_jsonrpc_change_workflow.md)
 - [Local Runtime Bridge Overview and Window Guard Index](local_runtime_bridge_handler_and_window_guard_reference.md)
 - [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](local_runtime/local_runtime_readiness_and_helper_rpc_reference.md)
 - [Local-Runtime RPC Handler Registry Reference](local_runtime/local_runtime_rpc_handler_registry_reference.md)

@@ -111,7 +111,7 @@ Read:
 
 - [Local Tool Channels](local_tool_channels.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
-- [Local-Runtime Tools Docs Hub](../frontend/sidecar/tools/README.md)
+- [Local-Runtime Tools Docs Hub](../frontend/local_runtime_python/tools/README.md)
 
 Likely code:
 

@@ -23,7 +23,7 @@ production security runbooks, and multi-user backend hardening.
 - [Onboarding and Permissions](../desktop/onboarding_permissions.md)
 - [Platform Docs](../platforms/README.md)
 - [Local Tool Channels](../channels/local_tool_channels.md)
-- [Local Runtime Python Implementation Docs Hub](../frontend/sidecar/README.md)
+- [Local Runtime Python Implementation Docs Hub](../frontend/local_runtime_python/README.md)
 
 ## Public Frontend Boundaries
 

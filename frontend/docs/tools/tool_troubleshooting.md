@@ -71,7 +71,7 @@ Questions to answer:
 Read:
 
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md)
-- [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
+- [Local-Runtime Registry and Result Contract](../frontend/local_runtime_python/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 
 ## Result and History Failures
 
@@ -95,9 +95,9 @@ Read:
 
 | Tool family | Docs | Tests |
 | --- | --- | --- |
-| computer | [Computer Tools](computer.md), [Local-Runtime Computer Implementation](../frontend/sidecar/tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md) | `frontend/tests/sidecar/test_mouse_tool.py`, `frontend/tests/sidecar/test_keyboard_tool.py`, `frontend/tests/sidecar/test_screenshot_tool.py`, `frontend/tests/sidecar/test_scroll_tool.py` |
-| shell/process | [Filesystem and Shell Tools](filesystem_shell.md), [Shell Runtime](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md) | `frontend/tests/sidecar/test_shell_process_tool.py`, `frontend/tests/sidecar/test_shell_process_registry.py` |
-| filesystem | [Filesystem and Shell Tools](filesystem_shell.md), [Read File Runtime](../frontend/sidecar/tools/filesystem/read_file_window_pagination_binary_guard_and_truncation_contract_reference.md), [Replace Runtime](../frontend/sidecar/tools/filesystem/replace_engine_match_modes_patch_chunks_and_atomic_write_contract_reference.md) | `frontend/tests/sidecar/test_read_file_tool.py`, `frontend/tests/sidecar/test_replace_tool.py` |
+| computer | [Computer Tools](computer.md), [Local-Runtime Computer Implementation](../frontend/local_runtime_python/tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md) | `frontend/tests/sidecar/test_mouse_tool.py`, `frontend/tests/sidecar/test_keyboard_tool.py`, `frontend/tests/sidecar/test_screenshot_tool.py`, `frontend/tests/sidecar/test_scroll_tool.py` |
+| shell/process | [Filesystem and Shell Tools](filesystem_shell.md), [Shell Runtime](../frontend/local_runtime_python/tools/shell_and_process_session_runtime_reference.md) | `frontend/tests/sidecar/test_shell_process_tool.py`, `frontend/tests/sidecar/test_shell_process_registry.py` |
+| filesystem | [Filesystem and Shell Tools](filesystem_shell.md), [Read File Runtime](../frontend/local_runtime_python/tools/filesystem/read_file_window_pagination_binary_guard_and_truncation_contract_reference.md), [Replace Runtime](../frontend/local_runtime_python/tools/filesystem/replace_engine_match_modes_patch_chunks_and_atomic_write_contract_reference.md) | `frontend/tests/sidecar/test_read_file_tool.py`, `frontend/tests/sidecar/test_replace_tool.py` |
 | browser | [Browser Tool](browser.md), [Browser Hub](../browser/README.md) | private backend tests, `frontend/tests/sidecar/tools/test_browser_tool.py`, `frontend/tests/sidecar/tools/test_browser_schemas.py` |
 | web search | [Providers Hub](../providers/README.md), [OpenAI Provider](../providers/openai.md), [Gemini Provider](../providers/gemini.md) | private backend tests |
 

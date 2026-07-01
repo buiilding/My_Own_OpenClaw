@@ -51,7 +51,7 @@ deployment choices instead of cross-runtime rewrites.
 | Circuit breaker opens too eagerly or never opens | private backend implementation, capability routers | private backend tests, provider-specific failure tests |
 | Runtime config update does not rebind providers | private backend config propagation | private backend tests |
 | SDK OCR/vision behavior changes | private backend implementation, OCR/vision routers and service helpers, private backend implementation, hosted clients | private backend tests, `tests/frontend/AgentSdkClient.test.ts`, [SDK Route Change Workflow](../sdk/sdk_route_change_workflow.md) |
-| SDK memory embedding behavior changes | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, local-runtime memory store/search pipeline | SDK memory tests, `frontend/tests/sidecar/test_local_store_*.py`, [Local-Runtime Core Docs Hub](../frontend/sidecar/core/README.md) |
+| SDK memory embedding behavior changes | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, local-runtime memory store/search pipeline | SDK memory tests, `frontend/tests/sidecar/test_local_store_*.py`, [Local-Runtime Core Docs Hub](../frontend/local_runtime_python/core/README.md) |
 | STT provider or transcription websocket changes | private backend implementation, backend transcription services, renderer voice capture | private backend tests, frontend voice tests, [Voice Audio Change Workflow](../channels/voice_audio_change_workflow.md) |
 | TTS provider, chunking, suppression, or cleanup changes | private backend implementation, speech service factory/config | private backend tests, TTS and Wakeword Audio Runtime (private backend docs) |
 

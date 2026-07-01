@@ -48,7 +48,7 @@ Bridge responsibilities in `frontend/src/main/sidecar/local_runtime_bridge.cjs`:
 System-state access is the `get-system-state` IPC handler registered by
 `initializeLocalRuntimeBridge(...)`; the old `initializeLocalRuntimeBridge(...)`
 export has been removed. The focused behavior reference is
-[System-State Collection and Removed getSystemState Bridge Export Reference](../sidecar/system_state/system_state_collection_and_platform_adapter_reference.md).
+[System-State Collection and Removed getSystemState Bridge Export Reference](../local_runtime_python/system_state/system_state_collection_and_platform_adapter_reference.md).
 
 ## Canonical Modules
 

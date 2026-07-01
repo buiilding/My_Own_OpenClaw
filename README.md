@@ -217,7 +217,7 @@ directly into a topic:
 | [Computer-Use](frontend/docs/tools/computer.md) | Mouse, keyboard, screenshots, scrolling, window actions, and coordinate grounding. |
 | [Browser-Use](frontend/docs/browser/browser_control.md) | Windie browser profile, browser automation actions, and runtime behavior. |
 | [Frontend Docs](frontend/docs/frontend/README.md) | Deep frontend maps across main, renderer, preload, contracts, runtime, and inventory. |
-| [Local-Runtime Python Docs](frontend/docs/frontend/sidecar/README.md) | Python implementation behind local-runtime memory, browser automation, services, and tools. |
+| [Local-Runtime Python Docs](frontend/docs/frontend/local_runtime_python/README.md) | Python implementation behind local-runtime memory, browser automation, services, and tools. |
 | [Operations](frontend/docs/operations/release.md) | Configuration, packaging, release, security, performance, and bundled local-runtime Python packaging. |
 | [Development](frontend/docs/development/contributing.md) | Contribution workflow, environment setup, tests, and tool development. |
 | [API Reference](frontend/docs/reference/api_reference.md) | Backend API and transport surfaces consumed by the client, local-runtime Python implementation, and SDKs. |

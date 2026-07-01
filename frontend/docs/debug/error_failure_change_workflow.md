@@ -24,7 +24,7 @@ Core rule: preserve the failure boundary. Backend errors should stay sanitized b
 | Electron websocket send/reconnect failure | Electron main IPC bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs` | `tests/frontend/IpcMainBridge*.test.cjs` | [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md) |
 | Preload IPC validation errors | Preload bridge and renderer IPC wrapper | `frontend/src/preload.js`, `frontend/src/renderer/infrastructure/ipc/**` | `tests/frontend/IpcBridgeValidation.test.ts` | [IPC Change Workflow](../frontend/ipc_change_workflow.md) |
 | Local runtime JSON-RPC/process failure | Electron local runtime bridge | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs`, local-runtime Python process launch helpers | `tests/frontend/LocalRuntimeBridge*.test.cjs` | [Local Runtime Process Lifecycle Change Workflow](../frontend/main/local_runtime/process_lifecycle_change_workflow.md) |
-| Local-runtime tool result failures | local-runtime executable registry/tool implementation backed by local-runtime Python modules | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/result.py`, concrete tool module | `frontend/tests/sidecar/test_tool_result.py`, tool-specific local-runtime Python tests | [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
+| Local-runtime tool result failures | local-runtime executable registry/tool implementation backed by local-runtime Python modules | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/result.py`, concrete tool module | `frontend/tests/sidecar/test_tool_result.py`, tool-specific local-runtime Python tests | [Local-Runtime Registry and Result Contract](../frontend/local_runtime_python/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
 | SDK/main tool-dispatch failure and display projection | SDK tool coordinator plus renderer projection | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts` | SDK tool/runtime tests, `ChatStreamToolHandlers.test.ts` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 | Renderer component crash boundary | Renderer components | `frontend/src/renderer/components/ErrorBoundary.jsx`, `frontend/src/renderer/styles/ErrorBoundary.css` | focused renderer component tests if behavior changes | [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) |
 | Provider/inference error mapping | Backend provider/inference layer | private backend implementation, provider modules | provider/inference backend tests | [Provider Change Workflow](../providers/provider_change_workflow.md) |
@@ -133,7 +133,7 @@ Validate:
 Read:
 
 - [Local-Runtime Tool Change Workflow](../frontend/local_runtime_tool_change_workflow.md)
-- [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
+- [Local-Runtime Registry and Result Contract](../frontend/local_runtime_python/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 
 Edit:
@@ -253,6 +253,6 @@ Before committing an error/failure change:
 - [Failure Domain Map](../architecture/failure_domain_map.md)
 - Handler Registry and Error Envelope Reference (private backend docs)
 - [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md)
-- [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
+- [Local-Runtime Registry and Result Contract](../frontend/local_runtime_python/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Observability Change Workflow](observability_change_workflow.md)
 - [Test Selection](test_selection.md)

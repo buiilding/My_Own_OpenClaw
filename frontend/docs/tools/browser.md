@@ -61,6 +61,6 @@ module precedence.
 - [Dedicated Browser Runtime](../browser/dedicated_browser_runtime.md)
 - [Browser Action Surface](../browser/browser_action_surface.md)
 - [Browser Troubleshooting](../browser/browser_troubleshooting.md)
-- [Local-Runtime Browser Stack](../frontend/sidecar/browser_automation_stack.md)
+- [Local-Runtime Browser Stack](../frontend/local_runtime_python/browser_automation_stack.md)
 - Backend Browser Remote Schema Surface Reference (private backend docs)
 - Backend-Local Runtime Browser Schema Parity and Validation Boundary Reference (private backend docs)

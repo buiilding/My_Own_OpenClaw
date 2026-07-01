@@ -84,6 +84,6 @@ Do not make local-runtime Python import backend schemas. Keep parity in explicit
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 - [Tool Contracts](../tools/tool_contracts.md)
 - [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md)
-- [Local-Runtime Tool Catalog and Execution Model](sidecar/tool_catalog_and_execution_model.md)
+- [Local-Runtime Tool Catalog and Execution Model](local_runtime_python/tool_catalog_and_execution_model.md)
 - [Windie Client Runtime](../sdk/windie_client_runtime.md)
 - [Code Change Surface Index](../reference/code_change_surface_index.md)

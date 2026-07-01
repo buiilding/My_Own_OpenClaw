@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/local-runtime: rename the local-runtime Python docs root from
+  `frontend/docs/frontend/sidecar/` to
+  `frontend/docs/frontend/local_runtime_python/` and update active docs
+  navigation references. Migration: use the new docs path.
 - docs/local-runtime: rename the frontend main local-runtime docs directory
   from `frontend/docs/frontend/main/local_backend/` to
   `frontend/docs/frontend/main/local_runtime/` and update active references.

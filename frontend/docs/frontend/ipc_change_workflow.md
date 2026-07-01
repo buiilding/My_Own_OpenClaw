@@ -11,7 +11,7 @@ title: "IPC Change Workflow"
 
 Desktop Electron IPC is a trust boundary. The renderer can only use channels exposed by preload, and preload receives its allowlist from the shared channel registry passed by the main process. Do not add ad hoc `ipcRenderer` access to renderer code.
 
-Use this workflow for Electron IPC only: renderer <-> preload <-> Electron main. If the change crosses into SDK local-runtime or Python JSON-RPC methods, continue into [Local Runtime JSON-RPC Change Workflow](sidecar/local_runtime_jsonrpc_change_workflow.md). If the channel relays backend websocket messages, continue into [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md) or [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md), depending on whether the changed contract is desktop query input or backend stream output.
+Use this workflow for Electron IPC only: renderer <-> preload <-> Electron main. If the change crosses into SDK local-runtime or Python JSON-RPC methods, continue into [Local Runtime JSON-RPC Change Workflow](local_runtime_python/local_runtime_jsonrpc_change_workflow.md). If the channel relays backend websocket messages, continue into [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md) or [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md), depending on whether the changed contract is desktop query input or backend stream output.
 
 ## Runtime Path
 
@@ -86,7 +86,7 @@ Prefer one focused channel over a generic "do-anything" channel. The preload all
 4. Register the main handler or broadcaster in the owning main-process module from the fast owner map.
 5. Return a structured payload from invoke handlers, usually `{ success, ... }` or a domain-specific object already used by nearby handlers. Avoid returning bare booleans for new behavior.
 6. If the channel reaches Python, prefer an SDK local-runtime command/store path; only add Electron main bridge code for scoped host channels that truly need Electron authority.
-7. Read [Local Runtime JSON-RPC Change Workflow](sidecar/local_runtime_jsonrpc_change_workflow.md) before changing Python JSON-RPC method names, handler params, timeouts, readiness, or response envelopes.
+7. Read [Local Runtime JSON-RPC Change Workflow](local_runtime_python/local_runtime_jsonrpc_change_workflow.md) before changing Python JSON-RPC method names, handler params, timeouts, readiness, or response envelopes.
 8. Add tests for registry/preload parity plus the handler, broadcaster, mapper, or renderer consumer behavior.
 9. Update docs for the affected domain, not only this workflow.
 
@@ -161,7 +161,7 @@ Before committing:
 | --- | --- | --- |
 | Registry/preload mismatch | Inspect `frontend/src/shared/ipcChannels.json`, `frontend/src/renderer/infrastructure/ipc/channels.ts`, and `tests/frontend/PreloadIpcChannels.test.cjs`. | [Preload Allowlist and Channel-Constant Parity Reference](contracts/ipc/preload_allowlist_and_channel_constant_parity_reference.md) |
 | Missing main handler | Search `ipcMain.handle('<channel>'` or `ipcMain.on('<channel>'`; confirm registration module is wired by `index.cjs` or `ipc.cjs`. | [Main-Process IPC Handler Ownership and RPC Mapper Reference](contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md) |
-| Bad local-runtime payload | Inspect the SDK local-runtime caller or scoped main helper, method names, mapped keys, and local-runtime Python handler params. | [Local Runtime JSON-RPC Change Workflow](sidecar/local_runtime_jsonrpc_change_workflow.md) |
+| Bad local-runtime payload | Inspect the SDK local-runtime caller or scoped main helper, method names, mapped keys, and local-runtime Python handler params. | [Local Runtime JSON-RPC Change Workflow](local_runtime_python/local_runtime_jsonrpc_change_workflow.md) |
 | Backend relay drift | Inspect `windie:invoke` SDK commands, typed SDK/backend-event fan-out, settings sync gate, query payload builder, and Agent SDK backend transport send. | [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md) |
 | Renderer stale event | Inspect `IpcBridge.on` cleanup, stream turn refs, transcript session refs, and replay state. | [Renderer State Change Workflow](renderer/renderer_state_change_workflow.md) |
 | Security concern | Inspect preload exposure, credential handling, permission gates, and local-runtime authority. | Security Change Playbook (private backend docs) |
@@ -187,5 +187,5 @@ Docs-only IPC updates should still run `<windie> docs list`, `git diff --check`,
 - [Preload Channel Allowlist and Renderer Bridge Reference](preload/preload_channel_allowlist_and_renderer_bridge_reference.md)
 - [IPC Channel and Handler Reference](contracts/ipc_channel_and_handler_reference.md)
 - [Main-Process IPC Handler Ownership and RPC Mapper Reference](contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)
-- [Local Runtime JSON-RPC Change Workflow](sidecar/local_runtime_jsonrpc_change_workflow.md)
+- [Local Runtime JSON-RPC Change Workflow](local_runtime_python/local_runtime_jsonrpc_change_workflow.md)
 - [Local Tool Channels](../channels/local_tool_channels.md)

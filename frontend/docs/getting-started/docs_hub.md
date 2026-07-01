@@ -134,7 +134,7 @@ Electron main, renderer, and local-runtime Python code must not import backend c
 | Renderer | Chat UI, dashboard, settings, model/provider selection, startup/onboarding, permissions, voice UI, SDK stream projection consumption, tool display, transcript queue | `frontend/src/renderer` | [Frontend Renderer Docs Hub](../frontend/renderer/README.md), [Dashboard Change Workflow](../frontend/renderer/dashboard/dashboard_change_workflow.md), [App Startup and Onboarding Change Workflow](../frontend/renderer/app_startup_onboarding_change_workflow.md), [Model Settings Change Workflow](../frontend/renderer/settings/model_settings_change_workflow.md), [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md), [Frontend Inventory Domains Hub](../frontend/inventory/domains/README.md) |
 | Workspace context | Active workspace permission, conversation workspace binding, workspace path query forwarding, AGENTS.md repo instructions, and backend prompt context | `frontend/src/renderer/infrastructure/workspace`, `frontend/src/main/app/repo_instruction_runtime.cjs`, private backend implementation | [Workspace Context Change Workflow](../frontend/runtime/workspace_context_change_workflow.md), Prompt Context Change Workflow (private backend docs), [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
 | Preload IPC | Isolated renderer bridge, channel allowlist, IPC surface trust boundary | `frontend/src/preload.js` | [Frontend Preload Docs Hub](../frontend/preload/README.md), [Frontend Contracts IPC Docs Hub](../frontend/contracts/ipc/README.md), [IPC Change Workflow](../frontend/ipc_change_workflow.md) |
-| Local-runtime implementation | Local JSON-RPC, shell/filesystem/computer/system tools, browser runtime, local memory, system state, wakeword service backed by local-runtime Python | `frontend/src/main/python` | [Local Runtime Python Implementation Docs Hub](../frontend/sidecar/README.md), [Local-Runtime Python Implementation Change Workflow](../frontend/sidecar/local_runtime_python_change_workflow.md), [Local Runtime Process Lifecycle Change Workflow](../frontend/main/local_runtime/process_lifecycle_change_workflow.md), [Local Runtime JSON-RPC Change Workflow](../frontend/sidecar/local_runtime_jsonrpc_change_workflow.md), [Local-Runtime Tools Docs Hub](../frontend/sidecar/tools/README.md), [Local-Runtime Tool Change Workflow](../frontend/local_runtime_tool_change_workflow.md) |
+| Local-runtime implementation | Local JSON-RPC, shell/filesystem/computer/system tools, browser runtime, local memory, system state, wakeword service backed by local-runtime Python | `frontend/src/main/python` | [Local Runtime Python Implementation Docs Hub](../frontend/local_runtime_python/README.md), [Local-Runtime Python Implementation Change Workflow](../frontend/local_runtime_python/local_runtime_python_change_workflow.md), [Local Runtime Process Lifecycle Change Workflow](../frontend/main/local_runtime/process_lifecycle_change_workflow.md), [Local Runtime JSON-RPC Change Workflow](../frontend/local_runtime_python/local_runtime_jsonrpc_change_workflow.md), [Local-Runtime Tools Docs Hub](../frontend/local_runtime_python/tools/README.md), [Local-Runtime Tool Change Workflow](../frontend/local_runtime_tool_change_workflow.md) |
 | Platform behavior | OS-specific permissions, screenshots, overlays, content protection, display affinity, window/input adapters, packaged runtime smoke checks | `frontend/src/main/platform`, `frontend/src/main/permissions/permission_service*.cjs`, `frontend/src/main/python/core/platform`, `frontend/src/main/python/tools/computer`, `<windie> reinstall <platform>`, `scripts/ci/smoke-*` | [Platforms Hub](../platforms/README.md), [Platform Change Workflow](../platforms/platform_change_workflow.md), [Platform Validation Matrix](../platforms/platform_validation_matrix.md) |
 | Operations | Config, hosted auth, deployment, packaging, release, performance, security, runtime troubleshooting | `docs/operations`, `scripts`, `.github/workflows`, build config | [Operations Hub](../operations/README.md), Configuration Change Workflow (private backend docs), Runtime Configuration Matrix (private backend docs), Backend Config and Container Change Workflow (private backend docs), Operational Troubleshooting (private backend docs) |
 
@@ -301,7 +301,7 @@ Read:
 - Backend Tool Preparation + Coordinate Resolution Reference (private backend docs)
 - Backend Tool Result Ingress Reference (private backend docs)
 - [Windie Client Runtime](../sdk/windie_client_runtime.md)
-- [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
+- [Local-Runtime Registry and Result Contract](../frontend/local_runtime_python/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Local-Runtime Tool Change Workflow](../frontend/local_runtime_tool_change_workflow.md)
 
 Likely code:
@@ -343,7 +343,7 @@ Read:
 
 - [Browser Change Workflow](../browser/browser_change_workflow.md)
 - [Browser Control](../browser/browser_control.md)
-- [Local-Runtime Browser Stack](../frontend/sidecar/browser_automation_stack.md)
+- [Local-Runtime Browser Stack](../frontend/local_runtime_python/browser_automation_stack.md)
 - Backend Browser Remote Schema Surface Reference (private backend docs)
 - Backend-Local Runtime Browser Schema Parity and Validation Boundary Reference (private backend docs)
 
@@ -407,7 +407,7 @@ Read:
 
 - [Voice Audio Change Workflow](../channels/voice_audio_change_workflow.md)
 - [Renderer Voice Capture + Wakeword Controller Reference](../frontend/renderer/voice_capture_and_wakeword_controller_reference.md)
-- [Electron Wakeword Bridge + Audio Framing Reference](../frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md)
+- [Electron Wakeword Bridge + Audio Framing Reference](../frontend/local_runtime_python/wakeword_bridge_and_audio_framing_reference.md)
 - Backend TTS + Wakeword Audio Runtime Reference (private backend docs)
 - Backend TTS Manager Audio Stream and Cleanup Reference (private backend docs)
 
@@ -427,7 +427,7 @@ Read:
 
 - [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md)
 - [Frontend Transcript Session + Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md)
-- [Local Runtime Memory Docs Hub](../frontend/sidecar/memory/README.md)
+- [Local Runtime Memory Docs Hub](../frontend/local_runtime_python/memory/README.md)
 - Backend Embedding + Semantic Memory Runtime Reference (private backend docs)
 - Backend API Memory Docs Hub (private backend docs)
 

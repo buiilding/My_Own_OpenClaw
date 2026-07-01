@@ -112,5 +112,5 @@ Returns:
 ## Related Pages
 
 - [Electron Main and IPC](electron_main_and_ipc.md)
-- [Wakeword Bridge and Audio Framing Reference](../sidecar/wakeword_bridge_and_audio_framing_reference.md)
-- [Wakeword Service Model Bootstrap and Binary Framing Reference](../sidecar/services/wakeword_service_model_bootstrap_and_binary_framing_reference.md)
+- [Wakeword Bridge and Audio Framing Reference](../local_runtime_python/wakeword_bridge_and_audio_framing_reference.md)
+- [Wakeword Service Model Bootstrap and Binary Framing Reference](../local_runtime_python/services/wakeword_service_model_bootstrap_and_binary_framing_reference.md)

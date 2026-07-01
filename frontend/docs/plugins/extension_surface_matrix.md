@@ -38,7 +38,7 @@ WindieOS extensibility is code-owned, not plugin-manifest-owned. Use this matrix
 For each extension type:
 
 - backend tool: `docs/tools/`, `docs/backend/tools/`, and this matrix
-- local-runtime tool: `docs/tools/`, `docs/frontend/sidecar/tools/`, and [Local Tool Channels](../channels/local_tool_channels.md)
+- local-runtime tool: `docs/tools/`, `docs/frontend/local_runtime_python/tools/`, and [Local Tool Channels](../channels/local_tool_channels.md)
 - provider: `docs/providers/` and provider-specific page
 - SDK route: `docs/sdk/` and `docs/reference/http_api_surface.md`
 - renderer/main feature: relevant `docs/desktop/`, `docs/frontend/`, and [Channels Hub](../channels/README.md) if routing changes

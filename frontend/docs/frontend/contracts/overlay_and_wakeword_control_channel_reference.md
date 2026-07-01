@@ -165,4 +165,4 @@ If input does not focus when chat opens:
 - renderer chatbox overlay behavior: `docs/frontend/renderer/overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md`
 - renderer response overlay behavior: `docs/frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md`
 - websocket phase emission source: `docs/frontend/main/websocket_handshake_and_settings_sync_reference.md`
-- wakeword runtime bridge internals: `docs/frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md`
+- wakeword runtime bridge internals: `docs/frontend/local_runtime_python/wakeword_bridge_and_audio_framing_reference.md`

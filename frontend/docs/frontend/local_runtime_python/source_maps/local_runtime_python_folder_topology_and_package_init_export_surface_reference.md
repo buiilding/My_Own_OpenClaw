@@ -58,7 +58,7 @@ When moving local-runtime Python modules:
 
 1. update `folder_structure.md` topology narrative
 2. preserve or intentionally migrate live `__init__.py` exports
-3. update docs under `docs/frontend/sidecar/*` that link import paths
+3. update docs under `docs/frontend/local_runtime_python/*` that link import paths
 
 ## Related Docs
 

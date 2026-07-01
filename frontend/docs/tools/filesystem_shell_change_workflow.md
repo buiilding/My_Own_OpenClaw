@@ -53,7 +53,7 @@ flowchart LR
 | Shell output is truncated, malformed, or missing metadata | Local-runtime shell formatter | `frontend/src/main/python/tools/system/shell_output_formatting.py`, `frontend/src/main/python/tools/system/shell_response_payloads.py` | `frontend/tests/sidecar/test_shell_output_formatting.py`, renderer message formatter tests |
 | Background session cannot be polled, written to, killed, or cleared | Local-runtime process tool/session registry | `frontend/src/main/python/tools/system/process_tool.py`, `frontend/src/main/python/tools/system/shell_process_registry.py` | `frontend/tests/sidecar/test_shell_process_tool.py`, `frontend/tests/sidecar/test_shell_process_registry.py` |
 | `read_file` path resolution is wrong | Local-runtime filesystem reader | `frontend/src/main/python/tools/filesystem/read_file_tool.py`, `frontend/src/main/python/tools/filesystem/file_utils.py` | selected workspace docs/tests, `frontend/tests/sidecar/test_read_file_tool.py` |
-| `read_file` pagination, binary guard, PDF handling, or line truncation is wrong | Local-runtime filesystem reader | `frontend/src/main/python/tools/filesystem/read_file_tool.py` | [Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md) |
+| `read_file` pagination, binary guard, PDF handling, or line truncation is wrong | Local-runtime filesystem reader | `frontend/src/main/python/tools/filesystem/read_file_tool.py` | [Filesystem Read and Replace Runtime Reference](../frontend/local_runtime_python/tools/filesystem_read_replace_runtime_reference.md) |
 | `replace` fails to match or edits too broadly | Local-runtime replace engine | `frontend/src/main/python/tools/filesystem/replace_engine.py`, `replace_matchers.py`, `replace_patch_chunks.py` | `frontend/tests/sidecar/test_replace_engine.py`, `frontend/tests/sidecar/test_replace_tool.py` |
 | `replace` writes partial content after an error | Local-runtime replace I/O wrapper | `frontend/src/main/python/tools/filesystem/replace_tool.py` | atomic write tests and temp-file cleanup tests |
 | Tool result reaches UI but not backend continuation | SDK result envelope or backend result ingress | `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, private backend implementation | SDK/main local-runtime dispatch and backend tool-result ingress docs/tests |
@@ -115,8 +115,8 @@ flowchart LR
 8. Update docs next to behavior.
    - Update this workflow when ownership or sequencing changes.
    - Update [Filesystem and Shell Tools](filesystem_shell.md) for user-facing behavior and high-level tool semantics.
-   - Update [Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md) for current local-runtime Python read/edit internals.
-   - Update [Shell and Process Session Runtime Reference](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md) for current local-runtime Python shell/session internals.
+   - Update [Filesystem Read and Replace Runtime Reference](../frontend/local_runtime_python/tools/filesystem_read_replace_runtime_reference.md) for current local-runtime Python read/edit internals.
+   - Update [Shell and Process Session Runtime Reference](../frontend/local_runtime_python/tools/shell_and_process_session_runtime_reference.md) for current local-runtime Python shell/session internals.
    - Update [Local-Runtime Tool Change Workflow](../frontend/local_runtime_tool_change_workflow.md) when the cross-runtime path changes.
    - Update [Tool Catalog Matrix](tool_catalog_matrix.md) and [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md) when model-facing schema, policy, or visibility changes.
    - Update [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) if path authority, sudo behavior, workspace access, or local permission semantics change.
@@ -188,7 +188,7 @@ If a listed test file has moved, search by the test stem before adding a new tes
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md)
 - [Tool Troubleshooting](tool_troubleshooting.md)
 - [Local-Runtime Tool Change Workflow](../frontend/local_runtime_tool_change_workflow.md)
-- [Local-Runtime Tools Docs Hub](../frontend/sidecar/tools/README.md)
-- [Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md)
-- [Shell and Process Session Runtime Reference](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md)
+- [Local-Runtime Tools Docs Hub](../frontend/local_runtime_python/tools/README.md)
+- [Filesystem Read and Replace Runtime Reference](../frontend/local_runtime_python/tools/filesystem_read_replace_runtime_reference.md)
+- [Shell and Process Session Runtime Reference](../frontend/local_runtime_python/tools/shell_and_process_session_runtime_reference.md)
 - [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md)

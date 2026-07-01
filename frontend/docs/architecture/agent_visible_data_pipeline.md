@@ -129,5 +129,5 @@ Question the design when you see any of these:
 - Backend Tool Turn Change Workflow (private backend docs)
 - [Chat Stream and Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md)
 - [IPC Change Workflow](../frontend/ipc_change_workflow.md)
-- [Local Runtime JSON-RPC Change Workflow](../frontend/sidecar/local_runtime_jsonrpc_change_workflow.md)
+- [Local Runtime JSON-RPC Change Workflow](../frontend/local_runtime_python/local_runtime_jsonrpc_change_workflow.md)
 - [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md)

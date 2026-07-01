@@ -103,7 +103,7 @@ Added/expanded in WindieOS:
 - `adr/`: architecture decision records for durable cross-runtime decisions, including browser extension auto-attach and frontend tool schema source-of-truth proposals.
 - Sub-hubs added for layered navigation:
 - `docs/backend/bootstrap/README.md`, `docs/backend/api/README.md`, `docs/backend/contracts/README.md`, `docs/backend/tools/README.md`
-- `docs/frontend/main/README.md`, `docs/frontend/renderer/README.md`, `docs/frontend/contracts/README.md`, `docs/frontend/sidecar/README.md`
+- `docs/frontend/main/README.md`, `docs/frontend/renderer/README.md`, `docs/frontend/contracts/README.md`, `docs/frontend/local_runtime_python/README.md`
 - Inventory and playbook references that route common implementation tasks to exact files:
 - `docs/backend/inventory/domains/backend_change_path_playbook_reference.md`
 - `docs/frontend/inventory/domains/frontend_change_path_playbook_reference.md`

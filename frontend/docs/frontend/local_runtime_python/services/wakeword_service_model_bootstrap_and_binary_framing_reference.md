@@ -14,7 +14,7 @@ title: "Wakeword Service Model Bootstrap and Binary Framing Reference"
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
-- `docs/frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md`
+- `docs/frontend/local_runtime_python/wakeword_bridge_and_audio_framing_reference.md`
 
 ## Service Role
 

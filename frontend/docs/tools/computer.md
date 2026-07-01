@@ -47,4 +47,4 @@ This is the canonical computer use screenshot guide.
 - Backend Tool Preparation + Coordinate Resolution Reference (private backend docs)
 - Backend OCR + Vision Coordinate Runtime Overview (private backend docs)
 - [Frontend Linux Screenshot Window Hide and Restore Guard Reference](../frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
-- [Local-Runtime Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](../frontend/sidecar/tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)
+- [Local-Runtime Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](../frontend/local_runtime_python/tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)
