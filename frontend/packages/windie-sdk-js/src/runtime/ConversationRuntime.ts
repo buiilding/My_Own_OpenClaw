@@ -497,6 +497,18 @@ function rowMetadataRevision(row: DisplayTimelineRow | SdkDisplayRow | null | un
     : null;
 }
 
+function displayTimelineRowsWithRevision(
+  rows: Array<DisplayTimelineRow | SdkDisplayRow>,
+  fallbackRevisionId: string,
+  startIndex = 0,
+): DisplayTimelineRow[] {
+  return rows.map((row, offset) => ({
+    ...row,
+    index: startIndex + offset,
+    revisionId: rowMetadataRevision(row) ?? fallbackRevisionId,
+  }));
+}
+
 function displayRowDedupeKey(row: DisplayTimelineRow | SdkDisplayRow): string {
   const content = typeof row.content === 'string' ? row.content : JSON.stringify(row.content);
   return [
@@ -1073,9 +1085,12 @@ export class SdkConversationRuntime {
       if (rows.length === 0 && checkpoint.rows.length === 0 && events.length > 0) {
         return {
           ...checkpoint,
-          rows: buildDisplayRows(events, {
-            liveAttachments: this.liveDisplayAttachmentsRecord(),
-          }),
+          rows: displayTimelineRowsWithRevision(
+            buildDisplayRows(events, {
+              liveAttachments: this.liveDisplayAttachmentsRecord(),
+            }),
+            checkpoint.revisionId,
+          ),
         };
       }
       return {
@@ -1083,7 +1098,7 @@ export class SdkConversationRuntime {
         rows,
       };
     }
-    let rows = await this.options.store.loadDisplayRows(this.options.conversationRef);
+    let rows: Array<DisplayTimelineRow | SdkDisplayRow> = await this.options.store.loadDisplayRows(this.options.conversationRef);
     if (rows.length === 0) {
       const events = await this.options.store.loadEvents(this.options.conversationRef);
       rows = buildDisplayRows(events, {
@@ -1095,11 +1110,7 @@ export class SdkConversationRuntime {
       conversationRef: this.options.conversationRef,
       revisionId: fallbackRevisionId,
       createdAt: new Date().toISOString(),
-      rows: rows.map((row, index) => ({
-        ...row,
-        index,
-        revisionId: rowMetadataRevision(row) ?? fallbackRevisionId,
-      })),
+      rows: displayTimelineRowsWithRevision(rows, fallbackRevisionId),
       reason: null,
       baseRevisionId: null,
     };

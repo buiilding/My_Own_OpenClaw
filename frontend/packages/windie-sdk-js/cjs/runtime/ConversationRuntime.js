@@ -267,6 +267,13 @@ function rowMetadataRevision(row) {
         ? metadataRevision.trim()
         : null;
 }
+function displayTimelineRowsWithRevision(rows, fallbackRevisionId, startIndex = 0) {
+    return rows.map((row, offset) => ({
+        ...row,
+        index: startIndex + offset,
+        revisionId: rowMetadataRevision(row) ?? fallbackRevisionId,
+    }));
+}
 function displayRowDedupeKey(row) {
     const content = typeof row.content === 'string' ? row.content : JSON.stringify(row.content);
     return [
@@ -750,9 +757,9 @@ class SdkConversationRuntime {
             if (rows.length === 0 && checkpoint.rows.length === 0 && events.length > 0) {
                 return {
                     ...checkpoint,
-                    rows: (0, conversationProjections_js_1.buildDisplayRows)(events, {
+                    rows: displayTimelineRowsWithRevision((0, conversationProjections_js_1.buildDisplayRows)(events, {
                         liveAttachments: this.liveDisplayAttachmentsRecord(),
-                    }),
+                    }), checkpoint.revisionId),
                 };
             }
             return {
@@ -772,11 +779,7 @@ class SdkConversationRuntime {
             conversationRef: this.options.conversationRef,
             revisionId: fallbackRevisionId,
             createdAt: new Date().toISOString(),
-            rows: rows.map((row, index) => ({
-                ...row,
-                index,
-                revisionId: rowMetadataRevision(row) ?? fallbackRevisionId,
-            })),
+            rows: displayTimelineRowsWithRevision(rows, fallbackRevisionId),
             reason: null,
             baseRevisionId: null,
         };
