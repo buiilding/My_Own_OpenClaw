@@ -31,7 +31,6 @@ const {
   isResponseOverlayEntryDismissedInState,
 } = DesktopResponseOverlayViewRuntime;
 export type {
-  StreamPhase,
   StreamTracking,
 } from '../../../app/runtime/desktopChatStreamTrackingRuntime';
 

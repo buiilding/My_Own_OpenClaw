@@ -18,6 +18,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/contracts: remove unused SDK display/revision type re-exports from
   `desktopConversationRuntimeContracts.ts` so the facade only exposes active
   renderer contracts. No migration required for production code.
+- renderer/chat: remove the unused `StreamPhase` re-export from `chatStore.ts`
+  while keeping the active `StreamTracking` test helper type. No migration
+  required for production code.
 - renderer/skin: make the active desktop runtime skin object private to
   `desktopRuntimeSkin.js` and keep `DesktopRuntimeSkin` as the sole facade
   export. No migration required for production code.
