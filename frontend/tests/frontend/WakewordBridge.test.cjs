@@ -259,6 +259,17 @@ describe('wakeword_bridge', () => {
       .toThrow('initializeWakewordBridge requires an ipcMain-compatible adapter');
   });
 
+  test('keeps wakeword env normalization private to service startup', () => {
+    jest.resetModules();
+    const bridge = require(path.join(
+      __dirname,
+      '../../src/main/wakeword/wakeword_bridge.cjs',
+    ));
+
+    expect(bridge.resolveWakewordEnvConfig).toBeUndefined();
+    expect(typeof bridge.initializeWakewordBridge).toBe('function');
+  });
+
   test('does not forward detection to a destroyed main window', () => {
     const destroyedMainWindow = {
       isDestroyed: () => true,

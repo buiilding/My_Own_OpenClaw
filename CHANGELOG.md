@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/wakeword: keep `resolveWakewordEnvConfig` private to the wakeword bridge
+  startup path so callers validate configured env names through subprocess
+  launch behavior. No migration required for production code.
 - main/local-runtime: keep `resolveLocalRuntimeEnvConfig` private to
   `local_runtime_utils.cjs` and validate verbose-stderr env behavior through
   `shouldForwardStderrLine`. No migration required for production code.

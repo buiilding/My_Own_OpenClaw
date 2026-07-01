@@ -596,5 +596,4 @@ function initializeWakewordBridge(mainWindow, onWakewordDetected, options = {}) 
 
 module.exports = {
   initializeWakewordBridge,
-  resolveWakewordEnvConfig,
 };
