@@ -35,7 +35,7 @@ title: "Frontend Main Docs Hub"
 - [Main Testing Data-Seed Docs Hub](testing/data_seed/README.md)
 - [Local Runtime JSON-RPC Change Workflow](../sidecar/local_runtime_jsonrpc_change_workflow.md)
 - [Local Runtime Bridge Overview and Window Guard Index](local_runtime_bridge_handler_and_window_guard_reference.md)
-- [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)
+- [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](local_backend/local_runtime_readiness_and_helper_rpc_reference.md)
 - [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [Overlay Query-Capture Blur and Settle Reference](overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
 - [Linux Screenshot Window Visibility Reference](overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)

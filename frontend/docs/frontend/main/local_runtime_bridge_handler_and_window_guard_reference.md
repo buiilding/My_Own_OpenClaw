@@ -20,7 +20,7 @@ local-runtime names.
 ## Local-Runtime Docs (Detailed)
 
 - [Frontend Main Local-Runtime Docs Hub](local_backend/README.md)
-- [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)
+- [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](local_backend/local_runtime_readiness_and_helper_rpc_reference.md)
 - [Local-Runtime RPC Handler Registry Reference](local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](local_backend/screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
 - [Display-Affinity Monitor Selection and Screenshot Bounds Reference](display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md)
