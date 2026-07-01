@@ -22,7 +22,7 @@ Current browser tool execution routes through `frontend/src/main/python/tools/br
 
 - [Browser Automation Stack](../browser_automation_stack.md)
 - [Browser Action Runtime Reference](../browser_action_runtime_reference.md)
-- [Local Runtime JSON-RPC Reference](../local_backend_jsonrpc_reference.md)
+- [Local Runtime JSON-RPC Reference](../local_runtime_jsonrpc_reference.md)
 
 ## Code Scope
 

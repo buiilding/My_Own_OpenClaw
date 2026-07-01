@@ -211,7 +211,7 @@ describe('windie docs index', () => {
   });
 
   test('routes removed search-memory RPC queries to current memory boundary docs', () => {
-    const jsonRpcPath = path.join('docs', 'frontend', 'sidecar', 'local_backend_jsonrpc_reference.md');
+    const jsonRpcPath = path.join('docs', 'frontend', 'sidecar', 'local_runtime_jsonrpc_reference.md');
     const mapperPath = path.join(
       'docs',
       'frontend',

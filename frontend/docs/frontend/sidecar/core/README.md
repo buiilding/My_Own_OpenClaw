@@ -18,7 +18,7 @@ title: "Local-Runtime Core Docs Hub"
 ## Related Pages
 
 - [Local Runtime Python Implementation Docs Hub](../README.md)
-- [Local Runtime JSON-RPC Reference](../local_backend_jsonrpc_reference.md)
+- [Local Runtime JSON-RPC Reference](../local_runtime_jsonrpc_reference.md)
 - [Memory Pipeline and Summarization](../memory_pipeline_and_summarization.md)
 - [Frontend Main Local-Runtime Process Lifecycle Reference](../../main/local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)
 

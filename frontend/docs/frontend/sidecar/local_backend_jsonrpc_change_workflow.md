@@ -95,7 +95,7 @@ channel.
    unless that is already the contract for the method.
 8. Add SDK command/store tests, renderer facade tests when applicable, and
    local-runtime Python handler/protocol tests.
-9. Link the new method from [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md) and the relevant domain doc.
+9. Link the new method from [Local Runtime JSON-RPC Reference](local_runtime_jsonrpc_reference.md) and the relevant domain doc.
 
 ## Add a Main-Only JSON-RPC Helper
 
@@ -202,7 +202,7 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 
 When a method changes, update the closest docs in the same commit:
 
-- [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md)
+- [Local Runtime JSON-RPC Reference](local_runtime_jsonrpc_reference.md)
 - [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](../main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [Local-Runtime Python Implementation Change Workflow](local_runtime_python_change_workflow.md)
 - [IPC Change Workflow](../ipc_change_workflow.md) when renderer channels change
@@ -212,7 +212,7 @@ When a method changes, update the closest docs in the same commit:
 
 ## Related Docs
 
-- [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md)
+- [Local Runtime JSON-RPC Reference](local_runtime_jsonrpc_reference.md)
 - [Local-Runtime Python Implementation Change Workflow](local_runtime_python_change_workflow.md)
 - [IPC Change Workflow](../ipc_change_workflow.md)
 - [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](../main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
