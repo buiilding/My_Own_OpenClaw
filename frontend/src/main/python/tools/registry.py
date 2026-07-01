@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 TOOL_CATALOG: tuple[tuple[str, str, str], ...] = (
     ("mouse_control", "tools.computer.mouse_tool", "execute_mouse_control"),
     ("keyboard_control", "tools.computer.keyboard_tool", "execute_keyboard_control"),
-    ("screenshot", "tools.computer.screenshot_tool", "capture_screenshot"),
+    ("screenshot", "tools.computer.screenshot_tool", "execute_screenshot_tool"),
     ("scroll_control", "tools.computer.scroll_tool", "execute_scroll_control"),
     ("read_file", "tools.filesystem.read_file_tool", "read_file"),
     ("replace", "tools.filesystem.replace_tool", "replace"),

@@ -71,6 +71,10 @@ type ExecutedBundleStep = {
   result: ToolBundleStepResult;
 };
 
+type ExecuteLocalToolOptions = {
+  enforceActiveManifest?: boolean;
+};
+
 const COMPUTER_USE_CAPTURE_TOOL_NAMES = new Set([
   'mouse_control',
   'keyboard_control',
@@ -349,14 +353,20 @@ function resolveLocalToolRelease(release: LocalToolExecutionRelease): (() => voi
 export class ToolExecutionCoordinator {
   constructor(private readonly options: ToolExecutionCoordinatorOptions) {}
 
-  private async executeLocalTool(call: LocalToolCall): Promise<LocalToolResult> {
+  private async executeLocalTool(
+    call: LocalToolCall,
+    options: ExecuteLocalToolOptions = {},
+  ): Promise<LocalToolResult> {
     if (!this.options.localRuntime?.executeTool) {
       throw new Error('local runtime executeTool is unavailable');
     }
-    const policy = activeLocalToolExecutionPolicy(this.options.agentDefinition ?? null);
-    const blockedMessage = resolveBlockedLocalToolMessage(call, policy);
-    if (blockedMessage) {
-      throw new Error(blockedMessage);
+    const enforceActiveManifest = options.enforceActiveManifest !== false;
+    if (enforceActiveManifest) {
+      const policy = activeLocalToolExecutionPolicy(this.options.agentDefinition ?? null);
+      const blockedMessage = resolveBlockedLocalToolMessage(call, policy);
+      if (blockedMessage) {
+        throw new Error(blockedMessage);
+      }
     }
     const release = resolveLocalToolRelease(await this.options.localToolLifecycle?.beforeExecute?.(call));
     try {
@@ -366,6 +376,15 @@ export class ToolExecutionCoordinator {
         await release();
       }
     }
+  }
+
+  private async executeScreenshotTool(call: Omit<LocalToolCall, 'toolName'>): Promise<LocalToolResult> {
+    return this.executeLocalTool({
+      ...call,
+      toolName: 'screenshot',
+    }, {
+      enforceActiveManifest: false,
+    });
   }
 
   private async materializeScreenshotArtifact(data: JsonRecord): Promise<JsonRecord> {
@@ -461,8 +480,7 @@ export class ToolExecutionCoordinator {
     }
     await delaySeconds(waitSeconds);
     try {
-      const result = await this.executeLocalTool({
-        toolName: 'screenshot',
+      const result = await this.executeScreenshotTool({
         args: {
           explanation,
           wait: 0,

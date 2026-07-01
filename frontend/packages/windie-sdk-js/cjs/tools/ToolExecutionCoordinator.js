@@ -248,14 +248,17 @@ class ToolExecutionCoordinator {
     constructor(options) {
         this.options = options;
     }
-    async executeLocalTool(call) {
+    async executeLocalTool(call, options = {}) {
         if (!this.options.localRuntime?.executeTool) {
             throw new Error('local runtime executeTool is unavailable');
         }
-        const policy = activeLocalToolExecutionPolicy(this.options.agentDefinition ?? null);
-        const blockedMessage = resolveBlockedLocalToolMessage(call, policy);
-        if (blockedMessage) {
-            throw new Error(blockedMessage);
+        const enforceActiveManifest = options.enforceActiveManifest !== false;
+        if (enforceActiveManifest) {
+            const policy = activeLocalToolExecutionPolicy(this.options.agentDefinition ?? null);
+            const blockedMessage = resolveBlockedLocalToolMessage(call, policy);
+            if (blockedMessage) {
+                throw new Error(blockedMessage);
+            }
         }
         const release = resolveLocalToolRelease(await this.options.localToolLifecycle?.beforeExecute?.(call));
         try {
@@ -266,6 +269,14 @@ class ToolExecutionCoordinator {
                 await release();
             }
         }
+    }
+    async executeScreenshotTool(call) {
+        return this.executeLocalTool({
+            ...call,
+            toolName: 'screenshot',
+        }, {
+            enforceActiveManifest: false,
+        });
     }
     async materializeScreenshotArtifact(data) {
         if ('screenshotRef' in data || 'screenshotUrl' in data || 'screenshotPath' in data) {
@@ -346,8 +357,7 @@ class ToolExecutionCoordinator {
         }
         await delaySeconds(waitSeconds);
         try {
-            const result = await this.executeLocalTool({
-                toolName: 'screenshot',
+            const result = await this.executeScreenshotTool({
                 args: {
                     explanation,
                     wait: 0,

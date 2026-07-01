@@ -29,8 +29,8 @@ async def test_open_app_verify_none_returns_detached_launch(monkeypatch):
         }
     )
 
-    assert result["success"] is True
-    data = result["data"]
+    assert result.success is True
+    data = result.data
     assert data["detached"] is True
     assert data["pid"] == 4242
     assert data["verify_status"] == "skipped"
@@ -77,8 +77,8 @@ async def test_open_app_verify_window_polls_until_match(monkeypatch):
         }
     )
 
-    assert result["success"] is True
-    data = result["data"]
+    assert result.success is True
+    data = result.data
     assert data["verify_status"] == "verified"
     assert data["verified"] is True
     assert data["matched_window_title"] == "Calculator"
@@ -96,22 +96,21 @@ async def test_open_app_verify_screenshot_includes_screenshot_payload(monkeypatc
         return ToolResult.success_result({"windows": []})
 
     async def _fake_screenshot(_args):
-        return {
-            "success": True,
-            "data": {
-                "screenshot_path": "/tmp/agent-shot-test.jpg",
+        return ToolResult.success_result(
+            {
+                "screenshot": "base64-jpeg",
                 "screenshot_content_type": "image/jpeg",
                 "compression": "jpeg",
                 "size": 123,
                 "capture_meta": {"source_w": 100, "source_h": 100},
-            },
-        }
+            }
+        )
 
     async def _fake_sleep(_seconds):
         return None
 
     monkeypatch.setattr(open_app_tool, "get_open_windows", _fake_get_open_windows)
-    monkeypatch.setattr(open_app_tool, "capture_screenshot", _fake_screenshot)
+    monkeypatch.setattr(open_app_tool, "execute_screenshot_tool", _fake_screenshot)
     monkeypatch.setattr(open_app_tool.asyncio, "sleep", _fake_sleep)
 
     result = await open_app_tool.open_app(
@@ -122,28 +121,58 @@ async def test_open_app_verify_screenshot_includes_screenshot_payload(monkeypatc
         }
     )
 
-    assert result["success"] is True
-    data = result["data"]
+    assert result.success is True
+    data = result.data
     assert data["verify_status"] == "screenshot_captured"
-    assert data["screenshot_path"] == "/tmp/agent-shot-test.jpg"
+    assert data["screenshot"] == "base64-jpeg"
     assert data["screenshot_content_type"] == "image/jpeg"
 
 
 @pytest.mark.asyncio
 async def test_open_app_rejects_invalid_inputs():
     missing_command = await open_app_tool.open_app({"verify": "none"})
-    assert missing_command == {"success": False, "error": "command is required"}
+    assert missing_command.to_dict() == {
+        "success": False,
+        "data": {"output": "command is required"},
+        "error": "command is required",
+    }
 
     invalid_verify = await open_app_tool.open_app({"command": "notepad", "verify": "later"})
-    assert invalid_verify == {
+    assert invalid_verify.to_dict() == {
         "success": False,
+        "data": {"output": "verify must be one of: none, window, screenshot"},
         "error": "verify must be one of: none, window, screenshot",
     }
 
     invalid_timeout = await open_app_tool.open_app(
         {"command": "notepad", "verify_timeout_seconds": -1}
     )
-    assert invalid_timeout == {
+    assert invalid_timeout.to_dict() == {
         "success": False,
+        "data": {"output": "verify_timeout_seconds must be a non-negative number"},
         "error": "verify_timeout_seconds must be a non-negative number",
     }
+
+
+@pytest.mark.asyncio
+async def test_open_app_runs_through_registry_contract(monkeypatch):
+    monkeypatch.setattr(
+        open_app_tool,
+        "_launch_detached_process",
+        lambda *_args, **_kwargs: {"pid": 12, "argv": ["app"], "started_at": 0.0},
+    )
+
+    from tools.registry import ToolRegistry
+
+    registry = ToolRegistry()
+    result = await registry.execute_tool(
+        "open_app",
+        {
+            "command": "example-app",
+            "verify": "none",
+        },
+    )
+
+    assert result.success is True
+    assert result.data["verify_status"] == "skipped"
+    assert result.data["output"] == "Launched 'example-app' detached."

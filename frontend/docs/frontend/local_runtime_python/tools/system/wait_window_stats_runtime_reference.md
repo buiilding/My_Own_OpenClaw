@@ -231,13 +231,16 @@ Runtime behavior:
 - verification modes:
   - `none`: immediate launch acknowledgment
   - `window`: polls `get_open_windows` filter path for title match
-  - `screenshot`: runs window verification + captures screenshot evidence payload
+  - `screenshot`: runs window verification + executes the local-runtime
+    `screenshot` tool for screenshot evidence payload
 
 Return shape:
 
 - `detached`, `pid`, `verify_mode`
 - `verify_status`, `verified`, optional `matched_window_title`
-- screenshot mode includes screenshot payload fields (`screenshot_path`, `screenshot_content_type`, etc.)
+- screenshot mode includes screenshot payload fields (`screenshot`,
+  `screenshot_ref`, `screenshot_url`, `screenshot_content_type`,
+  `capture_meta`, etc.) from the shared screenshot tool path
 
 ## Known Boundary
 
