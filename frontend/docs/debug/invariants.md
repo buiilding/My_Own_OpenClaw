@@ -119,7 +119,8 @@ the owner-correct layer and register focused routes here or in the relevant pack
 Tool and extension invariants live in [Tool Contracts](../tools/tool_contracts.md).
 They currently include:
 
-- Tools execute on the local runtime, currently backed by the Python sidecar,
+- Tools execute on the local runtime, currently implemented by local-runtime
+  Python,
   unless they are explicit backend remote tools such as `web_search`.
   Frontend/local-runtime owners provide executable implementations and
   manifests; backend validates client manifests, enforces schema and trust
@@ -163,7 +164,7 @@ They currently include:
   `plugins/<id>/plugin.json`, plugin schemas in `plugins/<id>/schemas/`, plugin
   Python entrypoints in `plugins/<id>/python/`, MCP server specs in
   `mcps/<id>/mcp.json`, and skills in `skills/<skill-id>/SKILL.md`.
-- Python sidecar-backed plugin tools use `name`, `schema`, and `entrypoint`.
+- Python local-runtime plugin tools use `name`, `schema`, and `entrypoint`.
   Skills become prompt layers, not executable tools. Keep
   [Extension Convention](../development/extensions.md) as the canonical
   extension authoring guide and [Plugins and Extensions Hub](../plugins/README.md)

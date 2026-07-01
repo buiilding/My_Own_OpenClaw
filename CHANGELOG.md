@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: remove the stale ignored
+  `ModularRefactorCompletionBoundary.test.ts` audit after the public-doc split;
+  focused owner docs and regression tests now carry those invariants directly.
+  No migration required.
 - tests/local-runtime: canonicalize local-runtime Python tests under
   `frontend/tests/sidecar`, move duplicated backend/local-runtime pytest setup
   into the repo-root `conftest.py`, and avoid prepending the full sidecar test

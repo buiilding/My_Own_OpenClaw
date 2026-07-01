@@ -51,7 +51,6 @@ module.exports = {
     '<rootDir>/tests/frontend/RendererSkinConfigBoundary.test.cjs',
     '<rootDir>/tests/frontend/RuntimePaths.test.cjs',
     '<rootDir>/tests/frontend/WakewordBridge.test.cjs',
-    '<rootDir>/tests/frontend/ModularRefactorCompletionBoundary.test.ts',
   ],
   modulePathIgnorePatterns: [
     '<rootDir>/python-runtime',

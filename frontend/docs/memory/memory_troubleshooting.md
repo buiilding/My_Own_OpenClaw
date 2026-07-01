@@ -22,7 +22,7 @@ Validate:
 
 ```bash
 cd frontend
-<windie> test frontend -- AgentSdkConversationRuntime.test.ts ModularRefactorCompletionBoundary.test.ts
+<windie> test frontend -- AgentSdkConversationRuntime.test.ts SdkDisplayChatMessageProjection.test.ts
 ```
 
 ## Conversation Appears In Dashboard But Replay Is Wrong
