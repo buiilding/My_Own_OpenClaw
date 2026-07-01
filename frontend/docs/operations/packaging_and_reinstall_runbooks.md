@@ -193,4 +193,4 @@ For packaging changes:
 5. Verify one local tool call that exercises local-runtime Python.
 6. Verify wakeword startup path if runtime packaging changed.
 7. Run the matching `scripts/ci/smoke-*` helper where available.
-8. Update [Bundled Python Runtime Packaging](sidecar_runtime_packaging.md), [Packaged Desktop Builds](../install/packaged_desktop.md), and [Release Guide](release.md) when behavior changes.
+8. Update [Bundled Python Runtime Packaging](local_runtime_packaging.md), [Packaged Desktop Builds](../install/packaged_desktop.md), and [Release Guide](release.md) when behavior changes.

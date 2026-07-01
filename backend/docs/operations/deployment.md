@@ -75,7 +75,7 @@ Bundled local-runtime packaging profile:
 - The canonical `<windie> package win`, `<windie> package mac`, and
   `<windie> package linux` commands use the bundled Python runtime
   with system-browser-first packaging.
-- runtime build guide: `docs/operations/sidecar_runtime_packaging.md`
+- runtime build guide: `docs/operations/local_runtime_packaging.md`
 
 ### Signing & update channels
 - Signing required before production rollout (macOS notarization, Windows signing).

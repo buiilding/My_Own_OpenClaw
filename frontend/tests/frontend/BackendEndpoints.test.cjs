@@ -183,7 +183,7 @@ describe('backend_endpoints hosted defaults', () => {
       'docs/install/install_troubleshooting.md',
       'docs/install/local_development.md',
       'docs/operations/packaging_and_reinstall_runbooks.md',
-      'docs/operations/sidecar_runtime_packaging.md',
+      'docs/operations/local_runtime_packaging.md',
     ];
 
     for (const docPath of docs) {

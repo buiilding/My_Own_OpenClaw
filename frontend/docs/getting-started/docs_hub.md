@@ -513,7 +513,7 @@ Read:
 - [Release Guide](../operations/release.md)
 - Security (private backend docs)
 - Multi-User Runtime Hardening (private backend docs)
-- [Bundled Python Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Bundled Python Runtime Packaging](../operations/local_runtime_packaging.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
 - [Install Decision Matrix](../install/install_decision_matrix.md)
 - Backend Endpoint Setup (private backend docs)
@@ -794,7 +794,7 @@ Use these when a change path is not enough and you need exact file ownership:
 - Performance (private backend docs)
 - Evidence Collection Runbook (private backend docs)
 - Incident Triage Runbook (private backend docs)
-- [Bundled Python Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Bundled Python Runtime Packaging](../operations/local_runtime_packaging.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
 - Operational Troubleshooting (private backend docs)
 

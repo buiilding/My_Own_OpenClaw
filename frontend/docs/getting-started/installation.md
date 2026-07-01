@@ -316,7 +316,7 @@ Permission model for packaged installs:
 - Browser automation permission checks whether a Chromium runtime is already available; if missing, WindieOS asks user consent before installing Chromium for the bundled browser runtime.
 
 For full frontend-only installer workflow (bundled runtime build + packaging),
-see `docs/operations/sidecar_runtime_packaging.md`.
+see `docs/operations/local_runtime_packaging.md`.
 
 ## Verification
 

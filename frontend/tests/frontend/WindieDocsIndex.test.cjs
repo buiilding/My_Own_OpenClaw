@@ -197,7 +197,7 @@ describe('windie docs index', () => {
       .slice(0, 3)
       .map((match) => match.path);
 
-    expect(paths).toContain(path.join('docs', 'operations', 'sidecar_runtime_packaging.md'));
+    expect(paths).toContain(path.join('docs', 'operations', 'local_runtime_packaging.md'));
     expect(paths).toContain(
       path.join('docs', 'operations', 'packaging_and_reinstall_runbooks.md'),
     );

@@ -47,6 +47,6 @@ surface.
 - [Installation Guide](../getting-started/installation.md)
 - Endpoint and Network Debugging (private backend docs)
 - [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md)
-- [Bundled Python Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Bundled Python Runtime Packaging](../operations/local_runtime_packaging.md)
 - Runtime Configuration Matrix (private backend docs)
 - [Release Guide](../operations/release.md)

@@ -78,7 +78,7 @@ CI smoke helpers live under `scripts/ci/`:
 
 ## Related Docs
 
-- [Bundled Python Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Bundled Python Runtime Packaging](../operations/local_runtime_packaging.md)
 - [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
 - Backend Endpoint Setup (private backend docs)

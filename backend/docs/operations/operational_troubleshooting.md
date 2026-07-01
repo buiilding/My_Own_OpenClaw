@@ -179,7 +179,7 @@ Check:
 Read:
 
 - [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md)
-- [Bundled Python Runtime Packaging](sidecar_runtime_packaging.md)
+- [Bundled Python Runtime Packaging](local_runtime_packaging.md)
 - [Debug Logging](../debug/logging.md)
 
 ### macOS app does not appear in Screen Recording or Accessibility permissions
@@ -232,7 +232,7 @@ Check:
 Read:
 
 - [Linux Platform Notes](../platforms/linux.md)
-- [Bundled Python Runtime Packaging](sidecar_runtime_packaging.md)
+- [Bundled Python Runtime Packaging](local_runtime_packaging.md)
 
 ## VM Worker and Runs API
 

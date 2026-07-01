@@ -20,7 +20,7 @@ The release path has two different jobs:
 | Symptom or request | Primary owner | First source roots | First docs |
 | --- | --- | --- | --- |
 | Package command, target type, output name, or artifact inclusion changes | Electron Builder config and package scripts | `frontend/package.json`, `frontend/electron-builder.yml`, `frontend/electron-builder.bundled-python.yml` | [Packaging and Release Commands](../cli/packaging_and_release_commands.md), [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md) |
-| Bundled Python runtime is missing, host-bound, too large, unsigned, or missing dependencies | Bundled local-runtime Python build | `scripts/build-local-runtime`, `frontend/src/main/python/requirements.runtime.txt`, `frontend/src/main/app/runtime_paths.cjs` | [Bundled Local-Runtime Python Packaging](sidecar_runtime_packaging.md), [Packaged Desktop Builds](../install/packaged_desktop.md) |
+| Bundled Python runtime is missing, host-bound, too large, unsigned, or missing dependencies | Bundled local-runtime Python build | `scripts/build-local-runtime`, `frontend/src/main/python/requirements.runtime.txt`, `frontend/src/main/app/runtime_paths.cjs` | [Bundled Local-Runtime Python Packaging](local_runtime_packaging.md), [Packaged Desktop Builds](../install/packaged_desktop.md) |
 | Installed app cannot start local runtime, wakeword, memory service, or local tools | Electron main launch path plus bundled local-runtime Python | `frontend/src/main/app/runtime_paths.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/python/core/bootstrap_paths.py` | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Desktop and Local Runtime Node](../nodes/desktop_and_sidecar_node.md) |
 | Packaged app connects to local or stale backend instead of hosted/staging backend | Endpoint resolution and local-runtime backend config | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/windie/_backend_config.py` | Runtime Configuration Matrix (private backend docs), Backend Endpoint Setup (private backend docs) |
 | Local reinstall keeps old state, permissions, logs, or app binaries | OS reinstall helper | `<windie> reinstall mac`, `<windie> reinstall linux`, `<windie> reinstall win` | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Uninstall, Reinstall, and Reset](../install/uninstall_reinstall_reset.md) |
@@ -44,7 +44,7 @@ The release path has two different jobs:
 ## Change Sequence
 
 1. **Classify the change.** Decide whether it is source-only, packaged-runtime, reinstall/reset, smoke-check, or release-publication work. Use [Install Decision Matrix](../install/install_decision_matrix.md) when the path is unclear.
-2. **Read the owner docs.** For packaging work, read this page, [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Bundled Python Runtime Packaging](sidecar_runtime_packaging.md), and [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md).
+2. **Read the owner docs.** For packaging work, read this page, [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Bundled Python Runtime Packaging](local_runtime_packaging.md), and [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md).
 3. **Inspect the source roots.** Start with the roots in the owner map before broad searches. For runtime failures, inspect path resolution and local-runtime launch code before package metadata.
 4. **Edit the producer first.** Fix package scripts, runtime assembly, endpoint resolution, or reinstall cleanup at the owner layer before adding consumer-side tolerance.
 5. **Update platform-specific paths explicitly.** If behavior differs by OS, update the matching OS helper, smoke script, platform doc, and validation notes.
@@ -128,7 +128,7 @@ Before committing packaging or release work:
 ## Related Docs
 
 - [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md)
-- [Bundled Python Runtime Packaging](sidecar_runtime_packaging.md)
+- [Bundled Python Runtime Packaging](local_runtime_packaging.md)
 - [Release Guide](release.md)
 - [Packaged Desktop Builds](../install/packaged_desktop.md)
 - [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md)

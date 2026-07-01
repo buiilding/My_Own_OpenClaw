@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/packaging: rename the bundled local-runtime packaging guide from
+  `frontend/docs/operations/sidecar_runtime_packaging.md` to
+  `frontend/docs/operations/local_runtime_packaging.md` and update active
+  references/tests. Migration: use the new docs path.
 - cli/packaging: rename the local-runtime implementation wrappers from
   `scripts/test-sidecar.sh` and `scripts/build-sidecar-runtime.sh` to
   `scripts/test-local-runtime.sh` and `scripts/build-local-runtime.sh`, and
@@ -20,9 +24,8 @@ All notable changes to WindieOS will be documented in this file.
   `WINDIE_SIDECAR_LOG_LEVEL` in custom desktop/reinstall launches.
 - cli/local-runtime: remove the old `test sidecar`, `build sidecar-runtime`,
   and `scripts/python-in-env.sh sidecar` aliases so local-runtime validation and
-  build entrypoints use the canonical `local-runtime` target. Existing
-  implementation script names are unchanged. No migration required beyond using
-  `local-runtime` commands.
+  build entrypoints use the canonical `local-runtime` target. No migration
+  required beyond using `local-runtime` commands.
 - cli/logs: canonicalize local-runtime log inspection on `<windie> logs
   local-runtime`, `WINDIE_LOCAL_RUNTIME_LOG_FILE`, and
   `.windie/logs/local-runtime.log`, removing the old `sidecar` log target and

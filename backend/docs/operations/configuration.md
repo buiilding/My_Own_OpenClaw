@@ -260,7 +260,7 @@ Default behavior:
 - `WINDIE_DEFAULT_BACKEND_*` changes that hosted default when `BACKEND_*` is unset.
 - Preferred self-hosted setup for serving `api.windieos.com`: keep both the Cloudflare tunnel and the backend available as persistent user services so the hosted endpoint does not intermittently route to an origin with nothing listening on `127.0.0.1:8765`.
 
-For bundled runtime packaging details, see `docs/operations/sidecar_runtime_packaging.md`.
+For bundled runtime packaging details, see `docs/operations/local_runtime_packaging.md`.
 
 For self-hosting `api.windieos.com` via Cloudflare Tunnel on your own machine,
 see `docs/operations/cloudflared_self_host_windieos.md`.
