@@ -172,7 +172,7 @@ Install local-runtime Python dependencies:
 
 ```bash
 cd ..
-./scripts/python-in-env.sh sidecar python -m pip install -r frontend/src/main/python/requirements.txt
+./scripts/python-in-env.sh local-runtime python -m pip install -r frontend/src/main/python/requirements.txt
 ```
 
 Start the backend:

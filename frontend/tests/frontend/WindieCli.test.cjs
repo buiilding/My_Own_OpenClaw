@@ -333,18 +333,14 @@ describe('windie CLI', () => {
         args: ['tests/backend/test_websocket_route.py', '-q'],
         cwd: repoRoot,
       });
-    expect(getSpawnPlan(['test', 'sidecar', '--', 'frontend/tests/sidecar/test_tool_registry.py', '-q']))
-      .toMatchObject({
-        command: path.join(repoRoot, 'scripts/test-sidecar.sh'),
-        args: ['frontend/tests/sidecar/test_tool_registry.py', '-q'],
-        cwd: repoRoot,
-      });
     expect(getSpawnPlan(['test', 'local-runtime', '--', 'frontend/tests/sidecar/test_tool_registry.py', '-q']))
       .toMatchObject({
         command: path.join(repoRoot, 'scripts/test-sidecar.sh'),
         args: ['frontend/tests/sidecar/test_tool_registry.py', '-q'],
         cwd: repoRoot,
       });
+    expect(getSpawnPlan(['test', 'sidecar', '--', 'frontend/tests/sidecar/test_tool_registry.py', '-q']))
+      .toBeNull();
     expect(getSpawnPlan(['test', 'frontend', '--', 'WindieCli'])).toMatchObject({
       command: 'npm',
       args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'test:ci', '--', 'WindieCli'],
@@ -473,11 +469,7 @@ describe('windie CLI', () => {
       args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'build:sidecar-runtime'],
       cwd: repoRoot,
     });
-    expect(getSpawnPlan(['build', 'sidecar-runtime'])).toMatchObject({
-      command: 'npm',
-      args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'build:sidecar-runtime'],
-      cwd: repoRoot,
-    });
+    expect(getSpawnPlan(['build', 'sidecar-runtime'])).toBeNull();
   });
 
   test('searches recent commits with a limit', () => {

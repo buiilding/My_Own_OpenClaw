@@ -105,6 +105,27 @@ describe('scripts/python-in-env.sh', () => {
     }
   });
 
+  test('rejects sidecar as a removed Python runtime target alias', () => {
+    const result = spawnSync(
+      'bash',
+      [
+        pythonInEnvPath,
+        'sidecar',
+        process.execPath,
+        '-e',
+        'process.stdout.write("unexpected")',
+      ],
+      {
+        cwd: repoRoot,
+        env: process.env,
+        encoding: 'utf8',
+      },
+    );
+
+    expect(result.status).toBe(2);
+    expect(result.stderr).toContain("Unknown target 'sidecar'. Use backend, local-runtime, or frontend.");
+  });
+
   const testUnixOnly = process.platform === 'win32' ? test.skip : test;
 
   testUnixOnly('uses generated frontend runtime for python fallback when conda is unavailable', () => {

@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/local-runtime: remove the old `test sidecar`, `build sidecar-runtime`,
+  and `scripts/python-in-env.sh sidecar` aliases so local-runtime validation and
+  build entrypoints use the canonical `local-runtime` target. Existing
+  implementation script names are unchanged. No migration required beyond using
+  `local-runtime` commands.
 - cli/logs: canonicalize local-runtime log inspection on `<windie> logs
   local-runtime`, `WINDIE_LOCAL_RUNTIME_LOG_FILE`, and
   `.windie/logs/local-runtime.log`, removing the old `sidecar` log target and

@@ -42,8 +42,8 @@ Use this hub when you are about to edit code. It routes a change to the right su
 Repo-root scripts:
 
 - `<windie> docs list` or `<windie> docs list`
-- Windows PowerShell: `scripts\python-in-env.cmd <local-runtime|sidecar|frontend> <cmd...>`
-- Unix-like shells: `./scripts/python-in-env.sh <local-runtime|sidecar|frontend> <cmd...>`
+- Windows PowerShell: `scripts\python-in-env.cmd <local-runtime|frontend> <cmd...>`
+- Unix-like shells: `./scripts/python-in-env.sh <local-runtime|frontend> <cmd...>`
 - `<windie> test all`
 - private backend tests
 - `<windie> test local-runtime`

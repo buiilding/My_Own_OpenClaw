@@ -56,10 +56,6 @@ private operator commands live in private backend docs.
 | `<windie> tools manifest generate` | Generate the public executable tool manifest. |
 | `<windie> mock backend` | Start the local SDK mock backend when available. |
 
-Compatibility aliases still accepted by the CLI for older scripts:
-`<windie> test sidecar` and `<windie> build sidecar-runtime`. Prefer the
-primary `local-runtime` commands in new docs.
-
 ## Deep Command Docs
 
 - [Command Matrix](command_matrix.md)

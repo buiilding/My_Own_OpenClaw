@@ -2106,7 +2106,7 @@ function runTest(args) {
   if (target === 'backend') {
     return runForeground(script('scripts/test-backend.sh'), rest, { cwd: REPO_ROOT });
   }
-  if (target === 'local-runtime' || target === 'sidecar') {
+  if (target === 'local-runtime') {
     return runForeground(script('scripts/test-sidecar.sh'), rest, { cwd: REPO_ROOT });
   }
   if (target === 'frontend') {
@@ -2250,7 +2250,7 @@ function runBuild(args) {
   if (target === 'frontend') {
     return runForeground('npm', ['--prefix', FRONTEND_DIR, 'run', 'build'], { cwd: REPO_ROOT });
   }
-  if (target === 'local-runtime' || target === 'sidecar-runtime') {
+  if (target === 'local-runtime') {
     return runForeground('npm', ['--prefix', FRONTEND_DIR, 'run', 'build:sidecar-runtime'], {
       cwd: REPO_ROOT,
     });
@@ -2586,7 +2586,7 @@ function getSpawnPlan(argv) {
   if (command === 'test' && args[0] === 'backend') {
     return { command: script('scripts/test-backend.sh'), args: stripSeparator(args.slice(1)), cwd: REPO_ROOT };
   }
-  if (command === 'test' && (args[0] === 'local-runtime' || args[0] === 'sidecar')) {
+  if (command === 'test' && args[0] === 'local-runtime') {
     return { command: script('scripts/test-sidecar.sh'), args: stripSeparator(args.slice(1)), cwd: REPO_ROOT };
   }
   if (command === 'test' && args[0] === 'frontend') {
@@ -2610,7 +2610,7 @@ function getSpawnPlan(argv) {
   if (command === 'build' && args[0] === 'frontend') {
     return { command: 'npm', args: ['--prefix', FRONTEND_DIR, 'run', 'build'], cwd: REPO_ROOT };
   }
-  if (command === 'build' && (args[0] === 'local-runtime' || args[0] === 'sidecar-runtime')) {
+  if (command === 'build' && args[0] === 'local-runtime') {
     return {
       command: 'npm',
       args: ['--prefix', FRONTEND_DIR, 'run', 'build:sidecar-runtime'],

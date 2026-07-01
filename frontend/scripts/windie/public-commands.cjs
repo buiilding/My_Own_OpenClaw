@@ -30,7 +30,6 @@ Frontend and local runtime:
   <windie> start customer
   <windie> test frontend [args...]
   <windie> test local-runtime [args...]
-  <windie> test sidecar [args...]
   <windie> build frontend
   <windie> build local-runtime
 
@@ -221,7 +220,7 @@ function testCommand(args) {
   if (target === 'frontend') {
     return runForeground('npm', ['run', 'test:ci', '--', ...rest]);
   }
-  if (target === 'local-runtime' || target === 'sidecar') {
+  if (target === 'local-runtime') {
     return runForeground(script('scripts/test-sidecar.sh'), rest);
   }
   throw new Error('Usage: <windie> test frontend|local-runtime');

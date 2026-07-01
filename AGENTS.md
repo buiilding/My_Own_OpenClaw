@@ -85,13 +85,13 @@ Baseline: Python 3.11 and Node 18+.
 
 Prefer the wrapper over manual environment activation:
 
-- Windows PowerShell: `scripts\python-in-env.cmd <backend|frontend|sidecar> <cmd...>`
-- Unix-like shells: `./scripts/python-in-env.sh <backend|frontend|sidecar> <cmd...>`
+- Windows PowerShell: `scripts\python-in-env.cmd <backend|frontend|local-runtime> <cmd...>`
+- Unix-like shells: `./scripts/python-in-env.sh <backend|frontend|local-runtime> <cmd...>`
 
 Validation:
 
 - Backend tests: `<windie> test backend`
-- Sidecar tests: `<windie> test sidecar`
+- Local-runtime tests: `<windie> test local-runtime`
 - Frontend tests: `<windie> test frontend`
 - Frontend lint: `cd frontend && npm run lint`
 
