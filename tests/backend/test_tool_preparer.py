@@ -476,8 +476,24 @@ async def test_prepare_bundle_manual_mouse_without_frame_does_not_block_keyboard
     }
 
 
+@pytest.mark.parametrize(
+    ("method", "parameters"),
+    [
+        (
+            CoordinateFindingMethod.OCR,
+            {"ocr_text": "Submit"},
+        ),
+        (
+            CoordinateFindingMethod.PREDICTION,
+            {"source_description": "Submit button"},
+        ),
+    ],
+)
 @pytest.mark.asyncio
-async def test_prepare_mouse_control_ocr_without_frame_still_fails_coordinate_resolution():
+async def test_prepare_mouse_control_image_grounding_without_frame_returns_grounding_frame_error(
+    method,
+    parameters,
+):
     preparer = ToolPreparer(
         DummyScreenshotManager(),
         DummyCoordinateResolver(coordinates=(100, 200)),
@@ -487,8 +503,8 @@ async def test_prepare_mouse_control_ocr_without_frame_still_fails_coordinate_re
         tool_name="mouse_control",
         parameters={
             "action": "click",
-            "find_coordinates_by": CoordinateFindingMethod.OCR,
-            "ocr_text": "Submit",
+            "find_coordinates_by": method,
+            **parameters,
         },
         raw_call="{}",
     )
@@ -502,9 +518,7 @@ async def test_prepare_mouse_control_ocr_without_frame_still_fails_coordinate_re
 
     assert result.resolved_calls == []
     assert len(result.errors) == 1
-    assert (
-        "No screenshot data available for coordinate resolution" in result.errors[0][1]
-    )
+    assert result.errors[0][1] == "No active grounding frame"
 
 
 @pytest.mark.asyncio

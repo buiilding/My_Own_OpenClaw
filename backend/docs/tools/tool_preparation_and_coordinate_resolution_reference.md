@@ -80,6 +80,9 @@ For a qualifying call:
 6. rewrite prepared source calls to manual `x/y` and drag destinations to manual `drag_to_x/drag_to_y`
 7. persist metadata (`coordinate_method`, `coordinate_resolution_screenshot_id`, `coordinate_contract`, and drag-destination equivalents)
 
+If no current image is available for OCR/prediction grounding, preparation
+returns the tool error `No active grounding frame`.
+
 For OCR candidate retries (`find_coordinates_by='ocr'` + `candidate_id`):
 
 1. use current session frame id for candidate lookup/normalization
@@ -181,7 +184,7 @@ This guard is independent of renderer behavior and protects local automation saf
 Only OCR/prediction-prepared calls participate because preparation writes
 `coordinate_resolution_screenshot_id` only for coordinates resolved against a
 frame. Manual coordinates are direct local-runtime coordinates and are not
-blocked by missing or changed grounding frames. Tool args must not provide
+blocked by missing or changed screenshot state. Tool args must not provide
 `screenshot_id`.
 
 ## Wait Path Coupling

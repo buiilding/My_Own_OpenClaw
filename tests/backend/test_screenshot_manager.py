@@ -99,7 +99,7 @@ async def test_ensure_screenshot_raises_when_missing():
     manager = ScreenshotManager()
     session = DummySession(ocr_router=None)
 
-    with pytest.raises(ValueError, match="No active screenshot available"):
+    with pytest.raises(ValueError, match="No active grounding frame"):
         await manager.ensure_screenshot(session)
 
 

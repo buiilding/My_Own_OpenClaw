@@ -40,7 +40,8 @@ Design intent:
 - non-empty `current_screenshot_id`
 - non-empty screenshot data
 
-Otherwise it raises `ValueError("No active screenshot available for coordinate resolution")`.
+Otherwise it raises `ValueError("No active grounding frame")`. This gate is
+used by OCR/prediction coordinate resolution; manual coordinates bypass it.
 
 ## Screenshot Processing Entry Point
 

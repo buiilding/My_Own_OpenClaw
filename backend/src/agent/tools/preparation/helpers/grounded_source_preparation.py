@@ -20,6 +20,9 @@ from backend.src.agent.tools.preparation.helpers.coordinate_resolution_helper im
 from backend.src.agent.tools.preparation.helpers.source_coordinate_method import (
     infer_source_coordinate_method,
 )
+from backend.src.agent.tools.preparation.screenshot.manager import (
+    NO_ACTIVE_GROUNDING_FRAME_ERROR,
+)
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser_types import ParsedToolCall
@@ -196,7 +199,7 @@ async def ensure_coordinate_resolution_screenshot(
     screenshot_data = session.get_screenshot()
     screenshot_id = session.get_current_screenshot_id()
     if not screenshot_data or not screenshot_id:
-        raise ValueError("No screenshot data available for coordinate resolution")
+        raise ValueError(NO_ACTIVE_GROUNDING_FRAME_ERROR)
     return screenshot_data, screenshot_id
 
 

@@ -10,6 +10,8 @@ All notable changes to WindieOS will be documented in this file.
   coordinates to an active screenshot frame. Manual coordinates now pass
   through as direct local-runtime coordinates; OCR/prediction grounding remains
   frame-based.
+- backend/tools: return the simple tool error `No active grounding frame` when
+  OCR/prediction coordinate grounding has no current image.
 - sdk/replay: resolve edit/resend and retry targets from raw event-projected
   display rows when a conversation has no materialized display timeline rows
   yet, including active revisions synthesized as empty timelines, and reload

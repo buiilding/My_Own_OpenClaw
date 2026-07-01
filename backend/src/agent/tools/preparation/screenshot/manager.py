@@ -17,6 +17,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+NO_ACTIVE_GROUNDING_FRAME_ERROR = "No active grounding frame"
+
 
 class ScreenshotManager:
     """
@@ -39,7 +41,7 @@ class ScreenshotManager:
             if screenshot_data:
                 return
 
-        raise ValueError("No active screenshot available for coordinate resolution")
+        raise ValueError(NO_ACTIVE_GROUNDING_FRAME_ERROR)
 
     async def process_screenshot(
         self,
