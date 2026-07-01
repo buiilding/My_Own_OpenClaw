@@ -1544,11 +1544,25 @@ function displayRowMaterializesLiveToolEntry(row, entry) {
     const entryIdentity = liveToolEntryIdentity(entry);
     return Boolean(entryIdentity && displayRowToolIdentity(row) === entryIdentity);
 }
+function displayRowMaterializesLiveTextEntry(row, entry) {
+    if (entry.type !== 'llm-text'
+        || row.role !== 'assistant'
+        || row.type !== 'assistant_message') {
+        return false;
+    }
+    if (entry.turnRef && row.turnRef && entry.turnRef !== row.turnRef) {
+        return false;
+    }
+    const liveText = typeof entry.text === 'string' ? entry.text.trim() : '';
+    const rowText = typeof row.content === 'string' ? row.content.trim() : '';
+    return Boolean(liveText && rowText && rowText.startsWith(liveText));
+}
+function displayRowMaterializesLiveTurnEntry(row, entry) {
+    return displayRowMaterializesLiveToolEntry(row, entry)
+        || displayRowMaterializesLiveTextEntry(row, entry);
+}
 function filterMaterializedLiveTurnEntries(entries, displayRows) {
-    return entries.filter(entry => ((entry.type !== 'tool-call'
-        && entry.type !== 'tool-output'
-        && entry.type !== 'tool-progress')
-        || !displayRows.some(row => displayRowMaterializesLiveToolEntry(row, entry))));
+    return entries.filter(entry => (!displayRows.some(row => displayRowMaterializesLiveTurnEntry(row, entry))));
 }
 function buildConversationView(input) {
     const conversationRef = resolveConversationViewConversationRef(input);

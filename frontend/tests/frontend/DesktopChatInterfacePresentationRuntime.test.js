@@ -703,7 +703,7 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
     ]));
   });
 
-  test('does not suppress ConversationView live rows as raw duplicate materialized messages', () => {
+  test('renders ConversationView live rows ahead of materialized display text', () => {
     const state = buildChatInterfacePresentationState({
       activeConversationRef: 'conv-1',
       conversationView: {
@@ -723,14 +723,14 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
           index: 1,
           role: 'assistant',
           type: 'assistant_message',
-          content: 'view live answer final',
+          content: 'view live',
         }],
         liveTurn: {
           turnRef: 'turn-view',
           entries: [{
             id: 'view-live',
             type: 'llm-text',
-            text: 'view live answer',
+            text: 'view live answer with more detail',
           }],
         },
         surfaces: {},
@@ -754,11 +754,11 @@ describe('DesktopChatInterfacePresentationRuntime', () => {
       }),
       expect.objectContaining({
         id: 'assistant-row',
-        text: 'view live answer final',
+        text: 'view live',
       }),
       expect.objectContaining({
         id: 'view-live',
-        text: 'view live answer',
+        text: 'view live answer with more detail',
         turnRef: 'turn-view',
       }),
     ]);

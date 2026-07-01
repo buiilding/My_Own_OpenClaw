@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/conversation-view: filter live assistant text entries once same-turn
+  `displayRows` materialize that text, so active chat surfaces do not render
+  duplicate assistant bubbles while streaming. No migration required.
 - frontend/tests: declare `ws` as a direct dev dependency for websocket-backed
   frontend tests instead of relying on `jest-environment-jsdom`'s transitive
   dependency. No migration required.

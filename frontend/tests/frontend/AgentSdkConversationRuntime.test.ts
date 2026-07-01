@@ -6218,9 +6218,7 @@ describe('Agent SDK conversation runtime core', () => {
       isBusy: false,
       canStop: false,
     });
-    expect(snapshot.view.liveTurn.entries.map(entry => entry.text)).toEqual([
-      'Scripted runtime ready.',
-    ]);
+    expect(snapshot.view.liveTurn.entries.map(entry => entry.text)).toEqual([]);
   });
 
   test('conversation runtime forks display prefix and matching model history into a child conversation', async () => {
@@ -6584,7 +6582,7 @@ describe('Agent SDK conversation runtime core', () => {
       'parent question',
       'parent answer',
     ]);
-    expect(parentView.liveTurn.entries.map(entry => entry.text).join('\n')).toContain('parent answer');
+    expect(parentView.liveTurn.entries.map(entry => entry.text).join('\n')).not.toContain('parent answer');
     expect(parentView.liveTurn.entries.map(entry => entry.text).join('\n')).not.toContain('child answer streaming');
   });
 
@@ -10091,13 +10089,49 @@ describe('Agent SDK conversation runtime core', () => {
         }),
       }),
     ]);
-    expect(view.liveTurn.entries).toEqual(expect.arrayContaining([
+    expect(view.liveTurn.entries).toEqual([]);
+  });
+
+  test('conversation view keeps live assistant text until display row materializes', () => {
+    const events = [
+      event('user_message', { text: 'hello' }),
+      event('assistant_delta', { text: 'hi there' }),
+    ];
+    const state = events.reduce(
+      (current, next) => reduceConversationRuntimeState(current, next),
+      createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1'),
+    );
+    const displayRows = buildDisplayRows(events).filter(row => row.type !== 'assistant_message');
+    const view = buildConversationView({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: state.revisionId,
+      state,
+      events,
+      displayRows,
+      currentTurn: buildCurrentTurnProjection(events),
+      pendingTurnRef: 'turn-1',
+    });
+
+    expect(view.displayRows).toEqual([
+      expect.objectContaining({
+        role: 'user',
+        type: 'user_message',
+        content: 'hello',
+      }),
+    ]);
+    expect(view.liveTurn).toMatchObject({
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      isBusy: true,
+      canStop: true,
+    });
+    expect(view.liveTurn.entries).toEqual([
       expect.objectContaining({
         type: 'llm-text',
         text: 'hi there',
         sourceChannel: 'sdk:current-turn',
       }),
-    ]));
+    ]);
   });
 
   test('conversation view does not duplicate materialized tool calls in live entries', () => {
