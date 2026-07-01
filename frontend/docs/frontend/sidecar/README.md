@@ -46,7 +46,7 @@ title: "Local Runtime Python Implementation Docs Hub"
 - [Local Runtime JSON-RPC Reference](local_runtime_jsonrpc_reference.md)
 - [Local Runtime JSON-RPC Change Workflow](local_runtime_jsonrpc_change_workflow.md)
 - [Local-Runtime Process Lifecycle Change Workflow](../main/local_backend/process_lifecycle_change_workflow.md)
-- [SDK-Owned Local-Runtime Lifecycle Reference](local_backend_process_lifecycle_reference.md)
+- [SDK-Owned Local-Runtime Lifecycle Reference](local_runtime_lifecycle_reference.md)
 - [Wakeword Bridge and Audio Framing Reference](wakeword_bridge_and_audio_framing_reference.md)
 - [JSON-RPC Protocol and Stdout Framing Reference](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
 - [Backend Config Env-Precedence Reference](core/backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md)

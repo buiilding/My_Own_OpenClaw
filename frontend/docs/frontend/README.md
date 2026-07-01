@@ -196,7 +196,7 @@ main process, React renderer, and the local-runtime Python implementation.
 - [Schema Registry and Action Validation Boundary Reference](sidecar/browser/contracts/schema_registry_and_action_validation_boundary_reference.md)
 - [Chrome Detection, Launcher, and CDP Session Reference](sidecar/browser/chrome/chrome_detection_launcher_and_cdp_session_reference.md)
 - [Local Runtime JSON-RPC Reference](sidecar/local_runtime_jsonrpc_reference.md)
-- [SDK-Owned Local-Runtime Lifecycle Reference](sidecar/local_backend_process_lifecycle_reference.md)
+- [SDK-Owned Local-Runtime Lifecycle Reference](sidecar/local_runtime_lifecycle_reference.md)
 - [Wakeword Bridge and Audio Framing Reference](sidecar/wakeword_bridge_and_audio_framing_reference.md)
 - [JSON-RPC Protocol and Stdout Framing Reference](sidecar/core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
 - [Backend Config Env-Precedence Reference](sidecar/core/backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md)

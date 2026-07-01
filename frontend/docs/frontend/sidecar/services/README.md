@@ -17,7 +17,7 @@ title: "Local-Runtime Services Docs Hub"
 
 - [Local Runtime Python Implementation Docs Hub](../README.md)
 - [Local-Runtime Core Docs Hub](../core/README.md)
-- [SDK-Owned Local-Runtime Lifecycle Reference](../local_backend_process_lifecycle_reference.md)
+- [SDK-Owned Local-Runtime Lifecycle Reference](../local_runtime_lifecycle_reference.md)
 - [Wakeword Bridge and Audio Framing Reference](../wakeword_bridge_and_audio_framing_reference.md)
 
 ## Code Scope
