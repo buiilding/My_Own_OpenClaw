@@ -49,6 +49,16 @@ function displayTextFromStringRowContent(content: unknown): string {
   return typeof content === 'string' ? content : '';
 }
 
+function displayTextFromJsonRowContent(content: unknown): string {
+  if (typeof content === 'string') {
+    return content;
+  }
+  if (!content || typeof content !== 'object' || Array.isArray(content)) {
+    return '';
+  }
+  return JSON.stringify(content, null, 2);
+}
+
 function rowTimestamp(row: SdkDisplayRow): string | null {
   return exactNonEmptyString(row.metadata?.timestamp);
 }
@@ -244,7 +254,7 @@ function buildAssistantChatMessage(row: SdkDisplayRow, id: string): ChatMessage 
 }
 
 function buildToolCallMessage(row: SdkDisplayRow, id: string): ChatMessage {
-  const text = displayTextFromStringRowContent(row.content);
+  const text = displayTextFromJsonRowContent(row.content);
   const toolCallDetails = sanitizeSdkToolDetailRecord(row.metadata?.toolCallDetails);
   const correlationId = rowCorrelationId(row);
   const turnRef = rowTurnRef(row);

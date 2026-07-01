@@ -265,6 +265,7 @@ function selectVisibleCurrentTurnMessages({
 }
 
 function selectVisibleConversationViewLiveMessages({
+  messages,
   liveTurnMessages,
   projectionConversationRefValue,
   activeConversationRef,
@@ -293,6 +294,7 @@ function selectVisibleConversationViewLiveMessages({
   }
   return liveTurnMessages.filter((message) => (
     isVisibleCurrentTurnMessage(message)
+    && !hasMaterializedDuplicateForLiveMessage(messages, message)
   ));
 }
 
@@ -338,6 +340,7 @@ function buildThreadPresentationMessages(
     : sdkLiveTurn?.conversationRef;
   const visibleLiveMessages = hasConversationView
     ? selectVisibleConversationViewLiveMessages({
+      messages: baseMessages,
       liveTurnMessages: resolvedCurrentTurnMessages,
       projectionConversationRefValue,
       activeConversationRef,

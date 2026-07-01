@@ -6,6 +6,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: render SDK display-row object tool-call content as the
+  `toolCallDisplayText` card body, so scripted/runtime tool calls show their
+  name, arguments, and id instead of an empty tool-call shell. No migration
+  required.
+- frontend/conversation-view: suppress ConversationView live assistant text
+  when the same-turn display row already materializes that text, preventing
+  transient duplicate final assistant bubbles during SDK view handoff. No
+  migration required.
 - ci/release: run the desktop release workflow from the public repo root after
   the frontend split by using root package scripts and release artifact paths,
   so all-platform CI packaging can publish macOS notarized DMG/ZIP, Windows

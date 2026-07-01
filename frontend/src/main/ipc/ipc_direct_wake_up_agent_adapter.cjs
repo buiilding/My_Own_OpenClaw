@@ -50,6 +50,54 @@ function resolveExactReplayConversationRef(input = {}) {
   return readExactReplayCommandString(input.conversationRef, 'conversation reference');
 }
 
+function replayDisplayRowMatchesId(row, messageId) {
+  if (!isPlainObject(row) || typeof messageId !== 'string' || !messageId) {
+    return false;
+  }
+  const metadata = isPlainObject(row.metadata) ? row.metadata : {};
+  const raw = isPlainObject(metadata.raw) ? metadata.raw : {};
+  const stableAssistantRowId = row.role === 'assistant' && typeof row.turnRef === 'string' && row.turnRef
+    ? `${row.conversationRef}:${row.turnRef}:assistant`
+    : null;
+  return row.id === messageId
+    || stableAssistantRowId === messageId
+    || metadata.eventId === messageId
+    || metadata.replacedDisplayRowId === messageId
+    || raw.id === messageId
+    || raw.messageId === messageId
+    || raw.message_id === messageId;
+}
+
+function snapshotHasReplayTarget(snapshot, messageId) {
+  if (!isPlainObject(snapshot)) {
+    return false;
+  }
+  const candidateRows = [
+    snapshot.view?.displayRows,
+    snapshot.displayRows,
+  ];
+  return candidateRows.some(rows => (
+    Array.isArray(rows) && rows.some(row => replayDisplayRowMatchesId(row, messageId))
+  ));
+}
+
+function displayTimelineHasReplayTarget(timeline, messageId) {
+  if (!isPlainObject(timeline) || typeof messageId !== 'string' || !messageId) {
+    return false;
+  }
+  const rows = Array.isArray(timeline.rows) ? timeline.rows : [];
+  return rows.some(row => replayDisplayRowMatchesId(row, messageId));
+}
+
+function conversationMetadataRef(metadata) {
+  if (!isPlainObject(metadata)) {
+    return null;
+  }
+  return normalizeOptionalString(metadata.conversationRef)
+    || normalizeOptionalString(metadata.conversationId)
+    || normalizeOptionalString(metadata.conversation_id);
+}
+
 function resolveSdkCommandTurnRef(input = {}) {
   if (!isPlainObject(input)) {
     return null;
@@ -259,6 +307,85 @@ function createDirectWakeUpAgentAdapter({
     return snapshot;
   }
 
+  async function reloadRuntimeSnapshotForReplay(handle, messageId) {
+    if (snapshotHasReplayTarget(handle.latestSnapshot, messageId)) {
+      return handle.latestSnapshot;
+    }
+    return reloadRuntimeSnapshot(handle);
+  }
+
+  async function loadReplayDisplayTimeline(conversationRef) {
+    const existingHandle = runtimeHandles.get(conversationRef);
+    if (existingHandle) {
+      return existingHandle.runtime.loadDisplayTimeline();
+    }
+    if (typeof agent.loadDisplayTimeline === 'function') {
+      return agent.loadDisplayTimeline({
+        conversationRef,
+        ...(store ? { store } : {}),
+      });
+    }
+    const handle = getConversationRuntimeHandle(conversationRef);
+    return handle.runtime.loadDisplayTimeline();
+  }
+
+  async function findReplayTargetConversationRef({
+    requestedConversationRef,
+    messageId,
+  }) {
+    const requestedRef = normalizeOptionalString(requestedConversationRef);
+    for (const [conversationRef, handle] of runtimeHandles.entries()) {
+      if (conversationRef === requestedRef) {
+        continue;
+      }
+      if (snapshotHasReplayTarget(handle.latestSnapshot, messageId)) {
+        return conversationRef;
+      }
+      const timeline = await handle.runtime.loadDisplayTimeline();
+      if (displayTimelineHasReplayTarget(timeline, messageId)) {
+        return conversationRef;
+      }
+    }
+    if (typeof agent.listConversations !== 'function') {
+      return null;
+    }
+    const conversations = await agent.listConversations({
+      limit: 50,
+      ...(store ? { store } : {}),
+    });
+    const visited = new Set(runtimeHandles.keys());
+    for (const metadata of Array.isArray(conversations) ? conversations : []) {
+      const conversationRef = conversationMetadataRef(metadata);
+      if (!conversationRef || conversationRef === requestedRef || visited.has(conversationRef)) {
+        continue;
+      }
+      visited.add(conversationRef);
+      const timeline = await loadReplayDisplayTimeline(conversationRef);
+      if (displayTimelineHasReplayTarget(timeline, messageId)) {
+        return conversationRef;
+      }
+    }
+    return null;
+  }
+
+  async function getReplayRuntimeHandleForTarget(displayConversationRef, messageId) {
+    const handle = getConversationRuntimeHandle(displayConversationRef);
+    await reloadRuntimeSnapshotForReplay(handle, messageId);
+    if (snapshotHasReplayTarget(handle.latestSnapshot, messageId)) {
+      return handle;
+    }
+    const resolvedConversationRef = await findReplayTargetConversationRef({
+      requestedConversationRef: handle.conversationRef,
+      messageId,
+    });
+    if (!resolvedConversationRef || resolvedConversationRef === handle.conversationRef) {
+      return handle;
+    }
+    const resolvedHandle = getConversationRuntimeHandle(resolvedConversationRef);
+    await reloadRuntimeSnapshotForReplay(resolvedHandle, messageId);
+    return resolvedHandle;
+  }
+
   async function ensureInferenceContextForSend(handle, sendInput = {}) {
     if (handle.inferenceContextReady) {
       return;
@@ -435,7 +562,7 @@ function createDirectWakeUpAgentAdapter({
         messageId: readExactReplayCommandString(options.messageId, 'message id'),
         text: options.text,
       };
-      const handle = getConversationRuntimeHandle(displayConversationRef);
+      const handle = await getReplayRuntimeHandleForTarget(displayConversationRef, input.messageId);
       const result = await handle.runtime.editAndResend(input);
       markInferenceContextStale(handle.conversationRef);
       await reloadRuntimeSnapshot(handle);
@@ -446,7 +573,7 @@ function createDirectWakeUpAgentAdapter({
       const input = {
         messageId: readExactReplayCommandString(options.messageId, 'message id'),
       };
-      const handle = getConversationRuntimeHandle(displayConversationRef);
+      const handle = await getReplayRuntimeHandleForTarget(displayConversationRef, input.messageId);
       const result = await handle.runtime.retryTurn(input);
       markInferenceContextStale(handle.conversationRef);
       await reloadRuntimeSnapshot(handle);

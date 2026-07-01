@@ -19,6 +19,8 @@ import {
   type ConversationEvent,
   type AgentRuntimeEvent,
   type AgentStreamEvent,
+  type DisplayTimelineCheckpoint,
+  type SdkDisplayRow,
 } from '../../packages/windie-sdk-js/src';
 import {
   createAgentStreamEventRuntime,
@@ -9993,6 +9995,154 @@ describe('Agent SDK conversation runtime core', () => {
         }),
       }),
     ]);
+  });
+
+  test('editAndResend falls back to stored events when display rows are empty', async () => {
+    const sentQueries: Record<string, unknown>[] = [];
+    class EmptyDisplayRowsStore extends InMemoryConversationStore {
+      override async loadDisplayRows(): Promise<SdkDisplayRow[]> {
+        return [];
+      }
+    }
+    const store = new EmptyDisplayRowsStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        turnRef: 'turn-edit',
+        eventId: 'turn-edit-sdk-evt-000002-user_message',
+        payload: { text: 'old text' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        turnRef: 'turn-edit',
+        eventId: 'turn-edit-backend-assistant',
+        payload: { text: 'old answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockAgentRuntimeTransport({
+        sendQuery: jest.fn(async payload => {
+          sentQueries.push(payload);
+          return 'query-edit';
+        }),
+      }),
+    });
+
+    await runtime.load();
+    await runtime.editAndResend({
+      messageId: 'turn-edit-sdk-evt-000002-user_message',
+      text: 'new text',
+    });
+
+    expect(sentQueries[0]).toMatchObject({
+      text: 'new text',
+      conversation_ref: 'conv-sdk-runtime',
+    });
+  });
+
+  test('editAndResend falls back from a zero-row active revision timeline', async () => {
+    const sentQueries: Record<string, unknown>[] = [];
+    class EmptyActiveTimelineStore extends InMemoryConversationStore {
+      override async loadDisplayTimeline(): Promise<DisplayTimelineCheckpoint | null> {
+        return {
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-old',
+          createdAt: '2026-06-29T22:29:33.256Z',
+          rows: [],
+          reason: 'send',
+          baseRevisionId: null,
+        };
+      }
+    }
+    const store = new EmptyActiveTimelineStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        turnRef: 'turn-edit',
+        eventId: 'turn-edit-sdk-evt-000002-user_message',
+        payload: { text: 'old text' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        turnRef: 'turn-edit',
+        eventId: 'turn-edit-backend-assistant',
+        payload: { text: 'old answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockAgentRuntimeTransport({
+        sendQuery: jest.fn(async payload => {
+          sentQueries.push(payload);
+          return 'query-edit';
+        }),
+      }),
+    });
+
+    await runtime.load();
+    await runtime.editAndResend({
+      messageId: 'turn-edit-sdk-evt-000002-user_message',
+      text: 'new text',
+    });
+
+    expect(sentQueries[0]).toMatchObject({
+      text: 'new text',
+      conversation_ref: 'conv-sdk-runtime',
+    });
+  });
+
+  test('retryTurn resolves stable assistant fallback row ids without a display timeline', async () => {
+    const sentQueries: Record<string, unknown>[] = [];
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        turnRef: 'turn-retry',
+        eventId: 'turn-retry-sdk-evt-000002-user_message',
+        payload: { text: 'try this again' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        turnRef: 'turn-retry',
+        eventId: 'turn-retry-backend-assistant',
+        payload: { text: 'bad answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockAgentRuntimeTransport({
+        sendQuery: jest.fn(async payload => {
+          sentQueries.push(payload);
+          return 'query-retry';
+        }),
+      }),
+    });
+
+    await runtime.load();
+    await runtime.retryTurn({
+      messageId: 'conv-sdk-runtime:turn-retry:assistant',
+    });
+
+    expect(sentQueries[0]).toMatchObject({
+      text: 'try this again',
+      conversation_ref: 'conv-sdk-runtime',
+    });
   });
 
   test('editAndResend preserves ready display image attachments', async () => {

@@ -107,7 +107,11 @@ function eventText(event) {
     return '';
 }
 function displayRowMatchesId(row, messageId) {
+    const stableAssistantRowId = row.role === 'assistant' && row.turnRef
+        ? `${row.conversationRef}:${row.turnRef}:assistant`
+        : null;
     return row.id === messageId
+        || stableAssistantRowId === messageId
         || row.metadata?.eventId === messageId
         || row.metadata?.replacedDisplayRowId === messageId
         || row.metadata?.raw?.id === messageId
@@ -742,12 +746,27 @@ class SdkConversationRuntime {
         const checkpoint = await this.loadStoredDisplayTimeline(requestedRevisionId);
         if (checkpoint) {
             const events = await this.options.store.loadEvents(this.options.conversationRef);
+            const rows = this.displayRowsForTimeline(checkpoint, events);
+            if (rows.length === 0 && checkpoint.rows.length === 0 && events.length > 0) {
+                return {
+                    ...checkpoint,
+                    rows: (0, conversationProjections_js_1.buildDisplayRows)(events, {
+                        liveAttachments: this.liveDisplayAttachmentsRecord(),
+                    }),
+                };
+            }
             return {
                 ...checkpoint,
-                rows: this.displayRowsForTimeline(checkpoint, events),
+                rows,
             };
         }
-        const rows = await this.options.store.loadDisplayRows(this.options.conversationRef);
+        let rows = await this.options.store.loadDisplayRows(this.options.conversationRef);
+        if (rows.length === 0) {
+            const events = await this.options.store.loadEvents(this.options.conversationRef);
+            rows = (0, conversationProjections_js_1.buildDisplayRows)(events, {
+                liveAttachments: this.liveDisplayAttachmentsRecord(),
+            });
+        }
         const fallbackRevisionId = requestedRevisionId ?? this.state.revisionId;
         return {
             conversationRef: this.options.conversationRef,

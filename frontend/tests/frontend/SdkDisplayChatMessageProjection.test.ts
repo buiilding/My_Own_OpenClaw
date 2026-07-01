@@ -155,21 +155,9 @@ describe('sdkDisplayChatMessageProjection', () => {
         content: { output: 'renderer must not recover this' },
       },
       {
-        id: 'msg-tool-call-object-content',
-        conversationRef: 'conv-sdk',
-        index: 3,
-        role: 'assistant',
-        type: 'tool_call',
-        content: {
-          id: 'call-1',
-          name: 'renderer_must_not_recover_this',
-          arguments: { path: 'package.json' },
-        },
-      },
-      {
         id: 'msg-tool-bundle-output-object-content',
         conversationRef: 'conv-sdk',
-        index: 4,
+        index: 3,
         role: 'tool',
         type: 'tool_bundle_output',
         content: {
@@ -181,7 +169,7 @@ describe('sdkDisplayChatMessageProjection', () => {
       {
         id: 'msg-tool-progress-object-content',
         conversationRef: 'conv-sdk',
-        index: 5,
+        index: 4,
         role: 'assistant',
         type: 'tool_progress',
         content: { progress: 'renderer must not recover this' },
@@ -202,10 +190,6 @@ describe('sdkDisplayChatMessageProjection', () => {
         text: '',
       }),
       expect.objectContaining({
-        id: 'msg-tool-call-object-content',
-        text: '',
-      }),
-      expect.objectContaining({
         id: 'msg-tool-bundle-output-object-content',
         text: '',
       }),
@@ -214,7 +198,44 @@ describe('sdkDisplayChatMessageProjection', () => {
         text: '',
       }),
     ]);
-    expect(messages[3]).not.toHaveProperty('toolCallDisplayText');
+  });
+
+  test('renders SDK-authored object tool call content as display preview text', () => {
+    const [message] = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-tool-call-object-content',
+        conversationRef: 'conv-sdk',
+        index: 0,
+        role: 'assistant',
+        type: 'tool_call',
+        content: {
+          name: 'screenshot',
+          arguments: {
+            explanation: 'Validate the scripted model tool path.',
+          },
+          id: 'scripted_call_1',
+        },
+        metadata: {
+          sourceEventType: 'tool_call',
+        },
+      },
+    ]);
+
+    const expectedPreview = JSON.stringify({
+      name: 'screenshot',
+      arguments: {
+        explanation: 'Validate the scripted model tool path.',
+      },
+      id: 'scripted_call_1',
+    }, null, 2);
+
+    expect(message).toEqual(expect.objectContaining({
+      id: 'msg-tool-call-object-content',
+      sender: 'assistant',
+      type: 'tool-call',
+      text: expectedPreview,
+      toolCallDisplayText: expectedPreview,
+    }));
   });
 
   test('drops display rows with mismatched SDK role and type pairs', () => {

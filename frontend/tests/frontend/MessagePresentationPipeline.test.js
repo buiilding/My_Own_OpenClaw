@@ -575,6 +575,49 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
+  test('buildThreadPresentationMessages suppresses ConversationView live text already materialized by display rows', () => {
+    const sdkUserRow = {
+      id: 'sdk-user-row',
+      sender: 'user',
+      text: '@script tool screenshot',
+      turnRef: 'turn-view',
+      sourceChannel: 'sdk:display-rows',
+      sourceEventType: 'user_message',
+    };
+    const sdkAssistantFinalRow = {
+      id: 'sdk-assistant-final-row',
+      sender: 'assistant',
+      text: 'Scripted runtime completed 1 tool call(s): screenshot.',
+      type: 'llm-text',
+      turnRef: 'turn-view',
+      sourceChannel: 'sdk:display-rows',
+      sourceEventType: 'assistant_message',
+    };
+    const conversationView = conversationViewFixture({
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries: [{
+          id: 'view-live-final',
+          type: 'llm-text',
+          text: 'Scripted runtime completed 1 tool call(s): screenshot.',
+          sourceEventType: 'assistant_delta',
+          turnRef: 'turn-view',
+        }],
+      },
+    });
+
+    expect(buildThreadPresentationMessages([
+      sdkUserRow,
+      sdkAssistantFinalRow,
+    ], {
+      conversationView,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      sdkUserRow,
+      sdkAssistantFinalRow,
+    ]);
+  });
+
   test('buildThreadPresentationMessages keeps partial ConversationView objects on no-view fallback path', () => {
     const rawRow = {
       id: 'raw-user-row',
