@@ -114,7 +114,7 @@ contracts.
 - **WebSocket Connection Lifecycle** (private backend docs) - `/ws` handshake, install auth, message parse, task limit, timeout, and cleanup internals
 - **Gateway Troubleshooting** (private backend docs) - Hosted route, websocket, auth, private deployment, health, and endpoint-resolution failures
 - [**Runtime Node Matrix**](nodes/runtime_node_matrix.md) - Node-to-code-root, protocol, lifecycle, failure-signal, and validation matrix
-- [**Desktop and Local Runtime Node**](nodes/desktop_and_sidecar_node.md) - Electron main, renderer, preload, local-runtime JSON-RPC, local tools, and wakeword ownership
+- [**Desktop and Local Runtime Node**](nodes/desktop_and_local_runtime_node.md) - Electron main, renderer, preload, local-runtime JSON-RPC, local tools, and wakeword ownership
 - [**Current vs Future Nodes**](nodes/current_vs_future_nodes.md) - Implemented nodes versus planned mobile, edge, scheduler, and multi-agent VM node work
 - [**Memory Hub**](memory/README.md) - Transcript persistence, replay, local-runtime memory, semantic routes, and troubleshooting
 - [**Memory Change Workflow**](memory/memory_change_workflow.md) - Route transcript, replay, local-runtime memory, semanticization, backend history, and compaction changes

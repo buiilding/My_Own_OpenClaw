@@ -16,11 +16,11 @@ docs live in private backend docs.
 
 | Node | Runs where | Owns | Start docs |
 | --- | --- | --- | --- |
-| Electron main node | local desktop app main process | windows, overlay lifecycle, SDK-runtime adapter, local config, preload IPC handlers, local-runtime host/status context | [Desktop and Local Runtime Node](desktop_and_sidecar_node.md), [Frontend Main Docs Hub](../frontend/main/README.md) |
-| Renderer node | local desktop renderer processes | dashboard, chat UI, overlay UI, voice UI, settings, transcript projection, display-only tool state | [Desktop and Local Runtime Node](desktop_and_sidecar_node.md), [Frontend Renderer Docs Hub](../frontend/renderer/README.md) |
+| Electron main node | local desktop app main process | windows, overlay lifecycle, SDK-runtime adapter, local config, preload IPC handlers, local-runtime host/status context | [Desktop and Local Runtime Node](desktop_and_local_runtime_node.md), [Frontend Main Docs Hub](../frontend/main/README.md) |
+| Renderer node | local desktop renderer processes | dashboard, chat UI, overlay UI, voice UI, settings, transcript projection, display-only tool state | [Desktop and Local Runtime Node](desktop_and_local_runtime_node.md), [Frontend Renderer Docs Hub](../frontend/renderer/README.md) |
 | Preload bridge node | local isolated bridge injected into renderer windows | allowed IPC surface, channel validation, safe renderer-to-main access | [Runtime Node Matrix](runtime_node_matrix.md), [Frontend Preload Docs Hub](../frontend/preload/README.md) |
-| Local-runtime Python implementation node | local Python subprocess managed by SDK local runtime | executable local tools, local memory, system state, JSON-RPC methods, SDK helper clients | [Desktop and Local Runtime Node](desktop_and_sidecar_node.md), [Local Runtime Python Implementation Docs Hub](../frontend/local_runtime_python/README.md) |
-| Wakeword service node | local Python subprocess separate from generic local-runtime JSON-RPC | wakeword model bootstrap, audio framing, detection events | [Desktop and Local Runtime Node](desktop_and_sidecar_node.md), [Voice and Audio Channels](../channels/voice_and_audio_channels.md) |
+| Local-runtime Python implementation node | local Python subprocess managed by SDK local runtime | executable local tools, local memory, system state, JSON-RPC methods, SDK helper clients | [Desktop and Local Runtime Node](desktop_and_local_runtime_node.md), [Local Runtime Python Implementation Docs Hub](../frontend/local_runtime_python/README.md) |
+| Wakeword service node | local Python subprocess separate from generic local-runtime JSON-RPC | wakeword model bootstrap, audio framing, detection events | [Desktop and Local Runtime Node](desktop_and_local_runtime_node.md), [Voice and Audio Channels](../channels/voice_and_audio_channels.md) |
 
 ## Node Boundary Rules
 
@@ -61,7 +61,7 @@ downstream UI just to hide contract drift.
 
 Read:
 
-- [Desktop and Local Runtime Node](desktop_and_sidecar_node.md)
+- [Desktop and Local Runtime Node](desktop_and_local_runtime_node.md)
 - [Local Tool Channels](../channels/local_tool_channels.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 
@@ -79,6 +79,6 @@ the touched tool or protocol.
 ## Deep Docs
 
 - [Runtime Node Matrix](runtime_node_matrix.md)
-- [Desktop and Local Runtime Node](desktop_and_sidecar_node.md)
+- [Desktop and Local Runtime Node](desktop_and_local_runtime_node.md)
 - [Current vs Future Nodes](current_vs_future_nodes.md)
 - [Channels Hub](../channels/README.md)

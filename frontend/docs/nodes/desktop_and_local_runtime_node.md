@@ -56,7 +56,7 @@ Start with these folders when UI or stream projection changes:
 - `frontend/src/renderer/features/permissions/**`: permission center state and presentation.
 - `frontend/src/renderer/infrastructure/**`: IPC, API, transcript, artifact, and service helpers.
 
-## Sidecar Code Roots
+## Local-Runtime Python Code Roots
 
 Start with these files when local execution changes:
 
@@ -77,11 +77,11 @@ sequenceDiagram
   participant Backend as Hosted backend
   participant SDK as SDK/main local runtime
   participant Renderer as Renderer
-  participant Sidecar as Local-runtime Python
+  participant LocalRuntime as Local-runtime Python
 
   Backend->>SDK: websocket tool-call event
-  SDK->>Sidecar: local-runtime JSON-RPC execute-tool
-  Sidecar-->>SDK: ToolResult envelope
+  SDK->>LocalRuntime: local-runtime JSON-RPC execute-tool
+  LocalRuntime-->>SDK: ToolResult envelope
   SDK->>Backend: websocket tool-result
   SDK-->>Renderer: SDK projection and display-only tool rows
 ```

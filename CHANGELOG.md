@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/nodes: rename the desktop/local-runtime node guide from
+  `frontend/docs/nodes/desktop_and_sidecar_node.md` to
+  `frontend/docs/nodes/desktop_and_local_runtime_node.md` and update active
+  references. Migration: use the new docs path.
 - docs/local-runtime: rename the local-runtime Python docs root from
   `frontend/docs/frontend/sidecar/` to
   `frontend/docs/frontend/local_runtime_python/` and update active docs
