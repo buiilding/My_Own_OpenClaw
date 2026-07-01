@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/local-runtime: rename the local-runtime JSON-RPC change workflow from
+  `frontend/docs/frontend/sidecar/local_backend_jsonrpc_change_workflow.md` to
+  `frontend/docs/frontend/sidecar/local_runtime_jsonrpc_change_workflow.md`
+  and update active references. Migration: use the new docs path.
 - docs/local-runtime: rename the local-runtime JSON-RPC reference from
   `frontend/docs/frontend/sidecar/local_backend_jsonrpc_reference.md` to
   `frontend/docs/frontend/sidecar/local_runtime_jsonrpc_reference.md` and

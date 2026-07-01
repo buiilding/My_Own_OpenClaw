@@ -25,7 +25,7 @@ envelope orchestration.
 
 | Symptom or request | Local-runtime implementation owner | First source roots | First tests | First docs |
 | --- | --- | --- | --- | --- |
-| Add or change a Python JSON-RPC method | Python JSON-RPC handler registry and protocol | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`, SDK local-runtime caller code when renderer-visible | `frontend/tests/sidecar/test_json_rpc_protocol.py`, `frontend/tests/sidecar/test_local_backend.py`, focused SDK/local-runtime caller tests | [Local Runtime JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md), [Local Runtime JSON-RPC Reference](local_runtime_jsonrpc_reference.md), [Main Process Change Workflow](../main/main_process_change_workflow.md) |
+| Add or change a Python JSON-RPC method | Python JSON-RPC handler registry and protocol | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`, SDK local-runtime caller code when renderer-visible | `frontend/tests/sidecar/test_json_rpc_protocol.py`, `frontend/tests/sidecar/test_local_backend.py`, focused SDK/local-runtime caller tests | [Local Runtime JSON-RPC Change Workflow](local_runtime_jsonrpc_change_workflow.md), [Local Runtime JSON-RPC Reference](local_runtime_jsonrpc_reference.md), [Main Process Change Workflow](../main/main_process_change_workflow.md) |
 | Tool exists in renderer/main but the local runtime rejects or executes it incorrectly | Tool registry and executable tool implementation | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools`, `frontend/src/main/python/tools/result.py` | `frontend/tests/sidecar/test_tool_registry.py`, `frontend/tests/sidecar/test_tool_result.py`, focused tool tests | [Local-Runtime Tool Change Workflow](../local_runtime_tool_change_workflow.md), [Local-Runtime Tool Catalog](tool_catalog_and_execution_model.md) |
 | Tool schema parity drift or exposed executable fields change | Local-runtime executable schema/export contract | `frontend/src/main/python/tools/schemas.py`, `frontend/src/main/python/tools/manifest.py`, `frontend/src/main/python/tools/*` | `frontend/tests/sidecar/test_tool_schemas.py`, `frontend/tests/sidecar/test_shared_tool_schema_parity.py` | [Local-Runtime Registry and Result Contract](tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
 | Filesystem read/replace behavior changes | Filesystem tools and path resolution | `frontend/src/main/python/tools/filesystem/*`, `frontend/src/main/python/tools/path_resolution.py` | `frontend/tests/sidecar/test_read_file_tool.py`, `frontend/tests/sidecar/test_replace_tool.py`, filesystem tool tests | [Filesystem Read and Replace](tools/filesystem_read_replace_runtime_reference.md) |
@@ -137,7 +137,7 @@ Before committing local-runtime Python work:
 ## Related Docs
 
 - [Local Runtime Python Implementation Docs Hub](README.md)
-- [Local Runtime JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)
+- [Local Runtime JSON-RPC Change Workflow](local_runtime_jsonrpc_change_workflow.md)
 - [Local Runtime JSON-RPC Reference](local_runtime_jsonrpc_reference.md)
 - [Local-Runtime Tool Change Workflow](../local_runtime_tool_change_workflow.md)
 - [Local-Runtime Tool Catalog and Execution Model](tool_catalog_and_execution_model.md)

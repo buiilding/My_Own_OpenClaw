@@ -157,7 +157,7 @@ From `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`:
 ## Related Pages
 
 - [Frontend Main Local-Runtime Docs Hub](README.md)
-- [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md)
+- [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_runtime_jsonrpc_change_workflow.md)
 - [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md)
 - [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
 - [Main-Process IPC Handler Ownership and RPC Mapper Reference](../../contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)

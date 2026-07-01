@@ -69,7 +69,7 @@ contracts.
 - [**Frontend Main/Renderer/Contracts/Local-Runtime Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
 - [**IPC Change Workflow**](frontend/ipc_change_workflow.md) - Safe IPC change flow across shared registry, preload, renderer bridge, main handlers, and local-runtime bridge
 - [**Local Runtime Process Lifecycle Workflow**](frontend/main/local_backend/process_lifecycle_change_workflow.md) - Local-runtime Python process startup, readiness, status propagation, request correlation, packaged launch targets, and renderer readiness consumers
-- [**Local Runtime JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Owner routing for SDK/main local-runtime JSON-RPC methods, payload mappers, readiness, timeouts, and response envelopes
+- [**Local Runtime JSON-RPC Change Workflow**](frontend/sidecar/local_runtime_jsonrpc_change_workflow.md) - Owner routing for SDK/main local-runtime JSON-RPC methods, payload mappers, readiness, timeouts, and response envelopes
 - [**Local-Runtime Tool Change Workflow**](frontend/local_runtime_tool_change_workflow.md) - Cross-runtime tool change workflow for backend schema, SDK/main dispatch, Electron bridge, and local-runtime Python implementation
 - **Backend Config/LLM/Services Hubs** (private backend docs) - Additional backend sub-hub navigation for config policy, model stack, and runtime services
 - **Backend LLM Provider Hub** (private backend docs) - Base provider contract and provider-specific runtime docs for cloud/local integrations
@@ -191,7 +191,7 @@ contracts.
 - [**Frontend App Startup + Onboarding Workflow**](frontend/renderer/app_startup_onboarding_change_workflow.md) - Change workflow for renderer root selection, VM mode, permission onboarding, wakeword placement, and startup surface handoff
 - [**Local Runtime Process Lifecycle Workflow**](frontend/main/local_backend/process_lifecycle_change_workflow.md) - Change workflow for SDK local-runtime process launch, readiness, status propagation, JSON-RPC request correlation, and packaged runtime failures
 - [**Local-Runtime Python Implementation Change Workflow**](frontend/sidecar/local_runtime_python_change_workflow.md) - Owner routing for Python JSON-RPC, local tools, memory, browser automation, system state, platform adapters, backend config, and wakeword service behavior behind the local-runtime boundary
-- [**Local Runtime JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Change workflow for Python JSON-RPC method registration, Electron mapper payloads, readiness, request transport, and JSON-RPC protocol errors
+- [**Local Runtime JSON-RPC Change Workflow**](frontend/sidecar/local_runtime_jsonrpc_change_workflow.md) - Change workflow for Python JSON-RPC method registration, Electron mapper payloads, readiness, request transport, and JSON-RPC protocol errors
 - [**Frontend Inventory Docs Hub**](frontend/inventory/README.md) - Subfolder inventory hub for exhaustive frontend runtime coverage, matrix views, and file ownership indexes
 - [**Frontend Inventory Domains Hub**](frontend/inventory/domains/README.md) - Domain ownership matrix + change-path playbooks for main/preload/renderer/local-runtime Python/landing scope decisions
 - [**Frontend Inventory Protocols Hub**](frontend/inventory/protocols/README.md) - IPC + local-runtime JSON-RPC matrix for renderer/main/local-runtime protocol boundaries and ownership

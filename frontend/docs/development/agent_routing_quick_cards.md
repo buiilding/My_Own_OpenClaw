@@ -240,7 +240,7 @@ Avoid: adding a new bridge for behavior that belongs in the SDK runtime, local r
 
 Owner: Electron main/SDK runtime for local-runtime process startup and reuse, local-runtime Python implementation for daemon methods and local execution.
 
-Start with [Local Runtime Process Lifecycle Workflow](../frontend/main/local_backend/process_lifecycle_change_workflow.md), [Local Runtime JSON-RPC Change Workflow](../frontend/sidecar/local_backend_jsonrpc_change_workflow.md), and [Local Runtime Python Implementation Docs Hub](../frontend/sidecar/README.md).
+Start with [Local Runtime Process Lifecycle Workflow](../frontend/main/local_backend/process_lifecycle_change_workflow.md), [Local Runtime JSON-RPC Change Workflow](../frontend/sidecar/local_runtime_jsonrpc_change_workflow.md), and [Local Runtime Python Implementation Docs Hub](../frontend/sidecar/README.md).
 
 Validate launch args, readiness, source identity, request correlation, timeouts, response envelopes, packaged paths, and focused local-runtime Python tests. Keep daemon lifecycle distinct from the behavior of one executable tool.
 

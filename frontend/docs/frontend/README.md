@@ -29,7 +29,7 @@ main process, React renderer, and the local-runtime Python implementation.
 - [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md)
 - [Local-Runtime Tool Change Workflow](local_runtime_tool_change_workflow.md)
 - [Local-Runtime Process Lifecycle Change Workflow](main/local_backend/process_lifecycle_change_workflow.md)
-- [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
+- [Local Runtime JSON-RPC Change Workflow](sidecar/local_runtime_jsonrpc_change_workflow.md)
 
 ## Deep Pages
 
@@ -176,7 +176,7 @@ main process, React renderer, and the local-runtime Python implementation.
 - [Local Runtime Memory Docs Hub](sidecar/memory/README.md)
 - [Local Runtime Memory Storage Docs Hub](sidecar/memory/storage/README.md)
 - [Local-Runtime Python and Memory](sidecar/local_runtime_python_and_memory.md)
-- [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
+- [Local Runtime JSON-RPC Change Workflow](sidecar/local_runtime_jsonrpc_change_workflow.md)
 - [Local-Runtime System-State Collection and Platform Adapter Reference](sidecar/system_state/system_state_collection_and_platform_adapter_reference.md)
 - [Local-Runtime Tool Catalog and Execution Model](sidecar/tool_catalog_and_execution_model.md)
 - [Local-Runtime Shell and Process Session Runtime Reference](sidecar/tools/shell_and_process_session_runtime_reference.md)
