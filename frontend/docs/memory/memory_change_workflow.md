@@ -98,7 +98,7 @@ Validation:
 
 Read:
 
-- [Local Runtime Memory](sidecar_local_memory.md)
+- [Local Runtime Memory](local_runtime_memory.md)
 - [Local Runtime Memory Docs Hub](../frontend/sidecar/memory/README.md)
 - [Memory Troubleshooting](memory_troubleshooting.md)
 
@@ -164,7 +164,7 @@ Do not invent new identifiers inside UI components. Use the transcript/session r
 - [Memory Hub](README.md)
 - [Transcript Replay Change Workflow](transcript_replay_change_workflow.md)
 - [Transcript and Replay](transcript_and_replay.md)
-- [Local Runtime Memory](sidecar_local_memory.md)
+- [Local Runtime Memory](local_runtime_memory.md)
 - Backend History and Semantic Routes (private backend docs)
 - [Memory Troubleshooting](memory_troubleshooting.md)
 - [Code Change Surface Index](../reference/code_change_surface_index.md)

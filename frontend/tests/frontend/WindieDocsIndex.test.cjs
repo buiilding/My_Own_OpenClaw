@@ -561,7 +561,7 @@ describe('windie docs index', () => {
 
   test('routes sidecar episodic semantic memory queries to local memory docs', () => {
     expect(findDocs('sidecar episodic semantic memory')[0].path).toBe(
-      path.join('docs', 'memory', 'sidecar_local_memory.md'),
+      path.join('docs', 'memory', 'local_runtime_memory.md'),
     );
   });
 

@@ -615,7 +615,7 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Memory Change Workflow](../memory/memory_change_workflow.md)
 - [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md)
 - [Transcript and Replay](../memory/transcript_and_replay.md)
-- [Local Runtime Memory](../memory/sidecar_local_memory.md)
+- [Local Runtime Memory](../memory/local_runtime_memory.md)
 - Backend History and Semantic Routes (private backend docs)
 - [Memory Troubleshooting](../memory/memory_troubleshooting.md)
 

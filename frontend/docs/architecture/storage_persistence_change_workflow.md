@@ -31,7 +31,7 @@ Do not promote ephemeral state to durable storage unless the product needs it ac
 | Transcript session identity cache | Renderer transcript session runtime plus Electron sync | `sessionInfoStorage.ts`, `transcriptSessionRuntime.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | `tests/frontend/TranscriptSessionState.test.ts`, `IpcTranscriptSessionSync.test.cjs` | [Session and Transcript Reference](../reference/session_and_transcript_reference.md) |
 | Frontend user settings | Renderer app-runtime config storage and Electron config file | `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `frontend/src/main/ipc.cjs` | `tests/frontend/configStorage.test.js`, `AppConfigPersistence.test.js`, `AppConfigProvider.storageAndIpc.test.tsx` | [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md) |
 | Install auth state file | Electron main | `frontend/src/main/ipc/ipc_install_auth_state.cjs`, `frontend/src/main/ipc.cjs` | install-auth/frontend IPC tests | Credential and Token Change Workflow (private backend docs) |
-| Local-runtime transcript/memory SQLite | Local-runtime memory store, currently backed by local-runtime Python modules | `frontend/src/main/python/memory/local_store.py`, `sqlite_store.py`, `operations.py`, `local_backend_memory_handlers.py` | `frontend/tests/sidecar/test_local_store*.py`, `test_local_backend.py`, `test_memory_operations.py` | [Local Runtime Memory](../memory/sidecar_local_memory.md) |
+| Local-runtime transcript/memory SQLite | Local-runtime memory store, currently backed by local-runtime Python modules | `frontend/src/main/python/memory/local_store.py`, `sqlite_store.py`, `operations.py`, `local_backend_memory_handlers.py` | `frontend/tests/sidecar/test_local_store*.py`, `test_local_backend.py`, `test_memory_operations.py` | [Local Runtime Memory](../memory/local_runtime_memory.md) |
 | Local-runtime FAISS indexes and vector mappings | Local-runtime memory store, currently backed by local-runtime Python modules | `frontend/src/main/python/memory/faiss_index.py`, `sqlite_store.py`, `local_store.py` | `frontend/tests/sidecar/test_local_store_init.py`, `test_local_store_delete_cleanup.py`, storage tests | [SQLite/FAISS/Watermark Reference](../frontend/sidecar/memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md) |
 | Semanticization watermark | Local-runtime memory summarizer, currently backed by local-runtime Python modules | `frontend/src/main/python/memory/watermark_state.py`, `summarizer.py`, `conversation_semanticization_runtime.py` | `frontend/tests/sidecar/test_memory_summarizer.py`, semanticization tests | [Local Runtime Memory Hub](../frontend/sidecar/memory/README.md) |
 | Backend artifacts | Backend artifact service | private backend implementation | private backend tests, artifact route tests | [Artifact Change Workflow](../desktop/artifact_change_workflow.md) |
@@ -129,7 +129,7 @@ Validate:
 
 Read:
 
-- [Local Runtime Memory](../memory/sidecar_local_memory.md)
+- [Local Runtime Memory](../memory/local_runtime_memory.md)
 - [SQLite/FAISS/Watermark Reference](../frontend/sidecar/memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)
 - [Local Runtime Memory Storage Hub](../frontend/sidecar/memory/storage/README.md)
 
@@ -177,7 +177,7 @@ Validate:
 Read:
 
 - [Memory Change Workflow](../memory/memory_change_workflow.md)
-- [Local Runtime Memory](../memory/sidecar_local_memory.md)
+- [Local Runtime Memory](../memory/local_runtime_memory.md)
 - [Local Runtime Memory Hub](../frontend/sidecar/memory/README.md)
 
 Edit:
@@ -301,7 +301,7 @@ Before committing a storage change:
 
 - [Data Flow and State Ownership](data_flow_and_state_ownership.md)
 - [Memory Change Workflow](../memory/memory_change_workflow.md)
-- [Local Runtime Memory](../memory/sidecar_local_memory.md)
+- [Local Runtime Memory](../memory/local_runtime_memory.md)
 - [Transcript and Replay](../memory/transcript_and_replay.md)
 - [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md)
 - Credential and Token Change Workflow (private backend docs)
