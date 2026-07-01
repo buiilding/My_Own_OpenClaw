@@ -95,9 +95,10 @@ describe('desktop local runtime launch options', () => {
   test('uses configured host verbose stderr env flag from local-runtime skin', () => {
     const debugLine = '2026-06-17 10:00:00 - DEBUG - noisy daemon detail';
 
-    expect(localRuntimeUtilsModule.resolveLocalRuntimeEnvConfig()).toMatchObject({
-      verboseStderr: 'AGENT_VERBOSE_LOCAL_RUNTIME_STDERR',
-    });
+    expect(localRuntimeUtilsModule.resolveLocalRuntimeEnvConfig).toBeUndefined();
+    expect(localRuntimeUtilsModule.shouldForwardStderrLine(debugLine, {
+      AGENT_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
+    })).toBe(true);
     expect(localRuntimeUtilsModule.shouldForwardStderrLine(debugLine, {
       SAMPLE_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
     })).toBe(false);

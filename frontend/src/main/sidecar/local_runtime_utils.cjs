@@ -82,7 +82,6 @@ function shouldForwardStderrLine(line, env = process.env, localRuntimeEnv = {}) 
 
 module.exports = {
   getErrorMessage,
-  resolveLocalRuntimeEnvConfig,
   shouldForwardStderrLine,
   withLocalRuntimeNodeOptions,
 };
