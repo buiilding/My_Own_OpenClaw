@@ -136,7 +136,7 @@ For a desktop/local-runtime bug, identify the last successful boundary:
 - [Runtime Node Matrix](runtime_node_matrix.md)
 - [Channels Hub](../channels/README.md)
 - [Local Tool Channels](../channels/local_tool_channels.md)
-- [Frontend Runtime Surface](../frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
+- [Frontend Runtime Surface](../frontend/runtime/frontend_runtime_surface_main_renderer_local_runtime_and_vm_worker_reference.md)
 - [Frontend IPC Channel Reference](../frontend/contracts/ipc_channel_and_handler_reference.md)
 - [Local Runtime Python Implementation Docs Hub](../frontend/local_runtime_python/README.md)
 - [Voice and Audio Channels](../channels/voice_and_audio_channels.md)

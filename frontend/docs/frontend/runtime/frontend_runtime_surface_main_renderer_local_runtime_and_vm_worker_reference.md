@@ -1,9 +1,11 @@
 ---
-summary: "Frontend runtime surface reference across Electron main composition, renderer send/stream UI consumption, SDK/app-runtime contracts, Python local-runtime feature-pack behavior, and"
+summary: "Frontend runtime surface reference across Electron main composition, renderer send/stream UI consumption, SDK/app-runtime contracts, Python local-runtime feature-pack behavior, and VM worker relay paths."
 read_when:
   - When changing frontend runtime boundaries across main, renderer, and the Python local runtime.
+title: "Frontend Runtime Surface Reference"
 ---
 
+# Frontend Runtime Surface Reference
 
 ## Scope
 

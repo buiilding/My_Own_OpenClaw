@@ -246,4 +246,4 @@ Update these docs when startup/onboarding changes:
 - [Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference](permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
 - [Onboarding and Permissions](../../desktop/onboarding_permissions.md)
 - [Main Process Change Workflow](../main/main_process_change_workflow.md)
-- [Frontend Runtime Surface Reference](../runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
+- [Frontend Runtime Surface Reference](../runtime/frontend_runtime_surface_main_renderer_local_runtime_and_vm_worker_reference.md)

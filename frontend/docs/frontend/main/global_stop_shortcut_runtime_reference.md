@@ -163,5 +163,5 @@ Useful focused command:
 
 - [Settings Surface Change Workflow](../renderer/settings/settings_surface_change_workflow.md)
 - [Config Sync and Settings Lifecycle Reference](../runtime/config_sync_and_settings_lifecycle_reference.md)
-- [Frontend Runtime Surface](../runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
+- [Frontend Runtime Surface](../runtime/frontend_runtime_surface_main_renderer_local_runtime_and_vm_worker_reference.md)
 - [Main Process Change Workflow](main_process_change_workflow.md)

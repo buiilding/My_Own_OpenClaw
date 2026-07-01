@@ -264,7 +264,7 @@ Read:
 
 - [Runtime Configuration Matrix](runtime_configuration_matrix.md)
 - [Backend Runtime Surface](../backend/runtime/backend_runtime_surface_query_tool_loop_and_vm_runs_reference.md)
-- [Frontend Runtime Surface](../frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
+- [Frontend Runtime Surface](../frontend/runtime/frontend_runtime_surface_main_renderer_local_runtime_and_vm_worker_reference.md)
 
 ## Validation Routing
 

@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: rename the frontend runtime surface reference from
+  `frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md`
+  to
+  `frontend_runtime_surface_main_renderer_local_runtime_and_vm_worker_reference.md`
+  and restore its explicit docs title. Migration: use the new docs path.
 - docs/frontend: rename frontend inventory IPC/local-runtime protocol references
   away from `sidecar` and `local_backend` filenames so the docs paths match
   their Local Runtime titles. Migration: use the new

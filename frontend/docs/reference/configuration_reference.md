@@ -18,7 +18,7 @@ VM-runs control-plane settings live in private backend docs.
 
 | Owner | Stores/applies | Primary docs |
 | --- | --- | --- |
-| Electron main | endpoint selection, local desktop UI config, local-runtime env, windows/overlay policy | [Frontend Runtime Surface](../frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md), [Runtime Paths and Endpoints](../frontend/main/runtime_paths_and_endpoints.md) |
+| Electron main | endpoint selection, local desktop UI config, local-runtime env, windows/overlay policy | [Frontend Runtime Surface](../frontend/runtime/frontend_runtime_surface_main_renderer_local_runtime_and_vm_worker_reference.md), [Runtime Paths and Endpoints](../frontend/main/runtime_paths_and_endpoints.md) |
 | Renderer | user-facing settings subset and local UI state | [Renderer Config Sync Lifecycle](../frontend/runtime/config_sync_and_settings_lifecycle_reference.md) |
 | Local-runtime implementation | local tool env flags, local storage roots, browser runtime knobs | [Local Runtime Python Implementation Docs Hub](../frontend/local_runtime_python/README.md) |
 | Release/CI | package targets, signing, bundled Python runtime | [Release Guide](../operations/release.md), [Bundled Python Runtime Packaging](../operations/local_runtime_packaging.md) |
