@@ -77,7 +77,7 @@ Python JSON-RPC method families:
 Read next:
 
 - [Local Runtime Python Implementation Docs Hub](../frontend/sidecar/README.md)
-- [Local Runtime Process Lifecycle Change Workflow](../frontend/main/local_backend/process_lifecycle_change_workflow.md)
+- [Local Runtime Process Lifecycle Change Workflow](../frontend/main/local_runtime/process_lifecycle_change_workflow.md)
 - [Local Runtime JSON-RPC Change Workflow](../frontend/sidecar/local_runtime_jsonrpc_change_workflow.md)
 - [Local-Runtime Tools Docs Hub](../frontend/sidecar/tools/README.md)
 - [Local-Runtime Python Implementation and Memory](../frontend/sidecar/local_runtime_python_and_memory.md)

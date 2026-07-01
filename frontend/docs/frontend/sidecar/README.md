@@ -12,7 +12,7 @@ title: "Local Runtime Python Implementation Docs Hub"
 
 - [Local-Runtime Python and Memory](local_runtime_python_and_memory.md)
 - [Local-Runtime Python Implementation Change Workflow](local_runtime_python_change_workflow.md)
-- [Local-Runtime Process Lifecycle Change Workflow](../main/local_backend/process_lifecycle_change_workflow.md)
+- [Local-Runtime Process Lifecycle Change Workflow](../main/local_runtime/process_lifecycle_change_workflow.md)
 - [Local Runtime JSON-RPC Change Workflow](local_runtime_jsonrpc_change_workflow.md)
 - [Local-Runtime Core Docs Hub](core/README.md)
 - [Local-Runtime Services Docs Hub](services/README.md)
@@ -45,7 +45,7 @@ title: "Local Runtime Python Implementation Docs Hub"
 - [Local-Runtime Python Folder Topology and Package `__init__` Export Surface Reference](source_maps/local_runtime_python_folder_topology_and_package_init_export_surface_reference.md)
 - [Local Runtime JSON-RPC Reference](local_runtime_jsonrpc_reference.md)
 - [Local Runtime JSON-RPC Change Workflow](local_runtime_jsonrpc_change_workflow.md)
-- [Local-Runtime Process Lifecycle Change Workflow](../main/local_backend/process_lifecycle_change_workflow.md)
+- [Local-Runtime Process Lifecycle Change Workflow](../main/local_runtime/process_lifecycle_change_workflow.md)
 - [SDK-Owned Local-Runtime Lifecycle Reference](local_runtime_lifecycle_reference.md)
 - [Wakeword Bridge and Audio Framing Reference](wakeword_bridge_and_audio_framing_reference.md)
 - [JSON-RPC Protocol and Stdout Framing Reference](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)

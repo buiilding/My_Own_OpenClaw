@@ -12,20 +12,19 @@ title: "Local Runtime Bridge Overview and Window Guard Index"
 ## Scope
 
 This page is the entrypoint for Electron-main local-runtime bridge behavior.
-Detailed implementation docs still live under the historical `local_backend/`
-subfolder because that subfolder describes the local-runtime Python executor and
-JSON-RPC protocol domain. The Electron main host adapter modules now use
-local-runtime names.
+Detailed implementation docs live under the `local_runtime/` subfolder because
+that subfolder describes the local-runtime Python executor and JSON-RPC protocol
+domain. The Electron main host adapter modules use local-runtime names.
 
 ## Local-Runtime Docs (Detailed)
 
-- [Frontend Main Local-Runtime Docs Hub](local_backend/README.md)
-- [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](local_backend/local_runtime_readiness_and_helper_rpc_reference.md)
-- [Local-Runtime RPC Handler Registry Reference](local_backend/local_runtime_rpc_handler_registry_reference.md)
-- [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](local_backend/screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
+- [Frontend Main Local-Runtime Docs Hub](local_runtime/README.md)
+- [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](local_runtime/local_runtime_readiness_and_helper_rpc_reference.md)
+- [Local-Runtime RPC Handler Registry Reference](local_runtime/local_runtime_rpc_handler_registry_reference.md)
+- [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](local_runtime/screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
 - [Display-Affinity Monitor Selection and Screenshot Bounds Reference](display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md)
-- [Local-Runtime Windows Docs Hub](local_backend/windows/README.md)
-- [Window Resolver Shapes and Screenshot Task Routing Reference](local_backend/windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
+- [Local-Runtime Windows Docs Hub](local_runtime/windows/README.md)
+- [Window Resolver Shapes and Screenshot Task Routing Reference](local_runtime/windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
 
 ## Window Guard Docs (Detailed)
 
@@ -67,4 +66,6 @@ export has been removed. The focused behavior reference is
 
 ## Legacy Note
 
-Earlier revisions kept most local-runtime detail in this single page. The content is now split into the historical `main/local_backend/` folder so each behavior domain has a stable, focused deep reference.
+Earlier revisions kept most local-runtime detail in this single page. The
+content is now split into the `main/local_runtime/` folder so each behavior
+domain has a stable, focused deep reference.

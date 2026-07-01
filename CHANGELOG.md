@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/local-runtime: rename the frontend main local-runtime docs directory
+  from `frontend/docs/frontend/main/local_backend/` to
+  `frontend/docs/frontend/main/local_runtime/` and update active references.
+  Migration: use the new docs path.
 - docs/local-runtime: rename the local-runtime RPC handler registry reference
   from
   `frontend/docs/frontend/main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md`
