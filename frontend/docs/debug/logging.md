@@ -79,8 +79,7 @@ provided by the host skin. Set the `WINDIE_<LAYER>_LOG_FILE` or
 writing to a legacy or externally managed path. The reusable sink's generic
 fallback env prefix is `AGENT_`. Generic hosts use the `local-runtime` layer
 and `AGENT_LOCAL_RUNTIME_LOG_FILE`; the WindieOS skin maps that layer to
-`.windie/logs/sidecar.log` and also honors `WINDIE_SIDECAR_LOG_FILE` for
-compatibility.
+`.windie/logs/local-runtime.log` and honors `WINDIE_LOCAL_RUNTIME_LOG_FILE`.
 
 Important main-process flags:
 
@@ -213,8 +212,7 @@ cd frontend
 WINDIE_SIDECAR_LOG_LEVEL=DEBUG <windie> start desktop
 ```
 
-`<windie> logs sidecar` remains a compatibility alias for the same WindieOS log
-file.
+`<windie> logs local-runtime` is the canonical local-runtime log command.
 
 ## Packaged App Logs
 

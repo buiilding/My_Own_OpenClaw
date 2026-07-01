@@ -87,9 +87,8 @@ const logging = Object.freeze({
   logDirSegments: Object.freeze(['.windie', 'logs']),
   layerOverrides: Object.freeze({
     'local-runtime': Object.freeze({
-      aliases: Object.freeze(['sidecar']),
-      envTokens: Object.freeze(['LOCAL_RUNTIME', 'SIDECAR']),
-      fileName: 'sidecar.log',
+      envTokens: Object.freeze(['LOCAL_RUNTIME']),
+      fileName: 'local-runtime.log',
     }),
   }),
   env: Object.freeze({

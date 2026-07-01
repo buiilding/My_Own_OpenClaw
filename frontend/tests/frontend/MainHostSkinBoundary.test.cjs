@@ -403,9 +403,10 @@ describe('main host skin/config boundary', () => {
     expect(source).toContain('configureLayerLogSink');
     expect(skinSource).toContain("layerLogFilePrefix: 'WINDIE'");
     expect(skinSource).toContain("rendererVerboseLogFile: 'WINDIE_RENDERER_VERBOSE_LOG_FILE'");
-    expect(skinSource).toContain("aliases: Object.freeze(['sidecar'])");
-    expect(skinSource).toContain("fileName: 'sidecar.log'");
-    expect(skinSource).toContain('SIDECAR');
+    expect(skinSource).toContain("fileName: 'local-runtime.log'");
+    expect(skinSource).not.toContain("aliases: Object.freeze(['sidecar'])");
+    expect(skinSource).not.toContain("envTokens: Object.freeze(['LOCAL_RUNTIME', 'SIDECAR'])");
+    expect(skinSource).not.toContain("fileName: 'sidecar.log'");
     expect(source).not.toContain(".windie");
     expect(source).not.toContain('sidecar');
     expect(source).not.toContain('WINDIE_RENDERER_VERBOSE_LOG_FILE');

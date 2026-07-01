@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/logs: canonicalize local-runtime log inspection on `<windie> logs
+  local-runtime`, `WINDIE_LOCAL_RUNTIME_LOG_FILE`, and
+  `.windie/logs/local-runtime.log`, removing the old `sidecar` log target and
+  log-file env alias. No migration required beyond using the canonical
+  local-runtime log command/env name.
 - tests/frontend: remove the stale ignored
   `ModularRefactorCompletionBoundary.test.ts` audit after the public-doc split;
   focused owner docs and regression tests now carry those invariants directly.

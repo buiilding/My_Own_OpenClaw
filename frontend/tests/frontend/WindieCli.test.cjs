@@ -753,25 +753,15 @@ describe('windie CLI', () => {
     expect(resolveWindieLogFile('renderer', {})).toBe(path.join(logsDir, 'renderer.log'));
     expect(resolveWindieLogFile('renderer', {}, { verbose: true }))
       .toBe(path.join(logsDir, 'renderer.verbose.log'));
-    expect(resolveWindieLogFile('local-runtime', {})).toBe(path.join(logsDir, 'sidecar.log'));
+    expect(resolveWindieLogFile('local-runtime', {})).toBe(path.join(logsDir, 'local-runtime.log'));
     expect(resolveWindieLogFile('local-runtime', { WINDIE_LOCAL_RUNTIME_LOG_FILE: '/tmp/local-runtime.log' }))
       .toBe('/tmp/local-runtime.log');
-    expect(resolveWindieLogFile('sidecar', {})).toBe(path.join(logsDir, 'sidecar.log'));
-    expect(resolveWindieLogFile('sidecar', { WINDIE_SIDECAR_LOG_FILE: '/tmp/sidecar.log' }))
-      .toBe('/tmp/sidecar.log');
-    expect(resolveWindieLogFile('sidecar', { WINDIE_SIDECAR_LOG_FILE: 'logs/sidecar.log' }))
-      .toBe(path.join(repoRoot, 'logs', 'sidecar.log'));
-    expect(resolveWindieLogFile('sidecar', { WINDIE_SIDECAR_LOG_FILE: 'false' })).toBeNull();
     expect(resolveWindieLogFile('renderer', { WINDIE_RENDERER_VERBOSE_LOG_FILE: '/tmp/renderer.verbose.log' }, { verbose: true }))
       .toBe('/tmp/renderer.verbose.log');
 
     expect(buildLayerLogTailArgs('local-runtime', ['--tail', '10', '--no-follow'], {})).toEqual({
-      logFile: path.join(logsDir, 'sidecar.log'),
-      tailArgs: ['-n', '10', path.join(logsDir, 'sidecar.log')],
-    });
-    expect(buildLayerLogTailArgs('sidecar', ['--tail', '10', '--no-follow'], {})).toEqual({
-      logFile: path.join(logsDir, 'sidecar.log'),
-      tailArgs: ['-n', '10', path.join(logsDir, 'sidecar.log')],
+      logFile: path.join(logsDir, 'local-runtime.log'),
+      tailArgs: ['-n', '10', path.join(logsDir, 'local-runtime.log')],
     });
     expect(buildLayerLogTailArgs('renderer', ['--verbose', '--tail', '20', '--no-follow'], {})).toEqual({
       logFile: path.join(logsDir, 'renderer.verbose.log'),
@@ -780,6 +770,8 @@ describe('windie CLI', () => {
     expect(() => normalizeWindieLogTarget('desktop'))
       .toThrow('Usage: <windie> logs backend|frontend|vite|main|renderer|local-runtime');
     expect(() => resolveWindieLogFile('desktop', {}))
+      .toThrow('Usage: <windie> logs backend|frontend|vite|main|renderer|local-runtime');
+    expect(() => resolveWindieLogFile('sidecar', {}))
       .toThrow('Usage: <windie> logs backend|frontend|vite|main|renderer|local-runtime');
   });
 
@@ -807,19 +799,6 @@ describe('windie CLI', () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('[WindieOS] renderer verbose log file initialized.');
-  });
-
-  test('prints current local-runtime logs through the sidecar alias without following', () => {
-    const testLogFile = path.join(repoRoot, '.windie', 'logs', `windie-sidecar-cli-test-${process.pid}.log`);
-    fs.rmSync(testLogFile, { force: true });
-
-    const result = runCli(
-      ['logs', 'sidecar', '--no-follow', '--tail', '3'],
-      { WINDIE_SIDECAR_LOG_FILE: testLogFile },
-    );
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain('[WindieOS] local-runtime log');
   });
 
   test('prints current local runtime logs without following', () => {

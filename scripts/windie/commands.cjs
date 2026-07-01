@@ -704,7 +704,7 @@ function resolveFrontendLogFile(env = process.env) {
 
 function normalizeWindieLogTarget(target) {
   const normalized = String(target || '').trim().toLowerCase();
-  if (['frontend', 'vite', 'main', 'renderer', 'local-runtime', 'sidecar'].includes(normalized)) {
+  if (['frontend', 'vite', 'main', 'renderer', 'local-runtime'].includes(normalized)) {
     return normalized;
   }
   throw new Error('Usage: <windie> logs backend|frontend|vite|main|renderer|local-runtime');
@@ -730,8 +730,6 @@ function ensureWindieLayerLogFile(target, logFile, { verbose = false } = {}) {
   let displayTarget = normalizedTarget;
   if (normalizedTarget === 'renderer' && verbose) {
     displayTarget = 'renderer verbose';
-  } else if (normalizedTarget === 'sidecar') {
-    displayTarget = 'local-runtime';
   }
   const windieCommand = process.platform === 'win32' ? 'bin\\windie.cmd' : 'bin/windie.sh';
   if (!logFile) {
@@ -2093,7 +2091,7 @@ function runLogs(args) {
     }
     return runForeground(script('scripts/dev/backend-logs.sh'), forwarded, { cwd: REPO_ROOT });
   }
-  if (['frontend', 'vite', 'main', 'renderer', 'local-runtime', 'sidecar'].includes(target)) {
+  if (['frontend', 'vite', 'main', 'renderer', 'local-runtime'].includes(target)) {
     const verbose = normalizeWindieLogTarget(target) === 'renderer' && hasFlag(args.slice(1), '--verbose');
     const { logFile, tailArgs } = buildLayerLogTailArgs(target, args.slice(1));
     ensureWindieLayerLogFile(target, logFile, { verbose });
