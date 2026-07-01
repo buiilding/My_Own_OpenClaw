@@ -556,7 +556,6 @@ function clearMcpControlState() {
 }
 
 module.exports = {
-  MCP_ENABLED_CONFIG_KEY,
   getEnabledMcpServerSpecsForConfig,
   listMcpServersForConfig,
   refreshMcpServersForConfig,

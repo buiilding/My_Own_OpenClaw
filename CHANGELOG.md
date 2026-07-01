@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/mcp: keep the MCP enabled-server config key private to
+  `mcp_control.cjs` so callers use registry and enablement helpers instead of
+  depending on the raw field constant. No migration required for production code.
 - main/wakeword: keep `resolveWakewordEnvConfig` private to the wakeword bridge
   startup path so callers validate configured env names through subprocess
   launch behavior. No migration required for production code.

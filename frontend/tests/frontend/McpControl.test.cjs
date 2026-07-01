@@ -5,11 +5,12 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
+const mcpControlModule = require('../../src/main/extensions/mcp_control.cjs');
 const {
   listMcpServersForConfig,
   refreshMcpServersForConfig,
   updateMcpServerEnablementForConfig,
-} = require('../../src/main/extensions/mcp_control.cjs');
+} = mcpControlModule;
 const {
   clearExtensionRuntimeCache,
 } = require('../../src/main/extensions/extension_manifest.cjs');
@@ -91,6 +92,12 @@ describe('MCP control runtime', () => {
       process.env.WINDIE_APP_DIAGNOSTICS_DB = previousDbPath;
     }
     fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  test('keeps MCP config field key private to control helpers', () => {
+    expect(mcpControlModule.MCP_ENABLED_CONFIG_KEY).toBeUndefined();
+    expect(typeof mcpControlModule.listMcpServersForConfig).toBe('function');
+    expect(typeof mcpControlModule.updateMcpServerEnablementForConfig).toBe('function');
   });
 
   test('lists CUA Driver as visible but off by default', () => {
