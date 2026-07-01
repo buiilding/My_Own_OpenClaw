@@ -5,6 +5,7 @@
 const {
   gitLogPathspecArgs,
   loadRecentCommits,
+  parseCommitMetadata,
 } = require('../../scripts/windie/commits.cjs');
 
 describe('public windie commit search', () => {
@@ -28,5 +29,9 @@ describe('public windie commit search', () => {
   test('omits git pathspec separator only when explicitly disabled', () => {
     expect(gitLogPathspecArgs([])).toEqual([]);
     expect(gitLogPathspecArgs(['.'])).toEqual(['--', '.']);
+  });
+
+  test('keeps commit metadata parser private to commit search', () => {
+    expect(parseCommitMetadata).toBeUndefined();
   });
 });

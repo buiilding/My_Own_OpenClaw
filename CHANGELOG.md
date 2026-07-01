@@ -6,6 +6,20 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tests: declare `ws` as a direct dev dependency for websocket-backed
+  frontend tests instead of relying on `jest-environment-jsdom`'s transitive
+  dependency. No migration required.
+- frontend/cli: remove unused checklist/section/status output helpers from the
+  split frontend Windie CLI output module, leaving `printJson` as its only
+  public formatter. No migration required for production code.
+- frontend/audit: register the public `scripts/windie-cli.cjs` command
+  entrypoint in Knip and remove the stale `@testing-library/react` dependency
+  ignore so dead-code audit output only reports real remaining issues. No
+  migration required.
+- cli/commits: keep commit-search scoring and parsing helpers private to
+  `scripts/windie/commits.cjs` while preserving the public `findCommits`
+  command API and focused git pathspec test helpers. No migration required for
+  production code.
 - main/mcp: keep the MCP enabled-server config key private to
   `mcp_control.cjs` so callers use registry and enablement helpers instead of
   depending on the raw field constant. No migration required for production code.

@@ -195,12 +195,5 @@ function findCommits(topic, options = {}) {
 }
 
 module.exports = {
-  DEFAULT_COMMIT_SEARCH_LIMIT,
   findCommits,
-  loadRecentCommits,
-  normalizeCommitSearchText,
-  parseCommitMetadata,
-  parseCommitPaths,
-  parsePositiveInteger,
-  scoreCommit,
 };
