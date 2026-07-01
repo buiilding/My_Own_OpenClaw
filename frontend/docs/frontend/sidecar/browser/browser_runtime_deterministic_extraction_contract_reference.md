@@ -11,7 +11,7 @@ title: "Browser Runtime Deterministic Extraction Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/main/python/tools/browser/browser_use_engine.py`
-- `tests/sidecar/tools/test_browser_use_engine.py`
+- `frontend/tests/sidecar/tools/test_browser_use_engine.py`
 
 ## Runtime Role
 

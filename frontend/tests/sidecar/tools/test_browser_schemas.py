@@ -433,7 +433,7 @@ def test_schema_registry_and_validation_reject_removed_aliases() -> None:
 
 def test_local_runtime_browser_modules_do_not_import_backend_package() -> None:
     browser_dir = (
-        Path(__file__).resolve().parents[3]
+        Path(__file__).resolve().parents[4]
         / "frontend"
         / "src"
         / "main"

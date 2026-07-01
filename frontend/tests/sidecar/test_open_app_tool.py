@@ -1,7 +1,7 @@
 """Covers local-runtime open-app tool behavior."""
 
 import pytest
-from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
+from frontend.tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 

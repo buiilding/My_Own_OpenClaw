@@ -35,7 +35,7 @@ Current browser tool execution routes through `frontend/src/main/python/tools/br
 - `frontend/src/main/python/windie_shared/browser_contract*.py`
 - `frontend/src/main/python/tools/registry.py`
 - `frontend/src/main/python/local_backend.py`
-- `tests/sidecar/tools/test_chrome_detection.py`
-- `tests/sidecar/tools/test_chrome_launcher.py`
-- `tests/sidecar/tools/test_browser_use_engine.py`
-- `tests/sidecar/tools/test_browser_tool.py`
+- `frontend/tests/sidecar/tools/test_chrome_detection.py`
+- `frontend/tests/sidecar/tools/test_chrome_launcher.py`
+- `frontend/tests/sidecar/tools/test_browser_use_engine.py`
+- `frontend/tests/sidecar/tools/test_browser_tool.py`

@@ -158,8 +158,8 @@ Backend:
 
 Local runtime / local-runtime Python implementation:
 
-- `tests/sidecar/test_tool_registry.py`
-- `tests/sidecar/test_shared_tool_schema_parity.py`
+- `frontend/tests/sidecar/test_tool_registry.py`
+- `frontend/tests/sidecar/test_shared_tool_schema_parity.py`
 
 Frontend:
 

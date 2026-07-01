@@ -236,7 +236,7 @@ Acceptance criteria:
 ### Automated
 
 - Shared app-core unit tests for stream/tool/message reducers.
-- Desktop regression tests remain green (`tests/frontend`, `tests/sidecar`, private backend tests).
+- Desktop regression tests remain green (`tests/frontend`, `frontend/tests/sidecar`, private backend tests).
 - New mobile integration tests for:
   - connect/handshake
   - query streaming lifecycle

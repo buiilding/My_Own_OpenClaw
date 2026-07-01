@@ -32,9 +32,9 @@ title: "Local-Runtime Core Docs Hub"
 - `frontend/src/main/python/core/stdout_json.py`
 - `frontend/src/main/python/core/remote_semantic_client.py`
 - `frontend/src/main/python/core/executors.py`
-- `tests/sidecar/test_json_rpc_protocol.py`
-- `tests/sidecar/test_stdout_json.py`
-- `tests/sidecar/test_backend_config.py`
-- `tests/sidecar/test_remote_semantic_client.py`
-- `tests/sidecar/remote_client_test_utils.py`
-- `tests/sidecar/test_executors.py`
+- `frontend/tests/sidecar/test_json_rpc_protocol.py`
+- `frontend/tests/sidecar/test_stdout_json.py`
+- `frontend/tests/sidecar/test_backend_config.py`
+- `frontend/tests/sidecar/test_remote_semantic_client.py`
+- `frontend/tests/sidecar/remote_client_test_utils.py`
+- `frontend/tests/sidecar/test_executors.py`

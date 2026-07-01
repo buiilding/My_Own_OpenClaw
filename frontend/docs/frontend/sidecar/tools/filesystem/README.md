@@ -28,6 +28,6 @@ title: "Local-Runtime Filesystem Tools Docs Hub"
 - `frontend/src/main/python/tools/filesystem/file_utils.py`
 - `frontend/src/main/python/tools/filesystem/gitignore_utils.py`
 - `frontend/src/main/python/tools/schemas.py`
-- `tests/sidecar/test_read_file_tool.py`
-- `tests/sidecar/test_replace_engine.py`
-- `tests/sidecar/test_replace_tool.py`
+- `frontend/tests/sidecar/test_read_file_tool.py`
+- `frontend/tests/sidecar/test_replace_engine.py`
+- `frontend/tests/sidecar/test_replace_tool.py`

@@ -12,7 +12,7 @@ title: "Grouped Schema and Action Validation Boundary Reference"
 
 - `frontend/src/main/python/windie_shared/browser_contract*.py`
 - `frontend/src/main/python/tools/browser/browser_tool.py`
-- `tests/sidecar/tools/test_browser_schemas.py`
+- `frontend/tests/sidecar/tools/test_browser_schemas.py`
 
 ## Schema Model Topology
 
@@ -94,7 +94,7 @@ Practical rule:
 
 ## Test-Backed Coverage
 
-`tests/sidecar/tools/test_browser_schemas.py` verifies:
+`frontend/tests/sidecar/tools/test_browser_schemas.py` verifies:
 
 - strict grouped contract parity with backend remote-tool validation
 - canonical-only action set

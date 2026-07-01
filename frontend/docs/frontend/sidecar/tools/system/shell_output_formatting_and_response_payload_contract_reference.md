@@ -13,8 +13,8 @@ title: "Shell Output Formatting and Response Payload Contract Reference"
 - `frontend/src/main/python/tools/system/shell_output_formatting.py`
 - `frontend/src/main/python/tools/system/shell_response_payloads.py`
 - `frontend/src/main/python/tools/system/shell_tool.py`
-- `tests/sidecar/test_shell_output_formatting.py`
-- `tests/sidecar/test_shell_process_tool.py`
+- `frontend/tests/sidecar/test_shell_output_formatting.py`
+- `frontend/tests/sidecar/test_shell_process_tool.py`
 
 ## Runtime Split and Ownership
 
@@ -89,10 +89,10 @@ Maintaining field names is required for backward-compatible result transformer b
 
 ## Test-Backed Signals
 
-`tests/sidecar/test_shell_output_formatting.py` verifies display status text for
+`frontend/tests/sidecar/test_shell_output_formatting.py` verifies display status text for
 success/failure/timeout.
 
-`tests/sidecar/test_shell_process_tool.py` continues to validate integration behavior through `run_shell_command` end-to-end paths.
+`frontend/tests/sidecar/test_shell_process_tool.py` continues to validate integration behavior through `run_shell_command` end-to-end paths.
 
 ## Drift Hotspots
 

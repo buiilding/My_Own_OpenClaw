@@ -13,8 +13,8 @@ title: "Remote Semantic Client Summarize Payload, Timeout, and Error-Surface Con
 - `frontend/src/main/python/core/remote_semantic_client.py`
 - `frontend/src/main/python/windie/_remote_api_client_base.py`
 - private backend implementation
-- `tests/sidecar/test_remote_semantic_client.py`
-- `tests/sidecar/remote_client_test_utils.py`
+- `frontend/tests/sidecar/test_remote_semantic_client.py`
+- `frontend/tests/sidecar/remote_client_test_utils.py`
 
 ## Client Surface
 
@@ -91,7 +91,7 @@ Other exceptions are logged with request label context and re-raised.
 
 ## Test-Backed Invariants
 
-`tests/sidecar/test_remote_semantic_client.py` verifies:
+`frontend/tests/sidecar/test_remote_semantic_client.py` verifies:
 
 - success tuple extraction
 - null summary/facts normalization to `""` and `[]`
@@ -105,7 +105,7 @@ Other exceptions are logged with request label context and re-raised.
 
 Shared lifecycle helper coverage:
 
-- `tests/sidecar/remote_client_test_utils.py`
+- `frontend/tests/sidecar/remote_client_test_utils.py`
 
 ## Drift Hotspots
 

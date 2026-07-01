@@ -3,17 +3,17 @@
 import tomllib
 from pathlib import Path
 
-from tests.sidecar.remote_client_test_utils import (
+from frontend.tests.sidecar.remote_client_test_utils import (
     ensure_aiohttp_with_stubs,
     ensure_frontend_python_path,
 )
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-PYTHON_SDK_PYPROJECT = REPO_ROOT / "packages" / "windie-sdk-python" / "pyproject.toml"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+PYTHON_SDK_PYPROJECT = REPO_ROOT / "frontend" / "packages" / "windie-sdk-python" / "pyproject.toml"
 PYTHON_SDK_TEST_LABEL_PATHS = [
-    REPO_ROOT / "tests" / "sidecar" / "test_windie_package_boundary.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_windie_sdk_client.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_repo_agent_example.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_windie_package_boundary.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_windie_sdk_client.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_repo_agent_example.py",
 ]
 
 ensure_aiohttp_with_stubs()
@@ -68,7 +68,7 @@ def test_python_sdk_package_discovery_exposes_only_public_windie_package():
 
     package_find = pyproject["tool"]["setuptools"]["packages"]["find"]
 
-    assert package_find["where"] == ["../../src/main/python"]
+    assert package_find["where"] == ["../../frontend/src/main/python"]
     assert package_find["include"] == ["windie", "windie.*"]
     assert "windie_shared" not in package_find["include"]
     assert "windie*" not in package_find["include"]

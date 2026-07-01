@@ -23,4 +23,4 @@ title: "Local-Runtime Tool Registry Docs Hub"
 - `frontend/src/main/python/tools/result.py`
 - `frontend/src/main/python/tools/schemas.py`
 - `frontend/src/main/python/local_backend.py`
-- `tests/sidecar/test_tool_registry.py`
+- `frontend/tests/sidecar/test_tool_registry.py`

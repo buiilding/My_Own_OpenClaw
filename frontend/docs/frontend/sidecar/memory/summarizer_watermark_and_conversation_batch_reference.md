@@ -14,7 +14,7 @@ title: "Summarizer Watermark and Conversation Batch Reference"
 - `frontend/src/main/python/memory/local_store.py`
 - `frontend/src/main/python/memory/watermark_state.py`
 - `frontend/src/main/python/core/remote_semantic_client.py`
-- `tests/sidecar/test_memory_summarizer.py`
+- `frontend/tests/sidecar/test_memory_summarizer.py`
 
 ## Runtime Purpose
 
@@ -132,7 +132,7 @@ Chunking:
 
 ## Test-Backed Behavior
 
-`tests/sidecar/test_memory_summarizer.py` validates:
+`frontend/tests/sidecar/test_memory_summarizer.py` validates:
 
 - interaction rows are used to build semantic request chunks
 - one user batch failure does not prevent processing remaining users

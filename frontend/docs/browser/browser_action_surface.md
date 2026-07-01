@@ -85,6 +85,6 @@ code should not invoke the generic `execute-tool` bridge directly.
 
 ```bash
 private backend tests private backend tests -q
-./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_schemas.py tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
+./scripts/python-in-env local-runtime python -m pytest frontend/tests/sidecar/tools/test_browser_schemas.py frontend/tests/sidecar/tools/test_browser_tool.py frontend/tests/sidecar/tools/test_browser_use_engine.py -q
 <windie> test frontend -- ChatBrowserSessionControl.test.jsx
 ```

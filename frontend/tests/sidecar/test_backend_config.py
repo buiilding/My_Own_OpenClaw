@@ -2,19 +2,19 @@
 
 from pathlib import Path
 
-from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
+from frontend.tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
 from windie._backend_config import get_backend_http_url  # noqa: E402
 
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 HOSTED_CLIENT_TEST_LABEL_PATHS = [
-    REPO_ROOT / "tests" / "sidecar" / "remote_client_test_utils.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_backend_config.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_remote_api_client_base.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_remote_semantic_client.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "remote_client_test_utils.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_backend_config.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_remote_api_client_base.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_remote_semantic_client.py",
 ]
 
 
@@ -121,9 +121,9 @@ def test_local_runtime_backend_config_docs_describe_required_injected_backend_ur
     docs = "\n".join(
         (REPO_ROOT / relative_path).read_text(encoding="utf-8")
         for relative_path in [
-            "docs/architecture/python_sidecar.md",
+            "frontend/docs/architecture/python_sidecar.md",
             (
-                "docs/frontend/sidecar/core/"
+                "frontend/docs/frontend/sidecar/core/"
                 "backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md"
             ),
         ]

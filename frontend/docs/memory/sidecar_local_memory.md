@@ -70,7 +70,7 @@ not block transcript persistence or conversation listing.
 ## Tests
 
 ```bash
-./scripts/python-in-env local-runtime python -m pytest tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py tests/sidecar/test_memory_summarizer.py -q
-<windie> test local-runtime tests/sidecar/test_conversation_search_helpers.py tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py -q
-<windie> test local-runtime tests/sidecar/test_remote_semantic_client.py -q
+./scripts/python-in-env local-runtime python -m pytest frontend/tests/sidecar/test_local_backend.py frontend/tests/sidecar/test_memory_operations.py frontend/tests/sidecar/test_memory_summarizer.py -q
+<windie> test local-runtime frontend/tests/sidecar/test_conversation_search_helpers.py frontend/tests/sidecar/test_chat_event_store.py frontend/tests/sidecar/test_conversation_window_runtime.py -q
+<windie> test local-runtime frontend/tests/sidecar/test_remote_semantic_client.py -q
 ```

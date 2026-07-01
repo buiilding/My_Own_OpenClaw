@@ -25,7 +25,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 | visible transcript row does not persist or persists under wrong conversation | SDK projection store and local-runtime event store path | `packages/windie-sdk-js/src/stores`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `frontend/src/main/python/memory/local_store.py` | [Transcript and Replay](transcript_and_replay.md), [Transcript Session and Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md) | SDK/main projection tests, local-runtime Python transcript tests |
 | dashboard resume displays rows but backend forgets context | SDK rehydrate projection plus backend rehydrate service | `packages/windie-sdk-js/src/projections`, private backend implementation | [Memory Change Workflow](memory_change_workflow.md), Backend History and Semantic Routes (private backend docs) | SDK rehydrate tests, private backend tests |
 | tool-call/tool-output linkage breaks after replay or rehydrate | SDK tool projection state plus backend rehydrate linkage/history | SDK tool projection files, private backend implementation | [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md), Backend History Tool-Call ID Staging Reference (private backend docs) | SDK tool projection tests, private backend tests |
-| conversation list/search/title/delete behavior drifts | local-runtime memory and dashboard views | `frontend/src/main/python/memory/conversation_*`, dashboard hooks, local conversation store | [Local Runtime Memory](sidecar_local_memory.md), [Memory Troubleshooting](memory_troubleshooting.md) | `tests/sidecar/test_conversation_*.py`, dashboard conversation tests |
+| conversation list/search/title/delete behavior drifts | local-runtime memory and dashboard views | `frontend/src/main/python/memory/conversation_*`, dashboard hooks, local conversation store | [Local Runtime Memory](sidecar_local_memory.md), [Memory Troubleshooting](memory_troubleshooting.md) | `frontend/tests/sidecar/test_conversation_*.py`, dashboard conversation tests |
 
 ## Identifier Boundaries
 
@@ -168,7 +168,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 | backend session registry/manager | private backend test runner |
 | replay/rehydrate payload | `<windie> test frontend -- AgentSdkConversationRuntime ConversationReplayActions DesktopConversationReplayRuntime` |
 | backend rehydrate services | private backend test runner |
-| local-runtime Python conversation storage/list/search/title | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_conversation_*.py` |
+| local-runtime Python conversation storage/list/search/title | `./scripts/python-in-env local-runtime pytest frontend/tests/sidecar/test_conversation_*.py` |
 | docs-only identity workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 
 ## Review Checklist

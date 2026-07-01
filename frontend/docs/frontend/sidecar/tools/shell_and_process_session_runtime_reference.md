@@ -16,9 +16,9 @@ title: "Shell and Process Session Runtime Reference"
 - `frontend/src/main/python/tools/system/process_tool.py`
 - `frontend/src/main/python/tools/system/shell_process_registry.py`
 - `frontend/src/main/python/tools/schemas.py` (`RunShellCommandArgs`, `ProcessShellCommandArgs`)
-- `tests/sidecar/test_shell_output_formatting.py`
-- `tests/sidecar/test_shell_process_tool.py`
-- `tests/sidecar/test_shell_process_registry.py`
+- `frontend/tests/sidecar/test_shell_output_formatting.py`
+- `frontend/tests/sidecar/test_shell_process_tool.py`
+- `frontend/tests/sidecar/test_shell_process_registry.py`
 
 ## Runtime Purpose
 
@@ -154,7 +154,7 @@ Termination and cleanup:
 
 ## Behavioral Guarantees (Tests)
 
-`tests/sidecar/test_shell_process_tool.py` covers:
+`frontend/tests/sidecar/test_shell_process_tool.py` covers:
 
 - background poll path and completion states
 - timeout handling + timeout flag
@@ -164,7 +164,7 @@ Termination and cleanup:
 - raw foreground output without frontend token-limit truncation
 - session list/poll/log/write/send-keys/remove/clear paths
 
-`tests/sidecar/test_shell_process_registry.py` covers:
+`frontend/tests/sidecar/test_shell_process_registry.py` covers:
 
 - session id uniqueness
 - output cap and truncation accounting
@@ -172,7 +172,7 @@ Termination and cleanup:
 - TTL pruning behavior
 - sweeper cancellation/reset and registry shutdown cleanup
 
-`tests/sidecar/test_shell_output_formatting.py` covers:
+`frontend/tests/sidecar/test_shell_output_formatting.py` covers:
 
 - status-specific `output` formatting
 

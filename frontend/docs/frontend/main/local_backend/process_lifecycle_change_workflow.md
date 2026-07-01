@@ -167,7 +167,7 @@ When adding a new renderer feature that depends on local-runtime readiness, wire
 | SDK provider readiness, unavailable launch plan, shutdown, fail-closed helpers | `cd frontend && npm run test -- ../tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs` |
 | Helper RPC mapping, tool routing, screenshot host shaping, JSON-RPC errors | `cd frontend && npm run test -- ../tests/frontend/LocalRuntimeBridge.rpc.test.cjs` |
 | Renderer status subscription and browser readiness gating | `cd frontend && npm run test -- ../tests/frontend/ChatBrowserSessionControl.test.jsx` plus any direct status-store tests |
-| Daemon protocol behavior | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_sidecar_daemon.py tests/sidecar/test_local_backend.py` |
+| Daemon protocol behavior | `./scripts/python-in-env local-runtime pytest frontend/tests/sidecar/test_sidecar_daemon.py frontend/tests/sidecar/test_local_backend.py` |
 | Packaged path/runtime changes | focused runtime path tests plus package/reinstall smoke from [Release and Packaging Change Workflow](../../../operations/release_packaging_change_workflow.md) |
 
 Docs-only changes should run `<windie> docs list`, `git diff --check`, and a focused Markdown link check. Code changes should run the narrowest row above plus any adjacent IPC, sidecar, or packaging tests for the touched path.

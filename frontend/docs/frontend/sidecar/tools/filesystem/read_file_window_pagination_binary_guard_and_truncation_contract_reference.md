@@ -13,7 +13,7 @@ title: "Read-File Window Pagination, Binary Guard, and Truncation Contract Refer
 - `frontend/src/main/python/tools/filesystem/read_file_tool.py`
 - `frontend/src/main/python/tools/filesystem/file_utils.py`
 - `frontend/src/main/python/tools/schemas.py`
-- `tests/sidecar/test_read_file_tool.py`
+- `frontend/tests/sidecar/test_read_file_tool.py`
 
 ## Input Contract and Validation
 
@@ -151,7 +151,7 @@ Offset-past-EOF path returns:
 
 ## Test-Backed Invariants
 
-`tests/sidecar/test_read_file_tool.py` validates:
+`frontend/tests/sidecar/test_read_file_tool.py` validates:
 
 - default limit of 2000 lines
 - offset/limit window slicing

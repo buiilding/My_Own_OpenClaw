@@ -48,13 +48,13 @@ flowchart LR
 | --- | --- | --- | --- |
 | Tool is missing from prompt or has the wrong argument schema | Backend tool schema/catalog | private backend implementation | [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md), backend schema tests |
 | Tool is visible but never reaches local-runtime execution | SDK conversation runtime/tool coordinator or local-runtime bridge | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs` | SDK conversation-runtime tests, bridge lifecycle/RPC tests |
-| `run_shell_command` uses the wrong sudo prompt behavior | Local-runtime shell implementation | `frontend/src/main/python/tools/system/shell_tool.py` | `tests/sidecar/test_shell_process_tool.py` |
+| `run_shell_command` uses the wrong sudo prompt behavior | Local-runtime shell implementation | `frontend/src/main/python/tools/system/shell_tool.py` | `frontend/tests/sidecar/test_shell_process_tool.py` |
 | Shell command runs in the wrong directory | Local-runtime shell path resolution plus selected workspace state | `frontend/src/main/python/tools/system/shell_tool.py` | workspace-context docs/tests and bridge payload tests |
-| Shell output is truncated, malformed, or missing metadata | Local-runtime shell formatter | `frontend/src/main/python/tools/system/shell_output_formatting.py`, `frontend/src/main/python/tools/system/shell_response_payloads.py` | `tests/sidecar/test_shell_output_formatting.py`, renderer message formatter tests |
-| Background session cannot be polled, written to, killed, or cleared | Local-runtime process tool/session registry | `frontend/src/main/python/tools/system/process_tool.py`, `frontend/src/main/python/tools/system/shell_process_registry.py` | `tests/sidecar/test_shell_process_tool.py`, `tests/sidecar/test_shell_process_registry.py` |
-| `read_file` path resolution is wrong | Local-runtime filesystem reader | `frontend/src/main/python/tools/filesystem/read_file_tool.py`, `frontend/src/main/python/tools/filesystem/file_utils.py` | selected workspace docs/tests, `tests/sidecar/test_read_file_tool.py` |
+| Shell output is truncated, malformed, or missing metadata | Local-runtime shell formatter | `frontend/src/main/python/tools/system/shell_output_formatting.py`, `frontend/src/main/python/tools/system/shell_response_payloads.py` | `frontend/tests/sidecar/test_shell_output_formatting.py`, renderer message formatter tests |
+| Background session cannot be polled, written to, killed, or cleared | Local-runtime process tool/session registry | `frontend/src/main/python/tools/system/process_tool.py`, `frontend/src/main/python/tools/system/shell_process_registry.py` | `frontend/tests/sidecar/test_shell_process_tool.py`, `frontend/tests/sidecar/test_shell_process_registry.py` |
+| `read_file` path resolution is wrong | Local-runtime filesystem reader | `frontend/src/main/python/tools/filesystem/read_file_tool.py`, `frontend/src/main/python/tools/filesystem/file_utils.py` | selected workspace docs/tests, `frontend/tests/sidecar/test_read_file_tool.py` |
 | `read_file` pagination, binary guard, PDF handling, or line truncation is wrong | Local-runtime filesystem reader | `frontend/src/main/python/tools/filesystem/read_file_tool.py` | [Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md) |
-| `replace` fails to match or edits too broadly | Local-runtime replace engine | `frontend/src/main/python/tools/filesystem/replace_engine.py`, `replace_matchers.py`, `replace_patch_chunks.py` | `tests/sidecar/test_replace_engine.py`, `tests/sidecar/test_replace_tool.py` |
+| `replace` fails to match or edits too broadly | Local-runtime replace engine | `frontend/src/main/python/tools/filesystem/replace_engine.py`, `replace_matchers.py`, `replace_patch_chunks.py` | `frontend/tests/sidecar/test_replace_engine.py`, `frontend/tests/sidecar/test_replace_tool.py` |
 | `replace` writes partial content after an error | Local-runtime replace I/O wrapper | `frontend/src/main/python/tools/filesystem/replace_tool.py` | atomic write tests and temp-file cleanup tests |
 | Tool result reaches UI but not backend continuation | SDK result envelope or backend result ingress | `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, private backend implementation | SDK/main local-runtime dispatch and backend tool-result ingress docs/tests |
 | Backend receives a result but model history looks wrong | Backend result processing | private backend implementation | backend tool processing docs/tests |
@@ -127,10 +127,10 @@ flowchart LR
 | --- | --- |
 | Backend filesystem/system schema, prompt visibility, or policy | private backend test runner |
 | Backend tool dispatch/result continuation | private backend test runner |
-| Local-runtime `read_file` behavior | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_read_file_tool.py` |
-| Local-runtime `replace` behavior | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_replace_engine.py tests/sidecar/test_replace_tool.py` |
-| Local-runtime shell/process behavior | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_shell_process_tool.py tests/sidecar/test_shell_process_registry.py tests/sidecar/test_shell_output_formatting.py` |
-| Local-runtime registry/result normalization | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_tool_registry.py` |
+| Local-runtime `read_file` behavior | `./scripts/python-in-env local-runtime pytest frontend/tests/sidecar/test_read_file_tool.py` |
+| Local-runtime `replace` behavior | `./scripts/python-in-env local-runtime pytest frontend/tests/sidecar/test_replace_engine.py frontend/tests/sidecar/test_replace_tool.py` |
+| Local-runtime shell/process behavior | `./scripts/python-in-env local-runtime pytest frontend/tests/sidecar/test_shell_process_tool.py frontend/tests/sidecar/test_shell_process_registry.py frontend/tests/sidecar/test_shell_output_formatting.py` |
+| Local-runtime registry/result normalization | `./scripts/python-in-env local-runtime pytest frontend/tests/sidecar/test_tool_registry.py` |
 | Electron bridge argument shaping and local tool failures | `cd frontend && npm run test -- LocalRuntimeToolArgs LocalRuntimeBridge.lifecycle` |
 | SDK/main dispatch/result envelope behavior | `cd frontend && npm run test -- AgentSdkClient AgentSdkConversationRuntime RendererToolResultBoundary ToolOutputContent` |
 | Tool event parsing and display projection | `cd frontend && npm run test -- DesktopChatStreamEventPayloadRuntime ChatBoxResponse ChatStreamToolHandlers` |
@@ -155,7 +155,7 @@ If a listed test file has moved, search by the test stem before adding a new tes
 
 1. Inspect `shell_tool.py` sudo command rewriting.
 2. Confirm `pkexec` is available on Linux when an OS authentication prompt is expected.
-3. Cover local-runtime shell behavior with `tests/sidecar/test_shell_process_tool.py`.
+3. Cover local-runtime shell behavior with `frontend/tests/sidecar/test_shell_process_tool.py`.
 
 ### Shell process appears stuck
 

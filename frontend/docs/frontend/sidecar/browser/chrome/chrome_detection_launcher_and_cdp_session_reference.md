@@ -12,8 +12,8 @@ title: "Chrome Detection, Launcher, and CDP Session Reference"
 
 - `frontend/src/main/python/tools/browser/chrome_detection.py`
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
-- `tests/sidecar/tools/test_chrome_detection.py`
-- `tests/sidecar/tools/test_chrome_launcher.py`
+- `frontend/tests/sidecar/tools/test_chrome_detection.py`
+- `frontend/tests/sidecar/tools/test_chrome_launcher.py`
 
 ## Detection Surface (`chrome_detection.py`)
 
@@ -146,13 +146,13 @@ State fields:
 
 ## Test-Backed Contracts
 
-`tests/sidecar/tools/test_chrome_detection.py` covers:
+`frontend/tests/sidecar/tools/test_chrome_detection.py` covers:
 
 - per-platform discovery dispatch
 - default priority ordering
 - no-result behavior
 
-`tests/sidecar/tools/test_chrome_launcher.py` covers:
+`frontend/tests/sidecar/tools/test_chrome_launcher.py` covers:
 
 - CDP availability probe success/failure
 - process detection parsing behavior

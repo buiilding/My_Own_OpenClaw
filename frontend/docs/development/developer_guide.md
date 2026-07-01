@@ -261,7 +261,7 @@ private backend tests
 
 **Test Structure**:
 ```
-tests/sidecar/
+frontend/tests/sidecar/
 ├── test_local_backend.py
 ├── test_tool_registry.py
 └── tools/

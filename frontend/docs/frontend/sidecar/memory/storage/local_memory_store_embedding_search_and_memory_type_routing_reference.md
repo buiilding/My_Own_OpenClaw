@@ -14,9 +14,9 @@ title: "Local Memory Store Embedding, Search, and Memory-Type Routing Reference"
 - `frontend/src/main/python/memory/conversation_search_helpers.py`
 - `frontend/src/main/python/memory/faiss_index.py`
 - `frontend/src/main/python/memory/sqlite_store.py`
-- `tests/sidecar/test_local_store_delete_cleanup.py`
-- `tests/sidecar/test_local_store_init.py`
-- `tests/sidecar/test_conversation_search_helpers.py`
+- `frontend/tests/sidecar/test_local_store_delete_cleanup.py`
+- `frontend/tests/sidecar/test_local_store_init.py`
+- `frontend/tests/sidecar/test_conversation_search_helpers.py`
 
 ## Runtime Topology
 

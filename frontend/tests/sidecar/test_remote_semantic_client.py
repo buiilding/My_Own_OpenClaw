@@ -2,7 +2,7 @@
 
 import pytest
 
-from tests.sidecar.remote_client_test_utils import (
+from frontend.tests.sidecar.remote_client_test_utils import (
     DummyResponse,
     DummySession,
     SequentialSession,

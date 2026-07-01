@@ -3,7 +3,7 @@
 import ast
 from pathlib import Path
 
-from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
+from frontend.tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
@@ -18,7 +18,7 @@ def test_env_flags_module_doc_uses_local_runtime_wording() -> None:
 
 def test_windie_env_alias_constants_are_named_as_aliases() -> None:
     local_runtime_root = (
-        Path(__file__).resolve().parents[2] / "frontend/src/main/python"
+        Path(__file__).resolve().parents[3] / "frontend/src/main/python"
     )
     offenders: list[str] = []
     for module_path in local_runtime_root.rglob("*.py"):

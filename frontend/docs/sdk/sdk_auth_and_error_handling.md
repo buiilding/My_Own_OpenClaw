@@ -59,8 +59,8 @@ Do not collapse all SDK failures into `Error: request failed`. Preserve status, 
 | Backend SDK route validation and provider errors | private backend tests |
 | Artifact route auth/fetch/upload | private backend tests |
 | TypeScript client request/error behavior | `tests/frontend/AgentSdkClient.test.ts` |
-| Python SDK package client behavior | `tests/sidecar/test_windie_sdk_client.py` |
-| Python SDK remote auth/error wrappers | `tests/sidecar/test_remote_api_client_base.py`, `tests/sidecar/test_remote_semantic_client.py` |
+| Python SDK package client behavior | `frontend/tests/sidecar/test_windie_sdk_client.py` |
+| Python SDK remote auth/error wrappers | `frontend/tests/sidecar/test_remote_api_client_base.py`, `frontend/tests/sidecar/test_remote_semantic_client.py` |
 
 ## Related Docs
 

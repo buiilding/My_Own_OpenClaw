@@ -1,6 +1,6 @@
 """Covers development mock-memory seed helper behavior."""
 
-from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
+from frontend.tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 

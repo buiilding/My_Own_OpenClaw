@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 
 import pytest
-from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
+from frontend.tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
@@ -446,7 +446,7 @@ def test_resolve_local_runtime_log_level_falls_back_on_invalid_value(monkeypatch
 
 def test_local_runtime_log_level_helper_uses_runtime_boundary_name():
     source = (
-        Path(__file__).resolve().parents[2]
+        Path(__file__).resolve().parents[3]
         / "frontend"
         / "src"
         / "main"

@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
+from frontend.tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
@@ -14,7 +14,7 @@ from core.bootstrap_paths import ensure_local_runtime_python_path
 
 def test_ensure_local_runtime_python_path_promotes_runtime_python_dir(monkeypatch):
     entry_file = (
-        Path(__file__).resolve().parents[2]
+        Path(__file__).resolve().parents[3]
         / "frontend"
         / "src"
         / "main"
@@ -36,7 +36,7 @@ def test_ensure_local_runtime_python_path_promotes_runtime_python_dir(monkeypatc
 def test_bootstrap_paths_source_uses_local_runtime_terms():
     source = Path(__file__).read_text(encoding="utf-8")
     helper_source = (
-        Path(__file__).resolve().parents[2]
+        Path(__file__).resolve().parents[3]
         / "frontend"
         / "src"
         / "main"
@@ -68,7 +68,7 @@ def test_bootstrap_paths_source_uses_local_runtime_terms():
 
 
 def test_local_runtime_bootstrap_supports_client_local_tool_registry_from_runtime_cwd():
-    repo_root = Path(__file__).resolve().parents[2]
+    repo_root = Path(__file__).resolve().parents[3]
     local_runtime_dir = repo_root / "frontend" / "src" / "main" / "python"
     script = """
 import importlib.util

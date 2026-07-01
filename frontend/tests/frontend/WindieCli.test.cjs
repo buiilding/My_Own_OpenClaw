@@ -333,16 +333,16 @@ describe('windie CLI', () => {
         args: ['tests/backend/test_websocket_route.py', '-q'],
         cwd: repoRoot,
       });
-    expect(getSpawnPlan(['test', 'sidecar', '--', 'tests/sidecar/test_tool_registry.py', '-q']))
+    expect(getSpawnPlan(['test', 'sidecar', '--', 'frontend/tests/sidecar/test_tool_registry.py', '-q']))
       .toMatchObject({
         command: path.join(repoRoot, 'scripts/test-sidecar.sh'),
-        args: ['tests/sidecar/test_tool_registry.py', '-q'],
+        args: ['frontend/tests/sidecar/test_tool_registry.py', '-q'],
         cwd: repoRoot,
       });
-    expect(getSpawnPlan(['test', 'local-runtime', '--', 'tests/sidecar/test_tool_registry.py', '-q']))
+    expect(getSpawnPlan(['test', 'local-runtime', '--', 'frontend/tests/sidecar/test_tool_registry.py', '-q']))
       .toMatchObject({
         command: path.join(repoRoot, 'scripts/test-sidecar.sh'),
-        args: ['tests/sidecar/test_tool_registry.py', '-q'],
+        args: ['frontend/tests/sidecar/test_tool_registry.py', '-q'],
         cwd: repoRoot,
       });
     expect(getSpawnPlan(['test', 'frontend', '--', 'WindieCli'])).toMatchObject({

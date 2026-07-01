@@ -12,7 +12,7 @@ title: "Backend Config Env-Precedence, Trailing-Slash Normalization, and Require
 
 - `frontend/src/main/python/windie/_backend_config.py`
 - `frontend/src/main/python/windie/_remote_api_client_base.py`
-- `tests/sidecar/test_backend_config.py`
+- `frontend/tests/sidecar/test_backend_config.py`
 
 Endpoint resolution logic lives in `windie/_backend_config.py`.
 
@@ -66,7 +66,7 @@ Each consumer applies additional endpoint-specific path suffixes on top of this 
 
 ## Test-Backed Invariants
 
-`tests/sidecar/test_backend_config.py` verifies:
+`frontend/tests/sidecar/test_backend_config.py` verifies:
 
 - missing or blank injected env fails fast
 - `AGENT_BACKEND_HTTP_URL` is the primary local-runtime Python backend endpoint override

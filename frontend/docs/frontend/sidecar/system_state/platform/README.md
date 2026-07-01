@@ -27,4 +27,4 @@ title: "Local-Runtime System-State Platform Docs Hub"
 - `frontend/src/main/python/core/platform/macos.py`
 - `frontend/src/main/python/core/platform/linux.py`
 - `frontend/src/main/python/tools/system/window_tool.py`
-- `tests/sidecar/test_linux_window_manager.py`
+- `frontend/tests/sidecar/test_linux_window_manager.py`

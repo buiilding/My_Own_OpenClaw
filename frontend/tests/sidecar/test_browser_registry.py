@@ -9,7 +9,7 @@ from pathlib import Path
 from tools.registry import ToolRegistry
 
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 LOCAL_RUNTIME_TOOL_HELPER_PATHS = [
     REPO_ROOT / "frontend" / "src" / "main" / "python" / "tools" / "result.py",
     REPO_ROOT / "frontend" / "src" / "main" / "python" / "tools" / "schemas.py",

@@ -18,7 +18,7 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 | Electron main | Windows, overlay orchestration, IPC relay, local config, permission probes, SDK local-runtime host/status context | `frontend/src/main` |
 | React renderer | Dashboard, chat UI, response overlay UI, permissions UI, voice controls, projected tool state | `frontend/src/renderer` |
 | local-runtime implementation | Local executable tools, memory store, browser runtime, screenshots, shell/process execution backed by local-runtime Python | `frontend/src/main/python` |
-| Tests | Contract drift and runtime regressions | private backend tests, `tests/frontend`, `tests/sidecar` |
+| Tests | Contract drift and runtime regressions | private backend tests, `tests/frontend`, `frontend/tests/sidecar` |
 
 ## Debug Pages
 

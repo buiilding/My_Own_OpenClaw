@@ -17,9 +17,9 @@ title: "Filesystem Read and Replace Runtime Reference"
 - `frontend/src/main/python/tools/filesystem/replace_patch_chunks.py`
 - `frontend/src/main/python/tools/filesystem/file_utils.py`
 - `frontend/src/main/python/tools/schemas.py` (`ReadFileArgs`, `ReplaceArgs`)
-- `tests/sidecar/test_read_file_tool.py`
-- `tests/sidecar/test_replace_engine.py`
-- `tests/sidecar/test_replace_tool.py`
+- `frontend/tests/sidecar/test_read_file_tool.py`
+- `frontend/tests/sidecar/test_replace_engine.py`
+- `frontend/tests/sidecar/test_replace_tool.py`
 
 ## Runtime Purpose
 
@@ -159,7 +159,7 @@ Patch chunk mode:
 
 ## Behavioral Guarantees (Tests)
 
-`tests/sidecar/test_read_file_tool.py` verifies:
+`frontend/tests/sidecar/test_read_file_tool.py` verifies:
 
 - default limit window (`2000`)
 - offset/limit paging
@@ -170,7 +170,7 @@ Patch chunk mode:
 - image-file attachment payloads (no OCR text extraction)
 - non-image binary files still rejected
 
-`tests/sidecar/test_replace_tool.py` verifies:
+`frontend/tests/sidecar/test_replace_tool.py` verifies:
 
 - unique/single replacement flow
 - multi-match rejection without disambiguation
@@ -182,7 +182,7 @@ Patch chunk mode:
 - file creation path
 - patch-chunk ordered updates, insertions, EOF matching, and change-context anchors
 
-`tests/sidecar/test_replace_engine.py` verifies:
+`frontend/tests/sidecar/test_replace_engine.py` verifies:
 
 - operation parsing defaults/validation (`match_mode`, `occurrence_index`, patch-chunk shape guards)
 - lenient unicode punctuation matching fallback behavior

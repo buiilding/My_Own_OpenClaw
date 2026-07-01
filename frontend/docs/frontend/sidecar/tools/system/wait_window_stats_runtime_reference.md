@@ -16,8 +16,8 @@ This page documents sidecar system tools implemented in:
 - `frontend/src/main/python/tools/system/open_app_tool.py`
 - `frontend/src/main/python/core/system_metrics.py`
 - `frontend/src/main/python/core/platform/*`
-- `tests/sidecar/test_system_tools.py`
-- `tests/sidecar/test_linux_window_manager.py`
+- `frontend/tests/sidecar/test_system_tools.py`
+- `frontend/tests/sidecar/test_linux_window_manager.py`
 
 ## Tool Routing
 

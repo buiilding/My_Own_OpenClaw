@@ -33,7 +33,7 @@ def ensure_aiohttp_with_stubs():
 
 def ensure_frontend_python_path() -> None:
     local_runtime_python_dir = (
-        Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
+        Path(__file__).resolve().parents[3] / "frontend" / "src" / "main" / "python"
     )
     local_runtime_python_dir_str = str(local_runtime_python_dir)
     if local_runtime_python_dir_str not in sys.path:

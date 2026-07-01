@@ -134,7 +134,7 @@ Renderer wakeword hook adds cooldown/threshold gate on top of service output.
 
 ## Test Coverage Note
 
-`tests/sidecar/test_wakeword_service.py` covers direct service helpers for:
+`frontend/tests/sidecar/test_wakeword_service.py` covers direct service helpers for:
 
 - model metadata resolution
 - writable model cache lookup/download behavior

@@ -9,8 +9,8 @@ from tools.registry import ToolRegistry
 
 @pytest.mark.asyncio
 async def test_repo_agent_example_extension_executes():
-    repo_root = Path(__file__).resolve().parents[2]
-    extension_dir = repo_root / "examples" / "repo-agent-extension"
+    repo_root = Path(__file__).resolve().parents[3]
+    extension_dir = repo_root / "frontend" / "examples" / "repo-agent-extension"
 
     registry = ToolRegistry()
     result = registry.register_plugin_tools(plugin_path=str(extension_dir))

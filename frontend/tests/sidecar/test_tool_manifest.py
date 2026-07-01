@@ -18,7 +18,7 @@ from tools.manifest import (
 )
 from tools.registry import ToolRegistry
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 GENERATED_MANIFEST_PATH = (
     REPO_ROOT / "frontend" / "src" / "main" / "generated" / "builtin_tool_manifest.json"
 )

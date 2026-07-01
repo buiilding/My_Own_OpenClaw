@@ -15,8 +15,8 @@ title: "Replace Engine Match Modes, Patch Chunks, and Atomic Write Contract Refe
 - `frontend/src/main/python/tools/filesystem/replace_matchers.py`
 - `frontend/src/main/python/tools/filesystem/replace_patch_chunks.py`
 - `frontend/src/main/python/tools/schemas.py`
-- `tests/sidecar/test_replace_engine.py`
-- `tests/sidecar/test_replace_tool.py`
+- `frontend/tests/sidecar/test_replace_engine.py`
+- `frontend/tests/sidecar/test_replace_tool.py`
 
 ## Entry Modes and Mutual Exclusivity
 
@@ -131,7 +131,7 @@ Failure payload includes specific reason (e.g., multi-match ambiguity, operation
 
 ## Test-Backed Invariants
 
-`tests/sidecar/test_replace_tool.py` validates:
+`frontend/tests/sidecar/test_replace_tool.py` validates:
 
 - single unique replacement
 - multi-match rejection without disambiguation

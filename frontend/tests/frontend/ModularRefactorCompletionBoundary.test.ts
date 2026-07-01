@@ -436,9 +436,9 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('local-runtime helper tests keep disposable env fixtures product-neutral', async () => {
     const source = await Promise.all([
-      read('tests/sidecar/test_env_flags.py'),
-      read('tests/sidecar/test_shell_process_registry.py'),
-      read('tests/sidecar/test_shell_process_tool.py'),
+      read('frontend/tests/sidecar/test_env_flags.py'),
+      read('frontend/tests/sidecar/test_shell_process_registry.py'),
+      read('frontend/tests/sidecar/test_shell_process_tool.py'),
     ]).then(sources => sources.join('\n'));
 
     expect(source).not.toContain('WINDIE_TEST_FLAG');
@@ -450,7 +450,7 @@ describe('modular sdk refactor completion boundary', () => {
   });
 
   test('local-runtime browser launcher tests keep profile compatibility wording product-neutral', async () => {
-    const source = await read('tests/sidecar/tools/test_chrome_launcher.py');
+    const source = await read('frontend/tests/sidecar/tools/test_chrome_launcher.py');
 
     expect(source).not.toContain('WindieOS desktop launches');
     expect(source).toContain('desktop app launches keep the injected dedicated profile path');
@@ -747,7 +747,7 @@ describe('modular sdk refactor completion boundary', () => {
   });
 
   test('local-runtime chat event store tests keep workspace fixtures product-neutral', async () => {
-    const source = await read('tests/sidecar/test_chat_event_store.py');
+    const source = await read('frontend/tests/sidecar/test_chat_event_store.py');
 
     expect(source).not.toContain('/work/WindieOS');
     expect(source).not.toContain('workspace_name="WindieOS"');
@@ -760,10 +760,10 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('local-runtime window tests keep window title fixtures product-neutral', async () => {
     const source = await Promise.all([
-      read('tests/sidecar/test_linux_window_manager.py'),
-      read('tests/sidecar/test_windows_window_manager.py'),
-      read('tests/sidecar/test_system_state.py'),
-      read('tests/sidecar/test_sidecar_daemon.py'),
+      read('frontend/tests/sidecar/test_linux_window_manager.py'),
+      read('frontend/tests/sidecar/test_windows_window_manager.py'),
+      read('frontend/tests/sidecar/test_system_state.py'),
+      read('frontend/tests/sidecar/test_sidecar_daemon.py'),
     ]).then(sources => sources.join('\n'));
 
     expect(source).not.toContain('"title": "WindieOS"');
@@ -775,7 +775,7 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('unicode repair tests keep text fixtures product-neutral', async () => {
     const source = await Promise.all([
-      read('tests/sidecar/test_unicode_sanitizer.py'),
+      read('frontend/tests/sidecar/test_unicode_sanitizer.py'),
       read('tests/frontend/DesktopChatStreamMessageUpdateRuntime.test.ts'),
     ]).then(sources => sources.join('\n'));
 
@@ -957,7 +957,7 @@ describe('modular sdk refactor completion boundary', () => {
   test('wakeword hook tests keep audio worklet URL fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/frontend/voice/WakewordDetectionHook.test.ts'),
-      read('tests/sidecar/test_wakeword_service.py'),
+      read('frontend/tests/sidecar/test_wakeword_service.py'),
     ]).then(sources => sources.join('\n'));
     const retiredWakewordModelDir = ['windie', 'models'].join('-');
 
@@ -1012,7 +1012,7 @@ describe('modular sdk refactor completion boundary', () => {
   });
 
   test('browser use engine tests keep legacy session fixtures product-neutral', async () => {
-    const source = await read('tests/sidecar/tools/test_browser_use_engine.py');
+    const source = await read('frontend/tests/sidecar/tools/test_browser_use_engine.py');
     const retiredHome = `"${['windie', 'home'].join('-')}"`;
     const retiredCli = `"${['windie', 'browser-use'].join('-')}"`;
     const retiredSession = `"${['windie', 'session'].join('-')}"`;
@@ -1036,7 +1036,7 @@ describe('modular sdk refactor completion boundary', () => {
   });
 
   test('mock memory seed tests keep legacy user fixtures product-neutral', async () => {
-    const source = await read('tests/sidecar/test_dev_seed_mock_memory.py');
+    const source = await read('frontend/tests/sidecar/test_dev_seed_mock_memory.py');
     const retiredMockUser = `"${['windie', 'mock'].join('-')}"`;
     const retiredUser = `"${['windie', 'user'].join('-')}"`;
 
@@ -1047,7 +1047,7 @@ describe('modular sdk refactor completion boundary', () => {
   });
 
   test('Python SDK package boundary tests keep endpoint fixtures product-neutral', async () => {
-    const source = await read('tests/sidecar/test_windie_package_boundary.py');
+    const source = await read('frontend/tests/sidecar/test_windie_package_boundary.py');
 
     expect(source).not.toContain('Covers windie package boundary behavior');
     expect(source).toContain('Covers Python SDK package boundary behavior');
@@ -1056,7 +1056,7 @@ describe('modular sdk refactor completion boundary', () => {
   });
 
   test('Python SDK client tests keep explicit endpoint fixtures product-neutral', async () => {
-    const source = await read('tests/sidecar/test_windie_sdk_client.py');
+    const source = await read('frontend/tests/sidecar/test_windie_sdk_client.py');
 
     expect(source).not.toContain('Covers windie sdk client behavior');
     expect(source).toContain('Covers Python SDK package client behavior');
@@ -1068,8 +1068,8 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('local-runtime hosted client tests keep endpoint fixtures product-neutral', async () => {
     const source = await Promise.all([
-      read('tests/sidecar/test_remote_api_client_base.py'),
-      read('tests/sidecar/test_remote_semantic_client.py'),
+      read('frontend/tests/sidecar/test_remote_api_client_base.py'),
+      read('frontend/tests/sidecar/test_remote_semantic_client.py'),
     ]);
     const combined = source.join('\n');
 
@@ -1108,7 +1108,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('tests/frontend/LocalRuntimeLaunchOptions.test.cjs'),
       read('tests/frontend/LocalRuntimeBridge.rpc.test.cjs'),
       read('tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs'),
-      read('tests/sidecar/test_open_app_tool.py'),
+      read('frontend/tests/sidecar/test_open_app_tool.py'),
     ]);
     const combined = source.join('\n');
     const retiredUnownedShotRoot = ['windie', 'unowned-shot-'].join('-');

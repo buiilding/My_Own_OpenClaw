@@ -12,7 +12,7 @@ title: "Conversation Search Helper Term, Snippet, Grouping, and Timestamp Contra
 
 - `frontend/src/main/python/memory/conversation_search_helpers.py`
 - `frontend/src/main/python/memory/local_store.py`
-- `tests/sidecar/test_conversation_search_helpers.py`
+- `frontend/tests/sidecar/test_conversation_search_helpers.py`
 
 ## Helper Surface
 
@@ -144,7 +144,7 @@ Used for recency scoring/sort tie-break safety across heterogeneous stored times
 
 ## Test-Backed Invariants
 
-`tests/sidecar/test_conversation_search_helpers.py` validates:
+`frontend/tests/sidecar/test_conversation_search_helpers.py` validates:
 
 - term dedupe/short-term filtering/max-8 cap behavior
 - FTS wildcard query assembly and empty fallback

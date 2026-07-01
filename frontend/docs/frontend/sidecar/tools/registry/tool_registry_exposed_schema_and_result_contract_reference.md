@@ -13,7 +13,7 @@ This page documents behavior in:
 - `frontend/src/main/python/tools/registry.py`
 - `frontend/src/main/python/tools/result.py`
 - `frontend/src/main/python/local_backend.py`
-- `tests/sidecar/test_tool_registry.py`
+- `frontend/tests/sidecar/test_tool_registry.py`
 
 ## Registry Construction and Registration
 
@@ -84,7 +84,7 @@ Exception behavior:
 
 ## Exposed-Tools Contract and Tests
 
-`tests/sidecar/test_tool_registry.py` enforces key behaviors:
+`frontend/tests/sidecar/test_tool_registry.py` enforces key behaviors:
 
 - registered tool names must match exposed set, with optional runtime-missing `browser`
 - missing tool lookup returns canonical error

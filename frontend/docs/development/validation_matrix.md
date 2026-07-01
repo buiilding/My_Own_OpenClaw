@@ -33,7 +33,7 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 | backend route/handler/schema | private backend test runner | run private backend tests for shared API or session behavior |
 | backend agent loop/history/tool processing | focused backend test under private backend tests | run private backend tests for loop or history contract changes |
 | LLM provider/model catalog | focused provider/model tests under private backend tests | run backend provider/model suite and `<windie> docs list` |
-| local-runtime tool implementation | `./scripts/python-in-env local-runtime python -m pytest tests/sidecar/<focused_test>.py` | run `<windie> test local-runtime` for registry or shared result changes |
+| local-runtime tool implementation | `./scripts/python-in-env local-runtime python -m pytest frontend/tests/sidecar/<focused_test>.py` | run `<windie> test local-runtime` for registry or shared result changes |
 | frontend renderer state/UI | `<windie> test frontend -- <test_file>` | run `cd frontend && npm run lint && <windie> test frontend` for broader UI changes |
 | Electron main/IPC | focused `tests/frontend/*.test.cjs` or related Jest test | run `<windie> test frontend` for shared bridge changes |
 | transcript/replay | focused transcript tests | include backend rehydrate/history tests when backend replay shape changes |
@@ -57,14 +57,14 @@ Backend:
 
 Local runtime / local-runtime Python implementation:
 
-- `tests/sidecar/test_tool_registry.py`
-- `tests/sidecar/test_shared_tool_schema_parity.py`
-- `tests/sidecar/test_shell_process_tool.py`
-- `tests/sidecar/test_read_file_tool.py`
-- `tests/sidecar/test_replace_tool.py`
-- `tests/sidecar/test_system_tools.py`
-- `tests/sidecar/tools/test_browser_tool.py`
-- `tests/sidecar/tools/test_browser_schemas.py`
+- `frontend/tests/sidecar/test_tool_registry.py`
+- `frontend/tests/sidecar/test_shared_tool_schema_parity.py`
+- `frontend/tests/sidecar/test_shell_process_tool.py`
+- `frontend/tests/sidecar/test_read_file_tool.py`
+- `frontend/tests/sidecar/test_replace_tool.py`
+- `frontend/tests/sidecar/test_system_tools.py`
+- `frontend/tests/sidecar/tools/test_browser_tool.py`
+- `frontend/tests/sidecar/tools/test_browser_schemas.py`
 
 Frontend:
 

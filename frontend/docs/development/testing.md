@@ -55,9 +55,9 @@ npm run audit:knip
 
 - Python tests are split by env automatically:
   - private backend tests runs with `jarvis`
-  - `tests/sidecar` runs with `frontend_jarvis`
+  - `frontend/tests/sidecar` runs with `frontend_jarvis`
 - `scripts\python-in-env.cmd` on Windows and `scripts/python-in-env.sh` on Unix-like shells use `conda run` when envs exist, otherwise fall back to the current shell env (CI-friendly).
-- Local-runtime protocol output normalization is covered by `tests/sidecar/test_stdout_json.py` (shared JSON-line writer).
+- Local-runtime protocol output normalization is covered by `frontend/tests/sidecar/test_stdout_json.py` (shared JSON-line writer).
 - Local runtime bridge restart/readiness handling is covered by `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs`.
 - Wakeword bridge stale-buffer/stale-process restart behavior is covered by `tests/frontend/WakewordBridge.test.cjs`.
 - For CI parity: `<windie> test frontend`.

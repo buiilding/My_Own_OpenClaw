@@ -77,8 +77,8 @@ must not mark shell execution granted.
 | Main permission IPC/service | `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/PermissionService.test.cjs` |
 | Onboarding permission actions | `tests/frontend/AppPermissionGate.test.jsx`, `tests/frontend/useOnboardingPermissionActions.test.jsx` |
 | Permission grant effects | `tests/frontend/permissionGrantEffects.test.js` |
-| Linux sudo prompt behavior | `tests/sidecar/test_shell_process_tool.py` |
-| Platform permission adapters | `tests/sidecar/test_macos_automation_permission.py`, platform-specific local-runtime Python tests |
+| Linux sudo prompt behavior | `frontend/tests/sidecar/test_shell_process_tool.py` |
+| Platform permission adapters | `frontend/tests/sidecar/test_macos_automation_permission.py`, platform-specific local-runtime Python tests |
 
 ## Related Docs
 

@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/local-runtime: canonicalize local-runtime Python tests under
+  `frontend/tests/sidecar`, move duplicated backend/local-runtime pytest setup
+  into the repo-root `conftest.py`, and avoid prepending the full sidecar test
+  directory when `<windie> test local-runtime` receives an explicit canonical
+  test path. No migration required.
 - frontend/chat: preserve SDK `ConversationView.displayRows` prompt
   transparency metadata on user rows, including the Electron-main CJS runtime
   projection, so `windie start dev` continues showing the System Prompt, Tool

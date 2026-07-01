@@ -24,7 +24,7 @@ To verify the dedicated browser runtime boundary:
 
 ```bash
 cd WindieOS
-./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
+./scripts/python-in-env local-runtime python -m pytest frontend/tests/sidecar/tools/test_browser_tool.py frontend/tests/sidecar/tools/test_browser_use_engine.py -q
 ```
 
 ### Step 2: Run WindieOS
@@ -219,13 +219,13 @@ asyncio.run(test())
 cd WindieOS
 
 # Chrome detection tests
-./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_chrome_detection.py -v
+./scripts/python-in-env local-runtime python -m pytest frontend/tests/sidecar/tools/test_chrome_detection.py -v
 
 # Browser schema tests
-./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_schemas.py -v
+./scripts/python-in-env local-runtime python -m pytest frontend/tests/sidecar/tools/test_browser_schemas.py -v
 
 # Browser tool tests (requires playwright)
-./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_tool.py -v
+./scripts/python-in-env local-runtime python -m pytest frontend/tests/sidecar/tools/test_browser_tool.py -v
 
 # Backend browser tests
 private backend test runner
@@ -235,7 +235,7 @@ private backend test runner
 
 # All browser tests
 private backend test runner
-./scripts/python-in-env local-runtime python -m pytest tests/sidecar -k browser -v
+./scripts/python-in-env local-runtime python -m pytest frontend/tests/sidecar -k browser -v
 ```
 
 ## Action Surface Note

@@ -13,8 +13,8 @@ title: "JSON-RPC Protocol and Stdout Framing Reference"
 - `frontend/src/main/python/core/ipc_protocol.py`
 - `frontend/src/main/python/core/stdout_json.py`
 - `frontend/src/main/python/local_backend.py`
-- `tests/sidecar/test_json_rpc_protocol.py`
-- `tests/sidecar/test_stdout_json.py`
+- `frontend/tests/sidecar/test_json_rpc_protocol.py`
+- `frontend/tests/sidecar/test_stdout_json.py`
 
 ## Request Validation and Dispatch
 
@@ -101,7 +101,7 @@ Contract:
 
 ## Test-Backed Invariants
 
-`tests/sidecar/test_json_rpc_protocol.py` verifies:
+`frontend/tests/sidecar/test_json_rpc_protocol.py` verifies:
 
 - async/sync success dispatch
 - notification response suppression (success and error)
@@ -111,7 +111,7 @@ Contract:
 - non-object payload rejection and parse-error mapping
 - response-constructor edge cases
 
-`tests/sidecar/test_stdout_json.py` verifies:
+`frontend/tests/sidecar/test_stdout_json.py` verifies:
 
 - UTF-8 JSON + newline framing
 - array payload support

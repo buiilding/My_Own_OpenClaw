@@ -5,7 +5,7 @@ from pathlib import Path
 import importlib
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 FRONTEND_PYTHON_ROOT = ROOT / "frontend/src/main/python"
 
 REMOVED_MARKERS = [

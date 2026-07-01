@@ -86,7 +86,7 @@ Validate:
 ```bash
 private backend tests private backend tests -q
 <windie> test frontend -- AgentSdkConversationRuntime AgentSdkClient RendererToolResultBoundary ToolOutputContent
-<windie> test local-runtime tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q
+<windie> test local-runtime frontend/tests/sidecar/test_tool_registry.py frontend/tests/sidecar/test_tool_result.py -q
 ```
 
 ## Screenshot Or Coordinate Grounding Wrong
@@ -115,7 +115,7 @@ Validate:
 ```bash
 private backend tests private backend tests -q
 <windie> test frontend -- LocalRuntimeWindowVisibility.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx AgentSdkConversationRuntime.test.ts
-<windie> test local-runtime tests/sidecar/test_screenshot_tool.py -q
+<windie> test local-runtime frontend/tests/sidecar/test_screenshot_tool.py -q
 ```
 
 ## Minimal Chat Pill Flickers Or Sticks
@@ -197,7 +197,7 @@ Validate:
 ```bash
 <windie> test frontend -- WakewordBridge.test.cjs WakewordSupervisor.test.cjs VoiceModeHook.test.ts TranscriptionHook.test.ts
 private backend tests private backend tests -q
-<windie> test local-runtime tests/sidecar/test_wakeword_service.py -q
+<windie> test local-runtime frontend/tests/sidecar/test_wakeword_service.py -q
 ```
 
 ## Browser Automation Fails
@@ -222,6 +222,6 @@ Validate:
 
 ```bash
 private backend tests private backend tests -q
-<windie> test local-runtime tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine_runtime.py -q
+<windie> test local-runtime frontend/tests/sidecar/test_browser_registry.py frontend/tests/sidecar/tools/test_browser_tool.py frontend/tests/sidecar/tools/test_browser_use_engine_runtime.py -q
 <windie> test frontend -- ChatBrowserSessionControl.test.jsx PermissionService.test.cjs
 ```

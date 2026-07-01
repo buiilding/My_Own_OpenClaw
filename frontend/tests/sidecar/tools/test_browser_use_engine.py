@@ -100,9 +100,9 @@ def test_browser_runtime_source_copy_uses_local_runtime_terms() -> None:
 
 
 def test_browser_extract_docs_match_deterministic_runtime_path() -> None:
-    repo_root = Path(__file__).resolve().parents[3]
+    repo_root = Path(__file__).resolve().parents[4]
     browser_control_doc = (
-        repo_root / "docs" / "browser" / "browser_control.md"
+        repo_root / "frontend" / "docs" / "browser" / "browser_control.md"
     ).read_text(encoding="utf-8")
 
     assert "deterministic markdown/focused-excerpt path" in browser_control_doc

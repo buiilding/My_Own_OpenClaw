@@ -12,7 +12,7 @@ LEGACY_MODEL_TEXT_FIELD_RE = re.compile(
 
 
 def _repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
+    return Path(__file__).resolve().parents[3]
 
 
 def _iter_contract_sources() -> list[Path]:

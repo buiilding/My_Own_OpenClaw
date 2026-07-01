@@ -39,7 +39,7 @@ port; if another process owns the port, stop it manually or choose a different
 Focused tests:
 
 ```bash
-./scripts/python-in-env local-runtime python -m pytest tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_use_engine.py -q
+./scripts/python-in-env local-runtime python -m pytest frontend/tests/sidecar/test_browser_registry.py frontend/tests/sidecar/tools/test_browser_use_engine.py -q
 <windie> test frontend -- PermissionService.test.cjs
 ```
 
@@ -60,7 +60,7 @@ Checks:
 Focused tests:
 
 ```bash
-./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_use_engine.py -q
+./scripts/python-in-env local-runtime python -m pytest frontend/tests/sidecar/tools/test_browser_use_engine.py -q
 ```
 
 ## Click Or Input Hits The Wrong Element
@@ -79,7 +79,7 @@ Checks:
 Focused tests:
 
 ```bash
-./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_use_engine.py -q
+./scripts/python-in-env local-runtime python -m pytest frontend/tests/sidecar/tools/test_browser_use_engine.py -q
 ```
 
 ## Browser Session UI Is Stale
@@ -124,7 +124,7 @@ Checks:
 Focused tests:
 
 ```bash
-./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
+./scripts/python-in-env local-runtime python -m pytest frontend/tests/sidecar/tools/test_browser_tool.py frontend/tests/sidecar/tools/test_browser_use_engine.py -q
 ```
 
 ## Backend Emits Browser Tool But Local Runtime Does Nothing
@@ -143,5 +143,5 @@ Focused tests:
 ```bash
 private backend tests private backend tests -q
 <windie> test frontend -- AgentSdkClient AgentSdkConversationRuntime
-./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_tool.py -q
+./scripts/python-in-env local-runtime python -m pytest frontend/tests/sidecar/tools/test_browser_tool.py -q
 ```

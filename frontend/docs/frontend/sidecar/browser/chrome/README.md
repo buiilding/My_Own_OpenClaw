@@ -21,5 +21,5 @@ title: "Local-Runtime Browser Chrome Docs Hub"
 
 - `frontend/src/main/python/tools/browser/chrome_detection.py`
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
-- `tests/sidecar/tools/test_chrome_detection.py`
-- `tests/sidecar/tools/test_chrome_launcher.py`
+- `frontend/tests/sidecar/tools/test_chrome_detection.py`
+- `frontend/tests/sidecar/tools/test_chrome_launcher.py`

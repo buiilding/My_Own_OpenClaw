@@ -45,10 +45,10 @@ the platform `scripts/python-in-env` wrapper, so do not manually activate conda 
 | Permissions/onboarding | `<windie> test frontend -- PermissionService.test.cjs PermissionIpcRuntime.test.cjs AppPermissionGate.test.jsx DesktopOnboardingSlideshow.test.jsx` |
 | Artifacts/screenshots | `<windie> test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx AgentSdkConversationRuntime.test.ts LocalRuntimeExecuteToolRuntime.test.cjs` |
 | Voice/wakeword | `<windie> test frontend -- WakewordBridge.test.cjs WakewordSupervisor.test.cjs VoiceModeHook.test.ts TranscriptionHook.test.ts` |
-| Local-runtime Python protocol/tools | `<windie> test local-runtime -- tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q` |
-| Local-runtime filesystem/shell | `<windie> test local-runtime -- tests/sidecar/test_read_file_tool.py tests/sidecar/test_replace_tool.py tests/sidecar/test_shell_process_tool.py -q` |
-| Local-runtime browser | `<windie> test local-runtime -- tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine_runtime.py tests/sidecar/tools/test_browser_schemas.py -q` |
-| Local-runtime memory and conversation revision storage | `<windie> test local-runtime -- tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search_helpers.py tests/sidecar/test_chat_event_store.py -q` |
+| Local-runtime Python protocol/tools | `<windie> test local-runtime -- frontend/tests/sidecar/test_json_rpc_protocol.py frontend/tests/sidecar/test_tool_registry.py frontend/tests/sidecar/test_tool_result.py -q` |
+| Local-runtime filesystem/shell | `<windie> test local-runtime -- frontend/tests/sidecar/test_read_file_tool.py frontend/tests/sidecar/test_replace_tool.py frontend/tests/sidecar/test_shell_process_tool.py -q` |
+| Local-runtime browser | `<windie> test local-runtime -- frontend/tests/sidecar/test_browser_registry.py frontend/tests/sidecar/tools/test_browser_tool.py frontend/tests/sidecar/tools/test_browser_use_engine_runtime.py frontend/tests/sidecar/tools/test_browser_schemas.py -q` |
+| Local-runtime memory and conversation revision storage | `<windie> test local-runtime -- frontend/tests/sidecar/test_local_backend.py frontend/tests/sidecar/test_memory_operations.py frontend/tests/sidecar/test_conversation_search_helpers.py frontend/tests/sidecar/test_chat_event_store.py -q` |
 
 ## Contract Changes
 

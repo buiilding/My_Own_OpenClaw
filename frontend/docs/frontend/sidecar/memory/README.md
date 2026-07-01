@@ -34,9 +34,9 @@ title: "Local Runtime Memory Docs Hub"
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/python/local_backend_memory_handlers.py`
 - `frontend/src/main/python/core/remote_semantic_client.py`
-- `tests/sidecar/test_memory_summarizer.py`
-- `tests/sidecar/test_conversation_search_helpers.py`
-- `tests/sidecar/test_chat_event_store.py`
-- `tests/sidecar/test_chat_event_store.py`
-- `tests/sidecar/test_local_store_delete_cleanup.py`
-- `tests/sidecar/test_local_backend.py`
+- `frontend/tests/sidecar/test_memory_summarizer.py`
+- `frontend/tests/sidecar/test_conversation_search_helpers.py`
+- `frontend/tests/sidecar/test_chat_event_store.py`
+- `frontend/tests/sidecar/test_chat_event_store.py`
+- `frontend/tests/sidecar/test_local_store_delete_cleanup.py`
+- `frontend/tests/sidecar/test_local_backend.py`

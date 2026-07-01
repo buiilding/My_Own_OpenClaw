@@ -4,39 +4,39 @@ import json
 from pathlib import Path
 
 import pytest
-from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
+from frontend.tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
 from tools.registry import ToolRegistry  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 GENERATED_MANIFEST_PATH = (
     REPO_ROOT / "frontend" / "src" / "main" / "generated" / "builtin_tool_manifest.json"
 )
 LOCAL_RUNTIME_TOOL_TEST_LABEL_PATHS = [
-    REPO_ROOT / "tests" / "sidecar" / "test_read_file_tool.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_replace_tool.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_replace_engine.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_shell_process_tool.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_shell_process_registry.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_shell_output_formatting.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_screenshot_tool.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_mouse_tool.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_keyboard_tool.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_open_app_tool.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_scroll_tool.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_scroll_config.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_system_tools.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_local_tool_output_contract.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_shared_tool_schema_parity.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_tool_registry.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_tool_schemas.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_tool_manifest.py",
-    REPO_ROOT / "tests" / "sidecar" / "test_tool_result.py",
-    REPO_ROOT / "tests" / "sidecar" / "tools" / "test_browser_schemas.py",
-    REPO_ROOT / "tests" / "sidecar" / "tools" / "test_browser_file_store.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_read_file_tool.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_replace_tool.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_replace_engine.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_shell_process_tool.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_shell_process_registry.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_shell_output_formatting.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_screenshot_tool.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_mouse_tool.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_keyboard_tool.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_open_app_tool.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_scroll_tool.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_scroll_config.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_system_tools.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_local_tool_output_contract.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_shared_tool_schema_parity.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_tool_registry.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_tool_schemas.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_tool_manifest.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "test_tool_result.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "tools" / "test_browser_schemas.py",
+    REPO_ROOT / "frontend" / "tests" / "sidecar" / "tools" / "test_browser_file_store.py",
 ]
 
 

@@ -184,12 +184,12 @@ Wakeword detection runs as a separate Python subprocess:
 
 ## Testing
 
-- Local-runtime Python unit tests live in `tests/sidecar/`.
+- Local-runtime Python unit tests live in `frontend/tests/sidecar/`.
 - Core coverage:
-  - `tests/sidecar/test_local_backend.py` (JSON-RPC handlers, tool execution, memory wiring)
-  - `tests/sidecar/test_sidecar_daemon.py` (daemon HTTP status, tool manifest, execution, dynamic module/plugin/MCP registration, event-control channel, shutdown)
-  - `tests/sidecar/test_bootstrap_paths.py` (source-run bootstrap for client/local-runtime imports)
-  - `tests/sidecar/test_stdout_json.py` (shared JSON-line stdout writer behavior)
+  - `frontend/tests/sidecar/test_local_backend.py` (JSON-RPC handlers, tool execution, memory wiring)
+  - `frontend/tests/sidecar/test_sidecar_daemon.py` (daemon HTTP status, tool manifest, execution, dynamic module/plugin/MCP registration, event-control channel, shutdown)
+  - `frontend/tests/sidecar/test_bootstrap_paths.py` (source-run bootstrap for client/local-runtime imports)
+  - `frontend/tests/sidecar/test_stdout_json.py` (shared JSON-line stdout writer behavior)
 - Bridge regression coverage:
   - `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs` validates SDK local-runtime bootstrap and readiness/status transitions.
   - `tests/frontend/WakewordBridge.test.cjs` validates stale partial wakeword `stderr` buffers are cleared across stop/start restart.
@@ -199,4 +199,4 @@ Wakeword detection runs as a separate Python subprocess:
   - If `directory` is omitted, `run_shell_command` starts in the user-selected workspace folder when `filesystem_workspace_access` has a stored selected path; otherwise it falls back to the OS user home directory.
   - Relative `directory` values such as `.` or `src/components` resolve from that same default base directory instead of requiring absolute paths.
   - Use `process` to list/poll/log/write/kill backgrounded shell sessions.
-- Run: `<windie> test local-runtime` (preferred), or `./scripts/python-in-env local-runtime python -m pytest tests/sidecar`.
+- Run: `<windie> test local-runtime` (preferred), or `./scripts/python-in-env local-runtime python -m pytest frontend/tests/sidecar`.

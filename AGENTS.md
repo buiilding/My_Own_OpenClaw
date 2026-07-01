@@ -104,8 +104,8 @@ When behavior or APIs change:
 - Add `read_when` hints for cross-cutting docs when useful.
 - Use `pytest` for backend and sidecar tests.
 - Use `jest` for frontend tests.
-- Put new tests under `tests/backend`, `tests/sidecar`, `tests/frontend`, or
-  `tests/sdk` unless extending an existing test module.
+- Put new tests under `tests/backend`, `frontend/tests/sidecar`,
+  `tests/frontend`, or `tests/sdk` unless extending an existing test module.
 - Prefer unit-level tests with minimal I/O.
 - Mock network and system calls.
 - If you change tool parsing, execution flow, or IPC, add coverage across

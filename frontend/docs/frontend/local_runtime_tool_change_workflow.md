@@ -26,7 +26,7 @@ Do not make local-runtime Python import backend schemas. Keep parity in explicit
 | SDK runtime dispatch | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts` | Tool-call event consumption, bundle/single orchestration, backend result envelope, normalized tool-output events. |
 | Electron main bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/sidecar/local_runtime*.cjs`, `packages/windie-sdk-js/src/runtime/Agent.ts` | SDK local-runtime host context, payload mapping, timeouts, display/window context. |
 | Local runtime implementation | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools` | Local-runtime JSON-RPC handlers backed by local-runtime Python modules, local tool registry, filesystem/shell/computer/browser/system execution, and local memory RPCs. |
-| Tests | private backend tests, `tests/frontend`, `tests/sidecar` | Contract, dispatch, execution, and result parity. |
+| Tests | private backend tests, `tests/frontend`, `frontend/tests/sidecar` | Contract, dispatch, execution, and result parity. |
 
 ## Add or Change a Tool
 
@@ -43,11 +43,11 @@ Do not make local-runtime Python import backend schemas. Keep parity in explicit
 
 | Family | Backend schema roots | Local-runtime implementation roots | Focused tests |
 | --- | --- | --- | --- |
-| Computer/mouse/keyboard/screenshot/window | private backend implementation | `frontend/src/main/python/tools/computer`, platform adapters | private backend tests, `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_screenshot_tool.py` |
-| Browser | private backend implementation | `frontend/src/main/python/tools/browser` | private backend tests, `tests/sidecar/tools/test_browser_tool.py`, browser schema/runtime tests |
-| Filesystem and shell | private backend implementation | `frontend/src/main/python/tools/filesystem`, `frontend/src/main/python/tools/system` | Start with [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md); then inspect `tests/sidecar/test_read_file_tool.py`, `tests/sidecar/test_replace_tool.py`, `tests/sidecar/test_shell_process_tool.py`, bridge tests, and SDK/main tool-dispatch tests. |
-| Memory | Backend memory routes and prompt context | `frontend/src/main/python/memory`, `frontend/src/main/python/local_backend_memory_handlers.py` | `tests/sidecar/test_memory_*.py`, memory route and transcript tests |
-| System state and app/window helpers | private backend implementation, prompt/tool context | `frontend/src/main/python/tools/system`, Electron window/display bridge | `tests/sidecar/test_system_tools.py`, frontend display/window tests |
+| Computer/mouse/keyboard/screenshot/window | private backend implementation | `frontend/src/main/python/tools/computer`, platform adapters | private backend tests, `frontend/tests/sidecar/test_mouse_tool.py`, `frontend/tests/sidecar/test_keyboard_tool.py`, `frontend/tests/sidecar/test_screenshot_tool.py` |
+| Browser | private backend implementation | `frontend/src/main/python/tools/browser` | private backend tests, `frontend/tests/sidecar/tools/test_browser_tool.py`, browser schema/runtime tests |
+| Filesystem and shell | private backend implementation | `frontend/src/main/python/tools/filesystem`, `frontend/src/main/python/tools/system` | Start with [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md); then inspect `frontend/tests/sidecar/test_read_file_tool.py`, `frontend/tests/sidecar/test_replace_tool.py`, `frontend/tests/sidecar/test_shell_process_tool.py`, bridge tests, and SDK/main tool-dispatch tests. |
+| Memory | Backend memory routes and prompt context | `frontend/src/main/python/memory`, `frontend/src/main/python/local_backend_memory_handlers.py` | `frontend/tests/sidecar/test_memory_*.py`, memory route and transcript tests |
+| System state and app/window helpers | private backend implementation, prompt/tool context | `frontend/src/main/python/tools/system`, Electron window/display bridge | `frontend/tests/sidecar/test_system_tools.py`, frontend display/window tests |
 
 ## Result Contract
 

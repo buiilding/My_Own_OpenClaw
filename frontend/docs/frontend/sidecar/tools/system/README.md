@@ -32,6 +32,6 @@ title: "Local-Runtime System Tools Docs Hub"
 - `frontend/src/main/python/core/platform/linux.py`
 - `frontend/src/main/python/core/platform/windows.py`
 - `frontend/src/main/python/core/platform/macos.py`
-- `tests/sidecar/test_shell_output_formatting.py`
-- `tests/sidecar/test_system_tools.py`
-- `tests/sidecar/test_linux_window_manager.py`
+- `frontend/tests/sidecar/test_shell_output_formatting.py`
+- `frontend/tests/sidecar/test_system_tools.py`
+- `frontend/tests/sidecar/test_linux_window_manager.py`

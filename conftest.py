@@ -1,4 +1,4 @@
-"""Covers conftest behavior in the conftest.py test suite."""
+"""Shared pytest defaults for WindieOS Python test roots."""
 
 import os
 import warnings
