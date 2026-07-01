@@ -522,10 +522,7 @@ async def test_resolve_tool_with_coordinates_resolves_prediction_destination_fro
     assert resolved_call.parameters["drag_to_y"] == 320
     assert "drag_to_find_coordinates_by" not in resolved_call.parameters
     assert resolved_call.parameters["destination_description"] == "black rounded square"
-    assert (
-        resolved_call.metadata["coordinate_resolution_screenshot_id"]
-        == "shot-drag-destination-prediction"
-    )
+    assert "coordinate_resolution_screenshot_id" not in resolved_call.metadata
     assert resolved_call.metadata["drag_destination_coordinate_method"] == "prediction"
     destination_contract = resolved_call.metadata[
         "drag_destination_coordinate_contract"
@@ -626,44 +623,7 @@ async def test_resolve_tool_with_coordinates_allows_ocr_candidate_with_implicit_
     assert resolved_call.parameters["y"] == 360
 
 
-def test_normalize_manual_coordinates_uses_current_frame_when_screenshot_id_missing():
-    session, _ = _create_session_and_manager(
-        screenshot_id="shot-manual",
-        capture_meta={
-            "screenshot_id": "shot-manual",
-            "source_w": 1920,
-            "source_h": 1080,
-            "crop_x": 0,
-            "crop_y": 0,
-            "crop_w": 1920,
-            "crop_h": 1080,
-            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
-            "monitor_id": None,
-            "timestamp": 1,
-        },
-    )
-
-    tool_call = ParsedToolCall(
-        tool_name="mouse_control",
-        parameters={"action": "click", "x": 700, "y": 300},
-        raw_call="{}",
-    )
-    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
-
-    normalize_manual_coordinates(
-        resolved_call=resolved_call,
-        session=session,
-        context_id="manual-no-screenshot-id",
-    )
-
-    assert resolved_call.parameters["x"] == 700
-    assert resolved_call.parameters["y"] == 300
-    assert (
-        resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-manual"
-    )
-
-
-def test_normalize_manual_coordinates_scales_to_desktop_space():
+def test_normalize_manual_coordinates_preserves_direct_mouse_coordinates():
     session, _ = _create_session_and_manager(
         screenshot_id="shot-manual-scale",
         capture_meta={
@@ -679,14 +639,14 @@ def test_normalize_manual_coordinates_scales_to_desktop_space():
             "timestamp": 1,
         },
     )
-
     tool_call = ParsedToolCall(
         tool_name="mouse_control",
         parameters={
-            "action": "click",
+            "action": "drag",
             "x": 1000,
             "y": 600,
-            "screenshot_id": "shot-manual-scale",
+            "drag_to_x": 2000,
+            "drag_to_y": 800,
         },
         raw_call="{}",
     )
@@ -695,22 +655,23 @@ def test_normalize_manual_coordinates_scales_to_desktop_space():
     normalize_manual_coordinates(
         resolved_call=resolved_call,
         session=session,
-        context_id="manual-scale",
+        context_id="manual-passthrough",
     )
 
-    assert resolved_call.parameters["x"] == 500
-    assert resolved_call.parameters["y"] == 300
-    assert (
-        resolved_call.metadata["coordinate_resolution_screenshot_id"]
-        == "shot-manual-scale"
-    )
-    contract = resolved_call.metadata["coordinate_contract"]
-    assert contract["source_coordinates"] == {"x": 1000, "y": 600}
-    assert contract["capture_crop"] == {"x": 0, "y": 0, "width": 1920, "height": 1080}
-    assert contract["normalization_status"] == "scaled_to_desktop"
+    assert resolved_call.parameters == {
+        "action": "drag",
+        "x": 1000,
+        "y": 600,
+        "drag_to_x": 2000,
+        "drag_to_y": 800,
+    }
+    metadata = resolved_call.metadata or {}
+    assert "coordinate_resolution_screenshot_id" not in metadata
+    assert "coordinate_contract" not in metadata
+    assert "drag_destination_coordinate_contract" not in metadata
 
 
-def test_normalize_manual_coordinates_scales_scroll_control_to_desktop_space():
+def test_normalize_manual_coordinates_preserves_direct_scroll_coordinates():
     session, _ = _create_session_and_manager(
         screenshot_id="shot-scroll-manual-scale",
         capture_meta={
@@ -726,7 +687,6 @@ def test_normalize_manual_coordinates_scales_scroll_control_to_desktop_space():
             "timestamp": 1,
         },
     )
-
     tool_call = ParsedToolCall(
         tool_name="scroll_control",
         parameters={
@@ -742,164 +702,15 @@ def test_normalize_manual_coordinates_scales_scroll_control_to_desktop_space():
     normalize_manual_coordinates(
         resolved_call=resolved_call,
         session=session,
-        context_id="scroll-manual-scale",
+        context_id="scroll-manual-passthrough",
     )
 
-    assert resolved_call.parameters["x"] == 500
-    assert resolved_call.parameters["y"] == 300
-    assert (
-        resolved_call.metadata["coordinate_resolution_screenshot_id"]
-        == "shot-scroll-manual-scale"
-    )
-    assert resolved_call.metadata["coordinate_method"] == "manual"
-    contract = resolved_call.metadata["coordinate_contract"]
-    assert contract["source_coordinates"] == {"x": 1000, "y": 600}
-    assert contract["normalization_status"] == "scaled_to_desktop"
-
-
-def test_normalize_manual_coordinates_clamps_out_of_bounds_values():
-    session, _ = _create_session_and_manager(
-        screenshot_id="shot-manual-clamp",
-        capture_meta={
-            "screenshot_id": "shot-manual-clamp",
-            "source_w": 100,
-            "source_h": 50,
-            "crop_x": 10,
-            "crop_y": 20,
-            "crop_w": 200,
-            "crop_h": 100,
-            "desktop_virtual_bounds": {"x": 10, "y": 20, "width": 200, "height": 100},
-            "monitor_id": None,
-            "timestamp": 1,
-        },
-    )
-
-    tool_call = ParsedToolCall(
-        tool_name="mouse_control",
-        parameters={
-            "action": "click",
-            "x": 1000.0,
-            "y": -2.0,
-            "screenshot_id": "shot-manual-clamp",
-        },
-        raw_call="{}",
-    )
-    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
-
-    normalize_manual_coordinates(
-        resolved_call=resolved_call,
-        session=session,
-        context_id="manual-clamp",
-    )
-
-    assert resolved_call.parameters["x"] == 208
-    assert resolved_call.parameters["y"] == 20
-    contract = resolved_call.metadata["coordinate_contract"]
-    assert contract["clamped_source_coordinates"] == {"x": 99, "y": 0}
-    assert contract["normalization_status"] == "scaled_to_desktop_clamped"
-
-
-def test_normalize_manual_coordinates_scales_drag_destination_to_desktop_space():
-    session, _ = _create_session_and_manager(
-        screenshot_id="shot-manual-drag",
-        capture_meta={
-            "screenshot_id": "shot-manual-drag",
-            "source_w": 3840,
-            "source_h": 2160,
-            "crop_x": 0,
-            "crop_y": 0,
-            "crop_w": 1920,
-            "crop_h": 1080,
-            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
-            "monitor_id": None,
-            "timestamp": 1,
-        },
-    )
-
-    tool_call = ParsedToolCall(
-        tool_name="mouse_control",
-        parameters={
-            "action": "drag",
-            "x": 1000,
-            "y": 600,
-            "drag_to_x": 2000,
-            "drag_to_y": 800,
-            "screenshot_id": "shot-manual-drag",
-        },
-        raw_call="{}",
-    )
-    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
-
-    normalize_manual_coordinates(
-        resolved_call=resolved_call,
-        session=session,
-        context_id="manual-drag-scale",
-    )
-
-    assert resolved_call.parameters["x"] == 500
-    assert resolved_call.parameters["y"] == 300
-    assert resolved_call.parameters["drag_to_x"] == 1000
-    assert resolved_call.parameters["drag_to_y"] == 400
-    destination_contract = resolved_call.metadata[
-        "drag_destination_coordinate_contract"
-    ]
-    assert destination_contract["source_coordinates"] == {"x": 2000, "y": 800}
-    assert destination_contract["normalized_coordinates"] == {"x": 1000, "y": 400}
-    assert destination_contract["normalization_status"] == "scaled_to_desktop"
-
-
-def test_normalize_manual_coordinates_handles_destination_only_tool(monkeypatch):
-    session, _ = _create_session_and_manager(
-        screenshot_id="shot-destination-only",
-        capture_meta={
-            "screenshot_id": "shot-destination-only",
-            "source_w": 3840,
-            "source_h": 2160,
-            "crop_x": 0,
-            "crop_y": 0,
-            "crop_w": 1920,
-            "crop_h": 1080,
-            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
-            "monitor_id": None,
-            "timestamp": 1,
-        },
-    )
-    monkeypatch.setattr(
-        "backend.src.agent.tools.preparation.helpers.preparation_helper.supports_source_grounding",
-        lambda tool_name: False,
-    )
-    monkeypatch.setattr(
-        "backend.src.agent.tools.preparation.helpers.preparation_helper.supports_drag_destination_grounding",
-        lambda tool_name: tool_name == "destination_only_drag",
-    )
-    monkeypatch.setattr(
-        "backend.src.agent.tools.preparation.helpers.mouse_drag_destination_preparation.supports_drag_destination_grounding",
-        lambda tool_name: tool_name == "destination_only_drag",
-    )
-
-    tool_call = ParsedToolCall(
-        tool_name="destination_only_drag",
-        parameters={
-            "action": "drag",
-            "drag_to_x": 2000,
-            "drag_to_y": 800,
-        },
-        raw_call="{}",
-    )
-    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
-
-    normalize_manual_coordinates(
-        resolved_call=resolved_call,
-        session=session,
-        context_id="manual-destination-only",
-    )
-
-    assert resolved_call.parameters["drag_to_x"] == 1000
-    assert resolved_call.parameters["drag_to_y"] == 400
-    assert "coordinate_contract" not in resolved_call.metadata
-    destination_contract = resolved_call.metadata[
-        "drag_destination_coordinate_contract"
-    ]
-    assert destination_contract["screenshot_id"] == "shot-destination-only"
-    assert destination_contract["source_coordinates"] == {"x": 2000, "y": 800}
-    assert destination_contract["normalized_coordinates"] == {"x": 1000, "y": 400}
+    assert resolved_call.parameters == {
+        "action": "scroll_down",
+        "x": 1000,
+        "y": 600,
+        "clicks": 6,
+    }
+    metadata = resolved_call.metadata or {}
+    assert "coordinate_resolution_screenshot_id" not in metadata
+    assert "coordinate_contract" not in metadata

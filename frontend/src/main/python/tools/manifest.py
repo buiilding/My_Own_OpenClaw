@@ -122,15 +122,15 @@ SOURCE_GROUNDING_PROPERTIES = {
     "x": {
         "type": "integer",
         "description": (
-            "X coordinate in captured-image pixels. Required when find_coordinates_by='manual'. "
-            "Beware of the mouse position on the image when determining manual coordinates."
+            "Desktop X coordinate for direct local-runtime execution. "
+            "Required when find_coordinates_by='manual'."
         ),
     },
     "y": {
         "type": "integer",
         "description": (
-            "Y coordinate in captured-image pixels. Required when find_coordinates_by='manual'. "
-            "Beware of the mouse position on the image when determining manual coordinates."
+            "Desktop Y coordinate for direct local-runtime execution. "
+            "Required when find_coordinates_by='manual'."
         ),
     },
     "ocr_text": {
@@ -155,14 +155,14 @@ DRAG_DESTINATION_GROUNDING_PROPERTIES = {
     "drag_to_x": {
         "type": "integer",
         "description": (
-            "Destination X coordinate in captured-image pixels for drag actions. "
+            "Destination desktop X coordinate for drag actions. "
             "Required when drag_to_find_coordinates_by='manual'."
         ),
     },
     "drag_to_y": {
         "type": "integer",
         "description": (
-            "Destination Y coordinate in captured-image pixels for drag actions. "
+            "Destination desktop Y coordinate for drag actions. "
             "Required when drag_to_find_coordinates_by='manual'."
         ),
     },

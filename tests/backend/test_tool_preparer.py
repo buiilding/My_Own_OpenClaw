@@ -13,7 +13,9 @@ from backend.src.agent.tools.preparation.types.resolved_tool_call import (
 )
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser_types import ParsedToolCall
-from backend.src.tools.browser.shared_contract_loader import load_shared_browser_contract
+from backend.src.tools.browser.shared_contract_loader import (
+    load_shared_browser_contract,
+)
 from backend.src.tools.computer.schemas import (
     GroundedMouseActionArgs,
     GroundedScrollActionArgs,
@@ -55,6 +57,17 @@ class DummySession:
 
     def get_current_capture_meta(self):
         return dict(self._capture_meta)
+
+
+class NoScreenshotSession(DummySession):
+    def __init__(self):
+        super().__init__()
+        self._screenshot = None
+        self._screenshot_id = None
+        self._capture_meta = None
+
+    def get_current_capture_meta(self):
+        return self._capture_meta
 
 
 class _ArgsModelTool:
@@ -111,6 +124,11 @@ class DummyCoordinateResolver:
 
 async def _collect_preparation(preparer, tool_calls):
     result = await preparer.prepare(tool_calls, DummySession())
+    return [], result
+
+
+async def _collect_preparation_for_session(preparer, tool_calls, session):
+    result = await preparer.prepare(tool_calls, session)
     return [], result
 
 
@@ -383,7 +401,7 @@ async def test_prepare_scroll_control_manual_sets_coordinate_method_metadata():
 
 
 @pytest.mark.asyncio
-async def test_prepare_mouse_control_manual_without_screenshot_id_uses_current_frame():
+async def test_prepare_mouse_control_manual_preserves_coordinate_method_metadata():
     preparer = ToolPreparer(object(), object(), object())
     tool_call = ParsedToolCall(
         tool_name="mouse_control",
@@ -393,6 +411,100 @@ async def test_prepare_mouse_control_manual_without_screenshot_id_uses_current_f
 
     events, result = await _collect_preparation(preparer, [tool_call])
     _assert_single_result_with_coordinate_method(events, result, "manual")
+
+
+@pytest.mark.asyncio
+async def test_prepare_mouse_control_manual_without_frame_passes_coordinates_through():
+    preparer = ToolPreparer(object(), object(), object())
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={"action": "click", "x": 100, "y": 200},
+        raw_call="{}",
+    )
+    session = NoScreenshotSession()
+
+    _events, result = await _collect_preparation_for_session(
+        preparer,
+        [tool_call],
+        session,
+    )
+
+    assert result.errors == []
+    assert len(result.resolved_calls) == 1
+    resolved_call = result.resolved_calls[0]
+    assert resolved_call.parameters == {"action": "click", "x": 100, "y": 200}
+    assert resolved_call.metadata["coordinate_method"] == "manual"
+    assert "coordinate_resolution_screenshot_id" not in resolved_call.metadata
+    assert "coordinate_contract" not in resolved_call.metadata
+
+
+@pytest.mark.asyncio
+async def test_prepare_bundle_manual_mouse_without_frame_does_not_block_keyboard_tool():
+    preparer = ToolPreparer(object(), object(), object())
+    mouse_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={"action": "click", "x": 100, "y": 200},
+        raw_call="{}",
+    )
+    keyboard_call = ParsedToolCall(
+        tool_name="keyboard_control",
+        parameters={"action": "press", "key": "enter"},
+        raw_call="{}",
+    )
+    session = NoScreenshotSession()
+
+    _events, result = await _collect_preparation_for_session(
+        preparer,
+        [mouse_call, keyboard_call],
+        session,
+    )
+
+    assert result.errors == []
+    assert result.bundle_id is not None
+    assert [call.tool_name for call in result.resolved_calls] == [
+        "mouse_control",
+        "keyboard_control",
+    ]
+    assert result.resolved_calls[0].parameters == {
+        "action": "click",
+        "x": 100,
+        "y": 200,
+    }
+    assert result.resolved_calls[1].parameters == {
+        "action": "press",
+        "key": "enter",
+    }
+
+
+@pytest.mark.asyncio
+async def test_prepare_mouse_control_ocr_without_frame_still_fails_coordinate_resolution():
+    preparer = ToolPreparer(
+        DummyScreenshotManager(),
+        DummyCoordinateResolver(coordinates=(100, 200)),
+        DummyOcrCoordinator(results=[{"text": "Submit"}]),
+    )
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={
+            "action": "click",
+            "find_coordinates_by": CoordinateFindingMethod.OCR,
+            "ocr_text": "Submit",
+        },
+        raw_call="{}",
+    )
+    session = NoScreenshotSession()
+
+    _events, result = await _collect_preparation_for_session(
+        preparer,
+        [tool_call],
+        session,
+    )
+
+    assert result.resolved_calls == []
+    assert len(result.errors) == 1
+    assert (
+        "No screenshot data available for coordinate resolution" in result.errors[0][1]
+    )
 
 
 @pytest.mark.asyncio

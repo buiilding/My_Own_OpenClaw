@@ -12,21 +12,14 @@ from typing import Optional
 from backend.src.agent.tools.preparation.helpers.grounded_source_preparation import (
     attach_source_coordinate_method_metadata,
     ensure_coordinate_resolution_screenshot,
-    normalize_manual_source_coordinates,
-    normalize_screenshot_id,
     resolve_grounded_source_coordinates,
     tool_call_has_manual_coordinates,
     tool_call_needs_source_coordinate_resolution,
 )
 from backend.src.agent.tools.preparation.helpers.mouse_drag_destination_preparation import (
     attach_drag_destination_coordinate_method_metadata,
-    normalize_manual_drag_destination_coordinates,
     resolve_mouse_drag_destination_coordinates,
     tool_call_needs_drag_destination_resolution,
-)
-from backend.src.tools.computer.grounding_contract import (
-    supports_drag_destination_grounding,
-    supports_source_grounding,
 )
 
 
@@ -72,9 +65,7 @@ async def resolve_tool_with_coordinates(
         context_id=context_id,
     )
 
-    if tool_call_needs_source_coordinate_resolution(
-        tool_call
-    ) or tool_call_has_manual_coordinates(tool_call):
+    if tool_call_needs_source_coordinate_resolution(tool_call):
         await resolve_grounded_source_coordinates(
             tool_call=tool_call,
             resolved_call=resolved_call,
@@ -108,36 +99,10 @@ def normalize_manual_coordinates(
     context_id: str,
 ) -> None:
     """
-    Normalize manual grounded-tool coordinates from screenshot pixel space to desktop space.
+    Preserve manual coordinates as local-runtime executable coordinates.
+
+    Kept as a compatibility shim for older callers; active preparation no longer
+    binds manual coordinates to a screenshot frame.
     """
-    screenshot_frame: Optional[tuple[str, str]] = None
-    if supports_source_grounding(resolved_call.tool_name):
-        screenshot_frame = normalize_manual_source_coordinates(
-            resolved_call=resolved_call,
-            session=session,
-            context_id=context_id,
-        )
-
-    if not supports_drag_destination_grounding(resolved_call.tool_name):
-        return
-    if resolved_call.parameters.get("action") != "drag":
-        return
-    if screenshot_frame is None:
-        screenshot_id = normalize_screenshot_id(session.get_current_screenshot_id())
-        if not screenshot_id:
-            raise ValueError(
-                "No active screenshot frame available for manual grounding"
-            )
-        screenshot_data = session.get_screenshot()
-        if not isinstance(screenshot_data, str) or not screenshot_data.strip():
-            raise ValueError("No active screenshot data available for manual grounding")
-        screenshot_frame = (screenshot_data, screenshot_id)
-
-    screenshot_data, screenshot_id = screenshot_frame
-    normalize_manual_drag_destination_coordinates(
-        resolved_call=resolved_call,
-        session=session,
-        screenshot_b64=screenshot_data,
-        screenshot_id=screenshot_id,
-        context_id=context_id,
-    )
+    _ = resolved_call, session, context_id
+    return None

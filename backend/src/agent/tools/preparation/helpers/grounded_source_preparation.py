@@ -14,7 +14,9 @@ from backend.src.agent.tools.preparation.helpers.coordinate_contract import (
     normalize_capture_meta,
     normalize_to_display_space,
 )
-from backend.src.agent.tools.preparation.helpers.coordinate_resolution_helper import resolve_coordinates
+from backend.src.agent.tools.preparation.helpers.coordinate_resolution_helper import (
+    resolve_coordinates,
+)
 from backend.src.agent.tools.preparation.helpers.source_coordinate_method import (
     infer_source_coordinate_method,
 )
@@ -30,7 +32,9 @@ if TYPE_CHECKING:
     )
     from backend.src.agent.tools.preparation.ocr.coordinator import OcrCoordinator
     from backend.src.agent.tools.preparation.screenshot.manager import ScreenshotManager
-    from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
+    from backend.src.agent.tools.preparation.types.resolved_tool_call import (
+        ResolvedToolCall,
+    )
     from backend.src.core.interfaces.vision import IVisionProvider
 
 logger = logging.getLogger(__name__)
@@ -86,10 +90,13 @@ def tool_call_has_manual_coordinates(tool_call: ParsedToolCall) -> bool:
         return False
     if source_coordinate_method(tool_call) != CoordinateFindingMethod.MANUAL.value:
         return False
-    return coerce_manual_coordinate_pair(
-        tool_call.parameters.get("x"),
-        tool_call.parameters.get("y"),
-    ) is not None
+    return (
+        coerce_manual_coordinate_pair(
+            tool_call.parameters.get("x"),
+            tool_call.parameters.get("y"),
+        )
+        is not None
+    )
 
 
 def attach_source_coordinate_method_metadata(
@@ -261,61 +268,3 @@ async def resolve_grounded_source_coordinates(
         normalized.status,
         screenshot_id[:8],
     )
-
-
-def normalize_manual_source_coordinates(
-    *,
-    resolved_call: "ResolvedToolCall",
-    session: "AgentSession",
-    context_id: str,
-) -> tuple[str, str]:
-    coordinate_pair = coerce_manual_coordinate_pair(
-        resolved_call.parameters.get("x"),
-        resolved_call.parameters.get("y"),
-    )
-    if coordinate_pair is None:
-        raise ValueError("Manual coordinates require numeric x and y values")
-    source_x, source_y = coordinate_pair
-
-    effective_screenshot_id = normalize_screenshot_id(session.get_current_screenshot_id())
-    if not effective_screenshot_id:
-        raise ValueError("No active screenshot frame available for manual grounding")
-
-    screenshot_data = session.get_screenshot()
-    if not isinstance(screenshot_data, str) or not screenshot_data.strip():
-        raise ValueError("No active screenshot data available for manual grounding")
-
-    contract, normalized = normalize_coordinate_pair_for_session(
-        session=session,
-        screenshot_b64=screenshot_data,
-        screenshot_id=effective_screenshot_id,
-        x=source_x,
-        y=source_y,
-    )
-    resolved_call.parameters["x"] = normalized.x
-    resolved_call.parameters["y"] = normalized.y
-
-    if not resolved_call.metadata:
-        resolved_call.metadata = {}
-    resolved_call.metadata.setdefault(
-        "coordinate_method",
-        CoordinateFindingMethod.MANUAL.value,
-    )
-    resolved_call.metadata["coordinate_resolution_screenshot_id"] = effective_screenshot_id
-    resolved_call.metadata["coordinate_contract"] = build_contract_metadata(
-        contract,
-        normalized,
-    )
-
-    logger.info(
-        "[context_id=%s] Normalized manual coordinates source=(%s,%s) desktop=(%s,%s) "
-        "status=%s screenshot=%s",
-        short_id(context_id),
-        source_x,
-        source_y,
-        normalized.x,
-        normalized.y,
-        normalized.status,
-        effective_screenshot_id[:8],
-    )
-    return screenshot_data, effective_screenshot_id

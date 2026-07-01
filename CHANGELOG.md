@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/tools: stop binding manual `mouse_control` and `scroll_control`
+  coordinates to an active screenshot frame. Manual coordinates now pass
+  through as direct local-runtime coordinates; OCR/prediction grounding remains
+  frame-based.
 - sdk/replay: resolve edit/resend and retry targets from raw event-projected
   display rows when a conversation has no materialized display timeline rows
   yet, including active revisions synthesized as empty timelines, and reload

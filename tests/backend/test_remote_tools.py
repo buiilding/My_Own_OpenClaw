@@ -308,8 +308,14 @@ def test_remote_mouse_tool_schema_explicitly_guides_ocr_for_text_targets():
         parameters["ocr_text"]["description"]
         == "Exact visible on-screen text for OCR targeting."
     )
-    assert "Beware of the mouse position on the image" in parameters["x"]["description"]
-    assert "Beware of the mouse position on the image" in parameters["y"]["description"]
+    assert (
+        parameters["x"]["description"]
+        == "Desktop X coordinate for direct local-runtime execution. Required when find_coordinates_by='manual'."
+    )
+    assert (
+        parameters["y"]["description"]
+        == "Desktop Y coordinate for direct local-runtime execution. Required when find_coordinates_by='manual'."
+    )
 
 
 def test_direct_remote_tool_schema_uses_flat_internal_shape():

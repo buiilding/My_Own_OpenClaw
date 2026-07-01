@@ -41,15 +41,15 @@ class SourceGroundingArgsMixin(BaseModel):
     x: Optional[int] = Field(
         None,
         description=(
-            "X coordinate in captured-image pixels. Required when find_coordinates_by='manual'. "
-            "Beware of the mouse position on the image when determining manual coordinates."
+            "Desktop X coordinate for direct local-runtime execution. "
+            "Required when find_coordinates_by='manual'."
         ),
     )
     y: Optional[int] = Field(
         None,
         description=(
-            "Y coordinate in captured-image pixels. Required when find_coordinates_by='manual'. "
-            "Beware of the mouse position on the image when determining manual coordinates."
+            "Desktop Y coordinate for direct local-runtime execution. "
+            "Required when find_coordinates_by='manual'."
         ),
     )
     ocr_text: Optional[str] = Field(
@@ -78,14 +78,14 @@ class DragDestinationGroundingArgsMixin(BaseModel):
     drag_to_x: Optional[int] = Field(
         None,
         description=(
-            "Destination X coordinate in captured-image pixels for drag actions. "
+            "Destination desktop X coordinate for drag actions. "
             "Required when drag_to_find_coordinates_by='manual'."
         ),
     )
     drag_to_y: Optional[int] = Field(
         None,
         description=(
-            "Destination Y coordinate in captured-image pixels for drag actions. "
+            "Destination desktop Y coordinate for drag actions. "
             "Required when drag_to_find_coordinates_by='manual'."
         ),
     )
@@ -169,14 +169,14 @@ def build_source_grounding_json_properties() -> Dict[str, Dict[str, Any]]:
         "x": {
             "type": "integer",
             "description": (
-                "X coordinate in captured-image pixels. Required when "
+                "Desktop X coordinate for direct local-runtime execution. Required when "
                 "find_coordinates_by='manual'."
             ),
         },
         "y": {
             "type": "integer",
             "description": (
-                "Y coordinate in captured-image pixels. Required when "
+                "Desktop Y coordinate for direct local-runtime execution. Required when "
                 "find_coordinates_by='manual'."
             ),
         },

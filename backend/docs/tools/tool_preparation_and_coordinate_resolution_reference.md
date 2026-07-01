@@ -61,9 +61,10 @@ Non-responsibilities:
 - or drag-destination grounding is supported, `action` is `drag`, and
   `drag_to_find_coordinates_by` is `ocr` or `prediction`
 
-`manual` mode bypasses OCR/vision resolution.
-`tool_call_has_manual_coordinates(...)` marks manual `x/y` calls for strict normalization.
-Manual coordinates accept numeric values (`int` or finite `float`) and are canonicalized to integer pixels before execution.
+`manual` mode bypasses backend OCR/vision resolution and screenshot-frame
+normalization. Manual `x/y` and `drag_to_x/drag_to_y` values are treated as
+local-runtime executable desktop coordinates and do not require an active
+screenshot frame.
 
 ## Coordinate Resolution Pipeline
 
@@ -71,7 +72,7 @@ For a qualifying call:
 
 1. ensure active screenshot exists (`ScreenshotManager.ensure_screenshot`)
 2. fetch screenshot bytes + screenshot id from session
-3. resolve source coordinates via shared helper when source grounding needs OCR/prediction or has manual `x/y`
+3. resolve source coordinates via shared helper when source grounding needs OCR/prediction
 - OCR path -> `OcrCoordinator.get_ocr_results(...)` + fuzzy text matching
 - prediction path -> vision service model inference
 4. resolve drag-destination coordinates independently when destination grounding needs OCR/prediction
@@ -86,20 +87,10 @@ For OCR candidate retries (`find_coordinates_by='ocr'` + `candidate_id`):
 3. fail fast with `frame changed, re-ground required` when execution-time frame check detects drift
 4. validate the selected candidate bbox before returning coordinates; candidates with missing or malformed bbox data produce a controlled re-grounding error instead of a raw key/indexing failure
 
-For manual `x/y` calls (no OCR/vision resolution):
-
-1. require current session frame id to exist
-2. reject any caller-provided `screenshot_id`; manual coordinates always bind to the active frame
-3. build the same `CoordinateContract` used by OCR/prediction
-4. normalize screenshot-space manual coordinates to display-space
-5. persist `coordinate_contract` metadata + `coordinate_resolution_screenshot_id`
-
-For manual drag destinations, `drag_to_x/drag_to_y` normalization runs independently
-from source-coordinate support. Destination-grounded drag tools therefore persist
-`drag_destination_coordinate_contract` even when the tool does not also expose
-source grounding fields.
-
-If any manual precondition fails (missing frame id, missing screenshot bytes), preparation fails fast with an actionable error.
+Manual `x/y` calls do not enter the coordinate-resolution pipeline. Preparation
+passes them through with execution metadata, strips backend-only grounding
+fields during sanitization, and leaves local-runtime validation/execution as the
+authority for the direct coordinate payload.
 
 ## Coordinate Normalization Contract
 
@@ -141,7 +132,7 @@ After successful resolution:
 Metadata additions:
 
 - `coordinate_method`: original user/model intent (`manual|ocr|prediction`)
-- `coordinate_resolution_screenshot_id` (always required for safe execution)
+- `coordinate_resolution_screenshot_id` for OCR/prediction-prepared coordinates
 - `coordinate_contract`: source coordinates, clamped source coordinates, source image size, capture crop, normalized desktop coordinates, normalization status
 
 ## Single vs Bundle Preparation Behavior
@@ -187,9 +178,11 @@ Bundle preparation failure:
 - mismatch returns immediate failure result (`frame changed, re-ground required`) to prevent dangerous clicks on changed UI
 
 This guard is independent of renderer behavior and protects local automation safety.
-Manual calls always participate because preparation writes
-`coordinate_resolution_screenshot_id` from the current frame. Tool args must
-not provide `screenshot_id`.
+Only OCR/prediction-prepared calls participate because preparation writes
+`coordinate_resolution_screenshot_id` only for coordinates resolved against a
+frame. Manual coordinates are direct local-runtime coordinates and are not
+blocked by missing or changed grounding frames. Tool args must not provide
+`screenshot_id`.
 
 ## Wait Path Coupling
 

@@ -63,7 +63,7 @@ Current field-description guidance is intentionally local and stable:
 
 - `find_coordinates_by`: `Coordinate targeting method.`
 - `drag_to_find_coordinates_by`: `Drag destination targeting method.`
-- manual `x` / `y` coordinates are described in captured-image pixel space
+- manual `x` / `y` coordinates are described as direct local-runtime desktop coordinates
 - OCR and prediction fields describe only their local targeting payloads
 - selection/policy layers may remove disabled fields, but they should not rewrite this prose
 

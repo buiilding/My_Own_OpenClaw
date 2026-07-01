@@ -127,11 +127,11 @@
             "type": "string"
           },
           "drag_to_x": {
-            "description": "Destination X coordinate in captured-image pixels for drag actions. Required when drag_to_find_coordinates_by='manual'.",
+            "description": "Destination desktop X coordinate for drag actions. Required when drag_to_find_coordinates_by='manual'.",
             "type": "integer"
           },
           "drag_to_y": {
-            "description": "Destination Y coordinate in captured-image pixels for drag actions. Required when drag_to_find_coordinates_by='manual'.",
+            "description": "Destination desktop Y coordinate for drag actions. Required when drag_to_find_coordinates_by='manual'.",
             "type": "integer"
           },
           "duration": {
@@ -171,11 +171,11 @@
             "type": "number"
           },
           "x": {
-            "description": "X coordinate in captured-image pixels. Required when find_coordinates_by='manual'. Beware of the mouse position on the image when determining manual coordinates.",
+            "description": "Desktop X coordinate for direct local-runtime execution. Required when find_coordinates_by='manual'.",
             "type": "integer"
           },
           "y": {
-            "description": "Y coordinate in captured-image pixels. Required when find_coordinates_by='manual'. Beware of the mouse position on the image when determining manual coordinates.",
+            "description": "Desktop Y coordinate for direct local-runtime execution. Required when find_coordinates_by='manual'.",
             "type": "integer"
           }
         },
@@ -496,11 +496,11 @@
             "type": "number"
           },
           "x": {
-            "description": "X coordinate in captured-image pixels. Required when find_coordinates_by='manual'. Beware of the mouse position on the image when determining manual coordinates.",
+            "description": "Desktop X coordinate for direct local-runtime execution. Required when find_coordinates_by='manual'.",
             "type": "integer"
           },
           "y": {
-            "description": "Y coordinate in captured-image pixels. Required when find_coordinates_by='manual'. Beware of the mouse position on the image when determining manual coordinates.",
+            "description": "Desktop Y coordinate for direct local-runtime execution. Required when find_coordinates_by='manual'.",
             "type": "integer"
           }
         },
