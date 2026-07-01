@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/backend: rename the backend endpoint setup guide from
+  `backend/docs/install/local_backend_and_endpoint_setup.md` to
+  `backend/docs/install/backend_endpoint_setup.md` so the path matches the
+  endpoint-focused title. Migration: use the new docs path.
 - docs/frontend: rename the frontend runtime surface reference from
   `frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md`
   to
