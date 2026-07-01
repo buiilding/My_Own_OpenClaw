@@ -4,7 +4,7 @@
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 
-export type SettingsUpdateErrorPayload = {
+type SettingsUpdateErrorPayload = {
   content?: unknown;
   message?: unknown;
 };

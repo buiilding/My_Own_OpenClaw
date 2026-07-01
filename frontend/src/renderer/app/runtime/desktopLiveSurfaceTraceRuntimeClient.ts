@@ -5,7 +5,7 @@
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { SEND_CHANNELS } from '../../infrastructure/ipc/channels';
 
-export type DesktopLiveSurfaceTracePayload = Record<string, unknown>;
+type DesktopLiveSurfaceTracePayload = Record<string, unknown>;
 
 export const DesktopLiveSurfaceTraceRuntimeClient = {
   send(payload: DesktopLiveSurfaceTracePayload): void {

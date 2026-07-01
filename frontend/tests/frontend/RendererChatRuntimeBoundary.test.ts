@@ -2804,6 +2804,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('export type RendererResponseSurfaceSizeTraceValues');
     expect(source).not.toContain('export type RendererChatPillStateTraceValues');
     expect(source).not.toContain('export function configureRendererTraceWorkspaceSnapshotResolver');
+    expect(clientSource).not.toContain('export type DesktopLiveSurfaceTracePayload');
     expect(chatProviderSource).toContain('configureRendererTraceWorkspaceSnapshotResolver');
     expect(chatProviderSource).toContain('DesktopRendererTraceRuntime');
     expect(chatProviderSource).toContain('getChatProviderTraceWorkspaceSnapshotFromChatStore');

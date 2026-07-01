@@ -98,6 +98,7 @@ describe('renderer settings runtime boundary', () => {
     expect(appConfigClientSource).toContain('onSettingsSaveStatusAction');
     expect(appConfigClientSource).toContain('DesktopSettingsUpdateErrorRuntime');
     expect(settingsUpdateErrorRuntimeSource).toContain('export const DesktopSettingsUpdateErrorRuntime = Object.freeze');
+    expect(settingsUpdateErrorRuntimeSource).not.toContain('export type SettingsUpdateErrorPayload');
     expect(settingsUpdateErrorRuntimeSource).not.toContain('export function isSettingsUpdateErrorText');
     expect(settingsUpdateErrorRuntimeSource).not.toContain('export function isSettingsUpdateErrorPayload');
     expect(sessionClientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');

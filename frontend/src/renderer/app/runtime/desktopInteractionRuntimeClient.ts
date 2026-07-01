@@ -7,7 +7,7 @@ import {
   logUserSentMessage,
 } from '../../infrastructure/interaction/rendererInteractionLogger';
 
-export type UserSentMessageInteraction = {
+type UserSentMessageInteraction = {
   conversationRef?: string | null;
   senderSurface?: string | null;
   messageText?: string;

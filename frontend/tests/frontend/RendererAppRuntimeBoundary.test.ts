@@ -1526,11 +1526,14 @@ describe('renderer app runtime boundary', () => {
     expect(mainSource).not.toContain('document.getElementById');
     expect(clientSource).toContain('installRendererInteractionLogger()');
     expect(clientSource).toContain('logUserSentMessage(details)');
+    expect(clientSource).not.toContain('export type UserSentMessageInteraction');
     expect(startupClientSource).toContain('getRendererEntrypointView');
     expect(startupClientSource).toContain('getRendererRootElement');
     expect(startupClientSource).toContain('shouldSuppressWakewordOnStartup');
     expect(startupClientSource).toContain('getElementById');
     expect(startupClientSource).toContain('new URLSearchParams');
+    expect(startupClientSource).not.toContain('export type RendererEntrypointView');
+    expect(startupClientSource).not.toContain('export type RendererStartupSurface');
   });
 
   test('renderer app startup surface selection is owned by startup runtime client', async () => {

@@ -4,13 +4,13 @@
 
 import { isVmModeEnabled } from '../../infrastructure/runtime/vmMode';
 
-export type RendererEntrypointView =
+type RendererEntrypointView =
   | 'main'
   | 'minimal-chat-pill'
   | 'minimal-response-overlay'
   | 'tool-ghost-debug';
 
-export type RendererStartupSurface =
+type RendererStartupSurface =
   | 'dashboard'
   | 'dashboard-vm'
   | 'onboarding';
