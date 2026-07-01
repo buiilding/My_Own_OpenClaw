@@ -75,8 +75,52 @@ describe('AttachmentList', () => {
       'data:image/png;base64,first',
       'resolved://artifact-camera',
     ]);
+    expect(mockUseResolvedAttachmentImageSrc).toHaveBeenCalledTimes(1);
+    expect(mockUseResolvedAttachmentImageSrc).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'attachment-2',
+      status: 'ready',
+    }));
     expect(screen.getByText('Screenshot pending')).toBeInTheDocument();
     expect(screen.getByText('Attachment unavailable')).toBeInTheDocument();
+  });
+
+  test('drops malformed attachment descriptors before rendering', () => {
+    render(
+      <AttachmentList
+        attachments={[
+          {
+            id: 'legacy-row-alias',
+            screenshotRef: 'artifact-legacy',
+          },
+          {
+            id: ' padded-id ',
+            kind: 'image',
+            source: 'user_included',
+            status: 'materializing',
+            previewSrc: 'data:image/png;base64,padded-id',
+          },
+          {
+            id: 'missing-ready-source',
+            kind: 'image',
+            source: 'camera_button',
+            status: 'ready',
+          },
+          {
+            id: 'attachment-ready',
+            kind: 'image',
+            source: 'replay',
+            status: 'ready',
+            screenshotRef: 'artifact-ready',
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getAllByRole('img')).toHaveLength(1);
+    expect(screen.getByRole('img')).toHaveAttribute('src', 'resolved://artifact-ready');
+    expect(new Set(mockUseResolvedAttachmentImageSrc.mock.calls.map(([attachment]) => attachment.id))).toEqual(
+      new Set(['attachment-ready']),
+    );
   });
 
   test('omits pending and failed non-image states in compact surfaces', () => {
@@ -124,7 +168,47 @@ describe('AttachmentList', () => {
     expect(screen.getByRole('img').closest('.message-attachment-image-container--tool-output')).toBeTruthy();
   });
 
-  test('keeps preview visible while ready artifact source resolves', () => {
+  test('owns optional attachment chrome after descriptor validation', () => {
+    const { container, rerender } = render(
+      <AttachmentList
+        containerClassName="tool-attachment-container"
+        headerClassName="tool-attachment-header"
+        headerText="Visual Output"
+        surface="tool-output"
+        attachments={[{
+          id: 'missing-ready-source',
+          kind: 'image',
+          source: 'tool_result',
+          status: 'ready',
+        }]}
+      />,
+    );
+
+    expect(container.querySelector('.tool-attachment-container')).toBeNull();
+    expect(screen.queryByText('Visual Output')).not.toBeInTheDocument();
+
+    rerender(
+      <AttachmentList
+        containerClassName="tool-attachment-container"
+        headerClassName="tool-attachment-header"
+        headerText="Visual Output"
+        surface="tool-output"
+        attachments={[{
+          id: 'attachment-tool-output',
+          kind: 'image',
+          source: 'tool_result',
+          status: 'ready',
+          screenshotRef: 'artifact-tool-output',
+        }]}
+      />,
+    );
+
+    expect(container.querySelector('.tool-attachment-container')).toBeTruthy();
+    expect(screen.getByText('Visual Output')).toHaveClass('tool-attachment-header');
+    expect(screen.getByRole('img')).toHaveAttribute('src', 'resolved://artifact-tool-output');
+  });
+
+  test('does not keep renderer preview state after SDK marks an attachment ready', () => {
     mockUseResolvedAttachmentImageSrc.mockReturnValue(null);
 
     const { rerender } = render(
@@ -142,6 +226,7 @@ describe('AttachmentList', () => {
     );
 
     expect(screen.getByRole('img')).toHaveAttribute('src', 'data:image/png;base64,preview');
+    expect(mockUseResolvedAttachmentImageSrc).not.toHaveBeenCalled();
 
     rerender(
       <AttachmentList
@@ -157,7 +242,8 @@ describe('AttachmentList', () => {
       />,
     );
 
-    expect(screen.getByRole('img')).toHaveAttribute('src', 'data:image/png;base64,preview');
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(mockUseResolvedAttachmentImageSrc).toHaveBeenCalledTimes(1);
 
     mockUseResolvedAttachmentImageSrc.mockReturnValue('resolved://artifact-ready');
     rerender(
@@ -175,6 +261,11 @@ describe('AttachmentList', () => {
     );
 
     expect(screen.getByRole('img')).toHaveAttribute('src', 'resolved://artifact-ready');
+    expect(mockUseResolvedAttachmentImageSrc).toHaveBeenCalledTimes(2);
+    expect(mockUseResolvedAttachmentImageSrc).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'attachment-stable',
+      status: 'ready',
+    }));
   });
 });
 
@@ -204,5 +295,31 @@ describe('UserMessage attachments', () => {
     );
 
     expect(screen.getByRole('img')).toHaveAttribute('src', 'resolved://artifact-ready');
+  });
+
+  test('does not render malformed user attachment descriptors', () => {
+    render(
+      <UserMessage
+        message={{
+          text: 'Please inspect this',
+          attachments: [{
+            id: ' padded-ready ',
+            kind: 'image',
+            source: 'user_included',
+            status: 'ready',
+            screenshotRef: 'artifact-ready',
+          }, {
+            id: 'missing-ready-source',
+            kind: 'image',
+            source: 'user_included',
+            status: 'ready',
+          }],
+        }}
+      />,
+    );
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.getByText('Please inspect this')).toBeInTheDocument();
+    expect(mockUseResolvedAttachmentImageSrc).not.toHaveBeenCalled();
   });
 });

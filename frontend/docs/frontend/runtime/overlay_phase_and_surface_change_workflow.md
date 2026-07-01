@@ -157,6 +157,11 @@ Main-process rules:
 - Dismissed SDK response-overlay intents are filtered inside Electron main's
   live-turn surface controller. The main process composition root injects the
   dismissed-guard lookup and must not parse SDK overlay intent fields directly.
+- The live-turn surface controller treats SDK `ConversationView`
+  response-overlay refs as exact identity. Padded conversation, turn, guard, or
+  surface-owner refs are ignored rather than trimmed, and a response-overlay
+  owner outside the view conversation must provide its own exact surface turn
+  ref instead of borrowing `view.liveTurn.turnRef`.
 - Terminal/idle phases with a mismatched active response `correlation_id` must
   be ignored so late events from a previous response cannot mutate current
   overlay visibility.

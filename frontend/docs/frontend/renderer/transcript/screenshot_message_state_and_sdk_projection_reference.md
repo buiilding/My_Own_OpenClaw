@@ -59,6 +59,22 @@ row provides typed `attachments[]`.
 There is no renderer `buildMessageScreenshotState(...)` whole-message facade.
 Renderer chat rows should receive typed `attachments[]`; artifact-backed image
 resolution stays behind attachment descriptors.
+`AttachmentRendererRegistry` does not keep a renderer-side last image source
+while SDK attachment lifecycle changes. A materializing preview renders only
+while the descriptor remains `status: "materializing"`, and a ready image
+renders only after the artifact/image resolver returns a source for the current
+SDK descriptor. Materializing previews are rendered directly from the SDK
+descriptor's exact `previewSrc`; they do not enter
+`DesktopAttachmentImageRuntime`, whose artifact/image source reader is limited
+to ready SDK image descriptors.
+`AttachmentList` is the React attachment gate for both user rows and
+tool-output rows. Message components pass SDK row `attachments[]` into that
+entrypoint instead of importing
+`DesktopSdkDisplayAttachmentProjection.readSdkDisplayAttachments(...)`
+themselves. Raw `message.attachments` arrays that contain only malformed
+descriptors must not show screenshot headers or other lifecycle UI, and loose
+component inputs cannot make malformed user attachments reach the attachment
+renderer path.
 
 There is no renderer `resolveReplayScreenshotState(...)` facade. React replay
 actions dispatch SDK retry/edit intent only; SDK target-row resolution preserves
@@ -67,25 +83,76 @@ typed attachments and any legacy screenshot refs.
 ## SDK Display Projection
 
 `DesktopSdkDisplayChatMessageProjectionRuntime` maps SDK display rows directly
-to renderer chat-message props and reads typed attachment descriptors from SDK
-display row metadata. The legacy `sdkDisplayChatMessageProjection.ts`
+to renderer chat-message props without routing through legacy transcript
+message-state builders, and reads typed attachment descriptors from SDK display
+row metadata. The legacy `sdkDisplayChatMessageProjection.ts`
 compatibility re-export has been deleted; callers use the app-runtime owner
 directly. The runtime does not build an
 intermediate `DisplayMessage` model or adapt legacy screenshot aliases for
 primary renderer display; old rows must be adapted earlier by
 `legacyVisualAttachmentReplayAdapter`.
+Display rows also need canonical SDK role/type pairs before the renderer maps
+them into component props: user rows must be `role: "user"` with
+`type: "user_message"`, assistant text/progress/tool-call rows must be
+assistant-authored rows, and tool-output rows must be `role: "tool"`. Mismatched
+pairs stay inert instead of the renderer assigning sender or tool semantics from
+`type` alone. Renderer projection reads those SDK `role` and `type` labels only
+when they are exact known values; padded or unknown labels do not get trimmed,
+relabelled, or mapped into chat-message props. The projection accepts exact SDK
+row ids once, then passes that accepted id through each row builder instead of
+letting builders re-read raw `row.id`.
 Streaming assistant rows read SDK `reasoningText` only; the renderer adapter
-does not recover old snake-case reasoning aliases.
+does not recover old snake-case reasoning aliases. The adapter also does not
+relabel streaming SDK assistant display rows as `assistant_delta`: it preserves
+exact SDK-authored `metadata.sourceEventType` when present, otherwise uses the
+generic display row type. Padded or empty source event values fall back to the
+row type instead of being trimmed into authored metadata. Renderer completion
+derives only from `row.isStreaming`.
 It also must not synthesize missing model-facing tool-call objects from
 metadata-only rows; SDK display rows should provide that semantic object when
 it is part of the row contract, and renderer projection keeps metadata as
-display/details only.
+display/details only. Tool-call and tool-output card text is likewise
+SDK-authored string row content; the renderer adapter drops structured row
+content instead of JSON-stringifying it into a display fallback.
+SDK `tool_progress` display rows remain renderer `tool-progress` messages. The
+adapter preserves SDK-authored `metadata.sourceEventType` such as
+`web-search-progress` when present, falls back to generic `tool_progress` for
+unlabeled rows, and does not relabel generic progress as `search-source`.
 `DesktopSdkDisplayAttachmentProjection` owns renderer-side display attachment
-validation, image counting, ready-image checks, and trace lifecycle summaries.
-Other renderer presentation runtimes should call those helpers instead of
-inspecting `screenshotRef`/`screenshotUrl` fields directly. Token estimates also
-read SDK typed `attachments[]`; legacy screenshot arrays remain SDK/replay
-compatibility input, not a renderer token-count source.
+validation and artifact image-source extraction for typed SDK descriptors. It
+returns sanitized attachment props rather than the original descriptor object:
+only typed display fields such as id, kind, source, status, filename, content
+type, preview source, artifact ref/URL, and error code can reach message
+components. Raw screenshot aliases, ready-row preview bytes, backend payloads,
+and arbitrary extra fields are dropped at this gate. It does not publish
+image-count, ready-image, or lifecycle summary helpers. Token estimates read
+only the projected SDK `attachments[]` list; legacy screenshot arrays remain
+SDK/replay compatibility input, not a renderer token-count source.
+The projection keeps one sanitizer as the lifecycle gate instead of a separate
+renderer preflight displayability pass, so there is only one renderer-side place
+where malformed typed descriptors are dropped before rendering.
+Renderer message content-kind and row-class helpers also route attachment
+presence through this projection helper instead of inspecting raw attachment
+arrays, so padded or malformed descriptors cannot become attachment UI state.
+Renderer tool-detail projection is allowlist-based: tool detail panels may
+receive exact SDK display-detail fields such as tool/request/correlation ids,
+source event type, display source, and success, but raw payloads, provider
+metadata, attachment descriptors, and screenshot aliases do not pass through as
+generic detail records. Tool output components do not reconstruct missing
+details from legacy `toolMetadata`, `toolName`, `executionTime`, or `success`
+props; `toolOutputDetails` is the SDK-owned detail payload.
+Attachment ids and artifact image-source fields must be exact non-empty SDK
+strings; the renderer drops padded or empty ids/refs/URLs instead of trimming
+them into valid display inputs. Lifecycle descriptors must also be complete:
+materializing images require an exact `previewSrc`, ready images require an
+exact `screenshotRef` or non-inline `screenshotUrl`, and screenshot-request
+placeholders must come from the camera-button source. Artifact image-source
+extraction consumes the sanitized descriptor and is ready-only; materializing
+preview bytes stay a display field on the attachment descriptor and are not
+treated as resolvable artifact state.
+Ready attachment `screenshotUrl` values that contain inline `data:` bytes are
+dropped so persisted/replay display cannot smuggle volatile preview bytes
+through the ready-image path.
 
 - primary display field: `attachments[]`
 - backend/replay compatibility input before renderer projection:
@@ -113,12 +180,10 @@ If a replayed or resumed image is missing:
    artifact URLs
 
 If the missing image was sent from the chat pill while the dashboard still shows
-the earlier optimistic text-only user row, enable `[LiveSurfaceTrace]` and check
-`renderer.display_rows.projected`. `sdkUserImageCount` means the SDK display row
-contained screenshot metadata, `sdkProjectedUserImageCount` means
-`DesktopSdkDisplayChatMessageProjectionRuntime` converted it into renderer
-message image state, and `mergedUserImageCount` means the renderer store kept
-that image after replacing the optimistic row.
+the earlier pending user row, enable `[LiveSurfaceTrace]` and check
+`renderer.display_rows.projected`. The renderer-side display adapter should
+project only typed SDK `attachments[]`; compatibility screenshot metadata must
+already have been adapted by the SDK replay adapter or SDK display projection.
 
 If a row shows one image instead of multiple:
 

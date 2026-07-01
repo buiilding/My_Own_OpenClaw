@@ -43,7 +43,7 @@ function MessageList({
 }) {
   const showDevCompactionDebug = isDevUiEnabled();
   const [editingUserMessageId, setEditingUserMessageId] = useState(null);
-  const [editingUserReplayTargetMessageId, setEditingUserReplayTargetMessageId] = useState(null);
+  const [editingUserReplayTargetRowId, setEditingUserReplayTargetRowId] = useState(null);
   const [editingUserDraft, setEditingUserDraft] = useState('');
   const [submittingUserEdit, setSubmittingUserEdit] = useState(false);
   const messagesEndRef = useRef(null);
@@ -57,12 +57,12 @@ function MessageList({
     enableAgentLoopAutoScroll,
   });
 
-  const handleStartUserEdit = useCallback((messageId, messageText, editTargetMessageId = null) => {
+  const handleStartUserEdit = useCallback((messageId, messageText, editTargetRowId = null) => {
     if (submittingUserEdit) {
       return;
     }
     setEditingUserMessageId(messageId);
-    setEditingUserReplayTargetMessageId(editTargetMessageId || messageId);
+    setEditingUserReplayTargetRowId(editTargetRowId);
     setEditingUserDraft(messageText || '');
   }, [submittingUserEdit]);
 
@@ -71,33 +71,34 @@ function MessageList({
       return;
     }
     setEditingUserMessageId(null);
-    setEditingUserReplayTargetMessageId(null);
+    setEditingUserReplayTargetRowId(null);
     setEditingUserDraft('');
   }, [submittingUserEdit]);
 
   const handleSubmitUserEdit = useCallback(async () => {
-    if (submittingUserEdit || !editingUserMessageId || typeof onUserEdit !== 'function') {
-      return;
-    }
-    const normalizedText = editingUserDraft.trim();
-    if (!normalizedText) {
+    if (
+      submittingUserEdit
+      || !editingUserMessageId
+      || !editingUserReplayTargetRowId
+      || typeof onUserEdit !== 'function'
+    ) {
       return;
     }
     setSubmittingUserEdit(true);
     try {
       const result = await onUserEdit(
-        editingUserReplayTargetMessageId || editingUserMessageId,
-        normalizedText,
+        editingUserReplayTargetRowId,
+        editingUserDraft,
       );
       if (result !== false) {
         setEditingUserMessageId(null);
-        setEditingUserReplayTargetMessageId(null);
+        setEditingUserReplayTargetRowId(null);
         setEditingUserDraft('');
       }
     } finally {
       setSubmittingUserEdit(false);
     }
-  }, [editingUserDraft, editingUserMessageId, editingUserReplayTargetMessageId, onUserEdit, submittingUserEdit]);
+  }, [editingUserDraft, editingUserMessageId, editingUserReplayTargetRowId, onUserEdit, submittingUserEdit]);
 
   useEffect(() => {
     if (!editingUserMessageId) {
@@ -106,7 +107,7 @@ function MessageList({
     const stillExists = messages.some((message) => message.id === editingUserMessageId);
     if (!stillExists) {
       setEditingUserMessageId(null);
-      setEditingUserReplayTargetMessageId(null);
+      setEditingUserReplayTargetRowId(null);
       setEditingUserDraft('');
       setSubmittingUserEdit(false);
     }
@@ -133,8 +134,8 @@ function MessageList({
       const {
         canRetryMessage,
         canEditMessage,
-        retryTargetMessageId,
-        editTargetMessageId,
+        retryTargetRowId,
+        editTargetRowId,
       } = resolveMessageReplayActions(msg);
       const nodes = [
         (
@@ -150,14 +151,14 @@ function MessageList({
             disableAssistantActions={disableAssistantActions}
             canRetryMessage={canRetryMessage}
             canEditMessage={canEditMessage}
-            assistantRetryTargetMessageId={retryTargetMessageId}
+            assistantRetryTargetRowId={retryTargetRowId}
             onAssistantFeedbackChange={onAssistantFeedbackChange}
             onAssistantTryAgain={onAssistantTryAgain}
             isUserEditing={editingUserMessageId === msg.id}
             userEditDraft={editingUserDraft}
             isUserEditSubmitting={submittingUserEdit}
             onUserEditDraftChange={setEditingUserDraft}
-            userEditTargetMessageId={editTargetMessageId}
+            userEditTargetRowId={editTargetRowId}
             onStartUserEdit={handleStartUserEdit}
             onCancelUserEdit={handleCancelUserEdit}
             onSubmitUserEdit={handleSubmitUserEdit}

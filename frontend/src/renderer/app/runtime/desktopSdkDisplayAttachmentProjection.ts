@@ -4,15 +4,36 @@
 
 import type {
   SdkDisplayAttachment,
+  SdkDisplayAttachmentSource,
+  SdkDisplayAttachmentStatus,
 } from '../../../../packages/windie-sdk-js/src/conversation/types.js';
 
 type SdkDisplayImageAttachmentSource = {
   id: string;
-  status: SdkDisplayAttachment['status'];
+  status: 'ready';
   artifactId: string | null;
   url: string | null;
   contentType: string | null;
 };
+
+type SdkDisplayAttachmentKind = SdkDisplayAttachment['kind'];
+
+const SDK_DISPLAY_ATTACHMENT_KINDS = new Set<SdkDisplayAttachmentKind>([
+  'image',
+  'screenshot_request',
+]);
+const SDK_DISPLAY_ATTACHMENT_SOURCES = new Set<SdkDisplayAttachmentSource>([
+  'user_included',
+  'camera_button',
+  'tool_result',
+  'replay',
+]);
+const SDK_DISPLAY_ATTACHMENT_STATUSES = new Set<SdkDisplayAttachmentStatus>([
+  'materializing',
+  'pending_capture',
+  'ready',
+  'failed',
+]);
 
 function recordFromUnknown(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -20,124 +41,173 @@ function recordFromUnknown(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function optionalTrimmedString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim().length > 0
-    ? value.trim()
+function optionalExactString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
     : null;
 }
 
-function isSdkDisplayAttachment(value: unknown): value is SdkDisplayAttachment {
-  const record = recordFromUnknown(value);
-  return Boolean(
-    record
-    && typeof record.id === 'string'
-    && (record.kind === 'image' || record.kind === 'screenshot_request')
-    && (
-      record.source === 'user_included'
-      || record.source === 'camera_button'
-      || record.source === 'tool_result'
-      || record.source === 'replay'
-    )
-    && (
-      record.status === 'materializing'
-      || record.status === 'pending_capture'
-      || record.status === 'ready'
-      || record.status === 'failed'
-    ),
-  );
+function optionalReadyImageUrl(value: unknown): string | null {
+  const url = optionalExactString(value);
+  if (!url || url.toLowerCase().startsWith('data:')) {
+    return null;
+  }
+  return url;
 }
 
-function readSdkDisplayAttachments(value: unknown): SdkDisplayAttachment[] {
-  return Array.isArray(value) ? value.filter(isSdkDisplayAttachment) : [];
+function optionalAttachmentString(value: unknown): string | null {
+  return optionalExactString(value);
 }
 
-function isDisplayImageAttachment(value: unknown): boolean {
-  const record = recordFromUnknown(value);
-  return Boolean(
-    record
-    && record.kind === 'image'
-    && (
-      record.status === 'materializing'
-      || record.status === 'ready'
-    ),
-  );
+function readExactAttachmentKind(value: unknown): SdkDisplayAttachmentKind | null {
+  return typeof value === 'string'
+    && value.length > 0
+    && value === value.trim()
+    && SDK_DISPLAY_ATTACHMENT_KINDS.has(value as SdkDisplayAttachmentKind)
+    ? value as SdkDisplayAttachmentKind
+    : null;
 }
 
-function isReadyDisplayImageAttachment(value: unknown): boolean {
-  const record = recordFromUnknown(value);
-  return Boolean(
-    record
-    && record.kind === 'image'
-    && record.status === 'ready',
-  );
+function readExactAttachmentSource(value: unknown): SdkDisplayAttachmentSource | null {
+  return typeof value === 'string'
+    && value.length > 0
+    && value === value.trim()
+    && SDK_DISPLAY_ATTACHMENT_SOURCES.has(value as SdkDisplayAttachmentSource)
+    ? value as SdkDisplayAttachmentSource
+    : null;
 }
 
-function countDisplayImageAttachments(value: unknown): number {
-  return readSdkDisplayAttachments(value).filter(isDisplayImageAttachment).length;
+function readExactAttachmentStatus(value: unknown): SdkDisplayAttachmentStatus | null {
+  return typeof value === 'string'
+    && value.length > 0
+    && value === value.trim()
+    && SDK_DISPLAY_ATTACHMENT_STATUSES.has(value as SdkDisplayAttachmentStatus)
+    ? value as SdkDisplayAttachmentStatus
+    : null;
 }
 
-function hasReadyDisplayImageAttachment(value: unknown): boolean {
-  return readSdkDisplayAttachments(value).some(isReadyDisplayImageAttachment);
-}
-
-function readSdkImageAttachmentSource(value: unknown): SdkDisplayImageAttachmentSource | null {
-  if (!isSdkDisplayAttachment(value) || !isDisplayImageAttachment(value)) {
+function baseAttachmentFields(record: Record<string, unknown>): Pick<
+  SdkDisplayAttachment,
+  'id' | 'kind' | 'source' | 'status'
+> | null {
+  const id = optionalExactString(record.id);
+  const kind = readExactAttachmentKind(record.kind);
+  const source = readExactAttachmentSource(record.source);
+  const status = readExactAttachmentStatus(record.status);
+  if (
+    !id
+    || !kind
+    || !source
+    || !status
+  ) {
     return null;
   }
   return {
-    id: value.id.trim(),
-    status: value.status,
-    artifactId: optionalTrimmedString(value.screenshotRef),
-    url: optionalTrimmedString(value.screenshotUrl),
-    contentType: optionalTrimmedString(value.contentType),
+    id,
+    kind,
+    source,
+    status,
   };
 }
 
-function summarizeSdkDisplayAttachments(value: unknown): Record<string, unknown> {
-  let userAttachmentCount = 0;
-  let readyArtifactCount = 0;
-  let materializingPreviewCount = 0;
-  let pendingScreenshotRequestCount = 0;
-  let failedAttachmentCount = 0;
-  const sources = new Set<string>();
-  const statuses = new Set<string>();
-  for (const attachment of readSdkDisplayAttachments(value)) {
-    const attachmentRecord = recordFromUnknown(attachment);
-    if (!attachmentRecord) {
-      continue;
+function withOptionalDisplayStrings(
+  attachment: SdkDisplayAttachment,
+  record: Record<string, unknown>,
+): SdkDisplayAttachment {
+  const filename = optionalAttachmentString(record.filename);
+  const contentType = optionalAttachmentString(record.contentType);
+  const errorCode = optionalAttachmentString(record.errorCode);
+  return {
+    ...attachment,
+    ...(filename ? { filename } : {}),
+    ...(contentType ? { contentType } : {}),
+    ...(errorCode ? { errorCode } : {}),
+  };
+}
+
+function sanitizeImageAttachment(
+  base: SdkDisplayAttachment,
+  record: Record<string, unknown>,
+): SdkDisplayAttachment | null {
+  if (base.status === 'materializing') {
+    if (base.source !== 'user_included') {
+      return null;
     }
-    userAttachmentCount += 1;
-    if (typeof attachmentRecord.source === 'string') {
-      sources.add(attachmentRecord.source);
+    const previewSrc = optionalExactString(record.previewSrc);
+    return previewSrc
+      ? withOptionalDisplayStrings({ ...base, previewSrc }, record)
+      : null;
+  }
+  if (base.status === 'ready') {
+    const screenshotRef = optionalExactString(record.screenshotRef);
+    const screenshotUrl = optionalReadyImageUrl(record.screenshotUrl);
+    if (!screenshotRef && !screenshotUrl) {
+      return null;
     }
-    if (typeof attachmentRecord.status === 'string') {
-      statuses.add(attachmentRecord.status);
-    }
-    if (isReadyDisplayImageAttachment(attachmentRecord)) {
-      readyArtifactCount += 1;
-    } else if (attachmentRecord.status === 'materializing') {
-      materializingPreviewCount += 1;
-    } else if (attachmentRecord.status === 'pending_capture') {
-      pendingScreenshotRequestCount += 1;
-    } else if (attachmentRecord.status === 'failed') {
-      failedAttachmentCount += 1;
-    }
+    return withOptionalDisplayStrings({
+      ...base,
+      ...(screenshotRef ? { screenshotRef } : {}),
+      ...(screenshotUrl ? { screenshotUrl } : {}),
+    }, record);
+  }
+  if (base.status === 'failed') {
+    return withOptionalDisplayStrings(base, record);
+  }
+  return null;
+}
+
+function sanitizeScreenshotRequestAttachment(
+  base: SdkDisplayAttachment,
+  record: Record<string, unknown>,
+): SdkDisplayAttachment | null {
+  if (
+    base.source !== 'camera_button'
+    || (
+      base.status !== 'pending_capture'
+      && base.status !== 'materializing'
+      && base.status !== 'failed'
+    )
+  ) {
+    return null;
+  }
+  return withOptionalDisplayStrings(base, record);
+}
+
+function sanitizeSdkDisplayAttachment(value: unknown): SdkDisplayAttachment | null {
+  const record = recordFromUnknown(value);
+  if (!record) {
+    return null;
+  }
+  const base = baseAttachmentFields(record);
+  if (!base) {
+    return null;
+  }
+  return base.kind === 'image'
+    ? sanitizeImageAttachment(base, record)
+    : sanitizeScreenshotRequestAttachment(base, record);
+}
+
+function readSdkDisplayAttachments(value: unknown): SdkDisplayAttachment[] {
+  return Array.isArray(value)
+    ? value.flatMap((attachment) => sanitizeSdkDisplayAttachment(attachment) ?? [])
+    : [];
+}
+
+function readSdkImageAttachmentSource(value: unknown): SdkDisplayImageAttachmentSource | null {
+  const attachment = sanitizeSdkDisplayAttachment(value);
+  if (!attachment || attachment.kind !== 'image' || attachment.status !== 'ready') {
+    return null;
   }
   return {
-    userAttachmentCount,
-    attachmentSources: Array.from(sources).sort(),
-    attachmentStatuses: Array.from(statuses).sort(),
-    readyArtifactCount,
-    materializingPreviewCount,
-    pendingScreenshotRequestCount,
-    failedAttachmentCount,
+    id: attachment.id,
+    status: 'ready',
+    artifactId: attachment.screenshotRef ?? null,
+    url: attachment.screenshotUrl ?? null,
+    contentType: attachment.contentType ?? null,
   };
 }
 
 export const DesktopSdkDisplayAttachmentProjection = Object.freeze({
-  countDisplayImageAttachments,
-  hasReadyDisplayImageAttachment,
   readSdkImageAttachmentSource,
   readSdkDisplayAttachments,
-  summarizeSdkDisplayAttachments,
 });

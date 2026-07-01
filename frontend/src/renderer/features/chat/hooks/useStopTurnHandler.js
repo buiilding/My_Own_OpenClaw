@@ -19,13 +19,6 @@ const {
   executeStopTurnExecutionPlan,
 } = DesktopStopTurnRuntime;
 
-const IDLE_STOP_TURN_TARGET = Object.freeze({
-  source: 'idle',
-  conversationRef: null,
-  turnRef: null,
-  canStop: false,
-});
-
 export function useStopTurnHandler({
   enabled = true,
   stopTurnTarget = null,
@@ -37,7 +30,7 @@ export function useStopTurnHandler({
     if (stopTurnTarget && typeof stopTurnTarget === 'object') {
       return stopTurnTarget;
     }
-    return IDLE_STOP_TURN_TARGET;
+    return null;
   }, [stopTurnTarget]);
 
   const handleStopTurn = useCallback(() => executeStopTurnExecutionPlan({

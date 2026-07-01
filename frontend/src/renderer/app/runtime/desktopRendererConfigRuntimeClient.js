@@ -3,6 +3,7 @@
  */
 
 import { useAppConfigContext } from '../providers/AppConfigContext';
+import { DesktopRendererConfigStorageRuntime } from './desktopRendererConfigStorageRuntime';
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -31,11 +32,20 @@ function buildDeferredQueryModelSelection(config) {
   };
 }
 
+function readDeferredQueryModelSelection() {
+  return buildDeferredQueryModelSelection(
+    DesktopRendererConfigStorageRuntime.loadConfigFromStorage(),
+  );
+}
+
 export const DesktopRendererConfigRuntimeClient = Object.freeze({
   useDesktopRendererConfigContext() {
     return useDesktopRendererConfigContext();
   },
   buildDeferredQueryModelSelection(config) {
     return buildDeferredQueryModelSelection(config);
+  },
+  readDeferredQueryModelSelection() {
+    return readDeferredQueryModelSelection();
   },
 });

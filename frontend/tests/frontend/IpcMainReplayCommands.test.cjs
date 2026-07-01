@@ -4,24 +4,6 @@ const {
   initIpc,
   registerBridgeSuiteLifecycleHooks,
 } = require('./__mocks__/ipcMainBridgeHarness.cjs');
-const path = require('path');
-
-const ALL_LOCAL_TOOL_NAMES = Object.freeze([
-  'mouse_control',
-  'keyboard_control',
-  'screenshot',
-  'scroll_control',
-  'switch_window',
-  'wait',
-  'get_open_windows',
-  'get_system_stats',
-  'open_app',
-  'run_shell_command',
-  'process',
-  'read_file',
-  'replace',
-  'browser',
-]);
 
 describe('ipc.cjs replay command handling', () => {
   registerBridgeSuiteLifecycleHooks();
@@ -229,7 +211,6 @@ describe('ipc.cjs replay command handling', () => {
     )).resolves.toEqual({
       ok: true,
       data: expect.objectContaining({
-        turnRef: 'turn-edit',
         queryMessageId: 'msg-edit',
       }),
     });
@@ -248,7 +229,6 @@ describe('ipc.cjs replay command handling', () => {
     )).resolves.toEqual({
       ok: true,
       data: expect.objectContaining({
-        turnRef: 'turn-retry',
         queryMessageId: 'msg-retry',
       }),
     });
@@ -256,46 +236,101 @@ describe('ipc.cjs replay command handling', () => {
     expect(sdk.runtime.editAndResend).toHaveBeenCalledWith({
       messageId: 'row-user',
       text: 'edited text',
-      turnRef: 'turn-edit',
-      payload: expect.objectContaining({
-        text: 'edited text',
-        conversation_ref: 'conv-ipc-display',
-        screenshot_refs: ['artifact-one'],
-        agent_definition: expect.any(Object),
-      }),
-      model: { modelProvider: 'anthropic', modelId: 'claude-sonnet-4-5' },
     });
     expect(sdk.runtime.retryTurn).toHaveBeenCalledWith({
       messageId: 'row-assistant',
-      turnRef: 'turn-retry',
-      payload: expect.objectContaining({
-        conversation_ref: 'conv-ipc-display',
-        screenshot_ref: 'artifact-one',
-        agent_definition: expect.any(Object),
-      }),
-      model: { modelProvider: 'anthropic', modelId: 'claude-sonnet-4-5' },
     });
   });
 
-  test('edit/resend and retry attach current agent definition context through the shared main helper', async () => {
+  test('forwards replay edit text without main-process trimming', async () => {
     const sdk = installMockAgentClient();
     const bridge = initIpc();
-    const configPath = path.join('/tmp/appdata', 'frontend-config.json');
-    const persistedAgentConfig = {
-      model_provider: 'scripted',
-      selected_model_id: 'scripted-runtime',
-      agent_custom_instructions: 'Current Agent prompt.',
-      agent_disabled_local_tools: ALL_LOCAL_TOOL_NAMES,
-      agent_disabled_remote_tools: ['web_search'],
-      agent_enabled_mcp_servers: [],
-    };
-    bridge.fs.existsSync.mockImplementation((targetPath) => targetPath === configPath);
-    bridge.fs.readFileSync.mockImplementation((targetPath) => {
-      if (targetPath === configPath) {
-        return JSON.stringify(persistedAgentConfig);
-      }
-      throw new Error(`unexpected readFileSync path: ${targetPath}`);
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.editAndResend',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        messageId: 'row-user',
+        text: '  edited text  ',
+        turnRef: 'turn-edit',
+      },
+    )).resolves.toEqual({
+      ok: true,
+      data: expect.objectContaining({
+        queryMessageId: 'msg-edit',
+      }),
     });
+
+    expect(sdk.runtime.editAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: 'row-user',
+      text: '  edited text  ',
+    }));
+    expect(sdk.runtime.editAndResend.mock.calls[0][0]).not.toHaveProperty('payload');
+    expect(sdk.runtime.editAndResend.mock.calls[0][0]).not.toHaveProperty('turnRef');
+  });
+
+  test('rejects padded replay command identities instead of repairing them', async () => {
+    const sdk = installMockAgentClient();
+    const bridge = initIpc();
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.editAndResend',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        messageId: ' row-user ',
+        text: 'edited text',
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact message id.',
+    });
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.retryTurn',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        messageId: ' row-assistant ',
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact message id.',
+    });
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.retryTurn',
+      {
+        userId: 'registered-user-1',
+        conversationRef: ' conv-ipc-display ',
+        messageId: 'row-assistant',
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact conversation reference.',
+    });
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.retryTurn',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact message id.',
+    });
+
+    expect(sdk.runtime.editAndResend).not.toHaveBeenCalled();
+    expect(sdk.runtime.retryTurn).not.toHaveBeenCalled();
+  });
+
+  test('edit/resend and retry ignore caller-supplied replay shaping fields', async () => {
+    const sdk = installMockAgentClient();
+    const bridge = initIpc();
 
     await expect(invokeAgentSdkCommandHandler(
       bridge.handlers,
@@ -334,7 +369,7 @@ describe('ipc.cjs replay command handling', () => {
     )).resolves.toEqual({
       ok: true,
       data: expect.objectContaining({
-        turnRef: 'turn-edit',
+        queryMessageId: 'msg-edit',
       }),
     });
 
@@ -372,93 +407,40 @@ describe('ipc.cjs replay command handling', () => {
     )).resolves.toEqual({
       ok: true,
       data: expect.objectContaining({
-        turnRef: 'turn-retry',
+        queryMessageId: 'msg-retry',
       }),
     });
 
-    const editPayload = sdk.runtime.editAndResend.mock.calls[0][0].payload;
-    expect(editPayload).toMatchObject({
+    expect(sdk.runtime.editAndResend).toHaveBeenCalledWith({
+      messageId: 'row-user',
       text: 'edited text',
-      conversation_ref: 'conv-ipc-display',
-      screenshot_refs: ['artifact-one'],
-      workspace_path: '/tmp/replay-workspace',
-      metadata: { source: 'edit' },
-      agent_definition: {
-        system_prompt: {
-          mode: 'replace',
-          content: 'Current Agent prompt.',
-        },
-        tools: {
-          client_manifest: {
-            version: 1,
-            tools: [],
-          },
-          disabled_tools: ALL_LOCAL_TOOL_NAMES.concat(['web_search']),
-          enabled_remote_tools: [],
-        },
-      },
     });
-    expect(editPayload.resources).toEqual([{ kind: 'workspace', path: '/tmp/replay-workspace' }]);
-
-    const retryPayload = sdk.runtime.retryTurn.mock.calls[0][0].payload;
-    expect(retryPayload).toMatchObject({
-      conversation_ref: 'conv-ipc-display',
-      screenshot_ref: 'artifact-one',
-      workspace_path: '/tmp/replay-workspace',
-      agent_definition: {
-        system_prompt: {
-          mode: 'replace',
-          content: 'Current Agent prompt.',
-        },
-        tools: {
-          client_manifest: {
-            version: 1,
-            tools: [],
-          },
-          disabled_tools: ALL_LOCAL_TOOL_NAMES.concat(['web_search']),
-          enabled_remote_tools: [],
-        },
-      },
+    expect(sdk.runtime.retryTurn).toHaveBeenCalledWith({
+      messageId: 'row-assistant',
     });
+    expect(sdk.runtime.editAndResend.mock.calls[0][0]).not.toHaveProperty('turnRef');
+    expect(sdk.runtime.editAndResend.mock.calls[0][0]).not.toHaveProperty('payload');
+    expect(sdk.runtime.editAndResend.mock.calls[0][0]).not.toHaveProperty('model');
+    expect(sdk.runtime.retryTurn.mock.calls[0][0]).not.toHaveProperty('turnRef');
+    expect(sdk.runtime.retryTurn.mock.calls[0][0]).not.toHaveProperty('payload');
+    expect(sdk.runtime.retryTurn.mock.calls[0][0]).not.toHaveProperty('model');
   });
 
-  test('replay runtime-send trace records sanitized counts from enriched context', async () => {
-    const appendIpcBridgeDiagnostic = jest.fn();
-    const {
-      createElectronMainTraceLogger,
-    } = require('../../src/main/ipc/ipc_assistant_trace.cjs');
-    const tracer = createElectronMainTraceLogger({
-      appendIpcBridgeDiagnostic,
-      log: jest.fn(),
-      stdoutEnabled: false,
-    });
+  test('replay commands do not use query runtime context enrichment or send tracing', async () => {
     const runtimeRegistry = {
       editAndResend: jest.fn(async input => ({
-        turnRef: input.turnRef,
         queryMessageId: 'msg-edit',
       })),
     };
-    const enrichedAgentDefinition = {
-      mode: 'default_plus_overrides',
-      system_prompt: { mode: 'replace', content: 'Secret current prompt.' },
-      tools: {
-        mode: 'default_plus_client',
-        client_manifest: {
-          version: 1,
-          tools: [],
-        },
-        disabled_tools: ALL_LOCAL_TOOL_NAMES,
-        enabled_remote_tools: [],
-      },
-    };
     const attachRuntimeTurnContextToPayload = jest.fn(payload => ({
       ...payload,
-      agent_definition: enrichedAgentDefinition,
+      agent_definition: { system_prompt: { content: 'must not be attached' } },
     }));
+    const traceRuntimeSend = jest.fn();
     const commandRuntime = createDirectCommandRuntime({
       runtimeRegistry,
       attachRuntimeTurnContextToPayload,
-      traceRuntimeSend: input => tracer.traceRuntimeSend(input),
+      traceRuntimeSend,
     });
 
     await expect(commandRuntime.invoke('conversation.editAndResend', {
@@ -487,32 +469,16 @@ describe('ipc.cjs replay command handling', () => {
     })).resolves.toEqual({
       ok: true,
       data: expect.objectContaining({
-        turnRef: 'turn-edit',
+        queryMessageId: 'msg-edit',
       }),
     });
 
-    expect(attachRuntimeTurnContextToPayload).toHaveBeenCalledWith(expect.objectContaining({
+    expect(attachRuntimeTurnContextToPayload).not.toHaveBeenCalled();
+    expect(traceRuntimeSend).not.toHaveBeenCalled();
+    expect(runtimeRegistry.editAndResend).toHaveBeenCalledWith({
+      messageId: 'row-user',
       text: 'edited private text',
-      conversation_ref: 'conv-ipc-display',
-      workspace_path: '/tmp/replay-workspace',
-    }));
-    expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
-      action: 'runtime.send',
-      phase: 'sdk',
-      conversationRef: 'conv-ipc-display',
-      turnRef: 'turn-edit',
-      textLength: 'edited private text'.length,
-      hasAgentDefinition: true,
-      clientManifestToolCount: 0,
-      disabledToolCount: ALL_LOCAL_TOOL_NAMES.length,
-      enabledRemoteToolCount: 0,
-      systemPromptMode: 'replace',
-    }));
-    const serializedDiagnostics = JSON.stringify(appendIpcBridgeDiagnostic.mock.calls);
-    expect(serializedDiagnostics).not.toContain('edited private text');
-    expect(serializedDiagnostics).not.toContain('Secret current prompt.');
-    expect(serializedDiagnostics).not.toContain('Stale secret prompt.');
-    expect(serializedDiagnostics).not.toContain('Stale secret schema body.');
+    });
   });
 
   test('routes revision checkout and fork through the Agent SDK runtime adapter', async () => {
@@ -559,6 +525,96 @@ describe('ipc.cjs replay command handling', () => {
       sourceRevisionId: 'rev-display',
       cutAfterRowId: undefined,
     });
+  });
+
+  test('rejects padded revision command identities instead of repairing them', async () => {
+    const sdk = installMockAgentClient();
+    const bridge = initIpc();
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.loadDisplayTimeline',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        revisionId: ' rev-child ',
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact revision id.',
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.checkoutRevision',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        revisionId: ' rev-child ',
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact revision id.',
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.listRevisions',
+      {
+        userId: 'registered-user-1',
+        conversationRef: ' conv-ipc-display ',
+        limit: 25,
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact conversation reference.',
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.fork',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        sourceRevisionId: ' rev-display ',
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact source revision id.',
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.fork',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        sourceRevisionId: 'rev-display',
+        cutAfterRowId: ' row-cut ',
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact cut row id.',
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.fork',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        sourceRevisionId: 'rev-display',
+        newConversationRef: ' conv-new ',
+      },
+    )).resolves.toEqual({
+      ok: false,
+      error: 'Agent SDK command requires exact new conversation reference.',
+    });
+
+    expect(sdk.runtime.loadDisplayTimeline).not.toHaveBeenCalled();
+    expect(sdk.runtime.checkoutRevision).not.toHaveBeenCalled();
+    expect(sdk.agent.listConversationRevisions).not.toHaveBeenCalled();
+    expect(sdk.runtime.fork).not.toHaveBeenCalled();
   });
 
   test('routes revision list lookup through the Agent SDK', async () => {

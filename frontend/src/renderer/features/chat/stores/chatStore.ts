@@ -7,8 +7,6 @@ import { create } from 'zustand';
 import {
   buildActiveConversationWorkspaceUpdate,
   createInitialWorkspaceRecord,
-  readWorkspaceState,
-  resolveWorkspaceKey,
   selectActiveWorkspaceReadModelState,
 } from '../../../app/runtime/desktopChatWorkspaceStateRuntime';
 import type { ChatWorkspaceState } from '../../../app/runtime/desktopChatWorkspaceStateRuntime';
@@ -45,7 +43,6 @@ export interface ChatState {
   workspaces: Record<string, ChatWorkspaceState>;
   dismissedResponseOverlayEntries: Record<string, true>;
 
-  getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceState;
   setActiveConversationRef: (conversationRef: string | null) => void;
   dismissResponseOverlayEntry: (input: ResponseOverlayDismissalInput) => void;
   isResponseOverlayEntryDismissed: (input: ResponseOverlayDismissalInput) => boolean;
@@ -87,11 +84,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
   activeConversationRef: null,
   workspaces: createInitialWorkspaceRecord(),
   dismissedResponseOverlayEntries: {},
-  getWorkspaceState: (conversationRef) => {
-    const state = get();
-    const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
-    return readWorkspaceState(state, workspaceRef);
-  },
 
   setActiveConversationRef: (conversationRef) =>
     set((state) => buildActiveConversationWorkspaceUpdate(state, conversationRef)),

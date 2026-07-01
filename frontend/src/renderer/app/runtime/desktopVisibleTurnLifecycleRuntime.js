@@ -2,41 +2,52 @@
  * Owns renderer-visible turn lifecycle projection for desktop surfaces.
  */
 
+import {
+  DesktopConversationDisplayRowLookupRuntime,
+} from './desktopConversationDisplayRowLookupRuntime';
+import {
+  DesktopChatPendingTurnStateRuntime,
+} from './desktopChatPendingTurnStateRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
+
 const TERMINAL_PHASES = new Set(['complete', 'error']);
 const ACTIVE_PROGRESS_PHASES = new Set(['tool_call', 'tool_output']);
 const AWAITING_PHASES = new Set(['awaiting']);
 const BUSY_PHASES = new Set(['awaiting', 'streaming', 'tool_call', 'tool_output']);
+const {
+  findConversationViewUserDisplayRowForTurn,
+} = DesktopConversationDisplayRowLookupRuntime;
+const {
+  normalizePendingTurn,
+} = DesktopChatPendingTurnStateRuntime;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
-function normalizeString(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+function readExactIdentityString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
+function readExactLifecycleString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
 function normalizeConversationRef(value) {
-  return normalizeString(value);
+  return readExactIdentityString(value);
 }
 
 function normalizeTurnRef(value) {
-  return normalizeString(value);
-}
-
-function normalizePendingTurn(value) {
-  if (!value || typeof value !== 'object') {
-    return null;
-  }
-  const conversationRef = normalizeConversationRef(value.conversationRef);
-  const turnRef = normalizeTurnRef(value.turnRef);
-  if (!conversationRef || !turnRef) {
-    return null;
-  }
-  return {
-    ...value,
-    conversationRef,
-    turnRef,
-  };
+  return readExactIdentityString(value);
 }
 
 function normalizeSdkLiveTurnPhase(sdkLiveTurn) {
-  return normalizeString(sdkLiveTurn?.phase);
+  return readExactLifecycleString(sdkLiveTurn?.phase);
 }
 
 function sdkLiveTurnMatchesPendingTurn(pendingTurn, sdkLiveTurn) {
@@ -57,7 +68,7 @@ function hasVisiblePresentationContent(presentation) {
   const entries = Array.isArray(presentation.entries) ? presentation.entries : [];
   return (
     entries.length > 0
-    || Boolean(normalizeString(presentation.lastError))
+    || Boolean(readExactLifecycleString(presentation.lastError))
   );
 }
 
@@ -66,21 +77,6 @@ function hasPresentationLifecycleEvidence(presentation) {
     hasVisiblePresentationContent(presentation)
       || presentation?.isBusy === true
       || presentation?.isTerminal === true,
-  );
-}
-
-function hasLegacyVisibleLiveTurnContent(sdkLiveTurn) {
-  if (!sdkLiveTurn || typeof sdkLiveTurn !== 'object') {
-    return false;
-  }
-  if (sdkLiveTurn.presentation && typeof sdkLiveTurn.presentation === 'object') {
-    return false;
-  }
-  return Boolean(
-    normalizeString(sdkLiveTurn.assistantText)
-      || normalizeString(sdkLiveTurn.reasoningText)
-      || normalizeString(sdkLiveTurn.lastError)
-      || (Array.isArray(sdkLiveTurn.toolEvents) && sdkLiveTurn.toolEvents.length > 0),
   );
 }
 
@@ -97,7 +93,6 @@ function canSdkLiveTurnReplacePendingTurn(pendingTurn, sdkLiveTurn) {
     sdkLiveTurnMatchesPendingTurn(pendingTurn, sdkLiveTurn)
     && (
       hasVisiblePresentationContent(sdkLiveTurn?.presentation)
-      || hasLegacyVisibleLiveTurnContent(sdkLiveTurn)
       || hasTerminalSdkLiveTurnLifecycle(sdkLiveTurn)
     )
   );
@@ -134,40 +129,18 @@ function conversationViewMatchesPendingTurn(pendingTurn, conversationView) {
   );
 }
 
+function pendingTurnBelongsToConversationView(pendingTurn, conversationView) {
+  if (!pendingTurn || !conversationView) {
+    return false;
+  }
+  return normalizeConversationRef(conversationView.conversationRef) === pendingTurn.conversationRef;
+}
+
 function getConversationViewLiveTurnRef(conversationView) {
   return (
     normalizeTurnRef(conversationView?.liveTurn?.turnRef)
     || normalizeTurnRef(conversationView?.surfaces?.responseOverlay?.turnRef)
   );
-}
-
-function isConversationViewUserDisplayRow(row) {
-  return Boolean(
-    row
-      && typeof row === 'object'
-      && (
-        row.role === 'user'
-        || row.type === 'user_message'
-      ),
-  );
-}
-
-function findConversationViewUserDisplayRowForTurn(conversationView, turnRef) {
-  const normalizedTurnRef = normalizeTurnRef(turnRef);
-  if (!normalizedTurnRef || !Array.isArray(conversationView?.displayRows)) {
-    return null;
-  }
-  for (let index = conversationView.displayRows.length - 1; index >= 0; index -= 1) {
-    const row = conversationView.displayRows[index];
-    if (
-      isConversationViewUserDisplayRow(row)
-      && normalizeTurnRef(row.turnRef) === normalizedTurnRef
-      && normalizeString(row.id)
-    ) {
-      return row;
-    }
-  }
-  return null;
 }
 
 function hasConversationViewVisibleReplacement(conversationView, pendingTurn = null) {
@@ -216,15 +189,15 @@ function findAwaitingAnchor(pendingTurn, sdkLiveTurn) {
   const presentationAnchor = sdkLiveTurn?.presentation?.awaitingAnchor;
   if (
     presentationAnchor?.kind === 'user-message'
-    && normalizeString(presentationAnchor.rowId)
+    && readExactIdentityString(presentationAnchor.rowId)
   ) {
     return {
       kind: 'user-message',
-      rowId: presentationAnchor.rowId.trim(),
+      rowId: presentationAnchor.rowId,
     };
   }
 
-  const pendingMessageId = normalizeString(pendingTurn?.userMessageId);
+  const pendingMessageId = readExactIdentityString(pendingTurn?.userMessageId);
   if (pendingMessageId) {
     return {
       kind: 'user-message',
@@ -238,7 +211,7 @@ function findAwaitingAnchor(pendingTurn, sdkLiveTurn) {
 function findConversationViewAwaitingAnchor(conversationView, pendingTurn) {
   const liveTurnRef = getConversationViewLiveTurnRef(conversationView);
   const userRow = findConversationViewUserDisplayRowForTurn(conversationView, liveTurnRef);
-  const rowId = normalizeString(userRow?.id);
+  const rowId = readExactIdentityString(userRow?.id);
   if (rowId) {
     return {
       kind: 'user-message',
@@ -250,7 +223,7 @@ function findConversationViewAwaitingAnchor(conversationView, pendingTurn) {
 
 function resolveTerminalReason(sdkLiveTurn) {
   const phase = normalizeSdkLiveTurnPhase(sdkLiveTurn);
-  if (phase === 'error' || normalizeString(sdkLiveTurn?.presentation?.lastError)) {
+  if (phase === 'error' || readExactLifecycleString(sdkLiveTurn?.presentation?.lastError)) {
     return 'error';
   }
   if (phase === 'complete' || sdkLiveTurn?.presentation?.isTerminal === true) {
@@ -270,7 +243,6 @@ function resolveSdkLifecycleStatus(sdkLiveTurn) {
   if (
     ACTIVE_PROGRESS_PHASES.has(phase)
     || hasVisiblePresentationContent(sdkLiveTurn.presentation)
-    || hasLegacyVisibleLiveTurnContent(sdkLiveTurn)
   ) {
     return 'active';
   }
@@ -285,7 +257,7 @@ function resolveSdkLifecycleStatus(sdkLiveTurn) {
 
 function resolveConversationViewLifecycleStatus(conversationView) {
   const liveTurn = conversationView?.liveTurn;
-  const responseOverlayMode = normalizeString(conversationView?.surfaces?.responseOverlay?.mode);
+  const responseOverlayMode = readExactLifecycleString(conversationView?.surfaces?.responseOverlay?.mode);
   if (!liveTurn && !responseOverlayMode) {
     return 'idle';
   }
@@ -312,10 +284,6 @@ function resolveConversationViewLifecycleStatus(conversationView) {
   return 'idle';
 }
 
-function isConversationView(value) {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
 function resolveVisibleTurnLifecycle({
   activeConversationRef = null,
   conversationView = null,
@@ -326,23 +294,32 @@ function resolveVisibleTurnLifecycle({
   const normalizedActiveConversationRef = normalizeConversationRef(activeConversationRef);
   const sdkLiveTurnConversationRef = normalizeConversationRef(sdkLiveTurn?.conversationRef);
   const sdkLiveTurnRef = normalizeTurnRef(sdkLiveTurn?.turnRef);
+  const effectiveConversationView = hasWorkspaceConversationView({ conversationView })
+    ? conversationView
+    : null;
+  const effectivePendingTurn = (
+    !effectiveConversationView
+    || pendingTurnBelongsToConversationView(normalizedPendingTurn, effectiveConversationView)
+  )
+    ? normalizedPendingTurn
+    : null;
   const sameTurnReplacement = hasAuthoritativeSameTurnSdkReplacement(
-    normalizedPendingTurn,
+    effectivePendingTurn,
     sdkLiveTurn,
   );
-  const viewStatus = resolveConversationViewLifecycleStatus(conversationView);
+  const viewStatus = resolveConversationViewLifecycleStatus(effectiveConversationView);
   const sameTurnConversationViewReplacement = (
-    canConversationViewReplacePendingTurn(normalizedPendingTurn, conversationView)
+    canConversationViewReplacePendingTurn(effectivePendingTurn, effectiveConversationView)
     && viewStatus !== 'idle'
   );
 
-  if (normalizedPendingTurn && !sameTurnReplacement && !sameTurnConversationViewReplacement) {
+  if (effectivePendingTurn && !sameTurnReplacement && !sameTurnConversationViewReplacement) {
     return {
       status: 'local_pending',
       source: 'local',
-      conversationRef: normalizedPendingTurn.conversationRef,
-      turnRef: normalizedPendingTurn.turnRef,
-      awaitingAnchor: findAwaitingAnchor(normalizedPendingTurn, null),
+      conversationRef: effectivePendingTurn.conversationRef,
+      turnRef: effectivePendingTurn.turnRef,
+      awaitingAnchor: findAwaitingAnchor(effectivePendingTurn, null),
       entries: [],
       terminalReason: null,
       isBusy: true,
@@ -350,16 +327,16 @@ function resolveVisibleTurnLifecycle({
     };
   }
 
-  if (conversationView && viewStatus !== 'idle') {
-    const liveTurn = conversationView.liveTurn || {};
+  if (effectiveConversationView && viewStatus !== 'idle') {
+    const liveTurn = effectiveConversationView.liveTurn || {};
     const entries = Array.isArray(liveTurn.entries) ? liveTurn.entries : [];
     return {
       status: viewStatus,
       source: 'conversation-view',
-      conversationRef: normalizeConversationRef(conversationView.conversationRef),
+      conversationRef: normalizeConversationRef(effectiveConversationView.conversationRef),
       turnRef: normalizeTurnRef(liveTurn.turnRef),
       awaitingAnchor: viewStatus === 'awaiting'
-        ? findConversationViewAwaitingAnchor(conversationView, normalizedPendingTurn)
+        ? findConversationViewAwaitingAnchor(effectiveConversationView, effectivePendingTurn)
         : null,
       entries,
       terminalReason: liveTurn.isTerminal === true ? 'complete' : null,
@@ -368,12 +345,12 @@ function resolveVisibleTurnLifecycle({
     };
   }
 
-  if (isConversationView(conversationView)) {
+  if (effectiveConversationView) {
     return {
       status: 'idle',
       source: 'conversation-view',
-      conversationRef: normalizeConversationRef(conversationView.conversationRef) || normalizedActiveConversationRef,
-      turnRef: normalizeTurnRef(conversationView.liveTurn?.turnRef),
+      conversationRef: normalizeConversationRef(effectiveConversationView.conversationRef) || normalizedActiveConversationRef,
+      turnRef: null,
       awaitingAnchor: null,
       entries: [],
       terminalReason: null,
@@ -386,6 +363,7 @@ function resolveVisibleTurnLifecycle({
   if (
     sdkLiveTurn
     && sdkStatus !== 'idle'
+    && sdkLiveTurnConversationRef
     && (!normalizedActiveConversationRef || sdkLiveTurnConversationRef === normalizedActiveConversationRef)
   ) {
     const entries = Array.isArray(sdkLiveTurn.presentation?.entries)

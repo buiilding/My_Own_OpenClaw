@@ -19,8 +19,25 @@ function normalizeAttachmentFilenames(value) {
     .map((filename) => filename.trim());
 }
 
-function normalizeQueryMessageId(value) {
-  return normalizeOptionalString(value);
+function exactAttachmentFilenames(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((filename) => (
+    typeof filename === 'string'
+    && filename.length > 0
+    && filename === filename.trim()
+  ));
+}
+
+function exactOptionalQueryMessageId(value, hasField) {
+  if (!hasField || value === null || value === undefined) {
+    return null;
+  }
+  if (typeof value === 'string' && value.length > 0 && value === value.trim()) {
+    return value;
+  }
+  throw new Error('Renderer query command requires exact query_message_id.');
 }
 
 function rejectRemovedRendererQueryAliases(payload) {
@@ -110,9 +127,10 @@ function prepareRendererQueryPayload(payload, currentConversationRef, resolveCon
   const attachmentContext = (
     typeof nextPayload.attachment_context === 'string' && nextPayload.attachment_context.trim().length > 0
   ) ? nextPayload.attachment_context : null;
-  const normalizedAttachmentFilenames = normalizeAttachmentFilenames(nextPayload.attachment_filenames);
-  const queryMessageId = normalizeQueryMessageId(
+  const normalizedAttachmentFilenames = exactAttachmentFilenames(nextPayload.attachment_filenames);
+  const queryMessageId = exactOptionalQueryMessageId(
     nextPayload.query_message_id,
+    Object.prototype.hasOwnProperty.call(nextPayload, 'query_message_id'),
   );
 
   delete nextPayload.query_message_id;

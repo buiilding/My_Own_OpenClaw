@@ -22,15 +22,14 @@ function cloneJsonArray(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function cloneJsonObject(value) {
-  if (!isPlainObject(value)) {
-    return undefined;
-  }
-  return JSON.parse(JSON.stringify(value));
-}
-
 function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function readExactOptionalString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
 function normalizePositiveInteger(value) {
@@ -104,6 +103,35 @@ function requireCommandString(payload = {}, key, label) {
   return value;
 }
 
+function requireExactCommandString(payload = {}, key, label) {
+  const value = readExactOptionalString(payload[key]);
+  if (!value) {
+    throw new Error(`Agent SDK command requires exact ${label}.`);
+  }
+  return value;
+}
+
+function readOptionalExactCommandString(payload = {}, key, label) {
+  if (!Object.prototype.hasOwnProperty.call(payload, key)) {
+    return undefined;
+  }
+  return requireExactCommandString(payload, key, label);
+}
+
+function requireExactCommandConversationRef(payload = {}) {
+  if (Object.prototype.hasOwnProperty.call(payload, 'conversation_ref')) {
+    throw new Error('Agent SDK command requires conversationRef; conversation_ref is not supported.');
+  }
+  return requireExactCommandString(payload, 'conversationRef', 'conversation reference');
+}
+
+function requireCommandText(payload = {}) {
+  if (typeof payload.text !== 'string') {
+    throw new Error('Agent SDK command requires edited text.');
+  }
+  return payload.text;
+}
+
 function appendRendererAppDiagnostic(payload = {}, deps = {}) {
   const state = deps.getState();
   const context = conversationMetadataDiagnosticsRuntime.createContext(payload, state);
@@ -115,45 +143,6 @@ function appendRendererAppDiagnostic(payload = {}, deps = {}) {
     durationMs: normalizePositiveInteger(payload.durationMs),
     data: isPlainObject(payload.data) ? payload.data : {},
     error: payload.error,
-  });
-}
-
-function buildReplayRuntimePayload({
-  conversationRef,
-  text,
-  payload,
-  deps,
-} = {}) {
-  const basePayload = cloneJsonObject(payload) || {};
-  const runtimePayload = {
-    ...basePayload,
-    conversation_ref: conversationRef,
-  };
-  if (typeof text === 'string' && text.trim()) {
-    runtimePayload.text = text.trim();
-  }
-  if (typeof deps.attachRuntimeTurnContextToPayload !== 'function') {
-    return runtimePayload;
-  }
-  return cloneJsonObject(deps.attachRuntimeTurnContextToPayload(runtimePayload)) || runtimePayload;
-}
-
-function traceReplayRuntimeSend({
-  conversationRef,
-  text,
-  turnRef,
-  payload,
-  deps,
-} = {}) {
-  if (typeof deps.traceRuntimeSend !== 'function') {
-    return;
-  }
-  deps.traceRuntimeSend({
-    conversationRef,
-    text: typeof text === 'string' ? text : '',
-    turnRef,
-    payload,
-    resources: Array.isArray(payload?.resources) ? payload.resources : [],
   });
 }
 
@@ -338,13 +327,14 @@ function buildAgentSdkCommandHandlers({
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY_TIMELINE]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
+      const conversationRef = requireExactCommandConversationRef(payload);
       const agent = await deps.ensureAgent({
         reason: 'sdk-command:conversation.loadDisplayTimeline',
-        conversationRef: optionalCommandConversationRef(payload),
+        conversationRef,
       });
       return agent.loadDisplayTimeline({
-        conversationRef: requireCommandConversationRef(payload),
-        revisionId: normalizeOptionalString(payload.revisionId),
+        conversationRef,
+        revisionId: readOptionalExactCommandString(payload, 'revisionId', 'revision id') ?? null,
       });
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_REHYDRATE]: async (payload = {}) => {
@@ -362,22 +352,24 @@ function buildAgentSdkCommandHandlers({
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_GET_REVISION]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
+      const conversationRef = requireExactCommandConversationRef(payload);
       const agent = await deps.ensureAgent({
         reason: 'sdk-command:conversation.getRevision',
-        conversationRef: optionalCommandConversationRef(payload),
+        conversationRef,
       });
       return agent.getConversationRevision({
-        conversationRef: requireCommandConversationRef(payload),
+        conversationRef,
       });
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_LIST_REVISIONS]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
+      const conversationRef = requireExactCommandConversationRef(payload);
       const agent = await deps.ensureAgent({
         reason: 'sdk-command:conversation.listRevisions',
-        conversationRef: optionalCommandConversationRef(payload),
+        conversationRef,
       });
       return agent.listConversationRevisions({
-        conversationRef: requireCommandConversationRef(payload),
+        conversationRef,
         limit: Number.isFinite(payload.limit) ? payload.limit : undefined,
       });
     },
@@ -397,100 +389,70 @@ function buildAgentSdkCommandHandlers({
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_ROWS]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const conversationRef = requireCommandConversationRef(payload);
+      const conversationRef = requireExactCommandConversationRef(payload);
       const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.replaceRows',
         conversationRef,
       });
       return runtimeRegistry.replaceRows({
         conversationRef,
-        baseRevisionId: requireCommandString(payload, 'baseRevisionId', 'base revision id'),
+        baseRevisionId: requireExactCommandString(payload, 'baseRevisionId', 'base revision id'),
         reason: requireCommandString(payload, 'reason', 'display replacement reason'),
         rows: cloneJsonArray(payload.rows),
       });
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_EDIT_AND_RESEND]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const conversationRef = requireCommandConversationRef(payload);
-      const text = requireCommandString(payload, 'text', 'edited text');
-      const turnRef = normalizeOptionalString(payload.turnRef) ?? undefined;
-      const runtimePayload = buildReplayRuntimePayload({
-        conversationRef,
-        text,
-        payload: payload.payload,
-        deps,
-      });
-      traceReplayRuntimeSend({
-        conversationRef,
-        text,
-        turnRef,
-        payload: runtimePayload,
-        deps,
-      });
+      const conversationRef = requireExactCommandConversationRef(payload);
+      const text = requireCommandText(payload);
       const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.editAndResend',
         conversationRef,
       });
       return runtimeRegistry.editAndResend({
-        conversationRef,
-        messageId: requireCommandString(payload, 'messageId', 'message id'),
+        messageId: requireExactCommandString(payload, 'messageId', 'message id'),
         text,
-        turnRef,
-        payload: runtimePayload,
-        model: cloneJsonObject(payload.model),
       });
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_RETRY_TURN]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const conversationRef = requireCommandConversationRef(payload);
-      const turnRef = normalizeOptionalString(payload.turnRef) ?? undefined;
-      const runtimePayload = buildReplayRuntimePayload({
-        conversationRef,
-        payload: payload.payload,
-        deps,
-      });
-      traceReplayRuntimeSend({
-        conversationRef,
-        turnRef,
-        payload: runtimePayload,
-        deps,
-      });
+      const conversationRef = requireExactCommandConversationRef(payload);
       const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.retryTurn',
         conversationRef,
       });
       return runtimeRegistry.retryTurn({
-        conversationRef,
-        messageId: normalizeOptionalString(payload.messageId) ?? undefined,
-        turnRef,
-        payload: runtimePayload,
-        model: cloneJsonObject(payload.model),
+        messageId: requireExactCommandString(payload, 'messageId', 'message id'),
       });
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_CHECKOUT_REVISION]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const conversationRef = requireCommandConversationRef(payload);
+      const conversationRef = requireExactCommandConversationRef(payload);
       const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.checkoutRevision',
         conversationRef,
       });
       return runtimeRegistry.checkoutRevision({
         conversationRef,
-        revisionId: requireCommandString(payload, 'revisionId', 'revision id'),
+        revisionId: requireExactCommandString(payload, 'revisionId', 'revision id'),
       });
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_FORK]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const conversationRef = requireCommandConversationRef(payload);
+      const conversationRef = requireExactCommandConversationRef(payload);
       const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.fork',
         conversationRef,
       });
-      const newConversationRef = normalizeOptionalString(payload.newConversationRef);
+      const newConversationRef = readOptionalExactCommandString(
+        payload,
+        'newConversationRef',
+        'new conversation reference',
+      );
       return runtimeRegistry.forkConversation({
         conversationRef,
-        sourceRevisionId: normalizeOptionalString(payload.sourceRevisionId) ?? undefined,
-        cutAfterRowId: normalizeOptionalString(payload.cutAfterRowId) ?? undefined,
+        sourceRevisionId: requireExactCommandString(payload, 'sourceRevisionId', 'source revision id'),
+        cutAfterRowId: readOptionalExactCommandString(payload, 'cutAfterRowId', 'cut row id'),
         ...(newConversationRef ? { newConversationRef } : {}),
       });
     },

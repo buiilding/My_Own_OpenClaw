@@ -538,6 +538,13 @@ describe('useChatStream state + stream handling', () => {
             payload: { toolName: 'screenshot', args: {} },
           }],
           lastError: null,
+          presentation: {
+            entries: [{
+              id: 'tool-call-1',
+              type: 'tool-call',
+              text: 'screenshot',
+            }],
+          },
         },
       });
     });
@@ -579,6 +586,13 @@ describe('useChatStream state + stream handling', () => {
             payload: { toolName: 'screenshot', output: 'ok' },
           }],
           lastError: null,
+          presentation: {
+            entries: [{
+              id: 'tool-output-1',
+              type: 'tool-output',
+              text: 'ok',
+            }],
+          },
         },
       });
     });
@@ -619,6 +633,13 @@ describe('useChatStream state + stream handling', () => {
             payload: { toolName: 'web_search', text: 'Searching docs' },
           }],
           lastError: null,
+          presentation: {
+            entries: [{
+              id: 'tool-progress-1',
+              type: 'tool-progress',
+              text: 'Searching docs',
+            }],
+          },
         },
       });
     });
@@ -1163,6 +1184,13 @@ describe('useChatStream state + stream handling', () => {
           reasoningText: 'reasoning chunk',
           toolEvents: [],
           lastError: null,
+          presentation: {
+            entries: [{
+              id: 'thinking-1',
+              type: 'thinking',
+              text: 'reasoning chunk',
+            }],
+          },
         },
       });
     });
@@ -1480,6 +1508,13 @@ describe('useChatStream state + stream handling', () => {
           reasoningText: null,
           toolEvents: [],
           lastError: null,
+          presentation: {
+            entries: [{
+              id: 'assistant-new',
+              type: 'llm-text',
+              text: 'next answer',
+            }],
+          },
         },
       });
     });
@@ -1558,6 +1593,9 @@ describe('useChatStream state + stream handling', () => {
           reasoningText: null,
           toolEvents: [],
           lastError: null,
+          presentation: {
+            entries: [],
+          },
         },
       });
     });
@@ -1585,6 +1623,13 @@ describe('useChatStream state + stream handling', () => {
           reasoningText: null,
           toolEvents: [],
           lastError: null,
+          presentation: {
+            entries: [{
+              id: 'assistant-new',
+              type: 'llm-text',
+              text: 'new answer',
+            }],
+          },
         },
       });
     });
@@ -1873,6 +1918,13 @@ describe('useChatStream state + stream handling', () => {
           reasoningText: null,
           toolEvents: [],
           lastError: null,
+          presentation: {
+            entries: [{
+              id: 'assistant-1',
+              type: 'llm-text',
+              text: 'chunk',
+            }],
+          },
         },
       });
       emitConversationRuntimeUpdated({
@@ -1885,6 +1937,13 @@ describe('useChatStream state + stream handling', () => {
           reasoningText: null,
           toolEvents: [],
           lastError: null,
+          presentation: {
+            entries: [{
+              id: 'assistant-1',
+              type: 'llm-text',
+              text: 'chunk',
+            }],
+          },
         },
       });
       emitBackendEvent({

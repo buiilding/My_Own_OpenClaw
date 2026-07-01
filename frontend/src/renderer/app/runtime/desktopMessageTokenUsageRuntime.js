@@ -2,13 +2,7 @@
  * Provides renderer message token usage tags for presentation surfaces.
  */
 
-import { DesktopSdkDisplayAttachmentProjection } from './desktopSdkDisplayAttachmentProjection';
-
 const APPROX_CHARS_PER_TOKEN = 4;
-const APPROX_IMAGE_TOKENS_PER_SCREENSHOT = 85;
-const {
-  countDisplayImageAttachments,
-} = DesktopSdkDisplayAttachmentProjection;
 
 function normalizeText(value) {
   if (typeof value !== 'string') {
@@ -32,10 +26,6 @@ function estimateTextTokens(text) {
   return Math.ceil(normalized.length / APPROX_CHARS_PER_TOKEN);
 }
 
-function resolveUserImageAttachmentCount(message) {
-  return countDisplayImageAttachments(message?.attachments);
-}
-
 function resolveUserText(message) {
   const fullUserMessageContent = normalizeText(message?.fullUserMessage?.content);
   if (fullUserMessageContent) {
@@ -53,10 +43,7 @@ function resolveToolMessageText(message) {
     return '';
   }
   if (message?.type === 'tool-output') {
-    const modelFacingOutput = normalizeText(message?.modelFacingToolOutput);
-    if (modelFacingOutput) {
-      return modelFacingOutput;
-    }
+    return normalizeText(message?.text);
   }
   return normalizeText(message?.text);
 }
@@ -123,12 +110,10 @@ function resolveMessageTokenUsageTag(message) {
 
   if (message.sender === 'user') {
     const textTokens = estimateTextTokens(resolveUserText(message));
-    const imageTokens = resolveUserImageAttachmentCount(message) * APPROX_IMAGE_TOKENS_PER_SCREENSHOT;
-    const totalTokens = textTokens + imageTokens;
-    if (totalTokens <= 0) {
+    if (textTokens <= 0) {
       return null;
     }
-    return `tokens~ txt:${textTokens} img(est):${imageTokens} total:${totalTokens}`;
+    return `tokens~ txt:${textTokens}`;
   }
 
   if (message.type === 'tool-call' || message.type === 'tool-output') {

@@ -35,12 +35,10 @@ function safeWindowVisible(win) {
   return typeof win.isVisible === 'function' ? Boolean(win.isVisible()) : null;
 }
 
-function normalizeString(value) {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const normalized = value.trim();
-  return normalized || null;
+function readExactSurfaceString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
 function resolveCurrentTurnFromInput(input) {
@@ -65,7 +63,7 @@ function resolveOverlayIntentFromConversationView(conversationView) {
   if (!responseOverlay || typeof responseOverlay !== 'object') {
     return null;
   }
-  const rawMode = normalizeString(responseOverlay.mode);
+  const rawMode = readExactSurfaceString(responseOverlay.mode);
   const mode = rawMode === 'typing'
     ? 'awaiting'
     : rawMode === 'response' || rawMode === 'hidden'
@@ -74,15 +72,21 @@ function resolveOverlayIntentFromConversationView(conversationView) {
   if (!mode) {
     return null;
   }
-  const turnRef = normalizeString(responseOverlay.turnRef)
-    || normalizeString(conversationView?.liveTurn?.turnRef);
+  const viewConversationRef = readExactSurfaceString(conversationView?.conversationRef);
+  const ownerConversationRef = readExactSurfaceString(responseOverlay.ownerConversationRef);
+  const canBorrowViewTurnRef = !ownerConversationRef || ownerConversationRef === viewConversationRef;
+  const surfaceTurnRef = readExactSurfaceString(responseOverlay.turnRef);
+  const turnRef = surfaceTurnRef
+    || (canBorrowViewTurnRef ? readExactSurfaceString(conversationView?.liveTurn?.turnRef) : null);
+  if (!canBorrowViewTurnRef && !surfaceTurnRef) {
+    return null;
+  }
   return {
     visible: responseOverlay.visible === true && mode !== 'hidden',
     mode,
     turnRef,
-    staleGuardRef: normalizeString(responseOverlay.guardRef) || turnRef,
-    conversationRef: normalizeString(responseOverlay.ownerConversationRef)
-      || normalizeString(conversationView?.conversationRef),
+    staleGuardRef: readExactSurfaceString(responseOverlay.guardRef) || turnRef,
+    conversationRef: ownerConversationRef || viewConversationRef,
   };
 }
 
@@ -287,7 +291,7 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
 
   logSdkTypingTransition(resolvedCurrentTurn, intent, sdkSurfaceState);
 
-  const activeGuardRef = normalizeString(getActiveResponseOverlayGuardRef());
+  const activeGuardRef = readExactSurfaceString(getActiveResponseOverlayGuardRef());
   if (!intent.visible || intent.mode === 'hidden') {
     const hiddenSignature = buildHiddenIntentSignature(intent);
     if (
@@ -394,8 +398,8 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     return { success: true, applied: true, visible: false };
   }
 
-  const activeOverlayConversationRef = normalizeString(sdkSurfaceState.activeOverlayConversationRef);
-  const activeOverlayGuardRef = normalizeString(sdkSurfaceState.activeOverlayGuardRef);
+  const activeOverlayConversationRef = readExactSurfaceString(sdkSurfaceState.activeOverlayConversationRef);
+  const activeOverlayGuardRef = readExactSurfaceString(sdkSurfaceState.activeOverlayGuardRef);
   if (shouldIgnoreVisibleIntentForConversation({
     activeConversationRef: activeOverlayConversationRef,
     activeGuardRef: activeOverlayGuardRef || activeGuardRef,

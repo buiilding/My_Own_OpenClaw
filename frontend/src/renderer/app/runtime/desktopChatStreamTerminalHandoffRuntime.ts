@@ -23,7 +23,9 @@ const TERMINAL_PENDING_HANDOFF_PHASES: ReadonlySet<StreamPhase> = new Set([
 ]);
 
 function normalizeTurnRef(turnRef: string | null | undefined): string {
-  return typeof turnRef === 'string' ? turnRef.trim() : '';
+  return typeof turnRef === 'string' && turnRef.length > 0 && turnRef === turnRef.trim()
+    ? turnRef
+    : '';
 }
 
 function getPendingTurnRef(workspace: StreamGuardWorkspace): string {

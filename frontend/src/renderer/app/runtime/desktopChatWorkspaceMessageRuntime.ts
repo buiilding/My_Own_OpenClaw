@@ -5,10 +5,18 @@
 import type {
   ChatMessage,
 } from './desktopChatMessageTypes';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
+
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 type MessageWorkspace = {
   conversationView?: unknown | null;
   messages: ChatMessage[];
+  rendererAnnotations?: RendererAnnotationRecord[];
 };
 
 type WorkspaceMutationTarget<TWorkspace extends MessageWorkspace> = {
@@ -37,6 +45,11 @@ type ChatStreamMessageTarget = {
 
 type RendererAnnotationUpdate = Pick<ChatMessage, 'feedback'>;
 
+type RendererAnnotationRecord = {
+  feedback?: ChatMessage['feedback'];
+  id: string;
+};
+
 type MessageStateDependencies<
   TState,
   TWorkspace extends MessageWorkspace,
@@ -57,10 +70,6 @@ type MessageStateDependencies<
   ) => WorkspaceMutationTarget<TWorkspace>;
 };
 
-function hasConversationView(value: unknown): boolean {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
 function selectRendererAnnotationUpdates(
   updates: Partial<ChatMessage>,
 ): Partial<RendererAnnotationUpdate> | null {
@@ -69,6 +78,37 @@ function selectRendererAnnotationUpdates(
     annotationUpdates.feedback = updates.feedback;
   }
   return Object.keys(annotationUpdates).length > 0 ? annotationUpdates : null;
+}
+
+function exactAnnotationRowId(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
+function updateRendererAnnotations(
+  rendererAnnotations: RendererAnnotationRecord[] | undefined,
+  id: string,
+  updates: Partial<RendererAnnotationUpdate>,
+): RendererAnnotationRecord[] {
+  const currentAnnotations = Array.isArray(rendererAnnotations)
+    ? rendererAnnotations
+    : [];
+  const existingAnnotationIndex = currentAnnotations.findIndex((annotation) => annotation.id === id);
+  const nextAnnotation = existingAnnotationIndex >= 0
+    ? {
+      ...currentAnnotations[existingAnnotationIndex],
+      ...updates,
+    }
+    : {
+      id,
+      ...updates,
+    };
+  return existingAnnotationIndex >= 0
+    ? currentAnnotations.map((annotation, index) => (
+      index === existingAnnotationIndex ? nextAnnotation : annotation
+    ))
+    : [...currentAnnotations, nextAnnotation];
 }
 
 function buildAddMessageStateUpdate<
@@ -90,7 +130,7 @@ function buildAddMessageStateUpdate<
     workspaceRef,
     workspace: currentWorkspace,
   } = deps.resolveWorkspaceMutationTarget(state, conversationRef);
-  if (hasConversationView(currentWorkspace.conversationView)) {
+  if (hasWorkspaceConversationView(currentWorkspace)) {
     return null;
   }
   const existingMessageIndex = currentWorkspace.messages.findIndex(
@@ -133,29 +173,20 @@ function buildUpdateMessageStateUpdate<
     workspaceRef,
     workspace: currentWorkspace,
   } = deps.resolveWorkspaceMutationTarget(state, conversationRef);
-  if (hasConversationView(currentWorkspace.conversationView)) {
+  if (hasWorkspaceConversationView(currentWorkspace)) {
     const annotationUpdates = selectRendererAnnotationUpdates(updates);
-    if (!annotationUpdates) {
+    const annotationRowId = exactAnnotationRowId(id);
+    if (!annotationUpdates || !annotationRowId) {
       return null;
     }
-    const existingAnnotationIndex = currentWorkspace.messages.findIndex((message) => message.id === id);
-    const annotationMessage = existingAnnotationIndex >= 0
-      ? {
-        ...currentWorkspace.messages[existingAnnotationIndex],
-        ...annotationUpdates,
-      }
-      : {
-        id,
-        text: '',
-        sender: 'assistant' as const,
-        ...annotationUpdates,
-      };
-    const nextMessages = existingAnnotationIndex >= 0
-      ? currentWorkspace.messages.map((message, index) => (
-        index === existingAnnotationIndex ? annotationMessage : message
-      ))
-      : [...currentWorkspace.messages, annotationMessage];
-    const nextWorkspace = { ...currentWorkspace, messages: nextMessages };
+    const nextWorkspace = {
+      ...currentWorkspace,
+      rendererAnnotations: updateRendererAnnotations(
+        currentWorkspace.rendererAnnotations,
+        annotationRowId,
+        annotationUpdates,
+      ),
+    };
     return deps.buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
   }
   const index = currentWorkspace.messages.findIndex((message) => message.id === id);
@@ -254,7 +285,7 @@ function buildUpdateStreamTargetMessageStateUpdate<
   const {
     workspace: currentWorkspace,
   } = deps.resolveWorkspaceMutationTarget(state, conversationRef);
-  if (hasConversationView(currentWorkspace.conversationView)) {
+  if (hasWorkspaceConversationView(currentWorkspace)) {
     return null;
   }
   const targetMessageId = resolveStreamMessageTargetId(currentWorkspace.messages, target);
@@ -289,7 +320,7 @@ function buildSetMessagesStateUpdate<
     workspaceRef,
     workspace: currentWorkspace,
   } = deps.resolveWorkspaceMutationTarget(state, conversationRef);
-  if (hasConversationView(currentWorkspace.conversationView)) {
+  if (hasWorkspaceConversationView(currentWorkspace)) {
     return null;
   }
   if (

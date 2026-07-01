@@ -102,7 +102,9 @@ function displayAttachmentFailure(resource: TurnInputResource, message: string):
   if (resource.kind !== 'clipboard_image' && resource.kind !== 'query_screenshot_request') {
     return null;
   }
-  const id = optionalString(resource.displayAttachmentId);
+  const id = optionalString(
+    (resource as TurnInputResource & { displayAttachmentId?: unknown }).displayAttachmentId,
+  );
   if (!id) {
     return null;
   }

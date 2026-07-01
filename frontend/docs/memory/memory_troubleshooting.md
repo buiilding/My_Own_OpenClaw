@@ -48,7 +48,7 @@ Inspect:
 - private backend implementation
 - private backend implementation
 - `frontend/src/renderer/infrastructure/transcript/toolCallMessageState.js`
-- `frontend/src/renderer/infrastructure/transcript/toolOutputChatMessageState.ts`
+- `frontend/src/renderer/app/runtime/desktopSdkDisplayChatMessageProjectionRuntime.ts`
 
 Validate:
 

@@ -12,6 +12,9 @@ import {
   DesktopPendingTurnRuntimeClient,
   type DesktopPendingTurnBroadcastAction,
 } from './desktopPendingTurnRuntimeClient';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
 export type DesktopRuntimeEventListener = (payload: unknown) => void;
 
@@ -34,9 +37,9 @@ function recordOrEmpty(value: unknown): Record<string, unknown> {
     : {};
 }
 
-function normalizeOptionalString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim()
-    ? value.trim()
+function exactOptionalString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
     : null;
 }
 
@@ -47,10 +50,9 @@ function hasSdkPresentation(value: unknown): boolean {
 
 function hasLegacyCurrentTurnContent(value: unknown): boolean {
   const projection = recordOrEmpty(value);
-  const assistantText = projection.assistantText;
-  const toolEvents = projection.toolEvents;
-  return typeof assistantText === 'string'
-    && Array.isArray(toolEvents);
+  return typeof projection.assistantText === 'string'
+    || typeof projection.reasoningText === 'string'
+    || exactOptionalString(projection.lastError) !== null;
 }
 
 function isCurrentTurnProjection(value: unknown): value is CurrentTurnProjection {
@@ -66,16 +68,9 @@ function isCurrentTurnProjection(value: unknown): value is CurrentTurnProjection
     );
 }
 
-function isConversationView(value: unknown): value is ConversationView {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return false;
-  }
-  const view = value as Partial<ConversationView>;
-  return typeof view.conversationRef === 'string'
-    && Array.isArray(view.displayRows)
-    && Boolean(view.liveTurn && typeof view.liveTurn === 'object')
-    && Boolean(view.surfaces && typeof view.surfaces === 'object');
-}
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 function normalizeCurrentTurnProjectionEvent(
   payload: unknown,
@@ -84,17 +79,23 @@ function normalizeCurrentTurnProjectionEvent(
   const currentTurn = isCurrentTurnProjection(payload)
     ? payload
     : source.currentTurn;
-  const view = isConversationView(source.view) ? source.view : null;
+  const view = hasWorkspaceConversationView({ conversationView: source.view })
+    ? (source.view as ConversationView)
+    : null;
+  const envelopeConversationRef = exactOptionalString(source.conversationRef)
+    ?? view?.conversationRef
+    ?? null;
   if (!isCurrentTurnProjection(currentTurn)) {
     return {
       currentTurn: null,
-      conversationRef: null,
+      conversationRef: envelopeConversationRef,
       view,
     };
   }
+  const currentTurnConversationRef = exactOptionalString(currentTurn.conversationRef);
   return {
     currentTurn,
-    conversationRef: normalizeOptionalString(source.conversationRef) ?? currentTurn.conversationRef,
+    conversationRef: envelopeConversationRef ?? currentTurnConversationRef,
     view,
   };
 }

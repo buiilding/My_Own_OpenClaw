@@ -198,6 +198,8 @@ describe('MessageInput', () => {
 
     const [firstCallPayload] = onSendMessage.mock.calls[0] || [];
     expect(firstCallPayload?.text === 'analyze this').toBe(true);
+    expect(firstCallPayload?.clipboardImages?.[0]).not.toHaveProperty('id');
+    expect(firstCallPayload?.clipboardImages?.[0]).not.toHaveProperty('previewUrl');
     expect(Boolean(
       Array.isArray(firstCallPayload?.clipboardImages)
       && firstCallPayload.clipboardImages.length === 1
@@ -337,6 +339,8 @@ describe('MessageInput', () => {
     const [firstCallPayload] = onSendMessage.mock.calls[0] || [];
     expect(firstCallPayload?.text).toBe('Review attachments');
     expect(Array.isArray(firstCallPayload?.clipboardImages)).toBe(true);
+    expect(firstCallPayload?.clipboardImages?.[0]).not.toHaveProperty('id');
+    expect(firstCallPayload?.clipboardImages?.[0]).not.toHaveProperty('previewUrl');
     expect(Array.isArray(firstCallPayload?.readableFiles)).toBe(true);
     expect(firstCallPayload?.readableFiles).toEqual([
       expect.objectContaining({

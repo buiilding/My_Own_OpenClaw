@@ -1081,7 +1081,10 @@ describe('Agent SDK client behavior', () => {
   test('localRuntime starts the SDK local runtime without creating an agent session', async () => {
     const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
-      listTools: jest.fn(async () => ({ version: 1, tools: [] })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [{ name: 'read_file', schema: { type: 'object' } }],
+      })),
       executeTool: jest.fn(async () => ({ success: true, data: { connected: true } })),
       rpc: jest.fn(async () => ({ success: true, data: {} })),
       shutdown: jest.fn(async () => undefined),
@@ -4831,7 +4834,10 @@ describe('Agent SDK client behavior', () => {
   test('chat.stream exposes bundled tools as plural calls and outputs', async () => {
     const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
-      listTools: jest.fn(async () => ({ version: 1, tools: [] })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [{ name: 'read_file', schema: { type: 'object' } }],
+      })),
       executeTool: jest.fn(async (call) => ({
         success: true,
         data: { output: `${call.toolName}:${String(call.args.path ?? '')}` },
@@ -4994,7 +5000,10 @@ describe('Agent SDK client behavior', () => {
     const nestedImagePayload = 'b'.repeat(650);
     const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
-      listTools: jest.fn(async () => ({ version: 1, tools: [] })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [{ name: 'screenshot', schema: { type: 'object' } }],
+      })),
       executeTool: jest.fn(async () => ({
         success: true,
         data: {
@@ -5018,7 +5027,7 @@ describe('Agent SDK client behavior', () => {
 
     const wakePromise = client.wakeUp({
       agentId: 'tool-output-attachments-agent',
-      builtins: ['filesystem'],
+      builtins: ['computer'],
     });
     await new Promise(resolve => setTimeout(resolve, 0));
     const socket = FakeWebSocket.instances[0];
@@ -5357,9 +5366,6 @@ describe('Agent SDK client behavior', () => {
     await expect(conversation.editAndResend({
       messageId: originalUserMessageId as string,
       text: 'edited runtime',
-      payload: {
-        screenshot_ref: 'artifact-edit',
-      },
     })).resolves.toEqual(expect.objectContaining({
       turnRef: expect.any(String),
     }));
@@ -5368,7 +5374,6 @@ describe('Agent SDK client behavior', () => {
       payload: {
         text: 'edited runtime',
         conversation_ref: 'conv-runtime-public',
-        screenshot_ref: 'artifact-edit',
       },
     });
     const editedTimeline = await conversation.loadDisplayTimeline();

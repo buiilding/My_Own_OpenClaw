@@ -11,28 +11,18 @@ import {
 import {
   clearMessagesInChatStore,
 } from '../../src/renderer/features/chat/stores/chatStoreAdapters';
+import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+} from './chatStoreTestUtils';
 import { IpcBridge } from '../../src/renderer/infrastructure/ipc/bridge';
 import { INVOKE_CHANNELS } from '../../src/renderer/infrastructure/ipc/channels';
 import { DesktopConversationContinuityService } from '../../src/renderer/app/runtime/desktopConversationContinuityService';
-import { DesktopSettingsRuntimeClient } from '../../src/renderer/app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
-import { DesktopWorkspaceRuntimeClient } from '../../src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
-
-let mockRendererConfig = {
-  model_provider: 'anthropic',
-  selected_model_id: 'claude-sonnet-4-5',
-};
-
-jest.mock('../../src/renderer/app/providers/AppConfigContext', () => ({
-  useAppConfigContext: jest.fn(() => ({
-    config: mockRendererConfig,
-  })),
-}));
 
 let mockConversationRef = 'conv-existing';
 
 function getActiveWorkspace() {
-  return useChatStore.getState().getWorkspaceState();
+  return getWorkspaceStateFromChatStore();
 }
 
 jest.mock('../../src/renderer/app/runtime/desktopConversationContinuityService', () => ({
@@ -48,12 +38,6 @@ jest.mock('../../src/renderer/app/runtime/desktopConversationContinuityService',
   },
 }));
 
-jest.mock('../../src/renderer/app/runtime/desktopSettingsRuntimeClient', () => ({
-  DesktopSettingsRuntimeClient: {
-    setModel: jest.fn(async () => undefined),
-  },
-}));
-
 jest.mock('../../src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
   DesktopTranscriptSessionRuntimeClient: {
     getActiveConversationRef: jest.fn(() => mockConversationRef),
@@ -65,28 +49,15 @@ jest.mock('../../src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient'
   },
 }));
 
-jest.mock('../../src/renderer/app/runtime/desktopWorkspaceRuntimeClient', () => ({
-  DesktopWorkspaceRuntimeClient: {
-    getConversationWorkspaceBinding: jest.fn(() => ({ workspacePath: null })),
-    setConversationWorkspaceBinding: jest.fn(),
-  },
-}));
-
 const mockEditAndResend = DesktopConversationContinuityService.editAndResend;
 const mockRetryTurn = DesktopConversationContinuityService.retryTurn;
-const mockSetModel = DesktopSettingsRuntimeClient.setModel;
 const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef;
 const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo;
 const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession;
-const mockGetConversationWorkspaceBinding = DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding;
 
 describe('useConversationReplayActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRendererConfig = {
-      model_provider: 'anthropic',
-      selected_model_id: 'claude-sonnet-4-5',
-    };
     mockConversationRef = 'conv-existing';
     jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel) => {
       if (channel === INVOKE_CHANNELS.DELETE_CHAT_CONVERSATION) {
@@ -103,8 +74,6 @@ describe('useConversationReplayActions', () => {
       turnRef: input.turnRef ?? 'sdk-replay-turn',
       queryMessageId: `${input.turnRef ?? 'sdk-replay-turn'}-sdk-evt-000002-user_message`,
     }));
-    mockSetModel.mockResolvedValue(undefined);
-    mockGetConversationWorkspaceBinding.mockReturnValue({ workspacePath: null });
     useChatStore.setState({ activeConversationRef: null });
   });
 
@@ -112,11 +81,11 @@ describe('useConversationReplayActions', () => {
     jest.restoreAllMocks();
   });
 
-  test('routes retry intent through the SDK retry command', async () => {
+  test('routes retry row-target intent through the SDK retry command', async () => {
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
-      await result.current.handleTryAgainFromAssistant(' assistant-1 ');
+      await result.current.handleTryAgainFromAssistant('assistant-1');
     });
 
     expect(mockGetActiveConversationRef).toHaveBeenCalled();
@@ -126,50 +95,30 @@ describe('useConversationReplayActions', () => {
       conversationRef: 'conv-existing',
       userId: 'user-1',
       messageId: 'assistant-1',
-      model: {
-        modelProvider: 'anthropic',
-        modelId: 'claude-sonnet-4-5',
-      },
     }));
-    expect(mockSetModel).toHaveBeenCalledWith({
-      modelProvider: 'anthropic',
-      modelId: 'claude-sonnet-4-5',
-    });
-    expect(mockSetModel.mock.invocationCallOrder[0]).toBeLessThan(
-      mockRetryTurn.mock.invocationCallOrder[0],
-    );
+    expect(mockRetryTurn.mock.calls[0][0]).not.toHaveProperty('model');
     expect(mockRetryTurn.mock.calls[0][0]).not.toHaveProperty('turnRef');
     expect(mockRetryTurn).toHaveBeenCalledTimes(1);
-    expect(useChatStore.getState().getWorkspaceState('conv-existing').pendingTurn).toBeNull();
+    expect(getWorkspaceStateFromChatStore('conv-existing').pendingTurn).toBeNull();
   });
 
-  test('routes edit intent through the SDK edit-and-resend command', async () => {
+  test('routes edit row-target intent through the SDK edit-and-resend command', async () => {
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
-      await result.current.handleEditFromUser(' renderer-user-2 ', ' edited second question ');
+      await result.current.handleEditFromUser('renderer-user-2', ' edited second question ');
     });
 
     expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-existing',
       userId: 'user-1',
       messageId: 'renderer-user-2',
-      text: 'edited second question',
-      model: {
-        modelProvider: 'anthropic',
-        modelId: 'claude-sonnet-4-5',
-      },
+      text: ' edited second question ',
     }));
-    expect(mockSetModel).toHaveBeenCalledWith({
-      modelProvider: 'anthropic',
-      modelId: 'claude-sonnet-4-5',
-    });
-    expect(mockSetModel.mock.invocationCallOrder[0]).toBeLessThan(
-      mockEditAndResend.mock.invocationCallOrder[0],
-    );
+    expect(mockEditAndResend.mock.calls[0][0]).not.toHaveProperty('model');
     expect(mockEditAndResend.mock.calls[0][0]).not.toHaveProperty('turnRef');
     expect(mockRetryTurn).not.toHaveBeenCalled();
-    expect(useChatStore.getState().getWorkspaceState('conv-existing').pendingTurn).toBeNull();
+    expect(getWorkspaceStateFromChatStore('conv-existing').pendingTurn).toBeNull();
   });
 
   test('leaves replay attachments and target-row resources to SDK resolution', async () => {
@@ -181,27 +130,19 @@ describe('useConversationReplayActions', () => {
 
     expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
       messageId: 'assistant-with-attachments',
-      payload: {},
     }));
-    expect(mockRetryTurn.mock.calls[0][0].payload).not.toHaveProperty('screenshot_ref');
-    expect(mockRetryTurn.mock.calls[0][0].payload).not.toHaveProperty('screenshot_refs');
-    expect(mockRetryTurn.mock.calls[0][0].payload).not.toHaveProperty('attachment_filenames');
-    expect(useChatStore.getState().getWorkspaceState('conv-existing').messages).toEqual([]);
+    expect(mockRetryTurn.mock.calls[0][0]).not.toHaveProperty('payload');
+    expect(getWorkspaceStateFromChatStore('conv-existing').messages).toEqual([]);
   });
 
-  test('adds workspace path payload only as renderer IPC context', async () => {
-    mockGetConversationWorkspaceBinding.mockReturnValue({ workspacePath: '/tmp/workspace-a' });
+  test('does not add renderer workspace payload to replay commands', async () => {
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
       await result.current.handleEditFromUser('renderer-user-1', 'edited question');
     });
 
-    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
-      payload: {
-        workspace_path: '/tmp/workspace-a',
-      },
-    }));
+    expect(mockEditAndResend.mock.calls[0][0]).not.toHaveProperty('payload');
   });
 
   test('does not create a conversation when no replay scope exists', async () => {
@@ -219,7 +160,8 @@ describe('useConversationReplayActions', () => {
     errorSpy.mockRestore();
   });
 
-  test('reuses projected chat-store conversation ref when transcript session is empty', async () => {
+  test('does not use chat-store active conversation when transcript session is empty', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     mockConversationRef = null;
     useChatStore.setState({ activeConversationRef: 'conv-store-active' });
     const { result } = renderHook(() => useConversationReplayActions());
@@ -228,21 +170,54 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-store');
     });
 
-    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-store-active', 'user-1');
-    expect(mockRetryTurn.mock.calls[0][0].conversationRef).toBe('conv-store-active');
+    expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
+    expect(mockRetryTurn).not.toHaveBeenCalled();
+    expect(mockEditAndResend).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 
-  test('does not dispatch SDK commands for empty replay targets', async () => {
+  test('passes blank edit text through to SDK replay command', async () => {
+    const { result } = renderHook(() => useConversationReplayActions());
+
+    await act(async () => {
+      await result.current.handleEditFromUser('renderer-user-blank', '   ');
+    });
+
+    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: 'renderer-user-blank',
+      text: '   ',
+    }));
+    expect(mockRetryTurn).not.toHaveBeenCalled();
+  });
+
+  test('rejects empty replay row targets before the SDK command facade', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const { result } = renderHook(() => useConversationReplayActions());
 
     await act(async () => {
       await result.current.handleTryAgainFromAssistant(' ');
-      await result.current.handleEditFromUser('renderer-user-1', ' ');
       await result.current.handleEditFromUser(' ', 'edited question');
     });
 
     expect(mockRetryTurn).not.toHaveBeenCalled();
     expect(mockEditAndResend).not.toHaveBeenCalled();
+    expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+
+  test('rejects padded replay row targets before the SDK command facade', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { result } = renderHook(() => useConversationReplayActions());
+
+    await act(async () => {
+      await result.current.handleTryAgainFromAssistant(' assistant-1 ');
+      await result.current.handleEditFromUser(' renderer-user-1 ', 'edited question');
+    });
+
+    expect(mockRetryTurn).not.toHaveBeenCalled();
+    expect(mockEditAndResend).not.toHaveBeenCalled();
+    expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 
   test('does not append a renderer replay error row when SDK retry rejects', async () => {

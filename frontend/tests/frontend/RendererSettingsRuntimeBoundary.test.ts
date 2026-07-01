@@ -392,9 +392,9 @@ describe('renderer settings runtime boundary', () => {
     expect(source).toContain('DesktopExtensionRuntimeClient.getPluginRuntimePresentation');
     expect(source).toContain('DesktopExtensionRuntimeClient.getSkillRuntimePresentation');
     expect(source).toContain('DesktopExtensionRuntimeClient.getMcpRuntimeMetadataPresentation');
-    expect(source).toContain('DesktopExtensionRuntimeClient.isLocalToolEnabled');
+    expect(source).toContain('DesktopExtensionRuntimeClient.getLocalToolGroupAccessState');
+    expect(source).toContain('DesktopExtensionRuntimeClient.getLocalToolGroupAccessConfigPatch');
     expect(source).toContain('DesktopExtensionRuntimeClient.isRemoteToolEnabled');
-    expect(source).toContain('DesktopExtensionRuntimeClient.getLocalToolToggleConfigPatch');
     expect(source).toContain('DesktopExtensionRuntimeClient.getRemoteToolToggleConfigPatch');
     expect(source).toContain('DesktopExtensionRuntimeClient.getEmptyExtensionRuntime');
     expect(source).toContain('DesktopExtensionRuntimeClient.getEmptyToolManifestStatus');

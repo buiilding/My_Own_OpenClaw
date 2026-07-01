@@ -177,21 +177,7 @@ describe('desktopDashboardConversationLoadRuntime', () => {
     expect(removePinnedConversationRef(['conv-2', 'conv-1'], 'conv-2')).toEqual(['conv-1']);
   });
 
-  test('applies open-conversation workspace reset only before cached ConversationView exists', () => {
-    const getWorkspaceState = jest.fn((conversationRef) => (
-      conversationRef === 'conv-cached'
-        ? {
-          messages: [{ id: 'stale-row' }],
-          conversationView: {
-            conversationRef: 'conv-cached',
-            displayRows: [{ id: 'sdk-row' }],
-          },
-        }
-        : {
-          messages: [{ id: 'raw-row' }],
-          conversationView: null,
-        }
-    ));
+  test('applies open-conversation workspace reset through view-preserving clear intent', () => {
     const clearMessages = jest.fn();
     const setIsSending = jest.fn();
     const setThinkingStatus = jest.fn();
@@ -199,16 +185,16 @@ describe('desktopDashboardConversationLoadRuntime', () => {
 
     expect(applyDashboardConversationOpenWorkspaceReset({
       conversationRef: ' conv-raw ',
-      getWorkspaceState,
       clearMessages,
       setIsSending,
       setThinkingStatus,
       setTokenCounts,
     })).toEqual({
       didReset: true,
-      hasConversationView: false,
     });
-    expect(clearMessages).toHaveBeenCalledWith('conv-raw');
+    expect(clearMessages).toHaveBeenCalledWith('conv-raw', {
+      preserveConversationView: true,
+    });
     expect(setIsSending).toHaveBeenCalledWith(false, 'conv-raw');
     expect(setThinkingStatus).toHaveBeenCalledWith(null, 'conv-raw');
     expect(setTokenCounts).toHaveBeenCalledWith(null, 'conv-raw');
@@ -219,15 +205,13 @@ describe('desktopDashboardConversationLoadRuntime', () => {
     setTokenCounts.mockClear();
 
     expect(applyDashboardConversationOpenWorkspaceReset({
-      conversationRef: 'conv-cached',
-      getWorkspaceState,
+      conversationRef: ' ',
       clearMessages,
       setIsSending,
       setThinkingStatus,
       setTokenCounts,
     })).toEqual({
       didReset: false,
-      hasConversationView: true,
     });
     expect(clearMessages).not.toHaveBeenCalled();
     expect(setIsSending).not.toHaveBeenCalled();

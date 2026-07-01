@@ -31,15 +31,16 @@ describe('DesktopChatRevisionActionRuntime', () => {
   });
 
   test('normalizes revision ids', () => {
-    expect(normalizeRevisionId(' rev-1 ')).toBe('rev-1');
+    expect(normalizeRevisionId('rev-1')).toBe('rev-1');
+    expect(normalizeRevisionId(' rev-1 ')).toBeNull();
     expect(normalizeRevisionId('   ')).toBeNull();
     expect(normalizeRevisionId(null)).toBeNull();
   });
 
   test('builds checkout command input', () => {
     expect(buildRevisionCheckoutCommand({
-      activeConversationRef: ' conv-1 ',
-      revisionId: ' rev-1 ',
+      activeConversationRef: 'conv-1',
+      revisionId: 'rev-1',
       userId: ' user-1 ',
     })).toEqual({
       actionId: 'checkout:rev-1',
@@ -57,6 +58,14 @@ describe('DesktopChatRevisionActionRuntime', () => {
       revisionId: '',
     })).toBeNull();
     expect(buildRevisionCheckoutCommand({
+      activeConversationRef: ' conv-1 ',
+      revisionId: 'rev-1',
+    })).toBeNull();
+    expect(buildRevisionCheckoutCommand({
+      activeConversationRef: 'conv-1',
+      revisionId: ' rev-1 ',
+    })).toBeNull();
+    expect(buildRevisionCheckoutCommand({
       activeConversationRef: '',
       revisionId: 'rev-1',
     })).toBeNull();
@@ -64,16 +73,16 @@ describe('DesktopChatRevisionActionRuntime', () => {
 
   test('builds fork command input without renderer-owned fork ref', () => {
     expect(buildRevisionForkCommand({
-      activeConversationRef: ' conv one ',
+      activeConversationRef: 'conv-one',
       revision: {
-        revisionId: ' rev/base ',
+        revisionId: 'rev/base',
       },
       userId: '',
     })).toEqual({
       actionId: 'fork:rev/base',
       input: {
         userId: 'default_user',
-        conversationRef: 'conv one',
+        conversationRef: 'conv-one',
         sourceRevisionId: 'rev/base',
       },
     });
@@ -85,6 +94,14 @@ describe('DesktopChatRevisionActionRuntime', () => {
       revision: {},
     })).toBeNull();
     expect(buildRevisionForkCommand({
+      activeConversationRef: ' conv-1 ',
+      revision: { revisionId: 'rev-1' },
+    })).toBeNull();
+    expect(buildRevisionForkCommand({
+      activeConversationRef: 'conv-1',
+      revision: { revisionId: ' rev-1 ' },
+    })).toBeNull();
+    expect(buildRevisionForkCommand({
       activeConversationRef: '',
       revision: { revisionId: 'rev-1' },
     })).toBeNull();
@@ -92,7 +109,8 @@ describe('DesktopChatRevisionActionRuntime', () => {
 
   test('builds revision menu item action state for rendering', () => {
     expect(buildRevisionMenuItems({
-      activeRevisionId: ' rev-active ',
+      activeConversationRef: 'conv-one',
+      activeRevisionId: 'rev-active',
       revisionActionId: 'fork:rev-active',
       revisions: [
         {
@@ -107,47 +125,92 @@ describe('DesktopChatRevisionActionRuntime', () => {
           operation: 'missing',
         },
       ],
+      userId: 'user-one',
     })).toEqual([
       {
         key: 'rev-active',
-        revision: {
-          revisionId: 'rev-active',
-          operation: 'user_edit',
-        },
-        revisionId: 'rev-active',
         shortId: 'rev-active',
         metaLabel: 'active',
         isActive: true,
+        checkoutCommand: {
+          actionId: 'checkout:rev-active',
+          input: {
+            userId: 'user-one',
+            conversationRef: 'conv-one',
+            revisionId: 'rev-active',
+          },
+        },
+        forkCommand: {
+          actionId: 'fork:rev-active',
+          input: {
+            userId: 'user-one',
+            conversationRef: 'conv-one',
+            sourceRevisionId: 'rev-active',
+          },
+        },
         checkoutDisabled: false,
         forkDisabled: true,
         forkAriaLabel: 'Fork revision rev-active',
       },
       {
         key: 'revision-1234567890abcdef',
-        revision: {
-          revisionId: 'revision-1234567890abcdef',
-          operation: 'retry',
-        },
-        revisionId: 'revision-1234567890abcdef',
         shortId: 'revision-1...',
         metaLabel: 'retry',
         isActive: false,
+        checkoutCommand: {
+          actionId: 'checkout:revision-1234567890abcdef',
+          input: {
+            userId: 'user-one',
+            conversationRef: 'conv-one',
+            revisionId: 'revision-1234567890abcdef',
+          },
+        },
+        forkCommand: {
+          actionId: 'fork:revision-1234567890abcdef',
+          input: {
+            userId: 'user-one',
+            conversationRef: 'conv-one',
+            sourceRevisionId: 'revision-1234567890abcdef',
+          },
+        },
         checkoutDisabled: false,
         forkDisabled: false,
         forkAriaLabel: 'Fork revision revision-1...',
       },
       {
         key: 'revision:2',
-        revision: {
-          operation: 'missing',
-        },
-        revisionId: null,
         shortId: 'revision',
         metaLabel: 'missing',
         isActive: false,
+        checkoutCommand: null,
+        forkCommand: null,
         checkoutDisabled: true,
         forkDisabled: true,
         forkAriaLabel: 'Fork revision revision',
+      },
+    ]);
+  });
+
+  test('disables revision menu commands without exact conversation scope', () => {
+    expect(buildRevisionMenuItems({
+      activeConversationRef: ' conv-one ',
+      revisions: [
+        {
+          revisionId: 'rev-one',
+          operation: 'retry',
+        },
+      ],
+    })).toEqual([
+      {
+        key: 'rev-one',
+        shortId: 'rev-one',
+        metaLabel: 'retry',
+        isActive: false,
+        checkoutCommand: null,
+        forkCommand: null,
+        checkoutDisabled: true,
+        forkDisabled: true,
+        forkAriaLabel: 'Fork revision rev-one',
       },
     ]);
   });
@@ -159,19 +222,26 @@ describe('DesktopChatRevisionActionRuntime', () => {
         active: true,
       },
       {
+        revisionId: 'rev-new',
+      },
+      {
         revisionId: ' rev-new ',
       },
       {
         operation: 'missing',
       },
-    ], ' rev-new ')).toEqual([
+    ], 'rev-new')).toEqual([
       {
         revisionId: 'rev-old',
         active: false,
       },
       {
-        revisionId: ' rev-new ',
+        revisionId: 'rev-new',
         active: true,
+      },
+      {
+        revisionId: ' rev-new ',
+        active: false,
       },
       {
         operation: 'missing',
@@ -187,17 +257,17 @@ describe('DesktopChatRevisionActionRuntime', () => {
         active: true,
       },
       {
-        revisionId: ' rev-new ',
+        revisionId: 'rev-new',
       },
     ], {
-      revisionId: ' rev-new ',
+      revisionId: 'rev-new',
     })).toEqual([
       {
         revisionId: 'rev-old',
         active: false,
       },
       {
-        revisionId: ' rev-new ',
+        revisionId: 'rev-new',
         active: true,
       },
     ]);
@@ -209,7 +279,7 @@ describe('DesktopChatRevisionActionRuntime', () => {
     ]);
 
     await expect(loadRevisionOptions({
-      activeConversationRef: ' conv-1 ',
+      activeConversationRef: 'conv-1',
       userId: '',
       limit: 10,
     })).resolves.toEqual([
@@ -221,6 +291,12 @@ describe('DesktopChatRevisionActionRuntime', () => {
       'conv-1',
       10,
     );
+
+    DesktopConversationContinuityService.listRevisions.mockClear();
+    await expect(loadRevisionOptions({
+      activeConversationRef: ' conv-1 ',
+    })).resolves.toEqual([]);
+    expect(DesktopConversationContinuityService.listRevisions).not.toHaveBeenCalled();
   });
 
   test('executes revision checkout commands through continuity service', async () => {
@@ -233,7 +309,7 @@ describe('DesktopChatRevisionActionRuntime', () => {
       input: {
         userId: 'user-1',
         conversationRef: 'conv-1',
-        revisionId: ' rev-1 ',
+        revisionId: 'rev-1',
       },
     })).resolves.toEqual({
       actionId: 'checkout:rev-1',
@@ -247,13 +323,13 @@ describe('DesktopChatRevisionActionRuntime', () => {
     expect(DesktopConversationContinuityService.checkoutRevision).toHaveBeenCalledWith({
       userId: 'user-1',
       conversationRef: 'conv-1',
-      revisionId: ' rev-1 ',
+      revisionId: 'rev-1',
     });
   });
 
   test('executes revision fork commands through continuity service', async () => {
     DesktopConversationContinuityService.forkConversation.mockResolvedValue({
-      conversationRef: ' conv-fork ',
+      conversationRef: 'conv-fork',
       view: { conversationRef: 'conv-fork' },
     });
 
@@ -268,7 +344,7 @@ describe('DesktopChatRevisionActionRuntime', () => {
       actionId: 'fork:rev-1',
       conversationRef: 'conv-fork',
       result: {
-        conversationRef: ' conv-fork ',
+        conversationRef: 'conv-fork',
         view: { conversationRef: 'conv-fork' },
       },
       view: { conversationRef: 'conv-fork' },

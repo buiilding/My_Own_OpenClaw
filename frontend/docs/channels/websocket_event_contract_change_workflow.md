@@ -147,7 +147,7 @@ Tool events are both UI state and SDK runtime execution requests.
 | query stream pipeline | private backend test runner |
 | renderer typed guard/SDK dispatch | `cd frontend && npm run test -- DesktopChatStreamIngressRuntime DesktopChatStreamEventRuntime AgentSdkConversationRuntime` |
 | renderer stream state/terminal behavior | focused `ChatStream*`, `StreamPhaseState`, and terminal handoff tests |
-| tool event changes | backend tool formatter/result tests plus SDK/local-runtime and renderer display tests (`AgentSdkConversationRuntime`, `LocalRuntimeExecuteToolRuntime`, `ToolOutputMessageState`) |
+| tool event changes | backend tool formatter/result tests plus SDK/local-runtime and renderer display tests (`AgentSdkConversationRuntime`, `LocalRuntimeExecuteToolRuntime`, `DesktopCurrentTurnMessageRuntime`, `SdkDisplayChatMessageProjection`) |
 | audio event changes | backend TTS tests plus `cd frontend && npm run test -- AudioChunkEvents` |
 | docs-only event workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 

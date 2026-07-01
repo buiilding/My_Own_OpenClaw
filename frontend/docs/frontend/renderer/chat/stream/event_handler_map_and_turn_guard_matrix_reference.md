@@ -58,6 +58,17 @@ except `user_message`:
 The pure active-turn comparison is exposed through
 `DesktopChatStreamTurnGuardRuntime.isStaleTurnForActiveStream(...)`; the raw
 predicate stays private to `desktopChatStreamTurnGuardRuntime.ts`.
+`useChatStream` supplies the projected chat workspace read model to the guard
+and terminal-completion helpers, so the stream read model's `viewLiveTurnRef`
+is the active-turn authority once a complete SDK `ConversationView` is present
+and raw `streamTracking` is only a no-view fallback. The chat-store adapter
+derives `viewLiveTurnRef` through the ConversationView workspace runtime's
+exact live-turn reader; it does not publish nested `ConversationView.liveTurn`
+shape or trim malformed SDK refs into active-turn authority.
+Conversation-event `conversationRef`/`turnRef`, pending-handoff `turnRef`, and
+active-stream `turnRef` comparisons are exact-only. Padded refs are treated as
+absent instead of being trimmed into stale-turn matches or pending-turn handoff
+authority.
 
 Pending-next-turn exception:
 
@@ -124,7 +135,7 @@ Reason: `user_message` establishes turn/workspace state and seeds pending bridge
   - SDK `currentTurn.phase`: clear send/thinking state and record terminal `streaming-complete`/`error` tracking for `complete`/`error`
   - backend-owned synthetic tool calls projected by the SDK with `executionSkipped === true`: record the tool-call tracking event without clearing typing/thinking state as if an executable local-runtime tool started
 - `useChatStream` core handlers:
-  - `streaming-complete`: assistant message completion + optional transcript assistant write; duplicate terminal tracking is gated by `DesktopChatStreamEventRuntime.shouldRecordTerminalCompletionTracking(...)` so raw `isSending` compatibility state does not own completion recording
+  - `streaming-complete`: assistant message completion + optional transcript assistant write; duplicate terminal tracking is gated by `DesktopChatStreamEventRuntime.shouldRecordTerminalCompletionTracking(...)` through the projected workspace read model, so raw `isSending` compatibility state does not own completion recording
   - transparency handlers: mutate existing user/assistant rows with metadata snapshots
 
 ## Drift Hotspots

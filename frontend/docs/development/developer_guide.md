@@ -299,12 +299,18 @@ def test_tool_domain_values_stable():
 ```javascript
 import { DesktopMessageClassRuntime } from '../../frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js';
 
-test('adds screenshot class when screenshot data exists', () => {
+test('adds attachment class when SDK attachment data exists', () => {
   const cls = DesktopMessageClassRuntime.buildMessageClassName({
     sender: 'assistant',
-    screenshot: 'abc123',
+    attachments: [{
+      id: 'attachment-1',
+      kind: 'image',
+      source: 'tool_result',
+      status: 'ready',
+      screenshotRef: 'abc123',
+    }],
   });
-  expect(cls).toContain('message-has-screenshot');
+  expect(cls).toContain('message-has-attachment');
 });
 ```
 

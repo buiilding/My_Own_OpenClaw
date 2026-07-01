@@ -462,6 +462,7 @@ describe('renderer app runtime boundary', () => {
     expect(traceRuntimeSource).toContain('logRendererOverlayViewModelResolvedTrace');
     expect(responseOverlaySource).toContain('DesktopResponseOverlayViewRuntime');
     expect(responseOverlaySource).toContain('buildResponseOverlayTraceSummary');
+    expect(responseOverlaySource).toContain('buildResponseOverlayTypingRenderedTraceValues');
     expect(traceRuntimeSource).not.toContain('export function logRendererResponseOverlayStateTrace');
     expect(traceRuntimeSource).not.toContain('export function buildRendererOverlayViewModelTracePayload');
     expect(responseOverlaySource).toContain('DesktopRendererTraceRuntime');
@@ -481,6 +482,7 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlaySource).not.toContain('overlayIntent?.conversationRef');
     expect(responseOverlaySource).not.toContain('overlayIntent?.turnRef');
     expect(responseOverlaySource).not.toContain('overlayIntent?.staleGuardRef');
+    expect(responseOverlaySource).not.toContain('turnRef: currentTurnId');
     expect(responseOverlaySource).not.toContain('JSON.stringify({');
     expect(responseOverlaySource).not.toContain('activeResponseTextLength');
     expect(responseOverlaySource).not.toContain('thinkingText.length');
@@ -560,11 +562,19 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceSource).not.toContain('RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF');
     expect(streamPhaseSource).toContain('desktopResponseOverlayPhaseRuntime');
     expect(liveSurfaceSource).toContain('desktopResponseOverlayPhaseRuntime');
+    expect(liveSurfaceSource).toContain('desktopConversationViewWorkspaceRuntime');
     expect(streamPhaseSource).toContain('DesktopResponseOverlayPhaseRuntime');
     expect(liveSurfaceSource).toContain('DesktopResponseOverlayPhaseRuntime');
+    expect(liveSurfaceSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(liveSurfaceSource).toContain('hasWorkspaceConversationView({ conversationView })');
     expect(liveSurfaceSource).toContain('DesktopLiveTurnSurfaceRuntime');
     expect(liveSurfaceSource).toContain('sdkLiveTurn = null');
     expect(liveSurfaceSource).toContain('sdkLiveTurn,');
+    expect(liveSurfaceSource).not.toContain('function isConversationView(value)');
+    expect(liveSurfaceSource).not.toContain('Array.isArray(value.displayRows)');
+    expect(liveSurfaceSource).not.toContain('isObjectRecord(value.liveTurn)');
+    expect(liveSurfaceSource).not.toContain('isObjectRecord(value.surfaces)');
+    expect(liveSurfaceSource).not.toContain('isObjectRecord(value.actions)');
     expect(liveSurfaceSource).not.toContain('isSending:');
     expect(liveSurfaceSource).not.toContain('showAwaiting');
     expect(liveSurfaceSource).not.toContain('showResponse');
@@ -625,6 +635,10 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/chat/components/ChatInterface.jsx'),
       'utf8',
     );
+    const chatStoreSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/stores/chatStore.ts'),
+      'utf8',
+    );
     const chatSurfaceControllerSource = await fs.readFile(
       path.join(rendererRoot, 'features/chat/hooks/useChatSurfaceController.js'),
       'utf8',
@@ -654,9 +668,14 @@ describe('renderer app runtime boundary', () => {
       currentTurnMessageSource.indexOf('function buildConversationViewLiveTurnMessages'),
     );
 
-    expect(currentTurnMessageSource).toContain('desktopChatMessageRuntimeClient');
+    expect(currentTurnMessageSource).not.toContain('desktopChatMessageRuntimeClient');
+    expect(currentTurnMessageSource).toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(currentTurnMessageSource).toContain('DesktopSdkToolDetailProjection');
     expect(currentTurnMessageSource).toContain('desktopPresentationSourceChannels');
+    expect(currentTurnMessageSource).toContain('desktopConversationViewWorkspaceRuntime');
+    expect(currentTurnMessageSource).toContain('hasWorkspaceConversationView({ conversationView })');
     expect(currentTurnMessageSource).not.toContain('desktopArtifactRuntimeClient');
+    expect(currentTurnMessageSource).not.toContain('conversationView && typeof conversationView');
     expect(currentTurnMessageSource).toContain('DesktopCurrentTurnMessageRuntime');
     expect(currentTurnMessageSource).toContain('isVisibleResponseOverlayMessage');
     expect(currentTurnMessageSource).toContain('isResponseOverlayProgressMessage');
@@ -664,6 +683,7 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnMessageSource).toContain('buildLegacyNoPresentationCurrentTurnMessages');
     expect(currentTurnMessageSource).toContain('buildNoViewSdkLiveTurnMessages');
     expect(currentTurnMessageSource).toContain('buildSdkLiveTurnMessages');
+    expect(currentTurnMessageSource).not.toContain('  buildLegacyNoPresentationCurrentTurnMessages,');
     expect(currentTurnMessageSource).not.toContain('buildCurrentTurnMessagesFromProjection');
     expect(currentTurnMessageSource).not.toContain('export function buildCurrentTurnMessagesFromProjection');
     expect(currentTurnMessageSource).not.toContain('export function buildCurrentTurnMessagesFromPresentation');
@@ -687,9 +707,20 @@ describe('renderer app runtime boundary', () => {
     expect(threadPresentationSource).toContain('desktopCurrentTurnMessageRuntime');
     expect(threadPresentationSource).toContain('DesktopCurrentTurnMessageRuntime');
     expect(threadPresentationSource).toContain('buildSdkLiveTurnMessages');
+    expect(threadPresentationSource).toContain('desktopConversationViewWorkspaceRuntime');
+    expect(threadPresentationSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(threadPresentationSource).toContain('hasWorkspaceConversationView({ conversationView })');
     expect(threadPresentationSource).toContain('desktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopThreadPresentationRuntime');
+    expect(threadPresentationSource).not.toContain('function isConversationView(value)');
+    expect(threadPresentationSource).not.toContain('readExactRef(value.conversationRef)');
+    expect(threadPresentationSource).not.toContain('Array.isArray(value.displayRows)');
+    expect(threadPresentationSource).not.toContain('isObjectRecord(value.liveTurn)');
+    expect(threadPresentationSource).not.toContain('isObjectRecord(value.surfaces)');
+    expect(threadPresentationSource).not.toContain('isObjectRecord(value.actions)');
+    expect(threadPresentationSource).toContain('const effectiveConversationView = hasConversationView ? conversationView : null');
+    expect(threadPresentationSource).toContain('conversationView: effectiveConversationView');
     expect(threadPresentationSource).not.toContain('buildLegacyNoPresentationCurrentTurnMessages');
     expect(threadPresentationSource).not.toContain('buildCurrentTurnMessagesFromPresentation');
     expect(threadPresentationSource).not.toContain('buildConversationViewLiveTurnMessages');
@@ -728,6 +759,10 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationSource).toContain('resolveSdkResponseOverlayPresentationState');
     expect(currentTurnPresentationSource).toContain('resolveResponseOverlayDismissalTarget');
     expect(currentTurnPresentationSource).toContain('resolveSdkOverlayIntent');
+    expect(currentTurnPresentationSource).toContain('function exactOverlayIdentityString');
+    expect(currentTurnPresentationSource).toContain('const responseEntryId = exactOverlayIdentityString(latestEntry?.id);');
+    expect(currentTurnPresentationSource).toContain('exactOverlayIdentityString(latestEntry.turnRef)');
+    expect(currentTurnPresentationSource).toContain('exactOverlayIdentityString(sdkLiveTurn?.turnRef)');
     expect(currentTurnPresentationSource).toContain('sdkLiveTurn = null');
     expect(currentTurnPresentationSource).not.toContain('currentTurnProjection');
     expect(currentTurnPresentationSource).not.toContain('desktopChatLoopUiRuntime');
@@ -743,6 +778,9 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationSource).not.toContain('function resolveSdkAwaitingDotTargetMessageId');
     expect(currentTurnPresentationSource).not.toContain('export function resolveResponseOverlayDismissalTarget');
     expect(currentTurnPresentationSource).not.toContain('export const VISIBLE_ASSISTANT_REPLY_TYPE_SET');
+    expect(currentTurnPresentationSource).not.toContain('latestEntry.turnRef\n    || sdkLiveTurn?.turnRef');
+    expect(currentTurnPresentationSource).not.toContain('sdkOverlayIntent?.turnRef\n    || latestEntry.turnRef');
+    expect(currentTurnPresentationSource).not.toContain('sdkOverlayIntent?.conversationRef\n    || sdkLiveTurn?.conversationRef');
     expect(currentTurnPresentationSource).not.toContain('features/chat');
     expect(currentTurnPresentationSource).not.toContain('features/minimalChatPill');
     expect(overlayViewModelSource).toContain('DesktopCurrentTurnPresentationRuntime');
@@ -792,11 +830,18 @@ describe('renderer app runtime boundary', () => {
     expect(chatSurfaceControllerSource).not.toContain('resolveCurrentTurnPresentationState');
     expect(chatSurfaceRuntimeSource).toContain('DesktopCurrentTurnPresentationRuntime');
     expect(chatSurfaceRuntimeSource).toContain('resolveCurrentTurnPresentationState');
+    expect(chatSurfaceRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(chatSurfaceRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(chatSurfaceRuntimeSource).not.toContain('function isConversationView(value)');
+    expect(chatSurfaceRuntimeSource).not.toContain('const hasConversationView = isConversationView(conversationView)');
     expect(chatSurfaceControllerSource).not.toContain('useCurrentTurnPresentationState');
     expect(chatSurfaceControllerSource).not.toContain('resolveSdkCurrentTurnPresentationState');
     expect(chatInterfacePresentationSource).toContain('desktopThreadPresentationRuntime');
     expect(chatInterfacePresentationSource).toContain('DesktopThreadPresentationRuntime');
-    expect(chatInterfaceSource).toContain('DesktopChatInterfacePresentationRuntime');
+    expect(chatInterfaceSource).toContain('selectChatInterfaceState');
+    expect(chatInterfaceSource).not.toContain('DesktopChatInterfacePresentationRuntime');
+    expect(chatStoreSource).toContain('DesktopChatInterfaceSelectorRuntime');
+    expect(chatStoreSource).toContain('buildChatInterfaceSelectorState');
     expect(chatInterfaceSource).not.toContain('desktopThreadPresentationRuntime');
     expect(chatInterfaceSource).not.toContain('DesktopThreadPresentationRuntime');
     expect(chatInterfaceSource).not.toContain('showToolLogs');
@@ -929,7 +974,19 @@ describe('renderer app runtime boundary', () => {
     expect(responseViewRuntimeSource).toContain('resolveDismissedResponseOverlayEntryId');
     expect(responseViewRuntimeSource).toContain('resolveResponseOverlayEntries');
     expect(responseViewRuntimeSource).toContain('resolveResponseOverlayPresentationState');
+    expect(responseViewRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(responseViewRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(responseViewRuntimeSource).toContain('exactIdentityString(message.sourceEventType)');
+    expect(responseViewRuntimeSource).toContain('exactIdentityString(message.type)');
+    expect(responseViewRuntimeSource).toContain('exactIdentityString(liveMessage.sourceEventType)');
+    expect(responseViewRuntimeSource).toContain('exactIdentityString(liveMessage.type)');
+    expect(responseViewRuntimeSource).not.toContain('normalizeString(message.sourceEventType)');
+    expect(responseViewRuntimeSource).not.toContain('normalizeString(liveMessage.sourceEventType)');
+    expect(responseViewRuntimeSource).not.toContain('desktopConversationRuntimeContracts');
+    expect(responseViewRuntimeSource).not.toContain('as ConversationView');
+    expect(responseViewRuntimeSource).toContain('function mergeConversationViewOverlayMessages(conversationView: unknown)');
     expect(responseViewRuntimeSource).not.toContain('export function resolveResponseOverlayViewContract');
+    expect(responseViewRuntimeSource).not.toContain('function isConversationView');
     expect(responseViewRuntimeSource).not.toContain('view.actions');
     expect(responseViewRuntimeSource).toContain('desktopResponseOverlayLayoutRuntime');
     expect(responseViewRuntimeSource).toContain('desktopCurrentTurnMessageRuntime');
@@ -1356,6 +1413,25 @@ describe('renderer app runtime boundary', () => {
     expect(liveTurnSource).toContain('invokeAgentSdkCommand');
     expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
     expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
+    expect(liveTurnSource).toContain('function optionalExactString');
+    expect(liveTurnSource).toContain('function optionalExactField');
+    expect(liveTurnSource).toContain('function hasOnlyAllowedResourceKeys');
+    expect(liveTurnSource).toContain('Object.keys(resource).every((key) => allowedKeys.includes(key))');
+    expect(liveTurnSource).toContain('optionalExactString(result.error) ?? SEND_COMMAND_FAILURE_FALLBACK');
+    expect(liveTurnSource).not.toContain('result.error.trim()');
+    expect(liveTurnSource).toContain('const turnRef = optionalExactString(input.turnRef)');
+    expect(liveTurnSource).toContain("...optionalExactField('contentType', resource.contentType)");
+    expect(liveTurnSource).toContain("...optionalExactField('filename', resource.filename)");
+    expect(liveTurnSource).toContain("...optionalExactField('reason', resource.reason)");
+    expect(liveTurnSource).not.toContain('contentType: optionalExactString(resource.contentType)');
+    expect(liveTurnSource).not.toContain('filename: optionalExactString(resource.filename)');
+    expect(liveTurnSource).not.toContain('reason: optionalExactString(resource.reason)');
+    expect(liveTurnSource).not.toContain('const turnRef = optionalString(input.turnRef)');
+    expect(liveTurnSource).toContain('optionalExactString(conversationRef)');
+    expect(liveTurnSource).toContain('optionalExactString(turnRef)');
+    expect(liveTurnSource).not.toContain('optionalString(conversationRef)\n      ?? DesktopTranscriptSessionRuntimeClient.getActiveConversationRef()');
+    expect(liveTurnSource).not.toContain('metadata?: Record');
+    expect(liveTurnSource).not.toContain('metadata: input.metadata');
     expect(liveTurnSource).not.toContain('screenshotRef');
     expect(liveTurnSource).not.toContain('screenshotUrl');
     expect(liveTurnSource).not.toContain('screenshotRefs');
@@ -1380,6 +1456,14 @@ describe('renderer app runtime boundary', () => {
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE');
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.MODELS_LIST');
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED');
+    expect(agentRuntimeTransportSource).toContain('function optionalAttachmentContext');
+    expect(agentRuntimeTransportSource).toContain('attachment_context: optionalAttachmentContext(payload.attachment_context)');
+    expect(agentRuntimeTransportSource).toContain('const queryMessageId = optionalExactString(messageId)');
+    expect(agentRuntimeTransportSource).toContain("const message = optionalExactString(result.error) ?? 'Failed to send query through agent runtime'");
+    expect(agentRuntimeTransportSource).not.toContain('result.error.trim()');
+    expect(agentRuntimeTransportSource).toContain('result.messageId === result.messageId.trim()');
+    expect(agentRuntimeTransportSource).not.toContain('return result.messageId.trim()');
+    expect(agentRuntimeTransportSource).toContain('const turnRef = optionalExactString(payload.turn_ref)');
     expect(agentRuntimeTransportSource).toContain('AgentRuntimeTransport');
     expect(agentRuntimeTransportSource).toContain('export const DesktopRuntimeTransport = Object.freeze');
     expect(agentRuntimeTransportSource).not.toContain('export function createDesktopRuntimeTransport');
@@ -2004,10 +2088,16 @@ describe('renderer app runtime boundary', () => {
       'state.latestCurrentTurnProjection || state.currentTurnProjection',
     );
     expect(responseOverlaySource).toContain('selectLiveTurnSurfaceState');
-    expect(selectorRuntimeSource).toContain('const messages = conversationView ? emptySurfaceMessages : activeWorkspace.messages;');
-    expect(selectorRuntimeSource).toContain('const sdkLiveTurn = conversationView ? null : activeWorkspace.sdkLiveTurn ?? null;');
+    expect(selectorRuntimeSource).not.toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(selectorRuntimeSource).not.toContain('hasWorkspaceConversationView');
+    expect(selectorRuntimeSource).not.toContain('conversationView ? emptySurfaceMessages');
+    expect(selectorRuntimeSource).toContain('const messages = activeWorkspace.messages;');
+    expect(selectorRuntimeSource).toContain('const sdkLiveTurn = activeWorkspace.sdkLiveTurn ?? null;');
     expect(selectorRuntimeSource).toContain('sdkLiveTurn,');
     expect(chatInterfaceSelectorRuntimeSource).toContain(
+      'const presentationMessages = interfaceState.messages as ChatMessage[];',
+    );
+    expect(chatInterfaceSelectorRuntimeSource).not.toContain(
       'const messages = conversationView ? [] : activeWorkspace.messages;',
     );
     expect(chatInterfaceSelectorRuntimeSource).toContain('messages,');
@@ -2026,8 +2116,10 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceRuntimeSource).toContain('resolveConversationViewOverlayIntent');
     expect(liveSurfaceRuntimeSource).toContain("source: 'conversation-view'");
     expect(responseViewRuntimeSource).toContain('buildSdkLiveTurnMessages');
-    expect(responseViewRuntimeSource).toContain('resolveNoViewSdkLiveTurnThinkingText');
-    expect(responseViewRuntimeSource).toContain('isConversationView(conversationView)');
+    expect(responseViewRuntimeSource).toContain('resolveNoViewResponseOverlayThinkingText');
+    expect(responseViewRuntimeSource).not.toContain('resolveNoViewSdkLiveTurnThinkingText');
+    expect(responseViewRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(responseViewRuntimeSource).not.toContain('function isConversationView');
     expect(responseViewRuntimeSource).not.toContain('buildConversationViewLiveTurnMessages');
     expect(responseViewRuntimeSource).not.toContain('buildCurrentTurnMessagesFromPresentation');
     expect(responseViewRuntimeSource).not.toContain('buildLegacyNoPresentationCurrentTurnMessages');
@@ -2035,6 +2127,8 @@ describe('renderer app runtime boundary', () => {
     expect(responseViewRuntimeSource).not.toContain('hasSdkLiveTurnPresentationObject');
     expect(responseViewRuntimeSource).toContain('const messages = conversationView');
     expect(responseViewRuntimeSource).toContain('const sdkLiveTurn = conversationView ? null : surfaceState.sdkLiveTurn ?? null;');
+    expect(responseViewRuntimeSource).toContain('function isNoViewSdkLiveTurnResponseSource(source: unknown)');
+    expect(responseViewRuntimeSource).toContain('if (!isNoViewSdkLiveTurnResponseSource(liveTurnPresentationInput.source))');
     expect(responseOverlayViewModelSource).toContain('resolveResponseOverlaySurfaceState');
     expect(responseOverlayViewModelSource).not.toContain('resolveResponseOverlayEntries');
     expect(responseOverlayViewModelSource).not.toContain('buildConversationViewLiveTurnMessages');

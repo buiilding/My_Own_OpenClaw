@@ -84,19 +84,23 @@ describe('desktopMessageActionRuntime', () => {
   });
 
   test('resolves replay action availability from SDK row actions only', () => {
+    expect(DesktopMessageActionRuntime.resolveReplayTargetRowId('row-1')).toBe('row-1');
+    expect(DesktopMessageActionRuntime.resolveReplayTargetRowId(' row-1 ')).toBeNull();
+    expect(DesktopMessageActionRuntime.resolveReplayTargetRowId('')).toBeNull();
+
     expect(DesktopMessageActionRuntime.resolveMessageReplayActions({
       id: 'assistant-visible',
       actions: {
         canRetry: true,
-        retryTargetRowId: ' assistant-original ',
+        retryTargetRowId: 'assistant-original',
         canEdit: false,
-        editTargetRowId: ' user-original ',
+        editTargetRowId: 'user-original',
       },
     })).toEqual({
       canRetryMessage: true,
       canEditMessage: false,
-      retryTargetMessageId: 'assistant-original',
-      editTargetMessageId: 'user-original',
+      retryTargetRowId: 'assistant-original',
+      editTargetRowId: 'user-original',
     });
 
     expect(DesktopMessageActionRuntime.resolveMessageReplayActions({
@@ -107,9 +111,24 @@ describe('desktopMessageActionRuntime', () => {
       },
     })).toEqual({
       canRetryMessage: false,
-      canEditMessage: true,
-      retryTargetMessageId: 'assistant-visible',
-      editTargetMessageId: 'assistant-visible',
+      canEditMessage: false,
+      retryTargetRowId: null,
+      editTargetRowId: null,
+    });
+
+    expect(DesktopMessageActionRuntime.resolveMessageReplayActions({
+      id: 'assistant-visible',
+      actions: {
+        canRetry: true,
+        canEdit: true,
+        retryTargetRowId: ' assistant-original ',
+        editTargetRowId: '   ',
+      },
+    })).toEqual({
+      canRetryMessage: false,
+      canEditMessage: false,
+      retryTargetRowId: null,
+      editTargetRowId: null,
     });
   });
 });

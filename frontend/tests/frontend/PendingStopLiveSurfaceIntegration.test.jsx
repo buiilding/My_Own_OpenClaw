@@ -22,6 +22,7 @@ import {
 import { useChatSurfaceController } from '../../src/renderer/features/chat/hooks/useChatSurfaceController';
 import { useStopTurnHandler } from '../../src/renderer/features/chat/hooks/useStopTurnHandler';
 import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
   resetChatStoreForTests,
 } from './chatStoreTestUtils';
 
@@ -30,7 +31,7 @@ const mockSend = jest.fn();
 const mockRunManualCompaction = jest.fn();
 
 function getActiveWorkspace() {
-  return useChatStore.getState().getWorkspaceState();
+  return getWorkspaceStateFromChatStore();
 }
 
 jest.mock('../../src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({

@@ -25,6 +25,7 @@ import {
   DesktopCurrentTurnMessageRuntime,
 } from '../../src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
   resetChatStoreForTests,
 } from './chatStoreTestUtils';
 
@@ -114,7 +115,7 @@ function resetStore() {
 }
 
 function getActiveWorkspace() {
-  return useChatStore.getState().getWorkspaceState();
+  return getWorkspaceStateFromChatStore();
 }
 
 function currentTurnWithPresentation() {
@@ -273,7 +274,7 @@ describe('pending-turn live surface integration', () => {
     resolveWorkspaceSelection?.({ workspace: null });
     await expect(preparePromise).resolves.toEqual(expect.objectContaining({
       conversationRef: 'conv_msg-1',
-      turnRef: 'msg-1',
+      turnId: 'msg-1',
     }));
   });
 });

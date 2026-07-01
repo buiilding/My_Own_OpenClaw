@@ -9,10 +9,15 @@ import {
   acceptPendingTurnInChatStore,
   acceptStoppedTurnInChatStore,
   addMessageToChatStore,
+  applyConversationViewToChatStore,
   applyPendingTurnBroadcastToChatStore,
   clearMessagesInChatStore,
   clearPendingTurnInChatStore,
+  getChatProviderTraceWorkspaceSnapshotFromChatStore,
+  getChatStreamWorkspaceReadModelFromChatStore,
+  getCurrentTurnProjectionWorkspaceReadModelFromChatStore,
   setNoViewSdkLiveTurnInChatStore,
+  setConversationViewInChatStore,
   setIsSendingInChatStore,
   setMessagesInChatStore,
   setThinkingSourceEventTypeInChatStore,
@@ -26,6 +31,7 @@ import {
 } from '../../src/renderer/app/runtime/desktopChatTurnConversationRefRuntime';
 import {
   createAssistantSeedMessage,
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
   resetChatStoreForTests,
 } from './chatStoreTestUtils';
 
@@ -34,7 +40,7 @@ const {
 } = DesktopChatTurnConversationRefRuntime;
 
 function getActiveWorkspace() {
-  return useChatStore.getState().getWorkspaceState();
+  return getWorkspaceStateFromChatStore();
 }
 
 describe('chatStore', () => {
@@ -107,9 +113,7 @@ describe('chatStore', () => {
       isComplete: true,
     });
 
-    const updated = useChatStore
-      .getState()
-      .getWorkspaceState()
+    const updated = getWorkspaceStateFromChatStore()
       .messages
       .find((message) => message.id === 'assistant-2');
 
@@ -138,18 +142,18 @@ describe('chatStore', () => {
     expect(getActiveWorkspace().messages).toBe(before);
   });
 
-  test('setMessages indexes hydrated turn refs for targeted conversations', () => {
+  test('setMessages indexes exact hydrated turn refs for targeted conversations', () => {
     setMessagesInChatStore([
       {
         id: 'assistant-turn-message',
         text: 'streamed elsewhere',
         sender: 'assistant',
-        turnRef: ' turn-elsewhere ',
+        turnRef: 'turn-elsewhere',
       },
     ], 'conv-other');
 
     expect(resolveRendererConversationRefForTurn('turn-elsewhere')).toBe('conv-other');
-    expect(resolveRendererConversationRefForTurn(' turn-elsewhere ')).toBe('conv-other');
+    expect(resolveRendererConversationRefForTurn(' turn-elsewhere ')).toBeNull();
     expect(getActiveWorkspace().messages).toEqual([
       expect.objectContaining({
         id: 'init-message',
@@ -159,9 +163,9 @@ describe('chatStore', () => {
 
   test('persists response overlay dismissal by conversation, turn, and entry', () => {
     const dismissalTarget = {
-      conversationRef: ' conv-overlay ',
-      turnRef: ' turn-overlay ',
-      responseEntryId: ' assistant-entry ',
+      conversationRef: 'conv-overlay',
+      turnRef: 'turn-overlay',
+      responseEntryId: 'assistant-entry',
     };
     const dismissalKey = 'conv-overlay\u0001turn-overlay\u0001assistant-entry';
 
@@ -205,6 +209,491 @@ describe('chatStore', () => {
     setTokenCountsInChatStore(tokenCounts);
     const afterSnapshot = useChatStore.getState();
     expect(afterSnapshot).toBe(beforeSnapshot);
+  });
+
+  test('provider trace snapshots read projected workspace state through the adapter', () => {
+    setMessagesInChatStore([
+      {
+        id: 'raw-message',
+        sender: 'assistant',
+        text: 'raw answer',
+        turnRef: 'turn-raw',
+      },
+      {
+        id: 'stale-raw-message',
+        sender: 'assistant',
+        text: 'stale raw answer',
+        turnRef: 'turn-stale',
+      },
+    ], 'conv-trace');
+    setConversationViewInChatStore({
+      conversationRef: 'conv-trace',
+      revisionId: null,
+      displayRows: [{
+        id: 'view-row',
+        conversationRef: 'conv-trace',
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'view answer',
+        turnRef: 'turn-view',
+      }],
+      liveTurn: {
+        turnRef: 'turn-view',
+      },
+      surfaces: {
+        dashboard: { mode: 'normal', visible: true },
+        pill: { mode: 'normal', visible: true },
+        responseOverlay: { mode: 'hidden', visible: false },
+      },
+      actions: {
+        canEdit: false,
+        canRetry: false,
+        canFork: false,
+      },
+    }, 'conv-trace');
+
+    expect(getWorkspaceStateFromChatStore('conv-trace').messages).toEqual([]);
+    expect(getChatProviderTraceWorkspaceSnapshotFromChatStore('conv-trace')).toEqual({
+      activeConversationRef: null,
+      workspaceMessageCount: 1,
+      activeTurnRef: 'turn-view',
+      lastMessage: {
+        sender: 'assistant',
+        type: 'assistant_message',
+        textLength: 'view answer'.length,
+        turnRef: 'turn-view',
+        sourceEventType: null,
+      },
+    });
+  });
+
+  test('applies SDK ConversationView results through exact store-ref adapter', () => {
+    const view = {
+      conversationRef: 'conv-applied-view',
+      revisionId: null,
+      displayRows: [],
+      liveTurn: {
+        turnRef: 'turn-view',
+      },
+      surfaces: {
+        dashboard: { mode: 'normal', visible: true },
+        pill: { mode: 'normal', visible: true },
+        responseOverlay: { mode: 'hidden', visible: false },
+      },
+      actions: {
+        canEdit: false,
+        canRetry: false,
+        canFork: false,
+      },
+    };
+
+    expect(applyConversationViewToChatStore({
+      activeConversationRef: 'conv-active',
+      targetConversationRef: 'conv-applied-view',
+      view,
+    })).toBe('conv-applied-view');
+    expect(getWorkspaceStateFromChatStore('conv-applied-view').conversationView).toBe(view);
+
+    const rejectedView = {
+      ...view,
+      conversationRef: ' conv-repaired ',
+    };
+    expect(applyConversationViewToChatStore({
+      activeConversationRef: 'conv-active',
+      targetConversationRef: 'conv-repaired',
+      view: rejectedView,
+    })).toBeNull();
+    expect(getWorkspaceStateFromChatStore('conv-repaired').conversationView).toBeNull();
+  });
+
+  test('provider trace read model omits fallback rows when ConversationView exists', () => {
+    setMessagesInChatStore([
+      {
+        id: 'raw-message',
+        sender: 'assistant',
+        text: 'raw answer',
+        turnRef: 'turn-raw',
+      },
+      {
+        id: 'stale-raw-message',
+        sender: 'assistant',
+        text: 'stale raw answer',
+        turnRef: 'turn-stale',
+      },
+    ], 'conv-trace-empty-view');
+    updateStreamTrackingInChatStore((current) => ({
+      ...current,
+      activeTurnRef: 'turn-raw',
+      phase: 'streaming',
+    }), 'conv-trace-empty-view');
+    setConversationViewInChatStore({
+      conversationRef: 'conv-trace-empty-view',
+      revisionId: null,
+      displayRows: [],
+      liveTurn: {
+        turnRef: 'turn-view',
+      },
+      surfaces: {
+        dashboard: { mode: 'normal', visible: true },
+        pill: { mode: 'normal', visible: true },
+        responseOverlay: { mode: 'hidden', visible: false },
+      },
+      actions: {
+        canEdit: false,
+        canRetry: false,
+        canFork: false,
+      },
+    }, 'conv-trace-empty-view');
+
+    const snapshot = getChatProviderTraceWorkspaceSnapshotFromChatStore('conv-trace-empty-view');
+
+    expect(snapshot).toEqual({
+      activeConversationRef: null,
+      workspaceMessageCount: 0,
+      activeTurnRef: 'turn-view',
+      lastMessage: null,
+    });
+    expect(JSON.stringify(snapshot)).not.toContain('stale raw answer');
+    expect(JSON.stringify(snapshot)).not.toContain('turn-stale');
+  });
+
+  test('provider trace fallback metadata is exact at the store adapter boundary', () => {
+    setMessagesInChatStore([
+      {
+        id: 'raw-message',
+        sender: ' assistant ' as never,
+        type: ' assistant_message ' as never,
+        text: 'raw answer',
+        turnRef: ' turn-raw ',
+        sourceEventType: ' streaming-response ',
+      },
+    ], 'conv-trace-exact');
+    updateStreamTrackingInChatStore((current) => ({
+      ...current,
+      activeTurnRef: ' turn-raw ',
+      phase: 'streaming',
+    }), 'conv-trace-exact');
+
+    expect(getChatProviderTraceWorkspaceSnapshotFromChatStore('conv-trace-exact')).toEqual({
+      activeConversationRef: null,
+      workspaceMessageCount: 1,
+      activeTurnRef: null,
+      lastMessage: {
+        sender: null,
+        type: null,
+        textLength: 'raw answer'.length,
+        turnRef: null,
+        sourceEventType: null,
+      },
+    });
+  });
+
+  test('chat stream read model omits raw workspace message and view authority', () => {
+    setMessagesInChatStore([
+      {
+        id: 'raw-message',
+        sender: 'assistant',
+        text: 'raw answer',
+        turnRef: 'turn-raw',
+      },
+    ], 'conv-stream');
+    acceptPendingTurnInChatStore({
+      conversationRef: 'conv-stream',
+      turnRef: 'turn-pending',
+      userMessageId: 'pending-user',
+      text: 'pending prompt',
+      timestamp: '2026-06-27T12:00:00.000Z',
+    });
+    setThinkingSourceEventTypeInChatStore('assistant_delta', 'conv-stream');
+    updateStreamTrackingInChatStore((current) => ({
+      ...current,
+      activeTurnRef: 'turn-raw',
+      phase: 'streaming',
+    }), 'conv-stream');
+    setConversationViewInChatStore({
+      conversationRef: 'conv-stream',
+      revisionId: null,
+      displayRows: [{
+        id: 'view-row',
+        conversationRef: 'conv-stream',
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'view answer',
+        turnRef: 'turn-view',
+      }],
+      liveTurn: {
+        turnRef: 'turn-view',
+      },
+      surfaces: {
+        dashboard: { mode: 'normal', visible: true },
+        pill: { mode: 'normal', visible: true },
+        responseOverlay: { mode: 'hidden', visible: false },
+      },
+      actions: {
+        canEdit: false,
+        canRetry: false,
+        canFork: false,
+      },
+    }, 'conv-stream');
+
+    const readModel = getChatStreamWorkspaceReadModelFromChatStore('conv-stream') as Record<string, unknown>;
+
+    expect(readModel).toEqual({
+      pendingTurn: {
+        turnRef: 'turn-pending',
+      },
+      streamTracking: expect.objectContaining({
+        activeTurnRef: null,
+        phase: 'idle',
+      }),
+      thinkingSourceEventType: null,
+      viewLiveTurnRef: 'turn-view',
+    });
+    expect(readModel).not.toHaveProperty('conversationView');
+    expect(readModel).not.toHaveProperty('messages');
+    expect(readModel).not.toHaveProperty('rendererAnnotations');
+    expect(readModel).not.toHaveProperty('sdkLiveTurn');
+  });
+
+  test('chat stream read model does not expose padded ConversationView live turn refs', () => {
+    setMessagesInChatStore([
+      {
+        id: 'raw-message',
+        sender: 'assistant',
+        text: 'raw answer',
+        turnRef: 'turn-raw',
+      },
+    ], 'conv-padded-view');
+    updateStreamTrackingInChatStore((current) => ({
+      ...current,
+      activeTurnRef: 'turn-raw',
+      phase: 'streaming',
+    }), 'conv-padded-view');
+    setConversationViewInChatStore({
+      conversationRef: 'conv-padded-view',
+      revisionId: null,
+      displayRows: [{
+        id: 'view-row',
+        conversationRef: 'conv-padded-view',
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'view answer',
+        turnRef: ' turn-view ',
+      }],
+      liveTurn: {
+        turnRef: ' turn-view ',
+      },
+      surfaces: {
+        dashboard: { mode: 'normal', visible: true },
+        pill: { mode: 'normal', visible: true },
+        responseOverlay: { mode: 'hidden', visible: false },
+      },
+      actions: {
+        canEdit: false,
+        canRetry: false,
+        canFork: false,
+      },
+    }, 'conv-padded-view');
+
+    const readModel = getChatStreamWorkspaceReadModelFromChatStore('conv-padded-view') as Record<string, unknown>;
+
+    expect(readModel.viewLiveTurnRef).toBeNull();
+    expect(readModel.streamTracking).toEqual(expect.objectContaining({
+      activeTurnRef: null,
+      phase: 'idle',
+    }));
+    expect(readModel).not.toHaveProperty('conversationView');
+  });
+
+  test('projected chat-store read models do not expose partial ConversationView objects', () => {
+    setMessagesInChatStore([
+      {
+        id: 'raw-message',
+        sender: 'assistant',
+        text: 'raw answer',
+        turnRef: 'turn-raw',
+      },
+    ], 'conv-partial-view');
+    setNoViewSdkLiveTurnInChatStore({
+      conversationRef: 'conv-partial-view',
+      turnRef: 'turn-live',
+      phase: 'streaming',
+      assistantText: 'raw answer',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    }, 'conv-partial-view');
+    setConversationViewInChatStore({
+      conversationRef: 'conv-partial-view',
+      displayRows: [{
+        id: 'view-row',
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'partial view answer',
+        turnRef: 'turn-view',
+      }],
+    } as never, 'conv-partial-view');
+
+    const streamReadModel = getChatStreamWorkspaceReadModelFromChatStore('conv-partial-view') as Record<string, unknown>;
+    const currentTurnReadModel = getCurrentTurnProjectionWorkspaceReadModelFromChatStore('conv-partial-view') as Record<string, unknown>;
+    const providerTraceSnapshot = getChatProviderTraceWorkspaceSnapshotFromChatStore('conv-partial-view');
+
+    expect(streamReadModel.viewLiveTurnRef).toBeNull();
+    expect(streamReadModel).not.toHaveProperty('conversationView');
+    expect(streamReadModel.streamTracking).toEqual(expect.objectContaining({
+      phase: 'idle',
+    }));
+    expect(currentTurnReadModel).toEqual(expect.objectContaining({
+      conversationView: null,
+      sdkLiveTurn: {
+        phase: 'streaming',
+        turnRef: 'turn-live',
+      },
+    }));
+    expect(currentTurnReadModel).not.toHaveProperty('messages');
+    expect(providerTraceSnapshot).toEqual({
+      activeConversationRef: null,
+      workspaceMessageCount: 1,
+      activeTurnRef: null,
+      lastMessage: {
+        sender: 'assistant',
+        type: null,
+        textLength: 'raw answer'.length,
+        turnRef: 'turn-raw',
+        sourceEventType: null,
+      },
+    });
+  });
+
+  test('SDK store write facades normalize malformed view and live-turn envelopes', () => {
+    setNoViewSdkLiveTurnInChatStore({
+      conversationRef: 'conv-runtime-gate',
+      turnRef: ' turn-live ',
+      phase: 'streaming',
+    }, 'conv-runtime-gate');
+    setConversationViewInChatStore({
+      conversationRef: 'conv-runtime-gate',
+      displayRows: [],
+    }, 'conv-runtime-gate');
+
+    const workspace = getWorkspaceStateFromChatStore('conv-runtime-gate');
+    expect(workspace.sdkLiveTurn).toBeNull();
+    expect(workspace.conversationView).toBeNull();
+  });
+
+  test('current-turn projection read model omits raw message state', () => {
+    setMessagesInChatStore([
+      {
+        id: 'raw-message',
+        sender: 'assistant',
+        text: 'raw answer',
+        turnRef: 'turn-raw',
+      },
+    ], 'conv-current-turn');
+    acceptPendingTurnInChatStore({
+      conversationRef: 'conv-current-turn',
+      turnRef: 'turn-pending',
+      userMessageId: 'pending-user',
+      text: 'pending prompt',
+      timestamp: '2026-06-27T12:00:00.000Z',
+    });
+    setNoViewSdkLiveTurnInChatStore({
+      conversationRef: 'conv-current-turn',
+      turnRef: 'turn-live',
+      phase: 'streaming',
+      assistantText: 'raw answer',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        entries: [{
+          id: 'entry-assistant',
+          type: 'llm-text',
+          text: 'raw answer',
+        }],
+      },
+    }, 'conv-current-turn');
+
+    const readModel = getCurrentTurnProjectionWorkspaceReadModelFromChatStore('conv-current-turn') as Record<string, unknown>;
+
+    expect(readModel).toEqual(expect.objectContaining({
+      conversationView: null,
+      pendingTurn: {
+        turnRef: 'turn-pending',
+      },
+      sdkLiveTurn: {
+        phase: 'streaming',
+        turnRef: 'turn-live',
+      },
+      streamTracking: expect.objectContaining({
+        activeTurnRef: null,
+        phase: 'idle',
+      }),
+      thinkingStatus: null,
+    }));
+    expect(readModel).not.toHaveProperty('messageCount');
+    expect(readModel).not.toHaveProperty('messages');
+    expect(readModel).not.toHaveProperty('rendererAnnotations');
+    expect(readModel).not.toHaveProperty('thinkingSourceEventType');
+  });
+
+  test('projected stream and current-turn read models exact-gate fallback labels', () => {
+    const workspaceRef = 'conv-padded-read-model';
+    const initialStreamTracking = getActiveWorkspace().streamTracking;
+
+    useChatStore.setState((state) => ({
+      ...state,
+      activeConversationRef: workspaceRef,
+      workspaces: {
+        ...state.workspaces,
+        [workspaceRef]: {
+          messages: [],
+          rendererAnnotations: [],
+          isSending: false,
+          thinkingStatus: 'thinking',
+          thinkingSourceEventType: ' assistant_delta ',
+          compactionDebugInfo: null,
+          tokenCounts: null,
+          streamTracking: initialStreamTracking,
+          sdkLiveTurn: {
+            conversationRef: workspaceRef,
+            turnRef: ' turn-live ',
+            phase: ' streaming ',
+            assistantText: 'raw answer',
+            reasoningText: null,
+            toolEvents: [],
+            lastError: null,
+          } as never,
+          conversationView: null,
+          pendingTurn: {
+            conversationRef: workspaceRef,
+            turnRef: ' turn-pending ',
+            userMessageId: 'pending-user',
+            text: 'pending prompt',
+            timestamp: '2026-06-27T12:00:00.000Z',
+          },
+        },
+      },
+    }));
+
+    const streamReadModel = getChatStreamWorkspaceReadModelFromChatStore(workspaceRef) as Record<string, unknown>;
+    const currentTurnReadModel = getCurrentTurnProjectionWorkspaceReadModelFromChatStore(workspaceRef) as Record<string, unknown>;
+
+    expect(streamReadModel).toEqual(expect.objectContaining({
+      pendingTurn: {
+        turnRef: null,
+      },
+      thinkingSourceEventType: null,
+    }));
+    expect(currentTurnReadModel).toEqual(expect.objectContaining({
+      pendingTurn: {
+        turnRef: null,
+      },
+      sdkLiveTurn: {
+        phase: null,
+        turnRef: null,
+      },
+    }));
   });
 
   test('clearMessages resets to an empty message list', () => {
@@ -256,7 +745,7 @@ describe('chatStore', () => {
         id: 'init-message',
       }),
     ]);
-    expect(useChatStore.getState().getWorkspaceState('conv-other').messages).toEqual([
+    expect(getWorkspaceStateFromChatStore('conv-other').messages).toEqual([
       expect.objectContaining({
         id: 'stale-workspace-message',
         text: 'offscreen',
@@ -319,9 +808,9 @@ describe('chatStore', () => {
 
     const state = useChatStore.getState();
     expect(state).not.toHaveProperty('latestCurrentTurnProjection');
-    expect(state.getWorkspaceState().sdkLiveTurn).toBe(userProjection);
+    expect(getWorkspaceStateFromChatStore().sdkLiveTurn).toBe(userProjection);
     expect(
-      state.getWorkspaceState('conv-agent-internal').sdkLiveTurn,
+      getWorkspaceStateFromChatStore('conv-agent-internal').sdkLiveTurn,
     ).toBe(internalProjection);
   });
 
@@ -337,7 +826,7 @@ describe('chatStore', () => {
     useChatStore.getState().setActiveConversationRef('conv-other');
 
     const state = useChatStore.getState();
-    const activeWorkspace = state.getWorkspaceState();
+    const activeWorkspace = getWorkspaceStateFromChatStore();
     expect(state.activeConversationRef).toBe('conv-other');
     expect(activeWorkspace.isSending).toBe(true);
     expect(activeWorkspace.thinkingStatus).toBe('thinking elsewhere');
@@ -347,6 +836,17 @@ describe('chatStore', () => {
         text: 'other workspace',
       }),
     ]);
+  });
+
+  test('does not trim padded active conversation refs into workspace identity', () => {
+    setIsSendingInChatStore(true, 'conv-other');
+
+    useChatStore.getState().setActiveConversationRef(' conv-other ');
+
+    const state = useChatStore.getState();
+    expect(state.activeConversationRef).toBeNull();
+    expect(getWorkspaceStateFromChatStore().isSending).toBe(false);
+    expect(getWorkspaceStateFromChatStore('conv-other').isSending).toBe(true);
   });
 
   test('acceptPendingTurn stores bridge state without mutating raw messages', () => {
@@ -359,7 +859,7 @@ describe('chatStore', () => {
     });
 
     const state = useChatStore.getState();
-    const activeWorkspace = state.getWorkspaceState();
+    const activeWorkspace = getWorkspaceStateFromChatStore();
     expect(state.activeConversationRef).toBe('conv-pending');
     expect(activeWorkspace.isSending).toBe(true);
     expect(activeWorkspace.pendingTurn).toEqual(expect.objectContaining({
@@ -371,7 +871,8 @@ describe('chatStore', () => {
     expect(activeWorkspace.messages).toEqual([]);
   });
 
-  test('applyPendingTurnBroadcast replays pending state without raw message rows', () => {
+  test('applyPendingTurnBroadcast rejects attachment-bearing pending state', () => {
+    const beforeState = useChatStore.getState();
     applyPendingTurnBroadcastToChatStore({
       kind: 'pending',
       pendingTurn: {
@@ -391,21 +892,19 @@ describe('chatStore', () => {
       },
     });
 
-    const state = useChatStore.getState();
-    const activeWorkspace = state.getWorkspaceState();
-    expect(state.activeConversationRef).toBe('conv-replay');
-    expect(activeWorkspace.isSending).toBe(true);
-    expect(activeWorkspace.pendingTurn?.turnRef).toBe('turn-replay');
-    expect(activeWorkspace.messages).toEqual([]);
+    expect(useChatStore.getState()).toBe(beforeState);
   });
 
-  test('applyPendingTurnBroadcast is a no-op for an echoed pending turn with ignored attachments', () => {
+  test('applyPendingTurnBroadcast is a no-op for an echoed pending turn with forbidden attachments', () => {
     const pendingTurn = {
       conversationRef: 'conv-echo',
       turnRef: 'turn-echo',
       userMessageId: 'user-echo',
       text: 'keep this bubble stable',
       timestamp: '2026-06-16T00:00:00.000Z',
+    };
+    const attachmentBearingBroadcast = {
+      ...pendingTurn,
       attachments: [{
         id: 'turn-echo:attachment:000',
         kind: 'image' as const,
@@ -418,20 +917,20 @@ describe('chatStore', () => {
 
     acceptPendingTurnInChatStore(pendingTurn);
     const beforeState = useChatStore.getState();
-    const beforeMessages = beforeState.getWorkspaceState().messages;
+    const beforeMessages = getWorkspaceStateFromChatStore().messages;
 
     applyPendingTurnBroadcastToChatStore({
       kind: 'pending',
-      pendingTurn: JSON.parse(JSON.stringify(pendingTurn)),
+      pendingTurn: JSON.parse(JSON.stringify(attachmentBearingBroadcast)),
     });
 
     const afterState = useChatStore.getState();
     expect(afterState).toBe(beforeState);
-    expect(afterState.getWorkspaceState().messages).toBe(beforeMessages);
-    expect(afterState.getWorkspaceState().messages).toEqual([]);
+    expect(getWorkspaceStateFromChatStore().messages).toBe(beforeMessages);
+    expect(getWorkspaceStateFromChatStore().messages).toEqual([]);
   });
 
-  test('setCurrentTurnProjection replaces matching pending turn without clearing busy state first', () => {
+  test('setCurrentTurnProjection keeps matching pending turn until SDK visible content arrives', () => {
     acceptPendingTurnInChatStore({
       conversationRef: 'conv-sdk',
       turnRef: 'turn-sdk',
@@ -458,8 +957,11 @@ describe('chatStore', () => {
     });
 
     const state = useChatStore.getState();
-    const activeWorkspace = state.getWorkspaceState();
-    expect(activeWorkspace.pendingTurn).toBeNull();
+    const activeWorkspace = getWorkspaceStateFromChatStore();
+    expect(activeWorkspace.pendingTurn).toEqual(expect.objectContaining({
+      conversationRef: 'conv-sdk',
+      turnRef: 'turn-sdk',
+    }));
     expect(activeWorkspace.sdkLiveTurn?.turnRef).toBe('turn-sdk');
     expect(activeWorkspace.isSending).toBe(true);
   });
@@ -491,7 +993,7 @@ describe('chatStore', () => {
     });
 
     const state = useChatStore.getState();
-    const activeWorkspace = state.getWorkspaceState();
+    const activeWorkspace = getWorkspaceStateFromChatStore();
     expect(activeWorkspace.pendingTurn).toEqual(expect.objectContaining({
       conversationRef: 'conv-sdk-idle',
       turnRef: 'turn-sdk-idle',
@@ -542,7 +1044,7 @@ describe('chatStore', () => {
     });
 
     const state = useChatStore.getState();
-    const activeWorkspace = state.getWorkspaceState();
+    const activeWorkspace = getWorkspaceStateFromChatStore();
     expect(activeWorkspace.pendingTurn).toBeNull();
     expect(activeWorkspace.isSending).toBe(false);
     expect(activeWorkspace.thinkingStatus).toBeNull();

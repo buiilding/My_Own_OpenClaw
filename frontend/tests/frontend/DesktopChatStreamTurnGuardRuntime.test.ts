@@ -32,8 +32,8 @@ describe('DesktopChatStreamTurnGuardRuntime', () => {
     expect(isStaleTurnForActiveStream('turn-1', '   ')).toBe(false);
   });
 
-  test('normalizes trimmed turn refs before stale comparison', () => {
-    expect(isStaleTurnForActiveStream(' turn-1 ', 'turn-1')).toBe(false);
-    expect(isStaleTurnForActiveStream('turn-1', ' turn-1 ')).toBe(false);
+  test('does not repair padded turn refs before stale comparison', () => {
+    expect(isStaleTurnForActiveStream(' turn-old ', 'turn-1')).toBe(false);
+    expect(isStaleTurnForActiveStream('turn-old', ' turn-1 ')).toBe(false);
   });
 });

@@ -5,19 +5,42 @@ const {
   buildConversationViewWorkspaceMutation,
   buildSetConversationViewStateUpdate,
   hasWorkspaceConversationView,
+  resolveConversationViewStoreRef,
 } = DesktopConversationViewWorkspaceRuntime;
 
 function buildConversationView(conversationRef: string): ConversationView {
   return {
     conversationRef,
-    rows: [],
+    revisionId: null,
+    displayRows: [],
+    liveTurn: {
+      turnRef: null,
+      phase: 'idle',
+      entries: [],
+      isBusy: false,
+      isTerminal: true,
+      canStop: false,
+    },
+    surfaces: {
+      pill: {
+        mode: 'idle',
+      },
+      dashboard: {
+        mode: 'idle',
+      },
+      responseOverlay: {
+        mode: 'hidden',
+        visible: false,
+        guardRef: null,
+        ownerConversationRef: conversationRef,
+        turnRef: null,
+      },
+    },
     actions: {
       canEdit: false,
       canRetry: false,
+      canFork: false,
     },
-    revisions: [],
-    activeRevisionId: null,
-    liveTurn: null,
   };
 }
 
@@ -58,9 +81,70 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
       conversationView: buildConversationView('conv-1'),
     })).toBe(true);
     expect(hasWorkspaceConversationView({
+      conversationView: buildConversationView(' conv-1 '),
+    })).toBe(false);
+    expect(hasWorkspaceConversationView({
+      conversationView: buildConversationView(''),
+    })).toBe(false);
+    expect(hasWorkspaceConversationView({
+      conversationView: {
+        ...buildConversationView('conv-1'),
+        liveTurn: [],
+      },
+    })).toBe(false);
+    expect(hasWorkspaceConversationView({
       conversationView: null,
     })).toBe(false);
+    expect(hasWorkspaceConversationView({
+      conversationView: {
+        conversationRef: 'conv-1',
+        rows: [],
+      },
+    })).toBe(false);
     expect(hasWorkspaceConversationView(null)).toBe(false);
+  });
+
+  test('resolves a conversation view store ref from exact SDK view identity', () => {
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: 'conv-1',
+      view: buildConversationView('conv-1'),
+    })).toBe('conv-1');
+
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: 'conv-active',
+      targetConversationRef: 'conv-view',
+      view: buildConversationView('conv-view'),
+    })).toBe('conv-view');
+  });
+
+  test('rejects repaired conversation view store refs', () => {
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: 'conv-view',
+      targetConversationRef: 'conv-view',
+      view: buildConversationView(' conv-view '),
+    })).toBeNull();
+
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: 'conv-view',
+      targetConversationRef: 'conv-target',
+      view: buildConversationView('conv-view'),
+    })).toBeNull();
+
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: 'conv-active',
+      view: buildConversationView('conv-view'),
+    })).toBeNull();
+  });
+
+  test('returns null when a view has no resolvable conversation ref', () => {
+    expect(resolveConversationViewStoreRef({
+      activeConversationRef: null,
+      targetConversationRef: null,
+      view: {
+        ...buildConversationView('conv-1'),
+        conversationRef: undefined,
+      },
+    })).toBeNull();
   });
 
   test('returns null when workspace view is already current', () => {
@@ -81,7 +165,7 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     const nextView = buildConversationView('conv-1');
     const workspace = {
       conversationView: previousView,
-      messages: ['keep-ui-state'],
+      messages: ['stale-raw-row'],
     };
 
     const mutation = buildConversationViewWorkspaceMutation({
@@ -92,10 +176,117 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
     expect(mutation).toEqual({
       workspace: {
         conversationView: nextView,
-        messages: ['keep-ui-state'],
+        messages: [],
       },
     });
     expect(mutation?.workspace).not.toBe(workspace);
+  });
+
+  test('keeps workspace stable when current view already owns an empty raw message list', () => {
+    const conversationView = buildConversationView('conv-1');
+    const workspace = {
+      conversationView,
+      messages: [],
+      rendererAnnotations: [],
+    };
+
+    expect(buildConversationViewWorkspaceMutation({
+      conversationView,
+      currentWorkspace: workspace,
+    })).toBeNull();
+  });
+
+  test('migrates assistant feedback into explicit renderer annotations when view becomes authoritative', () => {
+    const conversationView = buildConversationView('conv-1');
+    const workspace = {
+      conversationView: null,
+      messages: [
+        {
+          id: 'assistant-row',
+          sender: 'assistant',
+          text: 'raw fallback',
+          feedback: 'like',
+        },
+        {
+          id: 'user-row',
+          sender: 'user',
+          text: 'ignore user feedback',
+          feedback: 'dislike',
+        },
+      ],
+      rendererAnnotations: [],
+    };
+
+    const mutation = buildConversationViewWorkspaceMutation({
+      conversationView,
+      currentWorkspace: workspace,
+    });
+
+    expect(mutation?.workspace.messages).toEqual([]);
+    expect(mutation?.workspace.rendererAnnotations).toEqual([
+      {
+        id: 'assistant-row',
+        feedback: 'like',
+      },
+    ]);
+  });
+
+  test('does not repair padded assistant feedback ids into renderer annotations', () => {
+    const conversationView = buildConversationView('conv-1');
+    const workspace = {
+      conversationView: null,
+      messages: [
+        {
+          id: ' assistant-row ',
+          sender: 'assistant',
+          text: 'raw fallback',
+          feedback: 'like',
+        },
+        {
+          id: 'assistant-row-exact',
+          sender: 'assistant',
+          text: 'raw fallback',
+          feedback: 'dislike',
+        },
+      ],
+      rendererAnnotations: [],
+    };
+
+    const mutation = buildConversationViewWorkspaceMutation({
+      conversationView,
+      currentWorkspace: workspace,
+    });
+
+    expect(mutation?.workspace.rendererAnnotations).toEqual([
+      {
+        id: 'assistant-row-exact',
+        feedback: 'dislike',
+      },
+    ]);
+  });
+
+  test('clears explicit renderer annotations when the ConversationView is cleared', () => {
+    const workspace = {
+      conversationView: buildConversationView('conv-1'),
+      messages: [],
+      rendererAnnotations: [
+        {
+          id: 'assistant-row',
+          feedback: 'like',
+        },
+      ],
+    };
+
+    expect(buildConversationViewWorkspaceMutation({
+      conversationView: null,
+      currentWorkspace: workspace,
+    })).toEqual({
+      workspace: {
+        conversationView: null,
+        messages: [],
+        rendererAnnotations: [],
+      },
+    });
   });
 
   test('updates inactive workspace conversation view the same way', () => {
@@ -145,6 +336,111 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
         conversationView,
         isSending: false,
         pendingTurn: null,
+      },
+    });
+  });
+
+  test('does not repair padded pending bridge refs when ConversationView becomes authoritative', () => {
+    const conversationView = buildLiveConversationView({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+    });
+    const pendingTurn = {
+      conversationRef: ' conv-1 ',
+      turnRef: 'turn-1',
+      userMessageId: 'user-1',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    };
+    const workspace = {
+      conversationView: null,
+      isSending: true,
+      pendingTurn,
+    };
+
+    expect(buildConversationViewWorkspaceMutation({
+      conversationView,
+      currentWorkspace: workspace,
+    })).toEqual({
+      workspace: {
+        conversationView,
+        isSending: true,
+        pendingTurn,
+      },
+    });
+  });
+
+  test('does not repair padded ConversationView turn refs before clearing pending bridge', () => {
+    const conversationView = buildLiveConversationView({
+      conversationRef: 'conv-1',
+      turnRef: ' turn-1 ',
+    });
+    const pendingTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      userMessageId: 'user-1',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    };
+    const workspace = {
+      conversationView: null,
+      isSending: true,
+      pendingTurn,
+    };
+
+    expect(buildConversationViewWorkspaceMutation({
+      conversationView,
+      currentWorkspace: workspace,
+    })).toEqual({
+      workspace: {
+        conversationView,
+        isSending: true,
+        pendingTurn,
+      },
+    });
+  });
+
+  test('does not repair padded ConversationView terminal phase before clearing pending bridge', () => {
+    const conversationView: ConversationView = {
+      ...buildConversationView('conv-1'),
+      liveTurn: {
+        turnRef: 'turn-1',
+        phase: ' complete ',
+        isBusy: false,
+        isTerminal: false,
+        entries: [],
+      },
+      surfaces: {
+        responseOverlay: {
+          mode: 'hidden',
+          visible: false,
+          turnRef: 'turn-1',
+          guardRef: 'turn-1',
+          ownerConversationRef: 'conv-1',
+        },
+      },
+    };
+    const pendingTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      userMessageId: 'user-1',
+      text: 'hello',
+      timestamp: '2026-06-25T12:00:00.000Z',
+    };
+    const workspace = {
+      conversationView: null,
+      isSending: true,
+      pendingTurn,
+    };
+
+    expect(buildConversationViewWorkspaceMutation({
+      conversationView,
+      currentWorkspace: workspace,
+    })).toEqual({
+      workspace: {
+        conversationView,
+        isSending: true,
+        pendingTurn,
       },
     });
   });
@@ -316,7 +612,7 @@ describe('DesktopConversationViewWorkspaceRuntime', () => {
       'conv-1',
       expect.objectContaining({
         conversationView: nextView,
-        messages: ['keep-ui-state'],
+        messages: [],
       }),
     );
     expect(nextState).toEqual(expect.objectContaining({

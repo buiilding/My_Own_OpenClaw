@@ -33,8 +33,8 @@ function buildArtifactCacheKey(imageSource) {
   if (!imageSource) {
     return null;
   }
-  if (typeof imageSource.artifactId === 'string' && imageSource.artifactId.trim()) {
-    return imageSource.artifactId.trim();
+  if (typeof imageSource.artifactId === 'string' && imageSource.artifactId.length > 0) {
+    return imageSource.artifactId;
   }
   return DesktopArtifactRuntimeClient.inferArtifactRefFromUrl(imageSource.url);
 }

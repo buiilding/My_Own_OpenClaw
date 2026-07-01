@@ -52,6 +52,12 @@ function hasVisibleChatboxResponse(activeResponse, dismissedResponseId) {
   return Boolean(activeResponse && activeResponse.id !== dismissedResponseId);
 }
 
+function exactOverlayIdentityString(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function resolveCurrentTurnPresentationState({
   messages,
   dismissedResponseId = null,
@@ -122,7 +128,8 @@ function resolveResponseOverlayDismissalTarget({
     return null;
   }
   const latestEntry = responseOverlayEntries[responseOverlayEntries.length - 1];
-  if (!latestEntry?.id) {
+  const responseEntryId = exactOverlayIdentityString(latestEntry?.id);
+  if (!responseEntryId) {
     return null;
   }
   const sdkOverlayIntent = useSdkLiveTurnPresentation
@@ -132,19 +139,19 @@ function resolveResponseOverlayDismissalTarget({
     )
     : null;
   const turnRef = (
-    sdkOverlayIntent?.turnRef
-    || latestEntry.turnRef
-    || sdkLiveTurn?.turnRef
+    exactOverlayIdentityString(sdkOverlayIntent?.turnRef)
+    || exactOverlayIdentityString(latestEntry.turnRef)
+    || exactOverlayIdentityString(sdkLiveTurn?.turnRef)
     || null
   );
   const conversationRef = (
-    sdkOverlayIntent?.conversationRef
-    || sdkLiveTurn?.conversationRef
+    exactOverlayIdentityString(sdkOverlayIntent?.conversationRef)
+    || exactOverlayIdentityString(sdkLiveTurn?.conversationRef)
     || null
   );
   const guardRef = (
-    sdkOverlayIntent?.staleGuardRef
-    || sdkOverlayIntent?.turnRef
+    exactOverlayIdentityString(sdkOverlayIntent?.staleGuardRef)
+    || exactOverlayIdentityString(sdkOverlayIntent?.turnRef)
     || turnRef
     || null
   );
@@ -152,7 +159,7 @@ function resolveResponseOverlayDismissalTarget({
     conversationRef,
     turnRef,
     guardRef,
-    responseEntryId: latestEntry.id,
+    responseEntryId,
   };
 }
 

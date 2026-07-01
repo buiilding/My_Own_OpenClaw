@@ -68,7 +68,7 @@ def test_python_sdk_package_discovery_exposes_only_public_windie_package():
 
     package_find = pyproject["tool"]["setuptools"]["packages"]["find"]
 
-    assert package_find["where"] == ["../../frontend/src/main/python"]
+    assert package_find["where"] == ["../../src/main/python"]
     assert package_find["include"] == ["windie", "windie.*"]
     assert "windie_shared" not in package_find["include"]
     assert "windie*" not in package_find["include"]

@@ -29,9 +29,9 @@ the SDK-shaped query runtime:
 5. Electron main registers the accelerator only while an agent loop is active.
    When pressed, the runtime calls the current stop handler, which routes
    through `ipc_stop_target_runtime.cjs` into the active conversation/turn
-   stop-query path. The handler targets the latest SDK current turn first, a
-   renderer pending turn second, and the active conversation only as an idle
-   fallback.
+   stop-query path. The handler targets only a stoppable SDK
+   `ConversationView` or the renderer pending bridge; when neither exists,
+   main resolves no stop target.
 
 Focused chat and dashboard windows still support plain `Esc`; the renderer
 keyboard handler accepts the canonical DOM `KeyboardEvent.key === "Escape"`
@@ -75,13 +75,19 @@ main-process status/config adapter around native registration:
 rule for an already-registered stop action:
 
 - `createMainStopTargetRuntime` composes the Electron main live-turn,
-  pending-turn, active-conversation, SDK stop, and overlay-phase dependencies so
+  pending-turn, SDK stop, and overlay-phase dependencies so
   `ipc.cjs` delegates the stop action instead of rebuilding the dependency bag.
-- SDK current-turn projections are stoppable during `awaiting`, `streaming`,
-  `tool_call`, `tool_output`, or when the SDK projection reports busy
-  presentation state.
-- Stoppable SDK current turns beat renderer pending-turn fallback.
-- Renderer pending turns beat idle active-conversation fallback.
+- SDK `ConversationView.liveTurn.canStop` plus a valid view turn ref is the
+  SDK-owned stoppable state; the view conversation ref and turn ref must be
+  exact non-empty strings, not padded values repaired by Electron main.
+- Stoppable SDK conversation views beat renderer pending-turn fallback.
+- Renderer pending turns are the only no-view fallback when their conversation
+  ref and turn ref are exact non-empty bridge identities.
+- When a non-stoppable SDK conversation view is present, a pending-turn fallback
+  must belong to that exact view conversation; cross-conversation pending state
+  is ignored instead of becoming the global Stop target.
+- Idle active-conversation refs are not stop targets; only stoppable views and
+  pending turns carry a `turn_ref`.
 - A successful stop sends the SDK-shaped `{ conversation_ref, turn_ref }`
   command and completes the response overlay phase.
 - The lower-level target resolver and executable stop trigger remain private to

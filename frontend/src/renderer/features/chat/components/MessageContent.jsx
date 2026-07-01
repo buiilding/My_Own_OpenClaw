@@ -71,7 +71,7 @@ export default function MessageContent({
     return <ToolActionsSummaryMessage message={message} />;
   }
 
-  if (DesktopMessageContentRuntime.isUserAttachmentMessageContentPresentation(contentPresentation)) {
+  if (DesktopMessageContentRuntime.isUserMessageContentPresentation(contentPresentation)) {
     return (
       <UserMessage
         message={message}
@@ -125,14 +125,9 @@ MessageContent.propTypes = {
       status: PropTypes.oneOf(['materializing', 'pending_capture', 'ready', 'failed']).isRequired,
     })),
     toolCallDisplayText: PropTypes.string,
-    modelFacingToolOutput: PropTypes.string,
     toolCallDetails: PropTypes.object,
     toolOutputDetails: PropTypes.object,
     actionExplanations: PropTypes.arrayOf(PropTypes.string),
-    toolMetadata: PropTypes.object,
-    toolName: PropTypes.string,
-    executionTime: PropTypes.number,
-    success: PropTypes.bool,
     modelProvider: PropTypes.string,
     modelId: PropTypes.string,
     thinkingText: PropTypes.string,

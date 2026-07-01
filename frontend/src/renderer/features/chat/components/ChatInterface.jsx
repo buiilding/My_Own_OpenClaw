@@ -13,8 +13,8 @@ import {
   useChatStore,
 } from '../stores/chatStore';
 import {
+  applyConversationViewToChatStore,
   clearMessagesInChatStore,
-  setConversationViewInChatStore,
   setThinkingSourceEventTypeInChatStore,
   setThinkingStatusInChatStore,
   setTokenCountsInChatStore,
@@ -46,9 +46,6 @@ import { DesktopChatInterfaceBindingsRuntime } from '../../../app/runtime/deskto
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import { DesktopThreadFindRuntime } from '../../../app/runtime/desktopThreadFindRuntime';
 import {
-  DesktopChatInterfacePresentationRuntime,
-} from '../../../app/runtime/desktopChatInterfacePresentationRuntime';
-import {
   DesktopChatRevisionActionRuntime,
 } from '../../../app/runtime/desktopChatRevisionActionRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
@@ -69,11 +66,6 @@ const { buildThreadFindState } = DesktopThreadFindRuntime;
 const { isDevUiEnabled } = DesktopDevUiRuntime;
 const { startNewChatSession } = DesktopNewChatSessionRuntime;
 const {
-  resolveConversationViewStoreRef,
-} = DesktopChatInterfacePresentationRuntime;
-const {
-  buildRevisionCheckoutCommand,
-  buildRevisionForkCommand,
   buildRevisionMenuItems,
   executeRevisionCheckoutCommand,
   executeRevisionForkCommand,
@@ -309,13 +301,17 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     renderedMessages,
   ]);
   const revisionMenuItems = useMemo(() => buildRevisionMenuItems({
+    activeConversationRef,
     activeRevisionId,
     revisionActionId,
     revisions: revisionOptions,
+    userId: sessionInfo.userId,
   }), [
+    activeConversationRef,
     activeRevisionId,
     revisionActionId,
     revisionOptions,
+    sessionInfo.userId,
   ]);
   const totalFindMatches = threadFindState.totalMatches;
   const resolvedActiveFindMatchIndex = normalizedFindQuery && totalFindMatches > 0
@@ -419,18 +415,11 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   }, [chatSurface]);
 
   const applyConversationView = useCallback((view, targetConversationRef = null) => {
-    if (!view || typeof view !== 'object') {
-      return;
-    }
-    const conversationRef = resolveConversationViewStoreRef({
+    applyConversationViewToChatStore({
       activeConversationRef,
       targetConversationRef,
       view,
     });
-    if (!conversationRef) {
-      return;
-    }
-    setConversationViewInChatStore(view, conversationRef);
   }, [
     activeConversationRef,
   ]);
@@ -468,12 +457,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     };
   }, [activeConversationRef, revisionMenuOpen, sessionInfo.userId]);
 
-  const handleRevisionCheckout = useCallback(async (revisionId) => {
-    const command = buildRevisionCheckoutCommand({
-      activeConversationRef,
-      revisionId,
-      userId: sessionInfo.userId,
-    });
+  const handleRevisionCheckout = useCallback(async (command) => {
     if (!command) {
       return;
     }
@@ -496,15 +480,9 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   }, [
     activeConversationRef,
     applyConversationView,
-    sessionInfo.userId,
   ]);
 
-  const handleRevisionFork = useCallback(async (revision) => {
-    const command = buildRevisionForkCommand({
-      activeConversationRef,
-      revision,
-      userId: sessionInfo.userId,
-    });
+  const handleRevisionFork = useCallback(async (command) => {
     if (!command) {
       return;
     }
@@ -529,7 +507,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
       setRevisionActionId(null);
     }
   }, [
-    activeConversationRef,
     applyConversationView,
     sessionInfo.userId,
     setChatActiveConversationRef,

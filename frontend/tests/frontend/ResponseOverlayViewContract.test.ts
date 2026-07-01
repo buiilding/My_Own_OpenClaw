@@ -11,6 +11,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
     buildResponseOverlayEntrySignature,
     buildResponseOverlayDismissalKey,
     buildResponseOverlayTraceSummary,
+    buildResponseOverlayTypingRenderedTraceValues,
     buildResponseOverlayWindowLifecycleTraceValues,
     buildResponseOverlayWindowSizeTraceValues,
     buildResponseOverlayWindowSizeValues,
@@ -28,15 +29,40 @@ describe('desktopResponseOverlayViewRuntime', () => {
     resolveResponseOverlayWindowSizeIdentity,
   } = DesktopResponseOverlayViewRuntime;
 
-  test('builds normalized response overlay dismissal keys', () => {
+  function conversationView({
+    conversationRef = 'conv-view',
+    displayRows = [],
+    liveTurn = {},
+    surfaces = {
+      dashboard: { mode: 'normal', visible: true },
+      pill: { mode: 'normal', visible: true },
+      responseOverlay: { mode: 'hidden', visible: false },
+    },
+    actions = {
+      canEdit: false,
+      canRetry: false,
+      canFork: false,
+    },
+  } = {}) {
+    return {
+      conversationRef,
+      revisionId: null,
+      displayRows,
+      liveTurn,
+      surfaces,
+      actions,
+    };
+  }
+
+  test('builds exact response overlay dismissal keys', () => {
     expect(buildResponseOverlayDismissalKey({
-      conversationRef: ' conv-overlay ',
-      turnRef: ' turn-overlay ',
-      responseEntryId: ' assistant-entry ',
+      conversationRef: 'conv-overlay',
+      turnRef: 'turn-overlay',
+      responseEntryId: 'assistant-entry',
     })).toBe('conv-overlay\u0001turn-overlay\u0001assistant-entry');
 
     expect(buildResponseOverlayDismissalKey({
-      responseEntryId: ' assistant-entry ',
+      responseEntryId: 'assistant-entry',
     })).toBe('\u0001\u0001assistant-entry');
 
     expect(buildResponseOverlayDismissalKey({
@@ -44,13 +70,28 @@ describe('desktopResponseOverlayViewRuntime', () => {
       turnRef: 'turn-overlay',
       responseEntryId: '   ',
     })).toBeNull();
+    expect(buildResponseOverlayDismissalKey({
+      conversationRef: ' conv-overlay ',
+      turnRef: 'turn-overlay',
+      responseEntryId: 'assistant-entry',
+    })).toBe('\u0001turn-overlay\u0001assistant-entry');
+    expect(buildResponseOverlayDismissalKey({
+      conversationRef: 'conv-overlay',
+      turnRef: ' turn-overlay ',
+      responseEntryId: 'assistant-entry',
+    })).toBe('conv-overlay\u0001\u0001assistant-entry');
+    expect(buildResponseOverlayDismissalKey({
+      conversationRef: 'conv-overlay',
+      turnRef: 'turn-overlay',
+      responseEntryId: ' assistant-entry ',
+    })).toBeNull();
   });
 
   test('owns response overlay dismissal state updates and reads', () => {
     const dismissalTarget = {
-      conversationRef: ' conv-overlay ',
-      turnRef: ' turn-overlay ',
-      responseEntryId: ' assistant-entry ',
+      conversationRef: 'conv-overlay',
+      turnRef: 'turn-overlay',
+      responseEntryId: 'assistant-entry',
     };
     const initialState = {
       dismissedResponseOverlayEntries: {
@@ -96,6 +137,13 @@ describe('desktopResponseOverlayViewRuntime', () => {
       update || {},
       {
         ...dismissalTarget,
+        responseEntryId: ' assistant-entry ',
+      },
+    )).toBeNull();
+    expect(resolveDismissedResponseOverlayEntryId(
+      update || {},
+      {
+        ...dismissalTarget,
         responseEntryId: 'missing-entry',
       },
     )).toBeNull();
@@ -108,21 +156,41 @@ describe('desktopResponseOverlayViewRuntime', () => {
   test('builds close actions for response overlay dismissal and responsebox hide', () => {
     expect(buildDismissResponseOverlayAction({
       responseOverlayDismissalTarget: {
-        conversationRef: ' conv-overlay ',
-        turnRef: ' turn-overlay ',
-        guardRef: ' guard-overlay ',
+        conversationRef: 'conv-overlay',
+        turnRef: 'turn-overlay',
+        guardRef: 'guard-overlay',
       },
-      responseEntryId: ' entry-overlay ',
+      responseEntryId: 'entry-overlay',
     })).toEqual({
       dismissalTarget: {
-        conversationRef: ' conv-overlay ',
-        turnRef: ' turn-overlay ',
-        guardRef: ' guard-overlay ',
+        conversationRef: 'conv-overlay',
+        turnRef: 'turn-overlay',
+        guardRef: 'guard-overlay',
         responseEntryId: 'entry-overlay',
       },
       responseboxDismissalValues: {
         turnRef: 'turn-overlay',
         guardRef: 'guard-overlay',
+      },
+    });
+
+    expect(buildDismissResponseOverlayAction({
+      responseOverlayDismissalTarget: {
+        conversationRef: 'conv-overlay',
+        turnRef: ' turn-overlay ',
+        guardRef: ' guard-overlay ',
+      },
+      responseEntryId: 'entry-overlay',
+    })).toEqual({
+      dismissalTarget: {
+        conversationRef: 'conv-overlay',
+        turnRef: ' turn-overlay ',
+        guardRef: ' guard-overlay ',
+        responseEntryId: 'entry-overlay',
+      },
+      responseboxDismissalValues: {
+        turnRef: null,
+        guardRef: null,
       },
     });
 
@@ -270,8 +338,8 @@ describe('desktopResponseOverlayViewRuntime', () => {
 
     const activeSnapshot = resolveResponseOverlayWindowGuardSnapshot({
       overlayIntent: {
-        conversationRef: ' conv-active ',
-        turnRef: ' turn-active ',
+        conversationRef: 'conv-active',
+        turnRef: 'turn-active',
       },
       previousSnapshot: initialSnapshot,
     });
@@ -292,8 +360,8 @@ describe('desktopResponseOverlayViewRuntime', () => {
 
     expect(resolveResponseOverlayWindowGuardSnapshot({
       overlayIntent: {
-        conversationRef: ' conv-guard ',
-        staleGuardRef: ' guard-only ',
+        conversationRef: 'conv-guard',
+        staleGuardRef: 'guard-only',
       },
       previousSnapshot: activeSnapshot,
     })).toEqual({
@@ -301,14 +369,62 @@ describe('desktopResponseOverlayViewRuntime', () => {
       turnRef: null,
       staleGuardRef: 'guard-only',
     });
+
+    expect(resolveResponseOverlayWindowGuardSnapshot({
+      overlayIntent: {
+        conversationRef: ' conv-current ',
+        turnRef: ' turn-current ',
+        staleGuardRef: ' guard-current ',
+      },
+      previousSnapshot: activeSnapshot,
+    })).toEqual({
+      conversationRef: null,
+      turnRef: 'turn-active',
+      staleGuardRef: 'turn-active',
+    });
+  });
+
+  test('builds rendered-typing trace values without caller turn-ref shaping', () => {
+    expect(buildResponseOverlayTypingRenderedTraceValues({
+      awaitingVisible: true,
+      currentTurnPhase: ' awaiting ',
+      isVisible: true,
+      overlayIntent: {
+        conversationRef: 'conv-overlay',
+        mode: 'awaiting-typing',
+        turnRef: 'turn-intent',
+        staleGuardRef: 'guard-intent',
+      },
+      overlayLayoutMode: ' awaiting-typing ',
+      responseOverlayEntryCount: 2,
+      responseVisible: false,
+      turnId: ' turn-rendered ',
+      typingRendered: true,
+    })).toEqual({
+      typingRendered: true,
+      turnRef: 'turn-rendered',
+      currentTurnId: 'turn-rendered',
+      phase: 'awaiting',
+      overlayIntent: {
+        conversationRef: 'conv-overlay',
+        mode: 'awaiting-typing',
+        turnRef: 'turn-intent',
+        staleGuardRef: 'guard-intent',
+      },
+      overlayLayoutMode: 'awaiting-typing',
+      isVisible: true,
+      awaitingVisible: true,
+      responseVisible: false,
+      responseOverlayEntryCount: 2,
+    });
   });
 
   test('resolves response overlay native size identity from SDK intent before guard fallback', () => {
     expect(resolveResponseOverlayWindowSizeIdentity({
       overlayIntent: {
-        conversationRef: ' conv-current ',
-        turnRef: ' turn-current ',
-        staleGuardRef: ' guard-current ',
+        conversationRef: 'conv-current',
+        turnRef: 'turn-current',
+        staleGuardRef: 'guard-current',
       },
       guardSnapshot: {
         turnRef: 'turn-previous',
@@ -335,8 +451,8 @@ describe('desktopResponseOverlayViewRuntime', () => {
 
     expect(resolveResponseOverlayWindowSizeIdentity({
       overlayIntent: {
-        conversationRef: ' conv-current ',
-        turnRef: ' turn-current ',
+        conversationRef: 'conv-current',
+        turnRef: 'turn-current',
       },
       guardSnapshot: {
         turnRef: 'turn-previous',
@@ -347,14 +463,31 @@ describe('desktopResponseOverlayViewRuntime', () => {
       turnRef: 'turn-current',
       staleGuardRef: 'turn-current',
     });
+
+    expect(resolveResponseOverlayWindowSizeIdentity({
+      overlayIntent: {
+        conversationRef: ' conv-current ',
+        turnRef: ' turn-current ',
+        staleGuardRef: ' guard-current ',
+      },
+      guardSnapshot: {
+        conversationRef: 'conv-previous',
+        turnRef: 'turn-previous',
+        staleGuardRef: 'guard-previous',
+      },
+    })).toEqual({
+      conversationRef: null,
+      turnRef: 'turn-previous',
+      staleGuardRef: 'guard-previous',
+    });
   });
 
   test('builds response overlay window trace and IPC values from runtime identity', () => {
     const sizeIdentity = resolveResponseOverlayWindowSizeIdentity({
       overlayIntent: {
-        conversationRef: ' conv-current ',
-        turnRef: ' turn-current ',
-        staleGuardRef: ' guard-current ',
+        conversationRef: 'conv-current',
+        turnRef: 'turn-current',
+        staleGuardRef: 'guard-current',
       },
     });
 
@@ -416,9 +549,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(buildResponseOverlayWindowLifecycleTraceValues({
       action: 'mount',
       guardSnapshot: {
-        conversationRef: ' conv-current ',
-        turnRef: ' turn-current ',
-        staleGuardRef: ' guard-current ',
+        conversationRef: 'conv-current',
+        turnRef: 'turn-current',
+        staleGuardRef: 'guard-current',
       },
     })).toEqual({
       action: 'mount',
@@ -426,11 +559,25 @@ describe('desktopResponseOverlayViewRuntime', () => {
       turnRef: 'turn-current',
       staleGuardRef: 'guard-current',
     });
+
+    expect(buildResponseOverlayWindowLifecycleTraceValues({
+      action: 'mount',
+      guardSnapshot: {
+        conversationRef: ' conv-current ',
+        turnRef: ' turn-current ',
+        staleGuardRef: ' guard-current ',
+      },
+    })).toEqual({
+      action: 'mount',
+      conversationRef: null,
+      turnRef: null,
+      staleGuardRef: null,
+    });
   });
 
   test('selects conversation view live-turn entries before raw projection rows', () => {
     expect(resolveResponseOverlayEntries({
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-view',
         liveTurn: {
           turnRef: 'turn-view',
@@ -440,7 +587,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
             text: 'from view',
           }],
         },
-      },
+      }),
       sdkLiveTurn: {
         conversationRef: 'conv-raw',
         turnRef: 'turn-raw',
@@ -459,7 +606,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
 
   test('keeps materialized current-turn tool rows visible in the response overlay', () => {
     const entries = resolveResponseOverlayEntries({
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-view',
         displayRows: [
           {
@@ -485,6 +632,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
                 explanation: 'Validate the scripted model tool path.',
               },
             },
+            metadata: {
+              sourceEventType: 'tool_call',
+            },
           },
           {
             id: 'row-tool-output',
@@ -495,6 +645,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
             type: 'tool_output',
             content: 'Screenshot captured successfully.',
             metadata: {
+              sourceEventType: 'tool_output',
               toolName: 'screenshot',
             },
           },
@@ -506,6 +657,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
             role: 'assistant',
             type: 'assistant_message',
             content: 'Scripted runtime completed 1 tool call(s): screenshot.',
+            metadata: {
+              sourceEventType: 'assistant_message',
+            },
           },
         ],
         liveTurn: {
@@ -520,7 +674,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
             turnRef: 'turn-view',
           }],
         },
-      },
+      }),
       liveTurnPresentationInput: {
         source: 'conversation-view',
       },
@@ -547,15 +701,190 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(entries).toHaveLength(3);
   });
 
+  test('does not repair padded ConversationView overlay refs into display-row selection', () => {
+    const displayRows = [
+      {
+        id: 'row-assistant-final',
+        conversationRef: 'conv-view',
+        turnRef: 'turn-view',
+        index: 0,
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'Materialized assistant response.',
+      },
+    ];
+
+    expect(resolveResponseOverlayEntries({
+      conversationView: conversationView({
+        conversationRef: 'conv-view',
+        displayRows,
+        liveTurn: {
+          turnRef: ' turn-view ',
+          phase: 'complete',
+          isBusy: false,
+          entries: [],
+        },
+        surfaces: {
+          dashboard: { mode: 'normal', visible: true },
+          pill: { mode: 'normal', visible: true },
+          responseOverlay: {
+            mode: 'response',
+            visible: true,
+            turnRef: null,
+          },
+        },
+      }),
+      liveTurnPresentationInput: {
+        source: 'conversation-view',
+      },
+    })).toEqual([]);
+
+    expect(resolveResponseOverlayEntries({
+      conversationView: conversationView({
+        conversationRef: 'conv-view',
+        displayRows,
+        liveTurn: {
+          phase: 'complete',
+          isBusy: false,
+          entries: [],
+        },
+        surfaces: {
+          dashboard: { mode: 'normal', visible: true },
+          pill: { mode: 'normal', visible: true },
+          responseOverlay: {
+            mode: 'response',
+            visible: true,
+            turnRef: ' turn-view ',
+          },
+        },
+      }),
+      liveTurnPresentationInput: {
+        source: 'conversation-view',
+      },
+    })).toEqual([]);
+  });
+
+  test('keeps same-type live tool entries that are not materialized display rows', () => {
+    const entries = resolveResponseOverlayEntries({
+      conversationView: conversationView({
+        conversationRef: 'conv-view',
+        displayRows: [
+          {
+            id: 'row-tool-call-a',
+            conversationRef: 'conv-view',
+            turnRef: 'turn-view',
+            index: 0,
+            role: 'assistant',
+            type: 'tool_call',
+            content: {
+              id: 'tool-a',
+              name: 'screenshot',
+              arguments: {},
+            },
+            metadata: {
+              displayCorrelationId: 'tool-a',
+              toolCallDetails: {
+                id: 'tool-a',
+                name: 'screenshot',
+              },
+            },
+          },
+        ],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'tool',
+          isBusy: true,
+          entries: [
+            {
+              id: 'live-tool-call-a',
+              type: 'tool-call',
+              text: 'Using screenshot',
+              sourceEventType: 'tool_call',
+              correlationId: 'tool-a',
+              turnRef: 'turn-view',
+            },
+            {
+              id: 'live-tool-call-b',
+              type: 'tool-call',
+              text: 'Using browser',
+              sourceEventType: 'tool_call',
+              correlationId: 'tool-b',
+              turnRef: 'turn-view',
+            },
+          ],
+        },
+      }),
+      liveTurnPresentationInput: {
+        source: 'conversation-view',
+      },
+    });
+
+    expect(entries.map((entry) => entry.id)).toEqual([
+      'row-tool-call-a',
+      'live-tool-call-b',
+    ]);
+  });
+
+  test('does not use legacy tool metadata to materialize live overlay tools', () => {
+    const entries = resolveResponseOverlayEntries({
+      conversationView: conversationView({
+        conversationRef: 'conv-view',
+        displayRows: [
+          {
+            id: 'row-tool-call-a',
+            conversationRef: 'conv-view',
+            turnRef: 'turn-view',
+            index: 0,
+            role: 'assistant',
+            type: 'tool_call',
+            content: {
+              id: 'tool-a',
+              name: 'screenshot',
+              arguments: {},
+            },
+            metadata: {
+              toolMetadata: {
+                requestId: 'tool-a',
+              },
+            },
+          },
+        ],
+        liveTurn: {
+          turnRef: 'turn-view',
+          phase: 'tool',
+          isBusy: true,
+          entries: [
+            {
+              id: 'live-tool-call-a',
+              type: 'tool-call',
+              text: 'Using screenshot',
+              sourceEventType: 'tool_call',
+              correlationId: 'tool-a',
+              turnRef: 'turn-view',
+            },
+          ],
+        },
+      }),
+      liveTurnPresentationInput: {
+        source: 'conversation-view',
+      },
+    });
+
+    expect(entries.map((entry) => entry.id)).toEqual([
+      'row-tool-call-a',
+      'live-tool-call-a',
+    ]);
+  });
+
   test('does not require a source flag before ConversationView blocks raw overlay rows', () => {
     expect(resolveResponseOverlayEntries({
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-view',
         liveTurn: {
           turnRef: 'turn-view',
           entries: [],
         },
-      },
+      }),
       sdkLiveTurn: {
         conversationRef: 'conv-raw',
         turnRef: 'turn-raw',
@@ -579,7 +908,45 @@ describe('desktopResponseOverlayViewRuntime', () => {
         phase: 'streaming',
         assistantText: 'raw fallback remains visible',
       },
-      liveTurnPresentationInput: {},
+      liveTurnPresentationInput: {
+        source: 'current-turn',
+      },
+    })).toEqual([
+      expect.objectContaining({
+        text: 'raw fallback remains visible',
+      }),
+    ]);
+  });
+
+  test('falls back to raw overlay rows for malformed ConversationView envelopes', () => {
+    expect(resolveResponseOverlayEntries({
+      conversationView: {
+        conversationRef: 'conv-view',
+        liveTurn: {
+          turnRef: 'turn-view',
+          entries: [{
+            id: 'entry-view',
+            kind: 'assistant_text',
+            text: 'from malformed view',
+          }],
+        },
+        surfaces: {
+          responseOverlay: {
+            mode: 'response',
+            visible: true,
+            turnRef: 'turn-view',
+          },
+        },
+      },
+      sdkLiveTurn: {
+        conversationRef: 'conv-raw',
+        turnRef: 'turn-raw',
+        phase: 'streaming',
+        assistantText: 'raw fallback remains visible',
+      },
+      liveTurnPresentationInput: {
+        source: 'current-turn',
+      },
     })).toEqual([
       expect.objectContaining({
         text: 'raw fallback remains visible',
@@ -596,6 +963,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
         assistantText: 'visible raw fallback',
       },
       liveTurnPresentationInput: {
+        source: 'current-turn',
         useSdkLiveTurnPresentation: false,
       },
     })).toEqual([
@@ -615,14 +983,34 @@ describe('desktopResponseOverlayViewRuntime', () => {
         },
       },
       liveTurnPresentationInput: {
+        source: 'sdk-current-turn',
         useSdkLiveTurnPresentation: true,
+      },
+    })).toEqual([]);
+
+    expect(resolveResponseOverlayEntries({
+      sdkLiveTurn: {
+        conversationRef: 'conv-sdk',
+        turnRef: 'turn-sdk',
+        phase: 'streaming',
+        presentation: {
+          entries: [{
+            id: 'assistant-sdk',
+            type: 'llm-text',
+            text: 'hidden by idle surface gate',
+          }],
+        },
+      },
+      liveTurnPresentationInput: {
+        source: 'idle',
+        useSdkLiveTurnPresentation: false,
       },
     })).toEqual([]);
   });
 
   test('suppresses response entries during local pending bridge display', () => {
     expect(resolveResponseOverlayEntries({
-      conversationView: {
+      conversationView: conversationView({
         conversationRef: 'conv-view',
         liveTurn: {
           turnRef: 'turn-view',
@@ -632,7 +1020,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
             text: 'from view',
           }],
         },
-      },
+      }),
       liveTurnPresentationInput: {
         source: 'conversation-view',
         useLocalPendingTurn: true,
@@ -648,7 +1036,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
           sender: 'assistant',
           text: 'stale renderer answer',
         }],
-        conversationView: {
+        conversationView: conversationView({
           conversationRef: 'conv-view',
           liveTurn: {
             turnRef: 'turn-view',
@@ -668,7 +1056,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
               conversationRef: 'conv-view',
             },
           },
-        },
+        }),
         sdkLiveTurn: null,
       },
     });
@@ -741,6 +1129,42 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(hiddenPresentationState.thinkingText).toBe('');
   });
 
+  test('does not rebuild response entries from idle no-view SDK surface state', () => {
+    const state = resolveResponseOverlaySurfaceState({
+      chatSurfaceState: {
+        sdkLiveTurn: {
+          conversationRef: ' conv-sdk ',
+          turnRef: 'turn-sdk',
+          phase: 'streaming',
+          reasoningText: 'raw reasoning fallback',
+          presentation: {
+            entries: [{
+              id: 'assistant-sdk',
+              type: 'llm-text',
+              text: 'must stay hidden',
+            }],
+            overlayIntent: {
+              visible: true,
+              mode: 'response',
+              conversationRef: ' conv-sdk ',
+              turnRef: 'turn-sdk',
+              staleGuardRef: 'turn-sdk',
+            },
+          },
+        },
+      },
+    });
+
+    expect(state.liveTurnPresentationInput).toEqual(expect.objectContaining({
+      source: 'idle',
+      useSdkLiveTurnPresentation: false,
+    }));
+    expect(state.responseOverlayEntries).toEqual([]);
+    expect(state.responseOverlayMessages).toEqual([]);
+    expect(state.responseOverlayDismissalTarget).toBeNull();
+    expect(state.thinkingText).toBe('');
+  });
+
   test('response overlay surface state blanks raw fallback under direct ConversationView input', () => {
     const state = resolveResponseOverlaySurfaceState({
       chatSurfaceState: {
@@ -752,17 +1176,22 @@ describe('desktopResponseOverlayViewRuntime', () => {
         pendingTurn: {
           conversationRef: 'conv-view',
           turnRef: 'turn-pending',
+          userMessageId: 'pending-user',
+          text: 'pending prompt',
+          timestamp: '2026-06-25T12:00:00.000Z',
         },
-        conversationView: {
+        conversationView: conversationView({
           conversationRef: 'conv-view',
-          liveTurn: null,
+          liveTurn: {},
           surfaces: {
+            dashboard: { mode: 'normal', visible: true },
+            pill: { mode: 'normal', visible: true },
             responseOverlay: {
               mode: 'hidden',
               visible: false,
             },
           },
-        },
+        }),
         sdkLiveTurn: {
           conversationRef: 'conv-view',
           turnRef: 'turn-sdk',
@@ -780,7 +1209,10 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(state.visibleTurnLifecycle).toEqual(expect.objectContaining({
       source: 'local',
       status: 'local_pending',
-      awaitingAnchor: null,
+      awaitingAnchor: {
+        kind: 'user-message',
+        rowId: 'pending-user',
+      },
     }));
   });
 
@@ -796,6 +1228,7 @@ describe('desktopResponseOverlayViewRuntime', () => {
         pendingTurn: {
           conversationRef: 'conv-pending',
           turnRef: 'turn-pending',
+          userMessageId: 'pending-user',
           text: 'pending prompt',
           timestamp: '2026-06-25T12:00:00.000Z',
         },
@@ -815,6 +1248,47 @@ describe('desktopResponseOverlayViewRuntime', () => {
     });
     expect(state.pendingTurn).toEqual(expect.objectContaining({
       turnRef: 'turn-pending',
+    }));
+  });
+
+  test('projects awaiting presentation from pending turn without renderer message rows', () => {
+    const responseOverlaySurfaceState = resolveResponseOverlaySurfaceState({
+      chatSurfaceState: {
+        messages: [],
+        pendingTurn: {
+          conversationRef: 'conv-pending',
+          turnRef: 'turn-pending',
+          userMessageId: 'pending-user',
+          text: 'pending prompt',
+          timestamp: '2026-06-25T12:00:00.000Z',
+        },
+      },
+    });
+
+    const presentationState = resolveResponseOverlayPresentationStateForSurfaceState({
+      currentTurnPresentationState: {
+        activeResponse: null,
+        hasVisibleReply: false,
+        visibleResponse: null,
+        chatboxSurfaceState: 'compact',
+      },
+      responseOverlaySurfaceState,
+    });
+
+    expect(responseOverlaySurfaceState.useLocalPendingTurn).toBe(true);
+    expect(responseOverlaySurfaceState.responseOverlayMessages).toEqual([]);
+    expect(presentationState).toEqual(expect.objectContaining({
+      awaitingDotTargetMessageId: 'pending-user',
+      isBusy: true,
+      overlayIntent: expect.objectContaining({
+        mode: 'awaiting',
+        staleGuardRef: 'renderer-send-preflight',
+        turnRef: 'turn-pending',
+      }),
+      visibleTurnLifecycle: expect.objectContaining({
+        status: 'local_pending',
+        turnRef: 'turn-pending',
+      }),
     }));
   });
 

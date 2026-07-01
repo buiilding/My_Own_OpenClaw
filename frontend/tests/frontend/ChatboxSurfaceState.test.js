@@ -221,4 +221,37 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
       responseOverlayEntries: [{ turnRef: 'turn-entry' }],
     })).toBeNull();
   });
+
+  test('does not repair padded refs into response overlay dismissal targets', () => {
+    expect(resolveResponseOverlayDismissalTarget({
+      sdkLiveTurn: {
+        conversationRef: ' conv-projection ',
+        turnRef: ' turn-projection ',
+      },
+      overlayIntent: {
+        conversationRef: ' conv-intent ',
+        turnRef: ' turn-intent ',
+        staleGuardRef: ' guard-intent ',
+      },
+      responseOverlayEntries: [
+        { id: 'entry-1', turnRef: ' turn-entry ' },
+      ],
+      useSdkLiveTurnPresentation: true,
+    })).toEqual({
+      conversationRef: null,
+      turnRef: null,
+      guardRef: null,
+      responseEntryId: 'entry-1',
+    });
+
+    expect(resolveResponseOverlayDismissalTarget({
+      sdkLiveTurn: {
+        conversationRef: 'conv-projection',
+        turnRef: 'turn-projection',
+      },
+      responseOverlayEntries: [
+        { id: ' entry-1 ', turnRef: 'turn-entry' },
+      ],
+    })).toBeNull();
+  });
 });

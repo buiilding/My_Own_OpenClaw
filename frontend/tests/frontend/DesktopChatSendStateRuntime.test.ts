@@ -10,6 +10,16 @@ describe('desktopChatSendStateRuntime', () => {
     hasPriorUserMessages,
   } = DesktopChatSendStateRuntime;
 
+  function conversationViewWithRows(displayRows: unknown[]) {
+    return {
+      conversationRef: 'conv-1',
+      displayRows,
+      liveTurn: {},
+      surfaces: {},
+      actions: {},
+    };
+  }
+
   test('hasUserMessages detects whether user messages exist', () => {
     expect(hasUserMessages([{ sender: 'assistant' } as any])).toBe(false);
     expect(hasUserMessages([{ sender: 'assistant' } as any, { sender: 'user' } as any])).toBe(true);
@@ -17,23 +27,46 @@ describe('desktopChatSendStateRuntime', () => {
 
   test('hasPriorUserMessages reads ConversationView display rows before raw messages', () => {
     expect(hasPriorUserMessages({
-      conversationView: {
-        displayRows: [{ role: 'user' }],
-      },
+      conversationView: conversationViewWithRows([
+        {
+          id: 'sdk-user-row',
+          conversationRef: 'conv-1',
+          role: 'user',
+          type: 'user_message',
+        },
+      ]),
       messages: [{ sender: 'assistant' }],
     })).toBe(true);
     expect(hasPriorUserMessages({
-      conversationView: {
-        displayRows: [{ role: 'assistant' }],
-      },
+      conversationView: conversationViewWithRows([
+        { role: 'assistant', type: 'user_message' },
+      ]),
+      messages: [{ sender: 'user' }],
+    })).toBe(false);
+    expect(hasPriorUserMessages({
+      conversationView: conversationViewWithRows([
+        {
+          id: 'wrong-conversation-user-row',
+          conversationRef: 'conv-other',
+          role: 'user',
+          type: 'user_message',
+        },
+      ]),
+      messages: [{ sender: 'user' }],
+    })).toBe(false);
+    expect(hasPriorUserMessages({
+      conversationView: conversationViewWithRows([
+        { id: '', role: 'user', type: 'user_message' },
+        { role: 'user', type: 'user_message' },
+      ]),
       messages: [{ sender: 'user' }],
     })).toBe(false);
   });
 
-  test('hasPriorUserMessages does not fall back to raw messages under a partial ConversationView', () => {
+  test('hasPriorUserMessages falls back to raw messages under a partial ConversationView', () => {
     expect(hasPriorUserMessages({
       conversationView: {},
       messages: [{ sender: 'user' }],
-    })).toBe(false);
+    })).toBe(true);
   });
 });

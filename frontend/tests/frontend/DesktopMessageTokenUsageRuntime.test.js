@@ -25,7 +25,7 @@ describe('desktopMessageTokenUsageRuntime', () => {
     expect(tag).toBe('tokens(provider) out:5 vis:3 think:2 turn:17 cached:12');
   });
 
-  test('uses fullUserMessage content and typed attachments for user token estimates', () => {
+  test('uses fullUserMessage content for user token estimates', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'user',
       text: 'short text',
@@ -41,7 +41,82 @@ describe('desktopMessageTokenUsageRuntime', () => {
       }],
     });
 
-    expect(tag).toBe('tokens~ txt:2 img(est):85 total:87');
+    expect(tag).toBe('tokens~ txt:2');
+  });
+
+  test('does not estimate image tokens from SDK attachment descriptors', () => {
+    const tag = resolveMessageTokenUsageTag({
+      sender: 'user',
+      text: 'abcd',
+      attachments: [{
+        id: 'pending-shot',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'pending_capture',
+      }, {
+        id: 'failed-shot',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'failed',
+      }, {
+        id: 'ready-image',
+        kind: 'image',
+        source: 'camera_button',
+        status: 'ready',
+        screenshotRef: 'shot-1',
+      }],
+    });
+
+    expect(tag).toBe('tokens~ txt:1');
+  });
+
+  test('does not inspect SDK image lifecycle descriptors for token estimates', () => {
+    const tag = resolveMessageTokenUsageTag({
+      sender: 'user',
+      text: 'abcd',
+      attachments: [{
+        id: 'failed-image',
+        kind: 'image',
+        source: 'user_included',
+        status: 'failed',
+      }, {
+        id: 'ready-image',
+        kind: 'image',
+        source: 'user_included',
+        status: 'ready',
+        screenshotRef: 'shot-1',
+      }, {
+        id: 'materializing-image',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        previewSrc: 'data:image/png;base64,preview',
+      }],
+    });
+
+    expect(tag).toBe('tokens~ txt:1');
+  });
+
+  test('ignores malformed attachment descriptors for user token estimates', () => {
+    const tag = resolveMessageTokenUsageTag({
+      sender: 'user',
+      text: 'abcd',
+      attachments: [{
+        id: ' ready-image ',
+        kind: 'image',
+        source: 'camera_button',
+        status: 'ready',
+        screenshotRef: 'shot-1',
+      }, {
+        id: 'ready-image-2',
+        kind: 'image',
+        source: 'camera_button',
+        status: 'unknown',
+        screenshotRef: 'shot-2',
+      }],
+    });
+
+    expect(tag).toBe('tokens~ txt:1');
   });
 
   test('ignores legacy screenshot arrays for user image token estimates', () => {
@@ -54,7 +129,7 @@ describe('desktopMessageTokenUsageRuntime', () => {
       ],
     });
 
-    expect(tag).toBe('tokens~ txt:1 img(est):0 total:1');
+    expect(tag).toBe('tokens~ txt:1');
   });
 
   test('ignores whole-message screenshot aliases for user image token estimates', () => {
@@ -65,7 +140,7 @@ describe('desktopMessageTokenUsageRuntime', () => {
       screenshotUrl: 'https://example.com/shot-1.png',
     });
 
-    expect(tag).toBe('tokens~ txt:1 img(est):0 total:1');
+    expect(tag).toBe('tokens~ txt:1');
   });
 
   test('estimates tool-call tokens from SDK display text', () => {
@@ -104,12 +179,11 @@ describe('desktopMessageTokenUsageRuntime', () => {
     expect(tag).toBeNull();
   });
 
-  test('estimates tool-output tokens from model-facing output text', () => {
+  test('estimates tool-output tokens from display text', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'assistant',
       type: 'tool-output',
-      text: 'fallback',
-      modelFacingToolOutput: 'abcd',
+      text: 'abcd',
     });
 
     expect(tag).toBe('tokens~ 1');

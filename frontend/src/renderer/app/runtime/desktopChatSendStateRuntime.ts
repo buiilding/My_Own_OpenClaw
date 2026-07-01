@@ -2,17 +2,26 @@
  * Provides renderer chat send state predicates.
  */
 
+import {
+  DesktopConversationDisplayRowLookupRuntime,
+} from './desktopConversationDisplayRowLookupRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
+
+const {
+  hasConversationViewUserDisplayRows,
+} = DesktopConversationDisplayRowLookupRuntime;
+const {
+  hasWorkspaceConversationView,
+  normalizeConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
+
 type SenderState = {
   sender?: string | null;
 };
 
-type ConversationViewDisplayRowState = {
-  role?: string | null;
-};
-
-type ConversationViewState = {
-  displayRows?: ConversationViewDisplayRowState[] | null;
-} | null | undefined;
+type ConversationViewState = unknown;
 
 type PriorUserMessageState = {
   conversationView?: ConversationViewState;
@@ -26,24 +35,13 @@ function hasUserMessages(messages: SenderState[] | null | undefined): boolean {
   return messages.some((message) => message.sender === 'user');
 }
 
-function hasConversationViewUserRows(conversationView: ConversationViewState): boolean {
-  const displayRows = conversationView?.displayRows;
-  if (!Array.isArray(displayRows)) {
-    return false;
-  }
-  return displayRows.some((row) => row.role === 'user');
-}
-
-function isConversationView(value: ConversationViewState): boolean {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
 function hasPriorUserMessages({
   conversationView,
   messages,
 }: PriorUserMessageState): boolean {
-  if (isConversationView(conversationView)) {
-    return hasConversationViewUserRows(conversationView);
+  const workspace = { conversationView };
+  if (hasWorkspaceConversationView(workspace)) {
+    return hasConversationViewUserDisplayRows(normalizeConversationView(workspace.conversationView));
   }
   return hasUserMessages(messages);
 }

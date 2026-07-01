@@ -150,15 +150,37 @@ describe('renderer chat runtime boundary', () => {
     expect(surfaceRuntimeSource).toContain('resolveVisibleTurnLifecycle');
     expect(surfaceRuntimeSource).toContain('resolveLiveTurnPresentationInput');
     expect(surfaceRuntimeSource).toContain('buildChatSurfaceControllerStateFromSurfaceState');
-    expect(surfaceRuntimeSource).toContain('const conversationView = isObject(surfaceState.conversationView)');
+    expect(surfaceRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(surfaceRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(surfaceRuntimeSource).not.toContain('hasWorkspaceConversationView({ conversationView: surfaceState.conversationView })');
+    expect(surfaceRuntimeSource).not.toContain('function isConversationView(value)');
+    expect(surfaceRuntimeSource).not.toContain('readExactRef(value.conversationRef)');
+    expect(surfaceRuntimeSource).not.toContain('Array.isArray(value.displayRows)');
+    expect(surfaceRuntimeSource).not.toContain('isObject(value.liveTurn)');
+    expect(surfaceRuntimeSource).not.toContain('isObject(value.surfaces)');
+    expect(surfaceRuntimeSource).not.toContain('isObject(value.actions)');
+    expect(surfaceRuntimeSource).not.toContain('const conversationView = isConversationView(surfaceState.conversationView)');
     expect(surfaceRuntimeSource).not.toContain('sdkLiveTurn: hasConversationView ? null : surfaceState.sdkLiveTurn ?? null');
     expect(surfaceRuntimeSource).not.toContain('surfaceState.currentTurnProjection');
+    expect(surfaceRuntimeSource).toContain('conversationView: surfaceState.conversationView ?? null');
     expect(surfaceRuntimeSource).toContain('const rendererFallbackMessages = hasConversationView');
     expect(surfaceRuntimeSource).toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');
     expect(surfaceRuntimeSource).toContain('sdkLiveTurn: effectiveSdkLiveTurn');
     expect(surfaceRuntimeSource).toContain('messages: rendererFallbackMessages');
-    expect(surfaceRuntimeSource).toContain('conversationView?.surfaces');
-    expect(surfaceRuntimeSource).toContain('conversationView?.liveTurn?.canStop');
+    expect(surfaceRuntimeSource).toContain('function readExactSurfaceIdentity(value)');
+    expect(surfaceRuntimeSource).toContain('readExactSurfaceIdentity(conversationView?.conversationRef)');
+    expect(surfaceRuntimeSource).toContain('readExactSurfaceIdentity(sdkLiveTurn?.conversationRef)');
+    expect(surfaceRuntimeSource).toContain('readExactSurfaceIdentity(sessionConversationRef)');
+    expect(surfaceRuntimeSource).not.toContain('conversationView?.conversationRef\n    || sdkLiveTurn?.conversationRef');
+    expect(surfaceRuntimeSource).not.toContain('|| sessionConversationRef\n    || null');
+    expect(surfaceRuntimeSource).toContain('resolveConversationViewSurfaceMode(');
+    expect(surfaceRuntimeSource).toContain('CONVERSATION_VIEW_LOOP_SURFACE_MODES');
+    expect(surfaceRuntimeSource).toContain('readExactLoopSurfaceMode(conversationView?.surfaces?.[surfaceName]?.mode)');
+    expect(surfaceRuntimeSource).not.toContain('conversationView?.surfaces?.[surfaceName]?.mode ?? null');
+    expect(surfaceRuntimeSource).toContain('effectiveConversationView,');
+    expect(surfaceRuntimeSource).toContain('DesktopStopTurnRuntime');
+    expect(surfaceRuntimeSource).toContain('resolveStopTurnTarget({');
+    expect(surfaceRuntimeSource).not.toContain('effectiveConversationView?.liveTurn?.canStop');
     expect(surfaceRuntimeSource).not.toContain('features/chat');
   });
 
@@ -174,13 +196,84 @@ describe('renderer chat runtime boundary', () => {
     expect(minimalPillSource).not.toContain('liveTurnSource');
   });
 
+  test('chat pill session traces read opaque SDK view envelopes through workspace gate', async () => {
+    const pillSessionRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../src/renderer/app/runtime/desktopChatPillSessionRuntime.ts'),
+      'utf8',
+    );
+
+    expect(pillSessionRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(pillSessionRuntimeSource).toContain(
+      'hasWorkspaceConversationView({ conversationView: candidateConversationView })',
+    );
+    expect(pillSessionRuntimeSource).toContain('sdkLiveTurn?: unknown');
+    expect(pillSessionRuntimeSource).toContain('function resolveViewCanStop');
+    expect(pillSessionRuntimeSource).toContain('function resolveNoViewLiveTurnRef');
+    expect(pillSessionRuntimeSource).not.toContain('desktopConversationRuntimeContracts');
+    expect(pillSessionRuntimeSource).not.toContain('as ConversationView');
+    expect(pillSessionRuntimeSource).not.toContain('type ChatPillCurrentTurnProjection');
+    expect(pillSessionRuntimeSource).not.toContain('type ChatPillConversationView');
+    expect(pillSessionRuntimeSource).not.toContain('conversationView?: ChatPillConversationView');
+    expect(pillSessionRuntimeSource).not.toContain('displayRows?: unknown[] | null');
+    expect(pillSessionRuntimeSource).not.toContain('function isConversationView');
+    expect(pillSessionRuntimeSource).not.toContain('Array.isArray(value.displayRows)');
+    expect(pillSessionRuntimeSource).not.toContain('isObjectRecord(value.liveTurn)');
+    expect(pillSessionRuntimeSource).not.toContain('isObjectRecord(value.surfaces)');
+    expect(pillSessionRuntimeSource).not.toContain('isObjectRecord(value.actions)');
+    expect(pillSessionRuntimeSource).not.toContain('Boolean(conversationView && typeof conversationView === \'object\')');
+    expect(pillSessionRuntimeSource).not.toContain('chatSurfaceState.messages.length');
+    expect(pillSessionRuntimeSource).toContain('messageCount: rendererFallbackMessages.length');
+  });
+
+  test('live surface runtime rejects repaired overlay refs', async () => {
+    const surfaceRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js'),
+      'utf8',
+    );
+    const turnRefNormalizer = surfaceRuntimeSource.match(
+      /function normalizeTurnRef\(value\) \{[\s\S]*?\n\}/,
+    )?.[0] ?? '';
+    const conversationRefNormalizer = surfaceRuntimeSource.match(
+      /function normalizeConversationRef\(value\) \{[\s\S]*?\n\}/,
+    )?.[0] ?? '';
+    const phaseNormalizer = surfaceRuntimeSource.match(
+      /function normalizePhase\(value\) \{[\s\S]*?\n\}/,
+    )?.[0] ?? '';
+
+    expect(phaseNormalizer).toContain('value.length > 0 && value === value.trim()');
+    expect(phaseNormalizer).not.toContain('value.trim() ? value.trim() : null');
+    expect(turnRefNormalizer).toContain('value.length > 0 && value === value.trim()');
+    expect(turnRefNormalizer).not.toContain('value.trim() ? value.trim() : null');
+    expect(conversationRefNormalizer).toContain('value.length > 0 && value === value.trim()');
+    expect(conversationRefNormalizer).not.toContain('value.trim() ? value.trim() : null');
+    expect(surfaceRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(surfaceRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(surfaceRuntimeSource).not.toContain('function isConversationView(value)');
+    expect(surfaceRuntimeSource).not.toContain('Array.isArray(value.displayRows)');
+    expect(surfaceRuntimeSource).not.toContain('const liveTurnRef = normalizeTurnRef(liveTurn.turnRef)');
+    expect(surfaceRuntimeSource).not.toContain('const sdkLiveTurnRef = normalizeTurnRef(sdkLiveTurn?.turnRef)');
+    expect(surfaceRuntimeSource).not.toContain('const conversationRef = normalizeConversationRef(conversationView.conversationRef)');
+    expect(surfaceRuntimeSource).not.toContain('const sdkConversationRef = normalizeConversationRef(sdkLiveTurn?.conversationRef)');
+    expect(surfaceRuntimeSource).toContain('const canBorrowLiveTurnRef = !surfaceConversationRef || surfaceConversationRef === viewConversationRef;');
+    expect(surfaceRuntimeSource).toContain('|| (canBorrowLiveTurnRef ? normalizeTurnRef(liveTurn?.turnRef) : null)');
+    expect(surfaceRuntimeSource).toContain('turnRef: overlayIntent.turnRef');
+    expect(surfaceRuntimeSource).toContain('conversationRef: overlayIntent.conversationRef');
+    expect(surfaceRuntimeSource).toContain('guardRef: overlayIntent.staleGuardRef');
+    expect(surfaceRuntimeSource).not.toContain('turnRef: overlayIntent.turnRef ||');
+    expect(surfaceRuntimeSource).not.toContain('conversationRef: overlayIntent.conversationRef ||');
+    expect(surfaceRuntimeSource).not.toContain('guardRef: overlayIntent.staleGuardRef ||');
+    expect(surfaceRuntimeSource).not.toContain('turnRef: overlayIntent.turnRef || liveTurn.turnRef');
+    expect(surfaceRuntimeSource).not.toContain('conversationRef: overlayIntent.conversationRef || conversationView.conversationRef');
+    expect(surfaceRuntimeSource).not.toContain('turnRef: overlayIntent.turnRef || sdkLiveTurn?.turnRef');
+    expect(surfaceRuntimeSource).not.toContain('conversationRef: overlayIntent.conversationRef || sdkLiveTurn?.conversationRef');
+  });
+
   test('chat runtime hooks read app config through renderer config runtime facade', async () => {
     const hookFiles = [
       'components/ChatInterface.jsx',
       'hooks/useChatMessageSender.ts',
       'hooks/useChatStream.ts',
       'hooks/useChatSurfaceController.js',
-      'hooks/useConversationReplayActions.js',
     ];
     const runtimeClientSource = await fs.readFile(
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopRendererConfigRuntimeClient.js'),
@@ -198,6 +291,8 @@ describe('renderer chat runtime boundary', () => {
     }
     expect(runtimeClientSource).toContain('useAppConfigContext');
     expect(runtimeClientSource).toContain('useDesktopRendererConfigContext');
+    expect(runtimeClientSource).toContain('readDeferredQueryModelSelection');
+    expect(runtimeClientSource).toContain('DesktopRendererConfigStorageRuntime.loadConfigFromStorage');
     expect(runtimeClientSource).not.toContain('export function useDesktopRendererConfigContext');
   });
 
@@ -210,6 +305,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts'),
       'utf8',
     );
+    const liveTurnRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),
+      'utf8',
+    );
 
     expect(hookSource).not.toContain('recordUserTranscriptMessage');
     expect(hookSource).not.toContain('recordUserMessage');
@@ -219,6 +318,15 @@ describe('renderer chat runtime boundary', () => {
     expect(helperSource).not.toContain('export async function dispatchPreparedDesktopChatTurn');
     expect(helperSource).not.toContain('recordUserTranscriptMessage');
     expect(helperSource).not.toContain('recordTranscriptUserMessage');
+    expect(helperSource).not.toContain('model: null');
+    expect(helperSource).not.toContain('preparedTurn.model');
+    expect(helperSource).not.toContain('AgentModelSelection');
+    expect(liveTurnRuntimeSource).not.toContain('AgentModelSelection');
+    expect(liveTurnRuntimeSource).not.toContain('input.model');
+    expect(liveTurnRuntimeSource).not.toContain('model: input.model');
+    expect(liveTurnRuntimeSource).toContain('function optionalExactString(value: unknown)');
+    expect(liveTurnRuntimeSource).not.toContain('function optionalString(value: unknown)');
+    expect(liveTurnRuntimeSource).toContain('workspace_path: optionalExactString(input.workspacePath) ?? null');
   });
 
   test('app live-turn runtime facade does not own transcript projection writes', async () => {
@@ -379,6 +487,8 @@ describe('renderer chat runtime boundary', () => {
     expect(payloadRuntimeSource).toContain('replacement_history_entries');
     expect(payloadRuntimeSource).toContain('replacement_history_preview');
     expect(payloadRuntimeSource).toContain('summary_preview');
+    expect(payloadRuntimeSource).toContain('sourceRevisionId');
+    expect(payloadRuntimeSource).not.toContain('rev-compaction-');
     expect(payloadRuntimeSource).toContain('toolSchemas');
     expect(payloadRuntimeSource).toContain('export const DesktopChatStreamEventPayloadRuntime = Object.freeze');
     expect(payloadRuntimeSource).toContain('resolveConversationStreamEventPayload');
@@ -480,6 +590,8 @@ describe('renderer chat runtime boundary', () => {
     expect(runtimeSource).toContain('resolveConversationStreamEventIdentity');
     expect(runtimeSource).toContain('resolveConversationStreamEventConversationRef');
     expect(runtimeSource).toContain('resolveConversationStreamEventTurnRef');
+    expect(runtimeSource).toContain('function readExactIdentityString');
+    expect(runtimeSource).toContain('value.length > 0 && value === value.trim()');
     expect(runtimeSource).not.toContain('\n  resolveConversationStreamEventConversationRef,');
     expect(runtimeSource).not.toContain('\n  resolveConversationStreamEventTurnRef,');
     expect(runtimeSource).not.toContain('resolveConversationStreamEventTurnRefForUpdate');
@@ -496,6 +608,10 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(streamSource).toContain('resolveWorkspaceThinkingSourceEventType');
+    expect(streamSource).toContain('getChatStreamWorkspaceReadModelFromChatStore');
+    expect(streamSource).toContain('getChatStreamWorkspaceReadModel: getChatStreamWorkspaceReadModelFromChatStore');
+    expect(streamSource).not.toContain('getProjectedWorkspaceReadModelFromChatStore');
+    expect(streamSource).not.toContain('getWorkspaceStateFromChatStore');
     expect(streamSource).not.toContain('.thinkingSourceEventType');
   });
 
@@ -799,6 +915,8 @@ describe('renderer chat runtime boundary', () => {
     expect(terminalHandoffRuntimeSource).not.toContain('workspace.messages');
     expect(terminalHandoffRuntimeSource).not.toContain('lastMessage');
     expect(terminalHandoffRuntimeSource).not.toContain('isSending');
+    expect(terminalHandoffRuntimeSource).toContain('turnRef.length > 0 && turnRef === turnRef.trim()');
+    expect(terminalHandoffRuntimeSource).not.toContain('return typeof turnRef === \'string\' ? turnRef.trim() : \'\';');
     expect(terminalHandoffRuntimeSource).not.toContain('export function normalizeTurnRef');
     expect(terminalHandoffRuntimeSource).not.toContain('export function isAwaitingFirstChunkMismatch');
     expect(terminalHandoffRuntimeSource).not.toContain('export function hasTerminalPendingHandoff');
@@ -866,6 +984,9 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSideEffectsSource).toContain('export const DesktopSdkLiveTurnEffectsRuntime = Object.freeze');
     expect(projectionSideEffectsSource).toContain('setThinkingStatus');
     expect(projectionSideEffectsSource).toContain('streaming-response');
+    expect(projectionSideEffectsSource).toContain('entry.id === entry.id.trim()');
+    expect(projectionSideEffectsSource).not.toContain("? entry.id.trim()");
+    expect(projectionSideEffectsSource).not.toContain("return typeof entry.id === 'string' && entry.id.trim()");
     expect(projectionSideEffectsSource).toContain('desktopChatStreamThinkingRuntime');
     expect(projectionSideEffectsSource).toContain('DesktopChatStreamThinkingRuntime');
     expect(projectionSideEffectsSource).not.toContain('typingVisible');
@@ -939,6 +1060,7 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).toContain('hasSdkPresentation(projection.presentation)');
     expect(eventClientSource).not.toContain("&& typeof projection.assistantText === 'string'");
     expect(eventClientSource).not.toContain('&& Array.isArray(projection.toolEvents)');
+    expect(eventClientSource).not.toContain('projection.toolEvents');
   });
 
   test('chat attachment image presentation builds artifact URLs through app runtime client', async () => {
@@ -987,6 +1109,7 @@ describe('renderer chat runtime boundary', () => {
     expect(resolvedAttachmentSource).not.toContain('function isSdkImageAttachment');
     expect(resolvedAttachmentSource).toContain('DesktopArtifactRuntimeClient.inferArtifactRefFromUrl');
     expect(resolvedAttachmentSource).toContain('DesktopArtifactRuntimeClient.fetchArtifactImage');
+    expect(resolvedAttachmentSource).not.toContain('artifactId.trim()');
     expect(replayActionsSource).not.toContain('DesktopArtifactRuntimeClient.resolveReplayScreenshotState');
     expect(composerAttachmentSource).toContain('DesktopArtifactRuntimeClient.resolveArtifactImageExtension');
     expect(chatStreamEventPayloadSource).not.toContain('buildRemoteScreenshotAttachment');
@@ -1091,10 +1214,11 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(projectionSource).toContain('desktopConversationProjectionStreamRuntime');
     expect(projectionSource).toContain('DesktopConversationProjectionStreamRuntime');
-    expect(projectionSource).toContain('getProjectedWorkspaceReadModelFromChatStore');
+    expect(projectionSource).toContain('getCurrentTurnProjectionWorkspaceReadModelFromChatStore');
+    expect(projectionSource).not.toContain('getProjectedWorkspaceReadModelFromChatStore');
     expect(projectionSource).not.toContain('projectWorkspaceReadModelState');
     expect(projectionSource).not.toContain('getWorkspaceState(conversationRef)');
-    expect(projectionSource).toContain('getWorkspaceState: getProjectedWorkspaceReadModelFromChatStore');
+    expect(projectionSource).toContain('getCurrentTurnProjectionWorkspaceReadModel: getCurrentTurnProjectionWorkspaceReadModelFromChatStore');
     expect(projectionSource).not.toContain('getWorkspaceState: useChatStore.getState().getWorkspaceState');
     expect(projectionSource).not.toContain('applyDisplayRowsProjectionEvent');
     expect(projectionSource).not.toContain('buildDisplayRowsProjection');
@@ -1125,6 +1249,9 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN');
     expect(eventClientSource).toContain('function normalizeCurrentTurnProjectionEvent');
+    expect(eventClientSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(eventClientSource).toContain('hasWorkspaceConversationView({ conversationView: source.view })');
+    expect(eventClientSource).not.toContain('function isConversationView');
     expect(eventClientSource).not.toContain('export function normalizeCurrentTurnProjectionEvent');
     expect(eventClientSource).not.toContain('onCurrentTurn(listener');
     expect(eventClientSource).not.toContain('DESKTOP_RUNTIME_ON_CHANNELS.ROWS');
@@ -1132,11 +1259,35 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).not.toContain('export function normalizeDisplayRowsProjectionEvent');
     expect(eventClientSource).not.toContain('onDisplayRows');
     expect(displayProjectionSource).toContain('export const DesktopConversationDisplayProjection = Object.freeze');
+    expect(displayProjectionSource).toContain('buildConversationViewTraceSummary');
     expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).toContain('appendPendingBridgeUserMessages');
     expect(displayProjectionSource).toContain('pendingBridgeUserMessages');
+    expect(displayProjectionSource).toContain('pendingTurnMatchesConversationView');
+    expect(displayProjectionSource).toContain('viewPendingTurn');
     expect(displayProjectionSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
+    expect(displayProjectionSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(displayProjectionSource).toContain('const workspace = { conversationView: value }');
+    expect(displayProjectionSource).toContain('hasWorkspaceConversationView(workspace)');
+    expect(displayProjectionSource).toContain('function sdkConversationViewEnvelope');
+    expect(displayProjectionSource).toContain('function displayRowsForConversationView(view: ConversationView)');
+    expect(displayProjectionSource).toContain('const viewConversationRef = exactConversationRef(view.conversationRef);');
+    expect(displayProjectionSource).toContain('exactConversationRef(row.conversationRef) === viewConversationRef');
+    expect(displayProjectionSource).toContain('function exactTraceString(value: unknown)');
+    expect(displayProjectionSource).toContain('liveTurnPhase: exactTraceString');
+    expect(displayProjectionSource).toContain('sourceEventType: exactTraceString(latestMetadata?.sourceEventType)');
+    expect(displayProjectionSource).toContain('textLength: resolveTraceTextLength(latestRecord.content)');
+    expect(displayProjectionSource).toContain('const view = sdkConversationViewEnvelope(conversationView)');
+    expect(displayProjectionSource).not.toContain('type ConversationViewTraceSource');
+    expect(displayProjectionSource).not.toContain('displayRows?: unknown[] | null');
+    expect(displayProjectionSource).not.toContain('exactTraceString(latestRecord.sender)');
+    expect(displayProjectionSource).not.toContain('latestRecord.sourceEventType');
+    expect(displayProjectionSource).not.toContain('latestRecord.content ?? latestRecord.text');
+    expect(displayProjectionSource).not.toContain('function normalizeTraceString');
+    expect(displayProjectionSource).not.toContain('value.trim() ? value.trim() : null');
     expect(displayProjectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
+    expect(displayProjectionSource).not.toContain('function isConversationView(value)');
+    expect(displayProjectionSource).not.toContain('conversationView.displayRows');
     expect(sdkDisplayProjectionRuntimeSource).toContain('buildChatMessagesFromSdkDisplayRows');
     expect(sdkDisplayProjectionRuntimeSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
     await expect(fs.stat(legacySdkDisplayProjectionAdapterPath)).rejects.toThrow();
@@ -1146,9 +1297,9 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).not.toContain('findPendingOptimisticUserMessage');
     expect(displayProjectionSource).not.toContain('currentMessage.id === pendingTurn?.userMessageId');
     expect(displayProjectionSource).not.toContain('rendererAnnotations.length > 0 ? rendererAnnotations : currentMessages');
+    expect(displayProjectionSource).not.toContain('preserveRendererAnnotations');
     expect(displayProjectionSource).not.toContain('currentMessages');
     expect(displayProjectionSource).not.toContain('export function mergeRendererAnnotationsIntoSdkMessages');
-    expect(displayProjectionSource).not.toContain('buildDisplayProjectionTraceSummary');
     expect(displayProjectionSource).not.toContain('export {\n  buildChatMessagesFromSdkDisplayRows');
     expect(displayProjectionSource).not.toContain('buildDisplayProjectionTraceSummary,\n  buildChatMessagesFromSdkDisplayRows');
     expect(displayProjectionSource).not.toContain('buildDisplayProjectionTraceSummary,\n  mergeRendererAnnotationsIntoSdkMessages');
@@ -1166,18 +1317,31 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionStreamRuntimeSource).not.toContain('supersededTurnRefs');
     expect(projectionStreamRuntimeSource).toContain('buildReplayProjectionTracePayload');
     expect(projectionStreamRuntimeSource).toContain('currentMatchesOldTurn');
-    expect(projectionStreamRuntimeSource).toContain('const hasConversationView = isConversationView(workspace.conversationView)');
-    expect(projectionStreamRuntimeSource).toContain('viewLiveTurn?.turnRef');
+    expect(projectionStreamRuntimeSource).toContain('turnRef.length > 0 && turnRef === turnRef.trim()');
+    expect(projectionStreamRuntimeSource).not.toContain('turnRef.trim()\n    ? turnRef.trim()');
+    expect(projectionStreamRuntimeSource).toContain('hasWorkspaceConversationView(workspace)');
+    expect(projectionStreamRuntimeSource).toContain('ConversationView');
+    expect(projectionStreamRuntimeSource).toContain('conversationView?: ConversationView | null');
+    expect(projectionStreamRuntimeSource).not.toContain('type ConversationViewLike');
+    expect(projectionStreamRuntimeSource).not.toContain('displayRows?: unknown[] | null');
+    expect(projectionStreamRuntimeSource).not.toContain('function isConversationView');
+    expect(projectionStreamRuntimeSource).toContain('buildConversationViewTraceSummary');
+    expect(projectionStreamRuntimeSource).not.toContain('viewLiveTurn?.turnRef');
     expect(projectionStreamRuntimeSource).toContain('workspace.sdkLiveTurn?.turnRef');
     expect(projectionStreamRuntimeSource).not.toContain('workspace.currentTurnProjection');
-    expect(projectionStreamRuntimeSource).toContain('workspace.conversationView.displayRows.length');
-    expect(projectionStreamRuntimeSource).toContain('messageCount = hasConversationView');
-    expect(projectionStreamRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
+    expect(projectionStreamRuntimeSource).not.toContain('workspace.conversationView.displayRows.length');
+    expect(projectionStreamRuntimeSource).not.toContain('workspace.messageCount');
+    expect(projectionStreamRuntimeSource).not.toContain('messages: ChatMessage[]');
+    expect(projectionStreamRuntimeSource).not.toContain('workspace.messages');
+    expect(projectionStreamRuntimeSource).toContain('streamPhase: hasConversationView ? currentTurnPhase : workspace.streamTracking?.phase ?? null');
+    expect(projectionStreamRuntimeSource).toContain('DesktopConversationDisplayProjection');
     expect(projectionStreamRuntimeSource).not.toContain('features/chat');
-    expect(replayRuntimeSource).toContain('buildReplayProjectionTracePayload');
-    expect(replayRuntimeSource).toContain('projectWorkspaceReadModelState');
-    expect(replayRuntimeSource).toContain('Object.entries(tracePayload).filter');
-    expect(replayRuntimeSource).toContain("key !== 'action' && key !== 'conversationRef'");
+    expect(replayRuntimeSource).not.toContain('buildReplayProjectionTracePayload');
+    expect(replayRuntimeSource).not.toContain('getProjectedWorkspaceReadModel');
+    expect(replayRuntimeSource).not.toContain('projectWorkspaceReadModelState');
+    expect(replayRuntimeSource).not.toContain('.getState()');
+    expect(replayRuntimeSource).not.toContain('Object.entries(tracePayload).filter');
+    expect(replayRuntimeSource).not.toContain("key !== 'action' && key !== 'conversationRef'");
     expect(replayRuntimeSource).not.toContain('currentTurnProjection?.turnRef');
     expect(replayRuntimeSource).not.toContain('pendingTurn?.turnRef');
     expect(replayRuntimeSource).not.toContain('streamTracking?.activeTurnRef');
@@ -1202,6 +1366,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopConversationLibraryClient.js'),
       'utf8',
     );
+    const dashboardLoadRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../src/renderer/app/runtime/desktopDashboardConversationLoadRuntime.js'),
+      'utf8',
+    );
 
     expect(dashboardHookSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(dashboardHookSource).not.toContain('desktopConversationDisplayProjection');
@@ -1215,15 +1383,24 @@ describe('renderer chat runtime boundary', () => {
     expect(dashboardHookSource).not.toContain('hasWorkspaceConversationView');
     expect(dashboardHookSource).toContain('applyDashboardConversationOpenWorkspaceReset');
     expect(dashboardHookSource).not.toContain('cachedWorkspace?.conversationView');
-    expect(dashboardShellSource).toContain('getWorkspaceStateFromChatStore');
-    expect(dashboardShellSource).toContain('getChatWorkspaceState: getWorkspaceStateFromChatStore');
+    expect(dashboardHookSource).not.toContain('getChatWorkspaceState');
+    expect(dashboardHookSource).not.toContain('getWorkspaceState');
+    expect(dashboardShellSource).not.toContain('getWorkspaceStateFromChatStore');
+    expect(dashboardShellSource).not.toContain('getChatWorkspaceState:');
     expect(dashboardShellSource).not.toContain('(state) => state.getWorkspaceState');
+    expect(dashboardLoadRuntimeSource).toContain('preserveConversationView: true');
+    expect(dashboardLoadRuntimeSource).not.toContain('getWorkspaceState');
     expect(dashboardHookSource).toContain('DesktopConversationLibraryClient.loadConversationView');
     expect(dashboardHookSource).not.toContain('DesktopConversationLibraryClient.loadDisplayRows');
     expect(dashboardHookSource).toContain('setChatConversationView?.(conversationView, conversationRef)');
     expect(libraryClientSource).toContain('loadConversationView');
     expect(libraryClientSource).not.toContain('loadDisplayRows');
     expect(libraryClientSource).not.toContain('loadForDisplay');
+    expect(libraryClientSource).toContain('function readExactIdentityString');
+    expect(libraryClientSource).not.toContain('conversationRef: view.conversationRef || conversationRef');
+    expect(libraryClientSource).not.toContain('function readSnapshotDisplayRows');
+    expect(libraryClientSource).not.toContain('row?.conversationRef === normalizedConversationRef');
+    expect(libraryClientSource).not.toContain('displayRows: readSnapshotDisplayRows');
     expect(displayProjectionSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
     expect(displayProjectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(displayProjectionSource).toContain('export const DesktopConversationDisplayProjection = Object.freeze');
@@ -1270,6 +1447,7 @@ describe('renderer chat runtime boundary', () => {
     expect(threadFindRuntimeSource).toContain('DesktopThreadFindRuntime');
     expect(threadFindRuntimeSource).toContain('message?.toolCallDisplayText');
     expect(threadFindRuntimeSource).not.toContain('modelFacingToolCall');
+    expect(threadFindRuntimeSource).not.toContain('modelFacingToolOutput');
     expect(threadFindRuntimeSource).not.toContain('export function buildThreadFindState');
     expect(markdownMessageSource).toContain('DesktopMarkdownMessageRuntime');
     expect(threadFindRuntimeSource).not.toContain('import { buildMarkdownRenderModel }');
@@ -1347,6 +1525,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/message/content/AttachmentRendererRegistry.jsx'),
       'utf8',
     );
+    const chatBoxResponseTestUtilsSource = await fs.readFile(
+      path.resolve(__dirname, './ChatBoxResponse.testUtils.jsx'),
+      'utf8',
+    );
     const messageTypeSource = await fs.readFile(
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopChatMessageTypes.ts'),
       'utf8',
@@ -1358,6 +1540,11 @@ describe('renderer chat runtime boundary', () => {
     expect(messageContentSource).not.toContain('screenshotContentType: PropTypes');
     expect(messageContentSource).not.toContain('screenshot: PropTypes');
     expect(messageContentSource).not.toContain('modelFacingToolCall: PropTypes');
+    expect(messageContentSource).not.toContain('modelFacingToolOutput: PropTypes');
+    expect(messageContentSource).not.toContain('toolMetadata: PropTypes');
+    expect(messageContentSource).not.toContain('toolName: PropTypes');
+    expect(messageContentSource).not.toContain('executionTime: PropTypes');
+    expect(messageContentSource).not.toContain('success: PropTypes');
     expect(toolCallMessageSource).toContain('message.toolCallDisplayText');
     expect(toolCallMessageSource).not.toContain('message.modelFacingToolCall');
     expect(toolCallMessageSource).not.toContain('modelFacingToolCall: PropTypes');
@@ -1365,8 +1552,18 @@ describe('renderer chat runtime boundary', () => {
     expect(toolCallMessageStateSource).not.toContain('modelFacingToolCall');
     expect(attachmentRendererRegistrySource).not.toContain('screenshotRef: PropTypes');
     expect(attachmentRendererRegistrySource).not.toContain('screenshotUrl: PropTypes');
+    expect(attachmentRendererRegistrySource).not.toContain('function isExactNonEmptyString');
+    expect(chatBoxResponseTestUtilsSource).not.toContain('screenshotRef: message.screenshotRef');
+    expect(chatBoxResponseTestUtilsSource).not.toContain('screenshotUrl: message.screenshotUrl');
+    expect(chatBoxResponseTestUtilsSource).not.toContain('screenshot: message.screenshot');
+    expect(chatBoxResponseTestUtilsSource).not.toContain('screenshotContentType: message.screenshotContentType');
     expect(messageTypeSource).toContain('attachments?: SdkDisplayAttachment[] | null');
     expect(messageTypeSource).not.toContain('modelFacingToolCall?:');
+    expect(messageTypeSource).not.toContain('modelFacingToolOutput?:');
+    expect(messageTypeSource).not.toContain('toolMetadata?:');
+    expect(messageTypeSource).not.toContain('toolName?:');
+    expect(messageTypeSource).not.toContain('executionTime?:');
+    expect(messageTypeSource).not.toContain('success?:');
     expect(messageTypeSource).not.toContain('attachmentFilenames?:');
     expect(messageTypeSource).not.toContain('screenshot?:');
     expect(messageTypeSource).not.toContain('screenshotRef?:');
@@ -1374,16 +1571,22 @@ describe('renderer chat runtime boundary', () => {
     expect(messageTypeSource).not.toContain('screenshotContentType?:');
     expect(messageTypeSource).not.toContain('screenshots?:');
     expect(tokenUsageRuntimeSource).toContain('tokens(provider)');
-    expect(tokenUsageRuntimeSource).toContain('message?.attachments');
-    expect(tokenUsageRuntimeSource).toContain('countDisplayImageAttachments');
+    expect(tokenUsageRuntimeSource).not.toContain('message?.attachments');
+    expect(tokenUsageRuntimeSource).not.toContain("attachment.status === 'materializing'");
+    expect(tokenUsageRuntimeSource).not.toContain("attachment.status === 'ready'");
+    expect(tokenUsageRuntimeSource).not.toContain('countDisplayImageAttachments');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshots');
     expect(tokenUsageRuntimeSource).not.toContain('countLegacyScreenshotAttachments');
     expect(tokenUsageRuntimeSource).not.toContain('screenshotRef');
     expect(tokenUsageRuntimeSource).not.toContain('screenshotUrl');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshotRef');
     expect(tokenUsageRuntimeSource).not.toContain('message?.screenshotUrl');
+    expect(tokenUsageRuntimeSource).not.toContain("attachment.kind === 'image'");
+    expect(tokenUsageRuntimeSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(tokenUsageRuntimeSource).not.toContain('readSdkDisplayAttachments');
     expect(tokenUsageRuntimeSource).not.toContain('screenshot: message?.screenshot');
     expect(tokenUsageRuntimeSource).not.toContain('modelFacingToolCall');
+    expect(tokenUsageRuntimeSource).not.toContain('modelFacingToolOutput');
     expect(tokenUsageRuntimeSource).toContain('DesktopMessageTokenUsageRuntime');
     expect(tokenUsageRuntimeSource).not.toContain('export function resolveMessageTokenUsageTag');
     expect(tokenUsageRuntimeSource).not.toContain('features/chat');
@@ -1428,14 +1631,26 @@ describe('renderer chat runtime boundary', () => {
     expect(messageContentSource).not.toContain('utils/message/messageScreenshots');
     expect(classRuntimeSource).toContain('DesktopMessageClassRuntime');
     expect(classRuntimeSource).toContain('hasVisualAttachment');
-    expect(classRuntimeSource).toContain('hasReadyDisplayImageAttachment');
+    expect(classRuntimeSource).not.toContain('DesktopMessageAttachmentPresentationRuntime');
+    expect(classRuntimeSource).toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(classRuntimeSource).toContain('readSdkDisplayAttachments');
+    expect(classRuntimeSource).not.toContain('hasVisibleSdkDisplayAttachments');
+    expect(classRuntimeSource).not.toContain('message.attachments.length');
+    expect(classRuntimeSource).toContain('message-has-attachment');
+    expect(classRuntimeSource).not.toContain('message-has-screenshot');
+    expect(classRuntimeSource).not.toContain('hasReadyDisplayImageAttachment');
     expect(classRuntimeSource).not.toContain('screenshotRef');
     expect(classRuntimeSource).not.toContain('screenshotUrl');
     expect(classRuntimeSource).not.toContain('message.screenshot');
     expect(classRuntimeSource).not.toContain('export function buildMessageClassName');
     expect(classRuntimeSource).not.toContain('features/chat');
     expect(contentRuntimeSource).toContain('DesktopMessageContentRuntime');
-    expect(contentRuntimeSource).toContain('message.attachments');
+    expect(contentRuntimeSource).toContain('isUserMessageContentPresentation');
+    expect(contentRuntimeSource).not.toContain('DesktopMessageAttachmentPresentationRuntime');
+    expect(contentRuntimeSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(contentRuntimeSource).not.toContain('readSdkDisplayAttachments');
+    expect(contentRuntimeSource).not.toContain('hasVisibleSdkDisplayAttachments');
+    expect(contentRuntimeSource).not.toContain('user-with-attachments');
     expect(contentRuntimeSource).toContain('isErrorMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export function resolveMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export function isErrorMessageContentPresentation');
@@ -1443,6 +1658,8 @@ describe('renderer chat runtime boundary', () => {
     expect(contentRuntimeSource).not.toContain('export function isAssistantResponseMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export const MESSAGE_CONTENT_RENDER_KIND');
     expect(contentRuntimeSource).not.toContain('features/chat');
+    expect(messageContentSource).toContain('isUserMessageContentPresentation');
+    expect(messageContentSource).not.toContain('isUserAttachmentMessageContentPresentation');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageListClasses.js'),
     )).rejects.toThrow();
@@ -1451,6 +1668,9 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
     await expect(fs.stat(
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopMessageScreenshotRuntime.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.resolve(__dirname, '../../src/renderer/app/runtime/desktopMessageAttachmentPresentationRuntime.js'),
     )).rejects.toThrow();
   });
 
@@ -1545,15 +1765,16 @@ describe('renderer chat runtime boundary', () => {
     }
     expect(chatMessageClientSource).toContain('infrastructure/transcript/toolCallMessageState');
     expect(chatMessageClientSource).toContain('infrastructure/transcript/toolCallChatMessageState');
-    expect(chatMessageClientSource).toContain('infrastructure/transcript/toolOutputChatMessageState');
+    expect(chatMessageClientSource).not.toContain('infrastructure/transcript/toolOutputChatMessageState');
+    expect(chatMessageClientSource).not.toContain('buildToolOutputChatMessageState');
     expect(chatMessageClientSource).toContain('infrastructure/transcript/toolSchemaShape');
     expect(chatMessageClientSource).toContain('infrastructure/text/incomingTextNormalization');
     expect(chatMessageClientSource).toContain('export const DesktopChatMessageRuntimeClient = Object.freeze');
     expect(chatMessageClientSource).not.toContain('export {');
-    expect(currentTurnMessageSource).toContain('desktopChatMessageRuntimeClient');
+    expect(currentTurnMessageSource).not.toContain('desktopChatMessageRuntimeClient');
     expect(currentTurnMessageSource).not.toContain('modelFacingToolCall: toolCallState');
     expect(currentTurnMessageSource).not.toContain('modelFacingToolCall');
-    expect(currentTurnMessageSource).toContain('DesktopChatMessageRuntimeClient');
+    expect(currentTurnMessageSource).not.toContain('DesktopChatMessageRuntimeClient');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/toolOutputMessages.ts'),
     )).rejects.toThrow();
@@ -1714,12 +1935,29 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/chatStream/useChatStreamCompletionHandler.ts'),
       'utf8',
     );
+    const streamSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatStream.ts'),
+      'utf8',
+    );
     const runtimeSource = await fs.readFile(
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopChatStreamEventRuntime.ts'),
       'utf8',
     );
 
     expect(source).toContain('resolveTurnCompletedStreamEventState');
+    expect(source).toContain('type ChatStreamWorkspaceReadModel');
+    expect(runtimeSource).toContain('viewLiveTurnRef?: string | null');
+    expect(runtimeSource).toContain('normalizeTurnRef(workspace?.viewLiveTurnRef)');
+    expect(runtimeSource).toContain('normalizeTurnRef(workspace.viewLiveTurnRef)');
+    expect(runtimeSource).not.toContain('conversationView?: {');
+    expect(runtimeSource).not.toContain('resolveWorkspaceViewLiveTurnRef');
+    expect(source).toContain('getChatStreamWorkspaceReadModel: (conversationRef?: string | null) => ChatStreamWorkspaceReadModel');
+    expect(source).not.toContain('ChatWorkspaceReadModelState');
+    expect(source).not.toContain('stores/chatStoreAdapters');
+    expect(source).not.toContain('getWorkspaceStateFromChatStore');
+    expect(streamSource).toContain('getChatStreamWorkspaceReadModel: getChatStreamWorkspaceReadModelFromChatStore');
+    expect(streamSource).not.toContain('getProjectedWorkspaceReadModelFromChatStore');
+    expect(streamSource).not.toContain('getWorkspaceStateFromChatStore');
     expect(source).not.toContain('isTurnCompletedConversationStreamEvent');
     expect(source).not.toContain('shouldRecordTerminalCompletionTracking');
     expect(source).not.toContain("event.type !== 'turn_completed'");
@@ -1883,6 +2121,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopConversationReplayRuntime.js'),
       'utf8',
     );
+    const replayRuntimeTestSource = await fs.readFile(
+      path.resolve(__dirname, '../../tests/frontend/DesktopConversationReplayRuntime.test.js'),
+      'utf8',
+    );
     const chatStoreAdaptersSource = await fs.readFile(
       path.join(chatRoot, 'stores/chatStoreAdapters.ts'),
       'utf8',
@@ -1895,17 +2137,46 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopConversationContinuityService.ts'),
       'utf8',
     );
+    const ipcSdkCommandHandlerSource = await fs.readFile(
+      path.resolve(__dirname, '../../src/main/ipc/ipc_agent_sdk_command_handlers.cjs'),
+      'utf8',
+    );
+    const directWakeUpAgentAdapterSource = await fs.readFile(
+      path.resolve(__dirname, '../../src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs'),
+      'utf8',
+    );
+    const sdkConversationRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/ConversationRuntime.ts'),
+      'utf8',
+    );
+    const sdkReplayCommandSource = sdkConversationRuntimeSource.slice(
+      sdkConversationRuntimeSource.indexOf('  async editAndResend(input: EditAndResendInput)'),
+      sdkConversationRuntimeSource.indexOf('  private shouldStopSupersededTurn'),
+    );
+    const cjsConversationRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/cjs/runtime/ConversationRuntime.js'),
+      'utf8',
+    );
+    const cjsReplayCommandSource = cjsConversationRuntimeSource.slice(
+      cjsConversationRuntimeSource.indexOf('    async editAndResend(input)'),
+      cjsConversationRuntimeSource.indexOf('    shouldStopSupersededTurn'),
+    );
     const transcriptRuntimeDocSource = await fs.readFile(
       path.resolve(__dirname, '../../docs/frontend/renderer/transcript_session_and_rehydrate_reference.md'),
       'utf8',
     );
 
     expect(source).not.toContain('DesktopConversationStoreAdapter');
-    expect(source).not.toContain('desktopConversationReplayRuntime');
-    expect(source).not.toContain('DesktopConversationReplayRuntime');
+    expect(source).toContain('desktopConversationReplayRuntime');
+    expect(source).toContain('DesktopConversationReplayRuntime');
     expect(source).not.toContain('DesktopChatSendPreparationRuntime');
-    expect(source).not.toContain("} from '../stores/chatStore';");
+    expect(source).not.toContain("} from '../stores/chatStoreAdapters';");
+    expect(source).not.toContain('getActiveConversationRefFromChatStore');
+    expect(source).not.toContain('getProjectedWorkspaceReadModelFromChatStore');
+    expect(source).not.toContain('replayUiContext');
     expect(source).not.toContain('useChatStore');
+    expect(source).not.toContain('chatStore:');
+    expect(source).not.toContain('useChatStore((state)');
     expect(source).not.toContain('buildDeferredQueryModelSelection');
     expect(source).not.toContain('utils/conversationReplayToolMessages');
     expect(source).not.toContain('DesktopConversationContinuityService.loadDisplayTimeline');
@@ -1915,7 +2186,11 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopConversationContinuityService.prepareEditAndResend');
     expect(source).not.toContain('DesktopConversationContinuityService.prepareRetryTurn');
     expect(source).not.toContain('dispatchPreparedDesktopChatTurn');
-    expect(source).toContain('executeReplayActionFromChatStore');
+    expect(source).not.toContain('editUserMessageReplayFromChatStore');
+    expect(source).not.toContain('retryAssistantMessageReplayFromChatStore');
+    expect(source).toContain('executeReplayAction');
+    expect(source).toContain("action: 'edit_resend'");
+    expect(source).toContain("action: 'retry'");
     expect(source).not.toContain('conversationView');
     expect(source).not.toContain('useChatStore((state)');
     expect(source).not.toContain('state.activeConversationRef');
@@ -1927,10 +2202,19 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopPendingTurnRuntimeClient.setPending');
     expect(source).not.toContain('prepareReplayEditIntent');
     expect(source).not.toContain('prepareReplayRetryIntent');
-    expect(source).toContain('executeReplayActionFromChatStore');
-    expect(replayRuntimeSource).toContain('buildDeferredQueryModelSelection');
-    expect(chatStoreAdaptersSource).toContain('executeReplayActionFromChatStore');
-    expect(chatStoreAdaptersSource).toContain('chatStore: useChatStore');
+    expect(source).not.toContain('executeReplayActionFromChatStore');
+    expect(source).not.toContain('desktopRendererConfigRuntimeClient');
+    expect(source).not.toContain('DesktopRendererConfigRuntimeClient');
+    expect(source).not.toContain('config,');
+    expect(source).not.toContain('config:');
+    expect(replayRuntimeSource).not.toContain('readDeferredQueryModelSelection');
+    expect(replayRuntimeSource).not.toContain('DesktopRendererConfigRuntimeClient');
+    expect(replayRuntimeSource).not.toContain('config,');
+    expect(replayRuntimeSource).not.toContain('config = null');
+    expect(chatStoreAdaptersSource).not.toContain('editUserMessageReplayFromChatStore');
+    expect(chatStoreAdaptersSource).not.toContain('retryAssistantMessageReplayFromChatStore');
+    expect(chatStoreAdaptersSource).not.toContain('export function executeReplayActionFromChatStore');
+    expect(chatStoreAdaptersSource).not.toContain('DesktopConversationReplayRuntime');
     expect(source).not.toContain('findReplayEditableUserMessageIndex');
     expect(source).not.toContain('resolveReplayRetryMessageIndexes');
     expect(source).not.toContain('buildReplayContextMessages');
@@ -1974,8 +2258,60 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('buildReplayPendingPublication');
     expect(replayRuntimeSource).toContain('executeReplayAction');
     expect(replayRuntimeSource).toContain('executeReplayIntent');
+    expect(replayRuntimeSource).not.toContain('replayUiContext');
+    expect(replayRuntimeSource).toContain('REPLAY_ACTION_INTENT_FIELDS');
+    expect(replayRuntimeSource).toContain("'action'");
+    expect(replayRuntimeSource).toContain("'editedText'");
+    expect(replayRuntimeSource).toContain("'targetRowId'");
+    expect(replayRuntimeSource).toContain('UnknownReplayActionField');
+    expect(replayRuntimeSource).toContain('DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.editAndResend');
     expect(replayRuntimeSource).toContain('DesktopConversationContinuityService.retryTurn');
+    expect(replayRuntimeSource).not.toContain('storeConversationRef');
+    expect(replayRuntimeSource).toContain('targetRowId');
+    expect(replayRuntimeSource).toContain('messageId: targetRowId');
+    expect(replayRuntimeSource).not.toContain('assistantMessageId');
+    expect(replayRuntimeSource).not.toContain('userMessageId');
+    expect(source).toContain('targetRowId');
+    expect(source).not.toContain('assistantMessageId');
+    expect(source).not.toContain('userMessageId');
+    expect(replayRuntimeSource).not.toContain('targetUserMessageId');
+    expect(replayRuntimeSource).not.toContain('chatStore');
+    expect(replayRuntimeSource).not.toContain('.getState()');
+    expect(replayRuntimeSource).not.toContain('activeConversationRef,');
+    expect(replayRuntimeSource).not.toContain('sessionInfo = null');
+    expect(replayRuntimeSource).toContain('const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();');
+    expect(replayRuntimeSource).not.toContain('const modelSelection = resolveReplayModelSelection();');
+    expect(replayRuntimeSource).not.toContain('resolveReplayModelSelection');
+    expect(replayRuntimeSource).not.toContain('model: modelSelection');
+    expect(replayRuntimeSource).not.toContain('modelSelection,\n  sessionInfo');
+    expect(replayRuntimeSource).not.toContain('modelSelection: resolveReplayModelSelection()');
+    expect(replayRuntimeSource).not.toContain('sessionInfo: resolvedSessionInfo');
+    expect(replayRuntimeSource).not.toContain('deferredQueryModelSelection');
+    expect(replayRuntimeSource).not.toContain('DesktopSettingsRuntimeClient');
+    expect(replayRuntimeSource).not.toContain('.setModel(');
+    expect(replayRuntimeTestSource).not.toContain('createChatStore');
+    expect(replayRuntimeTestSource).not.toContain('chatStoreBundle');
+    expect(replayRuntimeTestSource).not.toContain('chatStore:');
+    expect(replayRuntimeTestSource).not.toContain('messages:');
+    expect(continuityServiceSource).not.toContain('type EditAndResendCommandInput = Omit<EditAndResendInput');
+    expect(continuityServiceSource).not.toContain('type RetryTurnCommandInput = Omit<RetryTurnInput');
+    expect(continuityServiceSource).not.toContain('input.payload');
+    expect(continuityServiceSource).not.toContain('input.model');
+    expect(continuityServiceSource).toContain("exactReplayCommandString(input.conversationRef, 'conversation reference')");
+    expect(continuityServiceSource).toContain("exactReplayCommandString(input.messageId, 'message id')");
+    expect(continuityServiceSource).toContain("exactRevisionCommandString(input.conversationRef, 'conversation reference')");
+    expect(continuityServiceSource).toContain("exactRevisionCommandString(input.revisionId, 'revision id')");
+    expect(continuityServiceSource).toContain("exactRevisionCommandString(input.sourceRevisionId, 'source revision id')");
+    expect(continuityServiceSource).toContain("exactRevisionCommandString(conversationRef, 'conversation reference')");
+    expect(continuityServiceSource).toContain('readExactConversationRef(DesktopTranscriptSessionRuntimeClient.getActiveConversationRef())');
+    expect(continuityServiceSource).toContain("optionalExactRevisionCommandString(input.cutAfterRowId, 'cut row id')");
+    expect(continuityServiceSource).toContain('const newConversationRef = optionalExactRevisionCommandString(');
+    expect(continuityServiceSource).toContain('input.newConversationRef');
+    expect(continuityServiceSource).toContain("'new conversation reference'");
+    expect(continuityServiceSource).not.toContain('input.conversationRef.trim');
+    expect(continuityServiceSource).not.toContain('input.messageId.trim');
+    expect(continuityServiceSource).not.toContain('function optionalString(value: unknown)');
     expect(replayRuntimeSource).not.toContain('const replayTurnRef = crypto.randomUUID');
     expect(replayRuntimeSource).toContain('MissingConversationRef');
     expect(replayRuntimeSource).not.toContain('turnRef: replayTurnRef');
@@ -1987,8 +2323,21 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('resolveToolBundleCorrelationId');
     expect(replayRuntimeSource).not.toContain('buildPreparedReplayDesktopChatTurn');
     expect(replayRuntimeSource).not.toContain('findReplayEditableUserMessageIndex');
-    expect(replayRuntimeSource).toContain('prepareReplayEditIntent');
-    expect(replayRuntimeSource).toContain('prepareReplayRetryIntent');
+    expect(replayRuntimeSource).not.toContain('prepareReplayEditIntent');
+    expect(replayRuntimeSource).not.toContain('prepareReplayRetryIntent');
+    expect(replayRuntimeSource).toContain('readExactReplayTargetRowId');
+    expect(replayRuntimeSource).toContain('MissingReplayTargetRowId');
+    expect(replayRuntimeSource).toContain('targetRowId: null');
+    expect(replayRuntimeSource).toContain('readExactReplayConversationRef');
+    expect(replayRuntimeSource).not.toContain('resolveRendererConversationSessionSnapshot');
+    expect(replayRuntimeSource).not.toContain('normalizeReplayMessageId');
+    expect(replayRuntimeSource).not.toContain('messageId.trim()');
+    expect(replayRuntimeSource).not.toContain('editedText.trim');
+    expect(replayRuntimeSource).not.toContain('normalizedEditedText');
+    expect(replayRuntimeSource).not.toContain('__desktopRuntimeReplayStep');
+    expect(replayRuntimeSource).toContain('error.name === error.name.trim()');
+    expect(replayRuntimeSource).not.toContain('return error.name.trim()');
+    expect(replayRuntimeSource).toContain('replayAction: action');
     expect(replayRuntimeSource).not.toContain('resolveReplayRetryMessageIndexes');
     expect(replayRuntimeSource).toContain('DesktopConversationReplayRuntime');
     expect(replayRuntimeSource).not.toContain('export function findReplayEditableUserMessageIndex');
@@ -2008,12 +2357,35 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('screenshotRef');
     expect(replayRuntimeSource).not.toContain('attachmentFilenames');
     expect(replayRuntimeSource).not.toContain('features/chat');
+    expect(ipcSdkCommandHandlerSource).not.toContain('buildReplayRuntimePayload');
+    expect(ipcSdkCommandHandlerSource).not.toContain('traceReplayRuntimeSend');
+    expect(ipcSdkCommandHandlerSource).not.toContain('payload: runtimePayload');
+    expect(ipcSdkCommandHandlerSource).not.toContain('model: cloneJsonObject(payload.model)');
+    expect(ipcSdkCommandHandlerSource).not.toContain('turnRef,\n        payload:');
+    expect(ipcSdkCommandHandlerSource).toContain("messageId: requireExactCommandString(payload, 'messageId', 'message id')");
+    expect(directWakeUpAgentAdapterSource).toContain('function resolveExactReplayConversationRef');
+    expect(directWakeUpAgentAdapterSource).toContain("readExactReplayCommandString(options.messageId, 'message id')");
+    expect(directWakeUpAgentAdapterSource).toContain('const displayConversationRef = resolveExactReplayConversationRef(options)');
+    expect(directWakeUpAgentAdapterSource).not.toContain('messageId: options.messageId');
+    expect(sdkConversationRuntimeSource).toMatch(/export type EditAndResendInput = \{\s+messageId: string;\s+text: string;\s+\};/);
+    expect(sdkConversationRuntimeSource).toMatch(/export type RetryTurnInput = \{\s+messageId: string;\s+\};/);
+    expect(sdkReplayCommandSource).not.toContain('const replayPayload = mergeReplayPayload');
+    expect(sdkReplayCommandSource).not.toContain('input.payload');
+    expect(sdkReplayCommandSource).not.toContain('input.model');
+    expect(sdkReplayCommandSource).not.toContain('input.turnRef');
+    expect(cjsConversationRuntimeSource).not.toContain('function mergeReplayPayload');
+    expect(cjsReplayCommandSource).not.toContain('mergeReplayPayload');
+    expect(cjsReplayCommandSource).not.toContain('input.payload');
+    expect(cjsReplayCommandSource).not.toContain('input.model');
+    expect(cjsReplayCommandSource).not.toContain('input.turnRef');
+    expect(cjsReplayCommandSource).toContain('async retryTurn(input)');
+    expect(cjsReplayCommandSource).not.toContain('async retryTurn(input = {})');
     expect(transcriptRuntimeDocSource).toContain('SDK replay commands own target-row selection');
     expect(transcriptRuntimeDocSource).not.toContain('DesktopConversationReplayRuntime owns replay row selection');
     expect(transcriptRuntimeDocSource).not.toContain('prepared\n  desktop-turn shaping');
     expect(continuityServiceSource).not.toContain('turnRef: input.turnRef');
-    expect(continuityServiceSource).toContain("Omit<EditAndResendInput, 'turnRef'>");
-    expect(continuityServiceSource).toContain("Omit<RetryTurnInput, 'turnRef'>");
+    expect(continuityServiceSource).toContain('messageId: string;');
+    expect(continuityServiceSource).toContain('text: string;');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/conversationReplayToolMessages.js'),
     )).rejects.toThrow();
@@ -2207,11 +2579,26 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
     expect(clientSource).toContain('DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
     expect(clientSource).toContain('function resolveDesktopPendingTurnBroadcastAction');
+    expect(clientSource).toContain('function normalizePendingTurn(value: unknown)');
+    expect(clientSource).toContain('hasOnlyPendingTurnFields(source)');
+    expect(clientSource).toContain('const PENDING_TURN_CLEAR_FIELDS = new Set');
+    expect(clientSource).toContain('hasOnlyPendingTurnClearFields(source)');
+    expect(clientSource).toContain('pendingTurn: normalizePendingTurn(source.pendingTurn)');
     expect(clientSource).not.toContain('export function resolveDesktopPendingTurnBroadcastAction');
     expect(clientSource).toContain('resolveBroadcastAction(payload');
     expect(clientSource).not.toContain("attachments?: ChatMessage['attachments']");
     expect(clientSource).not.toContain('attachmentFilenames?:');
+    expect(clientSource).not.toContain('pendingTurn: source.pendingTurn');
+    expect(clientSource).not.toContain("'attachments'");
+    expect(clientSource).not.toContain("'screenshotRef'");
+    expect(clientSource).not.toContain("'screenshot_refs'");
     expect(eventClientSource).toContain('DesktopPendingTurnRuntimeClient.resolveBroadcastAction(payload)');
+    expect(eventClientSource).toContain('function exactOptionalString(value: unknown): string | null');
+    expect(eventClientSource).toContain('value.length > 0 && value === value.trim()');
+    expect(eventClientSource).toContain('const currentTurnConversationRef = exactOptionalString(currentTurn.conversationRef);');
+    expect(eventClientSource).not.toContain('value.trim()\n    ? value.trim()');
+    expect(eventClientSource).not.toContain('source.conversationRef.trim()');
+    expect(eventClientSource).not.toContain('?? currentTurn.conversationRef');
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBroadcastAction');
     expect(chatStoreAdaptersSource).toContain('DesktopPendingTurnBroadcastAction');
     expect(chatStoreSource).not.toContain('resolvePendingTurnForCurrentProjection');
@@ -2220,6 +2607,10 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForSdkLiveTurn');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('resolvePendingTurnForCurrentProjection');
     expect(currentTurnWorkspaceRuntimeSource).toContain('buildNoViewSdkLiveTurnWorkspaceMutation');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('hasWorkspaceConversationView(currentWorkspace)');
+    expect(currentTurnWorkspaceRuntimeSource).not.toContain('function hasConversationView');
+    expect(currentTurnWorkspaceRuntimeSource).not.toContain('hasConversationView(currentWorkspace.conversationView)');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('buildCurrentTurnWorkspaceMutation');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('buildSetCurrentTurnProjectionStateUpdate');
     expect(chatStoreSource).not.toContain('buildPendingTurnBroadcastStateUpdate');
@@ -2230,6 +2621,21 @@ describe('renderer chat runtime boundary', () => {
     expect(pendingStateRuntimeSource).toContain("action.kind === 'clear'");
     expect(visibleLifecycleSource).toContain('function hasAuthoritativeSameTurnSdkReplacement');
     expect(visibleLifecycleSource).not.toContain('hasAuthoritativeSameTurnSdkReplacement,');
+  });
+
+  test('desktop send transport rejects renderer display attachment lifecycle payloads', async () => {
+    const transportSource = await fs.readFile(
+      path.resolve(__dirname, '../../src/renderer/app/runtime/desktopRuntimeTransport.ts'),
+      'utf8',
+    );
+
+    expect(transportSource).toContain('rejectDisplayAttachmentLifecycleFields(payload');
+    expect(transportSource).toContain("'attachments'");
+    expect(transportSource).toContain("'display_attachments'");
+    expect(transportSource).toContain("'displayAttachments'");
+    expect(transportSource).toContain("'displayAttachmentId'");
+    expect(transportSource).toContain("'previewSrc'");
+    expect(transportSource).toContain('Send typed resources and let SDK projection own attachment lifecycle');
   });
 
   test('chat stop-turn state is owned by app runtime', async () => {
@@ -2263,6 +2669,9 @@ describe('renderer chat runtime boundary', () => {
     );
     const stopTargetResolverSource = stopRuntimeSource.slice(
       stopRuntimeSource.indexOf('function resolveStopTurnTarget'),
+      stopRuntimeSource.indexOf('export const DesktopStopTurnRuntime'),
+    );
+    const stopRuntimeExportSource = stopRuntimeSource.slice(
       stopRuntimeSource.indexOf('export const DesktopStopTurnRuntime'),
     );
 
@@ -2304,8 +2713,22 @@ describe('renderer chat runtime boundary', () => {
     expect(stopRuntimeSource).toContain('executeStopTurnExecutionPlan');
     expect(stopRuntimeSource).toContain('buildStoppedSdkLiveTurn');
     expect(stopRuntimeSource).toContain('doesSdkLiveTurnMatch');
-    expect(stopRuntimeSource).toContain('const hasWorkspaceConversationView = hasConversationView(currentWorkspace.conversationView);');
-    expect(stopRuntimeSource).toContain('const workspaceSdkLiveTurn = hasWorkspaceConversationView');
+    expect(stopRuntimeSource).toContain('function readExactNonEmptyRef(value)');
+    expect(stopRuntimeSource).not.toContain('function normalizeRef(value)');
+    expect(stopRuntimeSource).not.toContain('normalizeRef(conversationView.conversationRef)');
+    expect(stopRuntimeSource).not.toContain('normalizeRef(conversationRef)');
+    expect(stopRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(stopRuntimeSource).toContain('hasWorkspaceConversationView(currentWorkspace)');
+    expect(stopRuntimeSource).toContain('function isSdkConversationView(conversationView)');
+    expect(stopRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(stopRuntimeSource).toContain('function pendingTurnMatchesConversationView');
+    expect(stopRuntimeSource).toContain('normalizedPendingTurn.conversationRef === viewConversationRef');
+    expect(stopRuntimeSource).not.toContain('function hasConversationView');
+    expect(stopRuntimeSource).not.toContain('hasConversationView(currentWorkspace.conversationView)');
+    expect(stopTargetResolverSource).not.toContain("source: 'idle'");
+    expect(stopTargetResolverSource).not.toContain('conversationRef = null');
+    expect(stopRuntimeSource).toContain('const hasSdkConversationView = hasWorkspaceConversationView(currentWorkspace);');
+    expect(stopRuntimeSource).toContain('const workspaceSdkLiveTurn = hasSdkConversationView');
     expect(stopRuntimeSource).toContain('readNoViewSdkLiveTurnStorage(currentWorkspace)');
     expect(stopRuntimeSource).toContain('buildNoViewSdkLiveTurnStorageUpdate(');
     expect(stopRuntimeSource).not.toContain('currentWorkspace.currentTurnProjection');
@@ -2321,6 +2744,13 @@ describe('renderer chat runtime boundary', () => {
     expect(stopRuntimeSource).not.toContain('presentation?.hasVisibleContent');
     expect(stopRuntimeSource).not.toContain('export function buildStopQueryTrackingPatch');
     expect(stopRuntimeSource).not.toContain('export function buildStoppedSdkLiveTurn');
+    expect(stopRuntimeExportSource).toContain('buildAcceptStoppedTurnStateUpdate');
+    expect(stopRuntimeExportSource).toContain('executeStopTurnExecutionPlan');
+    expect(stopRuntimeExportSource).toContain('resolveStopTurnTarget');
+    expect(stopRuntimeExportSource).not.toContain('buildStopQueryTrackingPatch,');
+    expect(stopRuntimeExportSource).not.toContain('buildStopTurnExecutionPlan,');
+    expect(stopRuntimeExportSource).not.toContain('buildStoppedTurnWorkspaceMutation,');
+    expect(stopRuntimeExportSource).not.toContain('buildStoppedSdkLiveTurn,');
     expect(stopRuntimeSource).not.toContain('export function isStopTurnTargetFromCurrentTurn');
     expect(stopRuntimeSource).not.toContain('isStopTurnTargetFromConversationView');
     expect(stopRuntimeSource).not.toContain('export function isStopTurnTargetFromPendingTurn');
@@ -2372,10 +2802,11 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('export function configureRendererTraceWorkspaceSnapshotResolver');
     expect(chatProviderSource).toContain('configureRendererTraceWorkspaceSnapshotResolver');
     expect(chatProviderSource).toContain('DesktopRendererTraceRuntime');
-    expect(chatProviderSource).toContain('DesktopChatProviderTraceRuntime');
-    expect(chatProviderSource).toContain('buildChatProviderTraceWorkspaceSnapshot');
-    expect(chatProviderSource).toContain('getActiveConversationRefFromChatStore');
-    expect(chatProviderSource).toContain('getProjectedWorkspaceReadModelFromChatStore');
+    expect(chatProviderSource).toContain('getChatProviderTraceWorkspaceSnapshotFromChatStore');
+    expect(chatProviderSource).not.toContain('DesktopChatProviderTraceRuntime');
+    expect(chatProviderSource).not.toContain('buildChatProviderTraceWorkspaceSnapshot');
+    expect(chatProviderSource).not.toContain('getActiveConversationRefFromChatStore');
+    expect(chatProviderSource).not.toContain('getProjectedWorkspaceReadModelFromChatStore');
     expect(chatProviderSource).not.toContain('useChatStore');
     expect(chatProviderSource).not.toContain('store.getWorkspaceState(conversationRef)');
     expect(chatProviderSource).not.toContain('projectWorkspaceReadModelState');
@@ -2387,8 +2818,50 @@ describe('renderer chat runtime boundary', () => {
     expect(chatProviderSource).not.toContain('phase: workspace.streamTracking.phase');
     expect(providerTraceRuntimeSource).toContain('export const DesktopChatProviderTraceRuntime = Object.freeze');
     expect(providerTraceRuntimeSource).toContain('buildChatProviderTraceWorkspaceSnapshot');
-    expect(providerTraceRuntimeSource).toContain('conversationView?.displayRows');
+    expect(providerTraceRuntimeSource).toContain('conversationViewTraceSummary');
+    expect(providerTraceRuntimeSource).not.toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(providerTraceRuntimeSource).not.toContain('hasWorkspaceConversationView');
+    expect(providerTraceRuntimeSource).not.toContain('buildConversationViewTraceSummary');
+    expect(providerTraceRuntimeSource).not.toContain('conversationView.displayRows');
+    expect(providerTraceRuntimeSource).toContain('value.length > 0 && value === value.trim()');
+    expect(providerTraceRuntimeSource).toContain('activeConversationRef: normalizeTraceString(activeConversationRef)');
+    expect(providerTraceRuntimeSource).toContain('traceLastMessageFromReadModel(workspace?.lastMessage)');
+    expect(providerTraceRuntimeSource).toContain('normalizeTraceString(workspace?.activeTurnRef)');
+    expect(providerTraceRuntimeSource).toContain("typeof workspace?.messageCount === 'number'");
+    expect(providerTraceRuntimeSource).not.toContain('workspace?.messages');
+    expect(providerTraceRuntimeSource).not.toContain('streamTracking');
+    expect(providerTraceRuntimeSource).not.toContain("value.trim() ? value.trim() : null");
+    expect(providerTraceRuntimeSource).not.toContain("Boolean(workspace?.conversationView && typeof workspace.conversationView === 'object')");
+    expect(providerTraceRuntimeSource).not.toContain('turnRef: lastMessage.turnRef || null');
+    expect(providerTraceRuntimeSource).not.toContain('sourceEventType: lastMessage.sourceEventType || null');
+    expect(providerTraceRuntimeSource).not.toContain('activeConversationRef,');
+    expect(providerTraceRuntimeSource).not.toContain('conversationView?.displayRows');
+    expect(providerTraceRuntimeSource).not.toContain('displayRows.length');
+    expect(providerTraceRuntimeSource).not.toContain('return displayRows ? displayRows.length : messages.length');
     expect(providerTraceRuntimeSource).not.toContain('features/chat');
+    const chatStoreAdaptersSource = await fs.readFile(
+      path.resolve(__dirname, '../../src/renderer/features/chat/stores/chatStoreAdapters.ts'),
+      'utf8',
+    );
+    expect(chatStoreAdaptersSource).toContain('getChatProviderTraceWorkspaceSnapshotFromChatStore');
+    expect(chatStoreAdaptersSource).toContain('buildChatProviderTraceWorkspaceSnapshot');
+    expect(chatStoreAdaptersSource).toContain('function buildChatProviderTraceWorkspaceReadModel');
+    expect(chatStoreAdaptersSource).toContain('buildConversationViewTraceSummary(workspace.conversationView)');
+    expect(chatStoreAdaptersSource).toContain('hasWorkspaceConversationView(workspace)');
+    expect(chatStoreAdaptersSource).toContain('conversationViewTraceSummary: hasConversationView');
+    expect(chatStoreAdaptersSource).toContain('workspace: buildChatProviderTraceWorkspaceReadModel(');
+    expect(chatStoreAdaptersSource).toContain('const fallbackMessages = hasConversationView ? [] : workspace.messages;');
+    expect(chatStoreAdaptersSource).toContain('const lastMessage = fallbackMessages[fallbackMessages.length - 1] ?? null;');
+    expect(chatStoreAdaptersSource).toContain('messageCount: fallbackMessages.length');
+    expect(chatStoreAdaptersSource).not.toContain('messageCount: workspace.messages.length');
+    expect(chatStoreAdaptersSource).not.toContain('const lastMessage = workspace.messages[workspace.messages.length - 1] ?? null');
+    expect(chatStoreAdaptersSource).toContain('function exactReadModelString(value: unknown): string | null');
+    expect(chatStoreAdaptersSource).toContain('activeTurnRef: exactReadModelString(workspace.streamTracking.activeTurnRef)');
+    expect(chatStoreAdaptersSource).toContain('turnRef: exactReadModelString(lastMessage.turnRef)');
+    expect(chatStoreAdaptersSource).toContain('sourceEventType: exactReadModelString(lastMessage.sourceEventType)');
+    expect(chatStoreAdaptersSource).not.toContain('activeTurnRef: workspace.streamTracking.activeTurnRef');
+    expect(chatStoreAdaptersSource).not.toContain('turnRef: lastMessage.turnRef ?? null');
+    expect(chatStoreAdaptersSource).not.toContain('sourceEventType: lastMessage.sourceEventType ?? null');
     expect(clientSource).toContain('SEND_CHANNELS.LIVE_SURFACE_TRACE');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/chatStream/chatStreamDebugTrace.ts'),
@@ -2432,6 +2905,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopChatSendPayloadRuntime.ts'),
       'utf8',
     );
+    const liveTurnRuntimeClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),
+      'utf8',
+    );
     const stateRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopChatSendStateRuntime.ts'),
       'utf8',
@@ -2460,9 +2937,10 @@ describe('renderer chat runtime boundary', () => {
     expect(senderHookSource).not.toContain('getState().messages');
     expect(senderHookSource).not.toContain('preparedTurn.conversationRef');
     expect(senderHookSource).not.toContain('preparedTurn.turnRef');
-    expect(selectorRuntimeSource).toContain('const messages = conversationView ? [] : activeWorkspace.messages;');
+    expect(selectorRuntimeSource).toContain('const surfaceState = projectDesktopChatSurfaceState({');
     expect(selectorRuntimeSource).toContain('hasPriorUserMessages({');
     expect(selectorRuntimeSource).toContain('hasPriorUserMessages: true');
+    expect(selectorRuntimeSource).not.toContain('const messages = conversationView ? [] : activeWorkspace.messages;');
     expect(selectorRuntimeSource).not.toContain('hasConversationView(conversationView) ? emptyChatMessages : activeWorkspace.messages');
     expect(selectorRuntimeSource).not.toContain('messages: conversationView ? activeWorkspace.messages : emptyChatMessages');
     expect(sendPreparationSource).toContain('desktopChatSendPayloadRuntime');
@@ -2471,6 +2949,7 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('getMessages');
     expect(sendPreparationSource).not.toContain('desktopChatSendStateRuntime');
     expect(sendPreparationSource).not.toContain('displayRows');
+    expect(sendPreparationSource).toContain('function exactNonEmptyString(value: unknown)');
     await expect(fs.stat(path.join(chatRoot, 'hooks/useChatCommonActions.ts'))).rejects.toThrow();
     expect(sendPreparationSource).toContain('sendReadModel.hasPriorUserMessages === true');
     expect(sendPreparationSource).toContain('export const DesktopChatSendPreparationRuntime = Object.freeze');
@@ -2478,6 +2957,13 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('export async function dispatchPreparedDesktopChatTurn');
     expect(sendPreparationSource).toContain('DesktopPendingTurnRuntimeClient.clear');
     expect(sendPreparationSource).toContain('dependencies.clearPendingTurn');
+    const preparedSendReturnSource = sendPreparationSource.slice(
+      sendPreparationSource.indexOf('return {\n    conversationRef,'),
+      sendPreparationSource.indexOf('async function dispatchPreparedDesktopChatTurn'),
+    );
+    expect(preparedSendReturnSource).not.toContain('sessionInfo:');
+    expect(preparedSendReturnSource).not.toContain('timestamp,');
+    expect(preparedSendReturnSource).not.toContain('turnRef: turnId');
     expect(sendPreparationSource).toContain('logRendererChatSendLifecycleTrace');
     expect(sendPreparationSource).not.toContain('logRendererChatPillTrace');
     expect(sendPreparationSource).not.toContain("source: 'renderer-send'");
@@ -2489,12 +2975,19 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('readSdkDisplayAttachments');
     expect(sendPreparationSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
     expect(sendPreparationSource).not.toContain('displayAttachmentId');
+    expect(sendPreparationSource).not.toContain('previewSrc');
     expect(sendPreparationSource).not.toContain('attachments:');
     expect(sendPreparationSource).not.toContain('attachmentFilenames');
     expect(sendPreparationSource).not.toContain('{ attachmentFilenames, attachment_filenames');
+    expect(sendPreparationSource).not.toContain('workspacePath: workspaceBinding.workspacePath || null');
+    expect(sendPreparationSource).toContain('function optionalExactResourceField');
+    expect(sendPreparationSource).toContain("...optionalExactResourceField('contentType', clipboardImage.contentType)");
+    expect(sendPreparationSource).toContain("...optionalExactResourceField('filename', clipboardImage.filename)");
+    expect(sendPreparationSource).not.toContain('contentType: clipboardImage.contentType ?? null');
+    expect(sendPreparationSource).not.toContain('filename: clipboardImage.filename ?? null');
     expect(senderTestSource).toContain('function expectPendingBridgeUserMessage');
     expect(senderTestSource).not.toContain('function expectOptimisticUserMessage');
-    expect(senderTestSource).toContain('attachments: null');
+    expect(senderTestSource).not.toContain('attachments: null');
     expect(senderTestSource).not.toContain('attachments: unknown[] | null = null');
     expect(sendPreparationSource).not.toContain('chatMessageSenderPayloads');
     expect(sendPreparationSource).not.toContain('chatMessageSenderUtils');
@@ -2502,12 +2995,42 @@ describe('renderer chat runtime boundary', () => {
     expect(traceRuntimeSource).toContain('logRendererChatSendLifecycleTrace');
     expect(traceRuntimeSource).toContain('include_query_screenshot');
     expect(payloadRuntimeSource).toContain('export const DesktopChatSendPayloadRuntime = Object.freeze');
+    expect(payloadRuntimeSource).toContain('ALLOWED_OUTGOING_PAYLOAD_FIELDS');
+    expect(payloadRuntimeSource).toContain('hasUnsupportedOutgoingPayloadField');
+    expect(payloadRuntimeSource).toContain('function exactNonEmptyString(value: unknown)');
+    expect(payloadRuntimeSource).not.toContain('clipboardImage.base64.length > 0');
+    expect(payloadRuntimeSource).not.toContain('readableFile.filePath.length > 0');
+    expect(payloadRuntimeSource).not.toContain('readableFile.filename.length > 0');
+    expect(payloadRuntimeSource).toContain("'clipboardImages'");
+    expect(payloadRuntimeSource).toContain("'readableFiles'");
+    expect(payloadRuntimeSource).not.toContain('REMOVED_RENDERER_ATTACHMENT_PAYLOAD_FIELDS');
+    expect(payloadRuntimeSource).not.toContain('hasRemovedRendererAttachmentPayloadField');
+    expect(payloadRuntimeSource).not.toContain("'attachmentFilenames'");
+    expect(payloadRuntimeSource).not.toContain("'screenshotRef'");
+    expect(payloadRuntimeSource).not.toContain("'screenshotRefs'");
+    expect(payloadRuntimeSource).not.toContain("'screenshotUrl'");
+    expect(payloadRuntimeSource).not.toContain("'displayAttachmentId'");
+    expect(payloadRuntimeSource).not.toContain("'previewSrc'");
+    expect(payloadRuntimeSource).not.toContain("'displayAttachments'");
     expect(payloadRuntimeSource).not.toContain('export function normalizeOutgoingPayload');
     expect(payloadRuntimeSource).not.toContain('export function normalizeAttachmentFilenames');
     expect(payloadRuntimeSource).not.toContain('normalizeAttachmentFilenames');
     expect(payloadRuntimeSource).not.toContain('features/chat');
+    expect(liveTurnRuntimeClientSource).toContain('conversation.send resources must use typed SDK resource shapes');
+    expect(liveTurnRuntimeClientSource).toContain('const normalizedResource = normalizeTurnInputResource(resource);');
+    expect(liveTurnRuntimeClientSource).toContain('if (!normalizedResource)');
+    expect(liveTurnRuntimeClientSource).toContain('throw new Error(INVALID_SEND_RESOURCES_ERROR)');
+    expect(liveTurnRuntimeClientSource).not.toContain('.filter((resource): resource is TurnInputResource');
     expect(stateRuntimeSource).toContain('export const DesktopChatSendStateRuntime = Object.freeze');
     expect(stateRuntimeSource).toContain('hasPriorUserMessages');
+    expect(stateRuntimeSource).toContain('DesktopConversationDisplayRowLookupRuntime');
+    expect(stateRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(stateRuntimeSource).toContain('const workspace = { conversationView }');
+    expect(stateRuntimeSource).toContain('hasWorkspaceConversationView(workspace)');
+    expect(stateRuntimeSource).toContain('hasConversationViewUserDisplayRows(workspace.conversationView)');
+    expect(stateRuntimeSource).not.toContain('function isConversationView');
+    expect(stateRuntimeSource).not.toContain('row.role ===');
+    expect(stateRuntimeSource).not.toContain('displayRows.some');
     expect(stateRuntimeSource).not.toContain('export function hasUserMessages');
     expect(stateRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
@@ -2548,12 +3071,12 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/message/content/ToolOutputMessage.jsx'),
       'utf8',
     );
-    const toolOutputStateSource = await fs.readFile(
-      path.resolve(__dirname, '../../src/renderer/infrastructure/transcript/toolOutputChatMessageState.ts'),
-      'utf8',
-    );
     const attachmentRegistrySource = await fs.readFile(
       path.join(chatRoot, 'components/message/content/AttachmentRendererRegistry.jsx'),
+      'utf8',
+    );
+    const attachmentListSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/content/AttachmentList.jsx'),
       'utf8',
     );
     const clientSource = await fs.readFile(
@@ -2570,15 +3093,56 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
     expect(userMessageSource).not.toContain('SHOW_IMAGE_CONTEXT_MENU');
     expect(userMessageSource).not.toContain('IpcBridge.invoke');
+    expect(userMessageSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(userMessageSource).not.toContain('readSdkDisplayAttachments');
+    expect(userMessageSource).not.toContain('displayAttachments');
+    expect(userMessageSource).toContain('attachments={message.attachments}');
+    expect(userMessageSource).not.toContain('Array.isArray(message.attachments)');
     expect(userMessageSource).toContain('AttachmentList');
     expect(userMessageSource).not.toContain('attachmentFilenames');
     expect(userMessageSource).not.toContain('user-file-attachments');
+    expect(attachmentListSource).toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(attachmentListSource).toContain('readSdkDisplayAttachments(attachments)');
+    expect(attachmentListSource).not.toContain('typeof attachment.id === \'string\'');
+    expect(attachmentListSource).not.toContain('user-screenshot');
     expect(attachmentRegistrySource).toContain('DesktopArtifactRuntimeClient.showImageContextMenu');
+    expect(attachmentRegistrySource).toContain('message-attachment-image');
+    expect(attachmentRegistrySource).not.toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(attachmentRegistrySource).not.toContain('readSdkDisplayAttachments');
+    expect(attachmentRegistrySource).not.toContain('function isExactNonEmptyString');
+    expect(attachmentRegistrySource).toContain('src={attachment.previewSrc}');
+    expect(attachmentRegistrySource).not.toContain('user-screenshot');
+    expect(attachmentRegistrySource).not.toContain('lastVisibleSrc');
+    expect(attachmentRegistrySource).not.toContain('useState');
+    expect(attachmentRegistrySource).not.toContain('setLastVisibleSrc');
+    expect(toolOutputSource).not.toContain('DesktopSdkDisplayAttachmentProjection');
+    expect(toolOutputSource).not.toContain('readSdkDisplayAttachments');
+    expect(toolOutputSource).not.toContain('displayAttachments');
+    expect(toolOutputSource).toContain('attachments={message.attachments}');
+    expect(toolOutputSource).toContain('tool-attachment-container');
+    expect(toolOutputSource).not.toContain('tool-screenshot');
+    expect(toolOutputSource).not.toContain('Screenshot After Action');
+    expect(toolOutputSource).not.toContain('Array.isArray(message.attachments) ? message.attachments : []');
+    expect(toolOutputSource).not.toContain('DesktopSdkToolDetailProjection');
+    expect(toolOutputSource).not.toContain('sanitizeSdkToolDetailRecord(message.toolMetadata)');
+    expect(toolOutputSource).not.toContain('fallbackToolMetadata');
+    expect(toolOutputSource).not.toContain('tool_name: message.toolName');
+    expect(toolOutputSource).not.toContain('execution_time: message.executionTime');
+    expect(toolOutputSource).not.toContain('success: message.success');
+    expect(toolOutputSource).not.toContain('message.modelFacingToolOutput');
+    expect(toolOutputSource).not.toContain('modelFacingToolOutput: PropTypes');
+    expect(toolOutputSource).toContain('text={message.text}');
+    expect(toolOutputSource).not.toContain('toolName: PropTypes');
+    expect(toolOutputSource).not.toContain('executionTime: PropTypes');
+    expect(toolOutputSource).not.toContain('success: PropTypes');
+    expect(toolOutputSource).not.toContain('metadata: message.toolMetadata || null');
     expect(toolOutputSource).toContain('AttachmentList');
+    expect(attachmentListSource).toContain('headerText');
+    expect(attachmentListSource).toContain('visibleAttachments.length === 0');
     expect(toolOutputSource).not.toContain('useResolvedMessageScreenshotSrc');
-    expect(toolOutputStateSource).not.toContain('screenshotMessageState');
-    expect(toolOutputStateSource).not.toContain('screenshotRef');
-    expect(toolOutputStateSource).not.toContain('screenshotUrl');
+    await expect(fs.stat(
+      path.resolve(__dirname, '../../src/renderer/infrastructure/transcript/toolOutputChatMessageState.ts'),
+    )).rejects.toThrow();
     expect(clientSource).toContain('INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE');
     expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_IMAGE_CONTEXT_MENU');
   });
@@ -2768,7 +3332,9 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('addMessage');
     expect(replayRuntimeSource).not.toContain('failureMessages');
     expect(replayRuntimeSource).not.toContain('renderer-replay');
-    expect(replayRuntimeSource).toContain('DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding');
+    expect(replayRuntimeSource).not.toContain('DesktopWorkspaceRuntimeClient');
+    expect(replayRuntimeSource).not.toContain('getConversationWorkspaceBinding');
+    expect(replayRuntimeSource).not.toContain('workspace_path');
     expect(replayRuntimeSource).toContain('desktopConversationSessionRuntime');
     expect(replayActionsSource).not.toContain('utils/session/conversationRef');
     expect(newChatSessionSource).toContain('DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding');
@@ -3040,6 +3606,18 @@ describe('renderer chat runtime boundary', () => {
     expect(messageInputSource).not.toContain('.focus()');
     expect(messageInputRuntimeSource).toContain('export const DesktopMessageInputRuntime = Object.freeze');
     expect(messageInputRuntimeSource).toContain('focusTextInputAtEnd');
+    expect(messageInputRuntimeSource).toContain('DesktopChatSendPayloadRuntime');
+    expect(messageInputRuntimeSource).toContain('normalizeOutgoingPayload');
+    expect(messageInputRuntimeSource).not.toContain('function normalizeClipboardImage');
+    expect(messageInputRuntimeSource).not.toContain('function exactNonEmptyString(value)');
+    expect(messageInputRuntimeSource).not.toContain('const base64 = exactNonEmptyString(clipboardImage.base64);');
+    expect(messageInputRuntimeSource).not.toContain('filePath: exactNonEmptyString(readableFile.filePath)');
+    expect(messageInputRuntimeSource).not.toContain('base64: clipboardImage.base64');
+    expect(messageInputRuntimeSource).not.toContain('filePath: readableFile.filePath');
+    expect(messageInputRuntimeSource).not.toContain('return clipboardImages.filter((image) => isClipboardImage(image))');
+    expect(messageInputRuntimeSource).not.toContain('previewUrl: clipboardImage.previewUrl');
+    expect(messageInputRuntimeSource).not.toContain('id: clipboardImage.id');
+    expect(messageInputRuntimeSource).not.toContain('id: readableFile.id');
     expect(messageInputRuntimeSource).not.toContain('export function buildOutgoingMessage');
     expect(messageInputRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
@@ -3194,6 +3772,10 @@ describe('renderer chat runtime boundary', () => {
     expect(syncSource).toContain('setResponseboxSizeValues');
     expect(syncSource).not.toContain('setResponseboxSize({');
     expect(overlaySource).not.toContain('currentTurnProjection');
+    expect(overlaySource).not.toContain('resolveConversationToolSchemas(messages)');
+    expect(overlaySource).not.toContain('messageCount: messages.length');
+    expect(overlaySource).not.toContain('messages.length,');
+    expect(overlaySource).toContain('resolveConversationToolSchemas(responseOverlayEntries)');
     expect(viewModelSource).toContain('resolveResponseOverlaySurfaceState');
     expect(viewModelSource).toContain('resolveResponseOverlayPresentationStateForSurfaceState');
     expect(viewModelSource).toContain('responseOverlaySurfaceState');
@@ -3207,8 +3789,38 @@ describe('renderer chat runtime boundary', () => {
     expect(viewModelSource).not.toContain('conversationView = null');
     expect(responseViewRuntimeSource).not.toContain('traceState');
     expect(responseViewRuntimeSource).not.toContain('projectionInput');
+    expect(responseViewRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(responseViewRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(responseViewRuntimeSource).not.toContain('desktopConversationRuntimeContracts');
+    expect(responseViewRuntimeSource).not.toContain('as ConversationView');
+    expect(responseViewRuntimeSource).toContain('function conversationViewLiveTurnRef(conversationView: unknown)');
+    expect(responseViewRuntimeSource).not.toContain('function isConversationView');
+    expect(responseViewRuntimeSource).toContain('buildConversationViewTurnChatMessages');
+    expect(responseViewRuntimeSource).not.toContain('buildChatMessagesFromSdkDisplayRows');
+    expect(responseViewRuntimeSource).not.toContain('view.displayRows');
+    expect(responseViewRuntimeSource).not.toContain('toolMetadata');
+    expect(responseViewRuntimeSource).toContain('function exactIdentityString');
+    expect(responseViewRuntimeSource).toContain('function exactToolIdentityField');
+    expect(responseViewRuntimeSource).toContain('exactIdentityString(message.correlationId)');
+    expect(responseViewRuntimeSource).toContain('exactUnknownIdentityString(overlayIntent?.turnRef)');
+    expect(responseViewRuntimeSource).toContain('exactUnknownIdentityString(liveTurn.turnRef)');
+    expect(responseViewRuntimeSource).toContain('exactUnknownIdentityString(responseOverlay.turnRef)');
+    expect(responseViewRuntimeSource).toContain('turnRef: exactIdentityString(sizeIdentity?.turnRef)');
+    expect(responseViewRuntimeSource).toContain('guardRef: exactIdentityString(dismissalTarget.guardRef)');
+    expect(responseViewRuntimeSource).not.toContain('turnRef: normalizeString(dismissalTarget.turnRef)');
+    expect(responseViewRuntimeSource).not.toContain('guardRef: normalizeString(dismissalTarget.guardRef)');
+    expect(responseViewRuntimeSource).not.toContain('function stringField');
+    expect(responseViewRuntimeSource).not.toContain('normalizeString(message.correlationId)');
+    expect(responseViewRuntimeSource).not.toContain('normalizeUnknownString(liveTurn.turnRef)');
+    expect(responseViewRuntimeSource).not.toContain('normalizeUnknownString(responseOverlay.turnRef)');
+    expect(responseViewRuntimeSource).not.toContain('normalizeUnknownString(overlayIntent?.turnRef)');
+    expect(responseViewRuntimeSource).not.toContain('turnRef: normalizeString(sizeIdentity?.turnRef)');
+    expect(responseViewRuntimeSource).not.toContain('turnRef: normalizeString(guardSnapshot?.turnRef)');
     expect(responseViewRuntimeSource).toContain('const messages = conversationView');
     expect(responseViewRuntimeSource).toContain('const sdkLiveTurn = conversationView ? null : surfaceState.sdkLiveTurn ?? null;');
+    expect(responseViewRuntimeSource).toContain('function isNoViewSdkLiveTurnResponseSource(source: unknown)');
+    expect(responseViewRuntimeSource).toContain('if (!isNoViewSdkLiveTurnResponseSource(liveTurnPresentationInput.source))');
+    expect(responseViewRuntimeSource).toContain('sdkLiveTurn: isNoViewSdkLiveTurnResponseSource(liveTurnPresentationInput.source)');
     expect(viewModelSource).not.toContain('currentTurnProjection');
     expect(viewModelSource).not.toContain('currentTurnProjection = null');
     expect(viewModelSource).not.toContain('pendingTurn = null');
@@ -3505,6 +4117,9 @@ describe('renderer chat runtime boundary', () => {
     expect(activeSessionRuntimeSource).not.toContain('export const resetActiveChatSession');
     expect(activeSessionRuntimeSource).toContain('applyRendererConversationSelection');
     expect(activeSessionRuntimeSource).toContain('DesktopTranscriptSessionRuntimeClient.updateTranscriptSession');
+    expect(activeSessionRuntimeSource).toContain('function readExactConversationRef');
+    expect(activeSessionRuntimeSource).toContain('const targetConversationRef = readExactConversationRef(conversationRef)');
+    expect(activeSessionRuntimeSource).not.toContain('const targetConversationRef = conversationRef || null');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/session/resetActiveChatSession.ts'),
     )).rejects.toThrow();
@@ -3537,10 +4152,85 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('toolCallDetails');
     expect(source).toContain('toolOutputDetails');
     expect(source).toContain('sanitizeSdkToolDetailRecord');
+    expect(source).not.toContain('DesktopChatMessageRuntimeClient');
+    expect(source).not.toContain('buildToolCallChatMessageState');
+    expect(source).not.toContain('buildToolOutputChatMessageState');
+    expect(source).not.toContain('toolName ? { toolName }');
+    expect(source).not.toContain('const displayToolCallDetails = sanitizeSdkToolDetailRecord(toolCallDetails);');
+    expect(source).not.toContain('const displayToolOutputDetails = sanitizeSdkToolDetailRecord(toolOutputDetails);');
+    expect(source).not.toContain('toolCallDetails: displayToolCallDetails');
+    expect(source).not.toContain('toolOutputDetails: displayToolOutputDetails');
+    expect(source).toContain('const toolCallDetails = sanitizeSdkToolDetailRecord(asRecord(entry.toolCallDetails));');
+    expect(source).toContain('const toolOutputDetails = sanitizeSdkToolDetailRecord(asRecord(entry.toolOutputDetails));');
+    expect(source).toContain('...(toolOutputDetails ? { toolOutputDetails } : {})');
+    expect(source).not.toContain('toolOutputDetails,');
+    expect(source).not.toContain('toolMetadata: sanitizeSdkToolDetailRecord(asRecord(entry.toolMetadata))');
+    expect(source).not.toContain('const toolMetadata = sanitizeSdkToolDetailRecord(asRecord(entry.toolMetadata));');
+    expect(source).not.toContain('entry.toolMetadata');
+    expect(source).not.toContain('toolMetadata: entry.toolMetadata || null');
+    expect(source).not.toContain('toolMetadata: asRecord(entry.toolMetadata)');
+    expect(source).toContain('function readExactSdkString(value)');
+    expect(source).toContain('value.length > 0');
+    expect(source).toContain('value === value.trim()');
+    expect(source).toContain('const LIVE_PRESENTATION_ENTRY_TYPES = new Set');
+    expect(source).toContain('LIVE_PRESENTATION_ENTRY_TYPES.has(type)');
+    expect(source).toContain('return type && LIVE_PRESENTATION_ENTRY_TYPES.has(type)');
+    expect(source).toContain('return null;');
+    expect(source).not.toContain("type === 'tool-call' || type === 'tool-explanation'");
+    expect(source).not.toContain("type === 'tool-progress' || type === 'search-source'");
+    expect(source).toContain('!readExactSdkString(entry.id)');
+    expect(source).not.toContain("typeof entry.id !== 'string'");
+    expect(source).not.toContain("return typeof value === 'string' && value.trim() ? value.trim() : 'llm-text';");
+    expect(source).not.toContain('sourceEventType: entry.sourceEventType || null');
+    expect(source).not.toContain("thinkingSourceEventType: entry.sourceEventType || 'reasoning_delta'");
+    expect(source).not.toContain("sourceEventType: entry.sourceEventType || 'tool_output'");
+    expect(source).not.toContain('thinkingText: hasReasoning ? reasoningText : null');
+    expect(source).toContain('...(hasReasoning ? { thinkingText: reasoningText } : {})');
+    expect(source).not.toContain("|| 'reasoning_delta'");
+    expect(source).not.toContain("|| 'tool_output'");
+    expect(source).not.toContain('sourceEventType: readExactSdkString(entry.sourceEventType)');
+    expect(source).toContain('function exactSdkStringProp(key, value)');
+    expect(source).toContain("...exactSdkStringProp('sourceEventType', entry.sourceEventType)");
+    expect(source).toContain("...(thinkingSourceEventType ? { thinkingSourceEventType } : {})");
+    expect(source).toContain('...buildBaseMessageFields(entry, liveTurnContext)');
+    expect(source).toContain("...exactSdkStringProp('turnRef', liveTurnContext?.turnRef)");
+    expect(source).toContain("...exactSdkStringProp('modelId', entry.modelId)");
+    expect(source).toContain("...exactSdkStringProp('modelProvider', entry.modelProvider)");
+    expect(source).not.toContain('turnRef: readExactSdkString(liveTurnContext?.turnRef) || undefined');
+    expect(source).not.toContain('modelId: readExactSdkString(entry.modelId)');
+    expect(source).not.toContain('modelProvider: readExactSdkString(entry.modelProvider)');
+    expect(source).not.toContain('const modelId = readExactSdkString(entry.modelId);');
+    expect(source).not.toContain('const modelProvider = readExactSdkString(entry.modelProvider);');
+    expect(source).not.toContain('modelId: entry.modelId || null');
+    expect(source).not.toContain('modelProvider: entry.modelProvider || null');
+    expect(source).not.toContain('...(entry.modelId ? { modelId: entry.modelId } : {})');
+    expect(source).not.toContain('...(entry.modelProvider ? { modelProvider: entry.modelProvider } : {})');
+    expect(source).toContain('readExactSdkString(message.sourceEventType)');
+    expect(source).not.toContain('normalizeOptionalText(message.sourceEventType)');
+    expect(source).not.toContain('sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel');
+    expect(source).toContain('sourceChannel: liveTurnContext?.sourceChannel || sdkCurrentTurnSourceChannel');
+    expect(source).not.toContain('turnRef: entry.turnRef || liveTurnContext?.turnRef || undefined');
+    expect(source).not.toContain('turnRef: entry.turnRef || liveTurnContext?.turnRef || null');
+    expect(source).not.toContain('readExactSdkString(entry.turnRef)');
+    expect(source).not.toContain('toolEvents');
+    expect(source).not.toContain('resolveLegacyToolEventKind');
+    expect(source).not.toContain('LEGACY_TOOL_EVENT_KINDS');
+    expect(source).not.toContain('id: toolEvent.id || index');
+    expect(source).not.toContain('const turnRef = readExactSdkString(liveTurnContext?.turnRef);');
+    expect(source).toContain("...exactSdkStringProp('turnRef', liveTurnContext?.turnRef)");
+    expect(source).toContain('conversationRef: readExactSdkString(conversationView?.conversationRef)');
+    expect(source).toContain('turnRef: readExactSdkString(conversationView?.liveTurn?.turnRef)');
+    expect(source).not.toContain('conversationRef: conversationView?.conversationRef || null');
+    expect(source).not.toContain('turnRef: conversationView?.liveTurn?.turnRef || null');
+    expect(source).not.toContain('const displayToolDetails = sanitizeSdkToolDetailRecord(toolDetails);');
     expect(source).toContain('buildLegacyNoPresentationCurrentTurnMessages');
     expect(source).toContain('buildNoViewSdkLiveTurnMessages');
     expect(source).toContain('buildSdkLiveTurnMessages');
-    expect(source).toContain('resolveNoViewSdkLiveTurnThinkingText');
+    expect(source).toContain('const noViewConversationRef = readExactSdkString(sdkLiveTurn?.conversationRef);');
+    expect(source).toContain('const noViewTurnRef = readExactSdkString(sdkLiveTurn?.turnRef);');
+    expect(source).toContain('if (!noViewConversationRef || !noViewTurnRef) {');
+    expect(source).not.toContain('resolveNoViewSdkLiveTurnThinkingText');
+    expect(source).not.toContain('  buildLegacyNoPresentationCurrentTurnMessages,');
     expect(source).not.toContain('buildCurrentTurnMessagesFromProjection');
     expect(source).not.toContain('|| entry.id');
     expect(source).not.toContain('entry.structuredPayload');
@@ -3556,11 +4246,17 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('modelFacingToolCall');
     expect(source).not.toContain('screenshotRef');
     expect(source).not.toContain('screenshotUrl');
-    expect(toolDetailProjectionSource).toContain('screenshotRef');
+    expect(toolDetailProjectionSource).toContain('sdkToolDetailDisplayStringKeys');
+    expect(toolDetailProjectionSource).toContain("'toolName'");
+    expect(toolDetailProjectionSource).toContain("'requestId'");
+    expect(toolDetailProjectionSource).not.toContain('screenshotRef');
+    expect(toolDetailProjectionSource).not.toContain('screenshot_ref');
+    expect(toolDetailProjectionSource).not.toContain('modelFacingToolCall');
+    expect(toolDetailProjectionSource).not.toContain('Object.entries(record)');
     expect(toolDetailProjectionSource).toContain('sanitizeSdkToolDetailRecord');
   });
 
-  test('current-turn tool-event fallback does not read backend-shaped payload details', async () => {
+  test('current-turn no-view fallback does not read raw tool events or backend-shaped payload details', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js'),
       'utf8',
@@ -3570,7 +4266,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('toolOutputDetails');
     expect(source).toContain('buildLegacyNoPresentationCurrentTurnMessages');
     expect(source).toContain('buildNoViewSdkLiveTurnMessages');
-    expect(source).toContain('resolveNoViewSdkLiveTurnThinkingText');
+    expect(source).not.toContain('toolEvents');
+    expect(source).not.toContain('resolveNoViewSdkLiveTurnThinkingText');
+    expect(source).not.toContain('  buildLegacyNoPresentationCurrentTurnMessages,');
     expect(source).not.toContain('formatProjectedToolOutputText');
     expect(source).not.toContain('stepResults');
     expect(source).not.toContain('step_results');
@@ -3655,6 +4353,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopSdkDisplayAttachmentProjection.ts'),
       'utf8',
     );
+    const attachmentRegistrySource = await fs.readFile(
+      path.join(chatRoot, 'components/message/content/AttachmentRendererRegistry.jsx'),
+      'utf8',
+    );
     const currentTurnMessageRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js'),
       'utf8',
@@ -3687,6 +4389,14 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopConversationDisplayProjection.ts'),
       'utf8',
     );
+    const conversationDisplayRowLookupSource = await fs.readFile(
+      path.resolve(__dirname, '../../src/renderer/app/runtime/desktopConversationDisplayRowLookupRuntime.ts'),
+      'utf8',
+    );
+    const visibleLifecycleRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime.js'),
+      'utf8',
+    );
     const messageActionRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../src/renderer/app/runtime/desktopMessageActionRuntime.js'),
       'utf8',
@@ -3699,17 +4409,62 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/message/MessageItem.jsx'),
       'utf8',
     );
+    const assistantMessageActionsSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/AssistantMessageActions.jsx'),
+      'utf8',
+    );
+    const userMessageActionsSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/UserMessageActions.jsx'),
+      'utf8',
+    );
     const sourceChannelPath = path.join(chatRoot, 'utils/message/sourceChannels.js');
 
     expect(projectionRuntimeSource).toContain('sourceEventType');
-    expect(projectionRuntimeSource).toContain('rowActions');
+    expect(projectionRuntimeSource).toContain('function rowSourceEventType(row: SdkDisplayRow): string | null');
+    expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.sourceEventType);');
+    expect(projectionRuntimeSource).toContain('function rowSourceEventTypeProp(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('return sourceEventType ? { sourceEventType } : {};');
+    expect(projectionRuntimeSource).not.toContain('return row.type;');
+    expect(projectionRuntimeSource).not.toContain('sourceEventType: rowSourceEventType(row)');
     expect(projectionRuntimeSource).toContain('withRowActions');
+    expect(projectionRuntimeSource).toContain('function rowReplayActions(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('const actions = rowReplayActions(row);');
+    expect(projectionRuntimeSource).toContain('SDK_DISPLAY_ROW_ROLES');
+    expect(projectionRuntimeSource).toContain('SDK_DISPLAY_ROW_TYPES');
+    expect(projectionRuntimeSource).toContain('function readExactDisplayRowRole(value: unknown)');
+    expect(projectionRuntimeSource).toContain('function readExactDisplayRowType(value: unknown)');
+    expect(projectionRuntimeSource).toContain('function resolveDisplayRowKind(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('const role = readExactDisplayRowRole(row.role);');
+    expect(projectionRuntimeSource).toContain('const type = readExactDisplayRowType(row.type);');
+    expect(projectionRuntimeSource).toContain("if (role === 'assistant' && (type === 'tool_call' || type === 'tool_bundle_call'))");
+    expect(projectionRuntimeSource).toContain("if (role === 'tool' && (type === 'tool_output' || type === 'tool_bundle_output'))");
+    const actionProjectionSource = projectionRuntimeSource.slice(
+      projectionRuntimeSource.indexOf('function rowReplayActions'),
+      projectionRuntimeSource.indexOf('function withRowActions'),
+    );
+    expect(actionProjectionSource).toContain('actionRecord.canEdit === true && editTargetRowId');
+    expect(actionProjectionSource).toContain('actionRecord.canRetry === true && retryTargetRowId');
+    expect(actionProjectionSource).not.toContain("rowKind === 'user' && actionRecord.canEdit");
+    expect(actionProjectionSource).not.toContain("rowKind === 'assistant' && actionRecord.canRetry");
+    expect(actionProjectionSource).not.toContain('resolveDisplayRowKind(row)');
+    expect(projectionRuntimeSource).not.toContain('function isUserDisplayRow(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).not.toContain("return row.type === 'user_message' && row.role === 'user';");
+    expect(projectionRuntimeSource).not.toContain('function isAssistantDisplayRow(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).not.toContain("return row.type === 'assistant_message' && row.role === 'assistant';");
+    expect(projectionRuntimeSource).not.toContain('actions: row.actions');
     expect(projectionRuntimeSource).toContain('DesktopSdkDisplayChatMessageProjectionRuntime');
-    expect(projectionRuntimeSource).toContain('editTargetRowId');
-    expect(projectionRuntimeSource).toContain('retryTargetRowId');
+    expect(projectionRuntimeSource).not.toContain('optionalTrimmedString');
+    expect(projectionRuntimeSource).not.toContain('editTargetRowId: row.actions');
+    expect(projectionRuntimeSource).not.toContain('retryTargetRowId: row.actions');
     expect(projectionRuntimeSource).toContain('desktopChatMessageTypes');
     expect(projectionRuntimeSource).toContain('desktopPresentationSourceChannels');
     expect(projectionRuntimeSource).toContain('desktopSdkDisplayAttachmentProjection');
+    expect(projectionRuntimeSource).toContain('desktopSdkToolDetailProjection');
+    expect(projectionRuntimeSource).not.toContain('assistantTextChatMessageState');
+    expect(projectionRuntimeSource).not.toContain('toolCallChatMessageState');
+    expect(projectionRuntimeSource).not.toContain('toolOutputChatMessageState');
+    expect(projectionRuntimeSource).toContain('sanitizeSdkToolDetailRecord(row.metadata?.toolCallDetails)');
+    expect(projectionRuntimeSource).toContain('sanitizeSdkToolDetailRecord(row.metadata?.toolOutputDetails)');
     expect(projectionRuntimeSource).not.toContain('DisplayMessage');
     expect(projectionRuntimeSource).not.toContain('displayMessageFromSdkDisplayRow');
     expect(projectionRuntimeSource).not.toContain('function displayAttachmentsFromPayload');
@@ -3718,13 +4473,64 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('recordPayloadFromRow');
     expect(projectionRuntimeSource).not.toContain('recordField');
     expect(projectionRuntimeSource).not.toContain('copyKeys');
+    expect(projectionRuntimeSource).not.toContain('JSON.stringify');
     expect(projectionRuntimeSource).not.toContain('modelFacingToolCall');
+    expect(projectionRuntimeSource).not.toContain('modelFacingToolOutput');
     expect(projectionRuntimeSource).not.toContain('reasoning_text');
+    expect(projectionRuntimeSource).not.toContain("'web-search-progress'");
     expect(projectionRuntimeSource).not.toContain('fallbackToolCall');
-    expect(projectionRuntimeSource).toContain('row.metadata?.displayCorrelationId ?? null');
-    expect(projectionRuntimeSource).toContain('row.metadata?.displayCorrelationId ?? undefined');
+    expect(projectionRuntimeSource).not.toContain("row.type === 'assistant_message' && row.isStreaming ? 'assistant_delta'");
+    expect(projectionRuntimeSource).not.toContain("sourceEventType !== 'assistant_delta'");
+    expect(projectionRuntimeSource).toContain('isComplete: !isSdkDisplayRowStreaming(row)');
+    expect(projectionRuntimeSource).toContain('function exactNonEmptyString(value: unknown)');
+    expect(projectionRuntimeSource).toContain('function rowId(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.id);');
+    expect(projectionRuntimeSource).toContain('const id = rowId(row);');
+    expect(projectionRuntimeSource).toContain('if (!id)');
+    expect(projectionRuntimeSource).not.toContain('id: row.id');
+    expect(projectionRuntimeSource).not.toContain("if (row.type === 'user_message')");
+    expect(projectionRuntimeSource).not.toContain("if (row.type === 'assistant_message')");
+    expect(projectionRuntimeSource).not.toContain("if (row.type === 'tool_output' || row.type === 'tool_bundle_output')");
+    expect(projectionRuntimeSource).toContain('function rowTimestamp(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.timestamp);');
+    expect(projectionRuntimeSource).toContain('function rowTimestampProp(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('return timestamp ? { timestamp } : {};');
+    expect(projectionRuntimeSource).not.toContain('timestamp: rowTimestamp(row)');
+    expect(projectionRuntimeSource).not.toContain("typeof row.metadata?.timestamp === 'string' ? row.metadata.timestamp : ''");
+    expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.displayCorrelationId);');
+    expect(projectionRuntimeSource).toContain('function rowCorrelationIdProp(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('return correlationId ? { correlationId } : {};');
+    expect(projectionRuntimeSource).toContain('function rowTurnRef(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.turnRef);');
+    expect(projectionRuntimeSource).toContain('function rowTurnRefProp(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('return turnRef ? { turnRef } : {};');
+    expect(projectionRuntimeSource).not.toContain('function rowToolName(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).not.toContain('return exactNonEmptyString(row.metadata?.toolName);');
+    expect(projectionRuntimeSource).toContain('function rowReasoningText(row: SdkDisplayRow)');
+    expect(projectionRuntimeSource).toContain('return exactNonEmptyString(row.metadata?.reasoningText);');
+    expect(projectionRuntimeSource).toContain('const thinkingText = rowReasoningText(row);');
+    expect(projectionRuntimeSource).not.toContain("thinkingSourceEventType: 'reasoning_delta'");
+    expect(projectionRuntimeSource).not.toContain("typeof reasoningText === 'string' && reasoningText.trim()");
+    expect(projectionRuntimeSource).not.toContain('row.metadata?.displayCorrelationId ?? null');
+    expect(projectionRuntimeSource).not.toContain('row.metadata?.displayCorrelationId ?? undefined');
+    expect(projectionRuntimeSource).not.toContain('toolName: row.metadata?.toolName ?? null');
+    expect(projectionRuntimeSource).not.toContain('toolName: row.metadata?.toolName ?? undefined');
+    expect(projectionRuntimeSource).not.toContain('toolName: rowToolName');
+    expect(currentTurnMessageRuntimeSource).not.toContain('toolName: resolveToolName');
+    expect(projectionRuntimeSource).not.toContain('turnRef: rowTurnRef(row)');
+    expect(projectionRuntimeSource).not.toContain('turnRef: rowTurnRef(row) ?? undefined');
+    expect(projectionRuntimeSource).not.toContain('correlationId: rowCorrelationId(row) ?? undefined');
+    expect(projectionRuntimeSource).not.toContain('turnRef: row.turnRef ?? null');
+    expect(projectionRuntimeSource).not.toContain('turnRef: row.turnRef ?? undefined');
     expect(projectionRuntimeSource).toContain('row.metadata?.toolCallDetails');
     expect(projectionRuntimeSource).toContain('row.metadata?.toolOutputDetails');
+    expect(projectionRuntimeSource).not.toContain('row.metadata?.toolCallDetails ?? row.metadata?.toolOutputDetails');
+    expect(projectionRuntimeSource).not.toContain('toolMetadata');
+    expect(projectionRuntimeSource).not.toContain('row.metadata?.success');
+    expect(currentTurnMessageRuntimeSource).not.toContain('success: toolEvent.status');
+    expect(currentTurnMessageRuntimeSource).not.toContain('executionTime:');
+    expect(projectionRuntimeSource).not.toContain('recordFromUnknown(row.metadata?.toolCallDetails)');
+    expect(projectionRuntimeSource).not.toContain('recordFromUnknown(row.metadata?.toolOutputDetails)');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.requestId');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.toolCallId');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.bundleId');
@@ -3734,24 +4540,115 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionRuntimeSource).not.toContain('row.metadata?.requestId ?? row.metadata?.correlationId');
     expect(projectionRuntimeSource).not.toContain('row.metadata?.toolName\n      ?');
     expect(displayAttachmentProjectionSource).toContain('readSdkDisplayAttachments');
+    expect(displayAttachmentProjectionSource).toContain('function sanitizeSdkDisplayAttachment');
+    expect(displayAttachmentProjectionSource).toContain('function sanitizeImageAttachment');
+    expect(displayAttachmentProjectionSource).toContain('function sanitizeScreenshotRequestAttachment');
+    expect(displayAttachmentProjectionSource).toContain('value.flatMap((attachment) => sanitizeSdkDisplayAttachment(attachment) ?? [])');
+    expect(displayAttachmentProjectionSource).not.toContain('function isDisplayableImageAttachment');
+    expect(displayAttachmentProjectionSource).not.toContain('function isDisplayableScreenshotRequestAttachment');
+    expect(displayAttachmentProjectionSource).not.toContain('function isReadyDisplayImageAttachment');
+    expect(displayAttachmentProjectionSource).toContain('SDK_DISPLAY_ATTACHMENT_KINDS');
+    expect(displayAttachmentProjectionSource).toContain('SDK_DISPLAY_ATTACHMENT_SOURCES');
+    expect(displayAttachmentProjectionSource).toContain('SDK_DISPLAY_ATTACHMENT_STATUSES');
+    expect(displayAttachmentProjectionSource).toContain('function readExactAttachmentKind(value: unknown)');
+    expect(displayAttachmentProjectionSource).toContain('function readExactAttachmentSource(value: unknown)');
+    expect(displayAttachmentProjectionSource).toContain('function readExactAttachmentStatus(value: unknown)');
+    expect(displayAttachmentProjectionSource).toContain("status: 'ready'");
+    expect(displayAttachmentProjectionSource).toContain("attachment.kind !== 'image' || attachment.status !== 'ready'");
+    expect(displayAttachmentProjectionSource).toContain('artifactId: attachment.screenshotRef ?? null');
+    expect(displayAttachmentProjectionSource).toContain('url: attachment.screenshotUrl ?? null');
+    expect(displayAttachmentProjectionSource).not.toContain("&& record.status === 'ready'");
+    expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.previewSrc)');
+    expect(displayAttachmentProjectionSource).toContain('optionalExactString(record.screenshotRef)');
+    expect(displayAttachmentProjectionSource).toContain('optionalReadyImageUrl(record.screenshotUrl)');
+    expect(displayAttachmentProjectionSource).toContain(".startsWith('data:')");
+    expect(displayAttachmentProjectionSource).toContain('optionalExactString');
+    expect(displayAttachmentProjectionSource).not.toContain('optionalTrimmedString');
+    expect(displayAttachmentProjectionSource).not.toContain('countDisplayImageAttachments');
+    expect(displayAttachmentProjectionSource).not.toContain('hasReadyDisplayImageAttachment');
+    expect(displayAttachmentProjectionSource).not.toContain('summarizeSdkDisplayAttachments');
+    expect(displayAttachmentProjectionSource).not.toContain('materializingPreviewCount');
+    expect(displayAttachmentProjectionSource).not.toContain('pendingScreenshotRequestCount');
+    expect(displayAttachmentProjectionSource).not.toContain('failedAttachmentCount');
     expect(displayAttachmentProjectionSource).not.toContain('screenshot_refs');
+    expect(displayAttachmentProjectionSource).not.toContain('value.filter(isSdkDisplayAttachment)');
     expect(displayAttachmentProjectionSource).not.toContain('countLegacyScreenshotAttachments');
+    expect(attachmentRegistrySource).toContain('function MaterializingImageAttachment');
+    expect(attachmentRegistrySource).toContain('function ReadyImageAttachment');
+    expect(attachmentRegistrySource).toContain("attachment.kind === 'image' && attachment.status === 'materializing'");
+    expect(attachmentRegistrySource).toContain("attachment.kind === 'image' && attachment.status === 'ready'");
+    expect(attachmentRegistrySource).not.toContain("attachment.status === 'materializing'\n    ? attachment.previewSrc");
     expect(currentTurnMessageRuntimeSource).toContain('readSdkDisplayAttachments');
+    expect(currentTurnMessageRuntimeSource).toContain('readSdkDisplayAttachments(entry.attachments)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('toolEvent.attachments');
+    expect(currentTurnMessageRuntimeSource).not.toContain('readSdkDisplayAttachments(toolEvent');
+    expect(currentTurnMessageRuntimeSource).not.toContain('attachments: [],');
+    expect(currentTurnMessageRuntimeSource).not.toContain('modelFacingToolOutput');
+    expect(currentTurnMessageRuntimeSource).toContain('function resolveEntryCorrelationId(entry)');
+    expect(currentTurnMessageRuntimeSource).toContain('function resolveToolName(value)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('toolEvents');
+    expect(currentTurnMessageRuntimeSource).not.toContain('function resolveToolEventCorrelationId(toolEvent)');
+    expect(currentTurnMessageRuntimeSource).toContain('const liveConversationRef = readExactSdkString(conversationRef);');
+    expect(currentTurnMessageRuntimeSource).toContain('if (!liveConversationRef) {');
+    expect(currentTurnMessageRuntimeSource).toContain('const liveTurnRef = readExactSdkString(turnRef);');
+    expect(currentTurnMessageRuntimeSource).toContain('if (!liveTurnRef) {');
+    expect(currentTurnMessageRuntimeSource).not.toContain("liveTurnRef || 'turn'");
+    expect(currentTurnMessageRuntimeSource).toContain('readExactSdkString(entry.requestId)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('readExactSdkString(toolEvent.requestId)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('readExactSdkString(toolEvent.bundleId)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('normalizeOptionalText(entry.requestId)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('normalizeOptionalText(entry.toolName)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('readString(toolEvent.toolName)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('readString(toolEvent.requestId)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('const toolEventKind = resolveLegacyToolEventKind(toolEventRecord?.kind);');
+    expect(currentTurnMessageRuntimeSource).not.toContain('if (!toolEventRecord || !toolEventId || !toolEventKind)');
+    expect(currentTurnMessageRuntimeSource).not.toContain('kind: toolEventKind');
+    expect(currentTurnMessageRuntimeSource).not.toContain('function resolveLiveTurnIdentity');
+    expect(currentTurnMessageRuntimeSource).not.toContain("resolveLiveTurnIdentity(conversationRef, 'conversation')");
+    expect(currentTurnMessageRuntimeSource).not.toContain('const baseId = `${conversationRef ||');
+    expect(currentTurnMessageRuntimeSource).not.toContain('turnRef: turnRef || undefined');
     expect(currentTurnMessageRuntimeSource).not.toContain('function normalizeDisplayAttachments');
-    expect(chatInterfaceSource).toContain('DesktopChatInterfacePresentationRuntime');
+    expect(threadPresentationRuntimeSource).toContain('function toolMessageIdentity(message)');
+    expect(threadPresentationRuntimeSource).toContain('function readExactRef(value)');
+    expect(threadPresentationRuntimeSource).not.toContain('function normalizeRef(value)');
+    expect(threadPresentationRuntimeSource).not.toContain('identityFromToolRecord(asRecord(message?.toolMetadata))');
+    expect(threadPresentationRuntimeSource).toContain('const value = readExactRef(record?.[key]);');
+    expect(threadPresentationRuntimeSource).toContain('return readExactRef(message?.correlationId)');
+    expect(threadPresentationRuntimeSource).toContain('const liveId = readExactRef(liveMessage?.id);');
+    expect(threadPresentationRuntimeSource).toContain('const projectionConversationRef = readExactRef(projectionConversationRefValue)');
+    expect(threadPresentationRuntimeSource).toContain('const projectionConversationRefValue = hasConversationView');
+    expect(threadPresentationRuntimeSource).not.toContain('conversationView?.conversationRef || sdkLiveTurn?.conversationRef');
+    expect(threadPresentationRuntimeSource).not.toContain('rawProjectionConversationRef');
+    expect(threadPresentationRuntimeSource).toContain('const normalizedActiveConversationRef = readExactRef(activeConversationRef)');
+    expect(threadPresentationRuntimeSource).toContain('const liveTurnRef = readExactRef(liveMessages[0]?.turnRef)');
+    expect(threadPresentationRuntimeSource).toContain('if (readExactRef(messages[index]?.turnRef) === liveTurnRef)');
+    expect(threadPresentationRuntimeSource).not.toContain('const liveId = normalizeRef(liveMessage?.id);');
+    expect(threadPresentationRuntimeSource).not.toContain('return normalizeRef(message?.correlationId)');
+    expect(threadPresentationRuntimeSource).toContain('const leftTurnRef = readExactRef(left);');
+    expect(threadPresentationRuntimeSource).toContain('const rightTurnRef = readExactRef(right);');
+    expect(threadPresentationRuntimeSource).not.toContain('const leftTurnRef = normalizeRef(left);');
+    expect(threadPresentationRuntimeSource).not.toContain('const rightTurnRef = normalizeRef(right);');
+    expect(threadPresentationRuntimeSource).not.toContain('function resolveToolName');
+    expect(threadPresentationRuntimeSource).not.toContain('resolveToolName(message)');
     expect(chatInterfaceSource).toContain('DesktopChatRevisionActionRuntime');
+    expect(chatInterfaceSource).toContain('applyConversationViewToChatStore');
+    expect(chatInterfaceSource).not.toContain('DesktopChatInterfacePresentationRuntime');
     expect(chatInterfaceSource).not.toContain('DesktopConversationContinuityService');
     expect(chatInterfaceSource).not.toContain('buildChatInterfacePresentationState');
-    expect(chatInterfaceSource).toContain('resolveConversationViewStoreRef');
+    expect(chatInterfaceSource).not.toContain('resolveConversationViewStoreRef');
     expect(chatStoreSource).not.toContain('buildChatInterfacePresentationState');
     expect(chatStoreSource).not.toContain('selectStableReplayReadModel');
     expect(chatInterfaceSelectorRuntimeSource).toContain('buildChatInterfacePresentationState');
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('selectStableReplayReadModel');
     expect(chatInterfaceSelectorRuntimeSource).toContain('selectStableChatSendReadModel');
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('latestConversationView');
+    expect(chatInterfaceSelectorRuntimeSource).not.toContain('CurrentTurnProjection');
+    expect(chatInterfaceSelectorRuntimeSource).not.toContain('ConversationView');
+    expect(chatInterfaceSelectorRuntimeSource).not.toContain('as CurrentTurnProjection');
+    expect(chatInterfaceSelectorRuntimeSource).not.toContain('as ConversationView');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('latestConversationView');
-    expect(chatInterfaceSource).toContain('buildRevisionCheckoutCommand');
-    expect(chatInterfaceSource).toContain('buildRevisionForkCommand');
+    expect(chatInterfaceSource).not.toContain('buildRevisionCheckoutCommand');
+    expect(chatInterfaceSource).not.toContain('buildRevisionForkCommand');
     expect(chatInterfaceSource).toContain('markActiveRevisionFromCheckoutResult');
     expect(chatInterfaceSource).not.toContain('markActiveRevisionInList');
     expect(chatInterfaceSource).not.toContain('result?.revisionId');
@@ -3777,16 +4674,64 @@ describe('renderer chat runtime boundary', () => {
     expect(headerControlsSource).not.toContain('forkActionId');
     expect(headerControlsSource).not.toContain('revisionActionId');
     expect(headerControlsSource).not.toContain('activeRevisionId');
+    expect(headerControlsSource).not.toContain('item.revisionId');
+    expect(headerControlsSource).not.toContain('item.revision');
+    expect(headerControlsSource).toContain('item.checkoutCommand');
+    expect(headerControlsSource).toContain('item.forkCommand');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildThreadPresentationMessages');
     expect(threadPresentationRuntimeSource).not.toContain('modelFacingToolCall');
     expect(chatInterfacePresentationRuntimeSource).toContain('DesktopConversationDisplayProjection');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildConversationViewChatMessages');
     expect(chatInterfacePresentationRuntimeSource).toContain('buildPendingBridgeChatMessages');
+    expect(chatInterfacePresentationRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(chatInterfacePresentationRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('hasWorkspaceConversationView({ conversationView: view })');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('resolveConversationViewStoreRef');
+    expect(threadPresentationRuntimeSource).toContain('selectVisibleConversationViewLiveMessages');
+    expect(threadPresentationRuntimeSource).toContain('selectVisibleCurrentTurnMessages');
+    expect(threadPresentationRuntimeSource).toContain('const visibleLiveMessages = hasConversationView');
+    expect(threadPresentationRuntimeSource).not.toContain('useSdkViewAuthority');
+    expect(chatInterfacePresentationRuntimeSource).toContain('allowPendingBridgeMessages: hasConversationView');
+    expect(threadPresentationRuntimeSource).toContain('allowPendingBridgeMessages = false');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('DesktopPendingTurnBridgeRuntime');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('buildPendingTurnUserMessage');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('function buildNoViewPendingBridgeMessages');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('function isObjectRecord(value)');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('function isConversationView(value)');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('readExactIdentityString(value.conversationRef)');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('Array.isArray(value.displayRows)');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('isObjectRecord(value.liveTurn)');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('isObjectRecord(value.surfaces)');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('isObjectRecord(value.actions)');
+    expect(chatInterfacePresentationRuntimeSource).toContain('const effectiveConversationView = hasConversationView ? conversationView : null');
     expect(chatInterfacePresentationRuntimeSource).toContain('const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn');
+    expect(chatInterfacePresentationRuntimeSource).toContain('const effectiveMessages = hasConversationView ? null : messages');
+    expect(chatInterfacePresentationRuntimeSource).toContain('chatInterfacePresentationCache.conversationView === effectiveConversationView');
+    expect(chatInterfacePresentationRuntimeSource).toContain('chatInterfacePresentationCache.messages === effectiveMessages');
+    expect(chatInterfacePresentationRuntimeSource).toContain('buildSdkLiveTurnCacheKey');
+    expect(chatInterfacePresentationRuntimeSource).toContain(
+      'const conversationRef = readExactIdentityString(liveTurn.conversationRef);',
+    );
+    expect(chatInterfacePresentationRuntimeSource).toContain(
+      'const turnRef = readExactIdentityString(liveTurn.turnRef);',
+    );
+    expect(chatInterfacePresentationRuntimeSource).toContain(
+      'const phase = readExactIdentityString(liveTurn.phase);',
+    );
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('conversationRef: liveTurn.conversationRef ?? null');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('turnRef: liveTurn.turnRef ?? null');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('phase: liveTurn.phase ?? null');
+    expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurnPresentationEntries');
+    expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurnLegacyNoPresentation');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('liveTurn.assistantText');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('liveTurn.reasoningText');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('liveTurn.toolEvents');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('liveTurn.lastError');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('sdkLiveTurnAssistantText');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('sdkLiveTurnReasoningText');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('sdkLiveTurnToolEvents');
     expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurn: effectiveSdkLiveTurn');
+    expect(chatInterfacePresentationRuntimeSource).toContain('conversationView: effectiveConversationView');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('currentTurnProjection = null');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('selectRendererMessageAnnotations');
     expect(chatInterfacePresentationRuntimeSource).toContain('rendererAnnotations = []');
@@ -3795,21 +4740,40 @@ describe('renderer chat runtime boundary', () => {
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('selectRendererMessageAnnotations(activeWorkspace.messages)');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('hasSdkConversationView');
-    expect(chatSurfaceSelectorRuntimeSource).not.toContain('hasConversationView');
+    expect(chatSurfaceSelectorRuntimeSource).not.toContain('function hasConversationView');
+    expect(chatSurfaceSelectorRuntimeSource).not.toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(chatSurfaceSelectorRuntimeSource).not.toContain('hasWorkspaceConversationView');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('emptyChatMessages');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('activeWorkspace.currentTurnProjection ?? null');
     expect(chatSurfaceSelectorRuntimeSource).not.toContain('currentTurnProjection');
-    expect(chatSurfaceSelectorRuntimeSource).toContain('const messages = conversationView ? emptySurfaceMessages : activeWorkspace.messages;');
-    expect(chatSurfaceSelectorRuntimeSource).toContain('const sdkLiveTurn = conversationView ? null : activeWorkspace.sdkLiveTurn ?? null;');
+    expect(chatSurfaceSelectorRuntimeSource).not.toContain('conversationView ? emptySurfaceMessages');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('const messages = activeWorkspace.messages;');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('const sdkLiveTurn = activeWorkspace.sdkLiveTurn ?? null;');
     expect(chatSurfaceSelectorRuntimeSource).toContain('sdkLiveTurn,');
     expect(chatSurfaceSelectorRuntimeSource).toContain('activeWorkspace.rendererAnnotations');
     expect(chatSurfaceSelectorRuntimeSource).toContain('messages: surfaceState.messages');
-    expect(chatSurfaceSelectorRuntimeSource).toContain('rendererAnnotations: surfaceState.conversationView');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('rendererAnnotations: projectedRendererAnnotations');
+    expect(chatSurfaceSelectorRuntimeSource).not.toContain('const hasConversationView = Boolean(surfaceState.conversationView);');
+    expect(chatSurfaceSelectorRuntimeSource).toContain('thinkingStatus: activeWorkspace.thinkingStatus');
+    expect(chatSurfaceSelectorRuntimeSource).toContain(
+      'thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null',
+    );
+    expect(chatSurfaceSelectorRuntimeSource).toContain(
+      'compactionDebugInfo: activeWorkspace.compactionDebugInfo ?? null',
+    );
+    expect(chatSurfaceSelectorRuntimeSource).toContain(
+      'tokenCounts: activeWorkspace.tokenCounts ?? null',
+    );
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('conversationView\n    ? emptyChatMessages\n    : interfaceState.messages');
     expect(chatInterfaceSelectorRuntimeSource).not.toContain('messages: conversationView ?');
     expect(chatInterfaceSelectorRuntimeSource).toContain('messages: presentationMessages');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('currentMessages: messages');
-    expect(chatInterfacePresentationRuntimeSource).toContain('resolveConversationViewStoreRef');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('resolveConversationViewStoreRef');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('resolveConversationViewStoreRef');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('const viewConversationRef = exactNonEmptyString(view.conversationRef);');
+    expect(chatStoreAdaptersSource).toContain('applyConversationViewToChatStore');
+    expect(chatStoreAdaptersSource).toContain('resolveConversationViewStoreRef({');
+    expect(chatInterfacePresentationRuntimeSource).not.toContain('targetConversationRef || view.conversationRef || activeConversationRef');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('buildConversationViewStoreProjection');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('canEditMessages');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('canRetryMessages');
@@ -3826,15 +4790,33 @@ describe('renderer chat runtime boundary', () => {
     expect(messageListSource).not.toContain('messageActionFallback');
     expect(messageListSource).not.toContain("messageActionTargetId(msg, 'retryTargetRowId')");
     expect(messageListSource).not.toContain("messageActionTargetId(msg, 'editTargetRowId')");
-    expect(messageListSource).toContain('assistantRetryTargetMessageId={retryTargetMessageId}');
-    expect(messageListSource).toContain('userEditTargetMessageId={editTargetMessageId}');
+    expect(messageListSource).toContain('assistantRetryTargetRowId={retryTargetRowId}');
+    expect(messageListSource).toContain('userEditTargetRowId={editTargetRowId}');
     expect(messageActionRuntimeSource).toContain('resolveMessageReplayActions');
+    expect(messageActionRuntimeSource).toContain('resolveReplayTargetRowId');
     expect(messageActionRuntimeSource).toContain("messageActionFlag(message, 'canRetry')");
     expect(messageActionRuntimeSource).toContain("messageActionFlag(message, 'canEdit')");
+    expect(messageActionRuntimeSource).toContain('value === value.trim()');
+    expect(messageActionRuntimeSource).toContain('canRetryMessage: messageActionFlag(message, \'canRetry\') && Boolean(retryTargetRowId)');
+    expect(messageActionRuntimeSource).toContain('canEditMessage: messageActionFlag(message, \'canEdit\') && Boolean(editTargetRowId)');
+    expect(messageActionRuntimeSource).not.toContain('? value.trim() : null');
+    expect(messageActionRuntimeSource).not.toContain("messageActionTargetId(message, 'retryTargetRowId') || message?.id");
+    expect(messageActionRuntimeSource).not.toContain("messageActionTargetId(message, 'editTargetRowId') || message?.id");
+    expect(messageListSource).not.toContain('editTargetMessageId || messageId');
+    expect(messageListSource).not.toContain('editingUserReplayTargetMessageId || editingUserMessageId');
+    expect(messageListSource).not.toContain('editingUserReplayTargetMessageId');
+    expect(messageListSource).not.toContain('editingUserDraft.trim');
+    expect(messageListSource).not.toContain('normalizedText');
+    expect(messageItemSource).not.toContain('assistantRetryTargetMessageId');
+    expect(messageItemSource).not.toContain('userEditTargetMessageId');
     expect(messageItemSource).toContain('canRetryMessage');
     expect(messageItemSource).toContain('canEditMessage');
     expect(messageItemSource).toContain('canTryAgain={canRetryMessage}');
     expect(messageItemSource).toContain('canEdit={canEditMessage}');
+    expect(assistantMessageActionsSource).toContain('DesktopMessageActionRuntime.resolveReplayTargetRowId(retryTargetRowId)');
+    expect(userMessageActionsSource).toContain('DesktopMessageActionRuntime.resolveReplayTargetRowId(editTargetRowId)');
+    expect(assistantMessageActionsSource).not.toContain('!retryTargetRowId');
+    expect(userMessageActionsSource).not.toContain('!editTargetRowId');
     expect(chatRevisionActionRuntimeSource).toContain('buildRevisionCheckoutCommand');
     expect(chatRevisionActionRuntimeSource).toContain('DesktopConversationContinuityService.listRevisions');
     expect(chatRevisionActionRuntimeSource).toContain('DesktopConversationContinuityService.checkoutRevision');
@@ -3842,9 +4824,21 @@ describe('renderer chat runtime boundary', () => {
     expect(chatRevisionActionRuntimeSource).toContain('markActiveRevisionInList');
     expect(chatRevisionActionRuntimeSource).toContain('markActiveRevisionFromCheckoutResult');
     expect(chatRevisionActionRuntimeSource).toContain('buildRevisionForkCommand');
+    expect(chatRevisionActionRuntimeSource).toContain('function normalizeRevisionId');
+    expect(chatRevisionActionRuntimeSource).toContain('revisionId.length > 0 && revisionId === revisionId.trim()');
+    expect(chatRevisionActionRuntimeSource).toContain('conversationRef.length > 0');
+    expect(chatRevisionActionRuntimeSource).toContain('conversationRef === conversationRef.trim()');
+    expect(chatRevisionActionRuntimeSource).not.toContain('revisionId.trim() ? revisionId.trim() : null');
+    expect(chatRevisionActionRuntimeSource).not.toContain('conversationRef.trim()\n    ? conversationRef.trim()');
     expect(chatRevisionActionRuntimeSource).not.toContain('buildForkConversationRef');
     expect(chatRevisionActionRuntimeSource).not.toContain('newConversationRef');
     expect(chatRevisionActionRuntimeSource).not.toContain('features/chat');
+    expect(chatInterfacePresentationRuntimeSource).toContain(
+      'activeRevisionId: hasConversationView\n      ? readExactIdentityString(effectiveConversationView?.revisionId)\n      : null',
+    );
+    expect(chatInterfacePresentationRuntimeSource).not.toContain(
+      'effectiveConversationView?.revisionId || null',
+    );
     expect(chatInterfaceSource).not.toContain('buildChatMessagesFromSdkDisplayRows');
     expect(chatInterfaceSource).not.toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(projectionRuntimeSource).toContain('packages/windie-sdk-js/src/conversation/types.js');
@@ -3862,6 +4856,9 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('selectActiveWorkspaceState(state)');
     expect(chatStoreSource).toContain('buildActiveConversationWorkspaceUpdate');
     expect(chatStoreSource).not.toContain('buildWorkspaceUpdate');
+    expect(chatStoreSource).not.toContain('getWorkspaceState:');
+    expect(chatStoreSource).not.toContain('readWorkspaceState');
+    expect(chatStoreSource).not.toContain('resolveWorkspaceKey');
     expect(chatStoreSource).not.toContain('resolveWorkspaceMutationTarget');
     expect(chatStoreSource).not.toContain('function getProjectedWorkspaceFields');
     expect(chatStoreSource).not.toContain('messages: ChatMessage[];');
@@ -3954,6 +4951,49 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('buildPendingTurnClearWorkspaceMutation');
     expect(chatStoreAdaptersSource).toContain('Chat store adapter functions');
     expect(chatStoreAdaptersSource).toContain('useChatStore');
+    expect(chatStoreAdaptersSource).not.toContain('export function getWorkspaceStateFromChatStore');
+    expect(chatStoreAdaptersSource).not.toContain('export function getProjectedWorkspaceReadModelFromChatStore');
+    expect(chatStoreAdaptersSource).toContain('function getProjectedWorkspaceReadModelFromChatStore');
+    expect(chatStoreAdaptersSource).toContain('ChatWorkspaceReadModelState');
+    expect(chatStoreAdaptersSource).toContain('): ChatStreamWorkspaceReadModel');
+    expect(chatStoreAdaptersSource).toContain('): CurrentTurnProjectionWorkspaceReadModel');
+    expect(chatStoreAdaptersSource).toContain('function buildChatStreamWorkspaceReadModel');
+    expect(chatStoreAdaptersSource).toContain('function buildCurrentTurnProjectionWorkspaceReadModel');
+    expect(chatStoreAdaptersSource).toContain('return buildChatStreamWorkspaceReadModel(');
+    expect(chatStoreAdaptersSource).toContain('return buildCurrentTurnProjectionWorkspaceReadModel(');
+    const chatStreamReadModelSource = chatStoreAdaptersSource.slice(
+      chatStoreAdaptersSource.indexOf('function buildChatStreamWorkspaceReadModel'),
+      chatStoreAdaptersSource.indexOf('function buildCurrentTurnProjectionWorkspaceReadModel'),
+    );
+    expect(chatStreamReadModelSource).toContain('turnRef: exactReadModelString(workspace.pendingTurn.turnRef)');
+    expect(chatStreamReadModelSource).toContain('thinkingSourceEventType: exactReadModelString(workspace.thinkingSourceEventType)');
+    expect(chatStreamReadModelSource).toContain('viewLiveTurnRef: readConversationViewLiveTurnRef(workspace.conversationView)');
+    expect(chatStreamReadModelSource).not.toContain('turnRef: workspace.pendingTurn.turnRef');
+    expect(chatStreamReadModelSource).not.toContain('thinkingSourceEventType: workspace.thinkingSourceEventType');
+    expect(chatStreamReadModelSource).not.toContain('workspace.conversationView?.liveTurn?.turnRef');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('function readConversationViewLiveTurnRef');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('return isConversationView(conversationView)');
+    expect(chatStreamReadModelSource).not.toContain('conversationView:');
+    expect(chatStreamReadModelSource).not.toContain('liveTurn: {');
+    const currentTurnReadModelSource = chatStoreAdaptersSource.slice(
+      chatStoreAdaptersSource.indexOf('function buildCurrentTurnProjectionWorkspaceReadModel'),
+      chatStoreAdaptersSource.indexOf('function buildChatProviderTraceWorkspaceReadModel'),
+    );
+    expect(currentTurnReadModelSource).toContain('turnRef: exactReadModelString(workspace.pendingTurn.turnRef)');
+    expect(currentTurnReadModelSource).toContain('phase: exactReadModelString(workspace.sdkLiveTurn.phase)');
+    expect(currentTurnReadModelSource).toContain('turnRef: exactReadModelString(workspace.sdkLiveTurn.turnRef)');
+    expect(currentTurnReadModelSource).not.toContain('turnRef: workspace.pendingTurn.turnRef');
+    expect(currentTurnReadModelSource).not.toContain('phase: workspace.sdkLiveTurn.phase');
+    expect(currentTurnReadModelSource).not.toContain('turnRef: workspace.sdkLiveTurn.turnRef');
+    expect(currentTurnReadModelSource).not.toContain('messageCount');
+    expect(currentTurnReadModelSource).not.toContain('workspace.messages');
+    expect(chatStoreAdaptersSource).toContain('ChatStreamWorkspaceReadModel');
+    expect(chatStoreAdaptersSource).toContain('CurrentTurnProjectionWorkspaceReadModel');
+    expect(chatStoreAdaptersSource).toContain('getChatStreamWorkspaceReadModelFromChatStore');
+    expect(chatStoreAdaptersSource).toContain('getCurrentTurnProjectionWorkspaceReadModelFromChatStore');
+    expect(chatStoreAdaptersSource).toContain('function readWorkspaceStateFromChatStore');
+    expect(chatStoreAdaptersSource).toContain('readWorkspaceState(state, workspaceRef)');
+    expect(chatStoreAdaptersSource).toContain('resolveWorkspaceKey(conversationRef, state.activeConversationRef)');
     expect(chatStoreAdaptersSource).toContain('buildWorkspaceUpdate');
     expect(chatStoreAdaptersSource).toContain('resolveWorkspaceMutationTarget');
     expect(chatStoreAdaptersSource).toContain('DesktopChatPendingTurnStateRuntime');
@@ -3972,7 +5012,15 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('acceptPendingTurnInChatStore');
     expect(chatStoreAdaptersSource).toContain('clearPendingTurnInChatStore');
     expect(chatStoreAdaptersSource).toContain('acceptStoppedTurnInChatStore');
-    expect(chatStoreAdaptersSource).toContain('executeReplayActionFromChatStore');
+    expect(chatStoreAdaptersSource).not.toContain('editUserMessageReplayFromChatStore');
+    expect(chatStoreAdaptersSource).not.toContain('retryAssistantMessageReplayFromChatStore');
+    expect(chatStoreAdaptersSource).not.toContain('executeReplayActionFromChatStore');
+    expect(chatStoreAdaptersSource).not.toContain('desktopConversationRuntimeContracts');
+    expect(chatStoreAdaptersSource).toContain('sdkLiveTurn: unknown | null');
+    expect(chatStoreAdaptersSource).toContain('conversationView: unknown | null');
+    expect(chatStoreAdaptersSource).not.toContain('view as ConversationView');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('function normalizeNoViewSdkLiveTurn');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('function normalizeConversationView');
     expect(chatStoreAdaptersSource).toContain('setNoViewSdkLiveTurnInChatStore');
     expect(chatStoreAdaptersSource).toContain('setConversationViewInChatStore');
     expect(chatStoreAdaptersSource).toContain('updateStreamTrackingInChatStore');
@@ -3983,6 +5031,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreAdaptersSource).toContain('setTokenCountsInChatStore');
     expect(chatStoreAdaptersSource).toContain('applyPendingTurnBroadcastToChatStore');
     expect(chatWorkspaceMessageRuntimeSource).toContain("Pick<ChatMessage, 'feedback'>");
+    expect(chatWorkspaceMessageRuntimeSource).toContain('rendererAnnotations: updateRendererAnnotations');
+    expect(chatWorkspaceMessageRuntimeSource).not.toContain("text: ''");
     expect(chatWorkspaceMessageRuntimeSource).not.toContain("'fullAssistantMessage'");
     expect(chatWorkspaceMessageRuntimeSource).not.toContain("'fullUserMessage'");
     expect(chatWorkspaceMessageRuntimeSource).not.toContain("'systemPrompt'");
@@ -3993,6 +5043,65 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationDisplayProjectionSource).not.toContain('annotation?.fullUserMessage');
     expect(conversationDisplayProjectionSource).not.toContain('annotation?.fullAssistantMessage');
     expect(conversationDisplayProjectionSource).not.toContain('annotation?.tokenCounts');
+    expect(conversationDisplayProjectionSource).not.toContain('selectRendererMessageAnnotations');
+    expect(conversationDisplayProjectionSource).not.toContain('emptyRendererMessageAnnotations');
+    expect(conversationDisplayProjectionSource).not.toContain('hasRendererMessageAnnotations');
+    expect(conversationDisplayProjectionSource).toContain('findConversationViewUserDisplayRowForTurn');
+    expect(conversationDisplayProjectionSource).toContain('findConversationViewUserDisplayRowForTurn(view, pendingTurnRef)');
+    expect(conversationDisplayProjectionSource).toContain('sdkConversationViewEnvelope(conversationView)');
+    expect(conversationDisplayProjectionSource).not.toContain('sdkUserTurnRefs');
+    expect(conversationDisplayProjectionSource).not.toContain('projectedUserTurns');
+    expect(conversationDisplayProjectionSource).toContain('DesktopConversationDisplayRowLookupRuntime');
+    expect(conversationDisplayProjectionSource).not.toContain('hasConversationViewUserDisplayRows');
+    expect(conversationDisplayRowLookupSource).toContain('findConversationViewUserDisplayRowForTurn');
+    expect(conversationDisplayRowLookupSource).toContain('hasConversationViewUserDisplayRows');
+    expect(conversationDisplayRowLookupSource).toContain('ConversationView display-row lookup');
+    expect(conversationDisplayRowLookupSource).toContain('exactNonEmptyString');
+    expect(conversationDisplayRowLookupSource).toContain('function exactConversationRef');
+    expect(conversationDisplayRowLookupSource).toContain('const viewConversationRef = exactConversationRef(conversationView?.conversationRef);');
+    expect(conversationDisplayRowLookupSource).toContain('exactConversationRef(source.conversationRef) === viewConversationRef');
+    expect(conversationDisplayRowLookupSource).toContain("source.role === 'user'");
+    expect(conversationDisplayRowLookupSource).toContain('conversationView?.displayRows');
+    expect(conversationDisplayRowLookupSource).not.toContain('conversationView as { displayRows?: unknown[] | null }');
+    expect(conversationDisplayRowLookupSource).toContain("source.type === 'user_message'");
+    expect(conversationDisplayRowLookupSource).not.toContain("source.role === 'user'\n        ||");
+    expect(conversationDisplayRowLookupSource).not.toContain('value.trim() ? value.trim()');
+    expect(conversationDisplayProjectionSource).not.toContain('function normalizeTurnRef');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('findConversationViewUserDisplayRowForTurn');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('DesktopConversationDisplayRowLookupRuntime');
+    expect(conversationViewWorkspaceRuntimeSource).not.toContain('const hasSameTurnUserDisplayRow = displayRows.some');
+    expect(visibleLifecycleRuntimeSource).toContain('findConversationViewUserDisplayRowForTurn');
+    expect(visibleLifecycleRuntimeSource).toContain('DesktopConversationDisplayRowLookupRuntime');
+    expect(visibleLifecycleRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(visibleLifecycleRuntimeSource).toContain('hasWorkspaceConversationView({ conversationView })');
+    expect(visibleLifecycleRuntimeSource).toContain('const effectivePendingTurn = (');
+    expect(visibleLifecycleRuntimeSource).toContain('pendingTurnBelongsToConversationView(normalizedPendingTurn, effectiveConversationView)');
+    expect(visibleLifecycleRuntimeSource).toContain('if (effectivePendingTurn && !sameTurnReplacement && !sameTurnConversationViewReplacement)');
+    expect(visibleLifecycleRuntimeSource).toContain('function readExactIdentityString');
+    expect(visibleLifecycleRuntimeSource).toContain('function readExactLifecycleString');
+    expect(visibleLifecycleRuntimeSource).toContain('return readExactIdentityString(value);');
+    expect(visibleLifecycleRuntimeSource).toContain('return readExactLifecycleString(sdkLiveTurn?.phase);');
+    expect(visibleLifecycleRuntimeSource).toContain('readExactLifecycleString(presentation.lastError)');
+    expect(visibleLifecycleRuntimeSource).toContain(
+      'readExactLifecycleString(sdkLiveTurn?.presentation?.lastError)',
+    );
+    expect(visibleLifecycleRuntimeSource).toContain(
+      'const responseOverlayMode = readExactLifecycleString(conversationView?.surfaces?.responseOverlay?.mode);',
+    );
+    expect(visibleLifecycleRuntimeSource).toContain('readExactIdentityString(presentationAnchor.rowId)');
+    expect(visibleLifecycleRuntimeSource).toContain("status: 'idle'");
+    expect(visibleLifecycleRuntimeSource).toContain("source: 'conversation-view'");
+    expect(visibleLifecycleRuntimeSource).not.toContain('turnRef: normalizeTurnRef(conversationView.liveTurn?.turnRef)');
+    expect(visibleLifecycleRuntimeSource).not.toContain('return normalizeString(sdkLiveTurn?.phase);');
+    expect(visibleLifecycleRuntimeSource).not.toContain('normalizeString(presentation.lastError)');
+    expect(visibleLifecycleRuntimeSource).not.toContain('normalizeString(sdkLiveTurn?.presentation?.lastError)');
+    expect(visibleLifecycleRuntimeSource).not.toContain(
+      'const responseOverlayMode = normalizeString(conversationView?.surfaces?.responseOverlay?.mode);',
+    );
+    expect(visibleLifecycleRuntimeSource).not.toContain('DesktopConversationDisplayProjection');
+    expect(visibleLifecycleRuntimeSource).not.toContain('function isConversationView');
+    expect(visibleLifecycleRuntimeSource).not.toContain('function isConversationViewUserDisplayRow');
+    expect(visibleLifecycleRuntimeSource).not.toContain('conversationView.displayRows.length - 1');
     expect(chatStoreSource).not.toContain('DesktopPendingTurnBridgeRuntime');
     expect(chatStoreSource).not.toContain('buildPendingTurnUserMessage');
     expect(chatStoreSource).not.toContain('function normalizePendingTurn');
@@ -4017,11 +5126,25 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateRuntimeSource).toContain('buildWorkspaceUpdate');
     expect(chatWorkspaceStateRuntimeSource).toContain('resolveWorkspaceMutationTarget');
     expect(chatWorkspaceStateRuntimeSource).toContain('projectWorkspaceReadModelState');
+    expect(chatWorkspaceStateRuntimeSource).toContain('export type ChatWorkspaceReadModelState = Pick<');
+    expect(chatWorkspaceStateRuntimeSource).toContain('ChatWorkspaceState,');
+    expect(chatWorkspaceStateRuntimeSource).toContain("| 'pendingTurn'");
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('...workspace,\n    messages: hasConversationView');
     expect(chatWorkspaceStateRuntimeSource).toContain('selectActiveWorkspaceReadModelState');
-    expect(chatWorkspaceStateRuntimeSource).toContain('selectRendererMessageAnnotations(workspace.messages)');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('function isActiveWorkspaceRef');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('isActiveWorkspaceRef,');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('export function selectActiveWorkspaceState');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('selectActiveWorkspaceState,');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('selectRendererMessageAnnotations(workspace.messages)');
+    expect(chatWorkspaceStateRuntimeSource).toContain('readRendererAnnotations(workspace)');
     expect(chatWorkspaceStateRuntimeSource).toContain('readNoViewSdkLiveTurnStorage');
     expect(chatWorkspaceStateRuntimeSource).toContain('buildNoViewSdkLiveTurnStorageUpdate');
     expect(chatWorkspaceStateRuntimeSource).toContain('sdkLiveTurn: null');
+    expect(chatWorkspaceStateRuntimeSource).toContain('thinkingStatus: hasConversationView ? null : workspace.thinkingStatus');
+    expect(chatWorkspaceStateRuntimeSource).toContain('thinkingSourceEventType: hasConversationView ? null : workspace.thinkingSourceEventType');
+    expect(chatWorkspaceStateRuntimeSource).toContain('compactionDebugInfo: hasConversationView ? null : workspace.compactionDebugInfo');
+    expect(chatWorkspaceStateRuntimeSource).toContain('tokenCounts: hasConversationView ? null : workspace.tokenCounts');
+    expect(chatWorkspaceStateRuntimeSource).toContain('streamTracking: hasConversationView ? emptyStreamTracking : workspace.streamTracking');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('currentTurnProjection: CurrentTurnProjection | null;');
     expect(chatWorkspaceStateRuntimeSource).not.toContain("Omit<ChatWorkspaceState, 'currentTurnProjection'>");
     expect(chatWorkspaceStateRuntimeSource).not.toContain('workspaceWithoutNoViewSdkLiveTurn');
@@ -4038,9 +5161,29 @@ describe('renderer chat runtime boundary', () => {
     expect(chatWorkspaceStateRuntimeSource).toContain('CompactionDebugInfo');
     expect(chatWorkspaceStateRuntimeSource).not.toContain('replacementHistoryPreview: Array');
     expect(chatWorkspaceStateRuntimeSource).toContain('DesktopChatStreamTrackingRuntime');
+    expect(chatWorkspaceStateRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(chatWorkspaceStateRuntimeSource).toContain('hasWorkspaceConversationView(workspace)');
+    expect(chatWorkspaceStateRuntimeSource).toContain('conversationView: hasConversationView ? workspace.conversationView : null');
+    expect(chatWorkspaceStateRuntimeSource).not.toContain('Boolean(workspace.conversationView)');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildConversationViewWorkspaceMutation');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildSetConversationViewStateUpdate');
     expect(conversationViewWorkspaceRuntimeSource).toContain('hasWorkspaceConversationView');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('function exactNonEmptyString');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('value === value.trim()');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('const conversationRef = exactNonEmptyString(source.conversationRef);');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('const turnRef = exactNonEmptyString(source.turnRef);');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('const id = exactNonEmptyString(source.id);');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('const conversationRef = exactNonEmptyString(conversationView.conversationRef);');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('exactNonEmptyString(liveTurn?.turnRef)');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('exactNonEmptyString(responseOverlay?.turnRef)');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('const phase = exactNonEmptyString(liveTurn?.phase);');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('function isObjectRecord');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('Array.isArray(source.displayRows)');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('isObjectRecord(source.liveTurn)');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('isObjectRecord(source.surfaces)');
+    expect(conversationViewWorkspaceRuntimeSource).toContain('isObjectRecord(source.actions)');
+    expect(conversationViewWorkspaceRuntimeSource).not.toContain("typeof source.conversationRef === 'string'");
+    expect(conversationViewWorkspaceRuntimeSource).not.toContain('function normalizeString(value: unknown)');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('buildSetLatestConversationViewStateUpdate');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('hasLatestConversationViewUpdate');
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('latestConversationView');
@@ -4049,6 +5192,7 @@ describe('renderer chat runtime boundary', () => {
     expect(conversationViewWorkspaceRuntimeSource).not.toContain('features/chat');
     expect(pendingStateRuntimeSource).toContain('normalizePendingTurn');
     expect(pendingStateRuntimeSource).toContain('doesPendingTurnMatch');
+    expect(pendingStateRuntimeSource).toContain('readExactIdentityString');
     expect(pendingStateRuntimeSource).toContain('buildAcceptPendingTurnStateUpdate');
     expect(pendingStateRuntimeSource).not.toContain('buildAcceptReplayPendingTurnStateUpdate');
     expect(pendingStateRuntimeSource).toContain('buildClearPendingTurnStateUpdate');
@@ -4068,6 +5212,8 @@ describe('renderer chat runtime boundary', () => {
     expect(pendingStateRuntimeSource).not.toContain('attachmentFilenames');
     expect(pendingStateRuntimeSource).not.toContain('addSupersededTurnRef');
     expect(pendingStateRuntimeSource).not.toContain('removeSupersededTurnRef');
+    expect(pendingStateRuntimeSource).not.toContain('normalizeConversationRef');
+    expect(pendingStateRuntimeSource).not.toContain('normalizeTurnRef');
     expect(clearMessagesRuntimeSource).toContain('buildClearMessagesStateUpdate');
     expect(clearMessagesRuntimeSource).toContain('createInitialStreamTracking');
     expect(clearMessagesRuntimeSource).toContain('buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace, null)');
@@ -4080,8 +5226,15 @@ describe('renderer chat runtime boundary', () => {
     expect(workspaceMessageRuntimeSource).toContain('buildUpdateStreamTargetMessageStateUpdate');
     expect(workspaceMessageRuntimeSource).toContain('buildSetMessagesStateUpdate');
     expect(workspaceMessageRuntimeSource).toContain('existingMessageIndex');
-    expect(workspaceMessageRuntimeSource).toContain('hasConversationView(currentWorkspace.conversationView)');
+    expect(workspaceMessageRuntimeSource).toContain('DesktopConversationViewWorkspaceRuntime');
+    expect(workspaceMessageRuntimeSource).toContain('hasWorkspaceConversationView(currentWorkspace)');
+    expect(workspaceMessageRuntimeSource).not.toContain('function hasConversationView');
+    expect(workspaceMessageRuntimeSource).not.toContain('hasConversationView(currentWorkspace.conversationView)');
     expect(workspaceMessageRuntimeSource).toContain('selectRendererAnnotationUpdates');
+    expect(workspaceMessageRuntimeSource).toContain('function exactAnnotationRowId');
+    expect(workspaceMessageRuntimeSource).toContain('const annotationRowId = exactAnnotationRowId(id);');
+    expect(workspaceMessageRuntimeSource).toContain('!annotationUpdates || !annotationRowId');
+    expect(workspaceMessageRuntimeSource).toContain('annotationRowId,');
     expect(workspaceMessageRuntimeSource).toContain('recordTurnConversationRefs');
     expect(workspaceMessageRuntimeSource).not.toContain('turnConversationRefs:');
     expect(workspaceMessageRuntimeSource).not.toContain('features/chat');
@@ -4091,6 +5244,18 @@ describe('renderer chat runtime boundary', () => {
     expect(stopTurnRuntimeSource).toContain('buildAcceptStoppedTurnStateUpdate');
     expect(stopTurnRuntimeSource).not.toContain('features/chat');
     expect(turnConversationRefRuntimeSource).toContain('normalizeTurnRef');
+    expect(turnConversationRefRuntimeSource).toContain(
+      'turnRef.length > 0 && turnRef === turnRef.trim()',
+    );
+    expect(turnConversationRefRuntimeSource).toContain(
+      'conversationRef.length > 0 && conversationRef === conversationRef.trim()',
+    );
+    expect(turnConversationRefRuntimeSource).not.toContain(
+      'const normalizedTurnRef = turnRef.trim()',
+    );
+    expect(turnConversationRefRuntimeSource).not.toContain(
+      'const normalizedConversationRef = conversationRef.trim()',
+    );
     expect(turnConversationRefRuntimeSource).toContain('mergeTurnConversationRefs');
     expect(turnConversationRefRuntimeSource).toContain('registerTurnConversationRef');
     expect(turnConversationRefRuntimeSource).toContain('registerRendererTurnConversationRef');
@@ -4104,12 +5269,17 @@ describe('renderer chat runtime boundary', () => {
     expect(currentTurnWorkspaceRuntimeSource).toContain('resolvePendingTurnForSdkLiveTurn');
     expect(currentTurnWorkspaceRuntimeSource).toContain('readNoViewSdkLiveTurnStorage(currentWorkspace)');
     expect(currentTurnWorkspaceRuntimeSource).toContain('buildNoViewSdkLiveTurnStorageUpdate(currentWorkspace');
+    expect(currentTurnWorkspaceRuntimeSource).toContain('hasWorkspaceConversationView(currentWorkspace)');
+    expect(currentTurnWorkspaceRuntimeSource).not.toContain('function hasConversationView');
+    expect(currentTurnWorkspaceRuntimeSource).not.toContain('hasConversationView(currentWorkspace.conversationView)');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('currentWorkspace.currentTurnProjection');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('resolvePendingTurnForCurrentProjection');
     expect(currentTurnWorkspaceRuntimeSource).not.toContain('features/chat');
     expect(chatStoreSource).not.toContain("sourceEventType: 'renderer-compose'");
     expect(pendingBridgeSource).toContain("sourceEventType: 'renderer-compose'");
-    expect(pendingBridgeSource).toContain('attachments: null');
+    expect(pendingBridgeSource).toContain('hasOnlyPendingTurnBridgeFields');
+    expect(pendingBridgeSource).toContain('pendingTurnBridgeFields');
+    expect(pendingBridgeSource).not.toContain('attachments: null');
     expect(pendingBridgeSource).not.toContain('attachmentFilenames');
     expect(pendingBridgeSource).not.toContain('readSdkDisplayAttachments');
     expect(pendingBridgeSource).not.toContain('screenshotRef');

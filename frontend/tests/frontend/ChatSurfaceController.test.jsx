@@ -34,6 +34,13 @@ function renderController({
       reasoningText: null,
       toolEvents: [],
       lastError: null,
+      presentation: {
+        entries: [{
+          id: 'entry-streaming',
+          type: 'llm-text',
+          text: 'streaming response',
+        }],
+      },
     },
     conversationView = null,
     pendingTurn = null,
@@ -92,6 +99,51 @@ describe('useChatSurfaceController', () => {
     expect(result.current.currentTurnPresentationState.awaitingDotTargetMessageId).toBeNull();
   });
 
+  test('keeps partial ConversationView objects on the no-view surface path', () => {
+    const { result } = renderController({
+      props: {
+        conversationView: {
+          conversationRef: 'conv-1',
+          liveTurn: {
+            turnRef: 'turn-view',
+            entries: [{
+              id: 'view-entry-ignored',
+              type: 'llm-text',
+              text: 'partial view answer',
+            }],
+          },
+        },
+        sdkLiveTurn: {
+          phase: 'streaming',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          assistantText: 'streaming response',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+          presentation: {
+            entries: [{
+              id: 'live-entry',
+              type: 'llm-text',
+              text: 'live fallback answer',
+            }],
+          },
+        },
+      },
+    });
+
+    expect(result.current).toMatchObject({
+      isBusy: true,
+      canStop: false,
+      surfaceSource: 'sdk-current-turn',
+      visibleTurnLifecycle: expect.objectContaining({
+        status: 'active',
+        source: 'sdk',
+        turnRef: 'turn-1',
+      }),
+    });
+  });
+
   test('prefers SDK current-turn completion over stale stream phases', () => {
     const { result } = renderController({
       props: {
@@ -133,6 +185,13 @@ describe('useChatSurfaceController', () => {
           reasoningText: null,
           toolEvents: [],
           lastError: null,
+          presentation: {
+            entries: [{
+              id: 'entry-visible-turn',
+              type: 'llm-text',
+              text: 'streaming response',
+            }],
+          },
         },
       },
     });
@@ -208,7 +267,6 @@ describe('useChatSurfaceController', () => {
           userMessageId: 'user-2',
           text: 'second',
           timestamp: '2026-06-21T00:00:00.000Z',
-          attachmentFilenames: null,
         },
         messages: [
           { id: 'user-2', type: 'user', sender: 'user', text: 'second', turnRef: 'turn-2' },
@@ -247,7 +305,7 @@ describe('useChatSurfaceController', () => {
 
     expect(result.current).toMatchObject({
       isBusy: true,
-      canStop: false,
+      canStop: true,
       surfacePhase: 'awaiting-first-chunk',
       surfaceSource: 'current-turn',
     });
@@ -266,7 +324,6 @@ describe('useChatSurfaceController', () => {
           userMessageId: 'user-local',
           text: 'local send',
           timestamp: '2026-06-21T00:00:00.000Z',
-          attachmentFilenames: null,
         },
         messages: [
           {
@@ -385,6 +442,13 @@ describe('useChatSurfaceController', () => {
           reasoningText: null,
           toolEvents: [],
           lastError: null,
+          presentation: {
+            entries: [{
+              id: 'entry-busy',
+              type: 'llm-text',
+              text: 'streaming',
+            }],
+          },
         },
       },
     });

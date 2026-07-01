@@ -77,22 +77,36 @@ stays private behind the renderer app-runtime facade.
 Normalized shape:
 
 - `text`: required
-- `clipboardImages[]`: accepted only when each image has non-empty `base64`
-- `readableFiles[]`: accepted only when each file has non-empty absolute-ish `filePath` + `filename`
+- `clipboardImages[]`: accepted only when each image has exact non-empty `base64`
+- `readableFiles[]`: accepted only when each file has exact non-empty absolute-ish `filePath` + `filename`
 - singular `clipboardImage` rejects the object payload; all image attachments must use the canonical `clipboardImages[]` array.
+- removed renderer-owned attachment/screenshot aliases such as
+  `attachmentContext`, `attachmentFilenames`, `attachments`,
+  `displayAttachments`, `screenshotRef`, `screenshotRefs`, and `screenshotUrl`
+  reject the object payload instead of being ignored or copied forward.
 
 Invalid object payloads are ignored (no send side effect).
 
 `DesktopChatSendPayloadRuntime.normalizeOutgoingPayload(...)` owns renderer
 payload shape normalization. The renderer does not project attachment filenames
 for normal sends; filenames travel only as fields on typed SDK resources and are
-resolved into visible metadata by SDK resource handling.
+resolved into visible metadata by SDK resource handling. Normal send payloads
+therefore carry only composer text plus typed SDK resource handles; replay and
+SDK resource resolution own durable screenshot aliases and attachment metadata.
+`DesktopMessageInputRuntime.buildOutgoingMessage(...)` delegates composer
+resource arrays to `DesktopChatSendPayloadRuntime.normalizeOutgoingPayload(...)`
+before creating object payloads, so the renderer has one positive contract for
+typed send resources. Malformed preview rows do not produce an attachment-only
+default-text send when the payload normalizer strips all resource handles.
 
 `clipboardImages[]` metadata fields:
 
-- `base64`
-- optional `contentType`
-- optional `filename`
+- `base64`: exact non-empty required value
+- optional `contentType`: forwarded only when exact non-empty
+- optional `filename`: forwarded only when exact non-empty; otherwise SDK resource
+  resolution chooses fallback naming
+- missing optional metadata fields are omitted from prepared resources instead of
+  serialized as explicit `null` placeholders
 
 ## MessageInput -> Sender Coupling
 
@@ -139,9 +153,15 @@ When attachment(s) exist:
    and store only `pendingTurn` for the short pre-SDK handoff. Presentation
    projects that bridge beside no-view history or SDK display rows until the
    next SDK view arrives; accepting the pending turn does not append a
-   renderer-composed row into raw workspace `messages`. The bridge only fills
+   renderer-composed row into raw workspace `messages`. The live-turn command
+   facade forwards the pending bridge turn id as `query_message_id` only when it
+   is exact; padded ids fail before dispatch instead of being trimmed into SDK
+   send identity. The bridge only fills
    an absent user row; once the SDK display row for that turn exists, the SDK
    row is authoritative and renderer attachment state is not copied forward.
+   Pending bridge identity fields must be exact non-empty strings; renderer and
+   main-process pending-turn adapters reject padded ids instead of trimming
+   them into visible bridge rows or Stop targets.
    Replay sends intentionally clear the old view when publishing replacement
    rows so stale suffix rows do not remain visible while SDK edit/retry commands
    complete.
@@ -151,37 +171,59 @@ When attachment(s) exist:
    - `readable_file` for selected non-image files
    - `query_screenshot_request` when overlay/config policy asks for a query screenshot
    - `workspace` when the conversation has a workspace binding
-   Renderer resources do not assign `displayAttachmentId`; SDK turn processing
-   assigns stable display attachment ids before producing live visual
-   attachment projection state.
+   Turn resources do not accept caller-owned display attachment ids; SDK turn
+   processing assigns stable display attachment ids before producing live
+   visual attachment projection state.
+   Clipboard image resource metadata is positive-only: exact `contentType` and
+   `filename` values are included, while missing or malformed optional metadata
+   fields are omitted.
+   Send preparation only includes a workspace path or workspace SDK resource
+   when the binding is already exact and non-empty; padded bindings are omitted
+   from the prepared handoff instead of being carried until command dispatch.
+   `DesktopLiveTurnRuntimeClient` re-normalizes the final resource array before
+   `conversation.send`, so every resource must contain only the positive key
+   set for its SDK resource kind. Descriptors carrying extra renderer preview,
+   display-lifecycle, screenshot-alias, or attachment-summary fields are
+   rejected as malformed resources instead of being stripped and repaired into
+   command input. The live-turn client does not forward a generic renderer
+   metadata object; capture metadata, attachment context, and attachment
+   filenames are SDK resource-resolution outputs, not renderer send inputs.
 7. call `DesktopLiveTurnRuntimeClient.sendQuery` with text, conversation ref,
    turn ref, and typed resources. Normal sends do not build a renderer-owned
-   filename payload or metadata object for filenames.
+   filename payload, metadata object, or per-turn model override; selected model
+   changes are applied through the awaited SDK settings command before dispatch.
+   The command facade forwards a top-level `workspace_path` only when the
+   renderer binding is already an exact non-empty string; padded workspace
+   strings are omitted rather than trimmed into SDK command data.
 8. Electron main preserves `resources` for SDK `send()` while keeping them out
    of the backend query allowlist; SDK resource resolution owns user-row
    metadata updates.
 9. SDK `ConversationRuntime.send()` emits `turn_started` and base
    `user_message` before resource resolution.
 10. SDK resource resolvers read files, upload clipboard images, capture query
-   screenshots, merge user-row metadata, and assemble backend-compatible
-   `screenshot_ref`, `screenshot_refs`, `attachment_context`,
-   `attachment_filenames`, `capture_meta`, and `workspace_path` fields.
+    screenshots, merge user-row metadata, and assemble backend-compatible
+    `screenshot_ref`, `screenshot_refs`, `attachment_context`,
+    `attachment_filenames`, `capture_meta`, and `workspace_path` fields.
+    Renderer desktop transport preserves SDK-owned `capture_meta` only when it
+    is an object, dropping malformed values instead of forwarding attachment
+    lifecycle blobs. SDK-owned `attachment_context` is hidden prompt text, not a
+    renderer identity field, so IPC plumbing preserves non-empty context
+    whitespace instead of trimming file-content boundaries.
 11. SDK memory/context enrichment appends hidden context to model-facing content
     before backend transport.
 
 Steps 1-6 produce a `PreparedDesktopChatTurn`. The final dispatch helper applies
 deferred model selection and sends the prepared SDK turn input through
-`DesktopLiveTurnRuntimeClient.sendQuery`. If dispatch fails before SDK turn
+`DesktopLiveTurnRuntimeClient.sendQuery`, without carrying a separate model
+field on the send payload. If dispatch fails before SDK turn
 authority opens, the helper clears the short pending bridge from chat store and
 main-process pending-turn state using the prepared turn identity; React sender
-hooks do not inspect `PreparedDesktopChatTurn` refs for failure cleanup.
-Replay-prepared turns may still pass stored screenshot refs as legacy resolved
-payload because replay reuses durable transcript metadata rather than composer
-resources.
+Replay commands do not pass renderer-composed payload context; SDK replay
+resolution reuses durable target-row metadata rather than composer resources.
 
 `DesktopChatSendStateRuntime.hasPriorUserMessages(...)` owns the
-first-user-message predicate used by the send read-model selector. When a SDK
-`ConversationView.displayRows` snapshot exists, the predicate reads user rows
+first-user-message predicate used by the send read-model selector. When a
+complete SDK `ConversationView` envelope exists, the predicate reads user rows
 from that view instead of treating `chatStore.messages` as competing durable
 history; `chatStore.messages` remains only the no-view historical fallback, and
 pending-send identity travels separately as `pendingTurn`.
@@ -236,9 +278,9 @@ Capture path specifics:
   - `screenshotRef`/`screenshotUrl` artifact attachment only (no base64)
 - SDK upload/materialization treats either shape as valid screenshot context and
   keeps user-row metadata stable.
-- first-message decisions use `ConversationView.displayRows` whenever a view
-  object exists; direct app-runtime callers do not fall back to raw
-  chat-store messages under a partial view shape.
+- first-message decisions use `ConversationView.displayRows` only after the
+  shared complete-view gate accepts the SDK envelope; direct app-runtime
+  callers fall back to raw chat-store messages under a partial view shape.
 
 ## SDK User Row Contract
 
@@ -281,6 +323,15 @@ Fatal failure:
 - no renderer-owned pending visual attachment state before SDK projection
 - clipboard payload flow (base64 + content type + filename) becomes SDK resources
 
+`DesktopChatSendPreparationRuntime.test.ts` verifies the owning runtime directly:
+
+- pending bridge payloads carry only conversation/turn/user-row identity, text,
+  and timestamp
+- prepared sends produce typed SDK turn resources without renderer display
+  attachment ids, preview sources, screenshot aliases, or `attachments[]`
+- pre-SDK dispatch failures clear the matching pending bridge locally and
+  through the Electron pending-turn broadcast facade
+
 `MessageInput.test.jsx` verifies:
 
 - trimmed send text
@@ -288,12 +339,13 @@ Fatal failure:
 - voice utterance-end keeps dictated text in the composer until manual send
 - pasted image preview lifecycle + payload shape + remove action
 - file-picker trigger and selected readable-file payload shape
+- exact attachment handle gating before attachment-only default text is created
 
 ## Drift Hotspots
 
 1. Changing payload union type without updating `MessageInput` + tests can silently drop clipboard images.
 2. Moving resource resolution back before SDK `send()` can delay base user-row emission and reintroduce send flicker.
-3. Dropping `resources`/`metadata` in Electron main query filtering means SDK never sees attachments.
+3. Dropping `resources` in Electron main query filtering means SDK never sees attachments.
 4. Changing upload filename/content-type normalization can desync artifact extension/type behavior.
 
 ## Related Pages

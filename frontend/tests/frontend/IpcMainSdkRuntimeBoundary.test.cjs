@@ -674,6 +674,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(initializationRuntimeSource).toContain('pendingTurnRuntime.register({ ipcMain })');
     expect(source).not.toContain('liveTurnState.setLatestPendingTurn(');
     expect(pendingTurnHandlersSource).toContain('function createPendingTurnRuntime');
+    expect(pendingTurnHandlersSource).toContain('const PENDING_TURN_CLEAR_FIELDS = new Set');
+    expect(pendingTurnHandlersSource).toContain('hasOnlyPendingTurnClearFields(source)');
     expect(pendingTurnHandlersSource).toContain('liveTurnState.setLatestPendingTurn(pendingTurn)');
     expect(pendingTurnHandlersSource).not.toContain('  registerPendingTurnHandlers,');
     expect(pendingTurnHandlersSource).not.toContain('  normalizePendingTurnPayload,');
@@ -803,6 +805,29 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('runtimeRegistry.rewriteConversation(');
     expect(source).not.toContain('agent.prepareEditAndResend(');
     expect(source).not.toContain('agent.prepareRetryTurn(');
+    expect(source).toContain('readExactOptionalString');
+    expect(source).toContain('requireExactCommandConversationRef');
+    expect(source).toContain('readOptionalExactCommandString');
+    expect(source).toContain('requireCommandText');
+    expect(source).toContain("messageId: requireExactCommandString(payload, 'messageId', 'message id')");
+    expect(source).toContain("revisionId: requireExactCommandString(payload, 'revisionId', 'revision id')");
+    expect(source).toContain("baseRevisionId: requireExactCommandString(payload, 'baseRevisionId', 'base revision id')");
+    expect(source).toContain("sourceRevisionId: requireExactCommandString(payload, 'sourceRevisionId', 'source revision id')");
+    expect(source).toContain("cutAfterRowId: readOptionalExactCommandString(payload, 'cutAfterRowId', 'cut row id')");
+    expect(source).toContain('const newConversationRef = readOptionalExactCommandString(');
+    expect(source).toContain("'newConversationRef',");
+    expect(source).not.toContain('optionalExactCommandString');
+    expect(
+      source.match(/messageId: requireExactCommandString\(payload, 'messageId', 'message id'\)/g)
+        || [],
+    ).toHaveLength(2);
+    expect(source).not.toContain('normalizeOptionalString(payload.revisionId)');
+    expect(source).not.toContain('normalizeOptionalString(payload.sourceRevisionId)');
+    expect(source).not.toContain('normalizeOptionalString(payload.cutAfterRowId)');
+    expect(source).not.toContain('normalizeOptionalString(payload.newConversationRef)');
+    expect(source).not.toContain('runtimePayload.text = text.trim()');
+    expect(source).not.toContain("const text = requireCommandString(payload, 'text', 'edited text')");
+    expect(source).not.toContain('messageId: normalizeOptionalString(payload.messageId)');
     expect(source).toContain('requireCommandUserId');
     expect(source).toContain('requireAuthenticatedCommandUserId');
     expect(source).toContain("userId === 'default_user'");

@@ -98,9 +98,9 @@ The runtime owns row classification for:
 
 - error rows
 - tool call/output rows
-- tool explanation and search-source rows
+- tool explanation, tool-progress, and legacy search-source rows
 - tool action summaries
-- user rows with SDK display attachments
+- user rows
 - assistant LLM-text rows, including whether visible assistant text should render below thinking
 - generic markdown fallback rows
 
@@ -112,7 +112,7 @@ keeps raw render-kind constants out of the component; callers should use
 `DesktopMessageContentRuntime.isToolCallMessageContentPresentation(...)`,
 `DesktopMessageContentRuntime.isToolExplanationMessageContentPresentation(...)`,
 `DesktopMessageContentRuntime.isToolActionsSummaryMessageContentPresentation(...)`,
-`DesktopMessageContentRuntime.isUserAttachmentMessageContentPresentation(...)`,
+`DesktopMessageContentRuntime.isUserMessageContentPresentation(...)`,
 and `DesktopMessageContentRuntime.isAssistantResponseMessageContentPresentation(...)`
 instead.
 
@@ -124,11 +124,20 @@ instead.
 - always: `message`, `message-${sender}`
 - `message-streaming` for unfinished assistant LLM rows
 - `message-type-${type}` for typed rows (`tool-call`, `tool-output`, `error`, etc.)
-- `message-has-screenshot` when typed ready image attachments resolve true
+- `message-has-attachment` when the projected row carries typed SDK
+  `attachments[]`
 
-Screenshot presence for row classes is resolved from typed `attachments[]`;
-user-message and tool-output visual routing use SDK-owned descriptors through
+Attachment presence for row classes follows the already-projected typed
+`attachments[]` list; the class helper only checks whether that normalized
+array is non-empty and does not classify SDK attachment lifecycle state.
+User-message and tool-output visual routing use SDK-owned descriptors through
 `AttachmentList` / `AttachmentRendererRegistry`.
+`AttachmentList` is the only React message-content component that imports the
+SDK display attachment projection helper; `UserMessage` and `ToolOutputMessage`
+pass row `attachments[]` through so they do not duplicate descriptor validation
+or attachment lifecycle gating.
+Content-kind routing treats every user row as a user message; `AttachmentList`
+returns null when the row has no valid visible descriptors.
 The React-only async artifact image fetch/cache hook remains in
 `frontend/src/renderer/app/runtime/desktopAttachmentImageRuntime.js`.
 
@@ -138,9 +147,11 @@ Current runtime keeps token usage in chat store/state:
 
 - `chatStore.ts` holds `tokenCounts` payload from backend.
 - `useChatStream` handles `token-count` events and calls `setTokenCounts`.
-- dev token image estimates count SDK typed image `attachments[]` only; legacy
-  `screenshots[]` and whole-message `screenshotRef`/`screenshotUrl` aliases are
-  not renderer presentation or token-estimate authorities.
+- dev token estimates do not inspect attachment descriptors. Legacy
+  `screenshots[]`, whole-message `screenshotRef`/`screenshotUrl` aliases, and
+  SDK `attachments[]` lifecycle states are not renderer token-estimate
+  authorities; attachment lifecycle stays with SDK display projection and
+  rendering components.
 - React message prop contracts advertise typed `attachments[]`, not
   whole-message screenshot aliases.
 - `DesktopAttachmentImageRuntime` resolves image refs/URLs only from typed SDK
@@ -153,7 +164,7 @@ Important:
 - token count remains part of stream telemetry/state and may be surfaced by future UI consumers.
 - in `dev_ui=1`, per-message token estimates now render via
   `MessageSourceBadge` through `DesktopMessageTokenUsageRuntime`:
-  - user rows show text/image/total estimates
+  - user rows show text-only estimates
   - tool-call/tool-output rows show payload token estimates
   - all message-level values are approximate and intentionally tagged `tokens~`
 

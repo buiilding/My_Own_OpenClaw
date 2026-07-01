@@ -82,6 +82,20 @@ describe('MessageContent', () => {
     expect(screen.getByText('Screenshot pending')).toBeInTheDocument();
   });
 
+  test('renders plain user rows through the user message container', () => {
+    const { container } = render(
+      <MessageContent
+        message={{
+          sender: 'user',
+          text: 'hello',
+        }}
+      />,
+    );
+
+    expect(container.querySelector('.user-message-container')).not.toBeNull();
+    expect(screen.getByText('hello')).toBeInTheDocument();
+  });
+
   test('does not render legacy user screenshot aliases as primary display input', () => {
     render(
       <MessageContent
@@ -126,6 +140,30 @@ describe('MessageContent', () => {
     );
     expect(Boolean(artifactFetchCall)).toBe(true);
     expect(artifactFetchCall[1].artifactId).toBe('artifact-1');
+  });
+
+  test('does not render ready SDK attachments from inline screenshot urls', () => {
+    render(
+      <MessageContent
+        message={{
+          sender: 'assistant',
+          type: 'tool-output',
+          text: 'result',
+          attachments: [{
+            id: 'tool-output-inline-url:attachment:000',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            screenshotUrl: 'data:image/png;base64,inline-ready',
+          }],
+        }}
+      />,
+    );
+
+    expect(screen.queryByRole('img', { name: 'User message attachment' })).toBeNull();
+    expect(
+      IpcBridge.invoke.mock.calls.some(([channel]) => channel === INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE),
+    ).toBe(false);
   });
 
   test('retries artifact screenshot resolution after a transient fetch failure', async () => {
@@ -246,23 +284,99 @@ describe('MessageContent', () => {
     expect(screen.getByText('result')).toBeInTheDocument();
   });
 
-  test('tool output details button reveals model-facing output and details payload', () => {
+  test('does not show tool-output attachment chrome for malformed SDK attachments', () => {
+    render(
+      <MessageContent
+        message={{
+          sender: 'assistant',
+          type: 'tool-output',
+          text: 'result',
+          attachments: [
+            {
+              id: ' padded-tool-attachment ',
+              kind: 'image',
+              source: 'tool_result',
+              status: 'ready',
+              screenshotRef: 'artifact-legacy',
+            },
+            {
+              id: 'missing-ready-source',
+              kind: 'image',
+              source: 'tool_result',
+              status: 'ready',
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.queryByText(/Visual Output/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'User message attachment' })).toBeNull();
+    expect(screen.getByText('result')).toBeInTheDocument();
+  });
+
+  test('tool output details button reveals display output and details payload', () => {
+    render(
+      <MessageContent
+        message={{
+          sender: 'assistant',
+          type: 'tool-output',
+          text: 'display output',
+          toolOutputDetails: { request_id: 'req-1', metadata: { source: 'backend' } },
+        }}
+      />,
+    );
+
+    expect(screen.getByText('display output')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Details' }));
+    expect(screen.getByText('Tool Output Details')).toBeInTheDocument();
+    expect(screen.getByText(/"request_id": "req-1"/)).toBeInTheDocument();
+  });
+
+  test('tool output details do not fall back to legacy tool metadata', () => {
     render(
       <MessageContent
         message={{
           sender: 'assistant',
           type: 'tool-output',
           text: 'fallback output',
-          modelFacingToolOutput: 'model-facing output',
-          toolOutputDetails: { request_id: 'req-1', metadata: { source: 'backend' } },
+          toolName: 'screenshot',
+          executionTime: 12,
+          success: true,
+          toolMetadata: {
+            requestId: 'req-shot',
+            attachments: [{
+              id: 'tool-output-shot:attachment:000',
+              kind: 'image',
+              source: 'tool_result',
+              status: 'ready',
+              screenshotRef: 'artifact-shot',
+            }],
+            modelId: 'model-1',
+            modelProvider: 'provider-1',
+            raw: { payload: { output: 'done' } },
+            screenshotRef: 'legacy-shot',
+            structuredPayload: { output: 'legacy' },
+          },
         }}
       />,
     );
 
-    expect(screen.getByText('model-facing output')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Details' }));
-    expect(screen.getByText('Tool Output Details')).toBeInTheDocument();
-    expect(screen.getByText(/"request_id": "req-1"/)).toBeInTheDocument();
+
+    const details = document.querySelector('.tool-details-content');
+    expect(details).not.toBeNull();
+    expect(details.textContent).toBe('{}');
+    expect(details.textContent).not.toContain('"requestId": "req-shot"');
+    expect(details.textContent).not.toContain('"tool_name"');
+    expect(details.textContent).not.toContain('"execution_time"');
+    expect(details.textContent).not.toContain('"success"');
+    expect(details.textContent).not.toContain('"attachments"');
+    expect(details.textContent).not.toContain('"modelId"');
+    expect(details.textContent).not.toContain('"modelProvider"');
+    expect(details.textContent).not.toContain('"raw"');
+    expect(details.textContent).not.toContain('"screenshotRef"');
+    expect(details.textContent).not.toContain('"structuredPayload"');
   });
 
   test('tool call details button reveals SDK display text and tool details', () => {

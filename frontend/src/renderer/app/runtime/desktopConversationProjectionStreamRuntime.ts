@@ -1,6 +1,3 @@
-import type {
-  ChatMessage,
-} from './desktopChatMessageTypes';
 import {
   DesktopChatStreamEventRuntime,
 } from './desktopChatStreamEventRuntime';
@@ -16,6 +13,15 @@ import {
   DesktopPresentationSourceChannels,
 } from './desktopPresentationSourceChannels';
 import {
+  DesktopConversationDisplayProjection,
+} from './desktopConversationDisplayProjection';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
+import type {
+  ConversationView,
+} from './desktopConversationRuntimeContracts';
+import {
   type RendererReplayTraceValues,
   DesktopRendererTraceRuntime,
 } from './desktopRendererTraceRuntime';
@@ -29,22 +35,13 @@ type CurrentTurnLike = {
   turnRef?: string | null;
 } | null | undefined;
 
-type ConversationViewLike = {
-  displayRows?: unknown[] | null;
-  liveTurn?: {
-    phase?: string | null;
-    turnRef?: string | null;
-  } | null;
-} | null | undefined;
-
 type StreamTrackingLike = {
   activeTurnRef?: string | null;
   phase: StreamPhase;
 };
 
-type ProjectionWorkspace = {
-  conversationView?: ConversationViewLike;
-  messages: ChatMessage[];
+export type CurrentTurnProjectionWorkspaceReadModel = {
+  conversationView?: ConversationView | null;
   pendingTurn?: PendingTurnLike;
   sdkLiveTurn?: CurrentTurnLike;
   streamTracking: StreamTrackingLike;
@@ -52,7 +49,9 @@ type ProjectionWorkspace = {
 };
 
 type CurrentTurnProjectionStreamDeps = {
-  getWorkspaceState: (conversationRef?: string | null) => ProjectionWorkspace;
+  getCurrentTurnProjectionWorkspaceReadModel: (
+    conversationRef?: string | null,
+  ) => CurrentTurnProjectionWorkspaceReadModel;
   setNoViewSdkLiveTurn: (
     currentTurn: SdkLiveTurnEffectsInput,
     conversationRef?: string | null,
@@ -74,7 +73,7 @@ type ReplayProjectionTracePayloadInput = {
   action: string;
   conversationRef: string;
   values?: Partial<RendererReplayTraceValues>;
-  workspace: ProjectionWorkspace;
+  workspace: CurrentTurnProjectionWorkspaceReadModel;
 };
 
 const {
@@ -92,17 +91,19 @@ const {
   logRendererCurrentTurnAppliedTrace,
   logRendererReplayTrace,
 } = DesktopRendererTraceRuntime;
+const {
+  buildConversationViewTraceSummary,
+} = DesktopConversationDisplayProjection;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 
 function normalizeTurnRef(turnRef: string | null | undefined): string | null {
-  return typeof turnRef === 'string' && turnRef.trim()
-    ? turnRef.trim()
+  return typeof turnRef === 'string' && turnRef.length > 0 && turnRef === turnRef.trim()
+    ? turnRef
     : null;
-}
-
-function isConversationView(value: ConversationViewLike): value is NonNullable<ConversationViewLike> {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
 function buildReplayProjectionTracePayload({
@@ -112,23 +113,20 @@ function buildReplayProjectionTracePayload({
   values = {},
 }: ReplayProjectionTracePayloadInput): RendererReplayTraceValues {
   const pendingTurnRef = normalizeTurnRef(workspace.pendingTurn?.turnRef);
-  const hasConversationView = isConversationView(workspace.conversationView);
-  const viewLiveTurn = hasConversationView ? workspace.conversationView.liveTurn ?? null : null;
+  const hasConversationView = hasWorkspaceConversationView(workspace);
+  const viewTrace = hasConversationView
+    ? buildConversationViewTraceSummary(workspace.conversationView)
+    : null;
   const currentTurnRef = hasConversationView
-    ? normalizeTurnRef(viewLiveTurn?.turnRef)
+    ? viewTrace?.liveTurnRef ?? null
     : normalizeTurnRef(workspace.sdkLiveTurn?.turnRef);
   const currentTurnPhase = hasConversationView
-    ? viewLiveTurn?.phase ?? null
+    ? viewTrace?.liveTurnPhase ?? null
     : workspace.sdkLiveTurn?.phase ?? null;
   const streamActiveTurnRef = hasConversationView
     ? currentTurnRef
     : normalizeTurnRef(workspace.streamTracking?.activeTurnRef);
-  const messageCount = hasConversationView
-    ? 0
-    : Array.isArray(workspace.messages) ? workspace.messages.length : 0;
-  const displayRowCount = hasConversationView && Array.isArray(workspace.conversationView?.displayRows)
-    ? workspace.conversationView.displayRows.length
-    : 0;
+  const displayRowCount = viewTrace?.displayRowCount ?? 0;
   return {
     action,
     conversationRef,
@@ -136,8 +134,7 @@ function buildReplayProjectionTracePayload({
     currentTurnRef,
     currentTurnPhase,
     streamActiveTurnRef,
-    streamPhase: workspace.streamTracking?.phase ?? null,
-    messageCount,
+    streamPhase: hasConversationView ? currentTurnPhase : workspace.streamTracking?.phase ?? null,
     displayRowCount,
     pendingPresent: Boolean(pendingTurnRef),
     pendingMatchesNewTurn: Boolean(
@@ -162,7 +159,7 @@ function buildReplayProjectionTracePayload({
 function logReplayProjectionTrace(
   action: string,
   conversationRef: string,
-  workspace: ProjectionWorkspace,
+  workspace: CurrentTurnProjectionWorkspaceReadModel,
   values: Partial<RendererReplayTraceValues> = {},
 ): void {
   logRendererReplayTrace(buildReplayProjectionTracePayload({
@@ -183,7 +180,7 @@ function applyCurrentTurnProjectionEvent({
     return;
   }
 
-  const preProjectionWorkspace = deps.getWorkspaceState(conversationRef);
+  const preProjectionWorkspace = deps.getCurrentTurnProjectionWorkspaceReadModel(conversationRef);
   // Check stale-turn status before current-turn storage can resolve pendingTurn.
   deps.setNoViewSdkLiveTurn(currentTurn, conversationRef);
 
@@ -194,7 +191,7 @@ function applyCurrentTurnProjectionEvent({
   const shouldSkipDerivedSideEffects = (
     !shouldAcceptCurrentTurnBeforeLocalSend(currentTurn)
     && shouldIgnoreConversationEventIdentityForStaleTurn(currentTurnIdentity, conversationRef, {
-      getWorkspaceState: () => preProjectionWorkspace,
+      getChatStreamWorkspaceReadModel: () => preProjectionWorkspace,
     })
   );
   logRendererCurrentTurnAppliedTrace({
@@ -204,11 +201,16 @@ function applyCurrentTurnProjectionEvent({
     skipDerivedSideEffects: shouldSkipDerivedSideEffects,
   });
   if (shouldSkipDerivedSideEffects) {
-    logReplayProjectionTrace('sdk_current_turn_stale_side_effects_skipped', conversationRef, deps.getWorkspaceState(conversationRef), {
-      newTurnRef: currentTurn.turnRef ?? null,
-      currentTurnRef: currentTurn.turnRef ?? null,
-      currentTurnPhase: currentTurn.phase ?? null,
-    });
+    logReplayProjectionTrace(
+      'sdk_current_turn_stale_side_effects_skipped',
+      conversationRef,
+      deps.getCurrentTurnProjectionWorkspaceReadModel(conversationRef),
+      {
+        newTurnRef: currentTurn.turnRef ?? null,
+        currentTurnRef: currentTurn.turnRef ?? null,
+        currentTurnPhase: currentTurn.phase ?? null,
+      },
+    );
     return;
   }
 
@@ -219,7 +221,7 @@ function applyCurrentTurnProjectionEvent({
     currentTurn,
     cursor: previousCursor,
     deps: {
-      getWorkspaceState: deps.getWorkspaceState,
+      getWorkspaceState: deps.getCurrentTurnProjectionWorkspaceReadModel,
       setIsSending: deps.setIsSending,
       setThinkingStatus: deps.setThinkingStatus,
       setThinkingSourceEventType: deps.setThinkingSourceEventType,
@@ -227,11 +229,16 @@ function applyCurrentTurnProjectionEvent({
       recordTrackingEvent,
     },
   }));
-  logReplayProjectionTrace('sdk_current_turn_applied', conversationRef, deps.getWorkspaceState(conversationRef), {
-    newTurnRef: currentTurn.turnRef ?? null,
-    currentTurnRef: currentTurn.turnRef ?? null,
-    currentTurnPhase: currentTurn.phase ?? null,
-  });
+  logReplayProjectionTrace(
+    'sdk_current_turn_applied',
+    conversationRef,
+    deps.getCurrentTurnProjectionWorkspaceReadModel(conversationRef),
+    {
+      newTurnRef: currentTurn.turnRef ?? null,
+      currentTurnRef: currentTurn.turnRef ?? null,
+      currentTurnPhase: currentTurn.phase ?? null,
+    },
+  );
 }
 
 export const DesktopConversationProjectionStreamRuntime = Object.freeze({

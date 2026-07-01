@@ -112,6 +112,13 @@ Readable files (non-image):
 and readable-file collections:
 
 - drops invalid clipboard/readable entries with normalization helpers
+- strips preview-only fields such as image/readable `id` and image
+  `previewUrl` before calling the sender; previews remain composer UI state,
+  while outgoing payloads carry only SDK resource-handle fields
+- accepts required resource handles only when they are exact non-empty strings:
+  image `base64`, readable-file `filePath`, and readable-file `filename`
+- forwards optional image `contentType` and `filename` only when they are exact
+  non-empty strings
 - blocks send when the caller passes `isSubmitBlocked=true`
 - returns `null` when both text and attachments are absent
 - text-only -> returns trimmed string
@@ -120,10 +127,24 @@ and readable-file collections:
   - `clipboardImages`
   - `readableFiles`
 
+Outgoing `clipboardImages[]` entries contain only:
+
+- `base64`
+- optional `contentType`
+- optional `filename`
+
+Outgoing `readableFiles[]` entries contain only:
+
+- `filePath`
+- `filename`
+
 Attachment-only fallback text:
 
 - when no non-empty text is present but attachments exist, payload uses:
   - `"Please review the attached files."`
+- malformed attachment previews do not count as attachments for this fallback
+  text, so an attachment-only send with no exact SDK resource handles returns
+  `null`
 
 ## MessageInput and ChatBox Integration Notes
 
@@ -155,6 +176,7 @@ Attachment-only fallback text:
 `tests/frontend/MessageInput.test.jsx`:
 
 - pasted images append (not replace) previews
+- outgoing image payloads omit preview-only `id`/`previewUrl` fields
 - selected readable files appear in outgoing payload
 - pasted-image and picker parse failures are caught and logged
 - attachment-only messages can be sent

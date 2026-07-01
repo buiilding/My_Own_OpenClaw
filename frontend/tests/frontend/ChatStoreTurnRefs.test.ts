@@ -26,20 +26,20 @@ describe('chatStore turn conversation refs', () => {
     resetChatStoreForTests(null);
   });
 
-  test('normalizes turn refs inferred from added messages', () => {
+  test('indexes exact turn refs inferred from added messages', () => {
     addMessageToChatStore({
       id: 'message-1',
       sender: 'assistant',
       text: 'hello',
-      turnRef: ' turn-1 ',
+      turnRef: 'turn-1',
     }, 'conv-a');
 
     expect(resolveRendererConversationRefForTurn('turn-1')).toBe('conv-a');
-    expect(resolveRendererConversationRefForTurn(' turn-1 ')).toBe('conv-a');
+    expect(resolveRendererConversationRefForTurn(' turn-1 ')).toBeNull();
     expect(Object.keys(getRendererTurnConversationRefsSnapshot())).toEqual(['turn-1']);
   });
 
-  test('normalizes turn refs inferred from message updates and ignores blanks', () => {
+  test('indexes exact turn refs inferred from message updates and ignores blanks', () => {
     addMessageToChatStore({
       id: 'message-1',
       sender: 'assistant',
@@ -50,9 +50,10 @@ describe('chatStore turn conversation refs', () => {
     expect(resolveRendererConversationRefForTurn('')).toBeNull();
     expect(getRendererTurnConversationRefsSnapshot()).toEqual({});
 
-    updateMessageInChatStore('message-1', { turnRef: ' turn-2 ' }, 'conv-a');
+    updateMessageInChatStore('message-1', { turnRef: 'turn-2' }, 'conv-a');
 
     expect(resolveRendererConversationRefForTurn('turn-2')).toBe('conv-a');
+    expect(resolveRendererConversationRefForTurn(' turn-2 ')).toBeNull();
     expect(Object.keys(getRendererTurnConversationRefsSnapshot())).toEqual(['turn-2']);
   });
 });

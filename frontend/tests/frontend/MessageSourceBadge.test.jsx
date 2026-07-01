@@ -28,13 +28,19 @@ describe('MessageSourceBadge', () => {
           sourceChannel: 'sdk:conversation-event',
           text: 'short',
           fullUserMessage: { content: '12345678' },
-          screenshotRef: 'shot-1',
+          attachments: [{
+            id: 'attachment-shot-1',
+            kind: 'image',
+            source: 'camera_button',
+            status: 'ready',
+            screenshotRef: 'shot-1',
+          }],
         }}
       />,
     );
 
     expect(screen.getByText(
-      'user message / sdk:conversation-event / tokens~ txt:2 img(est):85 total:87',
+      'user message / sdk:conversation-event / tokens~ txt:2',
     )).toBeInTheDocument();
   });
 

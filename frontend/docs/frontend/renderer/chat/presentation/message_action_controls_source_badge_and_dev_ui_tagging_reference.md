@@ -36,6 +36,19 @@ retry/edit controls through
 `DesktopMessageActionRuntime.resolveMessageReplayActions(message)` instead of
 parsing `actions.canRetry`, `actions.canEdit`, `retryTargetRowId`, or
 `editTargetRowId` inline.
+Replay actions fail closed unless the SDK row provides both the availability
+boolean and the corresponding target row id. Renderer presentation code must
+not recover missing `retryTargetRowId` or `editTargetRowId` from the rendered
+message id, and projection drops replay metadata attached to the wrong row kind
+instead of moving it to another message. Projection only accepts edit actions
+from SDK user display rows and retry actions from SDK assistant display rows;
+tool/progress rows drop replay action metadata even when malformed SDK-like
+payloads include it. Component props keep those targets named as row ids while
+passing them to replay callbacks. Low-level
+assistant/user action components also resolve their target ids through
+`DesktopMessageActionRuntime.resolveReplayTargetRowId(...)`, so direct renders
+with missing, padded, or empty SDK targets fail closed before showing replay
+controls.
 
 Assistant action row render conditions:
 
@@ -52,7 +65,8 @@ User action row render conditions:
 Inline user editor behavior:
 
 - opens from `UserMessageActions` edit button
-- submit path trims draft and no-ops on empty
+- submit path forwards the draft text unchanged; SDK replay commands own
+  normalization and empty-text rejection
 - cancel path closes editor without callback dispatch
 - light appearance routes the editor surface, draft text, and secondary action
   button through appearance foreground/background tokens so edit/resend visuals
@@ -83,7 +97,9 @@ Buttons:
 Behavior:
 
 - copy uses same shared hook contract as assistant row
-- edit forwards `(messageId, messageText)` to parent, which opens inline edit composer in `MessageList`
+- edit forwards `(messageId, messageText, editTargetRowId)` to parent; `MessageList`
+  uses the visible message id only for inline editor state and sends the SDK row
+  target id to replay callbacks
 
 ## Shared Copy Hook Contract (`useCopyMessageAction`)
 
@@ -147,9 +163,8 @@ Per-message token telemetry tag:
   `DesktopMessageTokenUsageRuntime.resolveMessageTokenUsageTag(message)` output
   when present.
 - tags are intentionally approximate (`tokens~ ...`) and currently emitted for:
-  - user rows: `txt:<n> img(est):<n> total:<n>`
+  - user rows: `txt:<n>`
     - text source precedence: `fullUserMessage.content` -> `message.text`
-    - image estimate: `85` tokens per screenshot attachment
   - tool rows (`tool-call`, `tool-output`): `tokens~ <n>` from model-facing payload text.
 
 `DesktopDevUiRuntime.isDevUiEnabled()` contract:
@@ -163,7 +178,7 @@ Per-message token telemetry tag:
 
 - assistant copy/like/dislike/try-again controls appear for assistant `llm-text` rows
 - assistant controls do not appear for `tool-call` / `tool-output` rows
-- try-again callback receives assistant message id
+- try-again callback receives the SDK retry target row id from row action metadata
 - copy success icon/title reverts after 4-second timer
 - user edit flow opens inline composer and dispatches edited message
 - user cancel closes editor without callback

@@ -17,18 +17,44 @@ const {
   invokeAgentSdkCommand,
 } = AgentSdkCommandInvokeClient;
 
+const INVALID_QUERY_MESSAGE_ID_ERROR = 'conversation.send requires an exact query_message_id when a caller provides one';
+
 function optionalString(value: unknown): string | null {
   return normalizeNonEmptyString(value);
 }
 
-function optionalStringArray(value: unknown): string[] | null {
+function optionalExactString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
+function hasOwnField(payload: Record<string, unknown>, field: string): boolean {
+  return Object.prototype.hasOwnProperty.call(payload, field);
+}
+
+function optionalExactStringArray(value: unknown): string[] | null {
   if (!Array.isArray(value)) {
     return null;
   }
-  const normalized = value
-    .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
-    .map((entry) => entry.trim());
-  return normalized.length > 0 ? normalized : null;
+  const exact = value.filter((entry): entry is string => (
+    typeof entry === 'string'
+    && entry.length > 0
+    && entry === entry.trim()
+  ));
+  return exact.length > 0 ? exact : null;
+}
+
+function optionalJsonRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function optionalAttachmentContext(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0
+    ? value
+    : null;
 }
 
 function rejectRemovedCamelCaseFields(
@@ -40,6 +66,19 @@ function rejectRemovedCamelCaseFields(
   if (present.length > 0) {
     throw new Error(
       `${owner} received removed camelCase field(s): ${present.join(', ')}. Use canonical snake_case fields.`,
+    );
+  }
+}
+
+function rejectDisplayAttachmentLifecycleFields(
+  payload: Record<string, unknown>,
+  fields: string[],
+  owner: string,
+): void {
+  const present = fields.filter((field) => Object.prototype.hasOwnProperty.call(payload, field));
+  if (present.length > 0) {
+    throw new Error(
+      `${owner} received SDK display attachment field(s): ${present.join(', ')}. Send typed resources and let SDK projection own attachment lifecycle.`,
     );
   }
 }
@@ -68,9 +107,18 @@ async function sendQuery(
     'queryMessageId',
     'messageId',
   ], 'conversation.send');
-  const removedSnakeCaseFields = ['message_id'].filter((field) => (
-    Object.prototype.hasOwnProperty.call(payload, field)
-  ));
+  rejectDisplayAttachmentLifecycleFields(payload, [
+    'attachments',
+    'display_attachments',
+    'displayAttachments',
+    'displayAttachment',
+    'display_attachment',
+    'displayAttachmentId',
+    'display_attachment_id',
+    'previewSrc',
+    'preview_src',
+  ], 'conversation.send');
+  const removedSnakeCaseFields = ['message_id'].filter((field) => hasOwnField(payload, field));
   if (removedSnakeCaseFields.length > 0) {
     throw new Error(
       `conversation.send received removed field(s): ${removedSnakeCaseFields.join(', ')}. Use query_message_id.`,
@@ -79,26 +127,29 @@ async function sendQuery(
   if (Object.prototype.hasOwnProperty.call(payload, 'id')) {
     throw new Error('conversation.send received removed id field. Use query_message_id.');
   }
+  const hasMessageId = messageId !== null && messageId !== undefined;
+  const queryMessageId = optionalExactString(messageId);
+  if (hasMessageId && !queryMessageId) {
+    throw new Error(INVALID_QUERY_MESSAGE_ID_ERROR);
+  }
   const result = await invokeAgentSdkCommand<Record<string, unknown> | null>(
     SDK_RUNTIME_COMMANDS.CONVERSATION_SEND,
     {
       text: optionalString(payload.text) ?? '',
       conversation_ref: optionalString(payload.conversation_ref) ?? '',
-      query_message_id: messageId,
-      screenshot_ref: optionalString(payload.screenshot_ref) ?? null,
-      screenshot_url: optionalString(payload.screenshot_url) ?? null,
-      screenshot_refs: optionalStringArray(payload.screenshot_refs) ?? null,
-      capture_meta: payload.capture_meta ?? null,
-      attachment_context: optionalString(payload.attachment_context) ?? null,
-      attachment_filenames: optionalStringArray(payload.attachment_filenames) ?? null,
+      query_message_id: queryMessageId,
+      screenshot_ref: optionalExactString(payload.screenshot_ref),
+      screenshot_url: optionalExactString(payload.screenshot_url),
+      screenshot_refs: optionalExactStringArray(payload.screenshot_refs),
+      capture_meta: optionalJsonRecord(payload.capture_meta),
+      attachment_context: optionalAttachmentContext(payload.attachment_context),
+      attachment_filenames: optionalExactStringArray(payload.attachment_filenames),
       workspace_path: optionalString(payload.workspace_path) ?? workspacePath ?? null,
       memory_retrieval_enabled: DesktopMemoryRetrievalPreferenceRuntime.getMemoryRetrievalInjectionEnabled(),
     },
   );
   if (result && typeof result === 'object' && result.ok === false) {
-    const message = typeof result.error === 'string' && result.error.trim().length > 0
-      ? result.error
-      : 'Failed to send query through agent runtime';
+    const message = optionalExactString(result.error) ?? 'Failed to send query through agent runtime';
     throw new Error(message);
   }
   if (
@@ -106,9 +157,10 @@ async function sendQuery(
     && typeof result === 'object'
     && 'messageId' in result
     && typeof result.messageId === 'string'
-    && result.messageId.trim().length > 0
+    && result.messageId.length > 0
+    && result.messageId === result.messageId.trim()
   ) {
-    return result.messageId.trim();
+    return result.messageId;
   }
   return messageId;
 }
@@ -157,7 +209,7 @@ function createDesktopRuntimeTransport(workspacePath: string | null = null): Age
     connect: async () => undefined,
     handshake: async () => undefined,
     sendQuery: async (payload, options = {}) => {
-      const messageId = optionalString(options.messageId);
+      const messageId = options.messageId ?? null;
       return await sendQuery(payload, normalizedWorkspacePath, messageId) ?? '';
     },
     sendToolResult: async () => undefined,
@@ -183,9 +235,19 @@ function createDesktopRuntimeTransport(workspacePath: string | null = null): Age
     },
     stop: async (payload) => {
       rejectRemovedCamelCaseFields(payload, ['conversationRef', 'turnRef'], 'conversation.stop');
+      const hasConversationRef = hasOwnField(payload, 'conversation_ref');
+      const hasTurnRef = hasOwnField(payload, 'turn_ref');
+      const conversationRef = optionalExactString(payload.conversation_ref);
+      const turnRef = optionalExactString(payload.turn_ref);
+      if (
+        (hasConversationRef && payload.conversation_ref != null && !conversationRef)
+        || (hasTurnRef && payload.turn_ref != null && !turnRef)
+      ) {
+        return;
+      }
       await sendStopQuery(
-        optionalString(payload.conversation_ref),
-        optionalString(payload.turn_ref),
+        conversationRef,
+        turnRef,
       );
     },
     subscribe: () => () => undefined,

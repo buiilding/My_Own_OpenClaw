@@ -105,6 +105,9 @@ The chat pill is the small always-available desktop command surface. It is rende
   `DesktopChatPillSessionRuntime` from SDK response entries, SDK overlay intent,
   visible lifecycle, or the pending bridge. React hooks pass those surface
   inputs through instead of rebuilding their own turn-ref fallback chains.
+  The pill session runtime accepts `ConversationView` trace input only through
+  the shared workspace view gate, so partial view-shaped objects remain on the
+  no-view SDK live-turn fallback path.
 - `prime-response-overlay-awaiting` / `renderer-send-preflight` are removed from
   the current send preflight path. The first native response window show for
   typing still comes from the renderer's measured `set-responsebox-size` report,

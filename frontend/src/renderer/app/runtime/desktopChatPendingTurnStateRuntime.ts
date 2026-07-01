@@ -116,20 +116,22 @@ const {
   buildPendingTurnUserMessage,
 } = DesktopPendingTurnBridgeRuntime;
 
-function normalizeConversationRef(conversationRef?: string | null): string | null {
-  if (typeof conversationRef !== 'string') {
-    return null;
-  }
-  const normalizedConversationRef = conversationRef.trim();
-  return normalizedConversationRef.length > 0 ? normalizedConversationRef : null;
+function readExactIdentityString(value?: string | null): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
-function normalizeTurnRef(turnRef?: string | null): string | null {
-  if (typeof turnRef !== 'string') {
-    return null;
-  }
-  const normalizedTurnRef = turnRef.trim();
-  return normalizedTurnRef.length > 0 ? normalizedTurnRef : null;
+const PENDING_TURN_FIELDS = new Set([
+  'conversationRef',
+  'text',
+  'timestamp',
+  'turnRef',
+  'userMessageId',
+]);
+
+function hasOnlyPendingTurnFields(source: Record<string, unknown>): boolean {
+  return Object.keys(source).every((key) => PENDING_TURN_FIELDS.has(key));
 }
 
 function normalizePendingTurn(value: unknown): DesktopPendingTurnState | null {
@@ -137,11 +139,12 @@ function normalizePendingTurn(value: unknown): DesktopPendingTurnState | null {
     return null;
   }
   const source = value as Record<string, unknown>;
-  const conversationRef = normalizeConversationRef(source.conversationRef as string | null | undefined);
-  const turnRef = normalizeTurnRef(source.turnRef as string | null | undefined);
-  const userMessageId = typeof source.userMessageId === 'string' && source.userMessageId.trim()
-    ? source.userMessageId.trim()
-    : null;
+  if (!hasOnlyPendingTurnFields(source)) {
+    return null;
+  }
+  const conversationRef = readExactIdentityString(source.conversationRef as string | null | undefined);
+  const turnRef = readExactIdentityString(source.turnRef as string | null | undefined);
+  const userMessageId = readExactIdentityString(source.userMessageId as string | null | undefined);
   const text = typeof source.text === 'string' ? source.text : null;
   const timestamp = typeof source.timestamp === 'string' && source.timestamp.trim()
     ? source.timestamp
@@ -168,8 +171,20 @@ function doesPendingTurnMatch(
   if (!input) {
     return true;
   }
-  const conversationRef = normalizeConversationRef(input.conversationRef);
-  const turnRef = normalizeTurnRef(input.turnRef);
+  const hasConversationRefFilter = Object.prototype.hasOwnProperty.call(input, 'conversationRef')
+    && input.conversationRef !== null
+    && input.conversationRef !== undefined;
+  const hasTurnRefFilter = Object.prototype.hasOwnProperty.call(input, 'turnRef')
+    && input.turnRef !== null
+    && input.turnRef !== undefined;
+  const conversationRef = readExactIdentityString(input.conversationRef);
+  const turnRef = readExactIdentityString(input.turnRef);
+  if (
+    (hasConversationRefFilter && !conversationRef)
+    || (hasTurnRefFilter && !turnRef)
+  ) {
+    return false;
+  }
   return (
     (!conversationRef || pendingTurn.conversationRef === conversationRef)
     && (!turnRef || pendingTurn.turnRef === turnRef)
@@ -278,7 +293,7 @@ function buildClearPendingTurnStateUpdate<
   input = null,
   state,
 }: ClearPendingTurnStateUpdateInput<TState, TWorkspace>): Partial<TState> | TState | null {
-  const conversationRef = normalizeConversationRef(input?.conversationRef);
+  const conversationRef = readExactIdentityString(input?.conversationRef);
   const workspaceRef = deps.resolveWorkspaceKey(conversationRef, state.activeConversationRef);
   const currentWorkspace = deps.readWorkspaceState(state, workspaceRef);
   const nextWorkspace = buildPendingTurnClearWorkspaceMutation({

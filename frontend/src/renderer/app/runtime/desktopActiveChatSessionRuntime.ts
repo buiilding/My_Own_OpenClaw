@@ -19,6 +19,12 @@ type ResetActiveChatSessionOptions = {
   setChatActiveConversationRef?: (conversationRef: string | null) => void;
 };
 
+function readExactConversationRef(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 const resetActiveChatSession = ({
   conversationRef = null,
   userId,
@@ -27,7 +33,7 @@ const resetActiveChatSession = ({
   setTokenCounts,
   setChatActiveConversationRef,
 }: ResetActiveChatSessionOptions): void => {
-  const targetConversationRef = conversationRef || null;
+  const targetConversationRef = readExactConversationRef(conversationRef);
 
   applyRendererConversationSelection({
     conversationRef: null,

@@ -5,14 +5,26 @@
 import {
   DesktopChatWorkspaceStateRuntime,
 } from './desktopChatWorkspaceStateRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
+import {
+  DesktopChatPendingTurnStateRuntime,
+} from './desktopChatPendingTurnStateRuntime';
 
 const {
   buildNoViewSdkLiveTurnStorageUpdate,
   readNoViewSdkLiveTurnStorage,
 } = DesktopChatWorkspaceStateRuntime;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
+const {
+  normalizePendingTurn,
+} = DesktopChatPendingTurnStateRuntime;
 
-function normalizeRef(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+function readExactNonEmptyRef(value) {
+  return typeof value === 'string' && value && value.trim() === value ? value : null;
 }
 
 function buildStopQueryTrackingPatch(stoppedAt) {
@@ -68,33 +80,36 @@ function doesSdkLiveTurnMatch(sdkLiveTurn, input = null) {
   if (!sdkLiveTurn || !input) {
     return false;
   }
-  const conversationRef = normalizeRef(input.conversationRef);
-  const turnRef = normalizeRef(input.turnRef);
-  const sdkLiveTurnConversationRef = normalizeRef(sdkLiveTurn.conversationRef);
-  const sdkLiveTurnRef = normalizeRef(sdkLiveTurn.turnRef);
+  const conversationRef = readExactNonEmptyRef(input.conversationRef);
+  const turnRef = readExactNonEmptyRef(input.turnRef);
+  const sdkLiveTurnConversationRef = readExactNonEmptyRef(sdkLiveTurn.conversationRef);
+  const sdkLiveTurnRef = readExactNonEmptyRef(sdkLiveTurn.turnRef);
   return (
-    (!conversationRef || sdkLiveTurnConversationRef === conversationRef)
-    && (!turnRef || sdkLiveTurnRef === turnRef)
+    Boolean(conversationRef && turnRef)
+    && sdkLiveTurnConversationRef === conversationRef
+    && sdkLiveTurnRef === turnRef
   );
 }
 
 function doesPendingTurnMatch(pendingTurn, input = null) {
-  if (!pendingTurn) {
+  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
+  if (!normalizedPendingTurn) {
     return false;
   }
   if (!input) {
     return true;
   }
-  const conversationRef = normalizeRef(input.conversationRef);
-  const turnRef = normalizeRef(input.turnRef);
+  const conversationRef = readExactNonEmptyRef(input.conversationRef);
+  const turnRef = readExactNonEmptyRef(input.turnRef);
   return (
-    (!conversationRef || normalizeRef(pendingTurn.conversationRef) === conversationRef)
-    && (!turnRef || normalizeRef(pendingTurn.turnRef) === turnRef)
+    Boolean(conversationRef && turnRef)
+    && normalizedPendingTurn.conversationRef === conversationRef
+    && normalizedPendingTurn.turnRef === turnRef
   );
 }
 
-function hasConversationView(value) {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+function isSdkConversationView(conversationView) {
+  return hasWorkspaceConversationView({ conversationView });
 }
 
 function resolveStoppedAt(stoppedAt) {
@@ -114,11 +129,14 @@ function buildStoppedTurnWorkspaceMutation({
     return null;
   }
   const target = {
-    conversationRef: normalizeRef(conversationRef),
-    turnRef: normalizeRef(turnRef),
+    conversationRef: readExactNonEmptyRef(conversationRef),
+    turnRef: readExactNonEmptyRef(turnRef),
   };
-  const hasWorkspaceConversationView = hasConversationView(currentWorkspace.conversationView);
-  const workspaceSdkLiveTurn = hasWorkspaceConversationView
+  if (!target.conversationRef || !target.turnRef) {
+    return null;
+  }
+  const hasSdkConversationView = hasWorkspaceConversationView(currentWorkspace);
+  const workspaceSdkLiveTurn = hasSdkConversationView
     ? null
     : readNoViewSdkLiveTurnStorage(currentWorkspace);
   const isWorkspaceSdkLiveTurnTarget = doesSdkLiveTurnMatch(workspaceSdkLiveTurn, target);
@@ -138,7 +156,7 @@ function buildStoppedTurnWorkspaceMutation({
   const nextStoppedAt = resolveStoppedAt(stoppedAt);
   const nextWorkspace = buildNoViewSdkLiveTurnStorageUpdate(
     currentWorkspace,
-    hasWorkspaceConversationView ? null : nextSdkLiveTurn,
+    hasSdkConversationView ? null : nextSdkLiveTurn,
   );
   return {
     ...nextWorkspace,
@@ -161,8 +179,11 @@ function buildAcceptStoppedTurnStateUpdate({
   if (!deps || !state) {
     return null;
   }
-  const conversationRef = normalizeRef(input?.conversationRef);
-  const turnRef = normalizeRef(input?.turnRef);
+  const conversationRef = readExactNonEmptyRef(input?.conversationRef);
+  const turnRef = readExactNonEmptyRef(input?.turnRef);
+  if (!conversationRef || !turnRef) {
+    return null;
+  }
   const workspaceRef = deps.resolveWorkspaceKey(conversationRef, state.activeConversationRef);
   const currentWorkspace = deps.readWorkspaceState(state, workspaceRef);
   const nextWorkspace = buildStoppedTurnWorkspaceMutation({
@@ -185,13 +206,14 @@ function buildStopTurnExecutionPlan(stopTarget = null) {
   const target = stopTarget && typeof stopTarget === 'object'
     ? stopTarget
     : {};
-  const conversationRef = normalizeRef(target.conversationRef);
-  const turnRef = normalizeRef(target.turnRef);
+  const conversationRef = readExactNonEmptyRef(target.conversationRef);
+  const turnRef = readExactNonEmptyRef(target.turnRef);
+  const canStop = target.canStop === true && Boolean(conversationRef && turnRef);
   return {
-    canStop: target.canStop === true,
+    canStop,
     conversationRef,
     turnRef,
-    shouldClearPendingBridge: isStopTurnTargetFromPendingTurn(target),
+    shouldClearPendingBridge: canStop && isStopTurnTargetFromPendingTurn(target),
   };
 }
 
@@ -238,80 +260,66 @@ function executeStopTurnExecutionPlan({
   return true;
 }
 
-function isPendingTurn(value) {
+function isStoppableConversationView(conversationView) {
   return Boolean(
-    value
-      && typeof value === 'object'
-      && normalizeRef(value.conversationRef)
-      && normalizeRef(value.turnRef)
+    isSdkConversationView(conversationView)
+      && conversationView.liveTurn?.canStop === true
+      && readExactNonEmptyRef(conversationView.conversationRef)
+      && readExactNonEmptyRef(conversationView.liveTurn?.turnRef)
   );
 }
 
-function isStoppableConversationView(conversationView) {
+function pendingTurnMatchesConversationView(conversationView, pendingTurn) {
+  const viewConversationRef = readExactNonEmptyRef(conversationView?.conversationRef);
+  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
   return Boolean(
-    conversationView
-      && typeof conversationView === 'object'
-      && conversationView.liveTurn?.canStop === true
-      && normalizeRef(conversationView.conversationRef)
-      && normalizeRef(conversationView.liveTurn?.turnRef)
+    viewConversationRef
+      && normalizedPendingTurn
+      && normalizedPendingTurn.conversationRef === viewConversationRef,
   );
 }
 
 function resolveStopTurnTarget({
   conversationView = null,
   pendingTurn = null,
-  conversationRef = null,
 } = {}) {
   if (isStoppableConversationView(conversationView)) {
     return {
       source: 'conversation-view',
-      conversationRef: normalizeRef(conversationView.conversationRef),
-      turnRef: normalizeRef(conversationView.liveTurn?.turnRef),
+      conversationRef: readExactNonEmptyRef(conversationView.conversationRef),
+      turnRef: readExactNonEmptyRef(conversationView.liveTurn?.turnRef),
       canStop: true,
     };
   }
 
-  if (conversationView && typeof conversationView === 'object') {
-    if (isPendingTurn(pendingTurn)) {
+  if (isSdkConversationView(conversationView)) {
+    if (pendingTurnMatchesConversationView(conversationView, pendingTurn)) {
+      const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
       return {
         source: 'pending-turn',
-        conversationRef: normalizeRef(pendingTurn.conversationRef),
-        turnRef: normalizeRef(pendingTurn.turnRef),
+        conversationRef: normalizedPendingTurn.conversationRef,
+        turnRef: normalizedPendingTurn.turnRef,
         canStop: true,
       };
     }
-    return {
-      source: 'idle',
-      conversationRef: normalizeRef(conversationView.conversationRef) || normalizeRef(conversationRef),
-      turnRef: normalizeRef(conversationView.liveTurn?.turnRef),
-      canStop: false,
-    };
+    return null;
   }
 
-  if (isPendingTurn(pendingTurn)) {
+  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
+  if (normalizedPendingTurn) {
     return {
       source: 'pending-turn',
-      conversationRef: normalizeRef(pendingTurn.conversationRef),
-      turnRef: normalizeRef(pendingTurn.turnRef),
+      conversationRef: normalizedPendingTurn.conversationRef,
+      turnRef: normalizedPendingTurn.turnRef,
       canStop: true,
     };
   }
 
-  const fallbackConversationRef = normalizeRef(conversationRef);
-  return {
-    source: 'idle',
-    conversationRef: fallbackConversationRef,
-    turnRef: null,
-    canStop: false,
-  };
+  return null;
 }
 
 export const DesktopStopTurnRuntime = Object.freeze({
   buildAcceptStoppedTurnStateUpdate,
-  buildStopQueryTrackingPatch,
-  buildStopTurnExecutionPlan,
-  buildStoppedTurnWorkspaceMutation,
-  buildStoppedSdkLiveTurn,
   executeStopTurnExecutionPlan,
   resolveStopTurnTarget,
 });

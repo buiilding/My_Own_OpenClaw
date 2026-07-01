@@ -29,13 +29,11 @@ const {
 } = DesktopRendererTraceRuntime;
 const {
   buildResponseOverlayTraceSummary,
+  buildResponseOverlayTypingRenderedTraceValues,
 } = DesktopResponseOverlayViewRuntime;
 
 function MinimalResponseOverlay() {
   const chatSurfaceState = useChatStore(useShallow(selectLiveTurnSurfaceState));
-  const {
-    messages,
-  } = chatSurfaceState;
   const shellRef = useRef(null);
   const responseboxHitTestActiveRef = useRef(null);
   const lastLoggedSurfaceStateRef = useRef('');
@@ -71,8 +69,8 @@ function MinimalResponseOverlay() {
     responseEntrySignature,
   });
   const conversationToolSchemas = useMemo(
-    () => DesktopMessageTransparencyRuntime.resolveConversationToolSchemas(messages),
-    [messages],
+    () => DesktopMessageTransparencyRuntime.resolveConversationToolSchemas(responseOverlayEntries),
+    [responseOverlayEntries],
   );
 
   useResponseOverlayWindowSync({
@@ -118,18 +116,17 @@ function MinimalResponseOverlay() {
       return;
     }
     lastRenderedTypingVisibleRef.current = typingRendered;
-    logRendererResponseOverlayTypingRenderedTrace({
+    logRendererResponseOverlayTypingRenderedTrace(buildResponseOverlayTypingRenderedTraceValues({
       typingRendered,
-      turnRef: currentTurnId,
-      phase: currentTurnPhase,
-      currentTurnId,
+      turnId: currentTurnId,
+      currentTurnPhase,
       overlayIntent,
       overlayLayoutMode,
       isVisible,
       awaitingVisible,
       responseVisible,
       responseOverlayEntryCount,
-    });
+    }));
   }, [
     currentTurnId,
     currentTurnPhase,
@@ -151,7 +148,7 @@ function MinimalResponseOverlay() {
         text: latestResponseText,
         type: latestResponseType,
       },
-      messageCount: messages.length,
+      messageCount: responseOverlayEntryCount,
       overlayLayoutMode,
       responseOverlayEntryCount,
       responseVisible,
@@ -171,7 +168,6 @@ function MinimalResponseOverlay() {
     latestResponseOverlayEntryId,
     latestResponseText,
     latestResponseType,
-    messages.length,
     responseOverlayEntryCount,
     awaitingVisible,
     responseVisible,

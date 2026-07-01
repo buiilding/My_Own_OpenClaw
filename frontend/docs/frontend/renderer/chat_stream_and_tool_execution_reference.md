@@ -56,7 +56,12 @@ Ownership boundaries:
 
 - `AppConfigProvider`: persisted config, model-list fetch trigger, runtime settings sync, wakeword preference/suppression state
 - `AppStatusProvider`: transient settings-save status (`idle/saving/success/error`) with timeout-based transitions
-- `ChatProvider`: mounts `useChatStream`, mirrors transcript session `conversationRef` into chat-store `activeConversationRef`, and wires the active workspace read model into renderer trace transport through chat-store adapter getters. `DesktopChatProviderTraceRuntime` owns the ConversationView-first trace snapshot summary so the provider does not inspect display rows, raw messages, or raw Zustand workspace state directly. Local tool execution is owned by the Agent SDK runtime.
+- `ChatProvider`: mounts `useChatStream`, mirrors transcript session `conversationRef` into chat-store `activeConversationRef`, and wires the active workspace read model into renderer trace transport through chat-store adapter getters. `DesktopChatProviderTraceRuntime` owns the ConversationView-first trace snapshot summary so the provider does not inspect display rows, raw messages, or raw Zustand workspace state directly; once a `ConversationView` exists, stale raw messages and stream-tracking turn refs are not trace fallback evidence. No-view diagnostic trace refs and source labels are exact-only, so padded raw values are dropped instead of trimmed into trace identity. Local tool execution is owned by the Agent SDK runtime.
+- Chat stream and current-turn projection hooks receive projected workspace
+  state through purpose-named chat-store adapter getters and runtime dependency
+  names, not a production export of the generic projected workspace helper.
+  This keeps each hook tied to its owning runtime boundary: stream event
+  handling or SDK current-turn projection.
 
 ## Chat Message and Store Contracts
 
@@ -136,20 +141,24 @@ the renderer through SDK `ConversationView`; the `windie:rows` channel remains
 an Electron IPC compatibility/diagnostic transport, not a normal chat render
 subscription.
 When Electron main includes `view` on a `windie:current-turn` envelope, the
-renderer must preserve that `ConversationView` in the normalized event and store
-it in the target chat workspace before applying no-view current-turn side
-effects. Retry and edit/resend live updates depend on that envelope; dropping
-the view leaves only the local pending bridge visible after the raw display-row
-stream subscription has been removed.
+renderer must first accept it through the shared complete `ConversationView`
+gate, preserve that `ConversationView` in the normalized event, and store it in
+the target chat workspace before applying no-view current-turn side effects.
+Retry and edit/resend live updates depend on that envelope; dropping the view
+leaves only the local pending bridge visible after the raw display-row stream
+subscription has been removed.
 
-Replay diagnostics use the same projection-stream helper. Replay intent runtime
-passes old/new turn refs into `buildReplayProjectionTracePayload(...)` and logs
-the resulting summary; it should not read raw current-turn, pending-turn, stream
-tracking, or message-count fields itself. Once `ConversationView` exists, that
-helper reports trace current-turn identity from `ConversationView.liveTurn` and
-uses that live-turn ref as the trace active turn while counting `displayRows`;
-raw `chatStore.messages`, `currentTurnProjection`, and stream-tracking active
-turn refs remain no-view diagnostic fallbacks only.
+Projection-stream diagnostics use `buildReplayProjectionTracePayload(...)` for
+stale-turn and replay-projection summaries; command replay itself no longer
+reads projected workspace state. Once `ConversationView` exists, projection
+diagnostics report trace current-turn identity from `ConversationView.liveTurn`
+and use that live-turn ref and phase as the trace active turn/phase while
+counting `displayRows`; raw `chatStore.messages`, `currentTurnProjection`, and
+stream-tracking active turn refs/phases remain no-view diagnostic fallbacks
+only.
+The chat-stream stale-turn read model carries that view identity as
+`viewLiveTurnRef` rather than a partial `conversationView` object; stream guards
+do not publish or consume renderer-local view shapes.
 
 Renderer-only feedback is merged back into matching SDK-projected messages by
 `desktopConversationDisplayProjection.ts`; prompt transparency, tool schemas,
@@ -177,6 +186,9 @@ Conversation-stream sub-handlers resolve event identity through
 The dispatcher, ingress runtime, compaction, local-user, metadata, and terminal
 handlers consume that runtime-built conversation ref, turn ref, and update-target
 turn ref object instead of unpacking SDK event identity fields independently.
+The runtime accepts only exact non-empty `conversationRef` and `turnRef` values;
+padded refs are dropped so malformed SDK event identity cannot route workspace
+updates, stale-turn checks, or metadata row targeting.
 Low-level conversation-ref and turn-ref helpers stay internal to
 `DesktopChatStreamEventRuntime`; renderer consumers should not import or
 destructure them from the facade.
@@ -184,6 +196,11 @@ Stale-turn gating uses
 `DesktopChatStreamEventRuntime.shouldIgnoreConversationEventIdentityForStaleTurn(...)`
 with the runtime-built event identity object; hooks should not pass raw event
 turn-ref shapes into stale-turn checks.
+The hook passes `getChatStreamWorkspaceReadModelFromChatStore` through
+purpose-named `getChatStreamWorkspaceReadModel` dependencies as the only
+workspace reader for stream stale-turn, thinking-source, and completion
+handlers; broad projected workspace helper access stays private to the
+chat-store adapter module.
 Chat-stream message target construction also stays in
 `DesktopChatStreamMessageUpdateRuntime`. Hooks pass the runtime-built event
 identity object into that facade instead of assembling `last_by_sender` or
@@ -238,16 +255,24 @@ Turn-completion handlers call
 `DesktopChatStreamEventRuntime.resolveTurnCompletedStreamEventState(...)` for
 resolved conversation identity, turn identity, and terminal tracking decisions;
 hooks should not read workspace stream state directly to make that decision.
+`useChatStream` supplies the projected chat workspace read model to this
+runtime, so an SDK `ConversationView` suppresses raw stream-tracking fallback
+state before terminal completion decides whether to record side effects.
 Compaction handlers similarly read the current thinking source through
 `DesktopChatStreamEventRuntime.resolveWorkspaceThinkingSourceEventType(...)`;
-the hook wires store access as an adapter dependency and does not dereference
-workspace thinking fields inline.
+the hook wires the same projected read-model adapter dependency and does not
+dereference workspace thinking fields inline. With a `ConversationView`, raw
+thinking-source state remains a no-view fallback instead of a competing stream
+authority.
 SDK conversation-event stale-turn gating also belongs to
 `DesktopChatStreamEventRuntime`: it resolves active turn identity from
 `ConversationView.liveTurn.turnRef` first and uses raw `streamTracking` only as
-the no-view fallback so stale renderer stream tracking cannot reject the
-SDK-owned live turn. Terminal completion tracking uses the same view-first
-turn identity before falling back to raw complete-state/pending-bridge checks.
+the no-view fallback. The hook passes the projected read model into that guard,
+so stale renderer stream tracking cannot reject the SDK-owned live turn.
+Terminal completion tracking uses the same view-first turn identity before
+falling back to raw complete-state/pending-bridge checks.
+Those comparisons use exact refs only; padded view, event, pending, or
+stream-tracking refs are not repaired into a match.
 
 ### Removed Chat Stream Transparency and Thinking Helper Paths
 
@@ -370,6 +395,11 @@ SDK dispatch behavior:
   - the renderer consumes SDK presentation entries directly. It keeps `llm-thought` as the UI/tracking source label, but does not fall back to backend-wire `llm-thought` payloads.
 - SDK presentation `llm-text` entries from the conversation runtime projection: dashboard and response overlay render live assistant text from the projection, while the projection listener clears the send latch and records `streaming-response` chunk tracking
   - backend-wire `streaming-response` and normalized SDK `assistant_delta` are not live-row fallbacks in renderer chat code.
+- SDK presentation tool/progress entries from the conversation runtime
+  projection: response overlay renders tool explanations and web-search
+  progress only from SDK presentation entries or `ConversationView` live
+  entries. Raw chat-store tool rows and raw no-view `toolEvents` do not create
+  overlay tool/progress display before the SDK presentation arrives.
 - SDK `currentTurn.phase` from the conversation runtime projection: records terminal `streaming-complete`/`error` tracking and clears transient send/thinking state for `complete` and `error`
   - benign settings-update errors and recoverable streamed tool-call parse errors are filtered before they become SDK current-turn terminal errors.
   - dashboard and minimal chat pill busy/typing/stop state resolve from SDK
@@ -382,7 +412,10 @@ SDK dispatch behavior:
 - SDK `compaction_started` from backend `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
 - SDK `compaction_applied` from backend `context-compaction-completed`: replaces in-progress compaction thinking with a terminal `Conversation history compacted.` status and marks source as `context-compaction-completed`
   - in dev UI, also stores compaction debug payload including the full summary text plus the replacement-history preview (summary message + kept tail messages)
-  - when SDK payload includes replacement history, builds a compacted replay snapshot from the SDK event and persists it through the renderer app-runtime facade instead of unwrapping a backend-wire event
+  - when SDK payload includes replacement history and SDK/event revision identity,
+    builds a compacted replay snapshot from the SDK event and persists it
+    through the renderer app-runtime facade instead of unwrapping a backend-wire
+    event or synthesizing renderer-owned revision ids
 - SDK `compaction_skipped` from backend `context-compaction-completed` with `skipped_reason`: clears only an active compaction status/debug payload. It does not render a compacted-history panel, persist replay rows, or clear unrelated active thinking/tool state.
 - SDK `compaction_failed` from backend `context-compaction-failed`: replaces compaction thinking with terminal failure text (backend error string when available, otherwise `Conversation compaction failed.`) and marks source as `context-compaction-failed`
 - SDK presentation tool entries from the conversation runtime projection:
@@ -401,7 +434,10 @@ SDK dispatch behavior:
     `currentTurnProjection.toolEvents` follow the same rule: `toolName`,
     `requestId`, `correlationId`, bundle calls, metadata, and output text come
     from explicit SDK tool-event fields and projected detail objects instead of
-    raw `payload` or `structuredPayload` fallbacks.
+    raw `payload` or `structuredPayload` fallbacks. These legacy tool-event
+    rows do not project typed `attachments[]`; live attachment display comes
+    only from SDK presentation entries, `ConversationView.liveTurn.entries`, or
+    SDK display rows.
   - SDK rehydrate groups progress-only OpenAI native search rows into one
     synthetic SDK-normalized `web_search` tool-call/tool-output pair for later
     model history.

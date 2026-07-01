@@ -11,6 +11,12 @@ import {
 import {
   DesktopVisibleTurnLifecycleRuntime,
 } from './desktopVisibleTurnLifecycleRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
+import {
+  DesktopStopTurnRuntime,
+} from './desktopStopTurnRuntime';
 
 const {
   resolveCurrentTurnPresentationState,
@@ -22,9 +28,32 @@ const {
   applyVisibleTurnLifecycleToPresentationState,
   resolveVisibleTurnLifecycle,
 } = DesktopVisibleTurnLifecycleRuntime;
+const {
+  hasWorkspaceConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
+const {
+  resolveStopTurnTarget,
+} = DesktopStopTurnRuntime;
+
+const CONVERSATION_VIEW_LOOP_SURFACE_MODES = new Set(['idle', 'busy']);
 
 function isObject(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function readExactLoopSurfaceMode(value) {
+  return typeof value === 'string'
+    && value.length > 0
+    && value === value.trim()
+    && CONVERSATION_VIEW_LOOP_SURFACE_MODES.has(value)
+    ? value
+    : null;
+}
+
+function readExactSurfaceIdentity(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
 }
 
 function resolveSurfaceConversationRef({
@@ -33,9 +62,9 @@ function resolveSurfaceConversationRef({
   sessionConversationRef = null,
 } = {}) {
   return (
-    conversationView?.conversationRef
-    || sdkLiveTurn?.conversationRef
-    || sessionConversationRef
+    readExactSurfaceIdentity(conversationView?.conversationRef)
+    || readExactSurfaceIdentity(sdkLiveTurn?.conversationRef)
+    || readExactSurfaceIdentity(sessionConversationRef)
     || null
   );
 }
@@ -44,7 +73,7 @@ function resolveConversationViewSurfaceMode(conversationView, surfaceName) {
   if (!isObject(conversationView) || typeof surfaceName !== 'string' || !surfaceName) {
     return null;
   }
-  return conversationView?.surfaces?.[surfaceName]?.mode ?? null;
+  return readExactLoopSurfaceMode(conversationView?.surfaces?.[surfaceName]?.mode);
 }
 
 function buildChatSurfaceControllerState({
@@ -55,25 +84,26 @@ function buildChatSurfaceControllerState({
   sdkLiveTurn = null,
   sessionConversationRef = null,
 } = {}) {
-  const hasConversationView = isObject(conversationView);
+  const hasConversationView = hasWorkspaceConversationView({ conversationView });
+  const effectiveConversationView = hasConversationView ? conversationView : null;
   const rendererFallbackMessages = hasConversationView
     ? []
     : Array.isArray(messages) ? messages : [];
   const effectiveSdkLiveTurn = hasConversationView ? null : sdkLiveTurn;
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
     activeConversationRef: resolveSurfaceConversationRef({
-      conversationView,
+      conversationView: effectiveConversationView,
       sdkLiveTurn: effectiveSdkLiveTurn,
       sessionConversationRef,
     }),
     pendingTurn,
     sdkLiveTurn: effectiveSdkLiveTurn,
-    conversationView,
+    conversationView: effectiveConversationView,
     messages: rendererFallbackMessages,
   });
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
     sdkLiveTurn: effectiveSdkLiveTurn,
-    conversationView,
+    conversationView: effectiveConversationView,
     pendingTurn,
     messages: rendererFallbackMessages,
     visibleTurnLifecycle,
@@ -86,7 +116,7 @@ function buildChatSurfaceControllerState({
     visibleTurnLifecycle,
   );
   const viewSurfaceMode = resolveConversationViewSurfaceMode(
-    conversationView,
+    effectiveConversationView,
     conversationViewSurface,
   );
   const isLocalPending = liveTurnPresentationInput.useLocalPendingTurn === true;
@@ -95,11 +125,11 @@ function buildChatSurfaceControllerState({
     : hasConversationView
       ? viewSurfaceMode === 'busy'
       : visibleTurnLifecycle.isBusy === true;
-  const canStop = isLocalPending
-    ? true
-    : hasConversationView
-      ? conversationView?.liveTurn?.canStop === true
-      : false;
+  const stopTarget = resolveStopTurnTarget({
+    conversationView: effectiveConversationView,
+    pendingTurn,
+  });
+  const canStop = stopTarget?.canStop === true;
 
   return {
     currentTurnPresentationState: currentTurnPresentationStateWithLifecycle,
@@ -118,12 +148,9 @@ function buildChatSurfaceControllerStateFromSurfaceState({
   sessionConversationRef = null,
 } = {}) {
   const surfaceState = isObject(chatSurfaceState) ? chatSurfaceState : {};
-  const conversationView = isObject(surfaceState.conversationView)
-    ? surfaceState.conversationView
-    : null;
   return buildChatSurfaceControllerState({
     messages: Array.isArray(surfaceState.messages) ? surfaceState.messages : [],
-    conversationView,
+    conversationView: surfaceState.conversationView ?? null,
     conversationViewSurface,
     pendingTurn: surfaceState.pendingTurn ?? null,
     sdkLiveTurn: surfaceState.sdkLiveTurn ?? null,

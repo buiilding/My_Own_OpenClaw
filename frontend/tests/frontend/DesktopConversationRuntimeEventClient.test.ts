@@ -38,7 +38,6 @@ const currentTurn = {
   userMessageRowId: 'user-row',
   assistantText: 'Hello',
   reasoningText: null,
-  toolEvents: [],
   lastError: null,
   presentation: {
     entries: [],
@@ -46,6 +45,25 @@ const currentTurn = {
     overlayVisible: true,
     hasVisibleContent: true,
   },
+};
+
+const legacyNoPresentationCurrentTurn = {
+  conversationRef: 'conv-legacy',
+  turnRef: 'turn-legacy',
+  phase: 'streaming',
+  assistantText: 'Legacy text fallback',
+  reasoningText: null,
+  lastError: null,
+};
+
+const toolEventsOnlyCurrentTurn = {
+  conversationRef: 'conv-tool-events',
+  turnRef: 'turn-tool-events',
+  phase: 'streaming',
+  toolEvents: [{
+    id: 'tool-event-1',
+    kind: 'tool_call',
+  }],
 };
 
 const presentationOnlyCurrentTurn = {
@@ -60,6 +78,33 @@ const presentationOnlyCurrentTurn = {
     overlayVisible: true,
     hasVisibleContent: true,
   },
+};
+
+const conversationView = {
+  conversationRef: 'conv-view',
+  displayRows: [{
+    id: 'row-1',
+    conversationRef: 'conv-view',
+    role: 'user',
+    type: 'user_message',
+    content: 'hello',
+  }],
+  liveTurn: {
+    turnRef: 'turn-view',
+    phase: 'idle',
+    entries: [],
+    isBusy: false,
+    isTerminal: true,
+  },
+  surfaces: {
+    pill: { mode: 'idle' },
+    dashboard: { mode: 'idle' },
+    responseOverlay: {
+      mode: 'hidden',
+      visible: false,
+    },
+  },
+  actions: {},
 };
 
 describe('DesktopConversationRuntimeEventClient', () => {
@@ -81,27 +126,101 @@ describe('DesktopConversationRuntimeEventClient', () => {
       currentTurn,
     });
     mockChannelListeners.get('windie:current-turn')?.({
+      conversationRef: 'missing-current-turn ',
+      currentTurn: null,
+    });
+    const paddedCurrentTurn = {
+      ...currentTurn,
+      conversationRef: ' conv-padded-current-turn ',
+    };
+    mockChannelListeners.get('windie:current-turn')?.(paddedCurrentTurn);
+    mockChannelListeners.get('windie:current-turn')?.({
       currentTurn: presentationOnlyCurrentTurn,
     });
+    mockChannelListeners.get('windie:current-turn')?.({
+      currentTurn: legacyNoPresentationCurrentTurn,
+    });
+    mockChannelListeners.get('windie:current-turn')?.({
+      conversationRef: 'conv-tool-events',
+      currentTurn: toolEventsOnlyCurrentTurn,
+    });
     mockChannelListeners.get('windie:current-turn')?.({ currentTurn: { phase: 'streaming' } });
+    mockChannelListeners.get('windie:current-turn')?.({
+      conversationRef: ' conv-view ',
+      currentTurn: null,
+      view: conversationView,
+    });
+    mockChannelListeners.get('windie:current-turn')?.({
+      currentTurn: null,
+      view: conversationView,
+    });
+    mockChannelListeners.get('windie:current-turn')?.({
+      conversationRef: 'conv-partial',
+      currentTurn: null,
+      view: {
+        conversationRef: 'conv-partial',
+        displayRows: [],
+        liveTurn: {},
+        surfaces: {},
+      },
+    });
 
     expect(mockOn).toHaveBeenCalledWith('windie:current-turn', expect.any(Function));
     expect(events).toEqual([
       {
         currentTurn,
         conversationRef: 'conv-1',
+        view: null,
       },
       {
         currentTurn,
-        conversationRef: 'override-conv',
-      },
-      {
-        currentTurn: presentationOnlyCurrentTurn,
-        conversationRef: 'conv-2',
+        conversationRef: 'conv-1',
+        view: null,
       },
       {
         currentTurn: null,
         conversationRef: null,
+        view: null,
+      },
+      {
+        currentTurn: paddedCurrentTurn,
+        conversationRef: null,
+        view: null,
+      },
+      {
+        currentTurn: presentationOnlyCurrentTurn,
+        conversationRef: 'conv-2',
+        view: null,
+      },
+      {
+        currentTurn: legacyNoPresentationCurrentTurn,
+        conversationRef: 'conv-legacy',
+        view: null,
+      },
+      {
+        currentTurn: null,
+        conversationRef: 'conv-tool-events',
+        view: null,
+      },
+      {
+        currentTurn: null,
+        conversationRef: null,
+        view: null,
+      },
+      {
+        currentTurn: null,
+        conversationRef: 'conv-view',
+        view: conversationView,
+      },
+      {
+        currentTurn: null,
+        conversationRef: 'conv-view',
+        view: conversationView,
+      },
+      {
+        currentTurn: null,
+        conversationRef: 'conv-partial',
+        view: null,
       },
     ]);
 
@@ -127,12 +246,18 @@ describe('DesktopConversationRuntimeEventClient', () => {
 
     mockChannelListeners.get('windie:pending-turn')?.({
       type: 'pending',
-      pendingTurn: { conversationRef: 'conv-1', turnRef: 'turn-1' },
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        userMessageId: 'user-1',
+        text: 'pending prompt',
+        timestamp: '2026-06-27T00:00:00.000Z',
+      },
     });
     mockChannelListeners.get('windie:pending-turn')?.({
       type: 'clear',
-      conversationRef: ' conv-1 ',
-      turnRef: ' turn-1 ',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
     });
     mockChannelListeners.get('windie:pending-turn')?.(null);
 
@@ -140,7 +265,13 @@ describe('DesktopConversationRuntimeEventClient', () => {
     expect(actions).toEqual([
       {
         kind: 'pending',
-        pendingTurn: { conversationRef: 'conv-1', turnRef: 'turn-1' },
+        pendingTurn: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          userMessageId: 'user-1',
+          text: 'pending prompt',
+          timestamp: '2026-06-27T00:00:00.000Z',
+        },
       },
       {
         kind: 'clear',

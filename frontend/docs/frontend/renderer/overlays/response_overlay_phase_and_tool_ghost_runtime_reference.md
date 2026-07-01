@@ -52,11 +52,22 @@ Current-turn entry construction:
   response overlay does not independently choose between `ConversationView`,
   presentation entries, and older no-presentation projection snapshots.
 - under `ConversationView`, response-overlay entries start with active-turn
-  `displayRows` converted through the SDK display-row projection, then append
-  only live-turn rows whose source/type has not materialized in those display
-  rows. The overlay must not depend only on `liveTurn.entries`, because
-  materialized tool rows are intentionally removed from live entries to avoid
-  duplicate dashboard cards.
+  `displayRows` converted through
+  `DesktopConversationDisplayProjection.buildConversationViewTurnChatMessages(...)`,
+  then append only live-turn rows that have not materialized in those display
+  rows. Tool call/output/progress rows reconcile by SDK display identity
+  (`correlationId`, `toolCallDetails`, or `toolOutputDetails`) rather than by
+  broad row type, so one materialized tool call does not hide another same-type
+  live-only tool call. Those identity fields are exact SDK values; padded
+  identities are ignored instead of trimmed into materialized-row matches.
+  Non-tool materialization labels such as `sourceEventType` and adapted message
+  `type` are exact-only as well; the overlay runtime does not trim malformed SDK
+  labels into display/live reconciliation. The
+  overlay must not depend only on `liveTurn.entries`,
+  because materialized tool rows are intentionally removed from live entries to
+  avoid duplicate dashboard cards. The overlay runtime treats `ConversationView`
+  as the read-model object only after the shared workspace view gate accepts a
+  complete SDK envelope; display-row access stays inside the projection adapter.
 - the response overlay filters those current-turn messages through
   `DesktopCurrentTurnMessageRuntime.isVisibleResponseOverlayMessage(...)`
   instead of carrying an inline assistant-message scanner after the latest user
@@ -66,12 +77,13 @@ Current-turn entry construction:
   - `error`
   - `tool-call`
   - `tool-output`
+  - `tool-progress`
   - `search-source`
   - `tool-explanation`
 
 Reasoning copy for overlay window sync comes from SDK presentation thinking
 entries, with the legacy no-view reasoning fallback resolved inside
-`DesktopCurrentTurnMessageRuntime.resolveNoViewSdkLiveTurnThinkingText(...)`.
+`DesktopResponseOverlayViewRuntime`'s local no-view response-overlay fallback.
 Store `thinkingStatus` remains dashboard compaction/manual status text and is
 not a response-overlay live-turn input.
 
@@ -93,8 +105,8 @@ Closeability:
 
 - `error` rows are closeable immediately.
 - `llm-text` rows are closeable only when `isComplete === true`.
-- tool/progress rows (`tool-call`, `tool-output`, `search-source`, and
-  `tool-explanation`) are classified by
+- tool/progress rows (`tool-call`, `tool-output`, `tool-progress`,
+  legacy `search-source`, and `tool-explanation`) are classified by
   `DesktopCurrentTurnMessageRuntime.isResponseOverlayProgressMessage(...)` so
   the overlay view model does not own raw row-type groups.
 
@@ -109,7 +121,13 @@ Phase ownership boundary:
   feature hooks consume that facade instead of importing standalone live-turn
   helpers. Its phase, busy, awaiting, and response flags are mapped from
   `DesktopVisibleTurnLifecycleRuntime`; SDK overlay intent remains rendering
-  metadata for refs, stale guards, dismissal, and trace context.
+  metadata for refs, stale guards, dismissal, and trace context. Overlay refs
+  are accepted only when exact; padded SDK current-turn, `ConversationView`, or
+  overlay-intent refs are ignored instead of repaired into response-overlay
+  turn, conversation, or guard identity. Dismissal keys and native responsebox
+  window guard/size identity use the same exact-only rule, so padded
+  conversation, turn, guard, stale-guard, or response-entry refs become `null`
+  or fall back to the previous exact guard snapshot instead of being trimmed.
 - React chat surfaces do not subscribe to generic `response-overlay-phase`
   changes for runtime state. Renderer send preflight is represented as a
   pending user turn in chat state and over `windie:pending-turn`; this keeps the
@@ -173,13 +191,18 @@ Contract ownership:
   and trace context rather than lifecycle authority.
 - `DesktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
   owns the dismissal target projection from SDK overlay intent, current-turn
-  refs, latest response entry id, and stale guard ref.
+  refs, latest response entry id, and stale guard ref. It accepts only exact
+  non-empty overlay, entry, and no-view SDK current-turn refs; padded values
+  become `null` or fail closed before store dismissal keys or native responsebox
+  hide values are built.
 - `DesktopResponseOverlayViewRuntime.buildResponseOverlayDismissalKey(...)`
-  owns normalized response-overlay dismissal key construction, and
+  owns exact response-overlay dismissal key construction, and
   `DesktopResponseOverlayViewRuntime.buildDismissResponseOverlayAction(...)`
   builds the store dismissal target plus responsebox hide values for manual
   close actions. `chatStore.ts` persists dismissed keys, but it does not define
-  the conversation/turn/entry key contract.
+  the conversation/turn/entry key contract. Padded conversation, turn,
+  guard, or response-entry refs are not trimmed into dismissal keys or native
+  responsebox hide IPC values.
 - `DesktopResponseOverlayViewRuntime.resolveResponseOverlayEntries(...)` owns
   response-entry derivation across SDK `ConversationView.liveTurn`, SDK
   current-turn presentation rows, raw SDK live-turn fallback rows, and local

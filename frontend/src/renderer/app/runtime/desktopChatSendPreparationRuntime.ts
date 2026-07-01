@@ -11,7 +11,7 @@ import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
 import { DesktopWindowRuntimeClient } from './desktopWindowRuntimeClient';
-import type { AgentModelSelection, TurnInputResource } from './desktopConversationRuntimeContracts';
+import type { TurnInputResource } from './desktopConversationRuntimeContracts';
 import type { ChatSendSurface } from './desktopMessageSendUiRuntime';
 import {
   DesktopConversationSessionRuntime,
@@ -83,16 +83,26 @@ type PreparedDesktopChatTurn = {
   deferredQueryModelSelection: ReturnType<
     typeof DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection
   >;
-  model: AgentModelSelection | null;
   resources: TurnInputResource[];
   sendLifecycle: SendLifecycle;
-  sessionInfo: ReturnType<typeof DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo>;
   text: string;
-  timestamp: string;
   turnId: string;
-  turnRef: string | null;
   workspacePath: string | null;
 };
+
+function exactNonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
+function optionalExactResourceField<TKey extends string>(
+  key: TKey,
+  value: unknown,
+): { [K in TKey]: string } | Record<string, never> {
+  const exactValue = exactNonEmptyString(value);
+  return exactValue ? { [key]: exactValue } as { [K in TKey]: string } : {};
+}
 
 function buildTurnInputResources({
   readableFiles,
@@ -122,8 +132,8 @@ function buildTurnInputResources({
     resources.push({
       kind: 'clipboard_image',
       base64: clipboardImage.base64,
-      contentType: clipboardImage.contentType ?? null,
-      filename: clipboardImage.filename ?? null,
+      ...optionalExactResourceField('contentType', clipboardImage.contentType),
+      ...optionalExactResourceField('filename', clipboardImage.filename),
       required: true,
     });
   }
@@ -135,10 +145,11 @@ function buildTurnInputResources({
       required: false,
     });
   }
-  if (workspacePath) {
+  const exactWorkspacePath = exactNonEmptyString(workspacePath);
+  if (exactWorkspacePath) {
     resources.push({
       kind: 'workspace',
-      workspacePath,
+      workspacePath: exactWorkspacePath,
       required: false,
     });
   }
@@ -147,8 +158,12 @@ function buildTurnInputResources({
 
 async function ensureConversationWorkspaceBinding(conversationRef: string): Promise<WorkspaceBinding> {
   const existingBinding = DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding(conversationRef);
-  if (existingBinding.workspacePath) {
-    return existingBinding;
+  const existingWorkspacePath = exactNonEmptyString(existingBinding.workspacePath);
+  if (existingWorkspacePath) {
+    return {
+      ...existingBinding,
+      workspacePath: existingWorkspacePath,
+    };
   }
 
   try {
@@ -265,7 +280,6 @@ async function prepareDesktopChatSend({
     turnId,
   });
   const workspaceBinding = await ensureConversationWorkspaceBinding(conversationRef);
-  const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
 
   logRendererChatSendLifecycleTrace({
     action: 'send-start',
@@ -297,28 +311,25 @@ async function prepareDesktopChatSend({
     reason: sendLifecycle.surfaceReason,
   });
 
+  const workspacePath = exactNonEmptyString(workspaceBinding.workspacePath);
   const resources = buildTurnInputResources({
     readableFiles,
     clipboardImages,
     shouldCaptureQueryScreenshot: sendLifecycle.shouldCaptureQueryScreenshot,
     isFirstUserMessage: !hadUserMessages,
     surfaceReason: sendLifecycle.surfaceReason,
-    workspacePath: workspaceBinding.workspacePath || null,
+    workspacePath,
   });
 
   return {
     conversationRef,
     deferredQueryModelSelection: DesktopRendererConfigRuntimeClient
       .buildDeferredQueryModelSelection(config),
-    model: null,
     resources,
     sendLifecycle,
-    sessionInfo,
     text,
-    timestamp,
     turnId,
-    turnRef: turnId,
-    workspacePath: workspaceBinding.workspacePath || null,
+    workspacePath,
   };
 }
 
@@ -335,8 +346,7 @@ async function dispatchPreparedDesktopChatTurn(
       conversationRef: preparedTurn.conversationRef,
       workspacePath: preparedTurn.workspacePath,
       resources: preparedTurn.resources,
-      model: preparedTurn.model,
-      turnRef: preparedTurn.turnRef,
+      turnRef: preparedTurn.turnId,
     });
     logRendererChatSendLifecycleTrace({
       action: 'query-dispatched',
@@ -348,11 +358,11 @@ async function dispatchPreparedDesktopChatTurn(
   } catch (error) {
     dependencies.clearPendingTurn({
       conversationRef: preparedTurn.conversationRef,
-      turnRef: preparedTurn.turnRef,
+      turnRef: preparedTurn.turnId,
     });
     DesktopPendingTurnRuntimeClient.clear({
       conversationRef: preparedTurn.conversationRef,
-      turnRef: preparedTurn.turnRef,
+      turnRef: preparedTurn.turnId,
     });
     throw error;
   }

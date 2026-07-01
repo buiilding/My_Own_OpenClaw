@@ -320,6 +320,15 @@ Owns Electron-main Agent SDK command execution helpers:
   command execution as an explicit runtime helper
 - sends renderer chat payloads through `agent.run(...)` while separating
   resources and metadata from the SDK runtime command payload
+- forwards SDK-owned backend resource metadata only when exact:
+  `screenshot_ref`, `screenshot_refs[]`, `attachment_filenames[]`, and
+  `workspace_path` are omitted when padded or empty, and malformed
+  `capture_meta` is dropped before `backendPayload` reaches `agent.run(...)`.
+  `attachment_context` intentionally preserves non-empty whitespace because it
+  is hidden file-content context, not identity metadata.
+- drops caller-supplied screenshot, attachment, and capture aliases whenever a
+  renderer command also carries typed SDK turn `resources`; the SDK resource
+  pipeline owns the later materialized backend aliases for those sends.
 - stops active turns through the active adapter and clears pending-turn state
   before dispatch
 - routes settings updates, model-list requests, and wakeword-detected events
@@ -636,11 +645,9 @@ Owns Electron-main cached SDK live-turn and pending-turn state:
 Owns main-process stop target resolution and stop execution:
 
 - `createMainStopTargetRuntime`: composes live current-turn reads, pending-turn
-  reads, active conversation-ref reads, SDK stop execution, and overlay phase
-  completion for `ipc.cjs`
-- chooses stoppable SDK current turns before renderer pending turns
-- falls back to the active conversation only when no current or pending turn is
-  available
+  reads, SDK stop execution, and overlay phase completion for `ipc.cjs`
+- chooses stoppable SDK `ConversationView` turns before renderer pending turns
+- returns no target when neither a stoppable SDK view nor pending bridge exists
 - sends SDK-shaped `conversation_ref` / `turn_ref` stop payloads through the
   injected Agent SDK stop function
 - completes the response overlay phase only after a successful stop result
@@ -765,6 +772,12 @@ Owns renderer-window lifecycle and generic fan-out:
 - keeps renderer window registry construction private behind the runtime facade
   while preserving track, broadcast, reset, and size accessors
 - runtime track: register + prune windows, sync current overlay phase after load
+- runtime track: hydrates `windie:current-turn` with
+  `latestConversationView` only when it has the full SDK `ConversationView`
+  envelope (`conversationRef`, `displayRows`, `liveTurn`, `surfaces`, and
+  `actions`). Partial objects remain off the view payload so late renderer
+  windows stay on the no-view current-turn fallback path until SDK view
+  authority exists.
 - runtime track: optionally replays buffered in-flight turn events to late windows (`getReplayEvents`)
 - runtime track: replays the latest pending renderer-composed user turn
   through `windie:pending-turn` when a secondary renderer mounts before SDK
@@ -951,8 +964,8 @@ registration helper stay private to the runtime helper:
 - SDK query command send
 - send-failure recovery
 - stop-query phase completion
-- global stop target resolution: latest SDK current turn first, latest pending
-  turn second, active conversation fallback last
+- global stop target resolution: stoppable SDK `ConversationView` first,
+  latest pending turn second, and no target otherwise
 - pending-turn relay: renderer sends `windie:pending-turn` with
   `{ type: "pending", pendingTurn }`; main stores the latest normalized
   pending turn with only identity, text, and timestamp, broadcasts it to
@@ -965,6 +978,13 @@ registration helper stay private to the runtime helper:
   through `createConversationMetadataDiagnosticsRuntime(...)`; command handlers
   choose lifecycle stages and call the runtime facade rather than constructing
   diagnostic rows inline or importing lower-level context/record helpers.
+- replay command forwarding treats SDK row and conversation identities as exact:
+  `conversation.editAndResend` and `conversation.retryTurn` reject padded
+  `conversationRef` and `messageId` fields instead of trimming them before SDK
+  dispatch. Edited text remains untrimmed command data so the SDK replay command
+  owns text normalization and non-empty validation. Caller-supplied
+  `agent_definition` is removed before Electron main attaches the current
+  runtime-turn Agent definition.
 
 Removed preflight invoke path:
 

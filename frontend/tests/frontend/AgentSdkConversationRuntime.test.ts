@@ -898,6 +898,44 @@ describe('Agent SDK conversation runtime core', () => {
     ]);
   });
 
+  test('SDK display rows preserve SDK-authored materializing attachment previews', () => {
+    const user = createConversationEvent({
+      eventId: 'evt-user-preview',
+      type: 'user_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-preview',
+      source: 'ui',
+      payload: {
+        text: 'review this image',
+        attachments: [
+          {
+            id: 'turn-preview:attachment:000',
+            kind: 'image',
+            source: 'user_included',
+            status: 'materializing',
+            filename: 'preview.png',
+            content_type: 'image/png',
+            preview_src: 'data:image/png;base64,preview',
+          },
+        ],
+      },
+    });
+
+    const rows = buildDisplayRows([user]);
+
+    expect(rows[0].metadata?.attachments).toEqual([
+      expect.objectContaining({
+        id: 'turn-preview:attachment:000',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        contentType: 'image/png',
+        previewSrc: 'data:image/png;base64,preview',
+      }),
+    ]);
+  });
+
   test('SDK display rows replace live previews with ready descriptors without carrying preview bytes', () => {
     const user = createConversationEvent({
       eventId: 'evt-user',
@@ -1079,8 +1117,18 @@ describe('Agent SDK conversation runtime core', () => {
             screenshotRef: 'artifact-tool-live',
           }),
         ],
+        toolOutputDetails: expect.objectContaining({
+          toolName: 'screenshot',
+          requestId: 'req-shot',
+          success: true,
+        }),
       }),
     ]);
+    const [entry] = projection.presentation.entries;
+    expect(entry?.toolOutputDetails).not.toHaveProperty('attachments');
+    expect(entry?.toolOutputDetails).not.toHaveProperty('screenshot_ref');
+    expect(entry?.toolOutputDetails).not.toHaveProperty('screenshotRef');
+    expect(entry?.toolOutputDetails).not.toHaveProperty('result');
   });
 
   test('orphan empty-chat greeting is not display or rehydrate history', () => {
@@ -1434,7 +1482,9 @@ describe('Agent SDK conversation runtime core', () => {
           correlationId: 'corr-read',
           success: true,
           toolOutputDetails: expect.objectContaining({
-            output: 'README contents',
+            toolName: 'read_file',
+            requestId: 'req-read',
+            success: true,
           }),
         }),
         expect.objectContaining({ type: 'llm-text', text: 'Done.', sourceChannel: 'sdk:current-turn' }),
@@ -5132,9 +5182,10 @@ describe('Agent SDK conversation runtime core', () => {
       turnRef: 'turn-query-shot',
       resources: [{
         kind: 'query_screenshot_request',
+        displayAttachmentId: 'caller-owned-attachment-id',
         reason: 'query_send_with_capture',
         required: false,
-      }],
+      } as any],
     });
 
     expect(executeTool).toHaveBeenCalledWith(expect.objectContaining({
@@ -5169,8 +5220,18 @@ describe('Agent SDK conversation runtime core', () => {
       expect.objectContaining({
         screenshotRef: 'artifact-query-shot.jpg',
         screenshot_ref: 'artifact-query-shot.jpg',
+        attachments: [
+          expect.objectContaining({
+            id: 'turn-query-shot:attachment:000',
+            kind: 'image',
+            source: 'camera_button',
+            status: 'ready',
+            screenshotRef: 'artifact-query-shot.jpg',
+          }),
+        ],
       }),
     );
+    expect(JSON.stringify(events)).not.toContain('caller-owned-attachment-id');
     const timeline = buildTraceTimeline(events, {
       turnRef: 'turn-query-shot',
       path: 'screenshot.capture',
@@ -7401,10 +7462,9 @@ describe('Agent SDK conversation runtime core', () => {
       }));
     });
 
-    await runtime.editAndResend({
+    const replacement = await runtime.editAndResend({
       messageId: 'turn-old-live-sdk-evt-000002-user_message',
       text: 'replacement prompt',
-      turnRef: 'turn-new-live',
     });
     await waitForExpect(() => {
       expect(transport.stop).toHaveBeenCalledWith({
@@ -7486,8 +7546,8 @@ describe('Agent SDK conversation runtime core', () => {
       'query-accepted',
       { status: 'accepted' },
       {
-        eventId: 'turn-new-live-evt-000001-query-accepted',
-        turnRef: 'turn-new-live',
+        eventId: `${replacement.turnRef}-evt-000001-query-accepted`,
+        turnRef: replacement.turnRef,
         sequence: 1,
       },
     ));
@@ -7495,14 +7555,14 @@ describe('Agent SDK conversation runtime core', () => {
       'streaming-response',
       { text: 'new answer' },
       {
-        eventId: 'turn-new-live-evt-000002-streaming-response',
-        turnRef: 'turn-new-live',
+        eventId: `${replacement.turnRef}-evt-000002-streaming-response`,
+        turnRef: replacement.turnRef,
         sequence: 2,
       },
     ));
     await runtime.stop('turn-old-live');
     expect(buildCurrentTurnProjection(await store.loadEvents('conv-sdk-runtime'))).toMatchObject({
-      turnRef: 'turn-new-live',
+      turnRef: replacement.turnRef,
       phase: 'streaming',
       assistantText: 'new answer',
     });
@@ -7517,16 +7577,16 @@ describe('Agent SDK conversation runtime core', () => {
         revision_id: 'rev-new-live',
       }],
     }, {
-      eventId: 'turn-new-live-evt-000003-model-history-updated',
-      turnRef: 'turn-new-live',
+      eventId: `${replacement.turnRef}-evt-000003-model-history-updated`,
+      turnRef: replacement.turnRef,
       sequence: 3,
     }));
     transport.emit(backendEvent(
       'streaming-complete',
       { final_response: 'new final' },
       {
-        eventId: 'turn-new-live-evt-000004-streaming-complete',
-        turnRef: 'turn-new-live',
+        eventId: `${replacement.turnRef}-evt-000004-streaming-complete`,
+        turnRef: replacement.turnRef,
         sequence: 4,
       },
     ));
@@ -7545,7 +7605,7 @@ describe('Agent SDK conversation runtime core', () => {
     const events = await store.loadEvents('conv-sdk-runtime');
     const currentTurn = buildCurrentTurnProjection(events);
     expect(currentTurn).toMatchObject({
-      turnRef: 'turn-new-live',
+      turnRef: replacement.turnRef,
       phase: 'complete',
       assistantText: 'new answer',
     });
@@ -8335,7 +8395,7 @@ describe('Agent SDK conversation runtime core', () => {
     ]);
   });
 
-  test('editAndResend applies model selection through send before dispatching the replay query', async () => {
+  test('editAndResend ignores caller model selection and lets send use current SDK state', async () => {
     const settingsUpdates: Record<string, unknown>[] = [];
     const sentQueries: Record<string, unknown>[] = [];
     const sendQuery = jest.fn(async payload => {
@@ -8376,39 +8436,30 @@ describe('Agent SDK conversation runtime core', () => {
     await runtime.editAndResend({
       messageId: 'user-edit',
       text: 'new text',
-      turnRef: 'turn-edited',
       model: {
         modelProvider: 'anthropic',
         modelId: 'claude-sonnet-4-5',
       },
-    });
+    } as never);
 
-    expect(settingsUpdates).toEqual([
-      {
-        selected_model_id: 'claude-sonnet-4-5',
-        model_provider: 'anthropic',
-      },
-    ]);
+    expect(settingsUpdates).toEqual([]);
     expect(sentQueries).toHaveLength(1);
     expect(sentQueries[0]).toMatchObject({
       text: 'new text',
       conversation_ref: 'conv-sdk-runtime',
     });
     expect(sentQueries[0]).not.toHaveProperty('model');
-    expect(updateSettings.mock.invocationCallOrder[0]).toBeLessThan(
-      sendQuery.mock.invocationCallOrder[0],
-    );
+    expect(updateSettings).not.toHaveBeenCalled();
+    expect(sendQuery).toHaveBeenCalledTimes(1);
     const events = await store.loadEvents('conv-sdk-runtime');
-    const settingsIndex = events.findIndex(event => event.type === 'settings_updated');
     const replacementUserIndex = events.findIndex(event => (
       event.type === 'user_message'
-      && event.turnRef === 'turn-edited'
+      && event.payload.text === 'new text'
     ));
-    expect(settingsIndex).toBeGreaterThan(-1);
-    expect(replacementUserIndex).toBeGreaterThan(settingsIndex);
+    expect(replacementUserIndex).toBeGreaterThan(-1);
   });
 
-  test('retryTurn applies model selection through send before dispatching the replay query', async () => {
+  test('retryTurn ignores caller model selection and lets send use current SDK state', async () => {
     const settingsUpdates: Record<string, unknown>[] = [];
     const sentQueries: Record<string, unknown>[] = [];
     const sendQuery = jest.fn(async payload => {
@@ -8448,36 +8499,27 @@ describe('Agent SDK conversation runtime core', () => {
     await runtime.load();
     await runtime.retryTurn({
       messageId: 'assistant-retry',
-      turnRef: 'turn-retry',
       model: {
         modelProvider: 'anthropic',
         modelId: 'claude-sonnet-4-5',
       },
-    });
+    } as never);
 
-    expect(settingsUpdates).toEqual([
-      {
-        selected_model_id: 'claude-sonnet-4-5',
-        model_provider: 'anthropic',
-      },
-    ]);
+    expect(settingsUpdates).toEqual([]);
     expect(sentQueries).toHaveLength(1);
     expect(sentQueries[0]).toMatchObject({
       text: 'try again',
       conversation_ref: 'conv-sdk-runtime',
     });
     expect(sentQueries[0]).not.toHaveProperty('model');
-    expect(updateSettings.mock.invocationCallOrder[0]).toBeLessThan(
-      sendQuery.mock.invocationCallOrder[0],
-    );
+    expect(updateSettings).not.toHaveBeenCalled();
+    expect(sendQuery).toHaveBeenCalledTimes(1);
     const events = await store.loadEvents('conv-sdk-runtime');
-    const settingsIndex = events.findIndex(event => event.type === 'settings_updated');
     const replacementUserIndex = events.findIndex(event => (
       event.type === 'user_message'
-      && event.turnRef === 'turn-retry'
+      && event.payload.text === 'try again'
     ));
-    expect(settingsIndex).toBeGreaterThan(-1);
-    expect(replacementUserIndex).toBeGreaterThan(settingsIndex);
+    expect(replacementUserIndex).toBeGreaterThan(-1);
   });
 
   test('scenario: tool turn, compaction, edit resend, and reload keep tool call/output pairs adjacent', async () => {
@@ -8659,10 +8701,9 @@ describe('Agent SDK conversation runtime core', () => {
       .find(storedEvent => storedEvent.type === 'user_message');
     expect(originalUser).toBeDefined();
 
-    await runtime.editAndResend({
+    const replacement = await runtime.editAndResend({
       messageId: originalUser!.eventId,
       text: 'Read package.json and summarize it in bullets.',
-      turnRef: 'turn-edited',
     });
     const editedRevisionId = (await runtime.load()).state.revisionId;
 
@@ -8708,7 +8749,7 @@ describe('Agent SDK conversation runtime core', () => {
           },
         },
       },
-    }, { eventId: 'backend-tool-call-edited', turnRef: 'turn-edited' }));
+    }, { eventId: 'backend-tool-call-edited', turnRef: replacement.turnRef }));
 
     await waitForExpect(() => {
       expect(sentToolResults).toHaveLength(2);
@@ -8718,13 +8759,13 @@ describe('Agent SDK conversation runtime core', () => {
       request_id: 'req-edited',
       tool_call_id: 'call-edited',
       output: 'backend accepted package contents',
-    }, { eventId: 'backend-tool-output-edited', turnRef: 'turn-edited' }));
+    }, { eventId: 'backend-tool-output-edited', turnRef: replacement.turnRef }));
     transport.emit(backendEvent('assistant-message-full', {
       content: '- package summary',
-    }, { eventId: 'assistant-edited', turnRef: 'turn-edited' }));
+    }, { eventId: 'assistant-edited', turnRef: replacement.turnRef }));
     transport.emit(backendEvent('streaming-complete', {
       final_response: '- package summary',
-    }, { eventId: 'complete-edited', turnRef: 'turn-edited' }));
+    }, { eventId: 'complete-edited', turnRef: replacement.turnRef }));
     transport.emit(backendEvent('model-history-updated', {
       checkpoint_id: 'mh-edited',
       revision_id: editedRevisionId,
@@ -8765,7 +8806,7 @@ describe('Agent SDK conversation runtime core', () => {
           content: '- package summary',
         },
       ],
-    }, { eventId: 'model-history-edited', turnRef: 'turn-edited' }));
+    }, { eventId: 'model-history-edited', turnRef: replacement.turnRef }));
 
     await waitForExpect(async () => {
       const snapshot = await runtime.load();
@@ -9610,10 +9651,9 @@ describe('Agent SDK conversation runtime core', () => {
       transport,
     });
     await runtime.load();
-    await runtime.editAndResend({
+    const replacement = await runtime.editAndResend({
       messageId: 'user-edit',
       text: 'new text',
-      turnRef: 'turn-edited',
     });
 
     const events = await store.loadEvents('conv-sdk-runtime');
@@ -9636,9 +9676,9 @@ describe('Agent SDK conversation runtime core', () => {
     }));
     expect(displayTimeline?.rows.map(row => row.content)).toEqual(['keep this', 'new text']);
     expect(displayTimeline?.rows[1]).toEqual(expect.objectContaining({
-      id: 'turn-edited-sdk-evt-000002-user_message',
+      id: `${replacement.turnRef}-sdk-evt-000002-user_message`,
       revisionId: displayTimeline?.revisionId,
-      turnRef: 'turn-edited',
+      turnRef: replacement.turnRef,
       metadata: expect.objectContaining({
         replacedDisplayRowId: 'user-edit',
         revisionId: displayTimeline?.revisionId,
@@ -9740,20 +9780,18 @@ describe('Agent SDK conversation runtime core', () => {
     await runtime.editAndResend({
       messageId: 'user-edit',
       text: 'first edit',
-      turnRef: 'turn-edit-one',
     });
-    await runtime.editAndResend({
+    const replacement = await runtime.editAndResend({
       messageId: 'user-edit',
       text: 'second edit',
-      turnRef: 'turn-edit-two',
     });
 
     const displayTimeline = await runtime.loadDisplayTimeline();
     expect(sentQueries.map(query => query.text)).toEqual(['first edit', 'second edit']);
     expect(displayTimeline.rows.map(row => row.content)).toEqual(['second edit']);
     expect(displayTimeline.rows[0]).toEqual(expect.objectContaining({
-      id: 'turn-edit-two-sdk-evt-000002-user_message',
-      turnRef: 'turn-edit-two',
+      id: `${replacement.turnRef}-sdk-evt-000002-user_message`,
+      turnRef: replacement.turnRef,
       metadata: expect.objectContaining({
         replacedDisplayRowId: 'user-edit',
       }),
@@ -9798,9 +9836,8 @@ describe('Agent SDK conversation runtime core', () => {
     });
 
     await runtime.load();
-    await runtime.retryTurn({
+    const retry = await runtime.retryTurn({
       messageId: 'assistant-retry',
-      turnRef: 'turn-retry',
     });
 
     const events = await store.loadEvents('conv-sdk-runtime');
@@ -9822,10 +9859,10 @@ describe('Agent SDK conversation runtime core', () => {
     }));
     expect(displayTimeline?.rows).toEqual([
       expect.objectContaining({
-        id: 'turn-retry-sdk-evt-000002-user_message',
+        id: `${retry.turnRef}-sdk-evt-000002-user_message`,
         content: 'try this again',
         revisionId: displayTimeline?.revisionId,
-        turnRef: 'turn-retry',
+        turnRef: retry.turnRef,
         metadata: expect.objectContaining({
           replacedDisplayRowId: 'user-retry',
           revisionId: displayTimeline?.revisionId,
@@ -9856,17 +9893,19 @@ describe('Agent SDK conversation runtime core', () => {
           metadata: {
             attachments: [
               {
-                id: 'artifact-one',
+                id: 'display-attachment-one',
                 kind: 'image',
-                source: 'upload',
+                source: 'user_included',
                 status: 'ready',
+                screenshotRef: 'artifact-one',
                 filename: 'one.png',
               },
               {
-                id: 'artifact-two',
+                id: 'display-attachment-two',
                 kind: 'image',
-                source: 'upload',
+                source: 'user_included',
                 status: 'ready',
+                screenshotRef: 'artifact-two',
                 filename: 'two.png',
               },
             ],
@@ -9899,14 +9938,17 @@ describe('Agent SDK conversation runtime core', () => {
       messageId: 'display-user-edit',
       text: 'new text',
       payload: {
-        screenshot_refs: null,
+        screenshot_refs: ['stale-caller-artifact'],
       },
-    });
+    } as never);
 
     expect(sentQueries[0]).toEqual(expect.objectContaining({
       text: 'new text',
       screenshot_refs: ['artifact-one', 'artifact-two'],
       attachment_filenames: ['one.png', 'two.png'],
+    }));
+    expect(sentQueries[0]).not.toEqual(expect.objectContaining({
+      screenshot_refs: ['stale-caller-artifact'],
     }));
   });
 

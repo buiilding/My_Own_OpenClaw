@@ -10,6 +10,12 @@ import {
 import {
   DesktopPendingTurnBridgeRuntime,
 } from './desktopPendingTurnBridgeRuntime';
+import {
+  DesktopConversationDisplayRowLookupRuntime,
+} from './desktopConversationDisplayRowLookupRuntime';
+import {
+  DesktopConversationViewWorkspaceRuntime,
+} from './desktopConversationViewWorkspaceRuntime';
 
 const {
   buildChatMessagesFromSdkDisplayRows,
@@ -17,6 +23,13 @@ const {
 const {
   buildPendingTurnUserMessage,
 } = DesktopPendingTurnBridgeRuntime;
+const {
+  findConversationViewUserDisplayRowForTurn,
+} = DesktopConversationDisplayRowLookupRuntime;
+const {
+  hasWorkspaceConversationView,
+  normalizeConversationView,
+} = DesktopConversationViewWorkspaceRuntime;
 
 type PendingTurnLike = {
   conversationRef?: string | null;
@@ -32,9 +45,8 @@ type RendererMessageAnnotation = {
 };
 
 type BuildConversationViewMessagesInput = {
-  conversationView?: ConversationView | null;
+  conversationView?: unknown;
   pendingTurn?: PendingTurnLike;
-  preserveRendererAnnotations?: boolean;
   rendererAnnotations?: RendererMessageAnnotation[];
 };
 
@@ -43,19 +55,115 @@ type BuildPendingBridgeMessagesInput = {
   pendingTurn?: PendingTurnLike;
 };
 
-function normalizeTurnRef(turnRef: string | null | undefined): string | null {
-  return typeof turnRef === 'string' && turnRef.trim()
-    ? turnRef.trim()
+type BuildConversationViewTurnMessagesInput = {
+  conversationView?: unknown;
+  turnRef?: string | null;
+};
+
+type ConversationViewTraceLastMessage = {
+  sender: string | null;
+  sourceEventType: string | null;
+  textLength: number;
+  turnRef: string | null;
+  type: string | null;
+};
+
+type ConversationViewTraceSummary = {
+  displayRowCount: number;
+  lastMessage: ConversationViewTraceLastMessage | null;
+  liveTurnPhase: string | null;
+  liveTurnRef: string | null;
+};
+
+function sdkConversationViewEnvelope(value: unknown): ConversationView | null {
+  const workspace = { conversationView: value };
+  return hasWorkspaceConversationView(workspace)
+    ? normalizeConversationView(workspace.conversationView)
     : null;
 }
 
-function sdkUserTurnRefs(messages: ChatMessage[]): Set<string> {
+function exactTurnRef(turnRef: string | null | undefined): string | null {
+  return typeof turnRef === 'string' && turnRef.length > 0 && turnRef === turnRef.trim()
+    ? turnRef
+    : null;
+}
+
+function exactConversationRef(conversationRef: string | null | undefined): string | null {
+  return typeof conversationRef === 'string'
+    && conversationRef.length > 0
+    && conversationRef === conversationRef.trim()
+    ? conversationRef
+    : null;
+}
+
+function exactTraceString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
+function resolveTraceTextLength(value: unknown): number {
+  return typeof value === 'string' ? value.length : 0;
+}
+
+function displayRowsForConversationView(view: ConversationView) {
+  const viewConversationRef = exactConversationRef(view.conversationRef);
+  return Array.isArray(view.displayRows)
+    ? view.displayRows.filter((row) => (
+      viewConversationRef
+      && exactConversationRef(row.conversationRef) === viewConversationRef
+    ))
+    : [];
+}
+
+function buildConversationViewTraceSummary(
+  conversationView: unknown,
+): ConversationViewTraceSummary {
+  const view = sdkConversationViewEnvelope(conversationView);
+  const displayRows = view ? displayRowsForConversationView(view) : [];
+  const latestRow = displayRows[displayRows.length - 1] ?? null;
+  const latestRecord = latestRow as Record<string, unknown> | null;
+  const latestMetadata = latestRecord?.metadata as Record<string, unknown> | null | undefined;
+  return {
+    displayRowCount: displayRows.length,
+    liveTurnPhase: exactTraceString(view?.liveTurn?.phase),
+    liveTurnRef: exactTurnRef(view?.liveTurn?.turnRef),
+    lastMessage: latestRecord
+      ? {
+        sender: exactTraceString(latestRecord.role),
+        sourceEventType: exactTraceString(latestMetadata?.sourceEventType),
+        textLength: resolveTraceTextLength(latestRecord.content),
+        turnRef: exactTurnRef(latestRecord.turnRef as string | null | undefined),
+        type: exactTraceString(latestRecord.type),
+      }
+      : null,
+  };
+}
+
+function buildConversationViewTurnChatMessages({
+  conversationView = null,
+  turnRef = null,
+}: BuildConversationViewTurnMessagesInput): ChatMessage[] {
+  const targetTurnRef = exactTurnRef(turnRef);
+  const view = sdkConversationViewEnvelope(conversationView);
+  if (!view || !targetTurnRef) {
+    return [];
+  }
+  const displayRows = displayRowsForConversationView(view)
+    .filter((row) => exactTurnRef(row.turnRef) === targetTurnRef);
+  if (displayRows.length === 0) {
+    return [];
+  }
+  return buildChatMessagesFromSdkDisplayRows(displayRows);
+}
+
+function chatMessageUserTurnRefs(messages: ChatMessage[]): Set<string> {
   const turnRefs = new Set<string>();
   for (const message of messages) {
     if (message.sender !== 'user') {
       continue;
     }
-    const turnRef = normalizeTurnRef(message.turnRef);
+    const turnRef = exactTurnRef(message.turnRef);
     if (turnRef) {
       turnRefs.add(turnRef);
     }
@@ -63,19 +171,44 @@ function sdkUserTurnRefs(messages: ChatMessage[]): Set<string> {
   return turnRefs;
 }
 
-function pendingBridgeUserMessages(
-  sdkMessages: ChatMessage[],
+function normalizePendingTurnRef(pendingTurn: PendingTurnLike): string | null {
+  return exactTurnRef(pendingTurn?.turnRef);
+}
+
+function normalizePendingConversationRef(pendingTurn: PendingTurnLike): string | null {
+  return typeof pendingTurn?.conversationRef === 'string'
+    && pendingTurn.conversationRef.length > 0
+    && pendingTurn.conversationRef === pendingTurn.conversationRef.trim()
+    ? pendingTurn.conversationRef
+    : null;
+}
+
+function pendingTurnMatchesConversationView(
+  conversationView: ConversationView,
   pendingTurn: PendingTurnLike,
+): boolean {
+  const viewConversationRef = typeof conversationView.conversationRef === 'string'
+    && conversationView.conversationRef.length > 0
+    && conversationView.conversationRef === conversationView.conversationRef.trim()
+    ? conversationView.conversationRef
+    : null;
+  const pendingConversationRef = normalizePendingConversationRef(pendingTurn);
+  return Boolean(viewConversationRef && pendingConversationRef && viewConversationRef === pendingConversationRef);
+}
+
+function pendingBridgeUserMessages(
+  baseMessages: ChatMessage[],
+  pendingTurn: PendingTurnLike,
+  hasUserRowForPendingTurn = false,
 ): ChatMessage[] {
-  const sdkMessageIds = new Set(sdkMessages.map((message) => message.id));
-  const projectedUserTurns = sdkUserTurnRefs(sdkMessages);
+  const baseMessageIds = new Set(baseMessages.map((message) => message.id));
   const pendingMessage = buildPendingTurnUserMessage(pendingTurn) as ChatMessage | null;
-  const pendingTurnRef = normalizeTurnRef(pendingMessage?.turnRef);
+  const pendingTurnRef = exactTurnRef(pendingMessage?.turnRef);
   if (
     pendingMessage
     && pendingTurnRef
-    && !sdkMessageIds.has(pendingMessage.id)
-    && !projectedUserTurns.has(pendingTurnRef)
+    && !baseMessageIds.has(pendingMessage.id)
+    && !hasUserRowForPendingTurn
   ) {
     return [pendingMessage];
   }
@@ -91,9 +224,9 @@ function mergePendingBridgeUserMessages(
   }
   const merged = [...sdkMessages];
   for (const pendingMessage of pendingMessages) {
-    const turnRef = normalizeTurnRef(pendingMessage.turnRef);
+    const turnRef = exactTurnRef(pendingMessage.turnRef);
     const sameTurnIndex = turnRef
-      ? merged.findIndex((message) => normalizeTurnRef(message.turnRef) === turnRef)
+      ? merged.findIndex((message) => exactTurnRef(message.turnRef) === turnRef)
       : -1;
     if (sameTurnIndex >= 0) {
       merged.splice(sameTurnIndex, 0, pendingMessage);
@@ -106,7 +239,7 @@ function mergePendingBridgeUserMessages(
 
 function mergeRendererAnnotationsIntoSdkMessages(
   sdkMessages: ChatMessage[],
-  rendererAnnotations: Array<ChatMessage | RendererMessageAnnotation>,
+  rendererAnnotations: RendererMessageAnnotation[],
 ): ChatMessage[] {
   if (rendererAnnotations.length === 0) {
     return sdkMessages;
@@ -116,7 +249,9 @@ function mergeRendererAnnotationsIntoSdkMessages(
     const annotation = annotationsById.get(message.id);
     return {
       ...message,
-      ...(annotation && Object.prototype.hasOwnProperty.call(annotation, 'feedback')
+      ...(message.sender === 'assistant'
+        && annotation
+        && Object.prototype.hasOwnProperty.call(annotation, 'feedback')
         ? { feedback: annotation.feedback }
         : {}),
     };
@@ -126,10 +261,11 @@ function mergeRendererAnnotationsIntoSdkMessages(
 function appendPendingBridgeUserMessages(
   sdkMessages: ChatMessage[],
   pendingTurn: PendingTurnLike,
+  hasUserRowForPendingTurn = false,
 ): ChatMessage[] {
   return mergePendingBridgeUserMessages(
     sdkMessages,
-    pendingBridgeUserMessages(sdkMessages, pendingTurn),
+    pendingBridgeUserMessages(sdkMessages, pendingTurn, hasUserRowForPendingTurn),
   );
 }
 
@@ -138,54 +274,49 @@ function buildPendingBridgeChatMessages({
   pendingTurn = null,
 }: BuildPendingBridgeMessagesInput = {}): ChatMessage[] {
   const baseMessages = Array.isArray(messages) ? messages : [];
-  return appendPendingBridgeUserMessages(baseMessages, pendingTurn);
-}
-
-function hasRendererMessageAnnotations(message: ChatMessage): boolean {
-  return Object.prototype.hasOwnProperty.call(message, 'feedback');
-}
-
-function selectRendererMessageAnnotations(messages: ChatMessage[] = []): RendererMessageAnnotation[] {
-  return messages.flatMap((message) => {
-    if (typeof message.id !== 'string' || !message.id || !hasRendererMessageAnnotations(message)) {
-      return [];
-    }
-    return [{
-      id: message.id,
-      ...(Object.prototype.hasOwnProperty.call(message, 'feedback')
-        ? { feedback: message.feedback }
-        : {}),
-    }];
-  });
+  const pendingTurnRef = normalizePendingTurnRef(pendingTurn);
+  const hasUserRowForPendingTurn = Boolean(
+    pendingTurnRef && chatMessageUserTurnRefs(baseMessages).has(pendingTurnRef),
+  );
+  return appendPendingBridgeUserMessages(
+    baseMessages,
+    pendingTurn,
+    hasUserRowForPendingTurn,
+  );
 }
 
 function buildConversationViewChatMessages({
   conversationView = null,
   pendingTurn = null,
-  preserveRendererAnnotations = false,
   rendererAnnotations = [],
 }: BuildConversationViewMessagesInput): ChatMessage[] {
-  if (!conversationView || typeof conversationView !== 'object') {
+  const view = sdkConversationViewEnvelope(conversationView);
+  if (!view) {
     return [];
   }
-  const displayRows = Array.isArray(conversationView.displayRows)
-    ? conversationView.displayRows
-    : [];
+  const displayRows = displayRowsForConversationView(view);
   const sdkMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
-  const annotatedSdkMessages = preserveRendererAnnotations
-    ? mergeRendererAnnotationsIntoSdkMessages(
-      sdkMessages,
-      rendererAnnotations,
-    )
-    : sdkMessages;
+  const annotatedSdkMessages = mergeRendererAnnotationsIntoSdkMessages(
+    sdkMessages,
+    rendererAnnotations,
+  );
+  const viewPendingTurn = pendingTurnMatchesConversationView(view, pendingTurn)
+    ? pendingTurn
+    : null;
+  const pendingTurnRef = normalizePendingTurnRef(viewPendingTurn);
+  const hasSdkUserRowForPendingTurn = Boolean(
+    pendingTurnRef && findConversationViewUserDisplayRowForTurn(view, pendingTurnRef),
+  );
   return appendPendingBridgeUserMessages(
     annotatedSdkMessages,
-    pendingTurn,
+    viewPendingTurn,
+    hasSdkUserRowForPendingTurn,
   );
 }
 
 export const DesktopConversationDisplayProjection = Object.freeze({
   buildConversationViewChatMessages,
+  buildConversationViewTraceSummary,
+  buildConversationViewTurnChatMessages,
   buildPendingBridgeChatMessages,
-  selectRendererMessageAnnotations,
 });

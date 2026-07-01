@@ -51,6 +51,9 @@ import {
   setMessagesInChatStore,
   setThinkingStatusInChatStore,
 } from '../../src/renderer/features/chat/stores/chatStoreAdapters';
+import {
+  getWorkspaceStateFromChatStoreForTest as getWorkspaceStateFromChatStore,
+} from './chatStoreTestUtils';
 
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 const WORKSPACE_MIRROR_FIELDS = [
@@ -165,12 +168,7 @@ function buildToolEventsFromMessages(messages) {
             output: message.text || '',
           },
           toolMetadata: message.toolMetadata || null,
-          screenshot: message.screenshot || null,
-          screenshotRef: message.screenshotRef || null,
-          screenshotUrl: message.screenshotUrl || null,
-          screenshotContentType: message.screenshotContentType || null,
-          executionTime: message.executionTime ?? null,
-          success: message.success ?? (message.status === 'error' ? false : true),
+          success: message.status === 'error' ? false : true,
           payload: {
             output: message.text || '',
           },
@@ -216,6 +214,51 @@ function buildToolEventsFromMessages(messages) {
     .filter(Boolean);
 }
 
+function buildPresentationEntriesFromMessages(messages) {
+  return messages
+    .filter((message) => message?.sender === 'assistant')
+    .map((message, index) => {
+      const id = message.id || `assistant-entry-${index}`;
+      const turnRef = message.turnRef || 'turn-test';
+      if (message.type === 'error') {
+        return {
+          id,
+          type: 'error',
+          text: message.text || '',
+          sourceEventType: 'error',
+          turnRef,
+          isComplete: true,
+        };
+      }
+      if (message.type === 'tool-output') {
+        return null;
+      }
+      if (message.type === 'search-source') {
+        return {
+          id,
+          type: 'tool-progress',
+          text: message.text || '',
+          sourceEventType: 'web-search-progress',
+          toolName: message.toolName || 'web_search',
+          turnRef,
+          isComplete: false,
+        };
+      }
+      if (message.type === 'tool-call' || message.type === 'tool-explanation') {
+        return null;
+      }
+      return {
+        id,
+        type: 'llm-text',
+        text: message.text || '',
+        sourceEventType: 'assistant_delta',
+        turnRef,
+        isComplete: message.isComplete === true,
+      };
+    })
+    .filter((entry) => entry && entry.text);
+}
+
 function buildCurrentTurnProjection(messages, phase = null) {
   const assistantMessages = messages.filter((message) => message?.sender === 'assistant');
   const latestTextMessage = [...assistantMessages].reverse().find((message) => (
@@ -225,10 +268,14 @@ function buildCurrentTurnProjection(messages, phase = null) {
   return {
     conversationRef: 'conv-test',
     turnRef: 'turn-test',
+    source: 'sdk-current-turn',
     phase: normalizeProjectionPhase(phase, messages),
     assistantText: latestTextMessage?.text || '',
     reasoningText: latestTextMessage?.thinkingText || null,
     toolEvents: buildToolEventsFromMessages(messages),
+    presentation: {
+      entries: buildPresentationEntriesFromMessages(messages),
+    },
     lastError: latestError?.text || null,
   };
 }
@@ -245,7 +292,7 @@ export function setChatState(messages) {
 
 export function emitOverlayPhase(phase) {
   act(() => {
-    const workspace = useChatStore.getState().getWorkspaceState();
+    const workspace = getWorkspaceStateFromChatStore();
     const currentTurnProjection = buildCurrentTurnProjection(workspace.messages || [], phase);
     setNoViewSdkLiveTurnInChatStore(currentTurnProjection);
     setConversationViewInChatStore(null);

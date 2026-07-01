@@ -71,6 +71,1214 @@ All notable changes to WindieOS will be documented in this file.
   dispatch, while still passing the model into the SDK replay command, so
   resend follows the same model-selection gate as normal sends. No migration
   required.
+- frontend/response-overlay: require exact display/live row labels when matching
+  `ConversationView` display rows against live overlay entries, so padded
+  `sourceEventType` or message type values no longer participate in renderer
+  materialization checks. No migration required.
+- frontend/chat-surface: scope local pending lifecycle under `ConversationView`
+  to the exact same view conversation, so stale pending bridges from other
+  conversations cannot drive typing, busy, or Stop surface authority. No
+  migration required.
+- frontend/conversation-view: scope SDK user-display-row lookup to rows whose
+  exact `conversationRef` matches the enclosing `ConversationView`, so malformed
+  rows cannot suppress pending bridges or count as same-turn replacement
+  evidence. No migration required.
+- frontend/conversation-view: require SDK display rows to carry an exact
+  `conversationRef` matching the enclosing `ConversationView` before renderer
+  chat or trace projection can consume them. No migration required.
+- frontend/current-turn: require no-view SDK live-turn presentation rows to
+  carry exact `conversationRef` and `turnRef` identity before renderer thread
+  presentation can append them. No migration required.
+- frontend/response-overlay: gate no-view SDK response entries and raw thinking
+  fallback on the live-surface source, so idle or malformed live-turn packets
+  cannot rebuild overlay rows after lifecycle gating. No migration required.
+- frontend/chat-surface: require no-view SDK live-turn fallback to carry an
+  exact conversation ref before it can drive renderer busy/active lifecycle,
+  leaving malformed raw live-turn packets inert. No migration required.
+- frontend/response-overlay: require exact response-overlay dismissal target
+  identity before deriving store dismissal keys or native responsebox hide
+  values; padded overlay, entry, and no-view SDK refs now fail closed instead of
+  being repaired. No migration required.
+- frontend/current-turn: stop treating raw `toolEvents` as a current-turn IPC
+  validity signal; no-view fallback remains limited to legacy text/error
+  packets while SDK presentation entries own tool display. No migration
+  required.
+- frontend/response-overlay: update overlay state coverage so raw no-view
+  `toolEvents` and raw chat-store tool rows stay inert while SDK presentation
+  entries own live tool/progress display. No migration required.
+- frontend/response-overlay: keep response-overlay view projection on opaque
+  SDK `ConversationView` envelopes after the shared workspace gate instead of
+  importing or casting SDK view types in the overlay runtime. No migration
+  required.
+- frontend/chat-pill: keep pill session trace projection on opaque SDK
+  view/live-turn envelopes instead of importing SDK `ConversationView` or
+  local current-turn shapes. No migration required.
+- frontend/chat-store: route SDK view/live-turn store writes through app-runtime
+  envelope gates instead of feature-store SDK type imports and casts. No
+  migration required.
+- frontend/chat-interface: keep chat interface selectors on projected
+  surface/read-model inputs instead of importing or casting SDK
+  `ConversationView` and current-turn types. No migration required.
+- frontend/attachments: expand send-preparation coverage so renderer pending
+  turns and SDK resources stay free of display attachment ids, preview sources,
+  screenshot aliases, attachment filename aliases, and attachment arrays. No
+  migration required.
+- frontend/display-rows: pass accepted SDK display-row ids through renderer
+  projection builders instead of re-reading raw `row.id` after the exact id
+  gate. No migration required.
+- frontend/current-turn: require exact current-turn IPC envelope and nested
+  projection `conversationRef` values instead of trimming padded refs before
+  storing SDK `ConversationView` or live-turn projection state. No migration
+  required.
+- frontend/attachments: make ready-image source extraction consume the
+  sanitized SDK attachment descriptor instead of repeating raw lifecycle checks.
+  No migration required.
+- frontend/replay: include the SDK replay action on renderer cleanup traces and
+  update replay docs to describe intent-only SDK command dispatch. No migration
+  required.
+- frontend/chat-surface: let the selected surface-state wrapper pass
+  `ConversationView` through to the controller guard instead of repeating the
+  SDK view-shape check. No migration required.
+- frontend/chat-surface: make the shared surface selector consume projected
+  workspace read models directly instead of repeating `ConversationView` versus
+  raw-message suppression logic. No migration required.
+- frontend/chat-store: clear stale raw workspace messages when a valid SDK
+  `ConversationView` becomes authoritative, after migrating exact assistant
+  feedback into renderer annotations. No migration required.
+- frontend/current-turn: stop projecting legacy no-view raw `toolEvents` into
+  renderer live tool rows; live tool display now comes from SDK presentation
+  entries or `ConversationView` entries. No migration required.
+- frontend/chat-surface: derive Stop affordance availability through the shared
+  stop-target runtime, requiring exact SDK view or pending-bridge identity
+  before enabling Stop. No migration required.
+- frontend/display-rows: stop using renderer row-kind checks to decide SDK
+  edit/retry action availability during display-row projection; the adapter now
+  only exact-gates SDK row action fields before UI controls render them. No
+  migration required.
+- frontend/chat-stream: name stream and current-turn projection runtime
+  workspace dependencies after their projected read models, so hook wiring no
+  longer exposes raw `getWorkspaceState` terminology across the SDK stream
+  boundary. No migration required.
+- frontend/replay: remove stale chat-store/message fixtures from replay runtime
+  coverage so tests exercise the public row-intent API instead of preserving
+  the old renderer-owned replay context shape. No migration required.
+- frontend/replay: reject legacy caller context/model fields at the replay
+  runtime entrypoint so React can pass only row intent while SDK commands own
+  session scope, model state, and replay semantics. No migration required.
+- frontend/chat-interface: align app-runtime boundary coverage with the thinner
+  selector/adapter path so `ChatInterface` consumes `selectChatInterfaceState`
+  and `applyConversationViewToChatStore(...)` instead of importing presentation
+  runtime helpers. No migration required.
+- frontend/session: require exact conversation refs before active chat reset
+  cleanup targets a chat workspace, leaving padded renderer identity unscoped.
+  No migration required.
+- frontend/attachments: collapse SDK display attachment validation onto the
+  sanitizer path so renderer projection no longer keeps a separate
+  displayability preflight for typed descriptors. No migration required.
+- frontend/replay: keep rejected padded or empty replay target ids out of
+  renderer replay trace state, reporting them as missing targets instead of
+  diagnostic row identity. No migration required.
+- frontend/chat-store: require provider trace snapshots to use exact active
+  conversation refs instead of forwarding padded renderer identity into trace
+  state. No migration required.
+- frontend/display-rows: classify SDK display rows through exact known
+  `role`/`type` pairs before projecting renderer chat-message props, leaving
+  padded or unknown row labels inert. No migration required.
+- frontend/attachments: require SDK display attachment `kind`, `source`, and
+  `status` labels to be exact known lifecycle values before renderer attachment
+  projection can display them. No migration required.
+- frontend/chat-surface: require SDK `ConversationView` dashboard/pill surface
+  modes to be exact `idle` or `busy` labels before driving renderer busy state,
+  leaving padded or unknown modes inert. No migration required.
+- frontend/chat-interface: require SDK `ConversationView.revisionId` to be an
+  exact non-empty identity before exposing it as `activeRevisionId`, preventing
+  malformed revision ids from becoming renderer presentation state. No
+  migration required.
+- frontend/live-turn: stop treating legacy renderer row labels such as
+  `search-source` and `tool-explanation` as SDK live presentation entry aliases.
+  No migration required.
+- frontend/live-turn: drop live presentation entries with padded or unknown SDK
+  `type` labels instead of repairing them into assistant text rows. Missing
+  labels remain a temporary legacy compatibility path. No migration required.
+- frontend/live-turn: reject malformed `conversation.send` resource arrays
+  before SDK command dispatch when a resource carries renderer display lifecycle
+  fields, preventing silent partial sends across the SDK boundary. No migration
+  required.
+- frontend/pending-turn: reject attachment-bearing pending-turn clear
+  broadcasts in both renderer and main IPC adapters, keeping the local pending
+  bridge limited to exact identity/text fields. No migration required.
+- frontend/transport: reject display attachment lifecycle fields such as
+  `attachments`, `display_attachments`, `displayAttachmentId`, and `previewSrc`
+  from renderer `conversation.send` payloads, keeping attachment state owned by
+  SDK resources and `ConversationView` projection. No migration required.
+- frontend/chat-interface: route SDK `ConversationView` results through the
+  chat-store adapter's exact store-ref guard instead of letting `ChatInterface`
+  validate and write SDK views directly. No migration required.
+- frontend/chat-store: keep provider trace read models from carrying raw
+  fallback message counts or last-message metadata once a valid SDK
+  `ConversationView` exists, so provider diagnostics use the SDK view trace
+  summary as the only normal chat read model. No migration required.
+- frontend/live-turn: omit legacy no-presentation assistant `thinkingText`
+  metadata when raw reasoning is absent, instead of publishing
+  renderer-owned `null` placeholders. No migration required.
+- frontend/display-rows: omit synthetic `thinkingSourceEventType` labels for
+  SDK display rows that provide reasoning text, preserving the text without
+  inventing a renderer-owned `reasoning_delta` source. No migration required.
+- frontend/live-turn: omit `toolOutputDetails` on live tool-output rows when SDK
+  presentation entries do not provide sanitized detail metadata, instead of
+  publishing renderer-owned `null` placeholders. No migration required.
+- frontend/live-turn: omit live-entry source-event labels when SDK presentation
+  entries do not provide exact metadata, including thinking and tool-output
+  rows, instead of synthesizing `reasoning_delta` or `tool_output`. No migration
+  required.
+- frontend/display-rows: omit renderer `sourceEventType` props when SDK display
+  rows do not provide exact source-event metadata, so the adapter no longer
+  backfills event labels from display row type. No migration required.
+- frontend/live-turn: require legacy no-view SDK tool events to carry exact
+  known `kind` values before projecting fallback tool rows, so malformed or
+  unknown tool kinds no longer fall through as renderer-local tool calls. No
+  migration required.
+- frontend/live-turn: omit live-entry `sourceEventType`, `turnRef`, `modelId`,
+  and `modelProvider` props when SDK presentation entries do not provide exact
+  non-empty values, instead of publishing renderer-owned `null`/`undefined`
+  placeholders. No migration required.
+- frontend/projection: omit renderer `turnRef` and `correlationId` props when
+  SDK display rows do not provide exact non-empty identity values, instead of
+  publishing local `null` or `undefined` placeholders. No migration required.
+- frontend/projection: omit renderer `timestamp` metadata when SDK display rows
+  do not provide an exact non-empty timestamp, instead of synthesizing empty
+  timestamp placeholders in the display-row adapter. No migration required.
+- frontend/projection: remove the legacy `modelFacingToolOutput` renderer chat
+  prop; tool-output cards, thread-find indexing, and estimated token tags now
+  consume SDK-authored `message.text` directly. No migration required.
+- frontend/projection: stop publishing top-level `toolName` on renderer chat
+  messages; SDK tool names may still feed display text and detail records, but
+  renderer rows no longer carry a parallel metadata prop. No migration
+  required.
+- frontend/projection: remove legacy top-level `executionTime` and `success`
+  from the shared renderer `ChatMessage` contract and no-view live progress
+  rows, keeping tool result status in SDK-authored detail records instead. No
+  migration required.
+- frontend/projection: stop publishing SDK display-row progress details through
+  the legacy `toolMetadata` prop; progress rows now keep explicit SDK
+  `toolCallDetails`, and `ChatMessage` no longer declares `toolMetadata`. No
+  migration required.
+- frontend/projection: delete the unused transcript tool-output state helper and
+  remove it from the chat message runtime client; SDK display-row and live-turn
+  adapters now build tool-output rows directly. No migration required.
+- frontend/projection: stop the shared transcript tool-output state helper from
+  publishing the legacy `modelFacingToolOutput` duplicate; newly built renderer
+  tool-output rows use `text` plus explicit SDK `toolOutputDetails`. No
+  migration required.
+- frontend/projection: stop duplicating SDK live-turn tool-output text into the
+  legacy `modelFacingToolOutput` prop; current-turn and ConversationView live
+  tool-output rows now reach components through `message.text` only. No
+  migration required.
+- frontend/projection: stop duplicating SDK display-row tool-output content
+  into the legacy `modelFacingToolOutput` prop; display-row tool output now
+  reaches renderer components through `message.text` only. No migration
+  required.
+- frontend/projection: stop using SDK `toolOutputDetails` as fallback metadata
+  for `tool_progress` display rows, keeping progress details on explicit
+  SDK-authored `toolCallDetails` only. No migration required.
+- frontend/projection: make ConversationView trace summaries read only
+  canonical SDK display-row fields, so legacy `sender`, `text`, and top-level
+  source-event aliases on view rows no longer become provider diagnostics. No
+  migration required.
+- frontend/send: require SDK/main send-command error text to be exact before it
+  becomes a thrown renderer error, so padded command failures fall back to the
+  generic send failure instead of being trimmed into repaired diagnostics. No
+  migration required.
+- frontend/chat-store: exact-gate stream/current-turn fallback pending refs,
+  live-turn refs/phases, and thinking source labels at the adapter boundary, so
+  padded raw fallback metadata is reported as missing before projection
+  runtimes see it. No migration required.
+- frontend/replay: require SDK replay failure `error.name` labels to be exact
+  before using them in renderer diagnostics, so padded names fall back to the
+  generic `Error` kind instead of being trimmed into repaired trace metadata. No
+  migration required.
+- frontend/send: omit missing optional clipboard image `contentType` and
+  `filename` fields from prepared SDK resources instead of publishing explicit
+  `null` placeholders, keeping send preparation on the positive resource
+  contract. No migration required.
+- frontend/trace: make the chat-store provider trace read model publish only
+  exact no-view fallback active-turn and last-message metadata, so padded raw
+  message sender/type/ref/source labels are reported as missing at the adapter
+  boundary. No migration required.
+- frontend/chat: require SDK live-entry `modelId` and `modelProvider` values to
+  be exact before projecting them onto renderer message props, so padded
+  provider/model metadata is ignored instead of preserved. No migration
+  required.
+- frontend/chat: key no-view SDK presentation caches with exact live-turn refs,
+  phase labels, and presentation error text, so malformed padded SDK strings do
+  not churn ChatInterface presentation state. No migration required.
+- frontend/overlay: require response-overlay source-tag detection to use exact
+  SDK `sourceEventType` labels, so padded labels are ignored instead of being
+  trimmed into overlay response eligibility. No migration required.
+- frontend/main: require direct Agent SDK revision command identities
+  (`conversationRef`, `revisionId`, `baseRevisionId`, `sourceRevisionId`,
+  `cutAfterRowId`, and `newConversationRef`) to be exact before main invokes
+  display-timeline, checkout, replace, or fork SDK APIs. No migration required.
+- frontend/overlay: make response-overlay tool-row materialization compare only
+  exact SDK tool identities, so padded correlation or tool-detail ids are not
+  trimmed into display/live row dedupe decisions. No migration required.
+- frontend/overlay: require ConversationView response-overlay display-row
+  selection to use exact SDK turn refs, so padded `liveTurn.turnRef` or surface
+  `turnRef` values do not trim into materialized response-overlay rows. No
+  migration required.
+- sdk: regenerate the CommonJS conversation runtime from the narrowed replay
+  source so CJS `editAndResend`/`retryTurn` ignore caller replay payload,
+  model, and replacement turn-ref overrides, matching SDK-owned replay
+  semantics. No migration required.
+- frontend/main: drop caller-supplied screenshot, attachment, and capture
+  aliases from Agent SDK runtime send commands whenever typed SDK turn
+  resources are present, leaving SDK resource resolution as the only source of
+  materialized backend attachment aliases. No migration required.
+- frontend/main: make the SDK live-turn surface controller treat
+  ConversationView response-overlay refs as exact SDK identity, so padded view
+  turn/guard/conversation refs are not trimmed into native response-overlay
+  authority and cross-owner overlay intents must provide their own exact turn
+  ref. No migration required.
+- frontend/stream: derive the chat-stream `viewLiveTurnRef` read model through
+  the ConversationView workspace runtime's exact SDK live-turn reader, so padded
+  view turn refs do not leave the SDK-view boundary as stream authority. No
+  migration required.
+- frontend/send: omit malformed optional SDK resource metadata from the
+  live-turn command facade instead of forwarding `null` content type, filename,
+  or screenshot reason fields. No migration required.
+- frontend/trace: narrow the ChatProvider trace runtime to consume
+  `conversationViewTraceSummary` from the chat-store adapter instead of reading
+  SDK `ConversationView` display rows directly. No migration required.
+- frontend/stream: replace the chat-stream read model's partial
+  `conversationView.liveTurn` payload with a purpose-named `viewLiveTurnRef`,
+  keeping stale-turn guards on SDK view identity without publishing a
+  renderer-local view shape. No migration required.
+- frontend/projection: route ConversationView trace summaries and send-state
+  user-row checks through the shared full-envelope SDK view gate, removing
+  renderer-local partial `displayRows` view shapes from those adapters. No
+  migration required.
+- frontend/projection: type the current-turn projection workspace read model
+  against the SDK `ConversationView` contract instead of a local partial view
+  shape, keeping malformed views on explicit test-only fallback coverage. No
+  migration required.
+- frontend/pill: make chat-pill lifecycle/state trace helpers consume the SDK
+  `ConversationView` type after the shared full-envelope gate instead of
+  carrying a pill-local partial view shape. No migration required.
+- frontend/chat-store: publish `conversationView: null` from projected
+  workspace read models unless the full SDK ConversationView envelope is
+  present, keeping partial SDK-looking objects off stream/current-turn read
+  paths. No migration required.
+- frontend/send: require SDK ConversationView user display rows to carry an
+  exact row id before they can satisfy first-message send-state checks, keeping
+  malformed view rows from replacing no-view fallback policy. No migration
+  required.
+- frontend/projection: scope SDK display-row replay action metadata to the row
+  kinds that own it, so user rows project edit targets, assistant message rows
+  project retry targets, and tool rows drop misplaced replay actions. No
+  migration required.
+- frontend/send: require workspace bindings to be exact before send preparation
+  includes `workspacePath` or a workspace SDK resource in the prepared turn
+  handoff. No migration required.
+- frontend/live-turn: require SDK presentation `lastError` text to be exact
+  before it counts as visible lifecycle, overlay, side-effect, or legacy
+  no-view error-row evidence. No migration required.
+- frontend/main: omit malformed SDK resource metadata from the Agent SDK
+  runtime command bridge instead of trimming padded artifact refs, attachment
+  filenames, workspace paths, or malformed capture metadata into
+  `agent.run(...)`. No migration required.
+- frontend/main: require renderer-window SDK view hydration to see the full
+  `ConversationView` envelope before forwarding `latestConversationView`,
+  leaving partial objects on the no-view current-turn fallback path. No
+  migration required.
+- frontend/stop: require the main-process stop target resolver to see a full
+  SDK `ConversationView` envelope before it suppresses pending-bridge stop
+  fallback. No migration required.
+- frontend/chat: make chat interface selectors null no-view thinking,
+  compaction, and token state whenever `ConversationView` is authoritative so
+  direct selector callers cannot mix SDK display rows with renderer fallback
+  runtime fields. No migration required.
+- frontend/replay: align hook coverage with the SDK-owned replay boundary so
+  empty or padded row ids are rejected before reaching SDK command facades. No
+  migration required.
+- frontend/thread: split ConversationView live-row selection from no-view
+  current-turn fallback heuristics so SDK view live entries no longer pass
+  through renderer duplicate/latest-user suppression. No migration required.
+- frontend/live-turn: map SDK current-turn presentation and legacy no-view tool
+  rows directly to renderer chat-message props instead of routing through
+  legacy transcript message-state builders. No migration required.
+- frontend/replay: reject missing or padded replay target row ids in the
+  renderer replay runtime before invoking the continuity service or SDK command
+  bridge. No migration required.
+- frontend/projection: map SDK display rows directly to renderer chat-message
+  props instead of routing through legacy transcript message-state builders, so
+  the display-row adapter stays a narrow SDK row-to-component-props bridge. No
+  migration required.
+- frontend/send: shrink the prepared chat-send handoff so dispatch no longer
+  carries transcript session snapshots, pending-row timestamps, or a duplicate
+  `turnRef`; SDK dispatch still receives typed resources plus the pending
+  cleanup id. No migration required.
+- frontend/chat-store: remove raw-message counts from the SDK current-turn
+  projection workspace read model; replay diagnostics now rely on SDK view row
+  counts or renderer trace defaults while provider traces keep their explicit
+  no-view message snapshot. No migration required.
+- frontend/send: add boundary coverage that rejects renderer display attachment
+  fields such as `previewSrc`, `displayAttachmentId`, screenshot aliases, and
+  attachment summaries from send preparation and send payload normalization.
+  No migration required.
+- frontend/tool-output: remove legacy top-level `toolName`, `executionTime`,
+  and `success` from the tool-output message-state helper so SDK
+  `toolOutputDetails` remains the only tool detail payload. No migration
+  required.
+- frontend/tool-output: remove legacy `toolMetadata` from the tool-output
+  message-state helper so helper output cannot publish a parallel detail
+  channel beside SDK `toolOutputDetails`. No migration required.
+- frontend/message-content: stop advertising legacy tool-output metadata props
+  on the generic MessageContent prop contract; tool output details remain
+  explicit SDK `toolOutputDetails` only. No migration required.
+- frontend/tool-output: narrow the ToolOutputMessage component contract to the
+  fields it renders, so legacy `toolName`, `executionTime`, and `success`
+  props cannot act as alternate detail inputs. No migration required.
+- frontend/live-turn: stop projecting SDK live-entry `toolMetadata` into
+  current-turn tool rows; live rows now keep explicit `toolCallDetails` and
+  `toolOutputDetails` as the only SDK-authored detail payloads. No migration
+  required.
+- frontend/replay: remove replay-runtime target-row id preparation so edit and
+  retry actions forward UI row intent unchanged to the continuity command
+  facade, where exact command id guards run before SDK IPC. No migration
+  required.
+- frontend/chat-store: narrow ChatProvider trace workspace reads to a
+  purpose-shaped provider trace read model so the provider trace runtime no
+  longer scans raw no-view message arrays or stream tracking state. No
+  migration required.
+- frontend/chat-store: narrow the current-turn projection workspace read adapter
+  to message count, view trace envelope, turn identities, stream tracking, and
+  thinking status instead of exposing raw messages to projection side effects.
+  No migration required.
+- frontend/chat-store: narrow the chat-stream workspace read adapter to
+  pending-turn identity, stream tracking, view live-turn ref, and thinking
+  source labels instead of exposing raw messages or full SDK view state. No
+  migration required.
+- frontend/thread: require ConversationView-mode renderer pending rows to be
+  explicitly allowed by the ChatInterface projection adapter, so arbitrary
+  `renderer-compose` rows cannot bypass SDK display-row authority. No migration
+  required.
+- frontend/pending-turn: require renderer pending-bridge payloads to use only
+  the small identity/text field set, so display-lifecycle data cannot be
+  stripped into a local pending user row. No migration required.
+- frontend/projection: keep SDK display-row tool-output success scoped to
+  sanitized `toolOutputDetails`, so raw row metadata cannot create legacy
+  top-level renderer success props. No migration required.
+- frontend/chat-store: omit the raw `isSending` storage latch from projected
+  workspace read models so UI selectors cannot treat it as normal busy-state
+  authority beside SDK view and pending-bridge lifecycle. No migration required.
+- frontend/send: preserve SDK-generated `attachment_context` whitespace through
+  renderer transport and Electron main IPC instead of trimming hidden file
+  context as if it were identity metadata. No migration required.
+- frontend/surface: stop borrowing `ConversationView.liveTurn.turnRef` for
+  response-overlay surfaces that declare a different owner conversation without
+  their own turn ref, keeping live-surface identity pairs SDK-authored. No
+  migration required.
+- frontend/projection: require canonical SDK display-row role/type pairs before
+  mapping rows into renderer chat messages, leaving mismatched rows inert
+  instead of assigning renderer sender or tool semantics from `type` alone. No
+  migration required.
+- frontend/chat-store: narrow stream and current-turn store adapter read types
+  to purpose-shaped runtime read models instead of exposing the full projected
+  workspace type to hooks. No migration required.
+- frontend/send: require live-turn command resources to match the positive SDK
+  resource key set, dropping descriptors with renderer preview/lifecycle or
+  attachment alias fields instead of stripping them into `conversation.send`
+  input. No migration required.
+- frontend/projection: require exact SDK labels in ConversationView trace
+  summaries, so padded live-turn phases, row senders, row types, and
+  source-event values appear as missing diagnostics instead of being trimmed
+  into renderer trace state. No migration required.
+- frontend/chat-store: require exact assistant row ids when migrating legacy
+  feedback into `rendererAnnotations` beside an authoritative
+  `ConversationView`, so padded raw fallback ids cannot become SDK-row
+  annotation records. No migration required.
+- frontend/compaction: require exact manual-compaction conversation refs at the
+  renderer continuity service boundary, rejecting padded explicit refs and
+  ignoring malformed active-session fallbacks instead of trimming them into SDK
+  command identity. No migration required.
+- frontend/send: require exact renderer workspace paths at the SDK
+  `conversation.send` command boundary, omitting padded values instead of
+  trimming them into SDK command data. No migration required.
+- frontend/replay: stop re-deriving SDK row replay action eligibility from row
+  role/type during display projection; the renderer now allowlists exact row
+  action fields and leaves availability to SDK-authored metadata plus
+  message-kind-specific action components. No migration required.
+- frontend/stop: require pending-turn stop fallback to match the active SDK
+  `ConversationView` conversation when view state exists, preventing stale
+  cross-conversation pending bridges from becoming Stop targets. No migration
+  required.
+- frontend/attachments: route message-row attachment class detection through
+  the SDK display attachment projection gate, so malformed raw attachment
+  arrays cannot mark a renderer row as attachment-bearing. No migration
+  required.
+- frontend/chat-store: type public projected workspace readers as
+  `ChatWorkspaceReadModelState`, keeping raw workspace state as an internal
+  mutation detail of chat-store adapters. No migration required.
+- frontend/chat-store: keep the generic projected workspace read helper private
+  to chat-store adapters and route stream/current-turn projection hooks through
+  purpose-named projected read adapters. No migration required.
+- frontend/chat-store: move ChatProvider trace snapshot reads behind a
+  purpose-built chat-store adapter so the provider no longer imports broad
+  projected workspace read models just to configure renderer tracing. No
+  migration required.
+- frontend/thread: render `ConversationView.liveTurn.entries` without applying
+  no-view raw-message duplicate or latest-user suppression, keeping SDK view
+  live rows authoritative while legacy current-turn fallback keeps its
+  migration guards. No migration required.
+- frontend/projection: keep the renderer pending bridge beside
+  `ConversationView` rows only when the bridge `conversationRef` exactly
+  matches the SDK view, so cross-conversation or padded pending state cannot
+  enter the authoritative chat read model. No migration required.
+- frontend/query: align Electron main renderer-query preparation with the
+  exact SDK transport contract by rejecting padded `query_message_id` values
+  and omitting padded `attachment_filenames[]` entries instead of trimming them.
+  No migration required.
+- frontend/replay: require exact direct AgentClient replay conversation refs
+  and target row ids before selecting a conversation runtime handle, keeping
+  main-process replay bridges from trimming malformed renderer intent. No
+  migration required.
+- frontend/chat-store: stop exporting the raw workspace getter from production
+  chat-store adapters, keeping raw workspace inspection in frontend test
+  utilities while feature code stays on projected read models. No migration
+  required.
+- frontend/stop: narrow `DesktopStopTurnRuntime` to the selector, execution,
+  and stopped-turn adapter entrypoints, keeping stop plan construction and
+  SDK-live-turn terminalization private to the runtime. No migration required.
+- frontend/display-rows: stop re-exporting ConversationView row lookup helpers
+  from the display projection runtime, keeping lookup authority with
+  `DesktopConversationDisplayRowLookupRuntime` while projection stays a row to
+  chat-message adapter. No migration required.
+- frontend/chat-store: remove the unused active-workspace predicate from the
+  workspace-state runtime so feature code stays on projected read-model
+  selectors and explicit mutation targets instead of raw workspace identity
+  checks. No migration required.
+- frontend/chat-store: require exact SDK display-row ids before writing
+  renderer feedback annotations beside an authoritative `ConversationView`, so
+  padded row ids cannot create renderer-owned annotation records. No migration
+  required.
+- frontend/live-turn: keep raw legacy no-presentation tool-event detail payloads
+  out of renderer live rows; SDK presentation entries and `ConversationView`
+  live-turn entries remain the owner for tool detail display. No migration
+  required.
+- frontend/live-turn: sanitize SDK presentation-entry `toolMetadata` through the
+  renderer display-detail allowlist before publishing current-turn message rows,
+  keeping raw nested payloads and screenshot aliases out of progress/output
+  props. No migration required.
+- frontend/replay: make Electron main SDK replay commands intent-only by
+  dropping caller-supplied replay payloads, model overrides, and turn refs
+  before `conversation.editAndResend`/`conversation.retryTurn`; retry now
+  requires an exact SDK target row id. No migration required.
+- sdk/replay: narrow `editAndResend` and `retryTurn` inputs to target row
+  intent, deriving replacement turn refs, replay payload resources, and model
+  behavior from the SDK display timeline and normal send path instead of
+  caller-supplied overrides. No migration required for Electron callers.
+- frontend/attachments: remove the message-row attachment visibility facade so
+  CSS class assembly trusts already-projected `attachments[]` instead of
+  revalidating SDK attachment lifecycle state. No migration required.
+- frontend/send: remove the stale per-turn `model` slot from renderer prepared
+  sends and the live-turn command facade so normal sends apply model changes
+  only through the awaited SDK settings command before dispatch. No migration
+  required.
+- frontend/dashboard: stop re-filtering SDK `ConversationView.displayRows` in
+  the renderer conversation library client; dashboard resume now validates the
+  view identity and preserves the SDK-authored row list. No migration required.
+- frontend/revisions: require exact conversation refs, revision ids, optional
+  fork cut row ids, and explicit fork conversation refs inside the desktop
+  continuity facade before invoking SDK revision commands, so direct facade
+  callers cannot trim padded identity into checkout/list/fork requests. No
+  migration required.
+- frontend/attachments: sanitize SDK display attachment descriptors at the
+  renderer gate before passing them to message components, preserving only the
+  typed display allowlist and dropping raw screenshot aliases, preview bytes in
+  ready rows, and arbitrary payload fields. No migration required.
+- frontend/conversation-view: require exact pending bridge refs,
+  `ConversationView.liveTurn.turnRef`, response-overlay `turnRef`, and
+  live-turn phase labels before the workspace view mutation clears local
+  pending state, so padded SDK-like values cannot replace the renderer's
+  short pending-send bridge. No migration required.
+- frontend/current-turn: require the shared complete `ConversationView` gate
+  before SDK live-row projection suppresses no-view current-turn fallback rows.
+  No migration required.
+- frontend/current-turn: require the shared complete `ConversationView` gate
+  before accepting `view` payloads from current-turn IPC normalization, keeping
+  partial envelopes on the no-view event path. No migration required.
+- frontend/send: route first-message send-state checks through the shared
+  complete `ConversationView` gate, so partial view-shaped objects no longer
+  become a separate SDK display-row authority. No migration required.
+- frontend/display-rows: keep SDK-authored progress rows as `tool-progress`
+  messages in display-row and live-turn adapters while preserving legacy
+  `search-source` rendering support for old rows. No migration required.
+- frontend/replay: stop stamping private renderer replay-step markers onto
+  rejected SDK replay command errors, and keep replay trace `action` values as
+  timeline event names with `replayAction` carrying `retry`/`edit_resend`.
+  Replay failures now remain trace/status outcomes around untouched SDK errors.
+  No migration required.
+- frontend/send: route composer attachment payload construction through
+  `DesktopChatSendPayloadRuntime.normalizeOutgoingPayload(...)`, removing the
+  duplicate clipboard/readable-file handle normalizer from
+  `DesktopMessageInputRuntime`. No migration required.
+- frontend/response-overlay: remove the exported no-view SDK live-turn
+  `reasoningText` helper from the current-turn message runtime; the response
+  overlay now keeps its temporary raw thinking fallback local to its own
+  no-view path. No migration required.
+- frontend/live-turn: require exact no-view SDK `turnRef` values before the
+  legacy no-presentation fallback projects rows, removing the synthetic
+  `conversation:turn:*` live-row id path. No migration required.
+- frontend/live-turn: require exact non-empty legacy no-presentation
+  `toolEvents[].id` before projecting fallback tool rows, removing the renderer
+  index-based id synthesis path. No migration required.
+- frontend/live-turn: require exact non-empty SDK live-entry ids before
+  projecting no-view or `ConversationView` live entries into renderer chat
+  messages, keeping padded or malformed entry ids from becoming visible row
+  identity. No migration required.
+- frontend/display-rows: require exact non-empty SDK display-row ids before
+  projecting renderer chat messages, leaving rows with padded, empty, or
+  malformed ids inert instead of turning them into renderer message identity.
+  No migration required.
+- frontend/display-rows: require exact non-empty SDK display-row
+  `metadata.reasoningText` before projecting renderer thinking text, keeping
+  padded reasoning metadata from becoming a repaired thinking row. No migration
+  required.
+- frontend/display-rows: require exact non-empty SDK display-row timestamps
+  before copying them into renderer chat-message metadata, keeping padded
+  timestamp strings from becoming a repaired renderer display value. No
+  migration required.
+- frontend/actions: route direct assistant/user edit-retry button target checks
+  through `DesktopMessageActionRuntime.resolveReplayTargetRowId`, so replay
+  controls fail closed for missing or padded SDK row targets even outside the
+  normal `MessageList` path. No migration required.
+- frontend/attachments: make `AttachmentRendererRegistry` render only
+  already-validated SDK attachment descriptors from `AttachmentList`, keeping
+  preview/lifecycle validation centralized in the SDK display attachment
+  projection helper. No migration required.
+- frontend/current-turn: require the shared complete SDK `ConversationView`
+  envelope before suppressing no-view SDK live-turn workspace storage, keeping
+  partial view-shaped objects on the no-view fallback path. No migration
+  required.
+- frontend/replay: reject padded or empty replay conversation refs and target row
+  ids inside the renderer continuity facade before invoking SDK replay commands,
+  keeping direct facade callers on the same exact-identity boundary as the
+  public replay runtime and Electron main. No migration required.
+- frontend/store: remove the raw `getWorkspaceState` method from the Zustand
+  chat-store surface and keep raw workspace reads behind
+  `chatStoreAdapters.ts`; UI selectors continue to consume projected read
+  models. No migration required.
+- frontend/live-turn: move the legacy tool-event attachment regression to the
+  current-turn message runtime and pin no-view tool events as text/status-only
+  fallback rows; live attachments still come from SDK presentation entries,
+  ConversationView live entries, or display rows. No migration required.
+- frontend/presentation: route all user rows through the user-message content
+  kind and leave attachment visibility to `AttachmentList` plus row classes,
+  removing SDK attachment descriptor checks from content-kind routing. No
+  migration required.
+- frontend/attachments: add an app-runtime attachment presentation facade for
+  message row classes, keeping SDK attachment descriptor validation out of
+  class assembly. No migration required.
+- frontend/attachments: centralize React attachment descriptor gating in
+  `AttachmentList`; user and tool-output message components now pass SDK row
+  `attachments[]` through without importing the SDK attachment projection
+  runtime themselves. No migration required.
+- frontend/stream: route stale-turn guards, compaction thinking-source reads,
+  and terminal-completion state through the projected chat workspace read model
+  so SDK `ConversationView` suppresses raw stream-tracking fallback before
+  stream handlers decide side effects. No migration required.
+- frontend/dashboard: remove the raw chat-workspace read from dashboard
+  conversation open; the hook now requests a view-preserving clear while the
+  chat-store clear runtime owns preserving cached SDK `ConversationView`
+  state. No migration required.
+- frontend/replay: stop reading deferred renderer model selection for
+  retry/edit replay commands, leaving replay dispatch as row intent plus
+  session identity while SDK commands own model application. No migration
+  required.
+- frontend/replay: narrow `DesktopConversationContinuityService` retry/edit
+  methods so renderer UI callers cannot forward replay payloads, attachment
+  aliases, or model overrides through the SDK command bridge. No migration
+  required.
+- frontend/token-tags: stop estimating user image tokens from SDK attachment
+  lifecycle descriptors in the renderer dev token tag; attachment lifecycle now
+  stays on the SDK display/rendering path. No migration required.
+- frontend/presentation: stop naming raw no-presentation current-turn fields in
+  the ChatInterface presentation cache; legacy current-turn fallback snapshots
+  now stay opaque until the thread presenter fallback consumes them. No
+  migration required.
+- frontend/compaction: stop synthesizing compacted replay revision ids in the
+  renderer stream payload adapter; compacted replay persistence now requires
+  SDK/event revision identity. No migration required.
+- frontend/live-turn: align stream side-effect regression fixtures and docs with
+  SDK presentation-entry ownership, keeping raw current-turn text/tool fields as
+  legacy fallback context instead of the source for tracking side effects. No
+  migration required.
+- frontend/send: add direct send-preparation runtime coverage proving normal
+  pending bridge payloads stay identity/text only while typed SDK resources
+  carry attachment intent without renderer display lifecycle fields. No
+  migration required.
+- frontend/live-turn: remove the generic renderer metadata pass-through from
+  `DesktopLiveTurnRuntimeClient.sendQuery`, leaving normal sends to cross the
+  SDK command boundary with typed resources rather than attachment or capture
+  metadata blobs. No migration required.
+- frontend/display-rows: require SDK-authored string row content for renderer
+  tool-call and tool-output card text, dropping structured row content instead
+  of JSON-stringifying it in the display-row adapter. No migration required.
+- frontend/pending-turn: normalize pending-turn broadcasts at the renderer IPC
+  adapter so partial or attachment-bearing pending payloads no longer reach the
+  chat-store bridge. No migration required.
+- frontend/conversation-view: require the shared complete SDK
+  `ConversationView` envelope before display projection helpers render rows or
+  trace summaries, preventing partial display-row objects from becoming a
+  second chat read model. No migration required.
+- frontend/display-rows: allowlist exact SDK row replay action props when
+  projecting display rows so renderer chat messages no longer receive raw
+  `row.actions` metadata or repaired edit/retry target ids. No migration
+  required.
+- frontend/replay: resolve transcript session and deferred model selection
+  inside the replay executor instead of passing them as internal caller
+  context, keeping replay actions scoped to row intent plus SDK/runtime-owned
+  context. No migration required.
+- frontend/thread-presentation: pass a pre-gated projection conversation ref
+  into live-row filtering so partial `ConversationView` objects cannot reclaim
+  thread live-row authority or suppress the no-view SDK fallback. No migration
+  required.
+- frontend/lifecycle: route visible-turn `ConversationView` shape checks through
+  `DesktopConversationViewWorkspaceRuntime`, keeping lifecycle projection on the
+  same shared SDK view gate as chat presentation and surface selectors. No
+  migration required.
+- frontend/revisions: prepare checkout/fork commands inside
+  `DesktopChatRevisionActionRuntime` menu rows, so `ChatInterface` and header
+  controls no longer extract revision ids or raw revision records from menu
+  items before executing SDK revision actions. No migration required.
+- frontend/overlay: move response-overlay rendered-typing trace value shaping
+  into `DesktopResponseOverlayViewRuntime`, so `MinimalResponseOverlay` no
+  longer maps view-model turn ids into trace `turnRef` fields directly. No
+  migration required.
+- frontend/docs: keep the dashboard recent-conversation open-flow reference on
+  `DesktopConversationLibraryClient.loadConversationView(...)` and guard it in
+  the dashboard boundary test so resume docs cannot reintroduce display-row to
+  message-list projection. No migration required.
+- frontend/tests: make dashboard cached `ConversationView` fixtures use the
+  complete SDK view envelope before asserting open-flow preservation, matching
+  the shared ConversationView gate. No migration required.
+- frontend/pill: keep minimal chat-pill trace message counts on the no-view
+  fallback path only, so valid SDK `ConversationView` surfaces cannot reopen
+  raw surface messages for diagnostics. No migration required.
+- frontend/overlay: resolve minimal response-overlay transparency and trace
+  counts from selected overlay entries instead of the broader surface message
+  fallback, keeping SDK `ConversationView` overlay rendering from reopening raw
+  message authority. No migration required.
+- frontend/tests: remove legacy screenshot-alias projection from no-view overlay
+  test utilities and keep pending-turn fixtures attachment-free, matching the
+  SDK-owned attachment display boundary. No migration required.
+- frontend/current-turn: omit even empty attachment props from the legacy
+  no-view tool-output fallback so only SDK presentation/display `attachments[]`
+  can publish visual attachment state. No migration required.
+- frontend/replay: name renderer replay dispatch inputs as SDK target row ids
+  before mapping them to SDK `messageId` command fields, keeping edit/retry
+  semantics aligned with row action metadata. No migration required.
+- frontend/projection: report projection/replay trace phase from SDK
+  `ConversationView.liveTurn` whenever a view is present, leaving renderer
+  stream-tracking phase as a no-view diagnostic fallback only. No migration
+  required.
+- frontend/chat-store: suppress renderer stream-tracking phase and counters from
+  the projected chat read model once SDK `ConversationView` is authoritative,
+  leaving view-backed selectors with a stable idle fallback only. No migration
+  required.
+- sdk/attachments: make display attachment ids SDK-owned for turn resources;
+  `conversation.send` now ignores caller-supplied `displayAttachmentId` values
+  and assigns stable per-turn ids before live visual projection. No migration
+  required.
+- frontend/replay: stop adding renderer workspace payload context to retry and
+  edit/resend commands; replay commands now pass row intent while SDK/main
+  runtime context and target display rows own payload reconstruction. No
+  migration required.
+- frontend/stop: publish no stop target when neither SDK `ConversationView` nor
+  the renderer pending bridge is stoppable; renderer and Electron main no
+  longer carry active-conversation idle fallback identities through Stop
+  resolution. No migration required.
+- frontend/attachments: rename renderer attachment chrome away from screenshot
+  presentation classes and labels; visual rows now use generic SDK attachment
+  class names while still rendering only from `attachments[]`. No migration
+  required.
+- frontend/replay: stop trimming or blocking inline edit text before replay
+  dispatch; SDK `editAndResend` now owns edit text normalization and blank-text
+  rejection from end to end. No migration required.
+- frontend/tool-identity: stop using legacy `toolMetadata` as a thread dedupe
+  or response-overlay materialization identity fallback; renderer tool identity
+  now comes only from exact `correlationId`, `toolCallDetails`, or
+  `toolOutputDetails`. No migration required.
+- frontend/tool-output: stop rebuilding missing tool output details from legacy
+  `toolMetadata`, `toolName`, `executionTime`, or `success` props in React;
+  detail panels now rely on SDK-authored `toolOutputDetails`. No migration
+  required.
+- frontend/live-tools: stop synthesizing live tool detail metadata from legacy
+  fallback tool names; renderer tool details now come only from SDK-authored
+  `toolCallDetails` and `toolOutputDetails`. No migration required.
+- frontend/live-rows: ignore entry-level live `turnRef` values and project row
+  identity only from the containing SDK live turn or ConversationView live-turn
+  context. No migration required.
+- frontend/live-surface: consume resolved SDK overlay intent identity directly
+  instead of recomposing turn, conversation, and guard fallbacks in the renderer
+  presentation output. No migration required.
+- frontend/tool-details: allow only explicit SDK display-detail fields through
+  renderer tool card metadata, so new raw payload, provider, attachment, or
+  screenshot-alias fields cannot leak through by default. No migration required.
+- frontend/chat-store: treat workspace conversation refs as exact identities
+  instead of trimming them, so padded refs cannot be repaired into active
+  workspace or mutation authority. No migration required.
+- frontend/replay: stop using chat-store active conversation state as replay
+  command scope; edit/retry commands now require transcript/session
+  conversation identity before SDK dispatch. No migration required.
+- frontend/live-turn: stop projecting attachments from legacy no-view
+  current-turn `toolEvents`; live attachments now surface only through SDK
+  presentation entries or `ConversationView` live-turn entries. No migration
+  required.
+- frontend/runtime: route visible lifecycle and Stop pending-turn authority
+  through the strict pending bridge validator so attachment-bearing or partial
+  pending-shaped objects cannot drive local typing or stop state. No migration
+  required.
+- frontend/overlay: route response-overlay `ConversationView` read-model
+  authority through the shared workspace gate so partial view objects stay on
+  the no-view SDK current-turn fallback path. No migration required.
+- frontend/pill: route chat-pill `ConversationView` trace authority through
+  the shared workspace gate so partial view objects stay on the no-view SDK
+  live-turn fallback path. No migration required.
+- frontend/traces: route chat-provider `ConversationView` trace authority
+  through the shared workspace gate so partial view objects fall back to no-view
+  workspace trace snapshots. No migration required.
+- frontend/live-surface: route live-turn `ConversationView` authority through
+  the shared workspace gate so malformed view envelopes fall back to no-view SDK
+  current-turn presentation. No migration required.
+- frontend/projection: require a complete SDK `ConversationView` envelope before
+  replay projection traces suppress no-view message/current-turn diagnostics,
+  keeping partial objects on the raw fallback path. No migration required.
+- frontend/chat: harden the shared `ConversationView` workspace gate so padded
+  conversation refs and array-shaped view records stay on the no-view fallback
+  path. No migration required.
+- frontend/presentation: route main-thread and chat-interface
+  `ConversationView` authority checks through the shared workspace gate instead
+  of local renderer predicates. No migration required.
+- frontend/surfaces: route chat surface controller `ConversationView` authority
+  through the shared workspace gate so malformed view envelopes stay on the
+  no-view SDK-live fallback path. No migration required.
+- frontend/attachments: reject inline `data:` URLs on ready SDK image
+  attachments, keeping volatile preview bytes on materializing `previewSrc`
+  only while ready images resolve through artifact refs or non-inline URLs. No
+  migration required.
+- frontend/replay: resolve transcript session scope and selected-model replay
+  data inside the replay runtime facade instead of accepting caller-provided
+  overrides, keeping React replay actions to row intent plus active-scope
+  plumbing. No migration required.
+- frontend/transport: drop malformed non-object SDK `capture_meta` at the
+  renderer desktop transport boundary, preserving valid SDK resource metadata
+  while preventing renderer attachment lifecycle blobs from crossing
+  `conversation.send`. No migration required.
+- frontend/replay: require exact replay conversation refs and IPC replay
+  command row ids before SDK edit/retry dispatch, leaving edited text raw for
+  SDK validation instead of trimming command identity in renderer or main. No
+  migration required.
+- frontend/pending-turn: omit the `attachments` prop from renderer-local pending
+  user rows so the pending bridge carries only identity, text, and timestamp
+  while SDK display rows remain the attachment display authority. No migration
+  required.
+- frontend/projection: require complete SDK `ConversationView` envelopes in
+  thread, chat-surface, live-turn surface, and visible-lifecycle helpers before
+  suppressing no-view fallback messages, `sdkLiveTurn`, or pending bridge state.
+  No migration required.
+- frontend/send: normalize live-turn SDK resource arrays at the renderer command
+  facade, dropping malformed handles and renderer preview/display lifecycle
+  fields before `conversation.send`. No migration required.
+- frontend/attachments: keep materializing SDK image previews out of the
+  artifact image resolver path; preview rendering now uses SDK `previewSrc`
+  directly while artifact/source resolution is ready-only. No migration
+  required.
+- frontend/replay: keep replay hooks from subscribing to renderer config or
+  passing config through SDK replay intent; the replay runtime facade now reads
+  optional model command data behind the app-runtime boundary. No migration
+  required.
+- frontend/chat-interface: require the full SDK `ConversationView` envelope
+  before ChatInterface presentation treats `conversationView` as the normal read
+  model, keeping partial objects on the no-view message/live-turn fallback path.
+  No migration required.
+- frontend/pill: require the full SDK `ConversationView` envelope before chat
+  pill trace snapshots use view live-turn or pill-surface identity, keeping
+  partial `conversationView` objects on the no-view SDK live-turn fallback path.
+  No migration required.
+- frontend/projection: require ConversationView user-row lookup to see both
+  SDK `role: "user"` and `type: "user_message"` before replacing the pending
+  bridge or answering first-message send-state checks. Malformed display rows no
+  longer claim user-row authority. No migration required.
+- frontend/tool-details: sanitize `ToolOutputMessage` fallback `toolMetadata`
+  before rendering details, so raw payloads, model metadata, screenshot aliases,
+  and attachment lifecycle descriptors cannot leak through component-level
+  fallback panels. No migration required.
+- frontend/attachments: gate user-message attachment rendering on
+  SDK-validated descriptors before calling `AttachmentList`, so malformed raw
+  `message.attachments` arrays cannot enter the user attachment renderer path.
+  No migration required.
+- frontend/tokens: count only SDK image attachments in `materializing` or
+  `ready` states for renderer token estimates, leaving failed descriptors and
+  screenshot-request placeholders as display lifecycle state. No migration
+  required.
+- frontend/projection: sanitize SDK display-row tool detail records before they
+  reach renderer tool panels, keeping raw payloads, model metadata, screenshot
+  aliases, and attachment lifecycle descriptors out of generic details. No
+  migration required.
+- frontend/attachments: gate tool-output screenshot chrome on SDK-validated
+  display attachments, so malformed raw `message.attachments` arrays no longer
+  create renderer attachment UI. No migration required.
+- frontend/attachments: stop carrying a renderer-local last image source across
+  SDK attachment lifecycle changes; materializing previews now render only while
+  the SDK descriptor is materializing, and ready images wait for the artifact
+  resolver. No migration required.
+- frontend/stop: route stop-target and stopped-turn workspace ConversationView
+  checks through the shared SDK view-shape predicate, so display-timeline
+  `rows` payloads cannot claim stop authority or suppress no-view live-turn
+  cleanup. No migration required.
+- frontend/selectors: make shared chat surface selectors use the SDK
+  ConversationView shape predicate before suppressing no-view messages or
+  `sdkLiveTurn`, keeping partial objects on the no-view path. No migration
+  required.
+- frontend/chat-store: route sanitized workspace read-model projection through
+  the SDK ConversationView shape predicate before hiding raw no-view messages,
+  live-turn fallback, thinking, compaction, token, or annotation state. No
+  migration required.
+- frontend/chat-store: require cached ConversationView workspace authority to
+  have SDK `displayRows`, `liveTurn`, `surfaces`, and `actions` shape, so
+  display-timeline `rows` payloads or partial objects cannot suppress no-view
+  raw message writes. No migration required.
+- frontend/projection: remove the `preserveRendererAnnotations` switch from
+  ConversationView display projection, so explicit `rendererAnnotations` are
+  always the only renderer-local decoration channel beside SDK display rows. No
+  migration required.
+- frontend/lifecycle: drop `ConversationView.liveTurn.turnRef` from idle
+  visible lifecycle output, so stale SDK live-turn identity does not leak
+  through idle renderer surface state. No migration required.
+- frontend/stop: reject padded idle stop conversation refs instead of trimming
+  malformed `ConversationView` or active conversation identity into disabled
+  stop state. No migration required.
+- frontend/replay: stop replay command tracing from reading projected workspace
+  state; edit/retry actions now pass only active conversation scope plus target
+  row intent to the replay runtime. No migration required.
+- frontend/current-turn: reject legacy no-presentation SDK live-turn snapshots
+  without exact conversation refs instead of synthesizing `conversation`
+  renderer row identity. No migration required.
+- frontend/pending-turn: reject pending-turn bridge payloads that carry
+  attachment descriptors, screenshot refs, or filename aliases instead of
+  silently stripping them. No migration required.
+- frontend/attachments: route `AttachmentList` inputs through the SDK display
+  attachment projection helper so malformed component-level descriptors cannot
+  render or infer screenshot visuals. No migration required.
+- frontend/surfaces: reject padded SDK live-turn phases and response-overlay
+  surface modes in live-surface projection instead of trimming them into
+  awaiting or response overlay state. No migration required.
+- frontend/projection: reject padded `ConversationView.liveTurn.turnRef`
+  context before projecting SDK live entries into renderer row props, so view
+  live rows cannot expose repaired turn identity. No migration required.
+- frontend/chat: reject `ConversationView` store writes whose
+  `view.conversationRef` is missing, padded, or mismatched instead of repairing
+  SDK view identity from the active or requested chat conversation ref. No
+  migration required.
+- frontend/dashboard: reject loaded `ConversationView` snapshots whose
+  `view.conversationRef` is missing, padded, or mismatched instead of repairing
+  SDK view identity from the requested dashboard conversation ref. No migration
+  required.
+- frontend/stream: reject padded SDK conversation-event conversation and turn
+  refs before stream workspace routing, stale-turn checks, terminal pending
+  handoff, metadata row targeting, or completion tracking. No migration
+  required.
+- frontend/pill: reject padded chat-pill turn refs, conversation refs,
+  lifecycle phases, and SDK pill surface modes in the app-runtime session
+  helper instead of trimming them into overlay turn identity or trace/reset
+  payloads. No migration required.
+- frontend/lifecycle: reject repaired SDK live-turn phase and ConversationView
+  response-overlay mode labels instead of trimming padded lifecycle strings
+  into busy, awaiting, terminal, or response state. No migration required.
+- frontend/attachments: drop incomplete SDK attachment lifecycle descriptors in
+  the renderer projection adapter instead of letting malformed ready,
+  materializing, or screenshot-request records become display state. No
+  migration required.
+- frontend/replay: stop trimming edited replay text in the renderer before
+  dispatching SDK edit/resend commands, leaving text normalization and
+  non-empty validation with SDK replay. No migration required.
+- frontend/overlay: reject repaired response-overlay dismissal and responsebox
+  window identity refs instead of trimming padded turn, guard, conversation, or
+  entry ids into persisted dismissal keys or native window IPC values. No
+  migration required.
+- frontend/projection: reject repaired thread presentation conversation and turn
+  refs when gating or placing SDK live rows, so padded refs cannot alter live
+  row visibility or ordering. No migration required.
+- frontend/projection: reject repaired SDK live-entry ids in live-turn
+  side-effect dedupe, so padded presentation ids cannot suppress later exact
+  SDK entries. No migration required.
+- frontend/transport: reject repaired accepted send message ids from the desktop
+  runtime transport instead of trimming padded main-process results into SDK
+  send identity. No migration required.
+- frontend/stream: reject padded turn-to-conversation fallback refs instead of
+  trimming them into renderer no-view/pending routing maps. No migration
+  required.
+- frontend/projection: reject padded turn refs in replay projection trace
+  matching instead of trimming them into pending/live/current-turn diagnostics.
+  No migration required.
+- frontend/send: reject padded renderer send `turnRef`/`query_message_id`
+  values before dispatch instead of trimming them into SDK command identity. No
+  migration required.
+- frontend/stop: reject padded explicit stop refs in renderer SDK command
+  facades instead of trimming them into `conversation.stop` identity. No
+  migration required.
+- frontend/revisions: reject padded revision ids and conversation refs in
+  revision menu checkout/fork command shaping instead of trimming them into SDK
+  command identity. No migration required.
+- frontend/projection: stop trimming SDK live-entry `type` values into tool or
+  thinking rows; padded or empty live entry types now fall back to assistant
+  text. No migration required.
+- frontend/projection: reject padded SDK live-entry `sourceEventType` labels
+  instead of preserving them as renderer-visible source identity. No migration
+  required.
+- frontend/projection: assign SDK live-entry `sourceChannel` from the renderer
+  adapter path instead of letting live entry payloads override visibility tags.
+  No migration required.
+- frontend/projection: prefer containing SDK live-turn refs over entry-level
+  `turnRef` payloads when rendering live rows, preventing stale entry identity
+  from retargeting current live rows. No migration required.
+- frontend/projection: reject padded no-view SDK current-turn refs instead of
+  exposing malformed conversation or turn identity in fallback live row ids and
+  `turnRef` props. No migration required.
+- frontend/projection: stop trimming SDK live-entry tool identity fields into
+  renderer correlation ids; padded `correlationId`/`requestId`/`bundleId` values
+  now fall through instead of becoming dedupe keys. No migration required.
+- frontend/projection: apply the same exact tool identity rule to legacy
+  no-view SDK `toolEvents`, so padded fallback `correlationId`/`requestId`
+  values cannot become renderer correlation ids. No migration required.
+- frontend/projection: reject padded SDK live-entry and no-view `toolEvents`
+  tool names instead of trimming them into visible tool labels. No migration
+  required.
+- frontend/projection: reject repaired SDK live row ids during thread dedupe so
+  padded live ids cannot suppress materialized display rows. No migration
+  required.
+- frontend/projection: reject repaired turn refs during thread live/display
+  dedupe so padded materialized refs cannot suppress SDK live rows. No
+  migration required.
+- frontend/projection: reject repaired nested tool detail ids during thread
+  live/display dedupe so padded SDK detail identity cannot suppress live tool
+  rows. No migration required.
+- frontend/projection: reject padded SDK display-row `sourceEventType` metadata
+  instead of treating it as authored event identity. No migration required.
+- frontend/projection: reject padded SDK display-row `displayCorrelationId`
+  metadata instead of exposing malformed tool identity as renderer
+  correlation ids. No migration required.
+- frontend/projection: reject padded SDK display-row `turnRef` values instead
+  of exposing malformed turn identity in renderer chat-message props. No
+  migration required.
+- frontend/projection: reject repaired ConversationView display-row turn refs
+  during turn filtering and pending-bridge suppression, so malformed SDK row
+  identity cannot hide renderer pending sends. No migration required.
+- frontend/lifecycle: reject repaired SDK live-turn and ConversationView
+  identity during visible-lifecycle handoff, keeping padded refs from replacing
+  renderer pending sends. No migration required.
+- frontend/surfaces: reject padded SDK overlay and ConversationView surface
+  refs instead of trimming them into response-overlay turn, conversation, or
+  guard identity. No migration required.
+- frontend/projection: reject malformed SDK display-row `toolName` metadata
+  instead of passing padded or non-string tool labels into renderer tool rows.
+  No migration required.
+- frontend/actions: keep SDK replay action targets named as row ids through
+  renderer message-list and action props instead of relabeling them as message
+  ids. No migration required.
+- frontend/replay: name renderer replay diagnostics around generic SDK
+  `targetRowId` values while still dispatching the SDK command `messageId`,
+  avoiding user-row-only target semantics in edit/retry tracing. No migration
+  required.
+- frontend/stop: reject padded `ConversationView` and pending bridge stop
+  target refs instead of trimming them into SDK stop commands or
+  pending-bridge cleanup. No migration required.
+- frontend/stop: reject repaired no-view live-turn and pending bridge refs
+  during stopped-turn cleanup, keeping malformed stop targets from terminalizing
+  workspace state. No migration required.
+- frontend/pending-turn: reject padded pending bridge identity fields instead
+  of trimming them into visible bridge rows or Stop targets. No migration
+  required.
+- frontend/replay: reject padded SDK replay target row ids instead of trimming
+  them before edit/resend or retry command dispatch. No migration required.
+- frontend/projection: reject padded SDK display attachment ids and
+  artifact image-source fields instead of trimming them into valid renderer
+  display fetches. No migration required.
+- frontend/attachments: route message content kind, row class, and token image
+  estimates through the SDK display attachment validator, so malformed
+  descriptors cannot become renderer attachment presentation state. No
+  migration required.
+- frontend/send: reject padded typed attachment resource handles instead of
+  forwarding repaired clipboard image or readable-file values to SDK send.
+  Optional clipboard metadata is omitted when malformed. No migration required.
+- frontend/transport: stop trimming SDK-owned send resource metadata such as
+  `screenshot_ref`, `screenshot_refs`, and `attachment_filenames` in the
+  renderer desktop transport. No migration required.
+- frontend/input: reject malformed composer attachment resource handles before
+  creating attachment-only default-text sends, keeping preview-only state out of
+  SDK resource intent. No migration required.
+- frontend/projection: stop relabeling streaming SDK assistant display rows as
+  `assistant_delta`; the display adapter now preserves SDK-authored
+  `metadata.sourceEventType` or the generic row type while deriving completion
+  only from `row.isStreaming`. No migration required.
+- frontend/projection: make ConversationView pending-bridge suppression ask the
+  shared SDK display-row lookup helper instead of inferring same-turn user rows
+  from projected chat messages. No migration required.
+- frontend/chat-store: route raw message mutation no-op checks through
+  `DesktopConversationViewWorkspaceRuntime.hasWorkspaceConversationView(...)`,
+  keeping ConversationView authority detection out of the message mutation
+  runtime. No migration required.
+- frontend/overlay: stop using `ConversationView.displayRows` as a response
+  overlay view-shape marker; overlay display-row rendering stays behind
+  `DesktopConversationDisplayProjection`. No migration required.
+- frontend/send: route ConversationView prior-user detection through
+  `DesktopConversationDisplayRowLookupRuntime`, so send-state no longer carries
+  local SDK display-row scanning rules. No migration required.
+- frontend/projection: route ConversationView trace summaries through
+  `DesktopConversationDisplayProjection`, so replay/provider diagnostics no
+  longer scan SDK display rows directly. No migration required.
+- frontend/traces: reject padded no-view provider trace turn refs and source
+  event labels instead of trimming raw chat-store diagnostics into trace
+  identity. No migration required.
+- frontend/send: make chat send payload normalization a positive contract over
+  `text`, `clipboardImages`, and `readableFiles`, so renderer send prep no
+  longer carries explicit removed screenshot or attachment alias names. No
+  migration required.
+- frontend/projection: centralize same-turn SDK user display-row lookup in
+  `DesktopConversationDisplayRowLookupRuntime`, re-export it from
+  `DesktopConversationDisplayProjection`, and route ConversationView
+  pending-handoff and visible lifecycle code through the shared helper instead
+  of local `displayRows` scans. No migration required.
+- frontend/overlay: route response-overlay active-turn display-row conversion
+  through `DesktopConversationDisplayProjection` instead of importing the
+  low-level SDK display-row message projector directly. No migration required.
+- frontend/projection: delete the raw-message renderer annotation selector from
+  the ConversationView display projection adapter, so callers must pass explicit
+  `rendererAnnotations` records instead of asking the adapter to recover
+  feedback from chat rows. No migration required.
+- frontend/chat-store: store renderer-local assistant feedback as explicit
+  `rendererAnnotations` beside SDK `ConversationView` workspaces instead of
+  recovering it from raw `messages`, keeping raw message arrays out of the
+  normal view-owned read model. No migration required.
+- frontend/composer: strip preview-only attachment fields such as image
+  `previewUrl` and local ids from outgoing composer payloads before send
+  preparation, keeping previews UI-local while SDK resource handles carry only
+  base64/content type/filename or readable file path/name. No migration
+  required.
+- frontend/send: reject removed renderer-owned attachment and screenshot alias
+  fields in normal send payload normalization, so composer sends can only pass
+  text plus typed SDK resource handles while SDK resource resolution owns
+  durable attachment metadata. No migration required.
+- frontend/presentation: key no-view SDK live-turn presentation caching by
+  `presentation.entries` and live-turn refs, leaving raw
+  `assistantText`/`reasoningText`/`toolEvents` in an explicit legacy
+  no-presentation fallback path only. No migration required.
+- frontend/presentation: reconcile materialized and live dashboard/thread tool
+  rows by SDK display identity instead of tool name, while preserving
+  `requestId`/`bundleId` as renderer correlation ids for live entries and
+  keeping live tool detail records sanitized. No migration required.
+- frontend/overlay: reconcile materialized and live response-overlay tool rows
+  by SDK display identity instead of broad row type, so same-turn live-only tool
+  calls remain visible beside already-materialized tool rows. No migration
+  required.
+- frontend/conversation-view: ignore raw workspace message-array identity in
+  main chat presentation caching whenever a `ConversationView` exists, keeping
+  stale no-view rows from invalidating SDK-view rendering. No migration required.
+- frontend/conversation-view: reuse the empty renderer-annotation list when
+  stale raw rows contain no feedback, so no-feedback raw message churn cannot
+  invalidate SDK-view presentation. No migration required.
+- frontend/traces: stop provider trace snapshots from falling back to raw
+  messages or raw stream-tracking turn refs whenever a `ConversationView`
+  exists, even before the view has display rows. No migration required.
+- frontend/projection: stop relabeling unlabeled SDK `tool_progress` display
+  rows as web-search progress in the renderer adapter; web-search labels now
+  come only from SDK-authored display metadata. No migration required.
+- frontend/replay: remove the caller-provided active-conversation override from
+  replay execution; replay scope now resolves only from transcript session
+  state and the injected UI-state adapter. No migration required.
+- frontend/replay: pass replay execution a narrow UI-state adapter instead of
+  the full chat-store object, keeping SDK replay command dispatch independent
+  of Zustand's `getState()` contract. No migration required.
+- frontend/selectors: route the chat send read model through the shared
+  surface selector before checking prior user messages, keeping
+  `ConversationView` raw-message suppression in one renderer boundary. No
+  migration required.
+- frontend/attachments: count image-token estimates only from SDK
+  `attachments[]` descriptors whose `kind` is `image`, leaving pending or
+  failed screenshot request descriptors as display state. No migration required.
+- frontend/replay: remove chat-store replay wrapper exports; the replay hook
+  now calls the renderer replay runtime entrypoint directly and passes only a
+  narrow UI-state adapter. No migration required.
+- frontend/current-turn: keep the raw no-presentation current-turn fallback
+  builder private to the message runtime; tests and callers now use the public
+  no-view SDK live-turn facade. No migration required.
+- frontend/conversation-view: pass SDK display-row action metadata through to
+  chat message props without renderer target-id trimming or reconstruction. No
+  migration required.
+- frontend/attachments: remove renderer aggregate attachment lifecycle helpers
+  from message class and token usage presentation; those facades now consume
+  only the projected SDK `attachments[]` list. No migration required.
+- frontend/chat-store: keep the raw active workspace selector private to the
+  workspace runtime so chat UI selectors consume the cached read-model entry
+  point instead. No migration required.
+- frontend/attachments: remove the unused renderer attachment lifecycle summary
+  helper, keeping attachment adapters to SDK descriptor filtering, image checks,
+  and artifact source resolution only. No migration required.
+- frontend/replay: stop applying selected models through the renderer settings
+  facade before edit/retry dispatch; replay now passes model data to SDK
+  commands and leaves selection application to the SDK `send()` path. No
+  migration required.
+- frontend/conversation-view: narrow renderer annotation merging to assistant
+  feedback records only, so local feedback cannot mutate SDK user display rows
+  or act as a generic message overlay. No migration required.
+- frontend/conversation-view: key main chat presentation memoization from the
+  effective SDK live-turn input, so raw no-view live-turn fallback changes do
+  not invalidate `ConversationView` rendering. No migration required.
+- frontend/live-turn: stop visible lifecycle projection from treating raw
+  current-turn `assistantText`, `reasoningText`, or `toolEvents` as lifecycle
+  evidence; SDK presentation entries and `ConversationView.liveTurn.entries`
+  remain the live rendering authority. No migration required.
+- sdk/conversation-view: preserve SDK-authored materializing attachment
+  `previewSrc` fields in display-row projection state while backend-origin
+  attachment normalization continues to strip preview/data URL fields. No
+  migration required.
+- frontend/conversation-view: preserve the current-turn envelope
+  `conversationRef` when Electron main hydrates a newly tracked renderer with a
+  cached `ConversationView` but no raw current-turn projection, so renderer
+  reloads restore the SDK-owned chat read model without waiting for another
+  runtime event. No migration required.
+- frontend/replay: replace the generic chat-store replay action adapter with
+  named edit-user-row and retry-assistant-row commands, so React replay hooks
+  pass row intent while the adapter/runtime layer owns the SDK replay action
+  discriminator. No migration required.
+- frontend/live-turn: stop the legacy no-presentation current-turn tool-row
+  fallback from recovering tool names or correlation ids out of raw
+  `toolEvent.payload`; live tool presentation now uses SDK-shaped tool fields
+  only. No migration required.
+- frontend/conversation-view: tighten ConversationView workspace and response
+  overlay lifecycle inputs to their SDK-owned read-model contracts, clearing
+  pending sends from user display rows by `role` and keeping overlay visible
+  lifecycle calls free of unused raw message input. No migration required.
+- frontend/conversation-view: clear legacy renderer thinking, compaction, and
+  token readouts from the sanitized workspace read model whenever a
+  `ConversationView` is present, so SDK-rendered rows do not carry stale
+  renderer loop state beside the SDK-owned view. No migration required.
+- frontend/replay: require SDK row action metadata to include explicit
+  `editTargetRowId` or `retryTargetRowId` before rendering edit/resend or Try
+  again controls, removing renderer fallback target recovery from visible
+  message ids. No migration required.
+- frontend/stop: clear idle stop-target `turnRef`s for non-stoppable
+  `ConversationView` snapshots in renderer and Electron main, so only
+  SDK-stoppable views or the renderer pending bridge carry executable stop turn
+  ids. No migration required.
+- cli/test: update the core-loop regression preset to run the renamed
+  `DesktopSdkLiveTurnEffectsRuntime` and `DesktopAttachmentImageRuntime`
+  coverage instead of stale pre-boundary filenames, keeping SDK live-turn and
+  attachment invariants in the focused pack. No migration required.
+- frontend/replay: pass selected-model data into SDK retry/edit resend
+  commands so replay follows the SDK `send()` model-selection gate without a
+  renderer settings mutation. No migration required.
 - frontend/presentation: preserve legacy current-turn tool-call `requestId`
   values from the tool event payload as renderer `correlationId`s, so
   materialized display rows and live tool rows reconcile against the same
@@ -218,6 +1426,13 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/live-turn: render legacy no-view tool outputs from SDK-provided
   `toolEvent.text` instead of reconstructing display text from
   `toolOutputDetails` result payloads. No migration required.
+- sdk/live-turn: project current-turn `toolCallDetails` and `toolOutputDetails`
+  from SDK-authored display detail fields instead of raw event payloads, leaving
+  attachments and screenshot refs on their typed channels. No migration
+  required.
+- frontend/live-turn: pass SDK presentation-entry tool details through directly
+  in the normal current-turn renderer adapter, keeping detail sanitization only
+  for legacy no-presentation tool-event fallback. No migration required.
 - sdk/frontend: add SDK-authored `displayCorrelationId` on display-row
   metadata and make the renderer display-row adapter read only that field for
   component correlation identity, removing request/bundle/tool-call fallback

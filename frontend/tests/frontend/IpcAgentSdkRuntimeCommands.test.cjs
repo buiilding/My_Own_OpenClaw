@@ -75,6 +75,42 @@ describe('ipc_agent_sdk_runtime_commands', () => {
     expect(queryInput).not.toHaveProperty('payload');
   });
 
+  test('drops renderer-supplied resource aliases when typed turn resources are present', async () => {
+    const { commands, deps } = createCommands();
+
+    await expect(commands.sendQueryThroughAgentSdkRuntime({
+      messageId: 'turn-resource-alias',
+      payload: {
+        text: 'hello with resources',
+        conversation_ref: 'conversation-1',
+        resources: [{ kind: 'query_screenshot_request', required: false }],
+        screenshot_ref: 'stale-shot',
+        screenshot_url: '/api/artifacts/stale-shot',
+        screenshot_refs: ['stale-shot'],
+        attachment_context: 'stale attachment context',
+        attachment_filenames: ['stale.png'],
+        capture_meta: { stale: true },
+      },
+    })).resolves.toBe('query-1');
+
+    const queryInput = deps.agent.run.mock.calls[0][0];
+    expect(queryInput.resources).toEqual([{ kind: 'query_screenshot_request', required: false }]);
+    expect(queryInput.backendPayload).toEqual({
+      text: 'hello with resources',
+      conversation_ref: 'conversation-1',
+    });
+    expect(queryInput.screenshotRef).toBeUndefined();
+    expect(queryInput.screenshotRefs).toBeUndefined();
+    expect(queryInput.attachmentContext).toBeUndefined();
+    expect(queryInput.attachmentFilenames).toBeUndefined();
+    expect(queryInput.backendPayload).not.toHaveProperty('screenshot_ref');
+    expect(queryInput.backendPayload).not.toHaveProperty('screenshot_url');
+    expect(queryInput.backendPayload).not.toHaveProperty('screenshot_refs');
+    expect(queryInput.backendPayload).not.toHaveProperty('attachment_context');
+    expect(queryInput.backendPayload).not.toHaveProperty('attachment_filenames');
+    expect(queryInput.backendPayload).not.toHaveProperty('capture_meta');
+  });
+
   test('passes renderer model override through SDK run options instead of backend payload', async () => {
     const { commands, deps } = createCommands();
 
@@ -150,6 +186,52 @@ describe('ipc_agent_sdk_runtime_commands', () => {
     expect(queryInput.systemStateInternal).toEqual({ platform: 'darwin' });
     expect(queryInput.workspacePath).toBe('/repo/workspace');
     expect(queryInput).not.toHaveProperty('payload');
+  });
+
+  test('omits malformed SDK resource metadata instead of trimming it through agent run', async () => {
+    const { commands, deps } = createCommands();
+
+    await expect(commands.sendQueryThroughAgentSdkRuntime({
+      messageId: 'turn-resource-metadata',
+      payload: {
+        text: 'hello',
+        conversation_ref: 'conversation-1',
+        screenshot_ref: ' screenshot-padded ',
+        screenshot_refs: ['screenshot-1', ' screenshot-2 ', '', 42],
+        attachment_filenames: ['notes.txt', ' notes-padded.txt ', '', null],
+        capture_meta: ['display-lifecycle'],
+        workspace_path: ' /repo/workspace ',
+      },
+    })).resolves.toBe('query-1');
+
+    const queryInput = deps.agent.run.mock.calls[0][0];
+    expect(queryInput.screenshotRef).toBeUndefined();
+    expect(queryInput.screenshotRefs).toEqual(['screenshot-1']);
+    expect(queryInput.attachmentFilenames).toEqual(['notes.txt']);
+    expect(queryInput.workspacePath).toBeUndefined();
+    expect(queryInput.backendPayload).toEqual({
+      text: 'hello',
+      conversation_ref: 'conversation-1',
+      screenshot_refs: ['screenshot-1'],
+      attachment_filenames: ['notes.txt'],
+    });
+  });
+
+  test('preserves SDK attachment context without trimming file-content whitespace', async () => {
+    const { commands, deps } = createCommands();
+
+    await expect(commands.sendQueryThroughAgentSdkRuntime({
+      messageId: 'turn-attachment-context',
+      payload: {
+        text: 'hello',
+        conversation_ref: 'conversation-1',
+        attachment_context: '  file context\n  ',
+      },
+    })).resolves.toBe('query-1');
+
+    const queryInput = deps.agent.run.mock.calls[0][0];
+    expect(queryInput.attachmentContext).toBe('  file context\n  ');
+    expect(queryInput.backendPayload.attachment_context).toBe('  file context\n  ');
   });
 
   test('logs and returns null when query dispatch fails', async () => {
@@ -231,6 +313,15 @@ describe('ipc_agent_sdk_runtime_commands', () => {
     expect(helperSource).not.toContain(retiredFactorySignature);
     expect(helperSource).toContain('runtimeCommandPayload');
     expect(helperSource).toContain('backendPayload: runtimeCommandPayload');
+    expect(helperSource).toContain('function optionalAttachmentContext');
+    expect(helperSource).toContain('function optionalExactString');
+    expect(helperSource).toContain('function optionalExactStringArray');
+    expect(helperSource).toContain('function normalizeBackendResourceMetadata');
+    expect(helperSource).toContain('attachmentContext: optionalAttachmentContext(runtimeCommandPayload.attachment_context) || undefined');
+    expect(helperSource).toContain('screenshotRef: optionalExactString(runtimeCommandPayload.screenshot_ref) || undefined');
+    expect(helperSource).toContain('workspacePath: optionalExactString(runtimeCommandPayload.workspace_path) || undefined');
+    expect(helperSource).not.toContain('screenshotRef: optionalString(runtimeCommandPayload.screenshot_ref) || undefined');
+    expect(helperSource).not.toContain('workspacePath: optionalString(runtimeCommandPayload.workspace_path) || undefined');
     expect(helperSource).not.toContain('payload: runtimeCommandPayload');
     expect(helperSource).toContain('agent.stop({');
     expect(helperSource).toContain('agent.updateSettings(payload)');

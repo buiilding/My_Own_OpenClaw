@@ -1,5 +1,5 @@
 /**
- * Normalizes renderer chat send payloads into SDK turn input resources.
+ * Normalizes renderer chat send payloads into SDK turn resource handles.
  */
 
 export type ClipboardImagePayload = {
@@ -19,6 +19,22 @@ export type OutgoingUserMessagePayload = string | {
   readableFiles?: ReadableFilePayload[] | null;
 };
 
+const ALLOWED_OUTGOING_PAYLOAD_FIELDS = new Set([
+  'clipboardImages',
+  'readableFiles',
+  'text',
+]);
+
+function hasUnsupportedOutgoingPayloadField(payload: Record<string, unknown>): boolean {
+  return Object.keys(payload).some((field) => !ALLOWED_OUTGOING_PAYLOAD_FIELDS.has(field));
+}
+
+function exactNonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 && value === value.trim()
+    ? value
+    : null;
+}
+
 function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
   text: string;
   clipboardImages: ClipboardImagePayload[];
@@ -27,12 +43,27 @@ function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
   const normalizeClipboardImage = (
     clipboardImage: ClipboardImagePayload | null | undefined,
   ): ClipboardImagePayload | null => {
-    const hasClipboardImage = Boolean(
-      clipboardImage
-      && typeof clipboardImage.base64 === 'string'
-      && clipboardImage.base64.length > 0,
-    );
-    return hasClipboardImage ? clipboardImage : null;
+    const base64 = exactNonEmptyString(clipboardImage?.base64);
+    if (!base64) {
+      return null;
+    }
+    const contentType = exactNonEmptyString(clipboardImage?.contentType);
+    const filename = exactNonEmptyString(clipboardImage?.filename);
+    return {
+      base64,
+      ...(contentType ? { contentType } : {}),
+      ...(filename ? { filename } : {}),
+    };
+  };
+
+  const normalizeReadableFile = (
+    readableFile: ReadableFilePayload | null | undefined,
+  ): ReadableFilePayload | null => {
+    const filePath = exactNonEmptyString(readableFile?.filePath);
+    const filename = exactNonEmptyString(readableFile?.filename);
+    return filePath && filename
+      ? { filePath, filename }
+      : null;
   };
 
   if (typeof payload === 'string') {
@@ -43,7 +74,7 @@ function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
     return null;
   }
 
-  if (Object.prototype.hasOwnProperty.call(payload, 'clipboardImage')) {
+  if (hasUnsupportedOutgoingPayloadField(payload as Record<string, unknown>)) {
     return null;
   }
 
@@ -55,13 +86,8 @@ function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
 
   const normalizedReadableFiles = Array.isArray(payload.readableFiles)
     ? payload.readableFiles
-      .filter((readableFile): readableFile is ReadableFilePayload => Boolean(
-        readableFile
-        && typeof readableFile.filePath === 'string'
-        && readableFile.filePath.length > 0
-        && typeof readableFile.filename === 'string'
-        && readableFile.filename.length > 0,
-      ))
+      .map((readableFile) => normalizeReadableFile(readableFile))
+      .filter((readableFile): readableFile is ReadableFilePayload => Boolean(readableFile))
     : [];
 
   return {

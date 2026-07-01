@@ -10,16 +10,16 @@ function normalizeTurnRef(turnRef?: string | null): string | null {
   if (typeof turnRef !== 'string') {
     return null;
   }
-  const normalizedTurnRef = turnRef.trim();
-  return normalizedTurnRef.length > 0 ? normalizedTurnRef : null;
+  return turnRef.length > 0 && turnRef === turnRef.trim() ? turnRef : null;
 }
 
 function normalizeConversationRef(conversationRef?: string | null): string | null {
   if (typeof conversationRef !== 'string') {
     return null;
   }
-  const normalizedConversationRef = conversationRef.trim();
-  return normalizedConversationRef.length > 0 ? normalizedConversationRef : null;
+  return conversationRef.length > 0 && conversationRef === conversationRef.trim()
+    ? conversationRef
+    : null;
 }
 
 function registerTurnConversationRef(
