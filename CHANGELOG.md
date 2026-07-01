@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: remove the unused
+  `desktopRendererDisplayProjectionDiagnosticsClient.ts` app-runtime client and
+  document `renderer.display_projection` diagnostics as owned by active callers
+  plus the main diagnostics sanitizer. No migration required.
 - docs/backend: rename the backend endpoint setup guide from
   `backend/docs/install/local_backend_and_endpoint_setup.md` to
   `backend/docs/install/backend_endpoint_setup.md` so the path matches the

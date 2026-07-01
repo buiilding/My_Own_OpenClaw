@@ -1078,10 +1078,12 @@ describe('renderer app runtime boundary', () => {
     expect(source).toContain('Presentation contract/helper facade');
     expect(source).toContain('Forwarding/helper facade with current boundary value');
     expect(source).toContain('Removed forwarding-only adapter');
+    expect(source).toContain('Removed unused diagnostics client');
     expect(source).toContain('Removed migration shims');
     expect(source).toContain('desktopStreamPhaseRuntime.js');
     expect(source).not.toContain('desktopStreamPhaseRuntime.ts');
     expect(source).toContain('desktopStorageRuntimeClient.js');
+    expect(source).toContain('desktopRendererDisplayProjectionDiagnosticsClient.ts');
     expect(source).toContain('Do not delete a helper merely because it forwards');
     expect(source.match(/`desktopWorkspaceRuntimeClient\.ts` owns/g) || []).toHaveLength(1);
     expect(rendererStateWorkflowSource).toContain('dispatch through desktop app-runtime facades and SDK-shaped command clients');
@@ -1094,6 +1096,12 @@ describe('renderer app runtime boundary', () => {
       path.resolve(
         __dirname,
         '../../src/renderer/app/runtime/desktopStorageRuntimeClient.js',
+      ),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.resolve(
+        __dirname,
+        '../../src/renderer/app/runtime/desktopRendererDisplayProjectionDiagnosticsClient.ts',
       ),
     )).rejects.toThrow();
   });
