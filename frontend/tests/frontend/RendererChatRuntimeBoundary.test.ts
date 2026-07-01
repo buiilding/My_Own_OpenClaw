@@ -4722,7 +4722,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfacePresentationRuntimeSource).not.toContain('turnRef: liveTurn.turnRef ?? null');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('phase: liveTurn.phase ?? null');
     expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurnPresentationEntries');
-    expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurnLegacyNoPresentation');
+    expect(chatInterfacePresentationRuntimeSource).toContain('sdkLiveTurnRawNoPresentation');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('liveTurn.assistantText');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('liveTurn.reasoningText');
     expect(chatInterfacePresentationRuntimeSource).not.toContain('liveTurn.toolEvents');

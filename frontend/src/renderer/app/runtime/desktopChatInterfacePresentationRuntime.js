@@ -45,7 +45,7 @@ let chatInterfacePresentationCache = {
   sdkLiveTurnPresentation: null,
   sdkLiveTurnPresentationEntries: null,
   sdkLiveTurnPresentationLastError: null,
-  sdkLiveTurnLegacyNoPresentation: null,
+  sdkLiveTurnRawNoPresentation: null,
   state: null,
 };
 
@@ -65,7 +65,7 @@ function buildSdkLiveTurnCacheKey(sdkLiveTurn) {
       presentation: null,
       presentationEntries: null,
       presentationLastError: null,
-      legacyNoPresentation: null,
+      rawNoPresentation: null,
     };
   }
   const presentation = recordOrNull(liveTurn.presentation);
@@ -83,7 +83,7 @@ function buildSdkLiveTurnCacheKey(sdkLiveTurn) {
       presentation,
       presentationEntries,
       presentationLastError: readExactIdentityString(presentation.lastError),
-      legacyNoPresentation: null,
+      rawNoPresentation: null,
     };
   }
   return {
@@ -93,7 +93,7 @@ function buildSdkLiveTurnCacheKey(sdkLiveTurn) {
     presentation: null,
     presentationEntries: null,
     presentationLastError: null,
-    legacyNoPresentation: liveTurn,
+    rawNoPresentation: liveTurn,
   };
 }
 
@@ -126,8 +126,8 @@ function buildChatInterfacePresentationState({
     && chatInterfacePresentationCache.sdkLiveTurnPresentation === sdkLiveTurnCacheKey.presentation
     && chatInterfacePresentationCache.sdkLiveTurnPresentationEntries === sdkLiveTurnCacheKey.presentationEntries
     && chatInterfacePresentationCache.sdkLiveTurnPresentationLastError === sdkLiveTurnCacheKey.presentationLastError
-    && chatInterfacePresentationCache.sdkLiveTurnLegacyNoPresentation
-      === sdkLiveTurnCacheKey.legacyNoPresentation
+    && chatInterfacePresentationCache.sdkLiveTurnRawNoPresentation
+      === sdkLiveTurnCacheKey.rawNoPresentation
   ) {
     return chatInterfacePresentationCache.state;
   }
@@ -167,7 +167,7 @@ function buildChatInterfacePresentationState({
     sdkLiveTurnPresentation: sdkLiveTurnCacheKey.presentation,
     sdkLiveTurnPresentationEntries: sdkLiveTurnCacheKey.presentationEntries,
     sdkLiveTurnPresentationLastError: sdkLiveTurnCacheKey.presentationLastError,
-    sdkLiveTurnLegacyNoPresentation: sdkLiveTurnCacheKey.legacyNoPresentation,
+    sdkLiveTurnRawNoPresentation: sdkLiveTurnCacheKey.rawNoPresentation,
     state,
   };
   return state;

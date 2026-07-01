@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat: rename the ChatInterface live-turn presentation cache fallback
+  from `sdkLiveTurnLegacyNoPresentation` to `sdkLiveTurnRawNoPresentation` so
+  the app-runtime cache describes the current SDK live-turn state instead of a
+  legacy path. No migration required.
 - docs/nodes: rename the desktop/local-runtime node guide from
   `frontend/docs/nodes/desktop_and_sidecar_node.md` to
   `frontend/docs/nodes/desktop_and_local_runtime_node.md` and update active
