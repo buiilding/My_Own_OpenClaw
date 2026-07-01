@@ -300,7 +300,6 @@ jest.mock('../../src/renderer/app/skin/desktopRuntimeSkin', () => {
     },
   };
   return {
-    desktopRuntimeSkin,
     DesktopRuntimeSkin: {
       desktopRuntimeSkin,
     },

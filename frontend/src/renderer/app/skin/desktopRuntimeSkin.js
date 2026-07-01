@@ -4,7 +4,7 @@
 
 import { windieDesktopSkin } from './windieDesktopSkin';
 
-export const desktopRuntimeSkin = windieDesktopSkin;
+const desktopRuntimeSkin = windieDesktopSkin;
 
 function formatToolAcceptanceRuntimeSummary(acceptedTool) {
   const config = desktopRuntimeSkin.settings.agent.toolAcceptance;

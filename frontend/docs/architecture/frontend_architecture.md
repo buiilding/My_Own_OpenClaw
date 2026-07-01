@@ -412,8 +412,8 @@ Primary modules:
     runtime labels for the active renderer skin.
 - `renderer/app/skin/desktopRuntimeSkin.js`:
   - Generic renderer-facing facade over the active chat desktop UI skin.
-  - Exposes `desktopRuntimeSkin` plus helper access through
-    `DesktopRuntimeSkin` rather than re-exporting product skin helpers
+  - Exposes the active skin and helper access through `DesktopRuntimeSkin`
+    rather than re-exporting product skin helpers or a raw skin object
     directly.
   - Settings, memory, onboarding, and chat feature components should read
     product copy, app-specific tool catalog choices, destructive-action labels,

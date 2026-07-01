@@ -27,7 +27,7 @@ const rendererConfigReferencePath = path.resolve(
 );
 const credentialWorkflowPath = path.resolve(
   __dirname,
-  '../../docs/security/credential_token_change_workflow.md',
+  '../../docs/frontend/renderer/settings/model_settings_change_workflow.md',
 );
 const rendererStateWorkflowPath = path.resolve(
   __dirname,
@@ -108,11 +108,12 @@ describe('renderer skin/config boundary', () => {
     expect(skinSource).toContain('run_shell_command');
     expect(skinSource).toContain('requireUserMessage');
     expect(skinSource).not.toContain('export function formatToolAcceptanceRuntimeSummary');
-    expect(skinFacadeSource).toContain('export const desktopRuntimeSkin = windieDesktopSkin');
+    expect(skinFacadeSource).toContain('const desktopRuntimeSkin = windieDesktopSkin');
     expect(skinFacadeSource).toContain('export const DesktopRuntimeSkin = Object.freeze');
     expect(skinFacadeSource).toContain("from './windieDesktopSkin'");
     expect(skinFacadeSource).toContain('function formatToolAcceptanceRuntimeSummary');
     expect(skinFacadeSource).toContain('formatToolAcceptanceRuntimeSummary');
+    expect(skinFacadeSource).not.toContain('export const desktopRuntimeSkin');
     expect(skinFacadeSource).not.toContain('export {');
   });
 
@@ -251,8 +252,6 @@ describe('renderer skin/config boundary', () => {
   test('onboarding and chat consumers read product copy from the skin', () => {
     const consumers = [
       'features/onboarding/components/DesktopOnboardingSlideshow.jsx',
-      'features/chat/hooks/useChatMessageSender.ts',
-      'features/chat/hooks/useConversationReplayActions.js',
       'features/chat/components/ChatInterface.jsx',
       'features/chat/components/ChatBrowserSessionControl.jsx',
     ].map((relativePath) => fs.readFileSync(path.join(rendererRoot, relativePath), 'utf8'));

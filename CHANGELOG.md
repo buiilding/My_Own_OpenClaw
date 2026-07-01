@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/skin: make the active desktop runtime skin object private to
+  `desktopRuntimeSkin.js` and keep `DesktopRuntimeSkin` as the sole facade
+  export. No migration required for production code.
 - renderer/runtime: remove the unused
   `desktopRendererDisplayProjectionDiagnosticsClient.ts` app-runtime client and
   document `renderer.display_projection` diagnostics as owned by active callers
