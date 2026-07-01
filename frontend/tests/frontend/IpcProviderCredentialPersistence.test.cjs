@@ -8,6 +8,7 @@ describe('IPC provider credential persistence', () => {
   let userDataPath;
   let app;
   let safeStorage;
+  let providerCredentialsStore;
   let hydrateProviderApiKeySecretsForBackendSettings;
   let loadDesktopUiConfigFromDisk;
   let saveDesktopUiConfigToDisk;
@@ -30,9 +31,10 @@ describe('IPC provider credential persistence', () => {
       loadDesktopUiConfigFromDisk,
       saveDesktopUiConfigToDisk,
     } = require('../../src/main/ipc/ipc_desktop_ui_config.cjs'));
+    providerCredentialsStore = require('../../src/main/ipc/ipc_provider_credentials_store.cjs');
     ({
       hydrateProviderApiKeySecretsForBackendSettings,
-    } = require('../../src/main/ipc/ipc_provider_credentials_store.cjs'));
+    } = providerCredentialsStore);
   });
 
   afterEach(async () => {
@@ -90,6 +92,12 @@ describe('IPC provider credential persistence', () => {
         },
       },
     });
+  });
+
+  test('keeps provider credential disk path helper private', () => {
+    expect(providerCredentialsStore.getProviderCredentialsPath).toBeUndefined();
+    expect(typeof providerCredentialsStore.persistProviderApiKeySecrets).toBe('function');
+    expect(typeof providerCredentialsStore.hydrateProviderApiKeySecrets).toBe('function');
   });
 
   test('redacted provider key saves preserve encrypted keys and disabled saves clear them', async () => {

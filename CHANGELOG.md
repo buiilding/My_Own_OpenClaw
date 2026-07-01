@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: keep the provider credential store disk-path helper private so
+  callers use encrypted provider-key persist/hydrate operations instead of
+  depending on the side-file path. No migration required for production code.
 - main/runtime: keep `resolveRuntimePathConfig` private to
   `runtime_paths.cjs` so Electron main callers use the canonical local-runtime
   launch resolver or env-key helper instead of the intermediate config normalizer.

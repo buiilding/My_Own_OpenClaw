@@ -175,7 +175,6 @@ function hydrateProviderApiKeySecretsForBackendSettings(
 }
 
 module.exports = {
-  getProviderCredentialsPath,
   hydrateProviderApiKeySecrets,
   hydrateProviderApiKeySecretsForBackendSettings,
   persistProviderApiKeySecrets,
