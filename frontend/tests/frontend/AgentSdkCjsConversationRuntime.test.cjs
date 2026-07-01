@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const {
+  buildDisplayRows,
   createConversationEvent,
   InMemoryConversationStore,
   SdkConversationRuntime,
@@ -26,6 +27,85 @@ function createMockAgentRuntimeTransport(overrides = {}) {
 }
 
 describe('Agent SDK CJS conversation runtime', () => {
+  test('CJS display rows attach prompt transparency metadata to the matching user row', () => {
+    const user = createConversationEvent({
+      eventId: 'evt-user',
+      type: 'user_message',
+      conversationRef: 'conv-sdk-cjs-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'ui',
+      payload: { text: 'hello' },
+    });
+    const systemPrompt = createConversationEvent({
+      eventId: 'evt-system-prompt',
+      type: 'system_prompt',
+      conversationRef: 'conv-sdk-cjs-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'backend',
+      payload: { content: 'system prompt' },
+    });
+    const userMetadata = createConversationEvent({
+      eventId: 'evt-user-message-full',
+      type: 'user_message_metadata',
+      conversationRef: 'conv-sdk-cjs-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'backend',
+      payload: {
+        content: '<user_query>hello</user_query>',
+        metadata: { context_type: 'initial' },
+      },
+    });
+    const toolSchemas = createConversationEvent({
+      eventId: 'evt-tool-schemas',
+      type: 'tool_schemas_metadata',
+      conversationRef: 'conv-sdk-cjs-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'backend',
+      payload: {
+        toolSchemas: [{
+          type: 'function',
+          function: {
+            name: 'read_file',
+            parameters: { type: 'object', properties: {} },
+          },
+        }],
+      },
+    });
+
+    expect(buildDisplayRows([
+      user,
+      systemPrompt,
+      userMetadata,
+      toolSchemas,
+    ])).toEqual([
+      expect.objectContaining({
+        id: 'evt-user',
+        metadata: expect.objectContaining({
+          systemPrompt: {
+            content: 'system prompt',
+            toolSchemas: null,
+          },
+          fullUserMessage: {
+            content: '<user_query>hello</user_query>',
+            metadata: { context_type: 'initial' },
+          },
+          toolSchemas: [
+            expect.objectContaining({
+              type: 'function',
+              function: expect.objectContaining({
+                name: 'read_file',
+              }),
+            }),
+          ],
+        }),
+      }),
+    ]);
+  });
+
   test('loadDisplayTimeline includes same-revision send rows after an edit replacement', async () => {
     const store = new InMemoryConversationStore();
     await store.appendEvents([

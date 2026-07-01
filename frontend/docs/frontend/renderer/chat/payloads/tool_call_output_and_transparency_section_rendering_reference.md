@@ -253,7 +253,10 @@ same-turn user row as `metadata.systemPrompt`, `metadata.fullUserMessage`, and
 `metadata.toolSchemas`. The renderer `sdk:display-rows` adapter must preserve
 those fields on the projected user `ChatMessage`; otherwise `windie start dev`
 loses the dev-only transparency buttons under the user pill even though the
-source badge still renders.
+source badge still renders. Electron main builds first-class
+`ConversationView` snapshots from the SDK CJS package, so generated
+`frontend/packages/windie-sdk-js/cjs/projections/conversationProjections.js`
+must stay in sync with the TypeScript SDK source for this path.
 
 Tool schema list normalization is centralized in
 `frontend/src/renderer/infrastructure/transcript/toolSchemaShape.ts` and is

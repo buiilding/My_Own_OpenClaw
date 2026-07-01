@@ -7,9 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - frontend/chat: preserve SDK `ConversationView.displayRows` prompt
-  transparency metadata on user rows, so `windie start dev` continues showing
-  the System Prompt, Tool Schemas, and Full Message buttons under the user pill.
-  No migration required.
+  transparency metadata on user rows, including the Electron-main CJS runtime
+  projection, so `windie start dev` continues showing the System Prompt, Tool
+  Schemas, and Full Message buttons under the user pill. No migration required.
 - backend/anthropic: add LiteLLM prompt-cache markers to Anthropic tool
   definitions and stable prompt-context prefixes while leaving changing user
   turn content unmarked, so Claude can reuse cached input across repeated

@@ -618,6 +618,68 @@ function mergeUserMessageMetadata(row, event) {
         },
     };
 }
+function toolSchemasFromPayload(payload) {
+    const schemas = Array.isArray(payload.toolSchemas)
+        ? payload.toolSchemas
+        : (Array.isArray(payload.tool_schemas) ? payload.tool_schemas : null);
+    if (!schemas) {
+        return null;
+    }
+    const records = schemas
+        .map(entry => (0, toolOutputContent_js_1.recordFromUnknown)(entry))
+        .filter((entry) => Boolean(entry));
+    return records.length > 0 ? records : null;
+}
+function mergeUserPromptTransparencyMetadata(row, event) {
+    const raw = {
+        ...((0, toolOutputContent_js_1.recordFromUnknown)(row.metadata?.raw) ?? {}),
+        ...event.payload,
+    };
+    if (event.type === 'system_prompt') {
+        return {
+            ...row,
+            metadata: {
+                ...row.metadata,
+                eventId: event.eventId,
+                timestamp: event.timestamp,
+                systemPrompt: {
+                    content: textFromPayload(event.payload),
+                    toolSchemas: toolSchemasFromPayload(event.payload),
+                },
+                raw,
+            },
+        };
+    }
+    if (event.type === 'tool_schemas_metadata') {
+        return {
+            ...row,
+            metadata: {
+                ...row.metadata,
+                eventId: event.eventId,
+                timestamp: event.timestamp,
+                toolSchemas: toolSchemasFromPayload(event.payload),
+                raw,
+            },
+        };
+    }
+    const content = typeof event.payload.content === 'string' ? event.payload.content : null;
+    const metadata = (0, toolOutputContent_js_1.recordFromUnknown)(event.payload.metadata);
+    return {
+        ...row,
+        metadata: {
+            ...row.metadata,
+            eventId: event.eventId,
+            timestamp: event.timestamp,
+            ...(content !== null ? {
+                fullUserMessage: {
+                    content,
+                    ...(metadata ? { metadata } : {}),
+                },
+            } : {}),
+            raw,
+        },
+    };
+}
 function buildStreamingAssistantRow(event, index, rowId, assistantText, reasoningText, eventIds) {
     const raw = {
         ...event.payload,
@@ -710,12 +772,17 @@ function buildDisplayRows(events, options = {}) {
         if (eventTurnRef && supersededTurnRefs.has(eventTurnRef)) {
             continue;
         }
-        if (event.type === 'user_message_metadata') {
+        if (event.type === 'system_prompt'
+            || event.type === 'user_message_metadata'
+            || event.type === 'tool_schemas_metadata') {
             const key = userMetadataKey(event);
             const rowIndex = key ? userRowsByTurn.get(key) : undefined;
             const row = typeof rowIndex === 'number' ? rows[rowIndex] : null;
             if (row?.type === 'user_message') {
-                rows[rowIndex] = applyLiveAttachmentsToUserRow(mergeUserMessageMetadata(row, event), options);
+                const merged = event.type === 'user_message_metadata'
+                    ? mergeUserPromptTransparencyMetadata(mergeUserMessageMetadata(row, event), event)
+                    : mergeUserPromptTransparencyMetadata(row, event);
+                rows[rowIndex] = applyLiveAttachmentsToUserRow(merged, options);
             }
             continue;
         }
