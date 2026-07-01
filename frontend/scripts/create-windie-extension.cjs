@@ -255,9 +255,6 @@ if (require.main === module) {
 }
 
 module.exports = {
-  buildFiles,
   createWindieExtension,
   parseArgs,
-  runCli,
-  toTitleCase,
 };

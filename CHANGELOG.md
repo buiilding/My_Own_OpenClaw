@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/scripts: keep `create-windie-extension.cjs` exports to the tested
+  scaffold API and leave CLI-only helpers private. No migration required for
+  production code.
 - renderer/artifacts: make `desktopArtifactRuntimeClient.ts` request/result
   helper types private so `DesktopArtifactRuntimeClient` remains the only
   public artifact facade export. No migration required for production code.
